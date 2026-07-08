@@ -1,0 +1,191 @@
+# Bunyan — Core Logic & Domain Model
+
+**Purpose.** This is the durable reference for *what Bunyan is* — its domain concepts, their identities, the relationships and rules that hold between them, and the states they move through. It is deliberately **not tied to v1.0.0**: it describes the conceptual model the product grows within, and it is written to be aware of the long-term directions (the "north-stars" in §9) so the model does not dead-end.
+
+**Scope boundary.** This document owns *domain meaning*. It carries only the **minimum** architecture needed to make the domain unambiguous; the full architecture (layers, worker protocol, data flow, security, determinism mechanics) lives in `architecture.md`. Version-specific scope, decisions, and acceptance criteria live in `V1.0.0_spec.md`.
+
+**Reading order.** `core_logic.md` (this) → `architecture.md` → `V1.0.0_spec.md` → `v1.0.0_imp_plan.md`.
+
+---
+
+## 1. What Bunyan is (one paragraph)
+
+Bunyan is a browser-native, serverless parametric **BIM/CAD authoring platform for building design**. A user assembles a building out of parametric objects (walls, slabs, columns, openings…) whose shapes are computed by an exact **B-Rep solid-geometry kernel** (OpenCascade / OCCT). The design is stored as a *parametric description* — objects, their parameters, and the references between them — from which exact geometry is regenerated on demand. Everything the user sees on screen (meshes, 2D cut lines) is a **disposable projection** of that description. The product is designed to grow **additively**: new object types, tools, views, and file formats are registered against stable contracts rather than changing a core.
+
+---
+
+## 2. The one non-negotiable invariant
+
+> **B-Rep solid geometry is the source of truth. Meshes and 2D views are disposable display artifacts, regenerated on demand. The parametric description is the source of truth for the B-Rep.**
+
+Two consequences that shape the entire domain model:
+
+1. **Geometry is derived, not stored as truth.** A saved project is primarily a *recipe* (`scene.json`): object types, parameters, references, and the identity token map. A cached B-Rep may accompany it for speed, but losing the cache never loses the design — it is rebuilt from the recipe.
+2. **Identity must survive regeneration.** Because geometry is rebuilt, any reference to a *piece* of geometry (a face, an edge) cannot be a positional index — it must be an identity that is stable across rebuilds. This is the hardest and most important idea in the domain: **persistent sub-shape naming** (§5).
+
+---
+
+## 3. Domain entities
+
+The domain is a small set of concepts. Each has an **identity**, a **state**, and **relationships**. (Types below are conceptual, not the literal wire format — see `architecture.md`.)
+
+### 3.1 Project / Document
+The whole design. A container of BIM Objects plus organizational scaffolding (levels), settings, and the derived caches. Persisted as a self-contained local package (`.bimproj`). Identity: a project id. A Document is the unit of open/save/undo.
+
+### 3.2 Level / Story
+An elevation datum that organizes objects vertically (ground floor, first floor…). Objects reference a Level; a Level has an elevation. Levels are the primary *organizational* relationship in a building model and are scaffolding that everything BIM-shaped depends on. Identity: `levelId`.
+
+### 3.3 BIM Object (instance)
+A single modeled thing in the project — *this* wall, *that* column. It is an **instance of a BIM Object Type** carrying:
+- `id` — stable instance identity.
+- `typeId` — which Type governs it (§3.4).
+- `params` — the parameters that drive its geometry (length, height, thickness, profile…).
+- `levelId` — its organizing Level.
+- `transform` — placement in world space (millimetre coordinates).
+- `subShapeRefs[]` — references this object holds into *other* objects' geometry (§5), e.g. an Opening's reference to its host wall's face.
+
+An object's exact geometry is **not** stored on the instance as truth — it is produced by its Type's `buildGeometry(params)` and cached.
+
+### 3.4 BIM Object Type (the governing contract)
+A *kind* of thing (Wall, Slab, Column, Opening, GenericSolid, and — later — Door, Window, Roof, Stair…). A Type is a registered contract, not a hard-coded class list. It defines:
+- how to build geometry from parameters (`buildGeometry`),
+- the parameter schema (which drives an auto-generated property UI),
+- how it maps to/from interchange formats (IFC),
+- optional **typed quantities** (for future schedules/analysis, §9),
+- a **version** and migration path so old projects keep loading as the Type evolves.
+
+**Domain rule:** adding a new kind of building element is adding a new Type, never editing the core. This is the mechanism by which Bunyan reaches toward Revit-class breadth incrementally.
+
+### 3.5 GenericSolid (the escape hatch)
+A Type whose "parameters" are a free sketch plus an operation (extrude/revolve). It exists so the modeller is never blocked by the absence of a named Type, and it is the **import target for any geometry that does not map to a known Type** (e.g. unrecognized IFC entities import as GenericSolid with geometry preserved but non-parametric). It keeps the product useful at every stage of its growth.
+
+### 3.6 Opening & Host (the canonical parametric relationship)
+An **Opening** is a void subtracted from a **Host** (a Wall or Slab). It is the archetype of a *reference-carrying* object and the reason persistent naming exists:
+- The Opening references a **face of the host** via a `SubShapeRef` (§5), plus a position and size.
+- When the host's parameters change and its geometry is rebuilt, the referenced face must still be found so the Opening re-cuts correctly.
+- **Anchoring semantics (a domain decision, not an implementation detail).** How an Opening repositions when its host is resized is governed by an **anchoring parameter** on the Opening:
+  - `fixed` — the Opening holds an **absolute offset from a datum edge/corner** of the host (the safe, predictable default). Growing the wall does not move the opening.
+  - `proportional` — the Opening's position scales with the host, so it "floats" as a fraction of the host's extent.
+  - `centered` — the Opening stays centred on the host face.
+  This anchoring model is the seed of the general **constraint** concept the product grows toward (a real geometric constraint solver is a future direction; the anchoring parameter is the domain-level down-payment on it).
+
+The Opening→Host pattern generalizes: a future Door/Window is "Opening + inserted family"; a future hosted fixture is the same reference-carrying shape. Getting this relationship right is getting the domain right.
+
+### 3.7 Sketch & Profile
+2D geometry (lines, rectangles, circles, arcs) that feeds 3D operations (extrude/revolve). A Profile handed to the kernel must be **valid** (closed, non-self-intersecting). Sketches are dimensioned **numerically** today; a **geometric constraint solver** (the general form of "this dimension equals that") is a north-star the Sketch concept is designed to accept later.
+
+### 3.8 Operation & the Operation DAG
+Every geometric result is produced by **operations** (make-box, extrude, boolean, fillet…). Operations form a **directed acyclic graph**: an operation's inputs are the outputs of earlier operations. This DAG is the backbone of identity (§5) and of incremental rebuild (only the affected subgraph re-runs on an edit). The DAG has **two granularities**:
+- **Coarse (feature-level)** — what the user sees as model history ("added wall", "cut opening").
+- **Fine (primitive-op level)** — the internal steps the identity system propagates through.
+
+### 3.9 Sub-shape & SubShapeRef
+A **sub-shape** is a face, edge, or vertex of an object's B-Rep. A **`SubShapeRef`** is the *stable, opaque identity* of a sub-shape — a structured path through the Operation DAG (which operation produced it, from which inputs, in which role/occurrence), **never a raw geometric index**. `SubShapeRef` is the currency of every parametric reference. (§5 is entirely about how this identity is defined and kept stable.)
+
+### 3.10 Representation / View
+A **derived projection** of the document graph: the 3D view, a 2D plan cut, a 2D elevation, and — later — schedules and sheets. Views are registered independently and are **always regenerated from the truth**, never authored as separate drawings. A 2D plan is a *real section cut of the real B-Rep*, which is itself a proof that the kernel is the source of truth. This is why "add 2D documentation" or "add a quantities schedule" is an additive View, not a new source of truth.
+
+### 3.11 Material & Quantity (declared now, realized later)
+The domain reserves two concepts so the model does not dead-end:
+- **Material** — a property of an object/type carrying appearance and (future) physical properties.
+- **Quantity** — typed measurable properties (length, area, volume, count) a Type can expose.
+These back the **analysis & quantities** north-star (§9); a Type may declare them before any consumer exists.
+
+### 3.12 Command & UndoableEdit
+A **Command** is a user action (draw, extrude, boolean, move, array, retarget…). Executing a Command against the Document produces an **UndoableEdit** — a *state delta*, not a recorded command to replay. Undo/redo moves the parametric state backward/forward and **re-resolves references**; because identity is stable and geometry is deterministically rebuildable, this avoids the classic "replay produces different topology" hazard. A Command whose kernel work fails produces **no** UndoableEdit (§7).
+
+---
+
+## 4. Identity — the rules that make the model coherent
+
+Identity is where BIM/CAD domains usually break. Bunyan's rules:
+
+- **Instance identity** (`id`, `levelId`, `typeId`) is assigned on creation and never reused.
+- **Sub-shape identity** (`SubShapeRef`) is **derived, not recovered**: a sub-shape *is* its derivation path through the Operation DAG. It is assigned when the operation runs and carried forward, never re-matched geometrically after the fact.
+- **No positional identity on the resolve path.** The single sanctioned exception is a genuinely symmetric split where structural data cannot distinguish children — then, and only then, a bounded, grid-rounded positional key breaks the tie. Everywhere else, geometry never determines identity.
+- **Identity is deterministic.** Given the same parametric input, identity assignment is reproducible — including across machines and across the kernel's parallel execution — because the identity system normalizes ordering before assigning IDs. (Mechanics in `architecture.md`.)
+
+These rules are what let a reference (an Opening on a wall, a fillet on an edge) **survive a rebuild**, which is the whole point.
+
+---
+
+## 5. Persistent naming — the domain's hardest idea, stated plainly
+
+**The problem.** When a host changes and its geometry is rebuilt, the kernel does not promise that "the same face" keeps the same index. Any reference stored as an index would silently point at the wrong face. This is the *topological naming problem* that has historically plagued parametric CAD.
+
+**The domain's answer: functional / generative naming.**
+- Identity is **assigned at creation and propagated forward** as operations build on operations. Each operation, as it runs, labels its output sub-shapes in terms of the operation and the identities of its inputs (e.g. "the lateral face generated by extruding edge *k* of this profile", "the face modified by this boolean").
+- Resolving a `SubShapeRef` after a rebuild is **replaying the derivation**, not searching geometry.
+- If a change makes a referenced sub-shape genuinely cease to exist, the dependent is marked **broken** and surfaced for **manual retargeting** — it is **never** silently reattached to a different piece of geometry. Predictable breakage beats silent wrongness.
+
+**Why this is a domain concept and not just an implementation detail:** it defines what a *reference* means in Bunyan, and therefore what parametric behaviour users can rely on. Every reference-carrying relationship in the product (openings, fillets, and every future hosted element) inherits its guarantees and its failure mode from this model.
+
+**Honest caveat (belongs in the domain because it bounds behaviour):** the propagation relies on the kernel's history being complete down to edges and vertices — historically the weakest area. Where a needed reference's history is inadequate, that reference class is either explicitly reconstructed or deferred; it does **not** degrade into geometric guessing. The set of reference classes the product supports therefore grows with verified history coverage, not by relaxing the identity rules.
+
+---
+
+## 6. Relationships (how entities connect)
+
+- **Object → Type** (`typeId`): governs how it builds and maps.
+- **Object → Level** (`levelId`): organizes it vertically.
+- **Object → Object via SubShapeRef** (host/dependent): the parametric backbone — Opening→Wall, Fillet→edge, future hosted families. Directed; drives dependency tracking and incremental rebuild.
+- **Operation → Operation** (DAG): input/output derivation; the substrate of identity and rebuild.
+- **Document → View** (derivation): views are projections, always regenerated.
+- **Type → Codec** (via `ifcMapping`): how a kind of object crosses the interchange boundary.
+- **Object → Material / Quantity** (declared, future-realized): the analysis substrate.
+
+**Domain invariant:** the reference graph among objects is a DAG (no cyclic hosting). Dependency direction defines rebuild order.
+
+---
+
+## 7. States & lifecycle
+
+**Document:** `new → dirty ↔ saved`, with an orthogonal `recovered` (from autosave after a crash).
+
+**BIM Object geometry:** `valid` (built and cached) · `stale` (params changed, awaiting rebuild) · `rebuilding` · `failed` (kernel operation failed) · `broken-ref` (a `SubShapeRef` it depends on could not be resolved).
+
+**Operation-failure semantics (a domain-level rule, because it defines what the user can trust):** kernel operations fail on legitimate input (fillet radius too large, open/self-intersecting profile, empty boolean). When one fails, Bunyan **rejects the edit and keeps the last-good state** — no partial geometry, no silent repair — and surfaces a typed, understandable error. (Optional auto-repair and a downloadable repro bundle are future refinements; the *contract* is "reject + keep last-good".)
+
+**Reference:** `resolved ↔ broken`. A broken reference is a first-class, visible state awaiting **manual retargeting** (itself an undoable edit), never auto-healed.
+
+**Cache:** `fresh ↔ stale` (stale when the kernel build id changes or the recipe changed); a stale/missing/corrupt cache is rebuilt from the recipe and never treated as truth.
+
+---
+
+## 8. Core domain rules (the invariants to preserve at every version)
+
+1. The parametric recipe is the source of truth; geometry and views are derived and disposable.
+2. Sub-shape references are stable identities derived from provenance, never positional indices.
+3. Broken references fail loudly (marked, manually retargeted), never silently reattach.
+4. Failed operations reject and preserve the last-good state; no partial or auto-invented geometry.
+5. New kinds of things (types, commands, formats, views) are **additive registrations**, never core edits.
+6. Identity assignment is deterministic and reproducible across machines and parallel execution.
+7. Units are millimetres internally; interchange declares its own units at the boundary.
+8. Nothing in the current version may foreclose a declared north-star (§9).
+
+---
+
+## 9. North-stars — future directions the model must not dead-end
+
+The domain model is shaped so these become **additive** growth, not rewrites. Each notes the domain hook already present.
+
+- **Analysis & quantities** (structural/energy analysis, schedules, quantity take-off). *Hook:* Types may declare typed **Quantities** and **Materials** (§3.11); Views can host schedule representations. The model treats geometry and measurable properties as separable so an analytical view of the same objects can be added later.
+- **Real-time multi-user co-editing** of the parametric graph. *Hook:* stable per-object and per-operation **identity** (§4), edits expressed as discrete **UndoableEdit deltas** (§3.12), and a DAG with explicit dependency direction — the substrate a future conflict-resolution layer (locked/sequential first, then concurrent) needs. The domain avoids hidden global mutable state that would make merging impossible.
+- **Server-side / headless kernel** (move heavy geometry off the browser, batch processing). *Hook:* geometry is produced behind an **engine-agnostic worker boundary** (a flat, versioned message protocol — see `architecture.md`), so the kernel's *location* is not baked into the domain. The identity system is explicitly designed to allow a future native/C++ implementation without changing meaning.
+- **Scripting & generative design** (script-authored parametric families, CadQuery/build123d spirit). *Hook:* a **BIM Object Type** is a contract, not a hard-coded class — a script can register a Type whose `buildGeometry` is user-defined, and its outputs are ordinary objects with no special-casing. Sketches are designed to later accept a **constraint solver**; the Opening **anchoring parameter** (§3.6) is the first, concrete constraint the model already carries.
+
+**Interoperability trajectory.** Interchange is a **Codec** concept (import/export against one contract), so IFC today, and STEP/DXF/glTF/IFC5-IFCX tomorrow, are sibling registrations. Import is *mapped-or-GenericSolid*: known kinds become parametric Types, everything else survives as geometry. Export follows the same mapping as writer support matures.
+
+---
+
+## 10. Deliberate non-concepts (what the domain intentionally does not model)
+
+To keep the model honest about its boundaries: Bunyan does **not** treat meshes, 2D drawings, or exported files as authoritative; it does **not** carry a global mutable geometry store outside the recipe+cache discipline; and it does **not** encode identity in geometry. These are not omissions to fix later — they are load-bearing constraints. Violating any of them reintroduces the exact failure modes (topological-naming drift, silent data loss, non-reproducible rebuilds) the model exists to prevent.
+
+---
+
+## 11. Pointers
+
+- **How it is built** (layers, worker protocol, registries, determinism mechanics, security, persistence): `architecture.md`.
+- **What ships in the first release** (scope, decisions, acceptance criteria): `V1.0.0_spec.md`.
+- **The build sequence:** `v1.0.0_imp_plan.md`.
