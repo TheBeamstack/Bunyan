@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: typecheck · lint · geometry harness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck (strict)
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Format check
+        run: pnpm format:check
+
+      # Runs the WASM build only — pythonocc/OCP is NEVER in CI (spec §9, decision D6/D9).
+      # The goldens it checks against are committed, seeded offline on the pinned environment.
+      - name: Geometry harness (golden + invariant + regression snapshot)
+        run: pnpm test
+
+      # The re-seed gate (spec §9): a changed `buildGeometry` MUST ship re-seeded goldens.
+      # Scaffolded here so it is impossible to add geometry later and quietly skip the gate.
+      - name: Re-seed gate
+        run: node scripts/check-reseed.mjs
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
+          HEAD_REF: ${{ github.sha }}

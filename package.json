@@ -1,0 +1,33 @@
+{
+  "name": "bunyan",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser-native parametric BIM/CAD platform (OCCT/WASM kernel behind a versioned message protocol)",
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json && tsc -p packages/kernel-mock/tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "verify": "pnpm typecheck && pnpm lint && pnpm test"
+  },
+  "devDependencies": {
+    "@bunyan/kernel-client": "workspace:*",
+    "@bunyan/kernel-core": "workspace:*",
+    "@bunyan/kernel-mock": "workspace:*",
+    "@bunyan/protocol": "workspace:*",
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^20.17.10",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^2.1.8"
+  }
+}

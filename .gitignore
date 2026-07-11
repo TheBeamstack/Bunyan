@@ -1,0 +1,24 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# python (offline oracle tooling — never in CI)
+.venv/
+__pycache__/
+*.egg-info/
+uv.lock
+
+# build output
+dist/
+*.tsbuildinfo
+
+# OCCT / WASM build artifacts (multi-MB; produced by the kernel build, not committed)
+packages/kernel-occt/wasm/
+*.wasm
+!tests/fixtures/**/*.wasm
+
+# local
+.DS_Store
+*.log
+.env
+.env.local

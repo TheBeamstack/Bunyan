@@ -1,0 +1,18 @@
+{
+  "name": "@bunyan/kernel-client",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Main-thread kernel dispatcher: correlation ids, transferables, edit coalescing, cancellation.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --build"
+  },
+  "dependencies": {
+    "@bunyan/protocol": "workspace:*"
+  }
+}

@@ -1,0 +1,14 @@
+# The spec/architecture/domain/plan documents are owner-authored prose — formatting them is noise
+# and makes review diffs unreadable. Prettier owns code, not the design record.
+V1.0.0_spec.md
+architecture.md
+core_logic.md
+v1.0.0_imp_plan.md
+current_state.md
+
+# generated / vendored
+pnpm-lock.yaml
+tests/goldens/
+node_modules/
+dist/
+.venv/

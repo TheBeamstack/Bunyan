@@ -185,10 +185,13 @@ All input is untrusted; there is no server to sanitize on.
 
 ## 11. Testing architecture (how correctness is enforced)
 
-Split by *what a check can actually certify* (spec §9, decision D9):
+Scoped by *what we are actually trying to catch* (spec §9, decision D9 — **rewritten 2026-07-11**):
 
-- **Independent oracle (first-correctness):** gross **volume/area/length** and **solid/face/edge counts**, seeded **offline** from pythonocc-core/FreeCAD on a **pinned environment**, compared within tolerance in CI against the WASM build. Independent kernel ⇒ certifies geometry is actually right.
-- **Regression snapshots (no-regression only):** **per-sub-shape mass checksums** (over the naming token map) and the **adjacency-graph hash** (topology graph, nodes labelled by structural `SubShapeRef` IDs, canonical serialization, SHA-256). pythonocc cannot produce structural-ID labels, so these are Bunyan-self-snapshots — honestly documented as regression guards, with first-correctness coming from the oracle + manual seed review.
+**We trust OCCT; we verify our own code.** Validating the kernel is out of scope. The harness exists to catch *our* mis-wired parameters, *our* wrong op sequences, *our* broken WASM build, *our* regressions, and *our* measurement mistakes.
+
+- **Reference-build oracle (primary):** gross **volume/area/length** and **solid/face/edge counts**, seeded **offline** from a **native OCCT build** (`cadquery-ocp`) on a **pinned environment**, compared within tolerance in CI against the WASM build. Same kernel, different binding/build/code path ⇒ a disagreement means *our* build or wiring is wrong. It does **not** certify OCCT (nor is it asked to): the earlier "independent kernel" framing was withdrawn because these bindings *are* OCCT.
+- **Closed-form sanity check (where a formula exists):** exact analytic values, cross-checked **at seed time**; the seeder aborts on disagreement. Guards the one layer the reference build cannot — *our own measurement/seeding code*. Not required where no closed form exists.
+- **Regression snapshots (no-regression only):** **per-sub-shape mass checksums** (over the naming token map) and the **adjacency-graph hash** (topology graph, nodes labelled by structural `SubShapeRef` IDs, canonical serialization, SHA-256). No external tool can produce structural-ID labels, so these are Bunyan-self-snapshots — drift guards that certify nothing on their own.
 - **Bounds:** tight `Bnd_Box` (`BRepBndLib::AddOptimal`) vs. an explicit schema.
 - **Persistent-naming regression suite:** "edit host → dependents re-resolve or correctly break"; the gate that validates OCCT edge/vertex history coverage (§5.6) and the **reference-stability corpus** for the kernel-migration gate.
 - **Kernel-migration gate:** an OCCT upgrade within 1.0.x replays the reference-stability corpus and fails on any changed re-resolution.
@@ -199,7 +202,9 @@ Split by *what a check can actually certify* (spec §9, decision D9):
 - **First-load budget check:** throttled-profile CI gate.
 - **Re-seed rule:** any new/changed `buildGeometry` must ship re-seeded goldens or CI fails.
 
-CI runs the WASM build only; **pythonocc is never in CI** (offline seeding only).
+CI runs the WASM build only; **the OCCT-native Python oracle (`cadquery-ocp`) is never in CI** — offline seeding only.
+
+**Heavy runs vs. the box.** The dev box also serves the owner's live public sites, so any heavy build/benchmark (notably the OCCT→WASM compile) follows the **box-discipline protocol** in `v1.0.0_imp_plan.md` (Cross-cutting practices): free memory by pausing other projects' **non-production** services; **never** touch the production containers.
 
 ---
 
