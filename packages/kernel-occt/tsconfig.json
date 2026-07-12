@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // WebWorker (not DOM): this package contains the worker entry point. The two libs cannot be
+    // loaded together — they both declare `self`/`postMessage` — which is why the root typecheck
+    // project excludes `worker.ts` and this project owns it. Same arrangement as kernel-mock.
+    "lib": ["ES2022", "WebWorker"],
+    "types": []
+  },
+  "include": ["src/**/*.ts", "wasm/*.d.ts"]
+}

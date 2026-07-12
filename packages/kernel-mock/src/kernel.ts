@@ -13,7 +13,16 @@ import type { KernelImplementation, OpHandlers } from '@bunyan/kernel-core';
 import { KernelFailureError, kernelFailure } from '@bunyan/protocol';
 import type { KernelInfo } from '@bunyan/protocol';
 
-import { boxEdgeRefs, boxFaceRefs, boxBounds, tessellateBox } from './box.js';
+import {
+  boxDistance,
+  boxEdgeRefs,
+  boxFaceRefs,
+  boxBounds,
+  boxMeasure,
+  boxSubShapeBounds,
+  classifyAgainstBox,
+  tessellateBox,
+} from './box.js';
 import type { BoxParams } from './box.js';
 
 export const MOCK_KERNEL_INFO: KernelInfo = {
@@ -22,7 +31,21 @@ export const MOCK_KERNEL_INFO: KernelInfo = {
   // A distinct build id matters: it must invalidate any BREP cache written by a real kernel (spec §6).
   buildId: 'mock-kernel-v0',
   threading: 'single',
-  capabilities: ['makeBox', 'tessellate'],
+  // ⚠ WHAT IS **NOT** HERE IS THE POINT: no `makeCylinder`, no `boolean`, no `fillet`. A mock cannot
+  // fake a boolean — it would have to BE a geometry kernel — and pretending otherwise would hand the
+  // browser a solid whose sub-shape identities are invented. Those ops return UNKNOWN_OP here, and
+  // `capabilities` says so up front, so a caller can find out by asking rather than by being lied to.
+  //
+  // The GEOMETRIC QUERIES (D23) *are* here, because for an axis-aligned box they are closed-form and
+  // therefore exact — so the agent/query code path can be built against the mock, with no 14 MB wasm.
+  capabilities: [
+    'makeBox',
+    'measure',
+    'bounds',
+    'distance',
+    'classifyPoint',
+    'tessellate',
+  ],
 };
 
 function requireFinitePositive(name: string, value: unknown): number {
@@ -40,6 +63,16 @@ function requireFinitePositive(name: string, value: unknown): number {
 export function createMockKernel(): KernelImplementation {
   const shapes = new ShapeRegistry<BoxParams>({ prefix: 'mock' });
 
+  const liveShape = (handle: string, op: string): BoxParams => {
+    const params = shapes.get(handle);
+    if (params === undefined) {
+      throw new KernelFailureError(
+        kernelFailure('HANDLE_NOT_FOUND', `No live shape for handle "${handle}"`, { op }),
+      );
+    }
+    return params;
+  };
+
   const handlers: OpHandlers = {
     echo: (payload) => payload,
 
@@ -56,7 +89,7 @@ export function createMockKernel(): KernelImplementation {
         );
       }
 
-      const params: BoxParams = { nodeId: payload.nodeId, dx, dy, dz };
+      const params: BoxParams = { nodeId: payload.nodeId, dx, dy, dz, ...(payload.at ? { at: payload.at } : {}) };
       const handle = shapes.add(params);
       return {
         handle,
@@ -65,17 +98,37 @@ export function createMockKernel(): KernelImplementation {
       };
     },
 
-    tessellate: (payload) => {
-      const params = shapes.get(payload.handle);
-      if (params === undefined) {
+    measure: (payload) => boxMeasure(liveShape(payload.handle, 'measure')),
+
+    // ---- THE GEOMETRIC QUERIES (D23) — closed-form, and therefore exact, for an axis-aligned box ---
+
+    bounds: (payload) => {
+      const params = liveShape(payload.handle, 'bounds');
+      if (payload.ref === undefined) return { bounds: boxBounds(params) };
+      const bounds = boxSubShapeBounds(params, payload.ref);
+      if (bounds === undefined) {
         throw new KernelFailureError(
-          kernelFailure('HANDLE_NOT_FOUND', `No live shape for handle "${payload.handle}"`, {
-            op: 'tessellate',
-          }),
+          kernelFailure(
+            'UNRESOLVED_SUBSHAPE_REF',
+            `"${payload.ref}" is not a named sub-shape of this shape`,
+            { op: 'bounds' },
+          ),
         );
       }
-      return tessellateBox(params);
+      return { bounds };
     },
+
+    distance: (payload) => {
+      const a = liveShape(payload.a, 'distance');
+      const b = liveShape(payload.b, 'distance');
+      return boxDistance(a, b);
+    },
+
+    classifyPoint: (payload) => ({
+      state: classifyAgainstBox(liveShape(payload.handle, 'classifyPoint'), payload.point, payload.tolerance ?? 1e-7),
+    }),
+
+    tessellate: (payload) => tessellateBox(liveShape(payload.handle, 'tessellate')),
 
     releaseShape: (payload) => ({
       released: shapes.release(payload.handle),

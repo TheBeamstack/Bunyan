@@ -5,6 +5,7 @@ export {
   boxEdgeRefs,
   boxEdgeRoles,
   boxFaceRefs,
+  boxMeasure,
   tessellateBox,
 } from './box.js';
 export type { BoxFaceRole, BoxParams } from './box.js';

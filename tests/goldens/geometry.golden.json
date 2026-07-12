@@ -1,6 +1,6 @@
 {
   "$schema": "bunyan.goldens.v1",
-  "seededAt": "2026-07-11T22:33:16.874353+00:00",
+  "seededAt": "2026-07-12T20:43:24.515280+00:00",
   "env": {
     "oracle": "cadquery-ocp (OCP bindings to OCCT)",
     "ocpVersion": "7.9.3.1.1",
@@ -118,6 +118,173 @@
             100000.0,
             300.0,
             4000.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "cylinder-column-r150-h3000",
+      "op": "makeCylinder",
+      "params": {
+        "radius": 150.0,
+        "height": 3000.0
+      },
+      "analytic": {
+        "volume": 212057504.11731106,
+        "area": 2968805.0576423546,
+        "edgeLength": 4884.955592153876,
+        "counts": {
+          "solids": 1,
+          "faces": 3,
+          "edges": 3,
+          "vertices": 2
+        },
+        "bounds": {
+          "min": [
+            -150.0,
+            -150.0,
+            0.0
+          ],
+          "max": [
+            150.0,
+            150.0,
+            3000.0
+          ]
+        }
+      },
+      "crossCheck": {
+        "volume": 212057504.1173111,
+        "area": 2968805.0576423546,
+        "edgeLength": 4884.955592153876,
+        "counts": {
+          "solids": 1,
+          "faces": 3,
+          "edges": 3,
+          "vertices": 2
+        },
+        "bounds": {
+          "min": [
+            -150.0,
+            -150.0,
+            0.0
+          ],
+          "max": [
+            150.0,
+            150.0,
+            3000.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "wall-with-window-1000x1400",
+      "op": "boolean",
+      "params": {
+        "kind": "cut",
+        "wall": {
+          "dx": 3000.0,
+          "dy": 200.0,
+          "dz": 2500.0
+        },
+        "opening": {
+          "dx": 1000.0,
+          "dy": 200.0,
+          "dz": 1400.0,
+          "at": [
+            800.0,
+            0.0,
+            900.0
+          ]
+        }
+      },
+      "analytic": {
+        "volume": 1220000000.0,
+        "area": 15360000.0,
+        "edgeLength": 33200.0,
+        "counts": {
+          "solids": 1,
+          "faces": 10,
+          "edges": 24,
+          "vertices": 16
+        },
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            3000.0,
+            200.0,
+            2500.0
+          ]
+        }
+      },
+      "crossCheck": {
+        "volume": 1220000000.0000002,
+        "area": 15360000.0,
+        "edgeLength": 33200.0,
+        "counts": {
+          "solids": 1,
+          "faces": 10,
+          "edges": 24,
+          "vertices": 16
+        },
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            3000.0,
+            200.0,
+            2500.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "box-wall-fillet-r50",
+      "op": "fillet",
+      "params": {
+        "box": {
+          "dx": 3000.0,
+          "dy": 200.0,
+          "dz": 2500.0
+        },
+        "edge": "x-max|y-min",
+        "radius": 50.0
+      },
+      "crossCheck": {
+        "volume": 1498658738.5212338,
+        "area": 17145276.53166635,
+        "edgeLength": 25257.079632679488,
+        "counts": {
+          "solids": 1,
+          "faces": 7,
+          "edges": 15,
+          "vertices": 10
+        },
+        "bounds": {
+          "min": [
+            0.0,
+            -1.4210854715202004e-14,
+            0.0
+          ],
+          "max": [
+            3000.0,
+            200.0,
+            2500.0
           ]
         }
       },

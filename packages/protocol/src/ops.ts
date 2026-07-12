@@ -6,7 +6,7 @@
  * with the rest of the primitives, booleans and fillets — additively, without reshaping the envelope.
  */
 
-import type { Bounds, MeshBuffers } from './mesh.js';
+import type { Bounds, MeshBuffers, Vec3 } from './mesh.js';
 import type { KernelFailureCode } from './failures.js';
 
 /**
@@ -46,6 +46,17 @@ export interface MakeBoxPayload {
   readonly dx: number;
   readonly dy: number;
   readonly dz: number;
+  /**
+   * The min corner, in millimetres. Defaults to the origin.
+   *
+   * ⚠ A TRANSLATION, NOT A TRANSFORM — and the distinction is deliberate. Without it, two solids both
+   * sit at the origin and a boolean between them can only ever cut a CORNER off a wall; a window in
+   * the middle of one is unreachable, and that is the single operation this product exists to perform.
+   * Rotation is NOT here: a rotated element needs a general `transform` op with its own naming rules,
+   * and inventing half of one under time pressure is how contracts rot. Placement of a *rotated* wall
+   * is P3's problem, and it is a new op, not a new field.
+   */
+  readonly at?: Vec3;
 }
 
 export interface ShapeResult {
@@ -59,6 +70,128 @@ export interface TessellatePayload {
   readonly handle: ShapeHandle;
   /** Chordal deviation in mm. Smaller = finer mesh. */
   readonly deflection: number;
+}
+
+export interface MeasurePayload {
+  readonly handle: ShapeHandle;
+}
+
+/**
+ * EXACT properties, straight from OCCT's `BRepGProp` — deliberately NOT derived from the mesh.
+ *
+ * Why this op exists (owner-approved, spec §4b-C): measuring a tessellation is only exact for
+ * PLANAR-faced solids. A circular column's triangles under-report its volume by the chord error, so
+ * a quantity schedule built on the mesh would quietly under-bill every column in the project. The
+ * mesh is a disposable projection; quantities must come from the B-Rep, which is the source of truth.
+ */
+export interface MeasureResult {
+  /** mm³ */
+  readonly volume: number;
+  /** mm² */
+  readonly area: number;
+  /** mm — summed over UNIQUE edges (see the kernel's note on `LinearProperties`). */
+  readonly edgeLength: number;
+  readonly counts: {
+    readonly solids: number;
+    readonly faces: number;
+    readonly edges: number;
+    readonly vertices: number;
+  };
+}
+
+export interface MakeCylinderPayload {
+  readonly nodeId: string;
+  /** Millimetres. */
+  readonly radius: number;
+  readonly height: number;
+  /** The centre of the base cap. Defaults to the origin. */
+  readonly at?: Vec3;
+  /**
+   * The axis the cylinder extrudes along. Defaults to +Z (a column).
+   *
+   * It exists because the two things a cylinder is FOR in a building point in different directions: a
+   * column stands up, and a duct penetration goes horizontally through a wall. Without this the
+   * kernel could model one and not the other.
+   */
+  readonly axis?: Vec3;
+}
+
+/** `cut` = A minus B; `fuse` = A plus B; `common` = the intersection of A and B. */
+export type BooleanKind = 'cut' | 'fuse' | 'common';
+
+export interface BooleanPayload {
+  /** The DAG node that owns the identities this operation CREATES (the section edges, the splits). */
+  readonly nodeId: string;
+  readonly kind: BooleanKind;
+  readonly a: ShapeHandle;
+  readonly b: ShapeHandle;
+}
+
+export interface FilletPayload {
+  readonly nodeId: string;
+  readonly handle: ShapeHandle;
+  /**
+   * The edge to round, addressed BY ITS IDENTITY — a `SubShapeRef` token, not an index into some
+   * traversal. That is the whole point of persistent naming: "round *that* edge" must still mean the
+   * same edge after the wall is resized and the model rebuilt.
+   */
+  readonly edge: string;
+  /** Millimetres. */
+  readonly radius: number;
+}
+
+/**
+ * THE GEOMETRIC QUERIES (decision D23).
+ *
+ * An agent must be able to ask **spatial** questions — "what are the tight bounds of this element?",
+ * "what is within 2 m of this column?", "is this point inside that wall?" — and the answers are in the
+ * B-Rep, so they are kernel ops. They had to land **before the protocol freezes at the end of P3**;
+ * afterwards, adding one is a contract amendment.
+ *
+ * ⚠ Two rules these obey, and they are the reason the ops look the way they do:
+ *   1. **They return semantics, never triangles.** A query answers in millimetres and identities.
+ *   2. **They read the B-Rep, never the mesh.** A tessellated column is smaller than the real one by
+ *      its chord error; an agent reasoning about clearances from the mesh would confidently
+ *      under-report every clash in the project.
+ *
+ * ⚠ Document-level queries ("which walls are on level 2?") need NO kernel op — they read the
+ * parametric recipe, which is the source of truth. Only geometry comes here.
+ */
+export interface BoundsPayload {
+  readonly handle: ShapeHandle;
+  /**
+   * Optional: the tight bounds of ONE named sub-shape (a `SubShapeRef` token) rather than of the
+   * whole shape — "where exactly is the south face of that wall?". Omitted ⇒ the whole shape.
+   */
+  readonly ref?: string;
+}
+
+export interface BoundsResult {
+  readonly bounds: Bounds;
+}
+
+export interface DistancePayload {
+  readonly a: ShapeHandle;
+  readonly b: ShapeHandle;
+}
+
+export interface DistanceResult {
+  /** mm. **Zero means the two shapes touch or overlap** — which makes this the clash primitive too. */
+  readonly distance: number;
+  /** The two points that realise the minimum — i.e. WHERE they are closest. */
+  readonly pointA: readonly [number, number, number];
+  readonly pointB: readonly [number, number, number];
+}
+
+export interface ClassifyPointPayload {
+  readonly handle: ShapeHandle;
+  readonly point: readonly [number, number, number];
+  /** mm. Defaults to the kernel's own tolerance. */
+  readonly tolerance?: number;
+}
+
+export interface ClassifyPointResult {
+  readonly state: 'inside' | 'outside' | 'on';
 }
 
 export interface ReleaseShapePayload {
@@ -86,6 +219,13 @@ export interface OpMap {
   kernelInfo: { payload: Record<string, never>; result: KernelInfo };
   echo: { payload: EchoPayload; result: EchoPayload };
   makeBox: { payload: MakeBoxPayload; result: ShapeResult };
+  makeCylinder: { payload: MakeCylinderPayload; result: ShapeResult };
+  boolean: { payload: BooleanPayload; result: ShapeResult };
+  fillet: { payload: FilletPayload; result: ShapeResult };
+  measure: { payload: MeasurePayload; result: MeasureResult };
+  bounds: { payload: BoundsPayload; result: BoundsResult };
+  distance: { payload: DistancePayload; result: DistanceResult };
+  classifyPoint: { payload: ClassifyPointPayload; result: ClassifyPointResult };
   tessellate: { payload: TessellatePayload; result: MeshBuffers };
   releaseShape: { payload: ReleaseShapePayload; result: ReleaseShapeResult };
   demoFailure: { payload: DemoFailurePayload; result: never };
@@ -100,6 +240,13 @@ export const OP_NAMES = [
   'kernelInfo',
   'echo',
   'makeBox',
+  'makeCylinder',
+  'boolean',
+  'fillet',
+  'measure',
+  'bounds',
+  'distance',
+  'classifyPoint',
   'tessellate',
   'releaseShape',
   'demoFailure',

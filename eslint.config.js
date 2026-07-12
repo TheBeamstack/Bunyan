@@ -3,7 +3,16 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/.venv/**', 'tools/**', 'apps/web/dist/**'],
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/.venv/**',
+      'tools/**',
+      'apps/web/dist/**',
+      // Emscripten's generated glue for the OCCT kernel — a build artifact, not source. Its
+      // hand-written types live beside it in `bunyan-kernel.d.ts`, and those ARE linted.
+      'packages/kernel-occt/wasm/*.js',
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,

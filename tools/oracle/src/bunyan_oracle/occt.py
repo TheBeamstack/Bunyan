@@ -13,17 +13,22 @@ C++ code, so validating the kernel with it would be circular. Validating OCCT is
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
+from OCP.BRep import BRep_Tool
+from OCP.BRepAlgoAPI import BRepAlgoAPI_Cut
 from OCP.BRepBndLib import BRepBndLib
+from OCP.BRepFilletAPI import BRepFilletAPI_MakeFillet
 from OCP.BRepGProp import BRepGProp
-from OCP.BRepPrimAPI import BRepPrimAPI_MakeBox
+from OCP.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder
 from OCP.Bnd import Bnd_Box
 from OCP.GProp import GProp_GProps
+from OCP.gp import gp_Pnt
 from OCP.TopAbs import TopAbs_ShapeEnum
 from OCP.TopExp import TopExp
+from OCP.TopoDS import TopoDS, TopoDS_Shape
 from OCP.TopTools import TopTools_IndexedMapOfShape
-from OCP.TopoDS import TopoDS_Shape
 
 _KINDS = {
     "solids": TopAbs_ShapeEnum.TopAbs_SOLID,
@@ -87,3 +92,60 @@ def measure(shape: TopoDS_Shape) -> dict[str, Any]:
 
 def box(dx: float, dy: float, dz: float) -> dict[str, Any]:
     return measure(BRepPrimAPI_MakeBox(dx, dy, dz).Shape())
+
+
+def cylinder(radius: float, height: float) -> dict[str, Any]:
+    return measure(BRepPrimAPI_MakeCylinder(radius, height).Shape())
+
+
+def wall_with_opening(
+    dx: float, dy: float, dz: float, ox: float, oy: float, oz: float, at_x: float, at_z: float
+) -> dict[str, Any]:
+    """A wall, cut clean through by an opening. THE archetypal BIM boolean (core_logic §3.6)."""
+    wall = BRepPrimAPI_MakeBox(dx, dy, dz).Shape()
+    opening = BRepPrimAPI_MakeBox(gp_Pnt(at_x, 0.0, at_z), ox, oy, oz).Shape()
+
+    cut = BRepAlgoAPI_Cut(wall, opening)
+    cut.Build()
+    if not cut.IsDone():
+        raise RuntimeError("the reference cut did not complete")
+    return measure(cut.Shape())
+
+
+def filleted_box(dx: float, dy: float, dz: float, radius: float) -> dict[str, Any]:
+    """A box with ONE edge rounded — the vertical edge at (x = dx, y = 0).
+
+    ⚠ The edge is selected GEOMETRICALLY here, and that is fine: this is the oracle, not the naming
+    path. Its job is to produce a reference number for a shape we can describe unambiguously. The
+    kernel under test selects the SAME edge by its persistent identity (`x-max|y-min`), which is
+    precisely the difference the harness exists to check.
+    """
+    box_shape = BRepPrimAPI_MakeBox(dx, dy, dz).Shape()
+
+    edge_map = TopTools_IndexedMapOfShape()
+    TopExp.MapShapes_s(box_shape, TopAbs_ShapeEnum.TopAbs_EDGE, edge_map)
+
+    target = None
+    for i in range(1, edge_map.Extent() + 1):
+        edge = TopoDS.Edge_s(edge_map.FindKey(i))
+        vertices = TopTools_IndexedMapOfShape()
+        TopExp.MapShapes_s(edge, TopAbs_ShapeEnum.TopAbs_VERTEX, vertices)
+        points = [
+            BRep_Tool.Pnt_s(TopoDS.Vertex_s(vertices.FindKey(j)))
+            for j in range(1, vertices.Extent() + 1)
+        ]
+        if len(points) == 2 and all(
+            math.isclose(p.X(), dx, abs_tol=1e-9) and math.isclose(p.Y(), 0.0, abs_tol=1e-9)
+            for p in points
+        ):
+            target = edge
+            break
+    if target is None:
+        raise RuntimeError("could not find the x-max|y-min edge to fillet")
+
+    mk = BRepFilletAPI_MakeFillet(box_shape)
+    mk.Add(radius, target)
+    mk.Build()
+    if not mk.IsDone():
+        raise RuntimeError("the reference fillet did not complete")
+    return measure(mk.Shape())

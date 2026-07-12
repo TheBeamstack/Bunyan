@@ -59,6 +59,8 @@ A *kind* of thing (Wall, Slab, Column, Opening, GenericSolid, and — later — 
 ### 3.5 GenericSolid (the escape hatch)
 A Type whose "parameters" are a free sketch plus an operation (extrude/revolve). It exists so the modeller is never blocked by the absence of a named Type, and it is the **import target for any geometry that does not map to a known Type** (e.g. unrecognized IFC entities import as GenericSolid with geometry preserved but non-parametric). It keeps the product useful at every stage of its growth.
 
+**⚠ "Geometry preserved" means an exact B-Rep solid — never a mesh.** This is a *domain* rule, not an implementation preference, and it follows directly from §2: an imported thing that is only triangles cannot be measured, sectioned, booleaned or edited. It would be a **backdrop, not a building** — present on screen but outside the model's rules. An importer that cannot produce solids is therefore not an acceptable importer, whatever its convenience. *(This is why IFC import is IfcOpenShell and not `web-ifc` — spec D16.)*
+
 ### 3.6 Opening & Host (the canonical parametric relationship)
 An **Opening** is a void subtracted from a **Host** (a Wall or Slab). It is the archetype of a *reference-carrying* object and the reason persistent naming exists:
 - The Opening references a **face of the host** via a `SubShapeRef` (§5), plus a position and size.
@@ -80,10 +82,14 @@ Every geometric result is produced by **operations** (make-box, extrude, boolean
 - **Fine (primitive-op level)** — the internal steps the identity system propagates through.
 
 ### 3.9 Sub-shape & SubShapeRef
-A **sub-shape** is a face, edge, or vertex of an object's B-Rep. A **`SubShapeRef`** is the *stable, opaque identity* of a sub-shape — a structured path through the Operation DAG (which operation produced it, from which inputs, in which role/occurrence), **never a raw geometric index**. `SubShapeRef` is the currency of every parametric reference. (§5 is entirely about how this identity is defined and kept stable.)
+A **sub-shape** is a face, edge, or vertex of an object's B-Rep. A **`SubShapeRef`** is the *stable, opaque identity* of a sub-shape — a structured path through the Operation DAG (which operation produced it, from which inputs, in which **role** and **occurrence**), **never a raw geometric index**. `SubShapeRef` is the currency of every parametric reference. (§5 is entirely about how this identity is defined and kept stable.)
+
+A **role** is the semantic slot an operation gives one of its outputs — *"the face this box calls its x-min face"*, *"the edge where those two faces meet"*. The role comes from **the operation** (and, for edges, from **topology**); the **occurrence** disambiguates repeats of the same role. Together with the owning node they form the identity. **A role is never a position**: the identity of a wall's face must not change because the wall moved.
 
 ### 3.10 Representation / View
 A **derived projection** of the document graph: the 3D view, a 2D plan cut, a 2D elevation, and — later — schedules and sheets. Views are registered independently and are **always regenerated from the truth**, never authored as separate drawings. A 2D plan is a *real section cut of the real B-Rep*, which is itself a proof that the kernel is the source of truth. This is why "add 2D documentation" or "add a quantities schedule" is an additive View, not a new source of truth.
+
+**A projection need not be visual.** The **semantic projection** an actor reads in order to *reason* about the model — ids, types, parameters, levels, quantities, relationships, expressed as data rather than pixels — is a Representation like any other (§3.13). The 3D view is the projection *for eyes*; this is the projection *for reasoning*. Both are derived, disposable, and never truth.
 
 ### 3.11 Material & Quantity (declared now, realized later)
 The domain reserves two concepts so the model does not dead-end:
@@ -92,7 +98,27 @@ The domain reserves two concepts so the model does not dead-end:
 These back the **analysis & quantities** north-star (§9); a Type may declare them before any consumer exists.
 
 ### 3.12 Command & UndoableEdit
-A **Command** is a user action (draw, extrude, boolean, move, array, retarget…). Executing a Command against the Document produces an **UndoableEdit** — a *state delta*, not a recorded command to replay. Undo/redo moves the parametric state backward/forward and **re-resolves references**; because identity is stable and geometry is deterministically rebuildable, this avoids the classic "replay produces different topology" hazard. A Command whose kernel work fails produces **no** UndoableEdit (§7).
+A **Command** is an *actor's* action (draw, extrude, boolean, move, array, retarget…) — where the actor may be a human at the UI **or an AI agent** (§3.13). Executing a Command against the Document produces an **UndoableEdit** — a *state delta*, not a recorded command to replay. Undo/redo moves the parametric state backward/forward and **re-resolves references**; because identity is stable and geometry is deterministically rebuildable, this avoids the classic "replay produces different topology" hazard. A Command whose kernel work fails produces **no** UndoableEdit (§7).
+
+Two domain-level properties of an UndoableEdit, both load-bearing for §3.13:
+
+- **The delta *is* the diff.** The state delta undo needs in order to reverse an action, and the answer an actor needs in order to **verify what its action actually did**, are the *same object*. A Command therefore **returns** its UndoableEdit; it does not merely push it onto a stack. This is what makes an action *verifiable* rather than merely *issued* — and it is the difference between an agent that can check its own work and one that must guess.
+- **Edits may be grouped into a transaction.** An UndoableEdit may declare membership in a transaction; edits sharing one transaction undo and redo as **a single all-or-nothing unit**. v1.0.0 emits exactly one edit per Command (every edit is its own transaction), but the concept is **reserved in the model** because every *composite* action the product grows toward — "add a room", "import and place" — is a set of edits that must never be left half-applied.
+
+### 3.13 Actor (human or agent) — the one command layer *(decision D19)*
+The domain recognizes **two kinds of actor** and gives them **one way to act.**
+
+> **Domain rule: anything an actor can do to the Document is a Command. There is no second path.** The UI has no private channel to the geometry kernel, and neither does an agent.
+
+This is a *domain* statement, not a transport detail, because it defines what the product **guarantees about its own operability.** If the UI can do something the Command layer cannot express, then an agent — and a script, a macro, and a future collaborator's replayed edit — simply **cannot do it**, and the gap stays invisible until someone is asked to. One layer, one vocabulary, one set of failure modes, one undo stack, for every actor.
+
+Three consequences the model carries:
+
+- **Commands are semantic, not mechanical.** The primary verb is *"create a Wall with these parameters"*, not *"draw a rectangle, then extrude it"*. This falls out of §3.4 for free: a **BIM Object Type already *is* the recipe from parameters to geometry**, so a parametric type registry makes high-level verbs the natural default — and leaves sketch-level primitives as the **GenericSolid escape hatch** (§3.5) rather than the main road.
+- **The model must be able to describe itself.** An actor that must be *told* what verbs exist will eventually be told something stale. Both **Types** (their parameter schemas, §3.4) and **Commands** (their argument schemas) are therefore **self-describing at runtime**: the registry that *governs* a thing is the same registry that *explains* it. There is no second, hand-written description of the model, because a second description is a description that drifts.
+- **An actor explores before it acts.** A read/query **projection** of the Document — ids, types, parameters, levels, quantities, relationships; *not* triangles — is how an actor sees state. It is a **Representation** (§3.10), regenerated from truth like any other: the 3D view is the projection *for eyes*, and this is the projection *for reasoning*. Both are disposable; neither is truth.
+
+**Why this belongs in the domain and not merely in the architecture:** it is the same argument as §2. A mesh is not the truth, and a *button* is not the action. The action is the Command, and the Document is the only thing it acts on.
 
 ---
 
@@ -103,7 +129,7 @@ Identity is where BIM/CAD domains usually break. Bunyan's rules:
 - **Instance identity** (`id`, `levelId`, `typeId`) is assigned on creation and never reused.
 - **Sub-shape identity** (`SubShapeRef`) is **derived, not recovered**: a sub-shape *is* its derivation path through the Operation DAG. It is assigned when the operation runs and carried forward, never re-matched geometrically after the fact.
 - **No positional identity on the resolve path.** The single sanctioned exception is a genuinely symmetric split where structural data cannot distinguish children — then, and only then, a bounded, grid-rounded positional key breaks the tie. Everywhere else, geometry never determines identity.
-- **Identity is deterministic.** Given the same parametric input, identity assignment is reproducible — including across machines and across the kernel's parallel execution — because the identity system normalizes ordering before assigning IDs. (Mechanics in `architecture.md`.)
+- **Identity is deterministic.** Given the same parametric input, identity assignment is reproducible — **including across machines, and across any parallel execution of the kernel** — because the identity system **normalizes ordering before assigning IDs**. (Mechanics in `architecture.md` §5.4.) *This is a rule about what identity may depend on, not a claim about how the kernel currently runs: a given release may ship the kernel single-threaded (v1.0.0 does), but the rule is what makes it safe to turn parallelism **on** later without invalidating a single saved file. **Identity may never depend on the order the kernel happened to walk the shape.***
 
 These rules are what let a reference (an Opening on a wall, a fillet on an edge) **survive a rebuild**, which is the whole point.
 
@@ -117,10 +143,13 @@ These rules are what let a reference (an Opening on a wall, a fillet on an edge)
 - Identity is **assigned at creation and propagated forward** as operations build on operations. Each operation, as it runs, labels its output sub-shapes in terms of the operation and the identities of its inputs (e.g. "the lateral face generated by extruding edge *k* of this profile", "the face modified by this boolean").
 - Resolving a `SubShapeRef` after a rebuild is **replaying the derivation**, not searching geometry.
 - If a change makes a referenced sub-shape genuinely cease to exist, the dependent is marked **broken** and surfaced for **manual retargeting** — it is **never** silently reattached to a different piece of geometry. Predictable breakage beats silent wrongness.
+- **The same rule applies at *naming* time, not just at resolve time.** If an operation produces a sub-shape whose identity cannot be derived structurally, the operation **fails loudly** rather than inventing a name for it. A wrong-but-plausible identity is worse than a refusal: a refusal is visible immediately, whereas a bad name stays silent until it re-targets someone's window onto the wrong wall. *(Learned the hard way — see the caveat below.)*
 
 **Why this is a domain concept and not just an implementation detail:** it defines what a *reference* means in Bunyan, and therefore what parametric behaviour users can rely on. Every reference-carrying relationship in the product (openings, fillets, and every future hosted element) inherits its guarantees and its failure mode from this model.
 
 **Honest caveat (belongs in the domain because it bounds behaviour):** the propagation relies on the kernel's history being complete down to edges and vertices — historically the weakest area. Where a needed reference's history is inadequate, that reference class is either explicitly reconstructed or deferred; it does **not** degrade into geometric guessing. The set of reference classes the product supports therefore grows with verified history coverage, not by relaxing the identity rules.
+
+**A second caveat, learned by building it:** deriving a name from the operation is necessary but **not sufficient** — you must also *translate the kernel's vocabulary into yours*, and that translation is a place to be silently wrong. A first implementation of the box asked OCCT which face was which (correct in principle) and then **mislabelled four of the six**, because OCCT's `LeftFace()` is not the face a reader would guess. **Every geometric check still passed** — the shape was exact; only the *names* were lies. The lesson is domain-level, not incidental: **a naming bug does not look like a geometry bug.** It cannot be caught by measuring volumes, and it surfaces only much later, as a reference pointing at the wrong thing. Naming must therefore be **verified as naming** — which is why the harness re-measures what each name actually refers to (`architecture.md` §11).
 
 ---
 
@@ -162,6 +191,8 @@ These rules are what let a reference (an Opening on a wall, a fillet on an edge)
 6. Identity assignment is deterministic and reproducible across machines and parallel execution.
 7. Units are millimetres internally; interchange declares its own units at the boundary.
 8. Nothing in the current version may foreclose a declared north-star (§9).
+9. **There is exactly one command layer.** Every actor — human or agent — acts on the Document only through Commands (§3.13); no actor has a private path to the kernel. Every Command **returns** the state delta it produced, so every action is verifiable.
+10. **The model describes itself.** Types and Commands are discoverable at runtime from the registries that govern them (§3.13); there is no separately-maintained description of what the app can do.
 
 ---
 
@@ -173,6 +204,7 @@ The domain model is shaped so these become **additive** growth, not rewrites. Ea
 - **Real-time multi-user co-editing** of the parametric graph. *Hook:* stable per-object and per-operation **identity** (§4), edits expressed as discrete **UndoableEdit deltas** (§3.12), and a DAG with explicit dependency direction — the substrate a future conflict-resolution layer (locked/sequential first, then concurrent) needs. The domain avoids hidden global mutable state that would make merging impossible.
 - **Server-side / headless kernel** (move heavy geometry off the browser, batch processing). *Hook:* geometry is produced behind an **engine-agnostic worker boundary** (a flat, versioned message protocol — see `architecture.md`), so the kernel's *location* is not baked into the domain. The identity system is explicitly designed to allow a future native/C++ implementation without changing meaning.
 - **Scripting & generative design** (script-authored parametric families, CadQuery/build123d spirit). *Hook:* a **BIM Object Type** is a contract, not a hard-coded class — a script can register a Type whose `buildGeometry` is user-defined, and its outputs are ordinary objects with no special-casing. Sketches are designed to later accept a **constraint solver**; the Opening **anchoring parameter** (§3.6) is the first, concrete constraint the model already carries.
+- **Agent-operable authoring — an AI agent can explore, understand and drive Bunyan with no setup** *(decision D19; promoted to a north-star by owner ruling, 2026-07-12).* An agent should be able to open the app, ask it what it can do, read the model, act, and **verify what its action did** — without an SDK, without per-feature API wiring, and without a document written for it by hand. *Hooks, all already in the model:* **one command layer for every actor** (§3.13, domain rule 9) — so an agent is not a second-class client bolted on, it is *the same client*; **self-describing registries** (§3.4, §3.13, domain rule 10) — so capability discovery is generated, never maintained; **Commands return their state delta** (§3.12) — so an action is verifiable, not merely issued; **typed failures + reject-and-keep-last-good** (§7) — so a wrong action is a legible, recoverable refusal rather than a corrupted model; **stable identity at both the object *and the sub-shape* level** (§4, §5) — so an agent can say *"a window on the south face of that wall"* and have the reference **survive the wall being resized**, which is the thing most CAD tools cannot promise. *Strategic note (recorded because it is a product argument, not a technical one):* this is the **same wedge as openness** (§9 of `V1.0.0_spec.md`, D15) — *"you will never lose access to your models, you can verify what the geometry engine does, and an agent can drive it out of the box, because there is one public API and it is the same one the buttons use."*
 
 **Interoperability trajectory.** Interchange is a **Codec** concept (import/export against one contract), so IFC today, and STEP/DXF/glTF/IFC5-IFCX tomorrow, are sibling registrations. Import is *mapped-or-GenericSolid*: known kinds become parametric Types, everything else survives as geometry. Export follows the same mapping as writer support matures.
 

@@ -21,7 +21,7 @@ mkdir -p /work/dist
 em++ -O2 -std=c++17 \
   -fexceptions \
   -I"$OCCT_INC" \
-  /work/kernel.cpp \
+  /work/src/kernel.cpp \
   -L"$OCCT_LIB" $LIBS \
   --bind \
   -sMODULARIZE=1 \

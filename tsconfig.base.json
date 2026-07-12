@@ -27,6 +27,7 @@
       "@bunyan/protocol": ["packages/protocol/src/index.ts"],
       "@bunyan/kernel-core": ["packages/kernel-core/src/index.ts"],
       "@bunyan/kernel-mock": ["packages/kernel-mock/src/index.ts"],
+      "@bunyan/kernel-occt": ["packages/kernel-occt/src/index.ts"],
       "@bunyan/kernel-client": ["packages/kernel-client/src/index.ts"]
     }
   }

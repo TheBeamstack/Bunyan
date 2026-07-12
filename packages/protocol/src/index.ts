@@ -30,11 +30,23 @@ export type { Bounds, EdgePolyline, MeshBuffers, MeshProvenance, Vec3 } from './
 
 export { OP_NAMES, isOpName } from './ops.js';
 export type {
+  BooleanKind,
+  BooleanPayload,
+  BoundsPayload,
+  BoundsResult,
+  ClassifyPointPayload,
+  ClassifyPointResult,
   DemoFailurePayload,
+  DistancePayload,
+  DistanceResult,
   EchoPayload,
+  FilletPayload,
   HandshakeResult,
   KernelInfo,
   MakeBoxPayload,
+  MakeCylinderPayload,
+  MeasurePayload,
+  MeasureResult,
   OpMap,
   OpName,
   OpPayload,

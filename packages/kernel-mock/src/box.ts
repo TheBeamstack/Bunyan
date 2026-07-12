@@ -13,14 +13,33 @@
  * when the OCCT kernel replaces it.
  */
 
-import { encodeSubShapeRef } from '@bunyan/protocol';
-import type { Bounds, MeshBuffers, EdgePolyline } from '@bunyan/protocol';
+import { decodeSubShapeRef, encodeSubShapeRef } from '@bunyan/protocol';
+import type {
+  Bounds,
+  DistanceResult,
+  EdgePolyline,
+  MeasureResult,
+  MeshBuffers,
+} from '@bunyan/protocol';
 
 export interface BoxParams {
   readonly nodeId: string;
   readonly dx: number;
   readonly dy: number;
   readonly dz: number;
+  /**
+   * The min corner. Defaults to the origin.
+   *
+   * ⚠ IT CHANGES NO NAME, AND THAT IS THE TEST. A face is `x-min` because the operation says so, not
+   * because of where it sits — so moving this box emits byte-identical refs. If placement could rename
+   * a face, every stored reference in a project would break the day someone nudged the site grid.
+   */
+  readonly at?: readonly [number, number, number];
+}
+
+/** The min corner, defaulted. */
+function origin(p: BoxParams): readonly [number, number, number] {
+  return p.at ?? [0, 0, 0];
 }
 
 /** Canonical face slots, in a fixed order. The order IS the canonical re-sort for this primitive. */
@@ -64,7 +83,115 @@ export function boxEdgeRefs(nodeId: string): string[] {
 }
 
 export function boxBounds(p: BoxParams): Bounds {
-  return { min: [0, 0, 0], max: [p.dx, p.dy, p.dz] };
+  const [x, y, z] = origin(p);
+  return { min: [x, y, z], max: [x + p.dx, y + p.dy, z + p.dz] };
+}
+
+/**
+ * Closed-form properties. The real kernel answers this from OCCT's `BRepGProp`; a box is one of the
+ * cases where the closed form is exact, so the two must agree to the last bit — which is exactly what
+ * `golden-box.test.ts` asserts when it runs the same checks against both kernels.
+ */
+export function boxMeasure(p: BoxParams): MeasureResult {
+  const { dx, dy, dz } = p;
+  return {
+    volume: dx * dy * dz,
+    area: 2 * (dx * dy + dy * dz + dz * dx),
+    edgeLength: 4 * (dx + dy + dz),
+    counts: { solids: 1, faces: 6, edges: 12, vertices: 8 },
+  };
+}
+
+/**
+ * THE GEOMETRIC QUERIES (D23), in closed form.
+ *
+ * The mock cannot fake a boolean — but it CAN answer these exactly, because an axis-aligned box has a
+ * closed form for every one of them. So the agent/query code path is buildable against the mock, and
+ * the answers it gives are not approximations of the real kernel's: they are the same numbers.
+ */
+
+/** The tight bounds of ONE named sub-shape, derived from its ROLE — never from a coordinate search. */
+export function boxSubShapeBounds(p: BoxParams, token: string): Bounds | undefined {
+  const ref = decodeSubShapeRef(token);
+  if (ref === undefined || ref.nodeId !== p.nodeId) return undefined;
+
+  const { min, max } = boxBounds(p);
+  const plane: Record<BoxFaceRole, [axis: number, value: number]> = {
+    'x-min': [0, min[0]],
+    'x-max': [0, max[0]],
+    'y-min': [1, min[1]],
+    'y-max': [1, max[1]],
+    'z-min': [2, min[2]],
+    'z-max': [2, max[2]],
+  };
+
+  // A face is one constraint (`x-min`); an edge is two (`x-min|y-min`). Collapse the box's bounds
+  // along each constrained axis, and what is left IS the sub-shape's extent. Note the direction of
+  // travel: the ROLE decides the geometry, never the other way round.
+  const roles = ref.role.split('|');
+  const lo: [number, number, number] = [...min];
+  const hi: [number, number, number] = [...max];
+  for (const role of roles) {
+    const constraint = plane[role as BoxFaceRole];
+    if (constraint === undefined) return undefined;
+    const [axis, value] = constraint;
+    lo[axis] = value;
+    hi[axis] = value;
+  }
+  const expected = ref.kind === 'face' ? 1 : 2;
+  return roles.length === expected ? { min: lo, max: hi } : undefined;
+}
+
+/** 0 when the boxes touch or overlap — which is what makes this the clash primitive as well. */
+export function boxDistance(a: BoxParams, b: BoxParams): DistanceResult {
+  const ba = boxBounds(a);
+  const bb = boxBounds(b);
+
+  const pointA: [number, number, number] = [0, 0, 0];
+  const pointB: [number, number, number] = [0, 0, 0];
+  let squared = 0;
+  for (let axis = 0; axis < 3; axis++) {
+    const aLo = ba.min[axis] ?? 0;
+    const aHi = ba.max[axis] ?? 0;
+    const bLo = bb.min[axis] ?? 0;
+    const bHi = bb.max[axis] ?? 0;
+
+    // Separated on this axis, and by how much. Zero on every axis ⇒ the boxes overlap ⇒ distance 0.
+    const gap = Math.max(bLo - aHi, aLo - bHi, 0);
+    squared += gap * gap;
+
+    // The witness points: the closest coordinate on each box. Where they overlap, any shared value
+    // will do, so take the middle of the overlap.
+    if (bLo - aHi > 0) {
+      pointA[axis] = aHi;
+      pointB[axis] = bLo;
+    } else if (aLo - bHi > 0) {
+      pointA[axis] = aLo;
+      pointB[axis] = bHi;
+    } else {
+      const shared = (Math.max(aLo, bLo) + Math.min(aHi, bHi)) / 2;
+      pointA[axis] = shared;
+      pointB[axis] = shared;
+    }
+  }
+  return { distance: Math.sqrt(squared), pointA, pointB };
+}
+
+export function classifyAgainstBox(
+  p: BoxParams,
+  point: readonly [number, number, number],
+  tolerance: number,
+): 'inside' | 'outside' | 'on' {
+  const { min, max } = boxBounds(p);
+  let onBoundary = false;
+  for (let axis = 0; axis < 3; axis++) {
+    const v = point[axis] ?? 0;
+    const lo = min[axis] ?? 0;
+    const hi = max[axis] ?? 0;
+    if (v < lo - tolerance || v > hi + tolerance) return 'outside';
+    if (Math.abs(v - lo) <= tolerance || Math.abs(v - hi) <= tolerance) onBoundary = true;
+  }
+  return onBoundary ? 'on' : 'inside';
 }
 
 type Vec = readonly [number, number, number];
@@ -214,6 +341,20 @@ export function tessellateBox(p: BoxParams): MeshBuffers {
 
     edges.push({ refIndex: faceRefs.length + e, start: e * 2, count: 2 });
   });
+
+  // The frames above are built at the origin, so placement is the last step — a translation, applied
+  // to the geometry and to nothing else. Note what is NOT re-done here: the refs. Moving a box does
+  // not rename a single one of its faces.
+  const [ox, oy, oz] = origin(p);
+  if (ox !== 0 || oy !== 0 || oz !== 0) {
+    for (const buffer of [positions, edgePositions]) {
+      for (let i = 0; i < buffer.length; i += 3) {
+        buffer[i] = (buffer[i] ?? 0) + ox;
+        buffer[i + 1] = (buffer[i + 1] ?? 0) + oy;
+        buffer[i + 2] = (buffer[i + 2] ?? 0) + oz;
+      }
+    }
+  }
 
   return {
     positions,

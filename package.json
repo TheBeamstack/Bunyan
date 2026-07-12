@@ -9,7 +9,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json && tsc -p packages/kernel-mock/tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p packages/kernel-mock/tsconfig.json && tsc -p packages/kernel-occt/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
@@ -21,6 +21,7 @@
     "@bunyan/kernel-client": "workspace:*",
     "@bunyan/kernel-core": "workspace:*",
     "@bunyan/kernel-mock": "workspace:*",
+    "@bunyan/kernel-occt": "workspace:*",
     "@bunyan/protocol": "workspace:*",
     "@eslint/js": "^9.17.0",
     "@types/node": "^20.17.10",
