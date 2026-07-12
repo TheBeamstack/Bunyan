@@ -54,29 +54,34 @@ the dev box** (they are not in this repo and do not travel).
 
 ## §1 — Where the build is right now
 
-**Phase: P1 (Foundations & Toolchain) — partially complete.** The protocol seam, the kernel host,
-the mock kernel, the client dispatcher, the geometry harness, the goldens and the CI definition all
-exist and are green. **The OCCT WASM build does not exist yet** — that is the single largest
-remaining P1 item and the next major task. **Before touching it, read §6a (box discipline): it is the
-heaviest run in the project and this box also serves the owner's live public websites.**
-
-**⚠ THE ONE THING A NEW AGENT MUST NOT REDISCOVER THE HARD WAY (Entry 3, proven empirically):**
-**this dev box CANNOT link an OCCT→WASM build via `opencascade.js`.** The link is OOM-killed at a 2 GB
-cap *even for a minimal 6-symbol build*. Do not retry it. The path forward is an **upstream OCCT
-7.9.3 build** (it has official emscripten support) with **LTO off**, and the build host is an **open
-owner decision** — see §4b **(E)** and **(F)**.
-
-**Committed and pushed.** `origin/main` @ **`e5ff2fc`** — the P1 foundations + the doc updates.
-**Amer is unblocked** (the mock kernel is on GitHub; his integration snippet is in §5).
-
-**Green as of Entry 3**, on the dev box, headless:
+**Phase: P1 → P2. THE KERNEL IS REAL.** The protocol seam, the kernel host, the mock kernel, the
+client dispatcher, the geometry harness, the goldens and the CI definition all exist and are green —
+**and as of Entry 4 there is a working OCCT WebAssembly kernel whose geometry matches the native-OCCT
+goldens exactly.** The single largest P1 item is **done**.
 
 ```
 pnpm verify   →  typecheck (strict) ✓   eslint ✓   41/41 tests ✓   prettier ✓
+kernel spike  →  upstream OCCT 7.9.3 → WASM, volume/area/edgeLength/counts ALL EXACT ✓
 ```
 
-**⚠ CI has still never been observed green** — the push happened, but there is **no `gh` CLI and no
-GitHub token on this box**, so I could not read the Actions result (the API 404s to anonymous callers
+**Committed and pushed:** `origin/main` @ **`d54ae02`**. Amer is unblocked and can now build against
+**real geometry** (`tools/kernel-build/wasm/`), not just the mock.
+
+**⚠ THREE THINGS A FRESH AGENT MUST NOT REDISCOVER THE HARD WAY:**
+
+1. **`opencascade.js` CANNOT be linked on this box — and we do not use it.** Its `-flto` object cache
+   forces a whole-program-optimisation link that is **OOM-killed at a 2 GB cap even for a 6-symbol
+   build** (Entry 3). **Do not retry it. Do not fork it.** We build **upstream OCCT 7.9.3** with **LTO
+   off** — recipe in **`tools/kernel-build/`**, and it builds *here*, on this box.
+2. **`/tmp` is a tmpfs — it costs RAM, not disk.** A dead session's scratchpad was holding **1.1 GB of
+   RAM** hostage. Before invoking §6a to pause another project's containers, run `du -sh /tmp` — our own
+   tooling is usually the hog. (All other projects' containers **combined** use ~77 MB.)
+3. **The kernel is NOT yet wired into `packages/kernel-occt`** — that package does not exist. The
+   working `.wasm` is committed at `tools/kernel-build/wasm/`, and `pnpm verify` is still the same
+   41/41 (mock-based). **Wiring it in is the next task — see §5.**
+
+**⚠ CI has still never been observed green** — pushes have landed, but there is **no `gh` CLI and no
+GitHub token on this box**, so the Actions result cannot be read (the API 404s to anonymous callers
 because the repo is private). **Someone must confirm the first run by eye.** See §5.
 
 ---
@@ -213,6 +218,40 @@ Never run anything that would overload the box. Pausing other projects' **non-pr
 **pre-authorized**; the **live production containers are untouchable**. Full protocol in §6a and in
 `v1.0.0_imp_plan.md` → Cross-cutting practices → *Box-discipline protocol*.
 
+### 4d — RULED by the owner, 2026-07-12 (Entry 5) — READ THESE FIRST
+
+**(8) LICENSING — OCCT as a SWAPPABLE SIDE-MODULE. RULED, NOT YET IMPLEMENTED, MUST BE MEASURED.**
+OCCT is **LGPL 2.1**; its "exception" covers only *header* material in object code, **not** general
+static linking. Our kernel **statically links** OCCT into one `.wasm`, which triggers LGPL's obligation
+to let a user **relink against their own modified OCCT**. The owner ruled for the **side-module** route
+(OCCT as a separate, replaceable `.wasm`) — the most clearly compliant option.
+
+⚠ **The consequence he was told, and which the next session must quantify before building on it:** a
+side module **cannot be dead-stripped** the way the static link is — it must keep whatever a caller
+*might* use. **That will likely cost much of the 9× size win** (3.94 MB → possibly tens of MB), plus a
+boundary performance cost and real build complexity. **⇒ FIRST TASK: prototype the side-module split
+and report real size/speed numbers.** If the cost is mild, take it. If it is brutal, bring the owner
+the numbers so he can weigh it against **shipping our object files** (option 1 — same legal end, a
+*promise* of relinkability rather than a *demonstration*, and it costs nothing). **Do not silently
+absorb a 10× regression on his behalf.**
+
+**(9) THREADING — v1.0.0 SHIPS SINGLE-THREADED. RULED.** Multi-threading lands in v1.0.x. *Why:*
+persistent naming (D1) is the #1 risk, and multi-threaded OCCT has **non-deterministic operation
+ordering** that makes naming bugs far harder to reproduce. **Nail correctness on one core, then chase
+speed.** Also avoids COOP/COEP cross-origin-isolation headers for now. This formally settles §4b(D).
+*(D8 is therefore deferred, not cancelled — the canonical re-sort is still required when MT lands.)*
+
+**(10) THE KERNEL `.wasm` IS COMMITTED. RULED.** `tools/kernel-build/wasm/` — ~4 MB, pinned by the
+OCCT build id so it changes rarely. Amer and CI get **real geometry with no toolchain and no 2.5 h
+build**. `.gitignore` now un-ignores exactly that path.
+
+**(11) IFC IMPORT — EXACT SOLIDS via IfcOpenShell. RULED (direction, not a task yet).** Imported IFC
+must become **true B-Rep solids**, not triangles — so imported walls can be measured, sectioned,
+booleaned and edited parametrically. `web-ifc` (mesh-only) is **rejected**: it would break the core
+invariant that B-Rep is the source of truth. **This is only possible because we own the OCCT build** —
+IfcOpenShell is C++ and must link against *our* OCCT. **⇒ Do not adopt any kernel path that forecloses
+linking a second C++ library.**
+
 ### 4c — RULED by the owner, 2026-07-11/12 (Entry 3)
 
 **(4) Kernel build sequencing: CUSTOM BUILD FIRST.** Not the prebuilt `opencascade.js` drop-in. Ruled
@@ -292,34 +331,42 @@ OOM-killed at a 2 GB cap even for a *minimal 6-symbol* build). The candidates, c
 
 **For Zayd (kernel/headless):**
 
-0. **BLOCKED ON THE OWNER — §4b (E) + (F): the build host and the binding strategy.** Everything below
-   flows from these two calls. Do not start the build until they are made; the study is done and the
-   options are laid out. **The one thing that is settled: build from *upstream OCCT 7.9.3*, not from a
-   fork of `opencascade.js`.**
+**The kernel exists. The next four tasks are, in order:**
 
-1. **Confirm CI is actually green — cheap, and still unproven.** The push landed (`e5ff2fc`) but nobody
-   has *seen* the workflow pass. There is **no `gh` CLI and no GitHub token on this box**, and the repo
-   is private, so the Actions API 404s anonymously. Either the owner looks at the Actions tab, or he
-   installs `gh`/drops a token on the box so an agent can. Until then, treat CI as unproven.
+1. **⚠ FIRST — measure the LGPL side-module cost (§4d-8). Do this BEFORE building anything on top of
+   the static kernel.** The owner ruled for OCCT-as-a-swappable-side-module, and he was told it will
+   **probably cost much of the 9× size win** (a side module can't be dead-stripped — it must keep what
+   a caller *might* use). **Prototype the split, measure the real artifact size and op latency, and
+   report.** If mild → adopt it. If brutal → bring him the numbers so he can weigh it against **shipping
+   our object files** (same legal end, zero cost). **Do not silently absorb a 10× size regression.**
+   *This is first because it may change the build, and everything downstream inherits that choice.*
 
-2. **Then: get a real OCCT kernel behind the protocol** — the critical path. Shape of the work:
-   `packages/kernel-occt` implementing `KernelImplementation` (the mock is the reference; `makeBox` +
-   `tessellate` are the first two ops). The instant the kernel answers, `tests/golden-box.test.ts`
-   starts certifying real geometry with **zero test changes** — the payoff of the transport-agnostic
-   design. **⚠ Do NOT attempt the build on this box via `opencascade.js` — it is proven impossible
-   (Entry 3). Any WASM build MUST follow §6a.** The MT build must also confirm `BOPAlgo` parallelism is
-   genuinely active, not silently single-threaded (D8).
+2. **Wire the kernel into `packages/kernel-occt`** — the payoff task. Create the package implementing
+   `KernelImplementation` (the mock in `packages/kernel-mock` is the reference; `KernelHost` supplies
+   dispatch and failure marshalling, so the package is a thin adapter over
+   `tools/kernel-build/wasm/bunyan-kernel.js`). Map the C++ ops to the protocol:
+   `makeBox → makeBox`, `tessellate → tessellate`, `releaseShape → releaseShape`, and **`measure` → a
+   NEW op in the `OpMap`** (§4c-6 — the protocol freezes at the end of P3, so add it now; the C++ side
+   already implements it via `BRepGProp`).
+   **The instant it answers, `tests/golden-box.test.ts` certifies real geometry with ZERO test
+   changes** — that is the whole payoff of the transport-agnostic design. Also port
+   `tools/kernel-build/verify.mjs`'s assertions into the vitest suite so CI gates the real kernel.
+   ⚠ **Provenance:** the C++ returns a per-triangle **face index**; the naming layer must map that to a
+   `SubShapeRef`. The mock names faces by canonical slot — the OCCT kernel must produce **stable**
+   identities derived from the op that made them, **never** from geometric position (spec §4.5, D1).
 
-3. **Add the `measure` op** — **owner-approved (§4c-6)**, and it can be done *now*, against the mock,
-   with no kernel: add a line to the `OpMap` in `packages/protocol/src/ops.ts`, back it with
-   `BRepGProp` when the kernel lands. **The protocol freezes at the end of P3.**
+3. **P2 — persistent naming (D1), the #1 risk.** Verify OCCT history coverage **empirically first**
+   (spec §4.5): `Generated`/`Modified`/`IsDeleted` is robust for faces but weakest for **edges/vertices
+   from boolean section curves**, and the hardest case is **a fillet on an edge produced by a boolean**.
+   Find out what OCCT actually gives us **before** designing the resolver. *(`TKHLR`, `TKOffset`,
+   `TKShHealing` and `BRepTools_History` are all already in the build.)*
+   *Single-threaded is now a ruling (§4d-9) — do this hard correctness work on a deterministic kernel.*
 
-4. **P2 step 4 — verify OCCT history coverage empirically *before* building the general resolver.**
-   The spec (§4.5) is explicit that `Generated`/`Modified`/`IsDeleted` is robust for faces but weakest
-   for **edges/vertices from boolean section curves**, and the hardest case is a fillet on an edge
-   produced by a boolean. Find out what OCCT actually gives us before designing around it.
-   *(Entry 3 datapoint: `BRepTools_History` parses fine out of the OCCT 7.9.3 headers — the class this
-   depends on is present and bindable.)*
+4. **Confirm CI is actually green — cheap, and STILL unproven.** Pushes have landed (`d54ae02`) but
+   nobody has *seen* the workflow pass. There is **no `gh` CLI and no GitHub token on this box**, and
+   the repo is private, so the Actions API 404s anonymously. Either the owner looks at the Actions tab,
+   or he installs `gh` / drops a token so an agent can. **Treat CI as unproven until then.**
+   *(Note: CI runs `pnpm test`, which is still mock-based — once step 2 lands, CI gates real geometry.)*
 
 **For Amer (browser hot path) — unblocked *now*, do not wait for the kernel:**
 
@@ -728,3 +775,68 @@ still beats it **9× over the wire** — but that is the *result*, not the argum
   `tests/golden-box.test.ts` starts certifying **real geometry with zero test changes**.
 - **`donalffons/opencascade.js` image DELETED** (8.62 GB reclaimed) — we are not using it.
 - Live sites up throughout (monitored). No other project touched. No ports bound. Disk 18 GB free.
+
+---
+
+## Entry 5 — 2026-07-12 — Zayd (dev box) — four owner rulings; kernel + recipe committed
+
+**Task:** put the Entry-4 kernel on a durable footing and take the design decisions the spike exposed.
+
+### The kernel and its recipe are now IN THE REPO — `origin/main` @ `d54ae02`
+
+`tools/kernel-build/` — `README.md` (the full build recipe + the architecture rationale),
+`configure.sh`, `src/kernel.cpp`, `link.sh`, `verify.mjs`, and the **committed artifact**
+`wasm/bunyan-kernel.{js,wasm}`. Previously the work existed **only** on this box
+(`/home/devuser/occt-wasm-spike/`, still there as the working tree) and a box wipe would have lost it.
+**`pnpm verify` unchanged: 41/41 green** — the build lives under `tools/`, which is not a pnpm workspace
+glob, so nothing in the toolchain moved.
+
+### Four rulings (full text in §4d — READ IT)
+
+| # | Ruling | Status |
+|---|---|---|
+| **8** | **Licensing: OCCT as a swappable SIDE-MODULE** | ⚠ **Ruled, NOT built — MEASURE FIRST** |
+| **9** | **v1.0.0 ships SINGLE-THREADED**; MT in v1.0.x | Ruled. Matches the current build. Settles §4b(D). |
+| **10** | **Commit the kernel `.wasm`** | **Done** (`tools/kernel-build/wasm/`, `.gitignore` updated) |
+| **11** | **IFC import = EXACT SOLIDS via IfcOpenShell** | Ruled as *direction*. `web-ifc` (mesh-only) **rejected.** |
+
+### ⚠ The one thing the next session must not get wrong
+
+**Ruling 8 (side-module) has a cost the owner was explicitly warned about, and it is not yet
+quantified.** The static link is 3.94 MB **because the linker discarded every part of OCCT our ops
+never touch.** A *swappable* module must keep whatever a caller *might* call — that is what makes it
+swappable — so **it cannot be dead-stripped the same way.** The artifact could plausibly go from
+**3.94 MB → tens of MB**, plus a boundary performance cost.
+
+**⇒ Task 1 in §5 is: prototype the side-module split, MEASURE size + op latency, and report the
+numbers.** If the cost is mild, adopt it. **If it is brutal, take the numbers back to the owner** and
+weigh them against **option 1 (ship our compiled object files)** — which achieves the same legal end
+(the LGPL relink obligation) at **zero size cost**; it is a *promise* of relinkability rather than a
+*demonstration* of it. **Do not silently absorb a 10× regression on the owner's behalf, and do not
+quietly ignore his ruling either — bring him data.**
+
+### Why single-threaded is the right call (ruling 9), recorded so it isn't re-litigated
+
+Multi-threaded OCCT has **non-deterministic operation ordering**. Persistent naming (D1) is the **#1
+risk in the project**, and debugging naming on top of a non-deterministic kernel is strictly harder.
+**Get correctness right on one core; then chase speed.** It also defers the COOP/COEP cross-origin
+isolation headers, which restrict what the page may embed. D8 is **deferred, not cancelled** — the
+canonical re-sort is still required when MT lands.
+
+### Why IfcOpenShell, not web-ifc (ruling 11)
+
+`web-ifc` returns **triangles**. Triangles cannot be reliably measured, sectioned, booleaned or
+parametrically edited — so an imported model would be a *backdrop*, not a *building*, and it would
+break the core invariant that **B-Rep is the source of truth**. IfcOpenShell returns **exact solids**,
+and it is C++ that **must link against our OCCT build** — possible **only because we own the build**.
+**⇒ Never adopt a kernel path that forecloses linking a second C++ library.** (This retroactively
+justifies rejecting both `opencascade.js` and the fork: neither could have absorbed IfcOpenShell.)
+
+### State
+
+- **`origin/main` @ `d54ae02`.** Working tree clean apart from this file.
+- **Kernel NOT yet wired into `packages/kernel-occt`** (that package still does not exist) — §5 task 2.
+- **CI still never observed green** (no `gh`, no token, private repo) — §5 task 4.
+- Box: live sites up throughout, no other project touched, no ports bound, disk 18 GB free,
+  RAM ~2.7 GB available. Build tree kept at `/home/devuser/occt-wasm-spike/` (box-local; the repo now
+  carries everything needed to rebuild it from scratch).
