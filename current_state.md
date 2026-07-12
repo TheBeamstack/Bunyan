@@ -218,22 +218,55 @@ Never run anything that would overload the box. Pausing other projects' **non-pr
 **pre-authorized**; the **live production containers are untouchable**. Full protocol in §6a and in
 `v1.0.0_imp_plan.md` → Cross-cutting practices → *Box-discipline protocol*.
 
-### 4d — RULED by the owner, 2026-07-12 (Entry 5) — READ THESE FIRST
+### 4e — THE BIG ONE: BUNYAN WILL BE OPEN SOURCE. RULED 2026-07-12.
 
-**(8) LICENSING — OCCT as a SWAPPABLE SIDE-MODULE. RULED, NOT YET IMPLEMENTED, MUST BE MEASURED.**
-OCCT is **LGPL 2.1**; its "exception" covers only *header* material in object code, **not** general
-static linking. Our kernel **statically links** OCCT into one `.wasm`, which triggers LGPL's obligation
-to let a user **relink against their own modified OCCT**. The owner ruled for the **side-module** route
-(OCCT as a separate, replaceable `.wasm`) — the most clearly compliant option.
+**Licence: AGPL-3.0, dual-licensed with a commercial option.** Source public; anyone may use, study and
+fork it; a commercial licence is sold to those who need to stay closed.
 
-⚠ **The consequence he was told, and which the next session must quantify before building on it:** a
-side module **cannot be dead-stripped** the way the static link is — it must keep whatever a caller
-*might* use. **That will likely cost much of the 9× size win** (3.94 MB → possibly tens of MB), plus a
-boundary performance cost and real build complexity. **⇒ FIRST TASK: prototype the side-module split
-and report real size/speed numbers.** If the cost is mild, take it. If it is brutal, bring the owner
-the numbers so he can weigh it against **shipping our object files** (option 1 — same legal end, a
-*promise* of relinkability rather than a *demonstration*, and it costs nothing). **Do not silently
-absorb a 10× regression on his behalf.**
+**Why AGPL and not GPL:** AGPL closes the *SaaS loophole*. Under plain GPL, a rival could take Bunyan,
+improve it, and run it as a **hosted service** without publishing a line. AGPL forces them to publish.
+**The moat was never the client code — it is hosted collaboration**, and AGPL is the licence that
+protects precisely that. (Grafana / Mattermost model.)
+
+**Three consequences, all large:**
+
+1. **⚠ THE LGPL PROBLEM IS GONE. THE SIDE-MODULE TASK IS CANCELLED.** LGPL's relink obligation exists
+   to guarantee a user can rebuild against their own OCCT — **public, buildable source satisfies that
+   automatically** (clone the repo, rebuild). **⇒ The static link STANDS. We keep the 3.94 MB / 1.46 MB
+   gzip artifact.** Do **not** build the side-module; do **not** ship object files. *(Ruling 8 of
+   Entry 5, which mandated a side-module, is hereby **superseded** — it was made when Bunyan was
+   assumed proprietary.)*
+2. **Licence compatibility VERIFIED, not assumed.** OCCT is LGPL-2.1, and **LGPL-2.1 §3** expressly
+   permits converting a copy of the library to the ordinary GPL — and states that if a newer GPL than
+   v2 exists "you can specify that version instead." **⇒ OCCT is compatible with AGPL-3.0.** The
+   combination is sound. *(LGPL still requires **prominent notice** that the product uses OCCT — put it
+   in the README and the app's About screen.)*
+3. **Public repo ⇒ CI budget problem also disappears.** Public GitHub repos get **unlimited Actions
+   minutes** and the **4-vCPU / 16 GB** runners (the private-repo runner is 2 vCPU / 7 GB on 2,000
+   min/month — see Entry 3 §5). This retires the "don't iterate the build recipe in CI" constraint,
+   *once the repo goes public*.
+
+**Timing: the repo goes public LATER, at a milestone** (working geometry + editor) — **not now.** Until
+then it stays private and the 2,000-minute CI budget still applies.
+
+**⚠ CLA IS A HARD PREREQUISITE — and it is easy to get wrong by waiting.** Dual-licensing only works if
+the owner holds the rights to **every line**. The moment an external contribution is merged **without a
+signed CLA**, that contributor holds copyright on it and it can **never** be included in a commercial
+licence without their permission. **⇒ The CLA (contributors grant the owner a licence including the
+right to relicense commercially) MUST be in place BEFORE the first external pull request.** Chosen
+model: **CLA**, not DCO — a DCO certifies authorship but grants **no relicensing right**, which would
+foreclose the commercial licence entirely.
+
+**Not yet done (no rush, but do it before the repo is public):** add `LICENSE` (AGPL-3.0), the CLA,
+AGPL headers, an OCCT attribution notice, and a `NOTICE`/third-party section. **None of this blocks the
+kernel work.**
+
+### 4d — RULED by the owner, 2026-07-12 (Entry 5)
+
+**(8) LICENSING — ~~OCCT as a SWAPPABLE SIDE-MODULE~~. SUPERSEDED by §4e (open source).** Kept here
+only so the reasoning is not re-derived: OCCT is **LGPL 2.1**, its "exception" covers only *header*
+material (**not** general static linking), and a statically-linked proprietary `.wasm` would have
+triggered a relink obligation. **Open-sourcing dissolves it.** **Do not build the side-module.**
 
 **(9) THREADING — v1.0.0 SHIPS SINGLE-THREADED. RULED.** Multi-threading lands in v1.0.x. *Why:*
 persistent naming (D1) is the #1 risk, and multi-threaded OCCT has **non-deterministic operation
@@ -333,15 +366,11 @@ OOM-killed at a 2 GB cap even for a *minimal 6-symbol* build). The candidates, c
 
 **The kernel exists. The next four tasks are, in order:**
 
-1. **⚠ FIRST — measure the LGPL side-module cost (§4d-8). Do this BEFORE building anything on top of
-   the static kernel.** The owner ruled for OCCT-as-a-swappable-side-module, and he was told it will
-   **probably cost much of the 9× size win** (a side module can't be dead-stripped — it must keep what
-   a caller *might* use). **Prototype the split, measure the real artifact size and op latency, and
-   report.** If mild → adopt it. If brutal → bring him the numbers so he can weigh it against **shipping
-   our object files** (same legal end, zero cost). **Do not silently absorb a 10× size regression.**
-   *This is first because it may change the build, and everything downstream inherits that choice.*
+> **⚠ The old task 1 ("measure the side-module cost") is CANCELLED — see §4e.** Bunyan is going open
+> source (AGPL-3.0), which dissolves the LGPL obligation entirely. **The static link stands; keep the
+> 3.94 MB artifact.** Do not build a side-module. Do not ship object files.
 
-2. **Wire the kernel into `packages/kernel-occt`** — the payoff task. Create the package implementing
+1. **Wire the kernel into `packages/kernel-occt`** — the payoff task. Create the package implementing
    `KernelImplementation` (the mock in `packages/kernel-mock` is the reference; `KernelHost` supplies
    dispatch and failure marshalling, so the package is a thin adapter over
    `tools/kernel-build/wasm/bunyan-kernel.js`). Map the C++ ops to the protocol:
@@ -355,14 +384,14 @@ OOM-killed at a 2 GB cap even for a *minimal 6-symbol* build). The candidates, c
    `SubShapeRef`. The mock names faces by canonical slot — the OCCT kernel must produce **stable**
    identities derived from the op that made them, **never** from geometric position (spec §4.5, D1).
 
-3. **P2 — persistent naming (D1), the #1 risk.** Verify OCCT history coverage **empirically first**
+2. **P2 — persistent naming (D1), the #1 risk.** Verify OCCT history coverage **empirically first**
    (spec §4.5): `Generated`/`Modified`/`IsDeleted` is robust for faces but weakest for **edges/vertices
    from boolean section curves**, and the hardest case is **a fillet on an edge produced by a boolean**.
    Find out what OCCT actually gives us **before** designing the resolver. *(`TKHLR`, `TKOffset`,
    `TKShHealing` and `BRepTools_History` are all already in the build.)*
    *Single-threaded is now a ruling (§4d-9) — do this hard correctness work on a deterministic kernel.*
 
-4. **Confirm CI is actually green — cheap, and STILL unproven.** Pushes have landed (`d54ae02`) but
+3. **Confirm CI is actually green — cheap, and STILL unproven.** Pushes have landed (`d54ae02`) but
    nobody has *seen* the workflow pass. There is **no `gh` CLI and no GitHub token on this box**, and
    the repo is private, so the Actions API 404s anonymously. Either the owner looks at the Actions tab,
    or he installs `gh` / drops a token so an agent can. **Treat CI as unproven until then.**
@@ -840,3 +869,64 @@ justifies rejecting both `opencascade.js` and the fork: neither could have absor
 - Box: live sites up throughout, no other project touched, no ports bound, disk 18 GB free,
   RAM ~2.7 GB available. Build tree kept at `/home/devuser/occt-wasm-spike/` (box-local; the repo now
   carries everything needed to rebuild it from scratch).
+
+---
+
+## Entry 6 — 2026-07-12 — Owner ruling — **BUNYAN WILL BE OPEN SOURCE (AGPL-3.0 + commercial)**
+
+**This is a strategy ruling, and it supersedes a technical one made hours earlier.** Full text in
+**§4e**; this entry records the reasoning so it is never re-derived.
+
+### The ruling
+
+**AGPL-3.0, dual-licensed with a commercial option.** Source public; a commercial licence is sold to
+anyone who needs to stay closed. **Repo goes public LATER, at a milestone** (working geometry +
+editor) — not now. **A CLA (not a DCO) is mandatory** before the first external contribution.
+
+### Why it matters far beyond licensing
+
+**1. It CANCELS the side-module work (Entry 5, ruling 8).** That ruling was made under the assumption
+that Bunyan would be proprietary. LGPL 2.1's relink obligation exists so a user can rebuild the app
+against their own OCCT — and **public, buildable source satisfies that automatically.** So:
+**the static link stands, and we keep the 3.94 MB / 1.46 MB-gzip artifact.** The predicted regression
+(a side module cannot be dead-stripped, so the artifact could have ballooned to tens of MB) **never
+has to be paid.** *Do not build a side-module. Do not ship object files.*
+
+**2. Licence compatibility was VERIFIED, not assumed.** OCCT is **LGPL-2.1**. Its **§3** expressly
+permits converting a copy of the library to the ordinary GPL, and adds that if a GPL newer than v2
+exists, "you can specify that version instead." **⇒ OCCT composes legally with AGPL-3.0.** *(LGPL still
+demands **prominent notice** that the product uses OCCT — README + the app's About screen.)*
+
+**3. It retires the CI-budget constraint.** Public repos get **unlimited Actions minutes** and the
+**4-vCPU / 16 GB** runners — versus 2 vCPU / 7 GB on 2,000 min/month for a private repo (Entry 3 §5).
+The "never iterate a build recipe in CI" rule expires **when the repo goes public**, not before.
+
+### Why AGPL rather than GPL
+
+AGPL closes the **SaaS loophole**. Under plain GPL a rival could take Bunyan, improve it, and run it as
+a **hosted service** while publishing nothing. AGPL compels them to publish. **The moat was never the
+client code — it is hosted collaboration**, and AGPL is the licence that defends exactly that.
+
+### ⚠ The CLA trap — the one thing that can silently kill the commercial licence
+
+Dual-licensing requires the owner to hold rights to **every line**. The instant an external
+contribution is merged **without a signed CLA**, that contributor owns the copyright to their patch and
+it can **never** be sold under a commercial licence without their consent. **⇒ The CLA must exist
+BEFORE the first external pull request.** A **DCO would not do** — it certifies authorship but grants
+**no relicensing right**, which would foreclose the business model. Chosen: **CLA**.
+
+### The strategic reasoning (recorded so it is not re-litigated)
+
+We cannot out-feature Revit — Autodesk has 30 years, thousands of engineers and a content ecosystem.
+**We win where Revit is hated:** lock-in, subscription pricing, an opaque format, a heavy Windows
+install. Browser-native + IFC-native + no install is the wedge — and **openness is not a footnote to
+that wedge, it IS the wedge** ("you will never lose access to your models, and you can verify what the
+geometry engine does"). It also buys the one thing a small team cannot build alone: **an ecosystem** —
+content, plugins, national standards. AEC already has a strong open-source culture (IFC itself,
+IfcOpenShell — which is LGPL and which we have already committed to using). The gap is real: today's
+open-source BIM is Blender-based desktop; the browser-native BIM startups are all proprietary.
+
+### Not yet done (does NOT block kernel work; must land before the repo goes public)
+
+`LICENSE` (AGPL-3.0) · the CLA · AGPL file headers · **OCCT attribution notice** (LGPL requires it) ·
+a `NOTICE` / third-party licence section.
