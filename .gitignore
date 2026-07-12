@@ -13,9 +13,15 @@ dist/
 *.tsbuildinfo
 
 # OCCT / WASM build artifacts (multi-MB; produced by the kernel build, not committed)
-packages/kernel-occt/wasm/
+# OCCT / WASM build artifacts. The kernel .wasm IS committed (owner ruling 2026-07-12): it is only
+# ~4 MB, the OCCT build id pins it so it changes rarely, and committing it means Amer and CI get real
+# geometry without a 2.5 h toolchain build. The recipe that produces it is tools/kernel-build/.
 *.wasm
+!tools/kernel-build/wasm/*.wasm
 !tests/fixtures/**/*.wasm
+
+# scratch output of tools/kernel-build/link.sh (the committed copy is wasm/, not dist/)
+tools/kernel-build/dist/
 
 # local
 .DS_Store

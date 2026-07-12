@@ -60,14 +60,24 @@ exist and are green. **The OCCT WASM build does not exist yet** — that is the 
 remaining P1 item and the next major task. **Before touching it, read §6a (box discipline): it is the
 heaviest run in the project and this box also serves the owner's live public websites.**
 
-**Nothing is committed.** The working tree holds all of the work below on top of `f658ad8`
-("first commit", which contains only the four design documents). Commit/push is owner-gated.
+**⚠ THE ONE THING A NEW AGENT MUST NOT REDISCOVER THE HARD WAY (Entry 3, proven empirically):**
+**this dev box CANNOT link an OCCT→WASM build via `opencascade.js`.** The link is OOM-killed at a 2 GB
+cap *even for a minimal 6-symbol build*. Do not retry it. The path forward is an **upstream OCCT
+7.9.3 build** (it has official emscripten support) with **LTO off**, and the build host is an **open
+owner decision** — see §4b **(E)** and **(F)**.
 
-**Green as of Entry 1**, on the dev box, headless:
+**Committed and pushed.** `origin/main` @ **`e5ff2fc`** — the P1 foundations + the doc updates.
+**Amer is unblocked** (the mock kernel is on GitHub; his integration snippet is in §5).
+
+**Green as of Entry 3**, on the dev box, headless:
 
 ```
 pnpm verify   →  typecheck (strict) ✓   eslint ✓   41/41 tests ✓   prettier ✓
 ```
+
+**⚠ CI has still never been observed green** — the push happened, but there is **no `gh` CLI and no
+GitHub token on this box**, so I could not read the Actions result (the API 404s to anonymous callers
+because the repo is private). **Someone must confirm the first run by eye.** See §5.
 
 ---
 
@@ -203,31 +213,34 @@ Never run anything that would overload the box. Pausing other projects' **non-pr
 **pre-authorized**; the **live production containers are untouchable**. Full protocol in §6a and in
 `v1.0.0_imp_plan.md` → Cross-cutting practices → *Box-discipline protocol*.
 
+### 4c — RULED by the owner, 2026-07-11/12 (Entry 3)
+
+**(4) Kernel build sequencing: CUSTOM BUILD FIRST.** Not the prebuilt `opencascade.js` drop-in. Ruled
+against the Entry-2 recommendation, deliberately. *(This ruling stands, but the **means** changed — see
+Entry 3: the custom build must now be an **upstream OCCT** build, not an `opencascade.js` one.)*
+
+**(5) Commit & push: APPROVED and DONE.** `origin/main` @ `e5ff2fc`. **Amer is unblocked.**
+
+**(6) The `measure` op: APPROVED** for P2, before the protocol freezes at the end of P3. Not yet
+implemented (see §5).
+
+**(7) The 1.1 GB `/tmp` reclamation: APPROVED.** See Entry 3 — `/tmp` is a **tmpfs (RAM-backed)** on
+this box, and a dead session's throwaway venv was holding 1.1 GB of RAM hostage. Deleted. **This is a
+standing box fact worth remembering: anything written to `/tmp` here consumes RAM, not disk.**
+
 ### 4b — STILL OPEN (needs an owner call before the next big move)
 
-**(A) Kernel build sequencing — the next task depends on this.** The OCCT→WASM build has not been
-started (it is the heaviest run in the project; see §6a). Two orders are defensible:
-- **Prebuilt single-threaded first** *(my recommendation)*: drop in the ready-made `opencascade.js`
-  (~66 MB, single-threaded) so **real geometry** is behind the protocol within about a session — which
-  unblocks **persistent naming**, explicitly the hardest item and the #1 schedule risk. Standard
-  practice is to attack the riskiest unknown earliest. The custom multi-threaded build (decision D8)
-  then follows as a separate task. *This changes the **order** of D8, not its **scope**.*
-- **Custom build first** (as the plan literally reads): pins the OCCT build id early (it is stamped
-  into every saved file and controls cache invalidation) and lets us strip OCCT down, which is the real
-  fix for the download-size budget. But it delays the riskiest item.
-- With ruling (3) in place, either can now be run *safely* on the box.
+**(A) ~~Kernel build sequencing~~ — RULED (see 4c-4): custom build first.** Superseded by **(E)** and
+**(F)** below, which are the *new* open questions that the custom-build ruling exposed.
 
-**(B) Commit & push — time-sensitive.** Nothing is committed; that gate is the owner's. **Amer cannot
-start until this is on GitHub** — the mock kernel exists precisely so he can build the browser side in
-parallel rather than idling behind the kernel for weeks. Every day unpushed is a day of parallel work
-lost. Pushing also proves the CI workflow, which has never actually run.
+**(B) ~~Commit & push~~ — DONE.** `origin/main` @ `e5ff2fc` (Entry 3).
 
-**(C) A `measure` op, before the protocol freezes.** The harness currently derives volume/area/length
-from the **tessellation**, which is exact only for **planar-faced** solids — so the circular Column
-cannot be gated this way (a tessellated cylinder under-reports its volume by the chord error). P2 needs
-a `measure` op backed by OCCT's `BRepGProp`. **The protocol freezes at the end of P3**, so adding it is
-free now and expensive later. I did not add it speculatively because its shape should be driven by the
-real kernel, not guessed. *Recommendation: add it in P2, as soon as the kernel exists.*
+**(C) A `measure` op — APPROVED (4c-6), NOT YET BUILT.** The harness currently derives
+volume/area/length from the **tessellation**, which is exact only for **planar-faced** solids — so the
+circular Column cannot be gated this way (a tessellated cylinder under-reports its volume by the chord
+error). P2 needs a `measure` op backed by OCCT's `BRepGProp`. **The protocol freezes at the end of P3.**
+Adding an op is a one-line change to the `OpMap` in `packages/protocol/src/ops.ts` (the single source of
+truth — dispatcher, client and mock all derive from it), so this is cheap *now* and expensive later.
 
 **(D) Awareness, not a decision yet.** Multi-threading (D8) drags real complexity behind it: COOP/COEP
 headers, `SharedArrayBuffer` (blocked outright in some contexts), and non-deterministic boolean
@@ -235,27 +248,78 @@ ordering that the canonical re-sort must neutralise. If the MT build proves flak
 single-threaded and adding MT in v1.0.x is a legitimate scope call.** Flagged now so it isn't discovered
 under release pressure.
 
+**(E) WHERE does the OCCT→WASM build run? — this is now the gating question.**
+**This dev box cannot link an OCCT WASM build via `opencascade.js` — proven, not assumed** (Entry 3:
+OOM-killed at a 2 GB cap even for a *minimal 6-symbol* build). The candidates, cheapest first:
+- **This box, with an upstream-OCCT CMake build, LTO OFF, modelling modules only** — *untested, but now
+  plausible*, because the OOM came from `opencascade.js`'s mandatory whole-program-optimisation (LTO)
+  link over its prebuilt LTO-bitcode object cache. An upstream build lets us choose the flags. **Free
+  if it works — test this first.**
+- **A temporary Hetzner box** (4 vCPU / 8 GB, a few hours, pennies; the owner already uses Hetzner).
+  Zero CI minutes, zero risk to the live sites, full speed. Build once, take the artifact, destroy it.
+- **Amer's local PC**, if it has ≥8 GB free.
+- **GitHub Actions** — see the corrected budget in **(F2)**. Best as the *final, rare, reproducible*
+  build; **a bad place to iterate on the recipe.**
+
+**(F) HOW do we build and bind it? — the fork question, answered.**
+1. **Do NOT fork `opencascade.js`. Use upstream OCCT's OWN official WASM build.** The owner asked for a
+   deep study of forking `opencascade.js` and swapping OCCT 7.6.2 → 7.9.3. Entry 3 did that study and
+   found the fork **technically viable but unnecessary**: **OCCT 7.9.3 ships first-class emscripten
+   support upstream** (`adm/scripts/wasm_build.sh`, `wasm_custom.sh.template`, `EMSCRIPTEN` handling
+   throughout its CMake). Building from upstream gives everything the fork would have — **exact OCCT
+   7.9.3, matching the oracle exactly** — *without* inheriting a project that has been **dormant since
+   March 2023** (76 open issues, emscripten pinned at 3.1.14/2022), and *with* control of the compile
+   flags, which is what unblocks **(E)**.
+2. **GitHub Actions budget — CORRECTED.** Bunyan is a **private** repo, so `ubuntu-latest` is
+   **2 vCPU / 7 GB** (the 4-vCPU/16 GB runner is **public** repos only) on **2,000 free minutes/month**.
+   A full OCCT compile is **1–3 h ⇒ 60–180 min ⇒ 3–9% of the monthly budget per build.** *Mitigating
+   fact:* the WASM kernel is **not a per-commit build** — the OCCT build id is stamped into every saved
+   `.bimproj`, so it changes only on an OCCT version change. This is **a handful of builds ever**, not a
+   treadmill. Ordinary CI (typecheck/lint/41 tests) is ~1–2 min/push and is irrelevant to the budget.
+3. **Bindings: hand-written `embind` over the upstream build** *(recommendation)* — ~500–1000 lines of
+   C++ exposing only Bunyan's ~10 ops. The alternative (`opencascade.js`'s libclang auto-generator)
+   binds essentially *all* of OCCT: 8,975 binding objects, the bulk of its 3.6 GB object cache, and the
+   reason the stock artifact is ~66 MB. Hand-binding is the direct lever on the **first-load size
+   budget** (spec §8) and it needs **no OCCT patches at all**. **Owner asked to discuss before ruling.**
+4. **Compile OCCT *out*, not just in.** OCCT's CMake `BUILD_MODULE_*` switches let us drop
+   Visualization, DataExchange (STEP/IGES), OCAF and Draw wholesale — Bunyan renders with three.js and
+   uses no OCAF (D1 is our own naming). Measured: **2,070 of 5,805 OCCT `.cxx` files are excludable**,
+   leaving ~3,735 for the modelling core. Smaller build, less memory, smaller download.
+
 ---
 
 ## §5 — Next actions (in priority order)
 
 **For Zayd (kernel/headless):**
 
-1. **Get a real OCCT kernel behind the protocol** — the critical path. **⚠ Sequencing is an open owner
-   call (§4b A):** prebuilt single-threaded first (recommended — fastest route to real geometry, and it
-   unblocks persistent naming, the #1 risk), or the custom multi-threaded build first (as the plan
-   literally reads). Either way the shape of the work is the same: `packages/kernel-occt` implementing
-   `KernelImplementation` (the mock is the reference; `makeBox` + `tessellate` are the first two ops).
-   **Any WASM build MUST follow §6a — it is the heaviest run in the project and the box hosts live
-   public sites.** The instant the kernel answers, `tests/golden-box.test.ts` starts certifying real
-   geometry with **zero test changes** — that is the payoff of the transport-agnostic design. The custom
-   MT build must also confirm `BOPAlgo` parallelism is genuinely active, not silently single-threaded.
-2. **P2 step 4 — verify OCCT history coverage empirically *before* building the general resolver.**
+0. **BLOCKED ON THE OWNER — §4b (E) + (F): the build host and the binding strategy.** Everything below
+   flows from these two calls. Do not start the build until they are made; the study is done and the
+   options are laid out. **The one thing that is settled: build from *upstream OCCT 7.9.3*, not from a
+   fork of `opencascade.js`.**
+
+1. **Confirm CI is actually green — cheap, and still unproven.** The push landed (`e5ff2fc`) but nobody
+   has *seen* the workflow pass. There is **no `gh` CLI and no GitHub token on this box**, and the repo
+   is private, so the Actions API 404s anonymously. Either the owner looks at the Actions tab, or he
+   installs `gh`/drops a token on the box so an agent can. Until then, treat CI as unproven.
+
+2. **Then: get a real OCCT kernel behind the protocol** — the critical path. Shape of the work:
+   `packages/kernel-occt` implementing `KernelImplementation` (the mock is the reference; `makeBox` +
+   `tessellate` are the first two ops). The instant the kernel answers, `tests/golden-box.test.ts`
+   starts certifying real geometry with **zero test changes** — the payoff of the transport-agnostic
+   design. **⚠ Do NOT attempt the build on this box via `opencascade.js` — it is proven impossible
+   (Entry 3). Any WASM build MUST follow §6a.** The MT build must also confirm `BOPAlgo` parallelism is
+   genuinely active, not silently single-threaded (D8).
+
+3. **Add the `measure` op** — **owner-approved (§4c-6)**, and it can be done *now*, against the mock,
+   with no kernel: add a line to the `OpMap` in `packages/protocol/src/ops.ts`, back it with
+   `BRepGProp` when the kernel lands. **The protocol freezes at the end of P3.**
+
+4. **P2 step 4 — verify OCCT history coverage empirically *before* building the general resolver.**
    The spec (§4.5) is explicit that `Generated`/`Modified`/`IsDeleted` is robust for faces but weakest
    for **edges/vertices from boolean section curves**, and the hardest case is a fillet on an edge
    produced by a boolean. Find out what OCCT actually gives us before designing around it.
-3. Add the `measure` op (§4 item 4) while the protocol is still unfrozen.
-4. Push once, to prove CI actually goes green (owner-gated).
+   *(Entry 3 datapoint: `BRepTools_History` parses fine out of the OCCT 7.9.3 headers — the class this
+   depends on is present and bindable.)*
 
 **For Amer (browser hot path) — unblocked *now*, do not wait for the kernel:**
 
@@ -419,3 +483,248 @@ protocol freezes; **(D)** awareness that shipping v1.0.0 single-threaded is a le
 
 **State:** still **uncommitted** on `main`. No heavy runs performed; no containers stopped or started;
 no ports bound; box untouched this session.
+
+---
+
+## Entry 3 — 2026-07-12 — Zayd (dev box) — pushed to GitHub; the OCCT→WASM build investigated to a hard stop
+
+**Task:** act on the owner's rulings (custom build first; commit+push; add `measure`), then start the
+OCCT→WASM build. The build did **not** happen — it was proven **impossible on this box**, and the
+investigation the owner then asked for changed *what we should build in the first place*.
+
+### 1. Owner rulings received and acted on
+
+| Ruling | Status |
+|---|---|
+| **Custom build first** (not the prebuilt `opencascade.js` drop-in) | Stands — but the **means** changed, see §3 |
+| **Commit + push** | **DONE** — `origin/main` @ **`e5ff2fc`**. **Amer is unblocked.** |
+| **Add the `measure` op** in P2, before the P3 freeze | Approved; **not yet built** (§5 item 3) |
+| **Delete the 1.1 GB stale `/tmp` scratchpad** | **DONE** — see §2 |
+
+**Pushed** (`f658ad8..e5ff2fc`): the 4 packages, the harness, the goldens, the oracle tooling, the
+re-seed gate, the CI workflow, the doc updates. One commit, git identity set **repo-locally** to match
+the existing history (`narutousomaki741@example.com`) rather than box-wide.
+
+### 2. A box fact worth more than it sounds: **`/tmp` is a tmpfs — it costs RAM, not disk**
+
+Pre-flight for the heavy run found only **552 MB free RAM**, and — importantly — the other projects'
+containers were **not** the cause: `planitor-pg` + both `chantier_test_*` + the two production
+containers together used **~77 MB**. Pausing them (which §6a pre-authorises) would have bought
+**almost nothing**.
+
+The actual hog was **1.1 GB in `/tmp/claude-1000/…`** — a **dead Claude session's throwaway `.ocptest`
+venv** (VTK + OCP wheels). `/tmp` on this box is a **tmpfs**, i.e. **RAM-backed**, so those files were
+sitting in memory doing nothing. The real oracle venv lives on disk at `tools/oracle/.venv` (verified
+importing OCP fine), so the `/tmp` copy was pure waste. **Owner approved deletion → available RAM went
+1.4 GB → 2.4 GB.** Fourteen times what pausing every other project would have yielded, and it disturbed
+nobody.
+
+**Standing lesson for every future agent on this box:** *before* pausing another project under §6a,
+check `du -sh /tmp` — our own tooling may be the thing eating the RAM. Shrinking your own footprint is
+step 1 of the ladder for a reason.
+
+### 3. THE HARD RESULT: **this box cannot link an OCCT WASM build via `opencascade.js`**
+
+Not "it was slow" — **it is not possible**, and it is not a memory-cap tuning problem:
+
+- Pulled `donalffons/opencascade.js:2.0.0-beta.b5ff984-multi-threaded` (**8.62 GB image**).
+- Ran a **custom build** for Bunyan's real op set (box/cylinder/prism, boolean, fillet, mesh, GProp,
+  bounds, topology traversal), Docker capped at **2 GB, no swap** → **OOM-killed (exit 137)** in the
+  link step.
+- Cut it to a **minimal 6-symbol build** (box + mesh + the bare topology needed to read it) →
+  **OOM-killed again (exit 137).**
+
+**Why:** `opencascade.js` compiles its whole prebuilt object cache with **`-flto`** (whole-program
+optimisation). Its cache is **3.6 GB / 14,362 LLVM-bitcode objects** (5,805 OCCT sources + **8,975
+auto-generated bindings**), so *any* link — however few symbols you ask for — is an **LTO link over
+bitcode**, whose memory floor is above what this 3.7 GB box can spare while hosting live sites. The
+symbol count is not the lever. **Do not retry this.**
+
+*The memory cap did its job:* it killed the container, **not the box.** A monitor watched
+`portfolio-caddy-1` and `beamstack-contact` throughout — **both stayed up the entire session**, RAM
+never went critical, and **no other project's containers were stopped** (they weren't worth stopping —
+see §2).
+
+### 4. The fork study the owner asked for — and why the answer is "don't fork"
+
+The owner asked: *fork `opencascade.js`, swap its internal OCCT 7.6.2 for 7.9.3, study it deeply.*
+Done. **The fork is technically viable — every gate passes:**
+
+1. **Layout compatible.** OCCT 7.9.3 keeps the per-package `src/` dirs (478 vs 448) and the `FILES`
+   manifests the build system walks. `compileSources.py` just walks `/occt/src` — a path change.
+2. **OCCT 7.9.3 compiles with the image's 2022 toolchain.** Tested emscripten 3.1.14 / clang 15 on 5
+   representative files (`BRepPrimAPI_MakeBox`, `BRepAlgoAPI_Cut`, `BRepFilletAPI_MakeFillet`,
+   `BRepGProp`, `BRepMesh_IncrementalMesh`) → **5/5 clean, ~2 s each.** clang 15 defaults to C++17,
+   which is what OCCT 7.9 needs. **No C++ incompatibility.**
+3. **The libclang binding generator parses 7.9.3 headers** — 167–407 classes resolved per header,
+   **including `BRepTools_History`**, the class persistent naming (D1) depends on.
+4. **The OCCT patches are nearly irrelevant.** There are only 2. They *fail* to apply to 7.9.3
+   (upstream changed those files) — but they are **not needed to compile** (the compile test above used
+   *unpatched* 7.9.3), and **5 of the 7 files they touch are visualisation classes** (`AIS`, `V3d`,
+   `Graphic3d`) that **Bunyan never uses** (we render with three.js).
+
+**…and yet forking is the wrong move, because chasing it found something better:**
+
+> **OCCT 7.9.3 has first-class, official emscripten/WASM support upstream** — `adm/scripts/wasm_build.sh`,
+> `wasm_custom.sh.template`, and `EMSCRIPTEN` handling throughout its `CMakeLists.txt`. **Verified.**
+
+So we can build **upstream OCCT 7.9.3 → WASM with OCCT's own maintained build script** and get
+*everything the fork would have given us* — **exact OCCT 7.9.3, which matches our `cadquery-ocp` oracle
+exactly (7.9.3 ⟷ 7.9.3, zero version skew)** — **without** adopting a project that has been **dormant
+since March 2023** (last commit 2023-03-27, 76 open issues, emscripten pinned at 3.1.14/2022), and
+**with control of the compile flags — which is precisely what unblocks the OOM in §3** (turn LTO off).
+
+It also lets us **compile OCCT *out***: CMake `BUILD_MODULE_*` switches drop Visualization,
+DataExchange (STEP/IGES), OCAF and Draw wholesale. Measured: **2,070 of 5,805 OCCT `.cxx` files are
+excludable**, leaving ~3,735 for the modelling core → smaller build, less memory, smaller download.
+
+### 5. A correction I owe the record: the GitHub Actions numbers
+
+I told the owner CI runners have **16 GB**. **That was wrong** — I asserted it from memory instead of
+checking, and he was right to challenge it. **Bunyan is a private repo** (the API 404s anonymously), so:
+- `ubuntu-latest` = **2 vCPU / 7 GB** (the 4-vCPU/16 GB runner is **public** repos only).
+- **2,000 free Actions minutes/month.** A full OCCT compile (1–3 h) is **60–180 min ⇒ 3–9% of the
+  monthly budget *per build***. Iterating a build recipe in CI would eat the month.
+- **7 GB still clears the 2 GB wall** — CI *can* do what the box cannot.
+- **The reframe that defuses the budget worry:** the WASM kernel is **not a per-commit build.** The
+  OCCT build id is stamped into every saved `.bimproj`, so it changes only when OCCT changes — **a
+  handful of builds ever, not a treadmill.** Ordinary CI (typecheck/lint/41 tests) is ~1–2 min/push.
+  ⇒ **Iterate the recipe somewhere cheap; let CI do the rare, reproducible, final build.**
+
+### 6. Verification
+
+`pnpm verify` green — strict typecheck, eslint, **41/41 tests**, prettier. **Unchanged from Entry 2: no
+production code was written this session.** Everything above is investigation, plus the push.
+
+**⚠ CI has still never been observed green.** The push landed, but there is **no `gh` CLI and no GitHub
+token on this box**, and the repo is private → the Actions API 404s anonymously. **A human must look at
+the Actions tab** (or put a token on the box). Until then, CI remains *unproven* — exactly as it was in
+Entry 1, and it is now the cheapest open item.
+
+### 7. State / box hygiene
+
+- **Committed + pushed:** `origin/main` @ `e5ff2fc`. Nothing uncommitted except this file's Entry-3 edits.
+- **Docker image left on disk:** `donalffons/opencascade.js` (**8.62 GB**, disk 13 GB free). **Likely
+  dead weight** if the owner takes the upstream-OCCT route (§4) — `docker rmi` it then. Kept for now
+  only because the decision is open.
+- **No containers stopped or started. No other project touched. No ports bound.** Live sites up
+  throughout (monitored).
+- Scratchpad OCCT source (294 MB) deleted from the RAM-backed `/tmp` — box left at **2.7 GB available**.
+
+**Open for the owner (§4b):** **(E)** where the build runs — *test the lean upstream build on this box
+first (free, plausible)*, else a temporary Hetzner box (pennies, zero CI minutes), Amer's PC, or CI;
+**(F3)** hand-written `embind` vs the auto-generator — **the owner asked to discuss this rather than
+have it ruled**; **(C)** the `measure` op, still unbuilt and still cheap until the P3 freeze.
+
+*(Entry 4 answers (E) and (F): the build runs **here**, and the binding question dissolved.)*
+
+---
+
+## Entry 4 — 2026-07-12 — Zayd (dev box) — REAL OCCT GEOMETRY IN WASM. Spike green.
+
+**The headline:** **upstream OCCT 7.9.3 now compiles, links and runs as WebAssembly on this box**, and
+its geometry **matches the native-OCCT goldens exactly**. The kernel is real. Every blocker in Entry 3
+is resolved, and it cost **zero CI minutes, zero rented machines, and zero risk to the live sites.**
+
+```
+Goldens seeded from: cadquery-ocp (native OCCT) 7.9.3.1.1
+WASM kernel:         upstream OCCT 7.9.3 (this build)
+
+box-wall-3000x200x2500      volume/area/edgeLength/counts .... ALL EXACT
+box-large-extent-100m       volume/area/edgeLength/counts .... ALL EXACT
+provenance                  12 triangles, 12 face tags ....... PASS
+handle lifecycle            liveHandles -> 0 ................. PASS
+failure contract            invalid params, no throw ......... PASS
+✅ ALL CHECKS PASSED
+```
+
+### The architecture — the thing this spike actually proves
+
+**JavaScript never touches OCCT.** The WASM module *is* the kernel: our C++ implements the ops
+(`makeBox`, `measure`, `tessellate`, `releaseShape`), statically linked against OCCT. JS calls **our**
+op set, not OCCT's API.
+
+This is the opposite of `opencascade.js`, and the difference is not cosmetic:
+
+| | `opencascade.js` | **Bunyan (this build)** |
+|---|---|---|
+| What JS calls | **all of OCCT's API** | **our ~10 ops** |
+| Where geometry logic lives | JavaScript | **C++, inside the WASM** |
+| JS↔WASM boundary crossings | **one per OCCT call** (thousands/rebuild) | **one per op** |
+| Artifact (raw / gzip) | 62.8 MB / **13.1 MB** | **3.94 MB / 1.46 MB** |
+| OCCT version | 7.6.2 (2022) | **7.9.3 — matches the oracle exactly** |
+| Links on this box? | **No — OOM, even at 6 symbols** | **Yes** |
+| Can IfcOpenShell link against it? | No | **Yes** |
+
+**⇒ 9× smaller over the wire, and it grows by C++ ops rather than by binding surface.** The linker
+keeps only OCCT code our ops actually reach, so the artifact tracks what we *use*, not what OCCT *has*.
+
+**This dissolves §4b(F3).** "Hand-written bindings vs auto-generated" was the wrong question: we bind
+**our protocol seam**, not OCCT. The JS surface stays small and stable no matter how far the product
+grows. Growth to Revit parity = **more C++ ops** (sweeps, HLR drawings, shape healing, IFC import).
+
+### The build recipe (reproducible; lives at `/home/devuser/occt-wasm-spike/`)
+
+- **Toolchain:** `emscripten/emsdk:latest` — **emcc 6.0.2**, cmake 3.28 *(vs opencascade.js's 2022 emcc 3.1.14)*.
+- **Source:** upstream OCCT **7.9.3** (`V7_9_3`), unpatched. *(The 2 patches opencascade.js needs are
+  irrelevant here — they were generator hints, mostly for visualisation classes we don't build.)*
+- **`configure.sh`** — the two load-bearing choices:
+  1. **NO LTO.** Whole-program optimisation over LLVM bitcode is exactly what OOM-killed every
+     `opencascade.js` link (Entry 3). Plain `-O2` links in a fraction of the memory. **This is the
+     single change that made the box viable.**
+  2. **Modelling toolkits only** — `BUILD_MODULE_Visualization/ApplicationFramework/DataExchange/Draw=OFF`,
+     `USE_FREETYPE/TK/TCL/OPENGL/VTK/RAPIDJSON=OFF`. 18 toolkits, 93 MB of static libs:
+     `TKernel TKMath TKG2d TKG3d TKGeomBase TKGeomAlgo TKBRep TKTopAlgo TKPrim TKBO TKBool TKFillet
+     TKOffset TKShHealing TKMesh TKHLR TKFeat TKXMesh`
+     **Note `TKHLR`** — hidden-line removal, i.e. **plans/sections/elevations**. **`TKOffset`** — wall
+     layers/shelling. **`TKShHealing`** — repairing imported geometry. The Revit-competitor set is in.
+- **Cost:** ~2.5 h compile, 2 cores, **capped at 2 GB** — memory never exceeded ~1.4 GB in use.
+  Link: **seconds**, well inside the cap.
+- **`kernel.cpp`** — our ops + the embind surface. **`verify.mjs`** — judges the build against
+  `tests/goldens/geometry.golden.json`.
+
+### The `measure` op is real (§4b C is now buildable, not theoretical)
+
+Implemented via **`BRepGProp`** — exact volume/area, *not* derived from the tessellation. So a circular
+column will be measured exactly instead of under-reported by its chord error. **Edge length is summed
+over UNIQUE edges** (`TopExp::MapShapes`), deliberately: `BRepGProp::LinearProperties` on a *solid*
+counts each edge once per adjoining face and reports 45,600 mm for a box whose edges total 22,800 mm —
+the exact bug the closed-form tier caught at seeding time (§4a(2)). It is **our** API misuse, not an
+OCCT defect, and the new kernel does not repeat it: **edgeLength came back 22,800. Exact.**
+
+### ⚠ NEW — LICENSING. Needs an owner decision, and it is not a technicality.
+
+**OCCT is LGPL 2.1.** Its "OCCT exception" is **narrower than it sounds** — I read the text: it only
+permits *header* material to appear in your object code. It is **not** a general static-linking
+exemption.
+
+A WASM app is **one statically-linked binary** — OCCT is baked into our `.wasm`. Under LGPL 2.1,
+shipping proprietary software with the library statically linked obliges you to let users **relink
+against their own modified OCCT**. Options:
+1. **Ship our kernel's object files** alongside the app (compiled objects, **not** our source), so a
+   user *could* relink. Standard, well-trodden; keeps our source proprietary. A release chore.
+2. **Buy a commercial licence** from Open Cascade (they sell exactly this exemption). Costs money.
+3. **Load OCCT as a separate swappable WASM side-module.** Cleanest legally; more complex; costs some
+   performance. **⚠ Would change the build architecture — so decide before we harden it.**
+4. **Open-source Bunyan** under a compatible licence.
+
+**This applies to every path** — `opencascade.js`, a fork, or this build. It is OCCT's licence, not a
+consequence of the architecture. Spec §11 already schedules a licensing review at release; **pull it
+forward.** *(Not legal advice — this needs a real call, possibly a lawyer.)*
+
+### An honest correction
+
+I earlier let "**66 MB**" carry an argument. The real number is **62.8 MB raw but ~13.1 MB gzipped** —
+what a browser actually downloads. The size case was **weaker than I implied**; the architectural case
+(boundary crossings, IfcOpenShell linkage, 3-years-stale booleans) is what actually wins. Our build
+still beats it **9× over the wire** — but that is the *result*, not the argument.
+
+### State
+
+- **Not yet wired into the repo.** `packages/kernel-occt` does **not** exist yet; the spike lives at
+  `/home/devuser/occt-wasm-spike/` (box-local, **not** in git). `pnpm verify` still **41/41 green,
+  unchanged** — no production code was touched this session.
+- **Next:** wire the artifact in as `packages/kernel-occt` behind `KernelImplementation`, and
+  `tests/golden-box.test.ts` starts certifying **real geometry with zero test changes**.
+- **`donalffons/opencascade.js` image DELETED** (8.62 GB reclaimed) — we are not using it.
+- Live sites up throughout (monitored). No other project touched. No ports bound. Disk 18 GB free.
