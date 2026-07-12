@@ -66,8 +66,9 @@ pnpm verify  →  typecheck (strict) ✓   eslint ✓   95/95 tests ✓   pretti
                    cut clean through a wall, a fillet — are checked against a NATIVE OCCT reference.
 ```
 
-**Committed and pushed:** `origin/main` @ **`7630185`** (Entry 7 work is **uncommitted** — commit is
-owner-gated). Amer can build against **real geometry** today: `@bunyan/kernel-occt/worker`.
+**Committed and pushed:** `origin/main` @ **`1f0dcc6`** — Entries **7, 8 and 9** are all in (the owner
+approved the push, 2026-07-12). **The working tree is clean.** Amer can build against **real geometry**
+today: `@bunyan/kernel-occt/worker`.
 
 **⚠ FIVE THINGS A FRESH AGENT MUST NOT REDISCOVER THE HARD WAY:**
 
@@ -1478,8 +1479,10 @@ spec §8 so it is not discovered under release pressure.
 
 ### 8. State
 
-- **UNCOMMITTED** on `main` — this session's work sits on top of Entry 7's and Entry 8's, all still
-  uncommitted. `origin/main` is still @ **`7630185`**. **Commit/push is owner-gated.**
+- **COMMITTED AND PUSHED — the owner approved it at the end of this session.** `origin/main` @
+  **`1f0dcc6`** (`7630185..1f0dcc6`), carrying Entries **7, 8 and 9** in one commit: they touch the same
+  files (Entry 9 rewrote Entry 7's `kernel.cpp` and the protocol), so an intermediate split would not
+  have built. Working tree clean.
 - **CI still never observed green** (no `gh`, no token, private repo). ⚠ Note for whoever commits: the
   **re-seed gate will pass** — the goldens were re-seeded this session, as it requires.
 - **`pnpm verify` is the gate, and it is green.**
