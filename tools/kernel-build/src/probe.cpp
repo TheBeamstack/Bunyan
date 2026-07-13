@@ -21,12 +21,22 @@
 
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRepPrimAPI_MakeRevol.hxx>
 #include <BRepPrim_Cylinder.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepAlgoAPI_Common.hxx>
 #include <BRepFilletAPI_MakeFillet.hxx>
 #include <BRepBuilderAPI_MakeShape.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
+#include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
+#include <GC_MakeArcOfCircle.hxx>
+#include <gp_Pln.hxx>
+#include <gp_Trsf.hxx>
+#include <gp_Ax1.hxx>
+#include <gp_Ax3.hxx>
 #include <BRepGProp.hxx>
 #include <GProp_GProps.hxx>
 #include <BRep_Tool.hxx>
@@ -47,6 +57,7 @@
 #include <gp_Dir.hxx>
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 #include <sstream>
 #include <string>
@@ -395,6 +406,33 @@ std::string probeCase(const std::string& caseName, const std::string& note,
 
       if (k == TopAbs_FACE) {
         outs << ",\"geom\":" << describeFace(TopoDS::Face(m(i)));
+
+        // ⚠ THE FACE'S NEIGHBOURS — the discriminator the resolver does NOT currently use, and the
+        // reason this block exists. When a boolean SPLITS one face into two (a groove across a wall),
+        // both halves have an IDENTICAL derivation — same parent, same operand — and today's kernel
+        // refuses them as indistinguishable. But they are not indistinguishable: they touch DIFFERENT
+        // faces. The half above the groove meets z-max; the half below meets z-min. That is pure
+        // topology — no coordinate, no tolerance, nothing to drift under a rebuild.
+        //
+        // So: for every output face, the set of output faces it shares an edge with. If the split
+        // halves' neighbour sets differ, a structural tie-break exists and the positional key
+        // (spec §4.5, geometry on the identity path) is NOT the only answer.
+        std::vector<int> neighbours;
+        for (int e = 1; e <= outE.Extent(); ++e) {
+          const std::vector<int> bounding = boundingFaces(outE(e), outEdgeFaces, nullptr);
+          if (std::find(bounding.begin(), bounding.end(), i) == bounding.end()) continue;
+          for (const int f : bounding) {
+            if (f != i && std::find(neighbours.begin(), neighbours.end(), f) == neighbours.end()) {
+              neighbours.push_back(f);
+            }
+          }
+        }
+        std::sort(neighbours.begin(), neighbours.end());
+        outs << ",\"touches\":[";
+        for (std::size_t n = 0; n < neighbours.size(); ++n) {
+          outs << (n ? "," : "") << quote(outKey(TopAbs_FACE, neighbours[n]));
+        }
+        outs << "]";
       } else if (k == TopAbs_EDGE) {
         const TopoDS_Edge& e = TopoDS::Edge(m(i));
         outs << ",\"geom\":" << describeEdge(e);
@@ -480,6 +518,214 @@ std::string boolCase(const std::string& caseName, const std::string& note, Label
 
   std::vector<Labelled> operands{a, b};
   return probeCase(caseName, note, operands, *op, op->Shape());
+}
+
+// ---------------------------------------------------------------------------------------------
+// REVOLVE — the last unbuilt op in P2 step 1, and the reason this probe is being re-run rather than
+// reasoned about (Entry 9's rule; Entry 11's lesson).
+//
+// The prism's naming rule is known and shipped: `lateral.k` is the face swept from AUTHORED segment
+// k, plus `cap-start`/`cap-end` from FirstShape()/LastShape(). The temptation is to assume the revol
+// is the same operation with a rotation instead of a translation. THREE THINGS COULD FALSIFY THAT,
+// and every one of them is silent if unmeasured:
+//
+//   1. A FULL 360° REVOLVE HAS NO CAPS. The solid closes on itself, so FirstShape()/LastShape() have
+//      nothing to return. Do they return a null shape, an empty one, or throw? The prism's code path
+//      calls both unconditionally and REFUSES the build if either fails to resolve — so a naive copy
+//      would refuse every full revolve, which is the common case (a column, a dome, a baluster).
+//   2. THE SEAM. Each swept face closes on itself, so — exactly like the cylinder (Entry 9) — the
+//      seam edge is bounded by ONE face twice and NO FACE PAIR CAN NAME IT. The cylinder survives
+//      only because BRepPrim_Cylinder hands us StartEdge() to seed. BRepPrimAPI_MakeRevol has no
+//      such accessor. So: how many seam edges are there, and can HISTORY reach them where adjacency
+//      cannot? (If neither can, the op cannot ship as designed.)
+//   3. A SEGMENT LYING ON THE AXIS generates no face at all — it sweeps into a line, not a surface.
+//      The prism's rule "each segment generates EXACTLY ONE face, or refuse" would then reject a
+//      perfectly ordinary profile (a cone, a dome, anything whose boundary touches its own axis).
+//      What DOES Generated() return for it — nothing, or a degenerate edge?
+//
+// This measures all three. The resolver is written afterwards, from what this prints.
+// ---------------------------------------------------------------------------------------------
+
+// One authored segment, in the profile plane's (u,v) coordinates — the probe's mirror of the
+// protocol's `Profile` type, so the operand side of the report is written in the kernel's vocabulary.
+struct Seg {
+  bool arc = false;
+  double viaU = 0, viaV = 0;  // an arc's midpoint; ignored for a line
+  double toU = 0, toV = 0;
+};
+
+// Build a profile face the way `kernel.cpp::buildProfileFace` does, and label it the way the resolver
+// would: the face is `profile`, and edge k is `seg.k` — THE AUTHOR'S INDEX, never OCCT's traversal.
+// `outSegEdges` hands back the segment edges AS THEY EXIST ON THE FACE (`wire.Edge()`, not the edge we
+// built — MakeWire copies an edge it has to reverse, and Entry 12 lost every >3-sided profile to that).
+Labelled profileFace(const std::string& name, const gp_Ax3& plane, double startU, double startV,
+                     const std::vector<Seg>& segs, std::vector<TopoDS_Edge>& outSegEdges) {
+  const gp_Pnt origin = plane.Location();
+  const gp_Dir xDir = plane.XDirection();
+  const gp_Dir yDir = plane.YDirection();
+  const auto at = [&](double u, double v) {
+    return gp_Pnt(origin.XYZ() + xDir.XYZ() * u + yDir.XYZ() * v);
+  };
+
+  const gp_Pnt startPnt = at(startU, startV);
+  gp_Pnt cursor = startPnt;
+  BRepBuilderAPI_MakeWire wire;
+  std::vector<TopoDS_Edge> authored;
+
+  for (std::size_t k = 0; k < segs.size(); ++k) {
+    gp_Pnt end = at(segs[k].toU, segs[k].toV);
+    if (k + 1 == segs.size()) end = startPnt;  // snap the loop shut, as the kernel does
+
+    TopoDS_Edge e;
+    if (segs[k].arc) {
+      const GC_MakeArcOfCircle arc(cursor, at(segs[k].viaU, segs[k].viaV), end);
+      e = BRepBuilderAPI_MakeEdge(arc.Value());
+    } else {
+      e = BRepBuilderAPI_MakeEdge(cursor, end);
+    }
+    wire.Add(e);
+    authored.push_back(wire.Edge());
+    cursor = end;
+  }
+
+  BRepBuilderAPI_MakeFace mf(gp_Pln(plane), wire.Wire());
+  Labelled L;
+  L.name = name;
+  L.shape = mf.Face();
+  L.index();
+  L.faceLabel[1] = "profile";
+
+  // Map each AUTHORED segment onto the edge as it exists on the face — `IsSame`, because MakeWire may
+  // have reversed it and an OCCT shape map keys on orientation.
+  TopTools_IndexedMapOfShape faceEdges;
+  TopExp::MapShapes(L.shape, TopAbs_EDGE, faceEdges);
+  outSegEdges.assign(segs.size(), TopoDS_Edge());
+  for (std::size_t k = 0; k < segs.size(); ++k) {
+    for (int i = 1; i <= faceEdges.Extent(); ++i) {
+      if (faceEdges(i).IsSame(authored[k])) {
+        outSegEdges[k] = TopoDS::Edge(faceEdges(i));
+        L.edgeLabel[L.edges.FindIndex(faceEdges(i))] = "seg." + std::to_string(k);
+        break;
+      }
+    }
+  }
+  for (int i = 1; i <= L.verts.Extent(); ++i) L.vertLabel[i] = "v" + std::to_string(i);
+  return L;
+}
+
+// Revolve the profile and report — plus the three things probeCase does not know to ask about:
+// whether the caps exist, what each AUTHORED segment generated, and how many seams came out.
+std::string revolveCase(const std::string& caseName, const std::string& note, const gp_Ax3& plane,
+                        double startU, double startV, const std::vector<Seg>& segs,
+                        const gp_Ax1& axis, double angleDeg) {
+  std::vector<TopoDS_Edge> segEdges;
+  Labelled p = profileFace("profile", plane, startU, startV, segs, segEdges);
+
+  const bool full = angleDeg >= 359.999;
+  BRepPrimAPI_MakeRevol mk(TopoDS::Face(p.shape), axis, angleDeg * M_PI / 180.0);
+  mk.Build();
+  if (!mk.IsDone()) return "{\"case\":" + quote(caseName) + ",\"error\":\"revol not done\"}";
+
+  const TopoDS_Shape result = mk.Shape();
+  TopTools_IndexedMapOfShape outF;
+  TopExp::MapShapes(result, TopAbs_FACE, outF);
+
+  // ⚠ 1. THE CAPS. Call FirstShape()/LastShape() exactly as the prism's code path does, and record what
+  // comes back — null, absent from the result, or a real face. This is the question that decides
+  // whether the revolve can reuse the prism's resolver at all.
+  std::ostringstream caps;
+  const auto capReport = [&](const char* which, const TopoDS_Shape& s) {
+    caps << "\"" << which << "\":{";
+    if (s.IsNull()) {
+      caps << "\"null\":true}";
+      return;
+    }
+    const int at = outF.FindIndex(s);
+    caps << "\"null\":false,\"kind\":" << quote(kindName(s.ShapeType()))
+         << ",\"inResult\":" << (at != 0 ? "true" : "false")
+         << ",\"face\":" << (at != 0 ? std::to_string(at) : std::string("0")) << "}";
+  };
+  caps << "{";
+  try {
+    capReport("first", mk.FirstShape());
+  } catch (const Standard_Failure&) {
+    caps << "\"first\":{\"threw\":true}";
+  }
+  caps << ",";
+  try {
+    capReport("last", mk.LastShape());
+  } catch (const Standard_Failure&) {
+    caps << "\"last\":{\"threw\":true}";
+  }
+  caps << "}";
+
+  // ⚠ 3. WHAT EACH AUTHORED SEGMENT GENERATED. The prism demands exactly one face per segment. A
+  // segment ON THE AXIS sweeps into a line, not a surface — so this is where that shows up, as a
+  // count of 0, or as a DEGENERATE EDGE rather than a face.
+  std::ostringstream gen;
+  gen << "[";
+  for (std::size_t k = 0; k < segEdges.size(); ++k) {
+    int faces = 0, edges = 0, degenerate = 0;
+    for (TopTools_ListOfShape::Iterator it(mk.Generated(segEdges[k])); it.More(); it.Next()) {
+      if (it.Value().ShapeType() == TopAbs_FACE) ++faces;
+      if (it.Value().ShapeType() == TopAbs_EDGE) {
+        ++edges;
+        if (BRep_Tool::Degenerated(TopoDS::Edge(it.Value()))) ++degenerate;
+      }
+    }
+    gen << (k ? "," : "") << "{\"seg\":" << k << ",\"faces\":" << faces << ",\"edges\":" << edges
+        << ",\"degenerateEdges\":" << degenerate << "}";
+  }
+  gen << "]";
+
+  GProp_GProps vp;
+  BRepGProp::VolumeProperties(result, vp);
+
+  std::vector<Labelled> operands{p};
+  std::string body = probeCase(caseName, note, operands, mk, result);
+  body.pop_back();
+  body += ",\"angleDeg\":" + num(angleDeg) + ",\"fullRevolution\":" + (full ? "true" : "false") +
+          ",\"caps\":" + caps.str() + ",\"segGenerated\":" + gen.str() +
+          ",\"resultVolume\":" + num(vp.Mass()) + "}";
+  return body;
+}
+
+// ---------------------------------------------------------------------------------------------
+// TRANSFORM (rotation / mirror) — the op the protocol does NOT yet have, and the reason this probe
+// is being re-run rather than reasoned about.
+//
+// The hypothesis to be tested, NOT assumed: a rigid transform is a topological ISOMORPHISM — every
+// face maps to exactly one face — so history should account for 100% of the output with a single
+// same-kind ancestor each, i.e. pure INHERIT, and the transform should own NO new identity. If that
+// holds, a rotated wall keeps every ref it had, and the window hosted on it survives the rotation.
+//
+// Two things could falsify it, and both are silent if unmeasured:
+//   * `Copy=false` shares the underlying TShape and only swaps the Location — OCCT might then report
+//     NOTHING in `Modified()` (the "silence means unchanged" trap from Entry 9), which would leave
+//     every face an orphan and the operation refused.
+//   * A MIRROR is a negative (handedness-flipping) transformation. OCCT may copy, reverse
+//     orientations, or reorder — any of which could break the 1:1 map.
+// So we measure both copy modes, and we measure a mirror separately from a rotation.
+// ---------------------------------------------------------------------------------------------
+std::string transformCase(const std::string& caseName, const std::string& note, Labelled a,
+                          const gp_Trsf& t, bool copy) {
+  BRepBuilderAPI_Transform mk(a.shape, t, copy);
+  mk.Build();
+  if (!mk.IsDone()) return "{\"case\":" + quote(caseName) + ",\"error\":\"transform not done\"}";
+
+  // Volume is reported alongside so a mirror that quietly inverted the solid cannot pass unnoticed:
+  // a negative transform that is mishandled yields a solid of NEGATIVE volume, and no naming test
+  // would ever catch that.
+  GProp_GProps vp;
+  BRepGProp::VolumeProperties(mk.Shape(), vp);
+
+  std::vector<Labelled> operands{a};
+  std::string body = probeCase(caseName, note, operands, mk, mk.Shape());
+  // Splice the volume + copy-mode in before the closing brace.
+  body.pop_back();
+  body += ",\"copyMode\":" + std::string(copy ? "true" : "false") +
+          ",\"resultVolume\":" + num(vp.Mass()) + "}";
+  return body;
 }
 
 }  // namespace
@@ -616,6 +862,199 @@ std::string probe() {
           }
         }
       }
+    }
+    // ⚠⚠ 6b. THE CASE THAT ACTUALLY FORCES THE §4.5 DECISION — AND IT IS NOT THE MIRROR.
+    //
+    // A GROOVE across the wall's front face: a chase, a rebate, a shadow gap, a recessed band. Utterly
+    // ordinary BIM, and the shipped kernel REFUSES IT — `nameDerived` finds two faces with an
+    // IDENTICAL derivation (both are pieces of the wall's y-min face, split by the groove) and bails
+    // out rather than guess. Entry 9's probe never cut a groove, so nothing caught it.
+    //
+    // The question this case exists to answer: are the two halves REALLY indistinguishable? Look at
+    // `touches` on each. If the upper half meets z-max and the lower meets z-min, they are told apart
+    // by pure topology — and the positional key stays unbuilt.
+    add(boolCase("cut_groove_splits_a_face",
+                 "a horizontal groove across the wall's y-min face — it SPLITS that face in two",
+                 wall(), makeBoxAt("groove", 0, 0, 1000, 3000, 50, 200), 0));
+
+    // -----------------------------------------------------------------------------------------
+    // 7-11. TRANSFORM. See the note on `transformCase`.
+    // -----------------------------------------------------------------------------------------
+
+    // 7 + 8. ROTATE a wall 30 deg about the vertical axis through its own origin — BOTH copy modes,
+    //        because `Copy=false` is the one that could report an empty history.
+    {
+      gp_Trsf rot;
+      rot.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 6.0);
+      add(transformCase("transform_rotate_nocopy", "a wall rotated 30 deg about Z, Copy=false", wall(),
+                        rot, false));
+      add(transformCase("transform_rotate_copy", "the same rotation, Copy=true", wall(), rot, true));
+    }
+
+    // 9. MIRROR the wall in the YZ plane (x = 0). A NEGATIVE transformation: handedness flips.
+    {
+      gp_Trsf mir;
+      mir.SetMirror(gp_Ax2(gp_Pnt(0, 0, 0), gp_Dir(1, 0, 0)));
+      add(transformCase("transform_mirror", "a wall mirrored in the YZ plane — a NEGATIVE transform",
+                        wall(), mir, false));
+    }
+
+    // 10. ROTATE A BOOLEAN RESULT — the realistic case: a wall that ALREADY has a window in it is
+    //     placed at an angle. If history survives this, a rotated wall keeps its opening's refs.
+    {
+      Labelled w = wall();
+      Labelled opening = makeBoxAt("opening", 800, -50, 900, 1000, 300, 1400);
+      TopTools_ListOfShape args, tools;
+      args.Append(w.shape);
+      tools.Append(opening.shape);
+      BRepAlgoAPI_Cut cut;
+      cut.SetArguments(args);
+      cut.SetTools(tools);
+      cut.Build();
+      if (!cut.IsDone()) {
+        add("{\"case\":\"transform_rotate_boolean\",\"error\":\"cut not done\"}");
+      } else {
+        Labelled c;
+        c.name = "cut";
+        c.shape = cut.Shape();
+        c.index();
+        for (int i = 1; i <= c.faces.Extent(); ++i) c.faceLabel[i] = "f" + std::to_string(i);
+        c.labelFromAdjacency();
+        gp_Trsf rot;
+        rot.SetRotation(gp_Ax1(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), M_PI / 6.0);
+        add(transformCase("transform_rotate_boolean",
+                          "a wall THAT ALREADY HAS A WINDOW, rotated 30 deg", c, rot, false));
+      }
+    }
+
+    // 11. ⚠⚠ THE CASE THE SPEC RESERVED THE POSITIONAL KEY FOR — fuse a wall with its OWN MIRROR.
+    //     If a transform passes its operand's identities through untouched (the INHERIT hypothesis),
+    //     then BOTH operands of this fuse carry THE SAME TOKENS, and the two halves of the result are
+    //     structurally indistinguishable. This is the "genuinely symmetric split" of spec §4.5.
+    //     What we need to know is precisely WHERE it breaks: in the C++ (structure) or in the TS
+    //     (identity). The answer decides whether a bounded positional key must be built.
+    {
+      Labelled w = makeBoxAt("wall", 0, 0, 0, 3000, 200, 2500);
+      gp_Trsf mir;
+      mir.SetMirror(gp_Ax2(gp_Pnt(0, 0, 0), gp_Dir(1, 0, 0)));  // mirror across x = 0
+      BRepBuilderAPI_Transform tr(w.shape, mir, false);
+      tr.Build();
+      if (!tr.IsDone()) {
+        add("{\"case\":\"mirror_fuse_self\",\"error\":\"mirror not done\"}");
+      } else {
+        Labelled m;
+        m.name = "wall-mirrored";
+        m.shape = tr.Shape();
+        m.index();
+        // Label the mirrored copy with THE SAME labels as the original, via the transform's own
+        // history — which is exactly what the INHERIT rule would do with the ref tokens.
+        for (int i = 1; i <= w.faces.Extent(); ++i) {
+          for (TopTools_ListOfShape::Iterator it(tr.Modified(w.faces(i))); it.More(); it.Next()) {
+            const int at = m.faces.FindIndex(it.Value());
+            if (at != 0) m.faceLabel[at] = w.faceLabel[i];
+          }
+        }
+        m.labelFromAdjacency();
+        add(boolCase("mirror_fuse_self",
+                     "a wall FUSED WITH ITS OWN MIRROR IMAGE — both operands carry identical labels",
+                     w, m, 1));
+      }
+    }
+
+    // ⚠⚠ 11b. THE HOLE THE WHOLE SUITE MISSED FOR FOURTEEN ENTRIES: A DUCT THROUGH A **ROUND** COLUMN.
+    //
+    // Every boolean this project has ever tested cut a BOX. A duct through a box enters via `y-min` and
+    // leaves via `y-max` — two DIFFERENT faces, so the two rims have two different derivations and the
+    // resolver never has to choose. **A round column has ONE lateral face that wraps all the way
+    // around**, so the duct enters and leaves through THE SAME FACE: both rims are `Generated` by the
+    // same face pair, and both are closed circles whose single vertex has the same signature.
+    //
+    // The shipped kernel REFUSES IT ("two edges share a derivation AND the same endpoints"). A service
+    // penetration through a circular column is not an exotic shape; it is Tuesday. This is the groove
+    // (Entry 11) one dimension down, and it was found the same way: by cutting something nobody had
+    // thought to cut.
+    //
+    // The question this case exists to answer, and it decides whether the POSITIONAL KEY (spec §4.5)
+    // must finally be built: **is there ANY structural difference between the two rims?** Look at their
+    // `faces`, their `ends`, and the vertex signatures. If the entry rim and the exit rim are
+    // topologically indistinguishable, then no amount of cleverness with adjacency will separate them
+    // and geometry is the only remaining discriminator — which is exactly what §4.5 reserved the
+    // positional key for, and what Entry 11 was relieved not to need.
+    {
+      Labelled col = makeCylinderAt("col", gp_Ax2(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1)), 400, 3000);
+      // Along +X, through the axis: it enters at one side of the lateral face and leaves at the other.
+      Labelled duct =
+          makeCylinderAt("duct", gp_Ax2(gp_Pnt(-600, 0, 1500), gp_Dir(1, 0, 0)), 80, 1200);
+      add(boolCase("cut_round_column_by_duct",
+                   "a duct clean through a ROUND column — it enters and leaves through THE SAME "
+                   "lateral face, so both rims share a derivation",
+                   col, duct, 0));
+    }
+
+    // -----------------------------------------------------------------------------------------
+    // 12-15. REVOLVE — the last unbuilt op. See the note on `revolveCase` for what is being tested.
+    //
+    // The profile is drawn in the XZ plane (normal = -Y, so u = +X and v = +Z) and revolved about the
+    // global Z axis. That is the frame a real revolved element is authored in: a column, a baluster,
+    // a dome — a section drawn beside the axis it spins around.
+    // -----------------------------------------------------------------------------------------
+    const gp_Ax3 xz(gp_Pnt(0, 0, 0), gp_Dir(0, -1, 0), gp_Dir(1, 0, 0));
+    const gp_Ax1 zAxis(gp_Pnt(0, 0, 0), gp_Dir(0, 0, 1));
+
+    // 12. FULL 360°, profile CLEAR OF THE AXIS: a 500..1000 x 0..3000 rectangle ⇒ a hollow tube.
+    //     Every one of the four swept faces closes on itself. THE CAP QUESTION AND THE SEAM QUESTION,
+    //     both at once, on the simplest possible profile.
+    {
+      const std::vector<Seg> rect{
+          {false, 0, 0, 1000, 0},     // seg 0: bottom  (500,0)   -> (1000,0)
+          {false, 0, 0, 1000, 3000},  // seg 1: outer   (1000,0)  -> (1000,3000)
+          {false, 0, 0, 500, 3000},   // seg 2: top     (1000,3000)-> (500,3000)
+          {false, 0, 0, 500, 0},      // seg 3: inner   (500,3000) -> (500,0)   [closes]
+      };
+      add(revolveCase("revolve_full_360_clear_of_axis",
+                      "a rectangle 500..1000 x 0..3000 revolved 360 deg about Z — a hollow tube. No "
+                      "caps; every swept face closes on itself",
+                      xz, 500, 0, rect, zAxis, 360.0));
+
+      // 13. THE SAME PROFILE, 90°. The partial revolve DOES have caps — so this is the control that
+      //     tells us the cap accessors work at all, and that any null in case 12 is about the FULL
+      //     revolution and not about our call being wrong.
+      add(revolveCase("revolve_partial_90_clear_of_axis",
+                      "the SAME rectangle revolved only 90 deg — the control: caps MUST exist here",
+                      xz, 500, 0, rect, zAxis, 90.0));
+    }
+
+    // 14. ⚠ FULL 360°, A SEGMENT LYING **ON** THE AXIS. A triangle (0,0)-(1000,0)-(0,3000) ⇒ a CONE.
+    //     Segment 2 runs from (0,3000) back to (0,0): it lies ON the axis of revolution, so it sweeps
+    //     into a LINE, not a surface. The prism's rule — "every segment generates exactly one face, or
+    //     refuse" — would reject this cone. Utterly ordinary geometry (a roof, a spire, a chamfered
+    //     baluster), and it is the second time this project would have refused an ordinary shape (the
+    //     groove was the first, Entry 11). What does Generated() actually hand back for that segment?
+    {
+      const std::vector<Seg> cone{
+          {false, 0, 0, 1000, 0},     // seg 0: base    (0,0)    -> (1000,0)
+          {false, 0, 0, 0, 3000},     // seg 1: slope   (1000,0) -> (0,3000)
+          {false, 0, 0, 0, 0},        // seg 2: ON THE AXIS (0,3000) -> (0,0)  [closes]
+      };
+      add(revolveCase("revolve_full_360_segment_on_axis",
+                      "a triangle whose third side LIES ON THE AXIS — a cone. That segment sweeps into "
+                      "a line, not a face",
+                      xz, 0, 0, cone, zAxis, 360.0));
+    }
+
+    // 15. FULL 360° with an ARC — a dome/vase profile, so the swept face is a SPHERE-like surface and
+    //     not a plane or a cylinder. Confirms the authored-segment rule survives a curved segment,
+    //     which is the case a real revolved element (a dome, a moulding) is actually made of.
+    {
+      const std::vector<Seg> vase{
+          {false, 0, 0, 800, 0},           // seg 0: base     (0,0) -> (800,0)
+          {true, 1000, 1500, 400, 2500},   // seg 1: ARC through (1000,1500) -> (400,2500)
+          {false, 0, 0, 0, 2500},          // seg 2: top      (400,2500) -> (0,2500)
+          {false, 0, 0, 0, 0},             // seg 3: ON THE AXIS (0,2500) -> (0,0)  [closes]
+      };
+      add(revolveCase("revolve_full_360_arc_profile",
+                      "a dome: an ARC segment revolved 360 deg, with the closing segment on the axis",
+                      xz, 0, 0, vase, zAxis, 360.0));
     }
   } catch (const Standard_Failure& e) {
     add(std::string("{\"case\":\"<fatal>\",\"error\":") + quote(e.GetMessageString()) + "}");

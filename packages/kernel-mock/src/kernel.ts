@@ -10,7 +10,7 @@
 
 import { KernelHost, ShapeRegistry } from '@bunyan/kernel-core';
 import type { KernelImplementation, OpHandlers } from '@bunyan/kernel-core';
-import { KernelFailureError, kernelFailure } from '@bunyan/protocol';
+import { KernelFailureError, capabilitiesOf, kernelFailure } from '@bunyan/protocol';
 import type { KernelInfo } from '@bunyan/protocol';
 
 import {
@@ -25,28 +25,47 @@ import {
 } from './box.js';
 import type { BoxParams } from './box.js';
 
-export const MOCK_KERNEL_INFO: KernelInfo = {
+/**
+ * Everything about this kernel that is NOT derived from its handlers.
+ *
+ * ⚠ `capabilities` is deliberately absent: it is GENERATED from the handler map (`capabilitiesOf`), so
+ * the mock's honest refusals below are stated ONCE — by not implementing the op — instead of twice.
+ * The comment that follows explains WHY each op is missing; the list of which ones is the code itself.
+ */
+export const MOCK_KERNEL_META = {
   name: 'mock',
   kernelVersion: '0.0.0',
   // A distinct build id matters: it must invalidate any BREP cache written by a real kernel (spec §6).
   buildId: 'mock-kernel-v0',
   threading: 'single',
-  // ⚠ WHAT IS **NOT** HERE IS THE POINT: no `makeCylinder`, no `boolean`, no `fillet`. A mock cannot
-  // fake a boolean — it would have to BE a geometry kernel — and pretending otherwise would hand the
-  // browser a solid whose sub-shape identities are invented. Those ops return UNKNOWN_OP here, and
-  // `capabilities` says so up front, so a caller can find out by asking rather than by being lied to.
+  // ⚠ WHAT IS **NOT** HERE IS THE POINT: no `makeCylinder`, no `extrude`, no `boolean`, no `fillet`,
+  // no `chamfer`, no `transform`.
+  // A mock cannot fake a boolean — it would have to BE a geometry kernel — and pretending otherwise
+  // would hand the browser a solid whose sub-shape identities are invented. Those ops return UNKNOWN_OP
+  // here, and `capabilities` says so up front, so a caller can find out by asking rather than by being
+  // lied to.
+  //
+  // ⚠ `extrude` is absent by the same rule, and it is the closest call of them all — a prism over a
+  // POLYGON has a perfectly good closed form (volume = shoelace area x height). But the profile also
+  // admits ARCS, and the moment one appears the closed form is gone; and a prism over a non-axis-aligned
+  // polygon breaks `distance` exactly as a rotated box does (below). Supporting the easy half would make
+  // this an op that is exact for some inputs and wrong for others — which is the one thing a mock must
+  // never be.
+  //
+  // ⚠ `transform` is absent for a subtler reason worth stating, because it looks cheap and is not. A
+  // rigid motion of a box is exactly representable — but this mock's whole value is that its answers
+  // are EXACT, and one of its ops stops being exact the moment a box is rotated: `distance` is
+  // closed-form for two AXIS-ALIGNED boxes and has no closed form for two arbitrarily rotated ones
+  // (it becomes a convex-separation problem). A mock that supported `transform` would therefore have
+  // to either lie about `distance` or support it only sometimes — and a partially-honest mock is worse
+  // than one that refuses, because the lie is discovered downstream, in Amer's code, weeks later.
+  // The real kernel does `transform`, and it is one import away.
   //
   // The GEOMETRIC QUERIES (D23) *are* here, because for an axis-aligned box they are closed-form and
   // therefore exact — so the agent/query code path can be built against the mock, with no 14 MB wasm.
-  capabilities: [
-    'makeBox',
-    'measure',
-    'bounds',
-    'distance',
-    'classifyPoint',
-    'tessellate',
-  ],
-};
+  // ⚠ `revolve` is absent for the same reason as `extrude`, and more so: a surface of revolution over an
+  // arc has no closed form at all.
+} as const satisfies Omit<KernelInfo, 'capabilities'>;
 
 function requireFinitePositive(name: string, value: unknown): number {
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
@@ -89,7 +108,13 @@ export function createMockKernel(): KernelImplementation {
         );
       }
 
-      const params: BoxParams = { nodeId: payload.nodeId, dx, dy, dz, ...(payload.at ? { at: payload.at } : {}) };
+      const params: BoxParams = {
+        nodeId: payload.nodeId,
+        dx,
+        dy,
+        dz,
+        ...(payload.at ? { at: payload.at } : {}),
+      };
       const handle = shapes.add(params);
       return {
         handle,
@@ -125,7 +150,11 @@ export function createMockKernel(): KernelImplementation {
     },
 
     classifyPoint: (payload) => ({
-      state: classifyAgainstBox(liveShape(payload.handle, 'classifyPoint'), payload.point, payload.tolerance ?? 1e-7),
+      state: classifyAgainstBox(
+        liveShape(payload.handle, 'classifyPoint'),
+        payload.point,
+        payload.tolerance ?? 1e-7,
+      ),
     }),
 
     tessellate: (payload) => tessellateBox(liveShape(payload.handle, 'tessellate')),
@@ -146,7 +175,8 @@ export function createMockKernel(): KernelImplementation {
   };
 
   return {
-    info: MOCK_KERNEL_INFO,
+    // Generated, not maintained (D21): the mock advertises exactly what it implements — no more.
+    info: { ...MOCK_KERNEL_META, capabilities: capabilitiesOf(handlers) },
     handlers,
     dispose: () => {
       shapes.releaseAll();

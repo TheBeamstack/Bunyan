@@ -17,7 +17,10 @@ import initKernel from './dist/bunyan-kernel.js';
 // directory, or from inside the build container. (It previously read an absolute `/goldens/...`,
 // which only ever resolved inside a container mount — i.e. it could not be run as documented.)
 const goldens = JSON.parse(
-  readFileSync(fileURLToPath(new URL('../../tests/goldens/geometry.golden.json', import.meta.url)), 'utf8'),
+  readFileSync(
+    fileURLToPath(new URL('../../tests/goldens/geometry.golden.json', import.meta.url)),
+    'utf8',
+  ),
 );
 const kernel = await initKernel();
 

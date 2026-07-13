@@ -23,6 +23,17 @@ export interface OcctVectorInt {
   delete(): void;
 }
 
+/**
+ * An embind `std::vector<double>`. Constructed on the JS side to pass a transform's motions IN, so
+ * unlike the others it is written rather than read — and it is WASM heap, so it must be `delete()`d.
+ */
+export interface OcctVectorDouble {
+  push_back(value: number): void;
+  size(): number;
+  get(index: number): number | undefined;
+  delete(): void;
+}
+
 /** An embind `std::vector<NameRow>`. */
 export interface OcctVectorNameRow {
   size(): number;
@@ -127,6 +138,9 @@ export interface OcctMeshViews {
 }
 
 export interface OcctModule {
+  /** The embind `std::vector<double>` constructor — the only one JS builds rather than drains. */
+  VectorDouble: new () => OcctVectorDouble;
+
   /** Every op returns a shape id, or 0 on failure (then `lastError()` explains). None ever throws. */
   makeBox(x: number, y: number, z: number, dx: number, dy: number, dz: number): number;
   makeCylinder(
@@ -139,10 +153,49 @@ export interface OcctModule {
     radius: number,
     height: number,
   ): number;
+  /**
+   * Sweep an authored closed profile into a solid. The profile is a flat array:
+   *   [0..2] plane origin  [3..5] plane normal  [6..8] plane x-axis  [9..10] start (u,v)
+   *   then one segment per 5 doubles: [kind, viaU, viaV, toU, toV]   (0 = line, 1 = three-point arc)
+   *
+   * ⚠ Faces are named `cap-start` / `cap-end` / `lateral.k`, where k is the index of the segment THE
+   * AUTHOR DREW — so editing the boundary never renumbers the faces hosted on it.
+   */
+  extrudeProfile(profile: OcctVectorDouble, dx: number, dy: number, dz: number): number;
+  /**
+   * Spin an authored closed profile around an axis. Same profile encoding as `extrudeProfile`; the
+   * angle is in DEGREES, in (0, 360].
+   *
+   * ⚠ A FULL 360° REVOLVE IS NOT THE PARTIAL ONE WITH A BIGGER NUMBER, and the differences are
+   * MEASURED (probe.cpp, Entry 14), not assumed: it has NO caps (and OCCT's cap accessors return a
+   * face that is not in the result, rather than null); each lateral face carries a SEAM; and a segment
+   * perpendicular to the axis generates NO history although its face exists. `revolveProfile` handles
+   * all three — see the block comment in kernel.cpp before touching it.
+   */
+  revolveProfile(
+    profile: OcctVectorDouble,
+    ox: number,
+    oy: number,
+    oz: number,
+    ax: number,
+    ay: number,
+    az: number,
+    angleDeg: number,
+  ): number;
   /** kind: 0 = cut (A minus B), 1 = fuse, 2 = common. */
   booleanOp(a: number, b: number, kind: number): number;
   /** The edge is addressed by its CANONICAL INDEX — i.e. by its identity, not by its position. */
   fillet(shapeId: number, edgeIndex: number, radius: number): number;
+  /** The fillet's flat sibling. Same contract: the edge is addressed by identity. */
+  chamfer(shapeId: number, edgeIndex: number, distance: number): number;
+  /**
+   * Rotate / mirror / translate. Motions are a flat array, 8 doubles each, applied IN ORDER:
+   *   translate : [0, tx,ty,tz,  0, 0, 0,  0      ]
+   *   rotate    : [1, ax,ay,az,  ox,oy,oz, degrees]
+   *   mirror    : [2, nx,ny,nz,  ox,oy,oz, 0      ]   (normal of the mirror PLANE)
+   * It creates no identities: the result's sub-shapes ARE the operand's, moved.
+   */
+  transformShape(shapeId: number, motions: OcctVectorDouble): number;
 
   getNaming(shapeId: number): OcctNaming;
   getBounds(shapeId: number): OcctBounds;
@@ -151,7 +204,11 @@ export interface OcctModule {
   distanceBetween(a: number, b: number): OcctProximity;
   /** 0 = outside, 1 = inside, 2 = on the boundary, -1 = failed. */
   classifyPoint(shapeId: number, x: number, y: number, z: number, tolerance: number): number;
-  measure(shapeId: number): OcctMeasure;
+  /**
+   * kind: -1 = the whole shape, 0 = a face, 1 = an edge (by canonical index) — the same addressing as
+   * `subShapeBounds`. A sub-shape reports zero volume: a face encloses nothing.
+   */
+  measure(shapeId: number, kind: number, index: number): OcctMeasure;
   tessellate(shapeId: number, deflection: number): OcctMeshViews;
   releaseShape(shapeId: number): boolean;
   /** Live shapes on the WASM heap. The leak canary (spec §6.2). */

@@ -473,6 +473,85 @@ describe('persistent naming on hard topology', () => {
     ).rejects.toMatchObject({ failure: { code: 'FILLET_RADIUS_TOO_LARGE' } });
   });
 
+  /**
+   * ⚠⚠ THE SPLIT FACE — the hole Entry 9 left, and the second-hardest case in the resolver.
+   *
+   * A groove across a wall — a chase, a rebate, a shadow gap, a recessed band — SPLITS the wall's front
+   * face into two. Both halves have an IDENTICAL derivation: same parent face, same operand, same
+   * relation. History cannot tell them apart, and until now the kernel REFUSED the whole operation, so
+   * **a wall with a chase in it could not be modelled at all.** Entry 9's probe never cut a groove, so
+   * nothing caught it; a `transform` test did, by accident, which is the argument for writing tests
+   * that use the API the way a building does.
+   *
+   * They are told apart STRUCTURALLY, not geometrically: the half below the groove touches the wall's
+   * z-min face, the half above touches z-max (MEASURED — probe.cpp case 6b, the `touches` field). That
+   * is the same class of rule the edges have always used, and it holds nothing but topology.
+   *
+   * ⚠ NAMING THEM IS NOT THE TEST. **PERSISTENCE is the test.** An occurrence index that renumbers when
+   * the wall is resized would be worse than a refusal — it would silently re-target whatever was hosted
+   * on the half it renamed. So this rebuilds the whole recipe with a different wall AND a different
+   * groove, and demands the identities come back byte for byte.
+   */
+  it('a GROOVE splits a face — and both halves keep their identity through a resize', async () => {
+    const build = async (wallHeight: number, grooveAt: number) => {
+      const host = await client.request('makeBox', {
+        nodeId: 'wall-1',
+        dx: 3000,
+        dy: 200,
+        dz: wallHeight,
+      });
+      const groove = await client.request('makeBox', {
+        nodeId: 'groove-1',
+        dx: 3000,
+        dy: 50,
+        dz: 200,
+        at: [0, 0, grooveAt],
+      });
+      return await client.request('boolean', {
+        nodeId: 'cut-1',
+        kind: 'cut',
+        a: host.handle,
+        b: groove.handle,
+      });
+    };
+
+    const first = await build(2500, 1000);
+
+    // The split halves exist, are owned by the cut, and are distinguished by an OCCURRENCE index —
+    // not by a coordinate.
+    const split = first.refs.filter((r) => r.startsWith('cut-1/face/'));
+    expect(split, 'the groove must split the wall face into two named halves').toHaveLength(2);
+    expect(split.some((r) => r.endsWith('#0'))).toBe(true);
+    expect(split.some((r) => r.endsWith('#1'))).toBe(true);
+    expect(new Set(first.refs).size).toBe(first.refs.length);
+
+    // ⚠ THE REBUILD. A taller wall, and the groove at a different height — the parametric recipe
+    // re-derived from scratch, which is what happens on every parameter change (spec §4.5). If identity
+    // were recovered by matching geometry, THIS is where it would silently re-target.
+    const rebuilt = await build(3200, 1400);
+    expect(rebuilt.refs).toEqual(first.refs);
+
+    // And each half still resolves — to a face that has genuinely moved.
+    for (const ref of split) {
+      const { bounds } = await client.request('bounds', { handle: rebuilt.handle, ref });
+      expect(Number.isFinite(bounds.min[2]), `${ref} no longer resolves after the rebuild`).toBe(
+        true,
+      );
+    }
+
+    // The lower half must still be the LOWER half. If the occurrence index had flipped, the refs would
+    // still all be present and unique — and every assertion above would still pass — while the thing
+    // hosted on the lower half had silently moved to the upper one. This is the assertion that catches
+    // that, and it is the only one here that would.
+    const zOf = async (ref: string) =>
+      (await client.request('bounds', { handle: rebuilt.handle, ref })).bounds.min[2] ?? 0;
+    const sorted = [...split].sort();
+    const lower = await zOf(sorted[0] ?? '');
+    const upper = await zOf(sorted[1] ?? '');
+    expect(lower).toBeLessThan(upper);
+    expect(lower).toBeCloseTo(0, 6); // the half below the groove still starts at the wall's base
+  });
+
   it('the WASM heap does not leak through a boolean chain', async () => {
     const before = kernel.wasmLiveHandles();
 

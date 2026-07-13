@@ -60,23 +60,34 @@ the dev box** (they are not in this repo and do not travel).
 
 ## §1 — Where the build is right now
 
-**Phase: P2. THE #1 RISK IS RETIRED — PERSISTENT NAMING WORKS ON HARD TOPOLOGY.** The protocol seam,
-the kernel host, the mock, the client dispatcher, the harness, the goldens and the CI definition all
-exist and are green; **Entry 7** made the OCCT WebAssembly kernel a first-class package
-(`@bunyan/kernel-occt`); and **Entry 9** made it a *modeller*: cylinder, boolean and fillet, with
-sub-shape identities that **survive two windows and a resize of the wall they are cut into.**
+**Phase: P2 — the op set is COMPLETE AT LAST (Entry 14 built `revolve`, the last one P2 step 1 named).**
+The protocol seam, the kernel host, the mock, the client dispatcher, the harness, the goldens and the CI
+definition all exist and are green; **Entry 7** made the OCCT WebAssembly kernel a first-class package
+(`@bunyan/kernel-occt`); **Entry 9** made it a *modeller* (cylinder, boolean, fillet); **Entry 11** added
+**`transform`**; **Entry 12** added **`extrude`** and **`chamfer`**; and **Entry 14** added **`revolve`**,
+closed the three contract holes Entry 13's audit found, and **fixed the reason CI could never go green.**
 
 ```
-pnpm verify  →  typecheck (strict) ✓   eslint ✓   95/95 tests ✓   prettier ✓
+pnpm verify  →  typecheck (strict) ✓   eslint ✓   136/136 tests ✓   prettier ✓      (was 119/119)
                 └─ goldens run TWICE (mock + REAL OCCT 7.9.3); the hard shapes — a cylinder, a window
-                   cut clean through a wall, a fillet — are checked against a NATIVE OCCT reference.
+                   cut clean through a wall, a fillet, a rotated wall, a mirrored wall, an L-shaped
+                   slab, a slab with a CURVED EDGE, a revolved column, a hollow tube and a HEMISPHERE —
+                   are checked against a NATIVE OCCT reference *and* an independent closed form.
 ```
 
-**Committed and pushed:** `origin/main` @ **`1f0dcc6`** — Entries **7, 8 and 9** are all in (the owner
-approved the push, 2026-07-12). **The working tree is clean.** Amer can build against **real geometry**
-today: `@bunyan/kernel-occt/worker`.
+**⚠⚠ AND ONE THING IS NOW KNOWN TO BE BROKEN, IT IS THE OWNER'S CALL, AND IT IS NOT `revolve`'s FAULT:**
+**you cannot drill a duct clean through a ROUND column.** The resolver refuses it (loudly, correctly, with
+`UNRESOLVED_SUBSHAPE_REF`) because the two rims are *genuinely topologically symmetric* — the case spec
+§4.5 reserved the **positional key** for, and which its own words say is *"the signal to implement the key
+**deliberately**"*. **It has been reachable since Entry 9 on a plain `makeCylinder`; nothing hit it because
+every boolean ever tested cut a BOX.** It is **§5 task 1**, and it needs a ruling — not an agent's initiative,
+because the fix puts **geometry on the identity path**. A test pins the refusal so it cannot be forgotten.
 
-**⚠ FIVE THINGS A FRESH AGENT MUST NOT REDISCOVER THE HARD WAY:**
+**⚠ UNCOMMITTED — the owner has not been asked yet.** `origin/main` is still @ **`ec46e89`** (Entry 10).
+Entries **11, 12, 13 and 14** are all in the working tree. Amer can build against **real geometry** today:
+`@bunyan/kernel-occt/worker`.
+
+**⚠ SEVEN THINGS A FRESH AGENT MUST NOT REDISCOVER THE HARD WAY:**
 
 1. **`opencascade.js` CANNOT be linked on this box — and we do not use it.** Its `-flto` object cache
    forces a whole-program-optimisation link that is **OOM-killed at a 2 GB cap even for a 6-symbol
@@ -97,11 +108,32 @@ today: `@bunyan/kernel-occt/worker`.
    misses is **identity**: `Modified()` reports only *splits*, so an untouched face appears in **no
    history list at all** — that silence means *"unchanged"*, not *"unknown"*. **Do not re-derive this
    from the docs; re-run the probe** (`tools/kernel-build/probe.cpp`, ~60 s).
+6. **⚠ "THE #1 RISK IS RETIRED" WAS TRUE OF THE CASES WE HAD MEASURED — AND THAT IS NOT THE SAME THING.**
+   Entry 9 declared naming done. **Entry 11 cut a groove across a wall — a chase, an utterly ordinary
+   BIM operation — and the kernel REFUSED IT**, because a groove splits one face into two with an
+   identical derivation and *faces had no tie-break* (the edges had one; the faces were simply never
+   given it). It was found by accident, by a `transform` test that used the API the way a building
+   would. **The lesson is not "the resolver is fragile" — it is fine, and the fix was structural and
+   additive. The lesson is that the probe only measures the shapes you think to cut.** Before trusting
+   naming on a shape class nobody has cut yet, **cut it.**
 
-**⚠ CI has still never been observed green** — pushes have landed, but there is **no `gh` CLI and no
-GitHub token on this box**, so the Actions result cannot be read (the API 404s to anonymous callers
-because the repo is private). **Someone must confirm the first run by eye.** See §5. *(It matters more
-now than it did: CI finally gates real geometry, not the mock.)*
+7. **⚠⚠ A PHASE'S EXIT CRITERIA ARE A SPECIFICATION, NOT A SUMMARY OF WHAT GOT DONE.** P2 step 1 says, in
+   writing: *"make box/cylinder/**prism**, **extrude a profile**, **revolve**, boolean, **fillet/chamfer**"*.
+   **`extrude`, `chamfer` and `revolve` were never built** — and P2 was declared complete **twice**, by two
+   sessions, with a green suite each time. Nothing caught it because **every test built its walls out of
+   boxes**, and a box needs no `extrude`. It surfaced only when Entry 12 sat down to **model an actual
+   building** and could not build the **floor plate** — a Slab is *"planar boundary + thickness"* (spec §5)
+   and a real plate is L-shaped, or five-sided, or curved. ⇒ **Before declaring a phase done, read its own
+   step list against the code.** It takes a minute. This one went unread for a month.
+
+**✅ THE CI MYSTERY IS SOLVED — AND IT WAS NEVER GREEN, BECAUSE IT *COULD NOT BE* (Entry 14).**
+Fifteen entries assumed the only way to know was the Actions tab (no `gh`, no token, private repo ⇒ the
+API 404s anonymously). **Wrong: CI's steps are just commands, and they run here.** Run in order, step 3
+— **`pnpm format:check`, which runs BEFORE `pnpm test`** — **failed on the committed tree**: Entry 7 moved
+the kernel into `packages/kernel-occt/wasm/` and never added emscripten's **generated glue** to
+`.prettierignore`. **Every push since has failed at that step.** One line fixed it, and **all five CI steps
+now pass on this box.** *(A human should still glance at the Actions tab once — but "unproven" was the
+wrong word all along: it was disproven, and nobody ran the check.)*
 
 ---
 
@@ -111,17 +143,34 @@ The **split contract-freeze** (decision D13) is the rule that lets Amer and Zayd
 
 | Contract | Status | Freezes |
 |---|---|---|
-| **Kernel message protocol** (`@bunyan/protocol`: envelope, typed failures, provenance channel) | **Release-candidate, v1** — implemented, tested, *not yet frozen*. **14 ops.** Entry 7 added `measure`; **Entry 9 added `makeCylinder`, `boolean`, `fillet`, and the D23 query ops (`bounds`, `distance`, `classifyPoint`) — plus PLACEMENT (`at`) on the primitives**, a gap found by using our own API: without it a boolean can only bite a *corner* off a wall. | **End of P3.** After that, changes need Architect sign-off. |
+| **Kernel message protocol** (`@bunyan/protocol`: envelope, typed failures, provenance channel) | **Release-candidate, v1** — implemented, tested, *not yet frozen*. **18 ops.** Entry 7 added `measure`; Entry 9 added `makeCylinder`, `boolean`, `fillet`, the D23 query ops (`bounds`, `distance`, `classifyPoint`) and PLACEMENT (`at`); Entry 11 added `transform`; Entry 12 added `extrude` + `chamfer` (D26); **Entry 14 added `revolve` (D27) and gave `measure` its optional `ref`.** ✅ **The op set of P2 step 1 is COMPLETE — no named op is missing.** ⚠ **What IS still open is not an op, it is a RULING: the P6-vs-freeze contradiction (`sectionCut` + the IFC ops are needed by P6 and do not exist).** See §5 task 2. | **End of P3.** After that, changes need Architect sign-off. |
 | **`SubShapeRef`** | **Release-candidate** — now exercised by the REAL kernel, not just the mock | **P5**, after Wall + Opening exercise it. |
 | **`BimObjectType`** | Not yet written | P5 |
 | **`Command`** | Not yet written. ⚠ **Its shape is now RULED (D19–D23):** it carries an **`argsSchema`** and `execute` **returns** its `UndoableEdit`. It is **the agent API** — see §4f. | P5 (**with** its `argsSchema`) |
 | **Agent surface** (`window.bunyan`) | Not yet written. **Versioned separately** (`agentApi: 1`) — does **not** inherit the P5 freeze (D22). | Never frozen with the type contracts; evolves on its own clock. |
 
-**Practical consequence:** the protocol is *changeable today* and will not be after P3. **Every known
-gap is now closed** (`measure`, the geometric queries, placement) and the OpMap has **14 ops**. The next
-one that will want in is **`transform`** (rotation/mirror) — a rotated wall is P3's problem, and it is a
-**new op, not a new field** (Entry 9 §9). If P3 reveals another shape the protocol cannot express,
-**fix it now**, not after the freeze.
+**Practical consequence:** the protocol is *changeable today* and will not be after P3. The OpMap has
+**18 ops**, and **no named op is missing any more.** What remains before the freeze is **two rulings, not
+two ops**: the P6 contradiction (§5 task 2) and the symmetric-tie/positional-key question (§5 task 1).
+
+⚠ **ENTRY 12 IS THE PROOF THAT THIS SECTION'S OLD CLAIM — "nothing is now known to be missing" — WAS
+WRONG, AND THAT THE METHOD FOR FINDING OUT IS NOT READING.** That sentence was written after Entry 11
+and it was false *when it was written*: `extrude` and `chamfer` had been sitting in P2 step 1's own
+step list, unbuilt, the whole time. **Three sessions read `ops.ts` and saw nothing wrong. One session
+tried to build a floor plate and found it in ten minutes.**
+
+Every protocol gap this project has ever found was found **by using the API to build something**, never
+by reading it:
+
+| Gap | Found by |
+|---|---|
+| **`at`** (placement) | a boolean could otherwise only bite a *corner* off a wall — a window in the middle was unreachable |
+| **the split-face naming bug** | a test that cut a **groove** across a wall, because that is what buildings have |
+| **`extrude` / `chamfer`** | trying to model a **floor plate**, and finding a Slab cannot be a rectangle |
+| **the SYMMETRIC-TIE hole** (a duct through a **round column** — §5 task 1) | building `revolve`, then cutting a **round** column the way a building would. Reachable since Entry 9; five sessions never hit it, because **every boolean ever tested cut a BOX** |
+
+**⇒ The way to de-risk the freeze is to keep modelling real buildings with the protocol until P3 ends.**
+If it reveals another shape the protocol cannot express, **fix it now**, not after.
 
 ---
 
@@ -131,7 +180,7 @@ Repo layout (all new this session):
 
 ```
 packages/
-  protocol/       @bunyan/protocol      the flat versioned message contract (zero deps). 14 ops.
+  protocol/       @bunyan/protocol      the flat versioned message contract (zero deps). 17 ops.
   kernel-core/    @bunyan/kernel-core   KernelHost (dispatch + failure marshalling) + ShapeRegistry
   kernel-mock/    @bunyan/kernel-mock   protocol-conformant fake kernel + Worker entry
                     ⚠ NO booleans — it says so in `capabilities` rather than faking one. It DOES answer
@@ -141,10 +190,23 @@ packages/
                     src/naming.ts       ★ THE RESOLVER (D1/D24): 4 relations, no geometry, ever
                     wasm/bunyan-kernel.*  the COMMITTED artifact (14.19 MB / 4.13 MB gzip) + its .d.ts
   kernel-client/  @bunyan/kernel-client KernelClient + WorkerTransport / InProcessTransport
-tests/            95 tests + tests/goldens/geometry.golden.json + tests/harness/measure.ts
+tests/            136 tests + tests/goldens/geometry.golden.json (14 cases) + tests/harness/measure.ts
                     golden-box.test.ts        every assertion runs against BOTH kernels
                     golden-hard-geometry.ts   cylinder / window-through-wall / fillet vs NATIVE OCCT
+                    golden-extrude.test.ts  ★ L-shaped + CURVED-EDGE slab, chamfer — vs NATIVE OCCT *and*
+                                              a closed form. The closed form is not decoration here: the
+                                              oracle and the kernel get the SAME profile, so only a tier
+                                              that works from the VERTICES can catch a wrong boundary.
                     naming-hard-topology.ts ★ identity, not millimetres. The wall-two-windows-resize test.
+                    naming-extrude.test.ts  ★ `lateral.k` IS authored segment k — drag a slab's corner,
+                                              every ref comes back byte-identical
+                    golden-revolve.test.ts  ★ a revolved rectangle MEASURES IDENTICALLY to the makeCylinder
+                                              primitive; a hollow tube (the history-less annuli); a
+                                              HEMISPHERE from an arc (2/3 pi r^3); a 90-degree control WITH caps
+                    naming-revolve.test.ts  ★ a column re-authored fatter+taller keeps every ref. AND pins
+                                              the KNOWN REFUSAL: a duct through a round column (§5 task 1)
+                    quantities-and-contract.test.ts  ★ measure(ref) = the paint area of a wall face;
+                                              capabilities DERIVED from the handlers; INVALID_RESULT.
                     geometry-queries.test.ts  the D23 query ops, on BOTH kernels
                     occt-kernel.test.ts       the checks only the real kernel can fail
 tools/kernel-build/ the OCCT->WASM recipe (README + configure.sh + src/kernel.cpp + link.sh + verify.mjs)
@@ -261,13 +323,46 @@ and precisely the class that a "we trust OCCT" scope would otherwise leave undef
 - **✅ DONE (Entry 9): the kernel is a MODELLER.** `makeBox`, `makeCylinder`, `boolean` (cut/fuse/common)
   and `fillet` — with **persistent naming verified on hard topology**, including the spec's designated
   hardest case (a fillet on an edge a boolean created). The resolver is `kernel-occt/src/naming.ts`.
-- **NO `transform` op.** Primitives can be **placed** (`at`, plus `axis` on the cylinder) but **not
-  rotated or mirrored.** A rotated wall is P3's problem; it is a **new op, not a new field**, and it
-  needs its own naming rules. ⚠ **A mirror is exactly the "genuinely symmetric split" that the
-  positional key was reserved for** (spec §4.5) — so it is the case most likely to force that decision.
-- **No prism/extrusion, no sweep.** The GenericSolid escape hatch (spec §5.1) has no op behind it yet.
-- **CI has never been observed green.** `.github/workflows/ci.yml` runs `pnpm test`, which now gates
-  real geometry — but nobody has *seen* it pass. Treat it as unproven.
+- **✅ DONE (Entry 11): `transform`** — rotate / mirror / translate, applied in order. **It creates NO
+  identities:** a rigid motion is a topological isomorphism, so the result's refs ARE the operand's refs,
+  token for token. **A rotated wall is the same wall**, and the window hosted on it survives the
+  rotation. It is the only shape-producing op with **no `nodeId`** — there is nothing for a node to own,
+  and `composeTransformRefs` has no node in scope, so it *cannot* mint a ref even by accident.
+  ⚠ **The mirror did NOT force the positional key** (spec §4.5). It was measured to be a clean
+  isomorphism. **What nearly did was the split face** — and that was solved structurally. See Entry 11.
+- **✅ DONE (Entry 12): `extrude` + `chamfer`** — an authored **`Profile`** (closed loop of line/arc
+  segments, validated closed and non-self-intersecting) swept into a solid. **This is what makes the
+  Slab, the Column and GenericSolid buildable at all** (spec §5); `makeBox` could express none of them.
+  Faces are named **`lateral.k` after the AUTHORED segment index**, so dragging a slab's corner
+  re-targets nothing (D26).
+- **✅ DONE (Entry 14): `revolve`** — GenericSolid's other half, and the last op P2 step 1 named (D27).
+  **It is NOT the prism with a rotation, and the probe is what said so** (cases 12-15): a full 360° turn has
+  **no caps** — and OCCT's `FirstShape()`/`LastShape()` do **not** return null for one, they return a face
+  **that is not in the result**, so a prism-style check refuses every column; each lateral face carries a
+  **seam**, which here is **free** (it IS the authored profile edge, by identity — unlike the cylinder, which
+  needed an accessor); and **⚠ a segment PERPENDICULAR to the axis reports NO HISTORY AT ALL while its face
+  sits in the result** — the flat bottom of every column, the base of every dome. Those faces are named from
+  **the circles their segment's endpoint vertices sweep**. Four goldens gate it against native OCCT *and* an
+  independent closed form. **A revolved rectangle measures identically to the `makeCylinder` primitive.**
+- **✅ DONE (Entry 14): the three Entry-13 contract holes.** `measure` takes an optional **`ref`** (the paint
+  area of a wall face — quantities, P5's `quantities` hook, Miqdar's input); **`capabilities` is DERIVED**
+  from the handler map in both kernels (it had drifted for two sessions) and tested; and **`INVALID_RESULT`
+  is emitted at last** — `BRepCheck_Analyzer` gates the *output* of boolean, fillet, chamfer and revolve.
+- **⚠⚠ BROKEN, KNOWN, AND OWED A RULING: A DUCT CANNOT BE DRILLED CLEAN THROUGH A ROUND COLUMN.** The
+  resolver refuses it — correctly, loudly, with `UNRESOLVED_SUBSHAPE_REF` — because a round column's lateral
+  face **wraps all the way around**, so the duct enters and leaves through **the same face** and the two rims
+  are **genuinely topologically symmetric** (same derivation, same bounding faces, same endpoint signature).
+  **This is spec §4.5's reserved positional-key case, and it has now fired.** ⚠ **It is NOT a revolve bug and
+  predates it** — the same failure occurs on a plain `makeCylinder`, reachable since **Entry 9**. Nobody hit
+  it because **every boolean ever tested cut a BOX** (where a duct enters `y-min` and leaves `y-max` — two
+  faces, two derivations, no tie). **§5 task 1. It is an OWNER decision: the fix puts geometry on the
+  identity path.** A test pins the refusal (`naming-revolve.test.ts`) so it stays visible.
+- **No sweep along a path, no loft.** Not in v1.0.0 scope.
+- **✅ CI: the mystery is solved, and the answer was "it could not have been green" (Entry 14).** Step 3,
+  **`pnpm format:check`**, runs **before** `pnpm test` and **failed on the committed tree** — Entry 7 moved the
+  kernel into `packages/kernel-occt/wasm/` and never added emscripten's **generated glue** to
+  `.prettierignore`. One line. **All five CI steps now pass here.** *(Nobody needed the Actions tab: CI's steps
+  are commands, and they run on this box. Fifteen entries said "someone must look" instead of looking.)*
 - **No service worker / PWA, no Cloudflare Pages deploy, no COOP/COEP headers** (P1 steps 6–7).
 - **No `.bimproj`, no document model, no registries** (P3).
 - **No LICENSE / CLA / OCCT attribution file yet** (§4e — must land before the repo goes public).
@@ -524,30 +619,136 @@ OOM-killed at a 2 GB cap even for a *minimal 6-symbol* build). The candidates, c
 > retired.** Do not redo it — and **do not re-derive OCCT's history behaviour from the docs: re-run the
 > probe** (`tools/kernel-build/probe.cpp`, ~60 s), which is committed for exactly that reason.
 
-1. **`transform` — the next protocol op, and the next naming question.** Primitives can be *placed*
-   (`at`) but **not rotated or mirrored**. A rotated wall is P3's problem and it is a **new op, not a new
-   field**. ⚠ **It is also the case most likely to force the one decision the resolver has so far
-   avoided:** a mirror is precisely the "genuinely symmetric split" for which spec §4.5 reserves a
-   **bounded positional key** — and that key is **deliberately not implemented**, because nothing
-   measured has needed it and an untested geometric rule on the identity path would fire by accident.
-   When a real case appears, **implement it on purpose** — do not loosen the resolver to make a failure
-   go away. **The protocol freezes at the end of P3**, so if `transform` is wanted in v1.0.0 it lands
-   before then.
+> **✅ Task 1 (`transform`) is DONE — Entry 11.** Rotate/mirror/translate, in the protocol and the real
+> kernel, with naming proven. **The mirror did not force the positional key** — it is a clean
+> isomorphism. **A groove did force something else**, and that hole is now closed too. Do not redo this.
 
-2. **Confirm CI is actually green — cheap, and STILL unproven.** Pushes have landed but nobody has
-   *seen* the workflow pass. There is **no `gh` CLI and no GitHub token on this box**, and the repo is
-   private, so the Actions API 404s anonymously. Either the owner looks at the Actions tab, or he
-   installs `gh` / drops a token so an agent can. **Treat CI as unproven until then.**
-   *(This matters more now: CI's `pnpm test` finally gates **real geometry**, not the mock. ⚠ It also
-   means CI now needs the committed `.wasm` — which it has, at `packages/kernel-occt/wasm/`.)*
+> **✅ `extrude` and `chamfer` are DONE — Entry 12.** A Slab can now be L-shaped, five-sided or curved;
+> `lateral.k` names the face swept from **authored segment k**, so dragging a slab's corner re-targets
+> nothing. Goldens seeded (analytic == native OCCT, including the arc). Do not redo this.
 
-3. **⚠ THE KERNEL IS NOW 4.13 MB GZIP (was 1.47) — an owner call is due before P4, not before P3.**
-   That is the price of the boolean/fillet code, and it is mostly irreducible (`-Os` saves 1.5%). The
+> ## ⚠⚠ READ THIS FIRST — **THE OPS ARE DONE; WHAT IS LEFT BEFORE THE FREEZE IS TWO RULINGS.**
+> Entry 14 built `revolve` and closed Entry 13's three contract holes (`measure(ref)`, derived
+> `capabilities`, `INVALID_RESULT`). **The protocol still freezes at the end of P3**, and the two things that
+> must be settled before it closes are now **decisions, not code** — and both are the Architect's.
+
+1. **⚠⚠ THE RULING THE SPEC ITSELF ASKED FOR: THE POSITIONAL KEY. A REAL MODEL HAS HIT THE SYMMETRIC TIE.**
+   *(Entry 14; spec §4.5's ⚠⚠⚠ block; probe case `cut_round_column_by_duct`)*
+
+   **You cannot drill a duct clean through a round column.** The kernel refuses it with
+   `UNRESOLVED_SUBSHAPE_REF`. **That refusal is correct** — it is what spec §4.5 requires today, and no wrong
+   name has ever been assigned. But a service penetration through a circular column is **not exotic**, and
+   spec §4.5 says, in its own words: *"If a real model ever hits a genuinely symmetric tie, that refusal is
+   the signal to implement the key **deliberately**."* **It has.**
+
+   **Why nothing structural can fix it** (measured, not argued): a round column has **ONE lateral face that
+   wraps all the way around**, so the duct enters and leaves through **the same face**. The two rims share a
+   derivation, bound **the same two faces**, and have **identical endpoint signatures**. Where Entry 11's
+   groove was saved because its two halves touched *different* faces, here **nothing differs**.
+
+   ⚠ **It is NOT a `revolve` bug, and it predates `revolve`** — the identical failure occurs on a plain
+   `makeCylinder`, and has been reachable since **Entry 9**. It went unseen because **every boolean this
+   project ever tested cut a BOX** (a duct enters `y-min` and leaves `y-max` — two faces, two derivations,
+   nothing to tie-break). *Third time this lesson has landed: the probe only measures the shapes you think
+   to cut.*
+
+   **Why it is the owner's call and not an agent's:** the fix — the **bounded positional key** (mm-rounded
+   centroid, lexicographic; spec §4.5 + §6.5) — would be **the only place geometry ever touches the identity
+   path**, and that path is the one invariant the whole product rests on (D1/D18). **The options:**
+   - **(a) Implement the key** as spec'd: bounded, mm-grid-rounded, used *only* to ORDER siblings that are
+     otherwise provably identical — it never *identifies*, it only breaks a tie. Cost: small (the tie-break
+     hook already exists in `nameDerived`). ⚠ Risk, and it is real: a rebuild that moves the geometry can
+     **reorder the tie**, so a ref into one rim could land on the other. That is precisely why the spec
+     bounded it — and why it must be ruled on, not slipped in.
+   - **(b) Ship v1.0.0 without it**, and accept that a through-penetration of a **round** column is
+     unmodellable. *(A **blind** pocket works today; so does any penetration of a **rectangular** column.)*
+   - **(c) Wrap it at the document level:** treat the two rims as one feature and never address them
+     individually. Cheapest; forecloses hosting anything on an individual rim.
+
+   **A test pins the refusal** (`tests/naming-revolve.test.ts`, *"KNOWN LIMITATION"*). It flips the day this
+   is ruled on.
+
+2. **⚠ SETTLE THE P6-vs-FREEZE CONTRADICTION — Architect call.** *(Entry 13 §1)*
+   **P6 needs a `sectionCut` op** (the 2D plan + elevation — a headline v1.0.0 deliverable and the *proof*
+   that the kernel is the source of truth) **and IFC-import ops** (D16, new C++ ops by construction).
+   **The protocol freezes at the end of P3. Neither exists.** ⇒ As written, **P6 opens by amending a frozen
+   contract, which makes the freeze theatre.** Either **reserve the op shapes before the freeze** (typed
+   stubs are enough — the *payload shape* is the expensive part, not the body), or **redefine the freeze
+   explicitly** as *"additive ops permitted; changing an existing op's envelope needs sign-off."* That is
+   probably what was always meant — **but it is not what D13 says.** **Do not let P3 end without settling it.**
+
+3. **✅ `revolve` — DONE (Entry 14, D27). Do not redo it.** GenericSolid's other half, and P2 step 1's last
+   unbuilt op. **The probe went first, and it was right to:** the seam everyone feared turned out to be
+   **free** (it IS the authored profile edge, returned by identity), while the real hazard was one this very
+   note had **not** predicted — **a segment perpendicular to the axis reports NO history at all, though its
+   face is right there in the result** (the flat bottom of every column). See §3 and D27. ⚠ **And building it
+   is what exposed task 1 above.** *(The original design note is kept below, because it is the record of what
+   was predicted versus what was measured — and the two differ.)*
+   **The design is already worked out; what is NOT known is the one thing that matters, so MEASURE IT
+   FIRST** (Entry 9's rule, and Entry 11's lesson):
+   - The profile machinery **already exists** — `buildProfileFace()` in `kernel.cpp` is shared, and
+     `Profile` is already in the protocol. `BRepPrimAPI_MakeRevol(face, gp_Ax1, angle)` is the op.
+   - Naming, by analogy with the prism: `Generated(segEdge[k])` → **`lateral.k`**; `FirstShape()` /
+     `LastShape()` → the two **caps** *(these exist only for a **partial** revolve)*.
+   - ⚠ **THE UNKNOWN, AND THE WHOLE RISK: a FULL 360° revolve has NO caps and DOES have a seam** — the
+     lateral surface closes on itself, so (like the cylinder, Entry 9) it is **bounded by one face
+     twice and no face pair can name it**; the operation must **seed** it, exactly as `makeCylinder`
+     seeds `lateral.seam`. **And a profile segment lying ON the axis generates a degenerate face or
+     none at all.** ⇒ **Add a probe case and measure what OCCT actually reports** before writing the
+     resolver. Do **not** design it from the docs. `tools/kernel-build/probe.cpp`, ~60 s to re-run.
+
+4. **✅ `capabilities` + `INVALID_RESULT` — DONE (Entry 14).** `capabilitiesOf(handlers)` lives in the
+   protocol, and **both** kernels now derive their advertisement from their handler map, asserted by a test —
+   so the list can never drift from the implementation again (it had, for two sessions). And
+   `BRepCheck_Analyzer` gates the **output** of boolean/fillet/chamfer/revolve, so **`INVALID_RESULT`** is
+   emitted at last rather than an invalid solid being quietly stored.
+
+5. **⚠ AN OWNER DECISION IS OWED: IS `geometry-cache.brep` IN v1.0.0 OR NOT?** *(Entry 13 §3a)*
+   **P2 step 2 — the BREP (de)serializer — was never built. Zero code exists** (the string appears only in
+   comments), and **no entry ever said so.** Yet it is named in **`.bimproj`** (P3 step 4), in the
+   **cache-staleness** path (P3 step 5), and in the **untrusted-BREP** security rule.
+   ⚠ **It may be legitimately droppable** — the recipe is truth (§2 invariant), so the cache is a pure
+   optimisation and a document can always rebuild. **But that is a decision, not a silence:** if it is
+   dropped, `.bimproj` must stop claiming the file. **Decide it; do not inherit it.**
+
+6. **P3 — and the way to spend it is STILL to BUILD A BUILDING WITH THE PROTOCOL.** The document model,
+   the registries, `.bimproj`. **The protocol freezes at its end.** Entry 12 is the third consecutive
+   demonstration that gaps are found by *using* the API and never by reading it (§2). Keep modelling:
+   walls that meet, a chase, a rotated wing, a window in a rotated wall, a stair, a roof.
+   **⚠ AND CARRY THIS DOCUMENT-MODEL RULE, WHICH ENTRY 12 MEASURED — plan P3 step 1 now states it:**
+   **ONE SOLID PER ELEMENT; NEVER FUSE TWO ELEMENTS.** Fusing two walls at a corner re-owns **4 of the
+   first wall's 6 faces** to the *fuse* node — so **every window hosted on that wall breaks the moment a
+   neighbour is joined to it**, retroactively, on a wall nobody edited. A boolean is an **intra**-element
+   operation (an L-shaped slab as a fuse of two boxes is fine — one element, one recipe). Corner joins
+   and double-counted corner volume are a **quantities/display** problem, and they are **v1.0.x**.
+   ⚠ **The P5 Miqdar gate (§4g / plan step 6a) is a separate, later obligation — do not confuse them.**
+
+   **⚠ AND P3 CARRIES A DEBT THE PLAN MISFILES UNDER P2 — BROKEN REFERENCES DO NOT EXIST.** *(Entry 13 §3b)*
+   `core_logic.md` **domain rule 3** and **§7** are unambiguous: a reference is `resolved ↔ **broken**`, and a
+   broken one is *"a first-class, visible state awaiting **manual retargeting**, never auto-healed."*
+   **No such state exists anywhere in the codebase.** Today an unresolvable ref throws
+   `UNRESOLVED_SUBSHAPE_REF` and **the whole operation fails**. So the promise *"predictable breakage beats
+   silent wrongness"* is **half-kept**: the breakage is loud (good), but **a document cannot survive carrying
+   one broken dependent**, and there is no retarget path. **Deleting a wall that a window is hosted on has no
+   defined behaviour today.** It is document-model work (plan P2 step 7 misfiles it), and **P5's Opening
+   depends on it.**
+
+7. **✅ CI — SOLVED, AND IT WAS BROKEN ALL ALONG (Entry 14).** It was never green because it **could not
+   be**: step 3, **`pnpm format:check`**, runs **before** `pnpm test` and **failed on the committed tree** —
+   Entry 7 moved the kernel into `packages/kernel-occt/wasm/` and never added emscripten's **generated glue**
+   to `.prettierignore`. **One line.** All five CI steps now pass on this box.
+   ⚠ **The lesson is bigger than the bug: nobody ever needed the Actions tab.** CI's steps are just commands,
+   and they run here. Fifteen entries wrote *"someone must look"* instead of looking. *(A human glance at the
+   Actions tab is still worth a minute, for anything environmental.)*
+
+8. **⚠ THE KERNEL IS NOW 4.22 MB GZIP (was 1.47) — an owner call is due before P4, not before P3.**
+   That is the price of the boolean/fillet code (`transform` + `extrude` + `chamfer` together added
+   ~0.09 MB — negligible), and it is mostly irreducible (`-Os` saves 1.5%). The
    levers, cheapest first: **(a)** accept it — the service worker caches it once and the app is
    offline-first thereafter (D11); **(b)** lazy-load the kernel behind the app shell so the UI paints
    first; **(c)** split it into core + booleans/fillet modules. Full reasoning in spec §8 and Entry 9 §5.
 
-4. **Housekeeping, when convenient:** `LICENSE` (AGPL-3.0), the CLA, and the **OCCT attribution notice**
+9. **Housekeeping, when convenient:** `LICENSE` (AGPL-3.0), the CLA, and the **OCCT attribution notice**
    LGPL requires (§4e). None of it blocks kernel work, all of it blocks going public.
 
 **For Amer (browser hot path) — you can now render REAL GEOMETRY. The mock is no longer the only option.**
@@ -1633,3 +1834,532 @@ before Miqdar's S3**. The web pass (2026-07-13) found **three things that change
 1. **Owner:** ratify the normative register, and rule **O-M5 / O-M10 / O-M11 / O-M12** (Miqdar spec §14).
    None of it blocks Bunyan.
 2. **Bunyan:** unchanged — `transform`, then P3. **At P5, step 6a is now waiting.**
+
+---
+
+## Entry 11 — 2026-07-13 — Zayd (dev box) — **`transform` LANDS — and it exposed a naming hole Entry 9 shipped: a wall with a groove could not be modelled.**
+
+**Task:** §5 task 1 — `transform` (rotation/mirror), the last named protocol gap, before the P3 freeze.
+
+```
+pnpm verify  →  typecheck ✓  eslint ✓  110/110 tests ✓  prettier ✓      (was 95/95)
+```
+
+### 1. ⚠ THE HEADLINE, AND IT IS NOT THE ONE I EXPECTED
+
+I was sent to build `transform` with a specific warning: *a mirror is precisely the "genuinely symmetric
+split" for which spec §4.5 reserves a bounded positional key — if a real case forces it, implement it on
+purpose.*
+
+**The mirror was acquitted. Something else was guilty.**
+
+| | |
+|---|---|
+| **The mirror does NOT force the positional key** | MEASURED (probe cases 7-10): a rigid transform — rotation, **mirror**, and a rotation of a wall that *already has an opening cut through it* — is a **topological ISOMORPHISM**. 100% of output faces and edges accounted for through history, **1:1, zero orphans**, in both copy modes. A mirror is a clean bijection. It has no ambiguity to resolve. ⇒ `transform` is **pure INHERIT**. |
+| **⚠⚠ A GROOVE DOES — and the kernel REFUSED IT OUTRIGHT** | Cutting a **groove across a wall** — a chase, a rebate, a shadow gap — **splits the wall's front face into two.** Both halves have an *identical derivation*. Entry 9 gave **edges** a structural tie-break and gave **faces none**, so `nameDerived` bailed out: `UNRESOLVED_SUBSHAPE_REF`. **A wall with a chase in it was unmodellable.** Entry 9's probe never cut a groove, so nothing caught it. |
+| **How it was found** | **By accident** — a `transform` test that cut a groove because that is what buildings have. Not by reading the resolver. |
+| **The fix, and it is structural, not geometric** | The halves are **not** indistinguishable: **they touch different faces.** MEASURED (probe case 6b, the new `touches` field): the half below the groove meets the wall's `z-min` face, the half above meets `z-max`. Faces now get **exactly the tie-break the edges always had** — sort by derivation, then by a structural signature (the *derivations of the neighbouring faces*), assign the occurrence index in that order, and refuse **only** when derivation AND signature are both identical. **No coordinate. No tolerance.** |
+| **⚠ It is not even a new rule** | Spec §4.5 already said *"children are ordered by a structural tie-break"*. **It had simply never been implemented for faces.** The spec was right and the code was incomplete. |
+| **What still refuses** | Two faces with **the same parent AND the same neighbours** — the *genuinely* symmetric split. **That** is what the positional key was always for, and it is **still deliberately not implemented.** We now know precisely which case would force it, instead of guessing that it was the mirror. |
+
+**⇒ The `#1 risk is retired` claim from Entry 9 was true of the shapes we had measured — and that is not
+the same thing.** The resolver is sound; the *probe* was incomplete. **The probe only measures the shapes
+you think to cut.** That is the lesson, and it is now §1 item 6.
+
+### 2. `transform` — the op that creates NO identities
+
+**The design, in one line: a rotated wall is the SAME WALL.** Its refs are the operand's refs, token for
+token, in the same order. The window hosted on its `y-min` face is still hosted there after the wall is
+rotated into place — which is the only reason the op is usable in a BIM tool at all. If identity were
+re-derived on placement, angling a wall would silently re-target every reference in the building pointing
+at it.
+
+- **It is the only shape-producing op with NO `nodeId`**, and that absence is the contract: it owns
+  nothing, so there is nothing for a node to own. `composeTransformRefs` (naming.ts) is a separate,
+  ~20-line function **with no `nodeId` in scope** — so it *cannot* call `encodeSubShapeRef` and *cannot*
+  mint an identity, even if OCCT surprised us. Any relation other than INHERIT is **refused, loudly**.
+  That is a tripwire, not an expected path.
+- **Motions** (`translate` / `rotate` / `mirror`) apply **in order**, angles in **degrees** (90/45/30 are
+  exact in degrees and irrational in radians; authors think in degrees).
+- **⚠ NO SCALE, deliberately.** A BIM element is not resized by scaling its solid — it is resized by
+  changing its **parameters** and re-running the recipe. A scale op would be a second, non-parametric way
+  to change a size, and the two would disagree the moment anything rebuilt. Non-uniform scale would also
+  turn a column's circle into an ellipse that no `makeCylinder` recipe can reproduce.
+- **⚠ A MIRRORED COPY IS A NEW ELEMENT, NOT A MIRRORED SHAPE.** Fusing a shape with a transform **of
+  itself** hands two different faces the same token, and the kernel **refuses** (`UNRESOLVED_SUBSHAPE_REF`).
+  That refusal is *correct*: it asks for one wall to be in two places inside one solid. The document
+  layer's answer (P3) is a **second element with its own `nodeId`** — and with distinct nodeIds the same
+  symmetric solid fuses cleanly. **Both halves of that are tested.**
+
+### 3. ⚠ THE MEASURE OP CANNOT GATE A TRANSFORM — and that trap is worth carrying forward
+
+**Volume, area, edge length and topology counts are ALL INVARIANT under a rigid motion.** A transform that
+rotated by the wrong angle, about the wrong axis, in radians where degrees were meant — or that *silently
+did nothing at all* — would reproduce **every one of them exactly**. The measures that gate every other
+shape in this repo are, here, **blind**.
+
+- **`bounds` is the only measure that moves**, so it is the one doing the work. Gated against a **native
+  OCCT reference** *and* a **closed form**.
+- The closed-form tier earns its keep here more than anywhere: if *we* passed OCCT the wrong angle, our
+  WASM kernel and the native-OCCT oracle would go through the **same** wrong angle and agree with each
+  other perfectly. Only a tier that computes the answer **independently from the angle** catches that —
+  `analytic.py` rotates the four base corners itself.
+- **A mirror's tell is the SIGN OF THE VOLUME.** A mishandled negative transform returns an inside-out
+  solid of **negative** volume — while its area, edge length, counts and even its bounding box stay
+  perfect. Measured: **positive**, 1.5e9 mm³. Asserted explicitly.
+
+### 4. Built this session
+
+- **`transform` in the protocol** (`OpMap` → **15 ops**), in the C++ kernel (`transformShape`, reusing
+  the *same* `nameDerived` resolver as the boolean and the fillet — no special case), and in the TS
+  adapter. **Not in the mock** — see below.
+- **The face tie-break** in `nameDerived` (kernel.cpp) — the groove fix. **Purely additive: it fires only
+  where the kernel previously REFUSED, so not one existing ref changed.** The 95 pre-existing tests pass
+  **unchanged**, which is the proof.
+- **Probe cases 6b and 7-11** (`probe.cpp`), incl. a new **`touches`** field (each output face's
+  neighbouring faces) — the measurement the face tie-break rests on. Re-runnable in ~60 s.
+- **Goldens: 7 cases** (was 5) — `wall-rotated-30deg` and `wall-mirrored-yz`, both with **analytic ==
+  OCCT** agreement at seed time.
+- **Tests +15**: `naming-transform.test.ts` (12) and `golden-transform.test.ts` (2), plus **the split-face
+  persistence test** in `naming-hard-topology.test.ts` — a groove, then a **rebuild with a taller wall and
+  the groove at a different height**, demanding the identities come back byte for byte. ⚠ That last test
+  also asserts the **lower half is still the lower half**: if the occurrence index flipped, every other
+  assertion would still pass while whatever was hosted on the lower half silently moved to the upper one.
+- **⚠ The mock does NOT implement `transform`, on purpose.** A rigid motion of a box is exactly
+  representable — but the mock's whole value is that its answers are **exact**, and one op stops being
+  exact the moment a box rotates: **`distance` is closed-form for two AXIS-ALIGNED boxes and has no closed
+  form for two rotated ones** (it becomes a convex-separation problem). A mock supporting `transform`
+  would have to either lie about `distance` or support it only sometimes — and a **partially**-honest mock
+  is worse than one that refuses, because the lie surfaces downstream, in Amer's code, weeks later. It
+  says so in `capabilities`, the same rule it applies to booleans.
+
+### 5. Verification & box hygiene
+
+- **`pnpm verify` green: 110/110**, 11 test files. Every naming assertion is about **identity, not
+  millimetres**; every geometric one is gated against a **native OCCT reference**.
+- Kernel rebuilt **twice** (~60 s each), probe **twice**. Docker capped at **2 GB** every run (§6a); box
+  never below ~2.2 GB available. **Live sites up throughout** (`portfolio-caddy-1`, `beamstack-contact`
+  untouched). No other project's containers stopped, no ports bound. `/tmp` checked: 85 MB.
+- **Kernel artifact: 4.16 MB gzip** (was 4.13). `transform` + the tie-break cost ~0.03 MB. Negligible.
+
+### 6. State
+
+- **⚠ UNCOMMITTED — the owner has not been asked.** `origin/main` still @ **`ec46e89`** (Entry 10).
+- **⚠ TWO THINGS THE OWNER SHOULD LOOK AT, because I made judgement calls inside my brief:**
+  1. **I changed the naming resolver** — the #1-risk subsystem he was told was retired. I judged it in
+     scope: it is a **defect in delivered work**, not new scope; the fix is what **spec §4.5 already
+     required**; it is **structural, not geometric** (so it is not the "loosening" the brief forbade); and
+     it is **additive** (no existing ref changed — 95/95 pre-existing tests prove it). **But he should know
+     the resolver moved, and that the probe that certified it was incomplete.**
+  2. **`transform` takes no `nodeId`** — a deliberate asymmetry with every other shape-producing op.
+- **CI still never observed green** (no `gh`, no token, private repo). The re-seed gate **will pass** —
+  the goldens were re-seeded this session, as it requires.
+
+### 7. Next
+
+1. **P3** — document model, registries, `.bimproj`; **the protocol freezes at its end.** ⚠ **Spend it
+   modelling a real building with the protocol.** Every gap ever found was found by *using* the API
+   (`at`; the groove). Re-reading `ops.ts` will not find the next one.
+2. **CI, still unproven** (§5 task 2) — cheap for the owner to settle by eye.
+3. **At P5: the Miqdar gate** (§4g, plan step 6a) is waiting.
+
+---
+
+## Entry 12 — 2026-07-13 — Zayd (dev box) — **THE PROTOCOL COULD NOT BUILD A FLOOR PLATE. `extrude` + `chamfer` were in P2's scope and had never been built.**
+
+**Task:** P3 — and per §5, *"the way to spend it is to build a building with the protocol."* I did that
+first, before writing any document model. It took ten minutes to find a hole that three sessions of
+reading `ops.ts` had missed.
+
+```
+pnpm verify  →  typecheck ✓  eslint ✓  119/119 tests ✓  prettier ✓      (was 110/110)
+```
+
+### 1. ⚠ THE HEADLINE: P2 WAS DECLARED COMPLETE TWICE, AND TWO OF ITS OPS DID NOT EXIST
+
+**P2 step 1, in writing, since the plan was authored:** *"make box/cylinder/**prism**, **extrude a
+profile**, **revolve**, boolean union/subtract/intersect, **fillet/chamfer** on an edge."*
+
+**`extrude`, `chamfer` and `revolve` were never built.** Entry 9 declared P2 complete. Entry 11 declared
+it complete again. `pnpm verify` was green both times. **Nothing caught it, because every test in the
+repo built its walls out of boxes** — and a box needs no `extrude`.
+
+It surfaced the moment I tried to model an actual building and reached for the **floor plate**:
+
+> A **Slab** is *"planar boundary + thickness"* (spec §5). **A boundary is a polygon.** A real floor
+> plate is L-shaped, or five-sided, or has a curved edge. **`makeBox` cannot express any of them.**
+
+And it is not just the Slab. **Three of the five MVP object types were unbuildable:**
+
+| MVP type | Spec §5 says | Could the kernel do it? |
+|---|---|---|
+| **Slab / Floor** | "planar boundary + thickness **extrude**" | ❌ rectangles only |
+| **Column** | "simple profile (rect/circular) **extrude**" | ❌ box or cylinder only |
+| **GenericSolid** | "free sketch + **extrude/revolve**" — *the escape hatch, and the import target for every unmapped IFC entity (D16)* | ❌ **no op behind it at all** |
+
+**⇒ §1 item 7 is the lesson, and it is worth more than the ops: a phase's exit criteria are a
+SPECIFICATION, not a summary of what got done. Read the step list against the code before declaring a
+phase complete.** It takes a minute. This went unread for a month.
+
+### 2. What was built
+
+- **`extrude`** (protocol + C++ + TS adapter) — sweep an authored **`Profile`** into a solid. **`OpMap`
+  is now 17 ops.**
+- **`chamfer`** — the fillet's flat sibling. Same contract (**the edge is addressed by its identity**,
+  not an index), same `nameDerived` resolver, no special case. P5 step 7 ships "fillet/**chamfer**".
+- **The `Profile` contract (D26)** — a closed loop of **authored segments**: a `line`, or a **three-point
+  `arc`**. ⚠ *Three points define exactly one arc*, so there is **no handedness flag to get backwards and
+  no radius too small for its chord** — the centre+radius+sweep parameterisation has two failure modes a
+  sketching UI would have to defend against, and this one has none.
+- **Profile validation** (spec §5.2) — **closed** and **non-self-intersecting**, checked before the
+  profile reaches a solid op, returning a typed **`INVALID_PROFILE`**. *A figure-eight boundary is closed
+  and planar and still nonsense.*
+- **Goldens: 10 cases** (was 7) — an **L-shaped slab**, a **slab with a curved edge**, a chamfered box.
+
+### 3. ⚠ THE NAMING RULE, AND IT IS A CONTRACT (D26)
+
+> **The face swept from segment `k` is named `lateral.k` — where `k` is the index in the array THE AUTHOR
+> DREW.** Never OCCT's traversal of the wire.
+
+That distinction is invisible on a rectangle and decisive on everything else. It is what lets a user
+**drag a slab's inner corner** — moving the boundary, changing every coordinate of two faces — **without
+re-targeting a single reference into it.** Tested: an L-plate's corner dragged 1.5 m, every ref byte-
+identical; a wall rebuilt longer *and* taller with a window hosted on `lateral.0`, every ref byte-identical.
+
+**⚠ The consequence a document command must respect: reordering the segment array re-targets every
+reference into the shape**, exactly as renaming a wall would. **Editing a vertex is safe. Permuting the
+list is not.** It says so in `ops.ts`, in the type.
+
+### 4. ⚠ THE BUG THAT WOULD HAVE SHIPPED SILENTLY, AND WHAT CAUGHT IT
+
+**`BRepBuilderAPI_MakeWire` hands back a COPY of an edge** when it has to reverse one to close a loop
+(its own docs say so, quietly). My first version kept the `TopoDS_Edge` I built and asked the prism what
+it `Generated()` from *that* — so **every profile with more than three sides failed to resolve.** The fix
+is `wire.Edge()` (the edge *as it went into the wire*), and it is the **fifth** vindication of §9.0's
+*"we trust OCCT; we verify our own code"*: another misuse of an OCCT API, not an OCCT defect.
+
+**And the one that did NOT announce itself.** `failFromKernel` mapped the kernel's error prefix to a
+typed code from a **hand-written subset** of the protocol's vocabulary — and it had drifted:
+**`INVALID_PROFILE` existed in the protocol, the C++ emitted it, and the adapter silently downgraded it
+to `INTERNAL`.** A precise, actionable *"your slab boundary is self-intersecting"* was arriving in the UI
+as *"something went wrong."* It now **derives from `KERNEL_FAILURE_CODES`** rather than restating it —
+generated, not maintained, which is the rule the rest of the project already holds itself to (D21).
+
+### 5. ⚠⚠ THE OTHER FINDING, AND IT LANDS ON P3, NOT ON THE KERNEL: **NEVER FUSE TWO ELEMENTS**
+
+I fused two walls at a corner, because that is what a naive "join walls" implementation does. **Measured:
+only 2 of the first wall's 6 faces kept their identity.** The rest were re-owned by the fuse:
+
+```
+   wall-s/face/y-min#0   ->   corner-sw/face/fuse(wall-s.face.y-min~0+wall-w.face.y-min~0)#0
+```
+
+The kernel is **right** — a merged coplanar face genuinely *is* a new face derived from two parents. But
+at the document level it is **catastrophic**: **every window hosted on that wall breaks the moment a
+neighbour is joined to it** — retroactively, on a wall nobody edited.
+
+**⇒ The rule, now written into plan P3 step 1: ONE SOLID PER ELEMENT. A boolean is an *intra*-element
+operation** (an element's own recipe: its base solid, minus the openings hosted on it). **An L-shaped slab
+built as a fuse of two boxes is fine** — one element, one `nodeId`, one recipe. **Wall + wall is not.**
+Corner joins, wall cleanup and double-counted corner volume are a **quantities/display** concern and are
+**v1.0.x**. *Do not reach for a fuse to solve them.*
+
+### 6. Verification — and why the closed form is doing the real work here
+
+**⚠ THE PRIMARY ORACLE IS STRUCTURALLY BLIND TO THE MOST LIKELY BUG IN THIS OP.** `occt.py` (native OCCT)
+and our WASM kernel are handed **the same profile**. If *we* build that boundary wrongly — a dropped
+vertex, a transposed coordinate, a loop that closes the long way round — **both sweep the same wrong
+polygon, produce the same wrong solid, and agree to the last digit.** It is the identical trap `transform`
+set with its angle (Entry 11).
+
+So `analytic.py` gained the only tier that computes the answer **from the vertices**: the **shoelace** area
+for a polygon, and the **circular-segment** area for an arc. The seeder cross-checks and **aborts** on
+disagreement.
+
+- **L-shaped slab:** volume **3,200,000,000 mm³** — analytic == native OCCT == our WASM, exactly.
+- **Curved-edge slab:** the arc through (6000,0), (7000,2000), (6000,4000) lies on a circle of centre
+  (4500,2000), R = 2500; its circular segment adds `R²·acos(0.6) − 1500·2000` = **2,795,595.1125 mm²**.
+  ⇒ volume **5,359,119,022.5 mm³**. **Hand-derivation == analytic == native OCCT == our WASM
+  (5,359,119,022.502015).** The op is analytically exact, not merely self-consistent.
+- **Chamfer:** removes exactly the triangular prism it should — `d²/2 × L` = 5,000,000 mm³ on a 1 m cube.
+- **119/119**, 13 test files. **The 110 pre-existing tests pass UNCHANGED** — which is the proof that both
+  ops are purely additive and not one existing ref moved.
+
+### 7. Box hygiene
+
+Kernel rebuilt **3×** (~60 s each), Docker capped at **2 GB** every run (§6a); box never below ~2.3 GB
+available. **Live sites up throughout** (`portfolio-caddy-1`, `beamstack-contact` untouched). No other
+project's containers stopped, no ports bound. `/tmp` = 85 MB. **Artifact: 14.53 MB raw / 4.22 MB gzip**
+(was 4.16) — `extrude` + `chamfer` cost **~0.06 MB gzip**. Negligible.
+
+### 8. State
+
+- **⚠ UNCOMMITTED.** `origin/main` still @ **`ec46e89`** (Entry 10). The tree now carries **Entries 11 AND
+  12**. Commits are owner-gated.
+- **CI still never observed green** (no `gh`, no token, private repo). The re-seed gate **will pass** —
+  the goldens were re-seeded this session, as it requires.
+- **⚠ ONE THING THE OWNER SHOULD KNOW I JUDGED:** I was sent to do **P3** and spent the session on the
+  **kernel** instead. I judged it in scope and would again: §5 explicitly said to spend P3 modelling a
+  building with the protocol and to **"fix a gap now, not after"**; the gap I found makes **three of the
+  five MVP types unbuildable**; and the protocol **freezes at the end of P3**, after which this is a
+  contract amendment. **Building the document model on a protocol that cannot express a floor plate would
+  have been the more expensive mistake.** But the document model has **not been started**, and that is the
+  honest state.
+
+### 9. Next
+
+1. **`revolve`** — the last known protocol gap; **GenericSolid cannot ship without it** and it is the
+   unmapped-IFC import target. ⚠ **Probe the full-360° seam FIRST** — see §5 task 1 for the design and the
+   precise unknown. Do not derive it from the docs.
+2. **P3** — document model, registries, `.bimproj`; the protocol freezes at its end. **Keep modelling real
+   buildings.** ⚠ Carry the **one-solid-per-element** rule (§5 above / plan P3 step 1).
+3. **CI, still unproven** (§5 task 3) — cheap for the owner to settle by eye.
+4. **At P5: the Miqdar gate** (§4g, plan step 6a) is waiting.
+
+---
+
+## Entry 13 — 2026-07-13 — Zayd (dev box) — **DEEP AUDIT: what the entries CLAIM vs what is actually wired. Six gaps, three serious.**
+
+**Task:** audit the code against the plan, the spec and Entries 1–12 — hunting for features claimed but not
+wired, and for work the whole build has simply never considered.
+
+**No code changed. `pnpm verify` untouched and still green (119/119).** This entry claims nothing about the
+code; it *reports* on it. Every finding below was **checked against the source**, not inferred from an entry.
+
+### 1. ⚠⚠ THE BIG ONE NOBODY HAS NOTICED IN 12 ENTRIES: **THE P3 PROTOCOL FREEZE FORECLOSES P6**
+
+- **P6 step 1** requires a **section-cut kernel op** — *"cut the actual B-Rep at a plane, extract profile
+  curves"*. The 2D plan + elevation are a **headline v1.0.0 deliverable**, and the *proof* that the kernel is
+  the single source of truth (spec §5.2, `core_logic.md` §3.10).
+- **P6 step 3** requires **IFC-import ops** — IfcOpenShell linked against our OCCT, exposed as **new C++ ops**
+  (D16). That is new protocol surface by construction.
+- **The protocol freezes at the END OF P3** (D13). **Neither op exists, and neither is planned before the
+  freeze.**
+
+⇒ **As written, P6 begins by amending a frozen contract on day one — which makes the freeze theatre.**
+**This needs an Architect call, and it is cheap now and expensive later:**
+- **(a)** Land or *reserve the op shapes* (`sectionCut`, the IFC ops) **before** the freeze — even as typed
+  stubs that return `UNKNOWN_OP`. The payload shape is the thing that is expensive to change, not the body.
+- **(b)** Or **redefine the freeze explicitly** as *"additive new ops are permitted; changing an existing
+  op's envelope or payload needs sign-off."* That is probably what was always meant — **but it is not what
+  D13 says**, and an unstated intent is exactly what a freeze exists to eliminate.
+**Do not let P3 end without settling this.**
+
+### 2. ⚠ `measure` CANNOT ANSWER A QUANTITY QUESTION — and quantities are a declared north-star
+
+`bounds` takes an optional **`ref`** (*"where is the south face of that wall?"*). **`measure` does not** — it
+answers only for a whole shape.
+
+So **"what is the AREA of that wall face?"** — the paint area, the formwork area, the cladding take-off — **is
+not askable.** Nor is the volume of one sub-part. That is:
+- **`core_logic.md` §3.11 + §9** — *analysis & quantities* is a **declared north-star**, and **domain rule 8**
+  says nothing in the current version may foreclose one;
+- **Miqdar's entire input** (§4g);
+- and **P5's `quantities` hook** on `BimObjectType`, which has nothing to call.
+
+**⇒ `measure` should take the same optional `ref` that `bounds` already takes.** It is **one line in `OpMap`
+and a `BRepGProp` call on a sub-shape** today, and a **contract amendment** after P3. **The asymmetry is an
+oversight, not a design** — `bounds` got a `ref` in Entry 9 and `measure` (Entry 7) predates it.
+
+### 3. ⚠ TWO P2 STEPS WERE NEVER BUILT, AND NO ENTRY EVER SAID SO *(the Entry-12 disease again — §1 item 7)*
+
+**(a) P2 step 2 — the BREP (de)serializer / `geometry-cache.brep`. ZERO CODE EXISTS.** Grep it: the string
+appears **only in comments**. Yet it is named in **`.bimproj`** (P3 step 4), in the **cache-staleness /
+kernel-build-id** path (P3 step 5), and in the **untrusted-BREP** security rule (architecture §10 — *"treat
+inbound BREP as untrusted on load"*).
+⚠ **It may be legitimately DROPPABLE — the recipe is truth (§2 invariant), so the BREP cache is a pure
+optimisation and a document can always rebuild.** But that is **an owner decision, not a silence**: if it is
+dropped, `.bimproj` must stop claiming the file and the P3/P6 exit criteria must change. **Decide it; do not
+inherit it.**
+
+**(b) P2 step 7 — the rebuild engine, and with it BROKEN REFERENCES. DOES NOT EXIST.**
+`core_logic.md` **domain rule 3** and **§7** are unambiguous: a reference is `resolved ↔ **broken**`, a broken
+one is *"a first-class, visible state awaiting **manual retargeting**, never auto-healed."*
+**There is no such state anywhere in the codebase.** Today, when a ref cannot be resolved, the kernel throws
+`UNRESOLVED_SUBSHAPE_REF` and **the whole operation fails**.
+⇒ The promise *"predictable breakage beats silent wrongness"* is **half-kept**: the breakage is loud (good),
+but **a document cannot survive carrying one broken dependent**, and there is no retarget path. **Deleting a
+wall that a window is hosted on currently has no defined behaviour.** This is **P3 document-model work** (the
+plan misfiles it under P2), and it is on the critical path for P5's Opening.
+
+### 4. ⚠ CONTRACT-DRIFT HAZARDS — mechanical, cheap, and one has already bitten
+
+- **`capabilities` is a HAND-WRITTEN list, separate from the handler map — and it already drifted.**
+  `transform` was implemented in Entry 11 and **left out of `OCCT_KERNEL_INFO.capabilities` for two
+  sessions** (Entry 12 caught it by accident). Worse, **`OpHandlers` is `Partial`**, so an op in `OpMap` with
+  **no handler is not a compile error** — it silently becomes `UNKNOWN_OP` at runtime. *(That optionality is
+  deliberate and correct — it is how the mock honestly refuses — but it means nothing checks the REAL kernel
+  for completeness.)*
+  **⇒ Fix: derive `capabilities` from `Object.keys(handlers)`, and add a test asserting they agree.** A
+  one-liner that closes a whole bug class, and it is the same *"generated, never maintained"* rule D21 already
+  imposes on the agent's tool list.
+- **`wasm/bunyan-kernel.d.ts` is hand-written** and, in its own words, kept in step with the
+  `EMSCRIPTEN_BINDINGS` block **by hand**. A drift here is a **type that lies about the WASM boundary** — and
+  TypeScript will believe it. Low frequency, high blast radius.
+- **`INVALID_RESULT` is declared in the protocol and NEVER EMITTED.** Nothing runs `BRepCheck_Analyzer` on a
+  boolean's or a fillet's output — so an OCCT op that "succeeds" while producing an **invalid solid** is
+  accepted and stored. `extrude` validates its *input* profile; nothing validates any op's *output*. Cheap to
+  add, and it is the code the protocol already reserves for exactly this.
+
+### 5. Things that checked out (so nobody re-audits them)
+
+- **Tessellation IS exercised on a curved solid** (a cylinder, in both `naming-hard-topology` and
+  `golden-hard-geometry`) — provenance on curved faces is not an unverified claim.
+- **The WASM-heap leak canary is real** — it asserts against `wasmLiveHandles()`, the module's own count.
+- **`EMPTY_BOOLEAN_RESULT` is genuinely emitted** by the C++ (a cut that removes everything).
+- **The worker export map is correct** (`@bunyan/kernel-occt/worker` resolves).
+
+### 6. Next — REVISED PRIORITY (the §5 list is updated to match)
+
+**Everything below is cheap NOW and a contract amendment AFTER P3. That is the whole point of this entry.**
+
+1. **`measure` gains an optional `ref`** (§2 above). One line. Unblocks the quantities north-star and Miqdar.
+2. **`revolve`** — the last named op gap; GenericSolid cannot ship without it (Entry 12 §9).
+3. **Settle the P6-vs-freeze question** (§1 above) — Architect call. Reserve `sectionCut` + the IFC ops, or
+   redefine the freeze in D13's own words.
+4. **Derive `capabilities` from the handlers + test it** (§4). One-liner, closes a bug class.
+5. **Owner decision: is `geometry-cache.brep` in v1.0.0 or not?** (§3a).
+6. **P3: the broken-reference state + retarget path** (§3b) — it is document-model work and P5's Opening
+   depends on it.
+
+---
+
+## Entry 14 — 2026-07-13 — Zayd (dev box) — **`revolve` LANDS (P2's op set is finally complete) — and cutting a ROUND column found the naming hole the spec reserved the positional key for.**
+
+**Task:** the §5 pre-freeze list from Entry 13's audit — `measure(ref)`, `revolve`, derived `capabilities`,
+`INVALID_RESULT`. All four are done. **But the session's real finding is the one nobody was looking for**,
+and it is an owner decision.
+
+```
+pnpm verify  →  typecheck ✓  eslint ✓  136/136 tests ✓  prettier ✓        (was 119/119)
+CI's own five steps, run in order on this box:  ALL PASS  (one of them could NOT have, before today)
+```
+
+### 1. ⚠⚠ THE HEADLINE, AND IT IS NOT `revolve`: **A DUCT CANNOT BE DRILLED THROUGH A ROUND COLUMN**
+
+A service penetration through a circular column. Utterly ordinary. **The resolver refuses it** —
+`UNRESOLVED_SUBSHAPE_REF`, loudly and correctly, with no wrong name ever assigned.
+
+**Why, measured** (`probe.cpp`, new case `cut_round_column_by_duct`): a round column has **ONE lateral face
+that wraps all the way around**, so the duct **enters and leaves through the same face**. The two rims:
+
+| | rim A | rim B |
+|---|---|---|
+| derivation | `Generated` by (column.lateral × duct.lateral) | **the same** |
+| bounding faces | {column.lateral, hole-wall} | **the same** |
+| endpoint signature | {column.lateral, hole-wall} | **the same** |
+
+**They are topologically indistinguishable.** Entry 11's groove was saved because its two halves touched
+*different* faces (`z-min` vs `z-max`); here **nothing differs**. No adjacency, endpoint or neighbour rule
+reaches it.
+
+**⇒ This is the case spec §4.5 reserved the BOUNDED POSITIONAL KEY for**, and whose own words are: *"If a
+real model ever hits a genuinely symmetric tie, that refusal is the signal to implement the key
+**deliberately**."* **A duct through a column is that real model. The ruling is owed — §5 task 1.**
+
+**⚠ IT IS NOT A `revolve` BUG AND IT PREDATES `revolve`.** The identical failure occurs on a plain
+`makeCylinder` column and has been reachable since **Entry 9**. Five sessions never hit it because
+**every boolean this project has ever tested cut a BOX** — where a duct enters `y-min` and leaves `y-max`,
+two faces, two derivations, no tie to break. It surfaced only because `revolve` gave me a round column and I
+cut it the way a building would. **Third time this lesson has landed** (Entry 11's groove; Entry 12's floor
+plate): *the probe only measures the shapes you think to cut.*
+
+**I did not fix it, deliberately.** The fix puts **geometry on the identity path** — the single invariant the
+product rests on (D1/D18) — and that is an Architect decision, not an agent's initiative at the end of a long
+session. **A test pins the refusal** (`naming-revolve.test.ts`, *"KNOWN LIMITATION"*) so it is visible in CI
+rather than folklore, and it flips the day it is ruled on. Options + costs: **§5 task 1.**
+
+### 2. ⚠ `revolve` (D27) — AND WHY COPYING THE PRISM WOULD HAVE SHIPPED A KERNEL THAT REFUSES EVERY COLUMN
+
+The last op P2 step 1 named. **The probe went first** (Entry 9's rule), and it earned its 60 seconds: a full
+360° turn is **not the partial one with a bigger number**, and *none* of the three differences is in the docs.
+
+| # | What the design note in §5 predicted | ⚠ What OCCT 7.9.3 ACTUALLY does |
+|---|---|---|
+| 1 | *"a full revolve has no caps"* | **True — but `FirstShape()`/`LastShape()` DO NOT RETURN NULL for it.** They return a face **that is not in the result**. The prism calls both unconditionally and refuses the build if either fails to resolve ⇒ **a copy-paste of `extrude` refuses every column and every dome.** The test is *"is it in the result"*, never *"is it null"*. |
+| 2 | *"the seam is the risk — measure it first"* | **The seam is FREE.** Each lateral face closes on itself, and its seam edge **IS the authored profile edge**, handed back by *identity*. Unlike the cylinder (which needed `BRepPrim_Cylinder::StartEdge()` to seed its seam), the revolve's seam costs nothing: `lateral.k.seam`. **The predicted risk was the easy part.** |
+| 3 | *"a segment ON the axis generates a degenerate face or none"* | True, and harmless — no face exists for it. **⚠ BUT THE ONE NOBODY PREDICTED: a segment PERPENDICULAR to the axis reports NO HISTORY AT ALL** — `Generated()` empty, `IsDeleted()` **true** — **while its face sits right there in the result.** That face is **the flat bottom of every column, the base of every dome, the annulus of every tube.** Trusting history would ship solids with unnamed faces; the prism's "refuse if unnamed" guard would refuse the shapes instead. |
+
+**The rescue for (3) is structural and exact:** every profile **vertex** sweeps into a circle, and OCCT
+reports *that* faithfully. **The face swept from segment `k` is bounded by exactly the circles swept from
+segment `k`'s two endpoint vertices** — verified against the raw topology on a tube, a cone and a dome. And
+the same relation tells a *radial* segment from an *on-axis* one: a vertex on the axis sweeps **no** circle,
+so an on-axis segment expects zero circles and correctly has no face. **No coordinates. No tolerance.**
+
+**Naming is the prism's** (D26): **`lateral.k` after the AUTHORED segment**, so re-authoring a column's
+profile — fatter, taller, a bowed moulding — re-targets **nothing**. Tested: every ref byte-identical.
+
+### 3. The three Entry-13 contract holes — closed
+
+- **`measure` takes an optional `ref`.** *"What is the AREA of that wall face?"* — the paint area, the
+  formwork, the cladding take-off — **is now askable**. A face reports area + perimeter and **zero volume**
+  (a face encloses nothing, and `VolumeProperties` on an open shell returns a plausible, meaningless number a
+  quantity schedule would happily bill). Unblocks **quantities** (domain rule 8), **P5's `quantities` hook**,
+  and **Miqdar's input**.
+- **`capabilities` is DERIVED** (`capabilitiesOf(handlers)`, in the protocol) in **both** kernels, and tested.
+  It had drifted for two sessions. Generated, never maintained — the same rule D21 imposes on the agent's
+  tool list.
+- **`INVALID_RESULT` is emitted at last.** `BRepCheck_Analyzer` gates the **output** of boolean, fillet,
+  chamfer and revolve. An OCCT op that "succeeds" while handing back an invalid solid is now refused, not
+  stored. *(The protocol reserved that code in v1 and had never once used it.)*
+
+### 4. ⚠ CI WAS NEVER GREEN — AND IT **COULD NOT** HAVE BEEN. NOBODY EVER NEEDED THE ACTIONS TAB.
+
+Fifteen entries said *"CI has never been observed green; no `gh`, no token, private repo ⇒ someone must look
+at the Actions tab."* **That framing was the bug.** CI's steps are just commands, and they run on this box.
+Run in order, **step 3 — `pnpm format:check`, which runs BEFORE `pnpm test` — fails on the committed tree.**
+
+**Entry 7 moved the kernel to `packages/kernel-occt/wasm/` and never added emscripten's generated glue to
+`.prettierignore`.** Every push since has failed there. **One line.** All five steps now pass here.
+
+*(A human glance at the Actions tab is still worth a minute — but "unproven" was the wrong word. It was
+**disproven**, and nobody ran the check.)*
+
+### 5. ⚠ The harness caught one of MY bugs — and then I closed the gap that let it through
+
+The closed-form tier exists to catch **our** errors, and it caught one: my analytic bounding box for the
+90° revolve was the **full tube's** (`-outer`), when a 90° sector lives in the first quadrant. The kernel was
+right and the golden was wrong.
+
+**But it was caught LATE — by the TS suite, not by the seeder** — because `seed.py` cross-checked
+volume/area/edgeLength/counts and **not `bounds`**. That is the gate whose entire job is to make a wrong
+golden *uncommittable*, and a wrong golden sailed through it. **The seeder now cross-checks bounds too**, and
+all 14 cases pass it (so no pre-existing golden had a bad box either).
+
+### 6. Verification
+
+- **136/136 tests** (was 119). The 119 pre-existing ones pass **unchanged** — the proof this is additive.
+- **Goldens: 14 cases** (was 10). Four new revolve cases, each gated against **native OCCT** *and* an
+  **independent closed form**, with the seeder aborting on disagreement:
+  - **revolved column** = π·150²·3000 — and it **measures identically to the `makeCylinder` primitive**, which
+    is two entirely different OCCT code paths landing on the same solid;
+  - **hollow tube** = π(1000²−500²)·3000 — **the orphan-face case**: its two annuli are exactly the faces OCCT
+    reports no history for;
+  - **hemisphere** = ⅔·π·1000³ from an arc, with a degenerate pole;
+  - **90° tube** — the control that **has caps**, so conflating full and partial fails exactly one of the two.
+- **Artifact: 15.36 MB raw / 4.24 MB gzip** (was 14.53 / 4.22) — `revolve` + `measure(ref)` + the
+  `BRepCheck` guards cost **~0.02 MB gzip**. Negligible.
+
+### 7. Box hygiene
+
+Kernel linked **1×**, probe linked **2×** (~60 s each), Docker capped at **2 GB** every run (§6a); box never
+below ~2.3 GB available. **Live sites up throughout** (`portfolio-caddy-1`, `beamstack-contact` untouched).
+No other project's containers stopped, no ports bound. `/tmp` = 86 MB.
+
+### 8. State
+
+- **⚠ UNCOMMITTED.** `origin/main` still @ **`ec46e89`** (Entry 10). The tree now carries Entries **11, 12, 13
+  and 14**. Commits are owner-gated.
+- **P2's op set is complete** — the first time this phase's own step list matches the code.
+
+### 9. Next
+
+1. **⚠⚠ THE POSITIONAL-KEY RULING (§5 task 1)** — a real model has hit the genuinely symmetric tie, and the
+   spec says that refusal is the signal. **Owner call.** Everything else can proceed without it; a
+   through-penetration of a round column cannot.
+2. **The P6-vs-freeze contradiction (§5 task 2)** — `sectionCut` and the IFC ops are needed by P6 and do not
+   exist; the protocol freezes at the end of P3. **Owner call**, and it is minutes.
+3. **`geometry-cache.brep`: in v1.0.0 or not? (§5 task 5)** — still an owner call, still never made.
+4. **P3 — the document model.** ⚠ Carry the **one-solid-per-element** rule (Entry 12), and **keep modelling
+   real buildings**: every protocol gap this project has found was found by *using* the API, and the newest
+   one (§1 above) was found by cutting a shape nobody had cut. **Cut the next one.**

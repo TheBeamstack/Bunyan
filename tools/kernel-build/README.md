@@ -83,14 +83,31 @@ it — **`packages/kernel-occt/wasm/`**. After a rebuild:
 
 ```bash
 cp dist/bunyan-kernel.{js,wasm} ../../packages/kernel-occt/wasm/
-cd ../.. && pnpm verify          # the REAL gate: 95 tests, both kernels, real geometry
+cd ../.. && pnpm verify          # the REAL gate: 136 tests, both kernels, real geometry
 ```
+
+⚠ **`bunyan-kernel.js` (the emscripten glue) is in `.prettierignore`, and must stay there.** It is generated,
+minified machine output. It was _not_ there from Entry 7 to Entry 14, and because CI runs `pnpm format:check`
+**before** `pnpm test`, **every CI run in that window failed at step 3** — which is the entire reason CI was
+never seen green. The hand-written `bunyan-kernel.d.ts` beside it is ours and stays formatted.
 
 ## `probe.cpp` — the naming probe (a measurement instrument, not the kernel)
 
 `src/probe.cpp` links as its **own** WASM module and answers one question empirically:
-**what does OCCT's `Generated`/`Modified`/`IsDeleted` history ACTUALLY report** — for a cylinder, for
-three booleans, and for a fillet on an edge a boolean created (the case spec §4.5 calls the hardest)?
+**what does OCCT's `Generated`/`Modified`/`IsDeleted` history ACTUALLY report** — for a cylinder, three
+booleans, a fillet on an edge a boolean created (the case spec §4.5 calls the hardest), a groove, five
+transforms, **four revolves**, and **a duct through a round column**?
+
+⚠ **Every single time this probe has been pointed at a new shape, it has found something the docs do not
+say — and twice it contradicted what this project had confidently predicted.** Entry 14 alone: a full 360°
+revolve's cap accessors return a face **that is not in the result** (not null, as any reasonable person would
+guess); its seam is **free** (the predicted risk was the easy part); **a segment perpendicular to the axis
+reports no history at all while its face is in the result** (nobody predicted it, and it is the flat bottom of
+every column); and **a duct through a round column produces two topologically indistinguishable rims**, which
+is the genuinely-symmetric tie spec §4.5 reserved the positional key for — **reachable since Entry 9, unseen
+for five sessions, because every boolean ever tested cut a box.**
+
+**⇒ Before you trust naming on a shape class nobody has cut, cut it here first.** It costs 60 seconds.
 
 The naming rules in `src/kernel.cpp` are what they are **because of what this printed** (Entry 9). It
 is committed so that the next person to change those rules can re-run the measurement instead of
@@ -104,7 +121,7 @@ node probe-history.mjs                            # the report; --json for the r
 ```
 
 Read the **STILL UNNAMEABLE** column first: it is the only number that matters — how many sub-shapes
-the resolver would have to *refuse*, once history and adjacency have both been applied.
+the resolver would have to _refuse_, once history and adjacency have both been applied.
 
 ⚠ **`pnpm verify` is what judges a new kernel, not `verify.mjs`.** The vitest suite drives the kernel
 through the protocol and gates the goldens, the naming, the wireframe, the WASM-heap leak canary and
@@ -113,12 +130,12 @@ moment when there is a `.wasm` but no repo around it.
 
 ## Pinned toolchain
 
-|            |                                                                                      |
-| ---------- | ------------------------------------------------------------------------------------ |
-| OCCT       | **7.9.3** (`V7_9_3`, upstream, **unpatched**)                                        |
-| emscripten | `emscripten/emsdk:latest` → **emcc 6.0.2**                                           |
-| Threading  | **single** (owner ruling: v1.0.0 ships single-threaded; MT in v1.0.x)                |
-| Artifact   | `packages/kernel-occt/wasm/bunyan-kernel.{js,wasm}` — **3.98 MB raw / ~1.5 MB gzip** |
+|            |                                                                                                  |
+| ---------- | ------------------------------------------------------------------------------------------------ |
+| OCCT       | **7.9.3** (`V7_9_3`, upstream, **unpatched**)                                                    |
+| emscripten | `emscripten/emsdk:latest` → **emcc 6.0.2**                                                       |
+| Threading  | **single** (owner ruling: v1.0.0 ships single-threaded; MT in v1.0.x)                            |
+| Artifact   | `packages/kernel-occt/wasm/bunyan-kernel.{js,wasm}` — **15.36 MB raw / 4.24 MB gzip** (Entry 14) |
 
 ⚠ **The OCCT version + emcc version are the kernel _build id_** (`occt-7.9.3-emcc-6.0.2`, in
 `packages/kernel-occt/src/kernel.ts`). It is stamped into every saved `.bimproj` and invalidates the

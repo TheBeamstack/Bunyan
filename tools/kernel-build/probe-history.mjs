@@ -56,6 +56,33 @@ for (const c of report) {
       `   ⇒  result: ${c.result.faces}F / ${c.result.edges}E / ${c.result.vertices}V`,
   );
 
+  // ---- 0. REVOLVE — the three questions this op exists to settle -------------------------------
+  // Printed FIRST, and above the generic history table, because for the revolve these three lines ARE
+  // the finding: whether the caps exist, whether each authored segment made exactly one face, and
+  // whether a segment on the axis made none.
+  if (c.caps) {
+    const cap = (side) => {
+      const s = c.caps[side];
+      if (s.threw) return 'THREW';
+      if (s.null) return 'NULL — no cap';
+      return s.inResult ? `${s.kind}#${s.face}` : `${s.kind} NOT IN RESULT (dangling)`;
+    };
+    console.log(
+      `\n  [0] REVOLVE — ${c.angleDeg}°${c.fullRevolution ? ' (FULL revolution)' : ''}, volume ${c.resultVolume}`,
+    );
+    console.log(`      caps:  FirstShape() = ${cap('first')}     LastShape() = ${cap('last')}`);
+    console.log('      what each AUTHORED segment generated (the `lateral.k` rule):');
+    for (const g of c.segGenerated) {
+      const verdict =
+        g.faces === 1
+          ? '✓ exactly one face — nameable as lateral.' + g.seg
+          : g.faces === 0
+            ? `⚠ NO FACE (${g.edges} edge(s), ${g.degenerateEdges} degenerate) — ON THE AXIS`
+            : `⚠ ${g.faces} FACES — the segment index is not an identity`;
+      console.log(`        seg.${g.seg}  faces=${g.faces} edges=${g.edges}   ${verdict}`);
+    }
+  }
+
   // ---- 1. HISTORY: how is each output sub-shape reached? ----------------------------------------
   const byKind = Object.fromEntries(KINDS.map((k) => [k, []]));
   for (const o of c.outputs) byKind[o.out.split('#')[0]].push(o);
@@ -143,9 +170,13 @@ for (const c of report) {
 
   const unnamedFaces = byKind.face.filter((o) => o.from.length === 0);
   if (unnamedFaces.length) {
-    console.log(`\n    ⚠ ${unnamedFaces.length} FACE(S) HAVE NO HISTORY AT ALL — everything below them is lost:`);
+    console.log(
+      `\n    ⚠ ${unnamedFaces.length} FACE(S) HAVE NO HISTORY AT ALL — everything below them is lost:`,
+    );
     for (const o of unnamedFaces) {
-      console.log(`        ${pad(o.out, 10)} ${o.geom.surface} area=${o.geom.area} at [${o.geom.centroid}]`);
+      console.log(
+        `        ${pad(o.out, 10)} ${o.geom.surface} area=${o.geom.area} at [${o.geom.centroid}]`,
+      );
     }
   }
 
@@ -154,7 +185,9 @@ for (const c of report) {
     ['vertex', vClosure],
   ]) {
     if (!cl.refused.length) continue;
-    console.log(`\n    ⚠ UNNAMEABLE ${k.toUpperCase()}S (${cl.refused.length}) — the resolver would have to REFUSE these:`);
+    console.log(
+      `\n    ⚠ UNNAMEABLE ${k.toUpperCase()}S (${cl.refused.length}) — the resolver would have to REFUSE these:`,
+    );
     for (const { o, why } of cl.refused.slice(0, 10)) {
       const g = o.geom ? `${o.geom.curve} len=${o.geom.length}` : '';
       console.log(`        ${pad(o.out, 10)} ${pad(g, 24)} ${why}`);
@@ -163,9 +196,13 @@ for (const c of report) {
   }
 
   // ---- 3. The structural facts behind the numbers ------------------------------------------------
-  const splits = (c.relations ?? []).filter((r) => r.in.includes(':face:') && r.modified.length > 1);
+  const splits = (c.relations ?? []).filter(
+    (r) => r.in.includes(':face:') && r.modified.length > 1,
+  );
   if (splits.length) {
-    console.log('\n  [3] FACE SPLITS — one input face becoming several output faces (they SHARE a role,');
+    console.log(
+      '\n  [3] FACE SPLITS — one input face becoming several output faces (they SHARE a role,',
+    );
     console.log('      so the role alone is not an identity: each needs an occurrence index):');
     for (const s of splits) {
       console.log(`      ${pad(s.in, 26)} → ${s.modified.length} faces: ${s.modified.join(', ')}`);
@@ -174,7 +211,9 @@ for (const c of report) {
 
   const generators = (c.relations ?? []).filter((r) => r.generated.length > 0);
   if (generators.length) {
-    console.log('\n  [4] GENERATED — sub-shapes that exist in NEITHER input (the section curves, the fillet face):');
+    console.log(
+      '\n  [4] GENERATED — sub-shapes that exist in NEITHER input (the section curves, the fillet face):',
+    );
     for (const g of generators) {
       console.log(`      ${pad(g.in, 26)} → ${g.generated.join(', ')}`);
     }

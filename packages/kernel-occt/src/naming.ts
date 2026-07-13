@@ -26,7 +26,12 @@
 
 import { decodeSubShapeRef, encodeSubShapeRef } from '@bunyan/protocol';
 import type { SubShapeKind } from '@bunyan/protocol';
-import type { OcctNameRow, OcctNaming, OcctVectorInt, OcctVectorNameRow } from '../wasm/bunyan-kernel.js';
+import type {
+  OcctNameRow,
+  OcctNaming,
+  OcctVectorInt,
+  OcctVectorNameRow,
+} from '../wasm/bunyan-kernel.js';
 
 /** How the kernel accounted for a sub-shape. Mirrors the constants in `kernel.cpp`. */
 export const REL_PRIMITIVE = 0;
@@ -117,6 +122,66 @@ export function drainNaming(naming: OcctNaming): StructuralNaming {
 
 /** Thrown when a sub-shape cannot be named. The kernel refuses rather than invent an identity. */
 export class UnnameableSubShape extends Error {}
+
+/**
+ * TRANSFORM's refs — and this function is short ON PURPOSE. It cannot mint an identity.
+ *
+ * A rigid transform is a topological isomorphism: every face maps to exactly one face. So every row
+ * MUST come back `REL_INHERIT`, and the answer is the operand's own token, passed through untouched.
+ * The result's refs are the operand's refs — same tokens, same order. **A rotated wall is the same
+ * wall.**
+ *
+ * ⚠ Why this is a separate function rather than a call to `composeRefs` with a `nodeId`: there is no
+ * node to pass. A transform owns nothing, so handing this path a `nodeId` would give it the *ability*
+ * to mint a fresh identity — and the day OCCT reported something unexpected, it would quietly do so,
+ * re-targeting every reference hosted on the shape. Here that is not a rule to be obeyed but a thing
+ * that cannot be expressed: with no `nodeId` in scope, `encodeSubShapeRef` cannot even be called. Any
+ * relation other than INHERIT is refused, loudly.
+ *
+ * (MEASURED — probe.cpp cases 7-10: rotate, mirror, and a rotate of a wall that already has an opening
+ * cut through it all report 100% INHERIT, zero orphans. The refusal below is the tripwire for the day
+ * that stops being true, not an expected path.)
+ */
+export function composeTransformRefs(
+  naming: StructuralNaming,
+  operand: OperandRefs,
+): { faces: string[]; edges: string[] } {
+  const passThrough = (rows: readonly Row[], kind: SubShapeKind): string[] =>
+    rows.map((row) => {
+      const expectedKind = kind === 'face' ? KIND_FACE : 1;
+      if (
+        row.relation !== REL_INHERIT ||
+        row.srcIndex.length !== 1 ||
+        row.srcOperand[0] !== 0 ||
+        row.srcKind[0] !== expectedKind
+      ) {
+        throw new UnnameableSubShape(
+          `a transform produced a ${kind} that is NOT a pass-through of its operand ` +
+            `(relation ${String(row.relation)}, ${String(row.srcIndex.length)} ancestor(s)) — a rigid ` +
+            `motion must be a 1:1 map, so this cannot be named without inventing an identity`,
+        );
+      }
+      const token = (kind === 'face' ? operand.faces : operand.edges)[row.srcIndex[0] ?? -1];
+      if (token === undefined) {
+        throw new UnnameableSubShape(
+          `a transform's ${kind} inherits from operand ${kind} ${String(row.srcIndex[0])}, which has no ref`,
+        );
+      }
+      return token;
+    });
+
+  const faces = passThrough(naming.faces, 'face');
+  const edges = passThrough(naming.edges, 'edge');
+
+  // A bijection cannot collide. If it does, the map was not a bijection and the premise is broken.
+  const all = [...faces, ...edges];
+  if (new Set(all).size !== all.length) {
+    throw new UnnameableSubShape(
+      'a transform mapped two sub-shapes onto ONE identity — it was not the 1:1 map a rigid motion must be',
+    );
+  }
+  return { faces, edges };
+}
 
 /**
  * Compose the ref tokens for one operation's output.

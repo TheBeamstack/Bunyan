@@ -20,7 +20,13 @@
 
 import { KernelHost, ShapeRegistry } from '@bunyan/kernel-core';
 import type { KernelImplementation, OpHandlers } from '@bunyan/kernel-core';
-import { KernelFailureError, decodeSubShapeRef, kernelFailure } from '@bunyan/protocol';
+import {
+  KERNEL_FAILURE_CODES,
+  KernelFailureError,
+  capabilitiesOf,
+  decodeSubShapeRef,
+  kernelFailure,
+} from '@bunyan/protocol';
 import type {
   Bounds,
   EdgePolyline,
@@ -29,7 +35,7 @@ import type {
   MeshBuffers,
 } from '@bunyan/protocol';
 
-import { UnnameableSubShape, composeRefs, drainNaming } from './naming.js';
+import { UnnameableSubShape, composeRefs, composeTransformRefs, drainNaming } from './naming.js';
 import type { OperandRefs } from './naming.js';
 
 import initBunyanKernel from '../wasm/bunyan-kernel.js';
@@ -44,7 +50,15 @@ import type { OcctBounds, OcctModule } from '../wasm/bunyan-kernel.js';
  */
 export const OCCT_BUILD_ID = 'occt-7.9.3-emcc-6.0.2';
 
-export const OCCT_KERNEL_INFO: KernelInfo = {
+/**
+ * Everything about this kernel that is NOT derived from its handlers.
+ *
+ * ⚠ `capabilities` is deliberately absent here: it is GENERATED from the handler map at construction
+ * (`capabilitiesOf`), never written down. The hand-written list drifted once already — `transform`
+ * shipped in Entry 11 and was missing from it for two sessions — and a kernel that misdescribes itself
+ * is worse than one that cannot do the thing, because a caller *plans* around the advertisement.
+ */
+export const OCCT_KERNEL_META = {
   name: 'occt',
   kernelVersion: '7.9.3',
   buildId: OCCT_BUILD_ID,
@@ -52,18 +66,7 @@ export const OCCT_KERNEL_INFO: KernelInfo = {
   // non-deterministically, which would make persistent-naming bugs (the #1 risk) far harder to
   // reproduce. Correctness on one core first; MT lands in v1.0.x.
   threading: 'single',
-  capabilities: [
-    'makeBox',
-    'makeCylinder',
-    'boolean',
-    'fillet',
-    'measure',
-    'bounds',
-    'distance',
-    'classifyPoint',
-    'tessellate',
-  ],
-};
+} as const satisfies Omit<KernelInfo, 'capabilities'>;
 
 /** What we track per live shape. The WASM side owns the geometry; this owns the identities. */
 interface OcctShape {
@@ -85,18 +88,16 @@ const operandRefs = (shape: OcctShape): OperandRefs => ({
  * across the boundary (spec §6.4, D10; Emscripten would surface an OCCT `Standard_Failure` as a bare
  * integer, which no `catch (e: Error)` would catch). The C++ prefixes the message with the protocol's
  * own failure code, so this is a lookup, not a guess.
+ *
+ * ⚠ It reads that vocabulary FROM THE PROTOCOL rather than restating it. A hand-written subset is a
+ * second list that has to be remembered, and it had already drifted: `INVALID_PROFILE` existed in the
+ * protocol, the kernel emitted it, and this function silently downgraded it to `INTERNAL` — turning a
+ * precise, actionable *"your slab boundary is self-intersecting"* into *"something went wrong"*.
  */
 function failFromKernel(wasm: OcctModule, op: string): KernelFailureError {
   const message = wasm.lastError();
-  const codes: readonly KernelFailureCode[] = [
-    'INVALID_PAYLOAD',
-    'HANDLE_NOT_FOUND',
-    'UNRESOLVED_SUBSHAPE_REF',
-    'EMPTY_BOOLEAN_RESULT',
-    'FILLET_RADIUS_TOO_LARGE',
-    'OCCT_STANDARD_FAILURE',
-  ];
-  const code = codes.find((c) => message.startsWith(c)) ?? 'INTERNAL';
+  const code: KernelFailureCode =
+    KERNEL_FAILURE_CODES.find((c) => message.startsWith(`${c}:`)) ?? 'INTERNAL';
   return new KernelFailureError(
     kernelFailure(code, message === '' ? `Kernel op "${op}" failed without a message` : message, {
       op,
@@ -114,6 +115,148 @@ function requireFinitePositive(name: string, value: unknown): number {
     );
   }
   return value;
+}
+
+/**
+ * Validate a transform's motions and flatten them for the C++ side — 8 doubles each, applied in order:
+ *
+ *   translate : [0, tx,ty,tz,  0, 0, 0,  0      ]
+ *   rotate    : [1, ax,ay,az,  ox,oy,oz, degrees]
+ *   mirror    : [2, nx,ny,nz,  ox,oy,oz, 0      ]
+ *
+ * ⚠ The parameter is `unknown` ON PURPOSE, even though the protocol types it. A payload arrives off a
+ * `postMessage` wire and is untrusted until a handler checks it (`KernelHost.handle` says so) — the
+ * static type describes what a WELL-BEHAVED caller sends, not what actually shows up. Trusting it here
+ * would let a malformed message reach OCCT as garbage doubles.
+ */
+function flattenMotions(motions: unknown): number[] {
+  const bad = (why: string): never => {
+    throw new KernelFailureError(kernelFailure('INVALID_PAYLOAD', why, { op: 'transform' }));
+  };
+
+  if (!Array.isArray(motions) || motions.length === 0) {
+    return bad('transform needs a non-empty array of motions');
+  }
+
+  const vec3 = (value: unknown, what: string): [number, number, number] => {
+    if (
+      !Array.isArray(value) ||
+      value.length !== 3 ||
+      !value.every((n) => typeof n === 'number' && Number.isFinite(n))
+    ) {
+      return bad(`${what} must be three finite numbers`);
+    }
+    return value as [number, number, number];
+  };
+
+  const flat: number[] = [];
+  for (const raw of motions as readonly unknown[]) {
+    if (typeof raw !== 'object' || raw === null) return bad('each motion must be an object');
+    const motion = raw as Record<string, unknown>;
+
+    switch (motion['kind']) {
+      case 'translate':
+        flat.push(0, ...vec3(motion['by'], 'translate.by'), 0, 0, 0, 0);
+        break;
+      case 'rotate': {
+        const degrees = motion['degrees'];
+        if (typeof degrees !== 'number' || !Number.isFinite(degrees)) {
+          return bad('rotate.degrees must be a finite number');
+        }
+        flat.push(
+          1,
+          ...vec3(motion['axis'], 'rotate.axis'),
+          ...vec3(motion['origin'] ?? [0, 0, 0], 'rotate.origin'),
+          degrees,
+        );
+        break;
+      }
+      case 'mirror':
+        flat.push(
+          2,
+          ...vec3(motion['normal'], 'mirror.normal'),
+          ...vec3(motion['origin'] ?? [0, 0, 0], 'mirror.origin'),
+          0,
+        );
+        break;
+      default:
+        return bad(`unknown motion kind "${String(motion['kind'])}"`);
+    }
+  }
+  return flat;
+}
+
+/**
+ * Validate a profile and flatten it for the C++ side:
+ *
+ *   [0..2] plane origin   [3..5] plane normal   [6..8] plane x-axis   [9..10] start (u,v)
+ *   then one segment per 5 doubles: [kind, viaU, viaV, toU, toV]     (0 = line, 1 = arc)
+ *
+ * ⚠ `unknown` on purpose, for the same reason as `flattenMotions`: a payload off a `postMessage` wire
+ * is untrusted, and the static type describes a well-behaved caller, not what actually arrives.
+ *
+ * The kernel validates the geometry (closed, planar, non-self-intersecting); this validates the
+ * SHAPE OF THE MESSAGE, so garbage never reaches OCCT as doubles.
+ */
+function flattenProfile(profile: unknown): number[] {
+  const bad = (why: string): never => {
+    throw new KernelFailureError(kernelFailure('INVALID_PAYLOAD', why, { op: 'extrude' }));
+  };
+
+  if (typeof profile !== 'object' || profile === null) return bad('extrude needs a profile object');
+  const p = profile as Record<string, unknown>;
+
+  const nums = (value: unknown, n: number, what: string): number[] => {
+    if (
+      !Array.isArray(value) ||
+      value.length !== n ||
+      !value.every((v) => typeof v === 'number' && Number.isFinite(v))
+    ) {
+      return bad(`${what} must be ${String(n)} finite numbers`);
+    }
+    return value as number[];
+  };
+
+  const plane = p['plane'];
+  if (typeof plane !== 'object' || plane === null) return bad('profile.plane is required');
+  const pl = plane as Record<string, unknown>;
+
+  const flat: number[] = [
+    ...nums(pl['origin'], 3, 'profile.plane.origin'),
+    ...nums(pl['normal'], 3, 'profile.plane.normal'),
+    ...nums(pl['xAxis'], 3, 'profile.plane.xAxis'),
+    ...nums(p['start'], 2, 'profile.start'),
+  ];
+
+  const segments = p['segments'];
+  if (!Array.isArray(segments) || segments.length < 3) {
+    // Two segments cannot bound an area unless one of them is an arc — and the kernel's own closure
+    // and self-intersection checks catch the rest. Three is the smallest polygon; refuse below it
+    // here so the message is about the message, not about OCCT.
+    return bad('profile.segments must be an array of at least 3 segments');
+  }
+
+  for (const raw of segments as readonly unknown[]) {
+    if (typeof raw !== 'object' || raw === null)
+      return bad('each profile segment must be an object');
+    const seg = raw as Record<string, unknown>;
+    switch (seg['kind']) {
+      case 'line': {
+        const to = nums(seg['to'], 2, 'segment.to');
+        flat.push(0, 0, 0, ...to);
+        break;
+      }
+      case 'arc': {
+        const via = nums(seg['via'], 2, 'segment.via');
+        const to = nums(seg['to'], 2, 'segment.to');
+        flat.push(1, ...via, ...to);
+        break;
+      }
+      default:
+        return bad(`unknown profile segment kind "${String(seg['kind'])}"`);
+    }
+  }
+  return flat;
 }
 
 function requireNodeId(nodeId: unknown): string {
@@ -259,6 +402,96 @@ export async function createOcctKernel(): Promise<OcctKernel> {
       return register(id, nodeId, 'cylinder', []);
     },
 
+    // ⚠ THE OP THREE OF THE FIVE MVP TYPES NEED — Slab ("planar boundary + thickness"), a Column of
+    // arbitrary profile, and GenericSolid ("free sketch + extrude/revolve"). `makeBox` can express
+    // none of them: a real floor plate is L-shaped, or five-sided, or has a curved edge.
+    //
+    // ⚠ The faces are named `lateral.k` after the AUTHORED segment index — so editing the boundary
+    // never renumbers them, and an opening hosted on `lateral.2` is still on `lateral.2` afterwards.
+    extrude: (payload) => {
+      const nodeId = requireNodeId(payload.nodeId);
+      const height = payload.height;
+      if (typeof height !== 'number' || !Number.isFinite(height) || height === 0) {
+        throw new KernelFailureError(
+          kernelFailure('INVALID_PAYLOAD', 'extrude.height must be a non-zero finite number', {
+            op: 'extrude',
+          }),
+        );
+      }
+      const flat = flattenProfile(payload.profile);
+
+      // The sweep defaults to the profile plane's own normal — the ordinary case: draw the slab
+      // boundary flat, thicken it upward.
+      const dir = payload.direction ?? payload.profile.plane.normal;
+      const len = Math.hypot(dir[0], dir[1], dir[2]);
+      if (!(len > 0)) {
+        throw new KernelFailureError(
+          kernelFailure('INVALID_PAYLOAD', 'extrude.direction must be a non-zero vector', {
+            op: 'extrude',
+          }),
+        );
+      }
+      const s = height / len;
+
+      const profile = new wasm.VectorDouble();
+      let id: number;
+      try {
+        for (const v of flat) profile.push_back(v);
+        id = wasm.extrudeProfile(profile, dir[0] * s, dir[1] * s, dir[2] * s);
+      } finally {
+        profile.delete(); // an embind vector is WASM heap, and it is ours to free
+      }
+      if (id === 0) throw failFromKernel(wasm, 'extrude');
+      return register(id, nodeId, 'prism', []);
+    },
+
+    // REVOLVE — the other half of GenericSolid. The naming is the prism's (`lateral.k` after the
+    // AUTHORED segment), and everything hard about it lives in the C++, where it was MEASURED: a full
+    // 360° turn has NO CAPS, each lateral face carries a SEAM, and a segment perpendicular to the axis
+    // reports NO HISTORY AT ALL even though its face is right there in the result. See the block
+    // comment on `revolveProfile` in `kernel.cpp`, and re-run `probe.cpp` before changing any of it.
+    revolve: (payload) => {
+      const nodeId = requireNodeId(payload.nodeId);
+      const angle = payload.angle;
+      if (typeof angle !== 'number' || !Number.isFinite(angle) || angle <= 0 || angle > 360) {
+        throw new KernelFailureError(
+          kernelFailure('INVALID_PAYLOAD', 'revolve.angle must be in (0, 360] degrees', {
+            op: 'revolve',
+          }),
+        );
+      }
+      const dir = payload.axis.direction;
+      if (!(Math.hypot(dir[0], dir[1], dir[2]) > 0)) {
+        throw new KernelFailureError(
+          kernelFailure('INVALID_PAYLOAD', 'revolve.axis.direction must be a non-zero vector', {
+            op: 'revolve',
+          }),
+        );
+      }
+      const origin = payload.axis.origin;
+      const flat = flattenProfile(payload.profile);
+
+      const profile = new wasm.VectorDouble();
+      let id: number;
+      try {
+        for (const v of flat) profile.push_back(v);
+        id = wasm.revolveProfile(
+          profile,
+          origin[0],
+          origin[1],
+          origin[2],
+          dir[0],
+          dir[1],
+          dir[2],
+          angle,
+        );
+      } finally {
+        profile.delete(); // an embind vector is WASM heap, and it is ours to free
+      }
+      if (id === 0) throw failFromKernel(wasm, 'revolve');
+      return register(id, nodeId, 'revol', []);
+    },
+
     // ⚠ The operation that persistent naming exists for. The result's identities are composed from
     // the OPERANDS' identities: what the boolean left alone keeps its old ref (so an opening already
     // hosted on a wall face is not re-targeted by cutting a second one), and only the section edges
@@ -294,11 +527,88 @@ export async function createOcctKernel(): Promise<OcctKernel> {
       return register(id, nodeId, 'fillet', [shape]);
     },
 
+    // The fillet's flat sibling — same contract, same resolver, same weak spot (it rebuilds its
+    // neighbouring edges with no history, and they come back through the ADJACENT rule).
+    chamfer: (payload) => {
+      const nodeId = requireNodeId(payload.nodeId);
+      const distance = requireFinitePositive('distance', payload.distance);
+      const shape = liveShape(payload.handle, 'chamfer');
+      const edgeIndex = resolveEdge(shape, payload.edge, 'chamfer');
+
+      const id = wasm.chamfer(shape.id, edgeIndex, distance);
+      if (id === 0) throw failFromKernel(wasm, 'chamfer');
+      return register(id, nodeId, 'chamfer', [shape]);
+    },
+
+    // ⚠ THE OP THAT CREATES NO IDENTITIES — note there is no `nodeId` anywhere in this handler, and
+    // that absence is the contract. A rigid motion is a 1:1 map, so the result's refs ARE the operand's
+    // refs, token for token, in the same order: a rotated wall is the same wall, and the window hosted
+    // on its y-min face is still hosted there. `composeTransformRefs` cannot mint a ref even if it
+    // wanted to — it has no node to mint one under (see naming.ts).
+    transform: (payload) => {
+      const shape = liveShape(payload.handle, 'transform');
+      const flat = flattenMotions(payload.motions);
+
+      const motions = new wasm.VectorDouble();
+      let id: number;
+      try {
+        for (const v of flat) motions.push_back(v);
+        id = wasm.transformShape(shape.id, motions);
+      } finally {
+        motions.delete(); // an embind vector is WASM heap, and it is ours to free
+      }
+      if (id === 0) throw failFromKernel(wasm, 'transform');
+
+      let faces: string[];
+      let edges: string[];
+      try {
+        const naming = drainNaming(wasm.getNaming(id));
+        ({ faces, edges } = composeTransformRefs(naming, operandRefs(shape)));
+      } catch (error) {
+        wasm.releaseShape(id); // the solid exists but nothing can name it — do not leak it
+        if (error instanceof UnnameableSubShape) {
+          throw new KernelFailureError(
+            kernelFailure('UNRESOLVED_SUBSHAPE_REF', error.message, { op: 'transform' }),
+          );
+        }
+        throw error;
+      }
+
+      // The transformed shape belongs to the SAME element — it is that element, moved. It keeps the
+      // operand's nodeId so that a later op naming something new against it (a boolean's section edge)
+      // attributes it to the node that actually owns the geometry.
+      const moved: OcctShape = {
+        id,
+        nodeId: shape.nodeId,
+        faceRefs: faces,
+        edgeRefs: edges,
+        refs: [...faces, ...edges],
+      };
+      return {
+        handle: shapes.add(moved),
+        bounds: toBounds(wasm.getBounds(id)),
+        refs: moved.refs,
+      };
+    },
+
     // Exact, from BRepGProp — NOT measured off the mesh. A tessellated cylinder under-reports its
     // volume by the chord error, so quantities must come from the B-Rep (protocol: MeasureResult).
     measure: (payload) => {
       const shape = liveShape(payload.handle, 'measure');
-      const m = wasm.measure(shape.id);
+
+      // The whole solid — or, with a `ref`, ONE NAMED SUB-SHAPE of it: "what is the area of THAT wall
+      // face?" That question is the paint area, the formwork area, the cladding take-off; it is P5's
+      // `quantities` hook and Miqdar's entire input, and until Entry 14 it was simply not askable
+      // (Entry 13 §2). `bounds` has taken a `ref` since Entry 9; this was an oversight, not a design.
+      let kind = -1;
+      let index = 0;
+      if (payload.ref !== undefined) {
+        const faceIndex = shape.faceRefs.indexOf(payload.ref);
+        kind = faceIndex >= 0 ? 0 : 1;
+        index = faceIndex >= 0 ? faceIndex : resolveEdge(shape, payload.ref, 'measure');
+      }
+
+      const m = wasm.measure(shape.id, kind, index);
       return {
         volume: m.volume,
         area: m.area,
@@ -394,7 +704,8 @@ export async function createOcctKernel(): Promise<OcctKernel> {
   };
 
   return {
-    info: OCCT_KERNEL_INFO,
+    // Generated, not maintained (D21): the kernel advertises exactly what it implements.
+    info: { ...OCCT_KERNEL_META, capabilities: capabilitiesOf(handlers) },
     handlers,
     wasmLiveHandles: () => wasm.liveHandles(),
     dispose: () => {

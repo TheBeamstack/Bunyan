@@ -48,7 +48,8 @@ const goldens = JSON.parse(
 
 const find = (name: string): GoldenCase => {
   const golden = goldens.cases.find((c) => c.case === name);
-  if (golden === undefined) throw new Error(`golden case "${name}" is missing — re-seed the goldens`);
+  if (golden === undefined)
+    throw new Error(`golden case "${name}" is missing — re-seed the goldens`);
   return golden;
 };
 
@@ -174,6 +175,9 @@ describe('goldens — hard geometry, against a native OCCT reference build', () 
     });
 
     await assertMatches(rounded.handle, golden);
-    expect(golden.analytic, 'a fillet has no closed form — it must NOT carry an analytic tier').toBeUndefined();
+    expect(
+      golden.analytic,
+      'a fillet has no closed form — it must NOT carry an analytic tier',
+    ).toBeUndefined();
   });
 });

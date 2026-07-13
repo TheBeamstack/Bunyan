@@ -30,13 +30,30 @@
 
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
+#include <BRepPrimAPI_MakePrism.hxx>
+#include <BRepPrimAPI_MakeRevol.hxx>
 #include <BRepPrim_Cylinder.hxx>
 #include <BRepAlgoAPI_Cut.hxx>
 #include <BRepAlgoAPI_Fuse.hxx>
 #include <BRepAlgoAPI_Common.hxx>
 #include <BRepAlgoAPI_BooleanOperation.hxx>
 #include <BRepFilletAPI_MakeFillet.hxx>
+#include <BRepFilletAPI_MakeChamfer.hxx>
 #include <BRepBuilderAPI_MakeShape.hxx>
+#include <BRepBuilderAPI_MakeEdge.hxx>
+#include <BRepBuilderAPI_MakeWire.hxx>
+#include <BRepBuilderAPI_MakeFace.hxx>
+#include <BRepBuilderAPI_Transform.hxx>
+#include <BRepCheck_Analyzer.hxx>
+#include <GC_MakeArcOfCircle.hxx>
+#include <Geom_TrimmedCurve.hxx>
+#include <TopoDS_Wire.hxx>
+#include <gp.hxx>
+#include <gp_Pln.hxx>
+#include <gp_Ax3.hxx>
+#include <gp_Trsf.hxx>
+#include <gp_Ax1.hxx>
+#include <gp_Vec.hxx>
 #include <BRepMesh_IncrementalMesh.hxx>
 #include <BRepGProp.hxx>
 #include <GProp_GProps.hxx>
@@ -66,8 +83,10 @@
 #include <gp_Dir.hxx>
 
 #include <algorithm>
+#include <cmath>
 #include <array>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -337,6 +356,20 @@ bool sameDerivation(const NameRow& l, const NameRow& r) {
          l.srcKind == r.srcKind && l.srcIndex == r.srcIndex && l.viaA == r.viaA && l.viaB == r.viaB;
 }
 
+// A derivation, flattened to a comparable key — so that one sub-shape's derivation can appear inside
+// ANOTHER's tie-break signature. Deliberately excludes `rank`: rank is what the signature is being
+// used to compute, and feeding it back in would be circular.
+std::string derivationKey(const NameRow& r) {
+  std::ostringstream o;
+  o << r.relation << '|' << r.role;
+  for (const int v : r.srcOperand) o << '|' << v;
+  o << '#';
+  for (const int v : r.srcKind) o << '|' << v;
+  o << '#';
+  for (const int v : r.srcIndex) o << '|' << v;
+  return o.str();
+}
+
 }  // namespace
 
 std::string lastError() { return g_lastError; }
@@ -384,23 +417,82 @@ bool nameDerived(const std::vector<const ShapeEntry*>& operands, BRepBuilderAPI_
     faces.emplace_back(row, i);
   }
 
-  // The canonical re-sort, then the occurrence index for siblings that share a derivation.
-  std::sort(faces.begin(), faces.end(),
-            [](const auto& l, const auto& r2) { return rowLess(l.first, r2.first); });
-  for (std::size_t i = 0; i < faces.size(); ++i) {
-    if (i > 0 && sameDerivation(faces[i].first, faces[i - 1].first)) {
-      // ⚠ Two faces with an IDENTICAL derivation. Structure cannot tell them apart, and the spec's
-      // only sanctioned tie-break left is a positional key (§4.5) — geometry on the identity path.
-      // The probe found no such case in any boolean or fillet we measured, so rather than ship an
-      // untested geometric fallback, we refuse and say so. If a real model ever hits this, that is
-      // the signal to implement the bounded positional key deliberately — not to have it fire by
-      // accident on a case nobody looked at.
-      g_lastError =
-          "UNRESOLVED_SUBSHAPE_REF: two faces of the result share an identical derivation and cannot "
-          "be told apart structurally";
-      return false;
+  // ---- THE FACE TIE-BREAK: WHICH FACES A FACE TOUCHES ------------------------------------------
+  //
+  // ⚠ WHY THIS EXISTS (and it is the hole Entry 9 left, found by cutting a groove). When a boolean
+  // SPLITS one face into two — a chase, a rebate, a shadow gap, a recessed band across a wall — both
+  // halves have an IDENTICAL derivation: same parent face, same operand, same relation. History cannot
+  // tell them apart, and the kernel used to REFUSE the whole operation, so a wall with a groove in it
+  // was unmodellable.
+  //
+  // But they are not indistinguishable. They touch DIFFERENT faces. MEASURED (probe.cpp case 6b, the
+  // `touches` field): the half below the groove meets the wall's z-min face, the half above meets
+  // z-max. That is pure topology — no coordinate, no tolerance, nothing that drifts when the wall is
+  // resized or the groove is moved.
+  //
+  // So faces get exactly the tie-break the EDGES have always had (their endpoint signature, below):
+  // sort by derivation, then by a structural signature; assign the occurrence index in that order; and
+  // refuse ONLY when the derivation AND the signature are both identical. That residue — two faces
+  // with the same parent and the same neighbours — is the *genuinely* symmetric split of spec §4.5,
+  // and it still refuses, because that is the case where only a positional key (geometry on the
+  // identity path) could help. It is still deliberately not implemented.
+  //
+  // The signature is built from the neighbours' DERIVATIONS, not their canonical indices, precisely to
+  // avoid a circularity: canonical indices are what this sort is computing.
+  std::map<int, const NameRow*> rowOfFace;  // OCCT face index -> its row
+  for (const auto& [row, occt] : faces) rowOfFace[occt] = &row;
+
+  std::map<int, std::vector<int>> faceNeighbours;  // OCCT face index -> OCCT face indices
+  for (int e = 1; e <= r.outE.Extent(); ++e) {
+    const std::vector<int> bounding = r.boundingFaces(r.outE(e), r.edgeFaces);
+    for (const int a : bounding) {
+      for (const int b : bounding) {
+        if (a != b) faceNeighbours[a].push_back(b);
+      }
     }
-    out.faces.push_back(faces[i].first);
+  }
+
+  std::map<int, std::vector<std::string>> faceSig;  // OCCT face index -> sorted neighbour derivations
+  for (const auto& [row, occt] : faces) {
+    (void)row;
+    std::vector<std::string> sig;
+    auto found = faceNeighbours.find(occt);
+    if (found != faceNeighbours.end()) {
+      std::vector<int> neighbours = found->second;
+      std::sort(neighbours.begin(), neighbours.end());
+      neighbours.erase(std::unique(neighbours.begin(), neighbours.end()), neighbours.end());
+      for (const int n : neighbours) {
+        const auto at = rowOfFace.find(n);
+        if (at != rowOfFace.end()) sig.push_back(derivationKey(*at->second));
+      }
+    }
+    std::sort(sig.begin(), sig.end());
+    faceSig[occt] = sig;
+  }
+
+  // The canonical re-sort, then the occurrence index for siblings that share a derivation.
+  std::sort(faces.begin(), faces.end(), [&](const auto& l, const auto& r2) {
+    if (!sameDerivation(l.first, r2.first)) return rowLess(l.first, r2.first);
+    return faceSig[l.second] < faceSig[r2.second];  // structural, not a coordinate
+  });
+
+  for (std::size_t i = 0; i < faces.size(); ++i) {
+    NameRow row = faces[i].first;
+    if (i > 0 && sameDerivation(row, faces[i - 1].first)) {
+      if (faceSig[faces[i].second] == faceSig[faces[i - 1].second]) {
+        // ⚠ THE GENUINELY SYMMETRIC SPLIT (spec §4.5): same parent, same neighbours. Structure has
+        // nothing left to say, and the only sanctioned tie-break is a positional key — geometry on
+        // the identity path, which would fire by accident on a case nobody looked at. We refuse and
+        // say so. If a real model ever hits THIS, that is the signal to build the bounded positional
+        // key deliberately.
+        g_lastError =
+            "UNRESOLVED_SUBSHAPE_REF: two faces of the result share a derivation AND the same "
+            "neighbouring faces — they cannot be told apart structurally";
+        return false;
+      }
+      row.rank = out.faces.back().rank + 1;  // same derivation, next occurrence
+    }
+    out.faces.push_back(row);
     out.faceOcct.push_back(faces[i].second);
   }
 
@@ -575,6 +667,175 @@ bool namePrimitiveEdges(ShapeEntry& entry, const std::map<int, std::string>& see
   return true;
 }
 
+// ---------------------------------------------------------------------------------------------
+// THE PROFILE — a closed loop of AUTHORED segments in a plane. The substrate of extrude (and revolve).
+//
+// Flat doubles, one boundary crossing (same reason as `transformShape`'s motions):
+//
+//   [0..2]   plane origin        [3..5] plane normal        [6..8] plane x-axis
+//   [9..10]  start (u, v) in the plane's 2D frame
+//   then one segment per 5 doubles:  [kind, viaU, viaV, toU, toV]
+//       kind 0 = LINE  (via ignored)
+//       kind 1 = ARC   (a three-point arc through `via` — deliberately not centre+radius+sweep, which
+//                       needs a handedness flag and fails when the radius is too small for the chord)
+//
+// ⚠ THE SEGMENT INDEX *IS* THE NAMING CONTRACT, and it is the whole reason this op can exist.
+// `lateral.k` means "the face swept from the k-th segment THE AUTHOR DREW". So dragging a slab's
+// corner moves the boundary without renumbering anything, and an opening hosted on `lateral.2` is
+// still on `lateral.2` afterwards. That holds only because k comes from the AUTHORED list — never
+// from OCCT's traversal of the wire, which is exactly the sort of leak D8's canonical re-sort exists
+// to prevent.
+const int PROFILE_HEADER = 11;
+const int SEG_STRIDE = 5;
+const int SEG_LINE = 0;
+const int SEG_ARC = 1;
+
+bool buildProfileFace(const std::vector<double>& p, TopoDS_Face& outFace,
+                      std::vector<TopoDS_Edge>& outSegEdges) {
+  if (p.size() < static_cast<std::size_t>(PROFILE_HEADER + SEG_STRIDE) ||
+      (p.size() - static_cast<std::size_t>(PROFILE_HEADER)) % SEG_STRIDE != 0) {
+    g_lastError = "INVALID_PAYLOAD: malformed profile";
+    return false;
+  }
+
+  const gp_Pnt origin(p[0], p[1], p[2]);
+  const gp_Vec normal(p[3], p[4], p[5]);
+  const gp_Vec xAxis(p[6], p[7], p[8]);
+  if (normal.Magnitude() <= gp::Resolution() || xAxis.Magnitude() <= gp::Resolution()) {
+    g_lastError = "INVALID_PAYLOAD: the profile plane needs a non-zero normal and x-axis";
+    return false;
+  }
+  const gp_Dir nDir(normal);
+  // Orthogonalise the author's x-axis against the normal, so a slightly-off x-axis is a usable frame
+  // rather than a failure. If it is PARALLEL to the normal there is no frame to recover.
+  const gp_Vec xProj = xAxis - gp_Vec(nDir) * xAxis.Dot(gp_Vec(nDir));
+  if (xProj.Magnitude() <= gp::Resolution()) {
+    g_lastError = "INVALID_PAYLOAD: the profile plane's x-axis must not be parallel to its normal";
+    return false;
+  }
+  const gp_Dir xDir(xProj);
+  const gp_Dir yDir(gp_Vec(nDir).Crossed(gp_Vec(xDir)));
+
+  const auto at = [&](double u, double v) {
+    return gp_Pnt(origin.XYZ() + xDir.XYZ() * u + yDir.XYZ() * v);
+  };
+
+  const std::size_t n = (p.size() - static_cast<std::size_t>(PROFILE_HEADER)) / SEG_STRIDE;
+  const gp_Pnt startPnt = at(p[9], p[10]);
+  gp_Pnt cursor = startPnt;
+
+  BRepBuilderAPI_MakeWire wire;
+  std::vector<TopoDS_Edge> authored;
+  for (std::size_t k = 0; k < n; ++k) {
+    const std::size_t b = static_cast<std::size_t>(PROFILE_HEADER) + k * SEG_STRIDE;
+    const int kind = static_cast<int>(p[b]);
+    gp_Pnt end = at(p[b + 3], p[b + 4]);
+
+    if (k + 1 == n) {
+      // The loop must close. Verify the author MEANT it to, then snap exactly — so OCCT sees one
+      // vertex rather than two a nanometre apart, which is a wire that looks closed and is not.
+      if (!end.IsEqual(startPnt, 1e-6)) {
+        g_lastError =
+            "INVALID_PROFILE: the profile is not closed — the last segment must end where the first "
+            "began";
+        return false;
+      }
+      end = startPnt;
+    }
+
+    TopoDS_Edge edge;
+    if (kind == SEG_LINE) {
+      if (cursor.IsEqual(end, 1e-9)) {
+        g_lastError = "INVALID_PROFILE: a segment has zero length";
+        return false;
+      }
+      edge = BRepBuilderAPI_MakeEdge(cursor, end);
+    } else if (kind == SEG_ARC) {
+      const GC_MakeArcOfCircle arc(cursor, at(p[b + 1], p[b + 2]), end);
+      if (!arc.IsDone()) {
+        g_lastError =
+            "INVALID_PROFILE: an arc segment is degenerate (its three points are collinear or "
+            "coincident)";
+        return false;
+      }
+      edge = BRepBuilderAPI_MakeEdge(arc.Value());
+    } else {
+      g_lastError = "INVALID_PAYLOAD: unknown profile segment kind";
+      return false;
+    }
+
+    wire.Add(edge);
+    if (!wire.IsDone()) {
+      g_lastError = "INVALID_PROFILE: the profile does not form a single connected loop";
+      return false;
+    }
+    // ⚠ NOT `edge` — `wire.Edge()`. `BRepBuilderAPI_MakeWire` may hand back a COPY of the edge it was
+    // given (it says so: "this edge may be a copy... if it had to be reversed or if a vertex had to be
+    // modified"). Keeping our own `edge` here loses every segment the wire chose to rebuild, and the
+    // op then refuses to name faces it understands perfectly well. Measured, not guessed: with `edge`,
+    // every profile with more than three sides failed to resolve.
+    authored.push_back(wire.Edge());
+    cursor = end;
+  }
+
+  BRepBuilderAPI_MakeFace mf(gp_Pln(gp_Ax3(origin, nDir, xDir)), wire.Wire());
+  if (!mf.IsDone()) {
+    g_lastError = "INVALID_PROFILE: the profile does not bound a planar face";
+    return false;
+  }
+  outFace = mf.Face();
+
+  // ⚠ Closed and planar is NOT enough: a figure-eight boundary is both, and is nonsense. The spec
+  // (§5.2) requires the profile be validated non-self-intersecting BEFORE it reaches a solid op.
+  if (!BRepCheck_Analyzer(outFace).IsValid()) {
+    g_lastError = "INVALID_PROFILE: the profile is self-intersecting";
+    return false;
+  }
+
+  // Map each AUTHORED segment onto the edge as it exists on the face. ⚠ `MakeWire` may REVERSE an
+  // edge's orientation to close the loop, and an OCCT shape map keys on orientation — so match with
+  // `IsSame()`, which ignores it. Keying on the raw shape here would silently lose half the segments
+  // of any profile drawn clockwise.
+  TopTools_IndexedMapOfShape faceEdges;
+  TopExp::MapShapes(outFace, TopAbs_EDGE, faceEdges);
+  outSegEdges.assign(n, TopoDS_Edge());
+  for (std::size_t k = 0; k < n; ++k) {
+    bool found = false;
+    for (int i = 1; i <= faceEdges.Extent(); ++i) {
+      if (faceEdges(i).IsSame(authored[k])) {
+        outSegEdges[k] = TopoDS::Edge(faceEdges(i));
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      g_lastError = "UNRESOLVED_SUBSHAPE_REF: a profile segment did not survive into the face";
+      return false;
+    }
+  }
+  return true;
+}
+
+// ⚠ IS THE SOLID WE JUST PRODUCED ACTUALLY VALID? Nothing used to ask.
+//
+// An OCCT op can report `IsDone()` and still hand back a shape with self-intersecting faces, wrong
+// orientations or an open shell — most often a fillet whose radius exceeds the room available, or a
+// boolean on solids that touch tangentially. The result LOOKS fine, renders fine, and is wrong: its
+// volume is meaningless, and everything downstream (quantities, the next boolean, the export) inherits
+// that quietly. The protocol has reserved `INVALID_RESULT` for exactly this since v1 and NEVER EMITTED
+// IT (Entry 13 §4). `extrude` validated its INPUT profile; nothing validated any op's OUTPUT.
+//
+// `BRepCheck_Analyzer` is OCCT's own checker, so this stays inside the "we trust OCCT, we verify our own
+// code" scope (§9.0): we are not auditing its geometry, we are asking it whether IT is happy — and
+// refusing to store the shape when it is not, instead of discovering it three operations later.
+bool validResult(const TopoDS_Shape& shape, const char* what) {
+  if (BRepCheck_Analyzer(shape).IsValid()) return true;
+  g_lastError = std::string("INVALID_RESULT: ") + what +
+                " produced a topologically invalid solid (OCCT reported success, but the result does "
+                "not check out — most often a fillet/chamfer larger than the geometry allows)";
+  return false;
+}
+
 // Register a finished shape and hand back its handle.
 int store(ShapeEntry& entry) {
   const int handle = g_nextHandle++;
@@ -740,6 +1001,362 @@ int makeCylinder(double x, double y, double z, double ax, double ay, double az, 
   }
 }
 
+// EXTRUDE — sweep an authored profile into a solid. The op three of the five MVP types need.
+//
+// ⚠ WHY THIS OP EXISTS, AND WHY IT IS NOT A NICE-TO-HAVE. `makeBox` cannot express a Slab, which the
+// spec (§5) defines as "planar boundary + thickness" — a boundary is a POLYGON, and a real floor
+// plate is L-shaped, or five-sided, or has a curved edge. It cannot express a Column of arbitrary
+// profile, and it cannot express GenericSolid ("free sketch + extrude/revolve") at all — the escape
+// hatch that keeps the modeller unblocked and is the import target for unmapped IFC. Discovered by
+// modelling a building with the protocol and finding the floor plate unbuildable (Entry 12).
+//
+// NAMING — it names its own faces, from its own accessors, exactly as the box does:
+//   cap-start   the profile face itself      (BRepPrimAPI_MakePrism::FirstShape)
+//   cap-end     the profile at the far end   (                        ::LastShape)
+//   lateral.k   the face swept from AUTHORED segment k   (            ::Generated(edge_k))
+//
+// The edges then fall out of the face pairs, as they do for the box — a prism over an open polyline
+// loop has no seam, because each segment gets its OWN lateral face, so no face closes on itself.
+int extrudeProfile(const std::vector<double>& profile, double dx, double dy, double dz) {
+  g_lastError.clear();
+  try {
+    TopoDS_Face face;
+    std::vector<TopoDS_Edge> segEdges;
+    if (!buildProfileFace(profile, face, segEdges)) return 0;
+
+    const gp_Vec dir(dx, dy, dz);
+    if (dir.Magnitude() <= gp::Resolution()) {
+      g_lastError = "INVALID_PAYLOAD: the extrusion vector must be non-zero";
+      return 0;
+    }
+
+    BRepPrimAPI_MakePrism mk(face, dir);
+    mk.Build();
+    if (!mk.IsDone()) {
+      g_lastError = "OCCT_STANDARD_FAILURE: the prism could not be built";
+      return 0;
+    }
+
+    ShapeEntry entry;
+    entry.shape = mk.Shape();
+
+    TopTools_IndexedMapOfShape faceMap;
+    TopExp::MapShapes(entry.shape, TopAbs_FACE, faceMap);
+
+    std::vector<std::pair<std::string, int>> named;
+    const auto addFace = [&](const std::string& role, const TopoDS_Shape& s) -> bool {
+      const int at = faceMap.FindIndex(s);
+      if (at == 0) return false;
+      named.emplace_back(role, at);
+      return true;
+    };
+
+    if (!addFace("cap-start", mk.FirstShape()) || !addFace("cap-end", mk.LastShape())) {
+      g_lastError = "UNRESOLVED_SUBSHAPE_REF: the prism's cap faces could not be resolved";
+      return 0;
+    }
+    for (std::size_t k = 0; k < segEdges.size(); ++k) {
+      const TopTools_ListOfShape& gen = mk.Generated(segEdges[k]);
+      if (gen.Extent() != 1) {
+        g_lastError =
+            "UNRESOLVED_SUBSHAPE_REF: a profile segment did not generate exactly one lateral face";
+        return 0;
+      }
+      std::ostringstream role;
+      role << "lateral." << k;
+      if (!addFace(role.str(), gen.First())) {
+        g_lastError = "UNRESOLVED_SUBSHAPE_REF: a lateral face could not be resolved";
+        return 0;
+      }
+    }
+
+    // ⚠ Refuse rather than ship a solid carrying a face the operation could not name. An unnamed face
+    // is a face nothing can ever be hosted on, and it would surface as a mysteriously unpickable wall
+    // weeks later — the exact failure mode `core_logic.md` §5 says to fail loudly on instead.
+    if (static_cast<int>(named.size()) != faceMap.Extent()) {
+      g_lastError = "UNRESOLVED_SUBSHAPE_REF: the prism has faces the operation did not name";
+      return 0;
+    }
+
+    for (const auto& nf : named) {
+      NameRow row = blankRow();
+      row.relation = REL_PRIMITIVE;
+      row.role = nf.first;
+      entry.faces.push_back(row);
+      entry.faceOcct.push_back(nf.second);
+    }
+
+    if (!namePrimitiveEdges(entry, {})) {
+      g_lastError = "UNRESOLVED_SUBSHAPE_REF: prism edges could not be named structurally";
+      return 0;
+    }
+    return store(entry);
+  } catch (const Standard_Failure& e) {
+    g_lastError = std::string("OCCT_STANDARD_FAILURE: ") + e.GetMessageString();
+    return 0;
+  } catch (...) {
+    g_lastError = "OCCT_STANDARD_FAILURE: non-standard throw";
+    return 0;
+  }
+}
+
+// REVOLVE — spin an authored profile around an axis. The other half of GenericSolid, and the last op
+// P2 step 1 named that had never been built. A dome, a baluster, a moulded column base, a tank: none is
+// an extrusion, and every one of them is a revolve of a drawn section.
+//
+// ⚠⚠ IT IS NOT "THE PRISM WITH A ROTATION", AND COPYING THE PRISM WOULD HAVE SHIPPED A KERNEL THAT
+// REFUSES EVERY FULL REVOLVE. Everything below is what `probe.cpp` MEASURED on OCCT 7.9.3 (Entry 14) —
+// not what the API docs suggest, and not what the design note in §5 predicted. Re-run the probe before
+// changing any of it (~60 s); do not re-derive it from the literature, which is wrong here twice over.
+//
+//   1. A FULL 360° REVOLVE HAS NO CAPS — the solid closes on itself. But `FirstShape()`/`LastShape()`
+//      DO NOT RETURN NULL for it: they hand back a face that is NOT IN THE RESULT. So the cap test is
+//      "is it in the result", never "is it null". The prism calls both unconditionally and refuses the
+//      build if either fails to resolve — which, copied here, refuses every column and every dome.
+//
+//   2. EACH LATERAL FACE HAS A SEAM (it closes on itself, so no face PAIR bounds the seam edge — the
+//      cylinder's problem, Entry 9). But where the cylinder needed `BRepPrim_Cylinder::StartEdge()` to
+//      seed its seam, the revolve's seam edge IS THE AUTHORED PROFILE EDGE, passed through by identity.
+//      It is named `lateral.k.seam` for free, from the same authored index as the face it bounds.
+//
+//   3. ⚠ THE ONE NOBODY PREDICTED. A segment PERPENDICULAR to the axis (a radial one) GENERATES NO
+//      HISTORY AT ALL in a full revolve — `Generated()` is empty and `IsDeleted()` is TRUE — and yet
+//      its face is right there in the result. That face is the flat bottom of every column, the base of
+//      every dome, the annulus of every tube. Trusting history would ship solids with unnamed faces;
+//      the prism's "refuse if unnamed" guard would instead refuse the shapes themselves.
+//
+//      THE RESCUE IS STRUCTURAL, AND IT IS EXACT. Every profile VERTEX sweeps into a circle, and OCCT
+//      reports THAT faithfully. The face swept from segment k is bounded by exactly the circles swept
+//      from segment k's own two endpoint vertices — verified against the raw topology on a tube, a cone
+//      and a dome. No coordinates, no tolerance, nothing to drift under a rebuild.
+//
+//      And it is the same test that tells an ON-AXIS segment apart from a radial one: a vertex ON the
+//      axis sweeps NO circle, so an on-axis segment (both endpoints on the axis) expects ZERO circles
+//      and therefore NO face — which is correct, because none exists. A radial segment expects one or
+//      two, and gets its face. The distinction never touches geometry.
+int revolveProfile(const std::vector<double>& profile, double ox, double oy, double oz, double ax,
+                   double ay, double az, double angleDeg) {
+  g_lastError.clear();
+  try {
+    TopoDS_Face face;
+    std::vector<TopoDS_Edge> segEdges;
+    if (!buildProfileFace(profile, face, segEdges)) return 0;
+
+    if (ax * ax + ay * ay + az * az <= 0) {
+      g_lastError = "INVALID_PAYLOAD: the revolve axis must be a non-zero direction";
+      return 0;
+    }
+    if (!(angleDeg > 0) || angleDeg > 360.0) {
+      g_lastError = "INVALID_PAYLOAD: the revolve angle must be in (0, 360] degrees";
+      return 0;
+    }
+
+    const gp_Ax1 axis(gp_Pnt(ox, oy, oz), gp_Dir(ax, ay, az));
+    BRepPrimAPI_MakeRevol mk(face, axis, angleDeg * M_PI / 180.0);
+    mk.Build();
+    if (!mk.IsDone()) {
+      // The ordinary cause is an axis that crosses the profile's interior — the profile would sweep
+      // through itself. Say so, rather than "something went wrong".
+      g_lastError =
+          "INVALID_PROFILE: the revolve could not be built — the axis must not cross the profile";
+      return 0;
+    }
+
+    ShapeEntry entry;
+    entry.shape = mk.Shape();
+    // An axis grazing the profile can yield a "successful" but self-intersecting solid. Catch it here
+    // rather than let a meaningless volume reach a quantity schedule.
+    if (!validResult(entry.shape, "the revolve")) return 0;
+
+    TopTools_IndexedMapOfShape faceMap, edgeMap;
+    TopExp::MapShapes(entry.shape, TopAbs_FACE, faceMap);
+    TopExp::MapShapes(entry.shape, TopAbs_EDGE, edgeMap);
+
+    TopTools_IndexedDataMapOfShapeListOfShape edgeFaces;
+    TopExp::MapShapesAndAncestors(entry.shape, TopAbs_EDGE, TopAbs_FACE, edgeFaces);
+
+    std::vector<std::pair<std::string, int>> named;
+    std::vector<bool> claimed(static_cast<std::size_t>(faceMap.Extent()) + 1, false);
+    const auto addFace = [&](const std::string& role, int at) -> bool {
+      if (at == 0 || claimed[static_cast<std::size_t>(at)]) return false;
+      claimed[static_cast<std::size_t>(at)] = true;
+      named.emplace_back(role, at);
+      return true;
+    };
+
+    // (1) THE CAPS — and note the test. `FindIndex(...) != 0` asks "is this face IN THE RESULT", which
+    // is the question; `IsNull()` asks something else and would answer "no caps here" for a shape that
+    // has them, and "caps!" for a full revolve that has none.
+    const int capStart = faceMap.FindIndex(mk.FirstShape());
+    const int capEnd = faceMap.FindIndex(mk.LastShape());
+    const bool hasCaps = capStart != 0 && capEnd != 0;
+    if (hasCaps) {
+      if (!addFace("cap-start", capStart) || !addFace("cap-end", capEnd)) {
+        g_lastError = "UNRESOLVED_SUBSHAPE_REF: the revolve's cap faces could not be resolved";
+        return 0;
+      }
+    }
+
+    // The circle (or arc) each profile VERTEX sweeps. This is the relation OCCT reports faithfully even
+    // where it reports nothing for the edge, and it is what names the faces history abandons.
+    const auto sweptCirclesOf = [&](const TopoDS_Edge& seg) {
+      std::vector<int> circles;
+      TopoDS_Vertex v1, v2;
+      TopExp::Vertices(seg, v1, v2);
+      for (const TopoDS_Vertex& v : {v1, v2}) {
+        if (v.IsNull()) continue;
+        for (TopTools_ListOfShape::Iterator it(mk.Generated(v)); it.More(); it.Next()) {
+          if (it.Value().ShapeType() != TopAbs_EDGE) continue;
+          const TopoDS_Edge& e = TopoDS::Edge(it.Value());
+          // A vertex ON THE AXIS is invariant: it sweeps into nothing, or into a DEGENERATE edge (a
+          // cone's apex). Either way it contributes no boundary, and that absence is the signal.
+          if (BRep_Tool::Degenerated(e)) continue;
+          const int at = edgeMap.FindIndex(e);
+          if (at != 0 && std::find(circles.begin(), circles.end(), at) == circles.end()) {
+            circles.push_back(at);
+          }
+        }
+      }
+      std::sort(circles.begin(), circles.end());
+      return circles;
+    };
+
+    // The edges bounding a face, as canonical result indices — the other half of the same comparison.
+    const auto boundingEdgesOf = [&](int faceIndex) {
+      std::vector<int> edges;
+      for (int e = 1; e <= edgeMap.Extent(); ++e) {
+        if (BRep_Tool::Degenerated(TopoDS::Edge(edgeMap(e)))) continue;
+        const int at = edgeFaces.FindIndex(edgeMap(e));
+        if (at == 0) continue;
+        for (TopTools_ListOfShape::Iterator it(edgeFaces.FindFromIndex(at)); it.More(); it.Next()) {
+          if (faceMap.FindIndex(it.Value()) == faceIndex) {
+            edges.push_back(e);
+            break;
+          }
+        }
+      }
+      std::sort(edges.begin(), edges.end());
+      return edges;
+    };
+
+    // (3) THE LATERAL FACES — `lateral.k` after the AUTHORED segment, exactly as the prism names them,
+    // so dragging a profile vertex re-targets nothing (D26).
+    for (std::size_t k = 0; k < segEdges.size(); ++k) {
+      std::ostringstream role;
+      role << "lateral." << k;
+
+      int generated = 0;
+      int at = 0;
+      for (TopTools_ListOfShape::Iterator it(mk.Generated(segEdges[k])); it.More(); it.Next()) {
+        if (it.Value().ShapeType() != TopAbs_FACE) continue;
+        const int f = faceMap.FindIndex(it.Value());
+        if (f == 0) continue;  // history naming a face that is not in the result — ignore it
+        ++generated;
+        at = f;
+      }
+
+      if (generated > 1) {
+        g_lastError =
+            "UNRESOLVED_SUBSHAPE_REF: a profile segment generated more than one face — the segment "
+            "index is not an identity for this revolve";
+        return 0;
+      }
+
+      if (generated == 1) {
+        if (!addFace(role.str(), at)) {
+          g_lastError = "UNRESOLVED_SUBSHAPE_REF: a revolved lateral face could not be resolved";
+          return 0;
+        }
+        continue;
+      }
+
+      // History said NOTHING for this segment. Two possibilities, and they are told apart structurally:
+      const std::vector<int> circles = sweptCirclesOf(segEdges[k]);
+      if (circles.empty()) {
+        // Both endpoints are on the axis ⇒ the segment sweeps into the axis line. There is no face,
+        // and that is correct — not a failure. (The closing side of a cone, of a dome, of a sphere.)
+        continue;
+      }
+
+      // Otherwise the face EXISTS and history simply does not mention it (finding 3): the annulus or
+      // the disc swept from a radial segment. It is the unclaimed face bounded by exactly the circles
+      // this segment's own endpoints swept.
+      int match = 0;
+      int matches = 0;
+      for (int f = 1; f <= faceMap.Extent(); ++f) {
+        if (claimed[static_cast<std::size_t>(f)]) continue;
+        if (boundingEdgesOf(f) == circles) {
+          ++matches;
+          match = f;
+        }
+      }
+      if (matches != 1) {
+        // Refuse rather than guess. An unnamed face is a face nothing can ever be hosted on, and a
+        // WRONGLY named one is worse: it silently re-targets a reference (core_logic.md §5).
+        g_lastError =
+            "UNRESOLVED_SUBSHAPE_REF: a revolved face could not be identified from the circles its "
+            "segment's endpoints swept";
+        return 0;
+      }
+      if (!addFace(role.str(), match)) {
+        g_lastError = "UNRESOLVED_SUBSHAPE_REF: a revolved lateral face could not be resolved";
+        return 0;
+      }
+    }
+
+    if (static_cast<int>(named.size()) != faceMap.Extent()) {
+      g_lastError = "UNRESOLVED_SUBSHAPE_REF: the revolve has faces the operation did not name";
+      return 0;
+    }
+
+    for (const auto& nf : named) {
+      NameRow row = blankRow();
+      row.relation = REL_PRIMITIVE;
+      row.role = nf.first;
+      entry.faces.push_back(row);
+      entry.faceOcct.push_back(nf.second);
+    }
+
+    // (2) THE SEAMS. A seam edge is bounded by ONE face twice, so the face-pair rule cannot name it and
+    // `namePrimitiveEdges` would refuse the whole shape. Seed it — and the seam of `lateral.k` is
+    // literally the authored segment edge k, which OCCT passes through by identity.
+    //
+    // The test is STRUCTURAL, not "did the caller ask for 360°": seed exactly those surviving segment
+    // edges that fewer than two distinct faces bound. A partial revolve's segment edges survive as
+    // ordinary edges of the start cap, bounded by two faces, and the face-pair rule names them — so
+    // this seeds nothing there, without the op having to reason about its own angle.
+    std::map<int, std::string> seeded;
+    for (std::size_t k = 0; k < segEdges.size(); ++k) {
+      const int at = edgeMap.FindIndex(segEdges[k]);
+      if (at == 0) continue;  // consumed by the sweep (the ordinary case for a partial revolve's caps)
+      const int anc = edgeFaces.FindIndex(segEdges[k]);
+      if (anc == 0) continue;
+      std::vector<int> distinct;
+      for (TopTools_ListOfShape::Iterator it(edgeFaces.FindFromIndex(anc)); it.More(); it.Next()) {
+        const int f = faceMap.FindIndex(it.Value());
+        if (std::find(distinct.begin(), distinct.end(), f) == distinct.end()) distinct.push_back(f);
+      }
+      if (distinct.size() < 2) {
+        std::ostringstream role;
+        role << "lateral." << k << ".seam";
+        seeded[at] = role.str();
+      }
+    }
+
+    if (!namePrimitiveEdges(entry, seeded)) {
+      g_lastError = "UNRESOLVED_SUBSHAPE_REF: revolve edges could not be named structurally";
+      return 0;
+    }
+    return store(entry);
+  } catch (const Standard_Failure& e) {
+    g_lastError = std::string("OCCT_STANDARD_FAILURE: ") + e.GetMessageString();
+    return 0;
+  } catch (...) {
+    g_lastError = "OCCT_STANDARD_FAILURE: non-standard throw";
+    return 0;
+  }
+}
+
 // =============================================================================================
 // DERIVED OPERATIONS — they name nothing themselves; the resolver names their output from history.
 // =============================================================================================
@@ -790,6 +1407,7 @@ int booleanOp(int handleA, int handleB, int kind) {
       g_lastError = "EMPTY_BOOLEAN_RESULT: the operation produced no solid";
       return 0;
     }
+    if (!validResult(entry.shape, "the boolean")) return 0;
 
     entry.operands = {handleA, handleB};
     const std::vector<const ShapeEntry*> operands{a, b};
@@ -846,6 +1464,7 @@ int fillet(int handle, int edgeIndex, double radius) {
 
     ShapeEntry entry;
     entry.shape = mk.Shape();
+    if (!validResult(entry.shape, "the fillet")) return 0;
     entry.operands = {handle};
     const std::vector<const ShapeEntry*> operands{src};
     if (!nameDerived(operands, mk, entry)) return 0;
@@ -857,6 +1476,167 @@ int fillet(int handle, int edgeIndex, double radius) {
   } catch (...) {
     // Emscripten can surface an OCCT failure as a bare integer, not an Error — a naive
     // `catch (const std::exception&)` would drop it on the floor.
+    g_lastError = "OCCT_STANDARD_FAILURE: non-standard throw";
+    return 0;
+  }
+}
+
+// CHAMFER — the fillet's flat sibling, and the other half of the spec's "fillet/chamfer" command
+// (§5.2, plan P5 step 7). Same contract in every respect: it addresses its edge BY IDENTITY, and its
+// output runs through the SAME `nameDerived` resolver as the fillet and the boolean — no special case.
+//
+// It shares the fillet's weak spot, measured not assumed (probe, Entry 9): the maker rebuilds the
+// surrounding edges as brand-new objects with no history, and they come back through the ADJACENT
+// rule — re-derived from the two faces bounding them, which still belong to the wall, so the edge
+// keeps the wall's own token byte for byte.
+int chamfer(int handle, int edgeIndex, double distance) {
+  g_lastError.clear();
+  try {
+    const ShapeEntry* src = lookup(handle);
+    if (src == nullptr) {
+      g_lastError = "HANDLE_NOT_FOUND: no live shape for the chamfer's target";
+      return 0;
+    }
+    if (!(distance > 0)) {
+      g_lastError = "INVALID_PAYLOAD: the chamfer distance must be positive and finite";
+      return 0;
+    }
+    if (edgeIndex < 0 || edgeIndex >= static_cast<int>(src->edgeOcct.size())) {
+      g_lastError = "UNRESOLVED_SUBSHAPE_REF: the edge to chamfer is not a named edge of this shape";
+      return 0;
+    }
+
+    TopTools_IndexedMapOfShape edgeMap;
+    TopExp::MapShapes(src->shape, TopAbs_EDGE, edgeMap);
+
+    BRepFilletAPI_MakeChamfer mk(src->shape);
+    mk.Add(distance, TopoDS::Edge(edgeMap(src->edgeOcct[static_cast<std::size_t>(edgeIndex)])));
+    mk.Build();
+    if (!mk.IsDone()) {
+      // Same cause as the fillet's: a distance wider than the faces it must fit on. Reuses the
+      // protocol's dedicated code so the UI can say "too large" rather than "failed".
+      g_lastError = "FILLET_RADIUS_TOO_LARGE: the chamfer could not be built at this distance";
+      return 0;
+    }
+
+    ShapeEntry entry;
+    entry.shape = mk.Shape();
+    if (!validResult(entry.shape, "the chamfer")) return 0;
+    entry.operands = {handle};
+    const std::vector<const ShapeEntry*> operands{src};
+    if (!nameDerived(operands, mk, entry)) return 0;
+    return store(entry);
+  } catch (const Standard_Failure& e) {
+    g_lastError = std::string("OCCT_STANDARD_FAILURE: ") + e.GetMessageString();
+    return 0;
+  } catch (...) {
+    g_lastError = "OCCT_STANDARD_FAILURE: non-standard throw";
+    return 0;
+  }
+}
+
+// TRANSFORM — rotate / mirror / translate. The op that creates NO identities.
+//
+// ⚠ IT NAMES NOTHING, AND THAT IS THE ENTIRE POINT. A rigid transform is a topological isomorphism:
+// every face maps to exactly one face, every edge to exactly one edge. So every row the resolver
+// produces here comes back REL_INHERIT — one same-kind ancestor, fan-out 1 — and TypeScript passes
+// the operand's token through untouched. **A rotated wall is the same wall**, and the window hosted
+// on its y-min face is still hosted there afterwards.
+//
+// MEASURED, not assumed (probe.cpp cases 7-10, re-runnable in ~60 s): a rotation (both copy modes), a
+// MIRROR (a negative, handedness-flipping transform), and a rotation of a wall that ALREADY has an
+// opening cut through it — all three report 100% of output faces AND edges through `Modified()`, 1:1,
+// with zero orphans and zero sub-shapes needing the adjacency fallback. The mirror's solid also comes
+// back with POSITIVE volume (1.5e9 mm3 for the standard wall), which is the check that a mishandled
+// negative transform would have failed silently.
+//
+// Motions arrive as a flat array, 8 doubles each — kind, then a direction, then an origin, then an
+// angle — and are applied IN ORDER. A flat array rather than a vector of structs because embind pays
+// a boundary crossing per element and this keeps it to one small copy.
+//
+//   translate : [0, tx,ty,tz,  0, 0, 0,  0      ]
+//   rotate    : [1, ax,ay,az,  ox,oy,oz, degrees]
+//   mirror    : [2, nx,ny,nz,  ox,oy,oz, 0      ]   <- normal of the mirror PLANE
+const int MOTION_STRIDE = 8;
+const int MOTION_TRANSLATE = 0;
+const int MOTION_ROTATE = 1;
+const int MOTION_MIRROR = 2;
+
+int transformShape(int handle, const std::vector<double>& motions) {
+  g_lastError.clear();
+  try {
+    const ShapeEntry* src = lookup(handle);
+    if (src == nullptr) {
+      g_lastError = "HANDLE_NOT_FOUND: no live shape to transform";
+      return 0;
+    }
+    if (motions.empty() || motions.size() % MOTION_STRIDE != 0) {
+      g_lastError = "INVALID_PAYLOAD: transform needs at least one motion, 8 doubles each";
+      return 0;
+    }
+    for (const double v : motions) {
+      if (!std::isfinite(v)) {
+        g_lastError = "INVALID_PAYLOAD: a motion carries a non-finite number";
+        return 0;
+      }
+    }
+
+    gp_Trsf total;  // identity
+    const std::size_t count = motions.size() / MOTION_STRIDE;
+    for (std::size_t m = 0; m < count; ++m) {
+      const double* p = &motions[m * MOTION_STRIDE];
+      const int kind = static_cast<int>(p[0]);
+      const gp_Pnt at(p[4], p[5], p[6]);
+      // A zero-length direction cannot be normalised, and gp_Dir THROWS on one. Catching it here turns
+      // a caller's typo into a typed failure instead of an OCCT exception crossing the boundary.
+      const double len = std::sqrt(p[1] * p[1] + p[2] * p[2] + p[3] * p[3]);
+
+      gp_Trsf step;
+      if (kind == MOTION_TRANSLATE) {
+        step.SetTranslation(gp_Vec(p[1], p[2], p[3]));
+      } else if (kind == MOTION_ROTATE) {
+        if (len < gp::Resolution()) {
+          g_lastError = "INVALID_PAYLOAD: a rotation axis must not be zero-length";
+          return 0;
+        }
+        step.SetRotation(gp_Ax1(at, gp_Dir(p[1], p[2], p[3])), p[7] * M_PI / 180.0);
+      } else if (kind == MOTION_MIRROR) {
+        if (len < gp::Resolution()) {
+          g_lastError = "INVALID_PAYLOAD: a mirror plane's normal must not be zero-length";
+          return 0;
+        }
+        step.SetMirror(gp_Ax2(at, gp_Dir(p[1], p[2], p[3])));
+      } else {
+        g_lastError = "INVALID_PAYLOAD: unknown motion kind";
+        return 0;
+      }
+      // PreMultiply: total := step * total, so the FIRST motion in the array is applied first.
+      total.PreMultiply(step);
+    }
+
+    // Copy=false shares the underlying TShape and swaps only the Location — cheaper, and measured to
+    // report history identically to Copy=true. The source's TShape is reference-counted, so releasing
+    // the source handle afterwards cannot pull the ground out from under the result.
+    BRepBuilderAPI_Transform mk(src->shape, total, false);
+    mk.Build();
+    if (!mk.IsDone()) {
+      g_lastError = "OCCT_STANDARD_FAILURE: the transform did not complete";
+      return 0;
+    }
+
+    ShapeEntry entry;
+    entry.shape = mk.Shape();
+    entry.operands = {handle};
+    const std::vector<const ShapeEntry*> operands{src};
+    // The same resolver as the boolean and the fillet — no special case. If OCCT ever stops reporting
+    // a transform as a clean 1:1 map, this REFUSES rather than inventing a name, and the probe is the
+    // instrument that says why.
+    if (!nameDerived(operands, mk, entry)) return 0;
+    return store(entry);
+  } catch (const Standard_Failure& e) {
+    g_lastError = std::string("OCCT_STANDARD_FAILURE: ") + e.GetMessageString();
+    return 0;
+  } catch (...) {
     g_lastError = "OCCT_STANDARD_FAILURE: non-standard throw";
     return 0;
   }
@@ -989,15 +1769,66 @@ int classifyPoint(int handle, double x, double y, double z, double tolerance) {
   }
 }
 
-Measure measure(int handle) {
+// The exact properties of a whole shape (kind < 0) or of ONE NAMED SUB-SHAPE of it (a face, an edge) —
+// addressed by canonical index, which is to say BY ITS IDENTITY, exactly as `subShapeBounds` is.
+//
+// ⚠ THE SUB-SHAPE FORM IS WHAT MAKES QUANTITIES POSSIBLE, and its absence was an oversight rather than
+// a decision (Entry 13). "What is the AREA of that wall face?" is the paint area, the formwork area,
+// the cladding take-off — and it was not askable, which quietly foreclosed a declared north-star that
+// domain rule 8 forbids foreclosing, left P5's `quantities` hook with nothing to call, and starved
+// Miqdar of its entire input.
+//
+// A FACE reports its area and its perimeter and NO VOLUME: a face encloses nothing, and `VolumeProperties`
+// on an open shell returns a number anyway — a plausible, meaningless one that a quantity schedule would
+// bill. So volume is reported as exactly zero for anything that is not a solid, deliberately.
+Measure measure(int handle, int kind, int index) {
   Measure m{0, 0, 0, 0, 0, 0, 0};
   const ShapeEntry* entry = lookup(handle);
   if (entry == nullptr) {
     g_lastError = "HANDLE_NOT_FOUND";
     return m;
   }
-  const TopoDS_Shape& s = entry->shape;
+
+  TopoDS_Shape target = entry->shape;
+  if (kind >= 0) {
+    const std::vector<int>& map = kind == KIND_FACE ? entry->faceOcct : entry->edgeOcct;
+    if (index < 0 || index >= static_cast<int>(map.size())) {
+      g_lastError = "UNRESOLVED_SUBSHAPE_REF: no such named sub-shape on this shape";
+      return m;
+    }
+    TopTools_IndexedMapOfShape shapes;
+    TopExp::MapShapes(entry->shape, kind == KIND_FACE ? TopAbs_FACE : TopAbs_EDGE, shapes);
+    target = shapes(map[static_cast<std::size_t>(index)]);
+  }
+  const TopoDS_Shape& s = target;
+
   try {
+    if (kind >= 0) {
+      // A sub-shape: area (a face's own), perimeter/length, counts. Volume stays 0 — see above.
+      if (kind == KIND_FACE) {
+        GProp_GProps surf;
+        BRepGProp::SurfaceProperties(s, surf);
+        m.area = surf.Mass();
+      }
+      TopTools_IndexedMapOfShape edgeMap;
+      TopExp::MapShapes(s, TopAbs_EDGE, edgeMap);
+      double total = 0.0;
+      for (int i = 1; i <= edgeMap.Extent(); ++i) {
+        const TopoDS_Edge& e = TopoDS::Edge(edgeMap(i));
+        if (BRep_Tool::Degenerated(e)) continue;
+        BRepAdaptor_Curve curve(e);
+        total += GCPnts_AbscissaPoint::Length(curve);
+      }
+      m.edgeLength = total;
+
+      TopTools_IndexedMapOfShape map;
+      m.solids = 0;
+      TopExp::MapShapes(s, TopAbs_FACE, map);   m.faces = map.Extent();   map.Clear();
+      TopExp::MapShapes(s, TopAbs_EDGE, map);   m.edges = map.Extent();   map.Clear();
+      TopExp::MapShapes(s, TopAbs_VERTEX, map); m.vertices = map.Extent();
+      return m;
+    }
+
     GProp_GProps vol;
     BRepGProp::VolumeProperties(s, vol);
     m.volume = vol.Mass();
@@ -1166,6 +1997,7 @@ EMSCRIPTEN_BINDINGS(bunyan_kernel) {
   using namespace emscripten;
 
   register_vector<int>("VectorInt");
+  register_vector<double>("VectorDouble");
   register_vector<NameRow>("VectorNameRow");
 
   value_object<Bounds>("Bounds")
@@ -1208,8 +2040,12 @@ EMSCRIPTEN_BINDINGS(bunyan_kernel) {
 
   function("makeBox", &makeBox);
   function("makeCylinder", &makeCylinder);
+  function("extrudeProfile", &extrudeProfile);
+  function("revolveProfile", &revolveProfile);
   function("booleanOp", &booleanOp);
   function("fillet", &fillet);
+  function("chamfer", &chamfer);
+  function("transformShape", &transformShape);
   function("getNaming", &getNaming);
   function("getBounds", &getBounds);
   function("subShapeBounds", &subShapeBounds);

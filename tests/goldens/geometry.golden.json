@@ -1,6 +1,6 @@
 {
   "$schema": "bunyan.goldens.v1",
-  "seededAt": "2026-07-12T20:43:24.515280+00:00",
+  "seededAt": "2026-07-13T04:46:27.215608+00:00",
   "env": {
     "oracle": "cadquery-ocp (OCP bindings to OCCT)",
     "ocpVersion": "7.9.3.1.1",
@@ -285,6 +285,644 @@
             3000.0,
             200.0,
             2500.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "wall-rotated-30deg",
+      "op": "transform",
+      "params": {
+        "box": {
+          "dx": 3000.0,
+          "dy": 200.0,
+          "dz": 2500.0
+        },
+        "motions": [
+          {
+            "kind": "rotate",
+            "axis": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "degrees": 30.0
+          }
+        ]
+      },
+      "analytic": {
+        "volume": 1500000000.0,
+        "area": 17200000.0,
+        "edgeLength": 22800.0,
+        "counts": {
+          "solids": 1,
+          "faces": 6,
+          "edges": 12,
+          "vertices": 8
+        },
+        "bounds": {
+          "min": [
+            -99.99999999999999,
+            0.0,
+            0.0
+          ],
+          "max": [
+            2598.076211353316,
+            1673.2050807568876,
+            2500.0
+          ]
+        }
+      },
+      "crossCheck": {
+        "volume": 1500000000.0,
+        "area": 17200000.0,
+        "edgeLength": 22800.0,
+        "counts": {
+          "solids": 1,
+          "faces": 6,
+          "edges": 12,
+          "vertices": 8
+        },
+        "bounds": {
+          "min": [
+            -99.99999999999999,
+            0.0,
+            0.0
+          ],
+          "max": [
+            2598.076211353316,
+            1673.2050807568876,
+            2500.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "wall-mirrored-yz",
+      "op": "transform",
+      "params": {
+        "box": {
+          "dx": 3000.0,
+          "dy": 200.0,
+          "dz": 2500.0
+        },
+        "motions": [
+          {
+            "kind": "mirror",
+            "normal": [
+              1.0,
+              0.0,
+              0.0
+            ]
+          }
+        ]
+      },
+      "analytic": {
+        "volume": 1500000000.0,
+        "area": 17200000.0,
+        "edgeLength": 22800.0,
+        "counts": {
+          "solids": 1,
+          "faces": 6,
+          "edges": 12,
+          "vertices": 8
+        },
+        "bounds": {
+          "min": [
+            -3000.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            0.0,
+            200.0,
+            2500.0
+          ]
+        }
+      },
+      "crossCheck": {
+        "volume": 1500000000.0,
+        "area": 17200000.0,
+        "edgeLength": 22800.0,
+        "counts": {
+          "solids": 1,
+          "faces": 6,
+          "edges": 12,
+          "vertices": 8
+        },
+        "bounds": {
+          "min": [
+            -3000.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            0.0,
+            200.0,
+            2500.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "slab-L-shaped-200thk",
+      "op": "extrude",
+      "params": {
+        "points": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            6000.0,
+            0.0
+          ],
+          [
+            6000.0,
+            2000.0
+          ],
+          [
+            2000.0,
+            2000.0
+          ],
+          [
+            2000.0,
+            4000.0
+          ],
+          [
+            0.0,
+            4000.0
+          ]
+        ],
+        "height": 200.0
+      },
+      "analytic": {
+        "volume": 3200000000.0,
+        "area": 36000000.0,
+        "edgeLength": 41200.0,
+        "counts": {
+          "solids": 1,
+          "faces": 8,
+          "edges": 18,
+          "vertices": 12
+        },
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            6000.0,
+            4000.0,
+            200.0
+          ]
+        }
+      },
+      "crossCheck": {
+        "volume": 3200000000.0,
+        "area": 36000000.0,
+        "edgeLength": 41200.0,
+        "counts": {
+          "solids": 1,
+          "faces": 8,
+          "edges": 18,
+          "vertices": 12
+        },
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            6000.0,
+            4000.0,
+            200.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "slab-curved-edge-200thk",
+      "op": "extrude",
+      "params": {
+        "points": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            6000.0,
+            0.0
+          ],
+          [
+            6000.0,
+            4000.0
+          ],
+          [
+            0.0,
+            4000.0
+          ]
+        ],
+        "height": 200.0,
+        "arcIndex": 1,
+        "via": [
+          7000.0,
+          2000.0
+        ]
+      },
+      "analytic": {
+        "volume": 5359119022.502015,
+        "area": 57718485.44302177,
+        "edgeLength": 42072.952180016124,
+        "counts": {
+          "solids": 1,
+          "faces": 6,
+          "edges": 12,
+          "vertices": 8
+        },
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            7000.0,
+            4000.0,
+            200.0
+          ]
+        }
+      },
+      "crossCheck": {
+        "volume": 5359119022.502015,
+        "area": 57718485.44302178,
+        "edgeLength": 42072.952180016124,
+        "counts": {
+          "solids": 1,
+          "faces": 6,
+          "edges": 12,
+          "vertices": 8
+        },
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            7000.0,
+            4000.0000000000005,
+            200.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "box-wall-chamfer-d50",
+      "op": "chamfer",
+      "params": {
+        "box": {
+          "dx": 3000.0,
+          "dy": 200.0,
+          "dz": 2500.0
+        },
+        "edge": "x-max|y-min",
+        "distance": 50.0
+      },
+      "crossCheck": {
+        "volume": 1496874999.9999983,
+        "area": 17124276.695296634,
+        "edgeLength": 25241.42135623731,
+        "counts": {
+          "solids": 1,
+          "faces": 7,
+          "edges": 15,
+          "vertices": 10
+        },
+        "bounds": {
+          "min": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "max": [
+            3000.0000000000005,
+            200.0,
+            2500.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "revolve-column-r150-h3000",
+      "op": "revolve",
+      "params": {
+        "points": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            150.0,
+            0.0
+          ],
+          [
+            150.0,
+            3000.0
+          ],
+          [
+            0.0,
+            3000.0
+          ]
+        ],
+        "angle": 360.0
+      },
+      "analytic": {
+        "volume": 212057504.11731106,
+        "area": 2968805.0576423546,
+        "edgeLength": 4884.955592153876,
+        "counts": {
+          "solids": 1,
+          "faces": 3,
+          "edges": 3,
+          "vertices": 2
+        },
+        "bounds": {
+          "min": [
+            -150.0,
+            -150.0,
+            0.0
+          ],
+          "max": [
+            150.0,
+            150.0,
+            3000.0
+          ]
+        }
+      },
+      "crossCheck": {
+        "volume": 212057504.1173111,
+        "area": 2968805.0576423546,
+        "edgeLength": 4884.955592153876,
+        "counts": {
+          "solids": 1,
+          "faces": 3,
+          "edges": 3,
+          "vertices": 2
+        },
+        "bounds": {
+          "min": [
+            -150.0,
+            -150.0,
+            0.0
+          ],
+          "max": [
+            150.0,
+            150.0,
+            3000.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "revolve-tube-r500-r1000-h3000",
+      "op": "revolve",
+      "params": {
+        "points": [
+          [
+            500.0,
+            0.0
+          ],
+          [
+            1000.0,
+            0.0
+          ],
+          [
+            1000.0,
+            3000.0
+          ],
+          [
+            500.0,
+            3000.0
+          ]
+        ],
+        "angle": 360.0
+      },
+      "analytic": {
+        "volume": 7068583470.577035,
+        "area": 32986722.862692825,
+        "edgeLength": 24849.55592153876,
+        "counts": {
+          "solids": 1,
+          "faces": 4,
+          "edges": 6,
+          "vertices": 4
+        },
+        "bounds": {
+          "min": [
+            -1000.0,
+            -1000.0,
+            0.0
+          ],
+          "max": [
+            1000.0,
+            1000.0,
+            3000.0
+          ]
+        }
+      },
+      "crossCheck": {
+        "volume": 7068583470.577034,
+        "area": 32986722.862692825,
+        "edgeLength": 24849.555921538762,
+        "counts": {
+          "solids": 1,
+          "faces": 4,
+          "edges": 6,
+          "vertices": 4
+        },
+        "bounds": {
+          "min": [
+            -1000.0,
+            -1000.0,
+            0.0
+          ],
+          "max": [
+            1000.0,
+            1000.0,
+            3000.0
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "revolve-hemisphere-r1000",
+      "op": "revolve",
+      "params": {
+        "points": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            1000.0,
+            0.0
+          ],
+          [
+            0.0,
+            1000.0
+          ]
+        ],
+        "angle": 360.0,
+        "arcIndex": 1,
+        "via": [
+          707.1067811865476,
+          707.1067811865476
+        ]
+      },
+      "analytic": {
+        "volume": 2094395102.3931952,
+        "area": 9424777.96076938,
+        "edgeLength": 7853.981633974482,
+        "counts": {
+          "solids": 1,
+          "faces": 2,
+          "edges": 3,
+          "vertices": 2
+        },
+        "bounds": {
+          "min": [
+            -1000.0,
+            -1000.0,
+            0.0
+          ],
+          "max": [
+            1000.0,
+            1000.0,
+            1000.0
+          ]
+        }
+      },
+      "crossCheck": {
+        "volume": 2094395102.3931944,
+        "area": 9424777.960769378,
+        "edgeLength": 7853.981633974486,
+        "counts": {
+          "solids": 1,
+          "faces": 2,
+          "edges": 3,
+          "vertices": 2
+        },
+        "bounds": {
+          "min": [
+            -1000.0,
+            -1000.0,
+            0.0
+          ],
+          "max": [
+            1000.0,
+            1000.0,
+            999.9999999999999
+          ]
+        }
+      },
+      "tolerances": {
+        "relative": 1e-09
+      }
+    },
+    {
+      "case": "revolve-tube-partial-90deg",
+      "op": "revolve",
+      "params": {
+        "points": [
+          [
+            500.0,
+            0.0
+          ],
+          [
+            1000.0,
+            0.0
+          ],
+          [
+            1000.0,
+            3000.0
+          ],
+          [
+            500.0,
+            3000.0
+          ]
+        ],
+        "angle": 90.0
+      },
+      "analytic": {
+        "volume": 1767145867.6442587,
+        "area": 11246680.715673206,
+        "edgeLength": 18712.38898038469,
+        "counts": {
+          "solids": 1,
+          "faces": 6,
+          "edges": 12,
+          "vertices": 8
+        },
+        "bounds": {
+          "min": [
+            3.061616997868383e-14,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1000.0,
+            1000.0,
+            3000.0
+          ]
+        }
+      },
+      "crossCheck": {
+        "volume": 1767145867.6442585,
+        "area": 11246680.715673206,
+        "edgeLength": 18712.38898038469,
+        "counts": {
+          "solids": 1,
+          "faces": 6,
+          "edges": 12,
+          "vertices": 8
+        },
+        "bounds": {
+          "min": [
+            3.061616997868383e-14,
+            0.0,
+            0.0
+          ],
+          "max": [
+            1000.0,
+            1000.0,
+            3000.0
           ]
         }
       },

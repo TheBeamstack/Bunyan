@@ -1,4 +1,4 @@
-export { MOCK_KERNEL_INFO, createMockKernel, createMockKernelHost } from './kernel.js';
+export { MOCK_KERNEL_META, createMockKernel, createMockKernelHost } from './kernel.js';
 export {
   BOX_FACE_ROLES,
   boxBounds,
