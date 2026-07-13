@@ -200,7 +200,7 @@ describe('mock vs occt — the swap must be invisible', () => {
   it('both kernels assign the SAME identities to the same box', async () => {
     // The mock exists so the browser could be built before the kernel. That bet only pays off if the
     // refs survive the swap: Amer's picking, property panels and undo all key off these tokens, and a
-    // saved .bimproj stores them. If the two kernels disagreed here, every file authored against the
+    // saved .bnn stores them. If the two kernels disagreed here, every file authored against the
     // mock would silently re-target the day the real kernel shipped.
     const params = { nodeId: 'wall-1', dx: 3000, dy: 200, dz: 2500 };
 

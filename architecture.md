@@ -226,7 +226,7 @@ OCCT history is robust for faces, weakest for **edges/vertices** from boolean se
 **Nothing in steps 3–6 is agent-specific.** That is the entire architecture of D19: the agent path *is* the human path, so it cannot rot separately, and it cannot fall behind.
 
 ### 6.5 Save / load
-- **Save:** serialize `scene.json` (recipe + token map), `manifest.json` (incl. OCCT build id + per-type versions), optional `history.json`, `thumbnail.png` into the `.bimproj` zip — **plus `geometry-cache.brep` if and only if D29 lands it (⚠ UNDECIDED and UNBUILT; spec §6).**
+- **Save:** serialize `scene.json` (recipe + token map), `manifest.json` (incl. OCCT build id + per-type versions), optional `history.json`, `thumbnail.png` into the `.bnn` zip — **plus `geometry-cache.brep` if and only if D29 lands it (⚠ UNDECIDED and UNBUILT; spec §6).**
 - **Load:** read manifest; **rebuild from `scene.json`** — which is the ONLY path that exists today, and must remain a *supported* path forever (the recipe is truth). If a cache ships (D29) and its kernel build id differs, or it is missing/corrupt/untrusted, it is discarded and this same rebuild runs. Then run per-type migrations and deterministically replay tokens.
 
 ---
@@ -296,7 +296,7 @@ window.bunyan = {
 | **IndexedDB** | Autosave snapshots, undo history, settings, stored handles | All modern |
 | **Service Worker Cache Storage** | Offline precache of app + WASM | All modern |
 
-`.bimproj` (zip) = `manifest.json` + `scene.json` + optional `history.json` + `thumbnail.png` **+ `geometry-cache.brep` ⚠ ONLY IF D29 LANDS IT — it is UNBUILT and UNDECIDED** (spec §6; decided at P3 step 4, with the measured rebuild cost). **[v1.0.0] no `export.ifc`** (IFC export deferred; `core_logic.md`/spec D3). The recipe (`scene.json`) is truth; the BREP would be a rebuildable cache; a stale/corrupt cache is never treated as truth.
+`.bnn` (zip) = `manifest.json` + `scene.json` + optional `history.json` + `thumbnail.png` **+ `geometry-cache.brep` ⚠ ONLY IF D29 LANDS IT — it is UNBUILT and UNDECIDED** (spec §6; decided at P3 step 4, with the measured rebuild cost). **[v1.0.0] no `export.ifc`** (IFC export deferred; `core_logic.md`/spec D3). The recipe (`scene.json`) is truth; the BREP would be a rebuildable cache; a stale/corrupt cache is never treated as truth.
 
 ---
 
@@ -304,7 +304,7 @@ window.bunyan = {
 
 All input is untrusted; there is no server to sanitize on.
 
-- **Import hardening.** `.bimproj` zips: decompression size/ratio caps + entry-count limits (zip-bomb defense). IFC: schema validation + parsing inside the worker under a **timeout** so a hostile file cannot hang or OOM the tab.
+- **Import hardening.** `.bnn` zips: decompression size/ratio caps + entry-count limits (zip-bomb defense). IFC: schema validation + parsing inside the worker under a **timeout** so a hostile file cannot hang or OOM the tab.
 - **Untrusted BREP cache.** `geometry-cache.brep` from an opened file is treated as untrusted on deserialize; failure falls back to rebuild-from-recipe. ⚠ **This rule is CONDITIONAL on D29** — the cache is unbuilt and may not ship. **Dropping it deletes this attack surface outright**, which is one of the strongest arguments for dropping it; keeping it means owning the hostile-BREP hardening test (spec §9).
 - **Untrusted recipe.** `scene.json` (incl. the token map) is validated on load; malformed graphs fail safe rather than driving the naming engine into bad states.
 - **Cross-origin isolation [v1.0.x only].** Not used in v1.0.0 (single-threaded — §8). When MT lands, `COEP: require-corp` both enables `SharedArrayBuffer` and constrains embeddable resources — an intentional isolation boundary, and a constraint on what the page may embed.

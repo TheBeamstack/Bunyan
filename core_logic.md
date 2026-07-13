@@ -30,10 +30,20 @@ Two consequences that shape the entire domain model:
 The domain is a small set of concepts. Each has an **identity**, a **state**, and **relationships**. (Types below are conceptual, not the literal wire format — see `architecture.md`.)
 
 ### 3.1 Project / Document
-The whole design. A container of BIM Objects plus organizational scaffolding (levels), settings, and the derived caches. Persisted as a self-contained local package (`.bimproj`). Identity: a project id. A Document is the unit of open/save/undo.
+The whole design. A container of BIM Objects plus organizational scaffolding (levels), settings, and the derived caches. Persisted as a self-contained local package (`.bnn`). Identity: a project id. A Document is the unit of open/save/undo.
 
-### 3.2 Level / Story
-An elevation datum that organizes objects vertically (ground floor, first floor…). Objects reference a Level; a Level has an elevation. Levels are the primary *organizational* relationship in a building model and are scaffolding that everything BIM-shaped depends on. Identity: `levelId`.
+### 3.2 The SPATIAL CONTAINER TREE — Site → Building → Level → Space *(decision D35)*
+
+**Every element lives somewhere, and "somewhere" is a TREE, not a floor number.** Bunyan carries IFC's own spatial decomposition, because it is the one every consumer of a building model already speaks:
+
+| Container | Is | Why it must exist |
+|---|---|---|
+| **Site** | the parcel | the datum everything else hangs from |
+| **Building** | one structure on it (*Tower A*, *Tower B*) | ⚠ **Bunyan could not express a two-tower project at all** before D35. Real projects are multi-building. |
+| **Level / Story** | an elevation datum (ground floor, L03) | the primary organizing relationship; a Level has an elevation. Identity: `levelId`. |
+| **Space / Room** | the room itself (*B3-East*, *Office 214*) | `IfcSpace`. ⚠ **It was missing, and worse — Bunyan's spec modelled "a room" as a COMPOSITE VERB (4 walls + a slab + a door), i.e. as a MACRO rather than a thing.** A Space is a first-class object everywhere (Revit "Room", ArchiCAD "Zone"): it carries a name, a number, and an **area/volume computed from the real geometry** — and **floor area is architecture's most-scheduled quantity** (paint, ceilings, screed, finishes). |
+
+⚠⚠ **AND THE TREE IS NOT ONLY BUNYAN'S — IT IS THE ECOSYSTEM'S *LOCATION BREAKDOWN STRUCTURE*.** Planitor schedules against an **LBS** that reads *"Tower B → Level 03 → Zone B3-East"* — **that is this tree, exactly.** The Clean Delta Package (§3.15) carries a `spatial_container_code` per element which must resolve to an LBS node. ⇒ **With this tree, Planitor's LBS falls out of the authored model for free instead of being hand-declared.** One concept serves the architect (room schedules), the engineer (where is this frame) and the planner (where is this work). *(See §3.15 and D34.)*
 
 ### 3.2a Grid / Axis (Level's missing twin — decision D32)
 
@@ -47,8 +57,9 @@ A single modeled thing in the project — *this* wall, *that* column. It is an *
 - `typeId` — which Type governs it (§3.4).
 - `styleId` — **which Style it is an instance OF** (§3.4a). *This* wall is a `core.wall`, and it is an **"EXT-200-Concrete"** — the Style carries everything shared, the instance carries only what is its own.
 - `params` — the parameters that are **this instance's alone** (length, height, the endpoints of its axis…). ⚠ **Anything shared with other instances of the same Style — the layer stack, the section, the materials — belongs on the STYLE, not here** (§3.4a).
-- `levelId` — its organizing Level.
+- `spaceId` / `levelId` / `buildingId` — where it lives in the **spatial container tree** (§3.2). ⚠ **This is also its LBS address in the ecosystem** — Planitor schedules work against it (§3.15).
 - `gridRefs[]` — optional placement against named **Grid** axes (§3.2a).
+- **`classification`** *(decision D36)* — **`loadBearing`** (bool), **`discipline`** (Structural / Architectural / MEP), and its **IFC class**. ⚠ **Small, and both downstream products are BLIND without it.** **Miqdar** imports *"the structural elements"* — but a Wall may be a **shear wall or a partition**, and that is a *property*, not a type (IFC carries `LoadBearing` for exactly this reason). **Miqdar must never guess**: guessing yields a *wrong structural model* rather than a refused one. **Planitor** routes work packages by **discipline** (its WBS/OBS).
 - `transform` — placement in world space (millimetre coordinates).
 - `subShapeRefs[]` — references this object holds into *other* objects' geometry (§5), e.g. an Opening's reference to its host wall's face.
 
@@ -183,6 +194,38 @@ Three consequences the model carries:
 
 ---
 
+### 3.15 THE ECOSYSTEM — Model Revision, PEI, and the Clean Delta *(decisions D34–D37)*
+
+Bunyan is not a lone app. It is the **authoring head of a four-product ecosystem**, and the domain must name the joint or the joint will be invented three times:
+
+| Product | Role | Reads from Bunyan |
+|---|---|---|
+| **Bunyan** | authors the building — exact B-Rep, persistent identity | — |
+| **Miqdar** | structural analysis & design | the **model** (`.bnn`) + the **change feed** |
+| **Planitor** | 4D/5D construction management (schedule, cost, resources) | the **change feed** |
+| **BIMsync** | BIM collaboration; the **on-ramp for FOREIGN models** | *(peer producer, not consumer)* |
+
+**Model Revision.** An **issued** snapshot of the document (`snapshot_number`, `previous`, lineage). Saving is not issuing: a *revision* is a deliberate act — *"this is the model I am handing downstream"* — and it is the anchor the whole ecosystem's change tracking hangs from. Bunyan had **saves and no revisions**; you cannot compute a delta against a file that was never declared a baseline.
+
+**PEI — Persistent Element Identity.** The ecosystem's binding currency. **⚠ And in Bunyan it is not a new concept: it IS the element's `id`** (§3.3), which is derived from the recipe DAG and therefore stable across every rebuild, resize and re-issue. **Sub-element bindings use `SubShapeRef`** (§3.9) — so *"the formwork area of that beam's soffit"* survives the beam being resized.
+
+**⚠⚠ WHY THIS IS THE ECOSYSTEM'S WHOLE VALUE, AND IT IS A STRUCTURAL FACT, NOT A CLAIM.**
+Every other BIM tool loses element identity on revision: IFC GlobalIds churn, so when the architect re-issues, **every schedule binding, every quantity and every progress record attached to those elements breaks.** That single failure is why contractors abandon model-driven scheduling and go back to spreadsheets.
+**BIMsync is an entire platform built to manufacture, for foreign models, the property Bunyan has by construction** — it *mints* a PEI, *fingerprints* elements to re-link them after churn, and where it cannot be sure, **it puts a human in front of a "confusing-change resolution queue."**
+⇒ **For a Bunyan-authored model that queue is empty. Always. By construction.** Nothing was ever lost, so nothing has to be guessed back.
+
+**The Clean Delta Package.** The canonical cross-product contract (owned as **one versioned schema** — D36): *what changed since revision N*, per element, with a `change_type`, a resolved spatial container, a classification and a **quantity**. Bunyan is a **native producer** of it (D34), and produces it in a strictly stronger form than any IFC-based producer can:
+
+- `change_type` is **read off the `UndoableEdit` log** — Bunyan *knows* the wall moved; it does not diff two models and infer it.
+- `reidentified` **cannot occur**; `split` / `merge` are reported **authoritatively** (they were *commands*).
+- `quantity.basis` is **`exact`** — measured on the B-Rep (`measure` on a `ref`), **per Part, per Material** (§3.3a, §3.11).
+
+⚠ **That last line deletes a whole layer of guessing downstream.** Planitor today reconstructs a steel column's weight through a fallback ladder — *"section area from the IFC profile **or** a parameter; length from a declared quantity **or** the geometry"* — and **hardcodes steel's density at 7850** because IFC so often will not tell it. **Bunyan has every one of those inputs exactly**: the Section (§3.11a), the Material's density (§3.11), the axis length, and the part's true volume. **The ladder collapses into a lookup.**
+
+**Interoperability, restated.** `.bnn` is the **model** (full, parametric, round-trippable — Bunyan ↔ Miqdar). The **Clean Delta** is the **change feed** (Bunyan/BIMsync → Planitor, Miqdar). **IFC is the door for the outside world**, not the ecosystem's internal transport — because IFC cannot carry a recipe, a `SubShapeRef`, or a stable id, which are the three things the ecosystem runs on.
+
+---
+
 ## 4. Identity — the rules that make the model coherent
 
 Identity is where BIM/CAD domains usually break. Bunyan's rules:
@@ -260,6 +303,10 @@ These rules are what let a reference (an Opening on a wall, a fillet on an edge)
 10. **The model describes itself.** Types and Commands are discoverable at runtime from the registries that govern them (§3.13); there is no separately-maintained description of what the app can do.
 11. **An element owns an ordered list of PARTS; a part belongs to exactly one element.** *(D30.)* Never fuse two **elements** — that re-owns the first one's faces and retroactively breaks every reference hosted on it. But an element is **not** one solid: it is its parts, each with a material, and a boolean **among an element's own parts** (an opening cutting every layer of its host) is an ordinary intra-element operation. **A single-solid element is just an element with one part.**
 12. **What is shared lives on the STYLE; what is unique lives on the INSTANCE.** *(D31.)* If two elements can legitimately disagree about a value, it is an instance parameter; if they cannot, it belongs to the Style and duplicating it onto instances is a defect. **Materials and Sections are shared entities, never strings** *(D33)* — a value that must be grouped, scheduled, or read by an analysis engine cannot be a copy.
+
+13. **⚠ IDENTITY IS THE ECOSYSTEM'S CONTRACT, NOT AN INTERNAL CONVENIENCE.** *(D34.)* An element's `id` **is** its PEI, and it survives every rebuild, resize and **re-issue**. Downstream products (Planitor's schedule, Miqdar's analytical model) bind to it — and to `SubShapeRef` for sub-element bindings. ⇒ **Anything that would re-mint an element's id on a rebuild is not a refactor; it is a breaking change to three other products.** *A whole platform (BIMsync) exists to manufacture this property for models that lack it — that is the measure of what it is worth.*
+14. **A model is ISSUED, not merely saved.** *(D34.)* A **Model Revision** is a deliberate snapshot; deltas are computed against it. **`change_type` is READ from the edit log, never inferred by diffing geometry** — a tool that guesses what changed will eventually guess wrong, and downstream that is a wrong schedule.
+15. **A quantity is MEASURED, never reconstructed.** *(D34.)* Bunyan reports quantities as **`exact`**, per Part, per Material, from the B-Rep. **It must never emit an estimated quantity dressed as a measured one** — the downstream products have a confidence ladder precisely because everyone else's numbers cannot be trusted, and Bunyan's entire contribution is to make that ladder unnecessary.
 
 ---
 

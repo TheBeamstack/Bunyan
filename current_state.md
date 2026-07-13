@@ -414,7 +414,7 @@ and precisely the class that a "we trust OCCT" scope would otherwise leave undef
   `.prettierignore`. One line. **All five CI steps now pass here.** *(Nobody needed the Actions tab: CI's steps
   are commands, and they run on this box. Fifteen entries said "someone must look" instead of looking.)*
 - **No service worker / PWA, no Cloudflare Pages deploy, no COOP/COEP headers** (P1 steps 6–7).
-- **No `.bimproj`, no document model, no registries** (P3).
+- **No `.bnn`, no document model, no registries** (P3).
 - **No LICENSE / CLA / OCCT attribution file yet** (§4e — must land before the repo goes public).
 
 ---
@@ -613,6 +613,26 @@ standing box fact worth remembering: anything written to `/tmp` here consumes RA
 
 **⚠ AND BEAM WAS *NOT* ADDED "ON MIQDAR'S ACCOUNT"** — the plan explicitly forbade that, and the caution was right. It is in because **a BIM authoring tool without a beam is not a BIM authoring tool.** Bunyan would have needed it had Miqdar never existed. **The no-schedule-coupling rule stands unamended.**
 
+### 4i — THE FIFTH BIG ONE: **BUNYAN IS THE HEAD OF A FOUR-PRODUCT ECOSYSTEM, AND THE JOINT DID NOT EXIST.** RULED 2026-07-13 (Entry 17). **D34–D38.**
+
+**How it was found:** the owner pointed at **Planitor** (the construction-PM product next door) and then at **BIMsync** (a fourth product, referenced from `Planitor/v2.2_spec.md`, **whose repo is not on this box**).
+
+**The ecosystem:** **Bunyan** authors → **Miqdar** engineers → **Planitor** builds (4D/5D) — with **BIMsync** as the collaboration layer and the **on-ramp for foreign models**.
+
+**(D34) THE JOINT DID NOT EXIST — AND THE CONTRACT ALREADY DID.** Bunyan v1.0.0 was **IFC-import-only** ⇒ **the authoring head of the ecosystem could not hand its model to the PM tool.** Meanwhile Planitor + BIMsync had **already defined** the **Clean Delta Package**. ⇒ Bunyan does not invent a transport; it becomes a **third producer** of the existing one. **`.bnn` = the model** (Bunyan ↔ Miqdar). **Clean Delta = the change feed** (Bunyan/BIMsync → Planitor, Miqdar). **IFC = the door for the outside world**, and it *cannot* be the internal transport: it carries neither a recipe, nor a `SubShapeRef`, nor a stable id.
+
+**⚠⚠ AND THIS IS THE MOAT — IT IS A STRUCTURAL FACT, NOT A SLOGAN.** Everyone's GlobalIds **churn on revision**, so a re-issued model **breaks every schedule binding, quantity and progress record** — the failure that makes contractors abandon 4D for spreadsheets. **BIMsync is an ENTIRE PLATFORM built to manufacture, for foreign models, the property Bunyan has by construction**: it *mints* a PEI, *fingerprints* elements to re-link them after churn, and where it cannot be sure **it puts a human in front of a "confusing-change resolution queue"** that Planitor **blocks on**. ⇒ **For a Bunyan model that queue is EMPTY, ALWAYS, BY CONSTRUCTION.** *Someone built a platform to fake what we get for free — that is the measure of what D1 is worth.* **Cost to Bunyan: ONE new concept — a Model Revision** (an *issued* snapshot; **saving is not issuing**, and `.bnn` had no revision concept at all).
+
+**⚠ AND IT RETIRES A LAYER OF GUESSING DOWNSTREAM.** Planitor reconstructs a steel column's weight through a fallback ladder (*"section area from the IFC profile **or** a param; length from a declared qty **or** the geometry"*) that **hardcodes `density: 7850`** because IFC will not say. **Bunyan holds every input exactly** — the Section (D33), the Material's density (D33), the axis length, the part's true volume (D30) — and emits **`basis: "exact"` with a per-part breakdown**. **The ladder collapses into a lookup**, and a *task* can bind to *the part it actually builds* instead of `factor × element_qty`.
+
+**(D35) THE SPATIAL TREE: `Site → Building → Level → Space`.** Bunyan had **only `Level`** ⇒ **a two-tower project was unmodellable**, and **`Space` (IfcSpace) did not exist** — the spec modelled *"a room"* as a **composite verb** (4 walls + a slab + a door), i.e. **a macro, not a thing**. ⚠ **And the tree IS Planitor's Location Breakdown Structure** (*"Tower B → Level 03 → Zone B3-East"*) ⇒ the LBS now falls out of the authored model instead of being hand-declared.
+
+**(D36) CLASSIFICATION + THE CONTRACT'S HOME.** **(a)** Every element carries **`loadBearing` + `discipline` + IFC class**. ⚠ **Miqdar's spec says it imports *"the structural elements"* — and nothing in Bunyan could say which those were.** A Wall may be a shear wall or a partition: a **property, not a type**. **Miqdar must never guess** — a guess is a *wrong* structural model rather than a refused one. **(b)** The Clean Delta becomes **ONE VERSIONED JSON SCHEMA, CI-VALIDATED IN ALL THREE REPOS.** It is currently a hand-maintained duplicate that **says so in its own text** (*"any change must be made in both files"*); Bunyan makes it three. **This is the exact drift class that has bitten us three times** — and this contract carries **money and schedule**. *(D21's own rule — "generated, never maintained" — applied across repos.)*
+
+**(D37) BUNYAN DOES NOT BUILD A BACKEND.** Its roadmap promised *"multi-tenant accounts, sharing/permissions, real-time presence"* — **that is a BIM collaboration platform, and BIMsync is one.** The v1.1.0+ backend row is **struck**; Bunyan stays client-only/serverless (its identity). ⚠⚠ **CAVEAT, AND IT IS BINDING: `BIMsync_cloude` IS NOT ON THIS BOX AND ITS SPEC HAS NOT BEEN READ.** Everything here is **inferred from `Planitor/v2.2_spec.md`.** ⇒ **This is a DIRECTION and an INTERFACE OBLIGATION, not a description of BIMsync. No BIMsync doc was edited and none may be until its spec is read.** What is safe to act on: **do not start building a Bunyan backend.**
+
+**(D38) THE FORMAT IS NOW `.bnn`** (was `.bimproj`). **Free now** — it has never been written to disk, so **zero files to migrate**; it was docs plus three code comments. `.bimproj` named a *category*; `.bnn` names the *product*, which is what an authoring format should do (`.rvt`, `.pln`, `.skp`).
+
 ### 4b — STILL OPEN (needs an owner call before the next big move)
 
 **(A) ~~Kernel build sequencing~~ — RULED (see 4c-4): custom build first.** Superseded by **(E)** and
@@ -659,7 +679,7 @@ OOM-killed at a 2 GB cap even for a *minimal 6-symbol* build). The candidates, c
    **2 vCPU / 7 GB** (the 4-vCPU/16 GB runner is **public** repos only) on **2,000 free minutes/month**.
    A full OCCT compile is **1–3 h ⇒ 60–180 min ⇒ 3–9% of the monthly budget per build.** *Mitigating
    fact:* the WASM kernel is **not a per-commit build** — the OCCT build id is stamped into every saved
-   `.bimproj`, so it changes only on an OCCT version change. This is **a handful of builds ever**, not a
+   `.bnn`, so it changes only on an OCCT version change. This is **a handful of builds ever**, not a
    treadmill. Ordinary CI (typecheck/lint/41 tests) is ~1–2 min/push and is irrelevant to the budget.
 3. **Bindings: hand-written `embind` over the upstream build** *(recommendation)* — ~500–1000 lines of
    C++ exposing only Bunyan's ~10 ops. The alternative (`opencascade.js`'s libclang auto-generator)
@@ -702,7 +722,7 @@ OOM-killed at a 2 GB cap even for a *minimal 6-symbol* build). The candidates, c
 > P3's own work.** Do not go looking for a missing op; there isn't one. **Go cut a shape nobody has cut.**
 
 1. **⚠⚠ P3 — THE DOCUMENT MODEL. This is the work. The protocol freezes at its end.**
-   The scene graph, the **seven** registries, `.bimproj`, undo/redo as `UndoableEdit` deltas, and **the agent
+   The scene graph, the **seven** registries, `.bnn`, undo/redo as `UndoableEdit` deltas, and **the agent
    surface** (D19–D23 — there is no separate "agent phase", and there must never be one: the agent API *is*
    the Command registry).
 
@@ -734,8 +754,8 @@ OOM-killed at a 2 GB cap even for a *minimal 6-symbol* build). The candidates, c
    `geometry-cache.brep` has **zero code** and never had any. Build a realistic document (a few hundred
    elements), **time a cold load that rebuilds every solid from `scene.json`**, and rule on the measurement.
    - **Fast enough to hide behind a splash ⇒ DROP IT** — that deletes the serializer, the staleness path **and
-     an entire attack surface** (a `.bimproj` is a file a user can be *sent*; the `.brep` is the one part fed
-     as binary to OCCT's deserializer). Then `.bimproj`, `architecture.md` and the security rule **must stop
+     an entire attack surface** (a `.bnn` is a file a user can be *sent*; the `.brep` is the one part fed
+     as binary to OCCT's deserializer). Then `.bnn`, `architecture.md` and the security rule **must stop
      claiming the file** — that edit is part of the decision.
    - **Not fast enough ⇒ BUILD IT** (`BRepTools::Write`/`Read`) and own the hostile-BREP hardening test.
    - It is **purely additive to a zip** either way, so v1.0.x can add it without breaking a saved file.
@@ -1080,7 +1100,7 @@ checking, and he was right to challenge it. **Bunyan is a private repo** (the AP
   monthly budget *per build***. Iterating a build recipe in CI would eat the month.
 - **7 GB still clears the 2 GB wall** — CI *can* do what the box cannot.
 - **The reframe that defuses the budget worry:** the WASM kernel is **not a per-commit build.** The
-  OCCT build id is stamped into every saved `.bimproj`, so it changes only when OCCT changes — **a
+  OCCT build id is stamped into every saved `.bnn`, so it changes only when OCCT changes — **a
   handful of builds ever, not a treadmill.** Ordinary CI (typecheck/lint/41 tests) is ~1–2 min/push.
   ⇒ **Iterate the recipe somewhere cheap; let CI do the rare, reproducible, final build.**
 
@@ -1979,7 +1999,7 @@ shape in this repo are, here, **blind**.
 
 ### 7. Next
 
-1. **P3** — document model, registries, `.bimproj`; **the protocol freezes at its end.** ⚠ **Spend it
+1. **P3** — document model, registries, `.bnn`; **the protocol freezes at its end.** ⚠ **Spend it
    modelling a real building with the protocol.** Every gap ever found was found by *using* the API
    (`at`; the groove). Re-reading `ops.ts` will not find the next one.
 2. **CI, still unproven** (§5 task 2) — cheap for the owner to settle by eye.
@@ -2133,7 +2153,7 @@ project's containers stopped, no ports bound. `/tmp` = 85 MB. **Artifact: 14.53 
 1. **`revolve`** — the last known protocol gap; **GenericSolid cannot ship without it** and it is the
    unmapped-IFC import target. ⚠ **Probe the full-360° seam FIRST** — see §5 task 1 for the design and the
    precise unknown. Do not derive it from the docs.
-2. **P3** — document model, registries, `.bimproj`; the protocol freezes at its end. **Keep modelling real
+2. **P3** — document model, registries, `.bnn`; the protocol freezes at its end. **Keep modelling real
    buildings.** ⚠ Carry the **one-solid-per-element** rule (§5 above / plan P3 step 1).
 3. **CI, still unproven** (§5 task 3) — cheap for the owner to settle by eye.
 4. **At P5: the Miqdar gate** (§4g, plan step 6a) is waiting.
@@ -2186,12 +2206,12 @@ oversight, not a design** — `bounds` got a `ref` in Entry 9 and `measure` (Ent
 ### 3. ⚠ TWO P2 STEPS WERE NEVER BUILT, AND NO ENTRY EVER SAID SO *(the Entry-12 disease again — §1 item 7)*
 
 **(a) P2 step 2 — the BREP (de)serializer / `geometry-cache.brep`. ZERO CODE EXISTS.** Grep it: the string
-appears **only in comments**. Yet it is named in **`.bimproj`** (P3 step 4), in the **cache-staleness /
+appears **only in comments**. Yet it is named in **`.bnn`** (P3 step 4), in the **cache-staleness /
 kernel-build-id** path (P3 step 5), and in the **untrusted-BREP** security rule (architecture §10 — *"treat
 inbound BREP as untrusted on load"*).
 ⚠ **It may be legitimately DROPPABLE — the recipe is truth (§2 invariant), so the BREP cache is a pure
 optimisation and a document can always rebuild.** But that is **an owner decision, not a silence**: if it is
-dropped, `.bimproj` must stop claiming the file and the P3/P6 exit criteria must change. **Decide it; do not
+dropped, `.bnn` must stop claiming the file and the P3/P6 exit criteria must change. **Decide it; do not
 inherit it.**
 
 **(b) P2 step 7 — the rebuild engine, and with it BROKEN REFERENCES. DOES NOT EXIST.**
@@ -2484,7 +2504,7 @@ anonymous geometry would be a picture, and pictures go stale.**
 ### 6. ✅ D29 — THE BREP CACHE: DEFERRED, DELIBERATELY, AND THE DOCS NO LONGER LIE ABOUT IT
 
 `geometry-cache.brep` was **never built** (zero code; the string lived only in comments) and was nonetheless
-**promised in five places** — `.bimproj`, both of `architecture.md`'s save/load paths, the autosave snapshot,
+**promised in five places** — `.bnn`, both of `architecture.md`'s save/load paths, the autosave snapshot,
 the cache-staleness rule, and the **untrusted-BREP security rule**.
 
 **The owner deferred the ship/drop call to P3 step 4 — on purpose, and it is the right call:** the only thing
@@ -2496,7 +2516,7 @@ one everybody does.
 D29** (I did not delete them — deleting would pre-empt the very decision he deferred), and P3 step 4 now
 carries the **measurement protocol** and both branches, including the doc edits each branch owes. ⚠ **The
 argument that will probably decide it:** dropping the cache **deletes an entire attack surface** — a
-`.bimproj` is a file a user can be *sent*, and the `.brep` is the one part fed as binary to OCCT's
+`.bnn` is a file a user can be *sent*, and the `.brep` is the one part fed as binary to OCCT's
 deserializer.
 
 ### 7. Verification
@@ -2597,7 +2617,7 @@ The plan **explicitly forbade** adding Beam for Miqdar's sake (*"that would be e
 - **✅ Its §13 temporal-dependency chain is fully discharged** — `extrude`/`revolve` are built, and `core.beam` is in Bunyan **v1.0.0**, not a later 1.0.x Miqdar would have had to wait for. ⚠ **But the diagram is what made the gap visible, and that is the job it was written to do. Keep drawing these.**
 - **✅ `ElementStyle` (D31) is the counterpart of `DesignGroup`** — it did not exist when Miqdar's spec was written.
 - **⚠ NEW CAVEAT OWED (and now recorded in Miqdar §3.3): D28 is a bounded exception to the D1 guarantee Miqdar's binding contract leans on.** Miqdar's spec said bindings survive rebuild *"because of Bunyan D1"*, without qualification. After D28 that is **not strictly true** for a genuinely symmetric tie. *(Bounded: `transform` mints no identities, so moving an element in the world cannot re-rank anything — and structurally, a support sits on a base face, not a duct rim.)*
-- **⚠ AND MIQDAR IS A STAKEHOLDER IN D29:** it **writes** `.bimproj` and has a **solver, not an OCCT kernel** ⇒ **it cannot produce a BREP cache even in principle.** So *"the loader must work with no cache present"* is not merely Bunyan's internal invariant — **it is a hard requirement from a second product**, and it is an argument for dropping the cache.
+- **⚠ AND MIQDAR IS A STAKEHOLDER IN D29:** it **writes** `.bnn` and has a **solver, not an OCCT kernel** ⇒ **it cannot produce a BREP cache even in principle.** So *"the loader must work with no cache present"* is not merely Bunyan's internal invariant — **it is a hard requirement from a second product**, and it is an argument for dropping the cache.
 
 ### 7. Docs updated
 
@@ -2607,7 +2627,80 @@ The plan **explicitly forbade** adding Beam for Miqdar's sake (*"that would be e
 
 ### 8. Next
 
-1. **P3 — the document model, and it is now a BIGGER and better-specified job than it was this morning:** parts-aware scene graph, `ElementStyle`, seven registries, the broken-reference state, `.bimproj`. **The protocol still freezes at its end — and nothing in D30–D33 touches it.**
+1. **P3 — the document model, and it is now a BIGGER and better-specified job than it was this morning:** parts-aware scene graph, `ElementStyle`, seven registries, the broken-reference state, `.bnn`. **The protocol still freezes at its end — and nothing in D30–D33 touches it.**
 2. **⚠ The type contracts freeze at P5, and D30–D33 all land there.** Freeze `BimObjectType` against a **composite, styled** Wall — a single-solid wall would validate a contract the product cannot use.
 3. **D29 at P3 step 4, with the number.** Miqdar's inability to write a BREP cache is new evidence for the drop.
 4. **⚠ AND KEEP DOING WHAT FOUND THIS.** Every gap this project has ever found was found by **using the thing for its actual purpose** — modelling a building, cutting a real shape, or (today) **reading the product against its own ambition instead of against its own spec.** *A spec cannot audit itself.*
+
+---
+
+## Entry 17 — 2026-07-13 — Zayd (dev box) — **THE ECOSYSTEM. Bunyan could not hand its model to the product next door — and the contract it needed already existed.** D34–D38.
+
+**Task (owner):** *"study Planitor… then think deeply about how all apps can be linked, since our goal is a better BIM ecosystem"* — then, mid-analysis: *"look for a doc mentioning **BIMsync**."* That pointer changed the answer.
+
+**No code changed. `pnpm verify` still 139/139** — which is the point: **none of this touches the kernel.**
+
+### 1. The four products, and the joint that was missing
+
+**Bunyan** authors → **Miqdar** engineers → **Planitor** builds (4D/5D schedule/cost/EVM) — with **BIMsync** as the collaboration layer *and the on-ramp for foreign models*.
+
+**⚠ Bunyan v1.0.0 was IFC-IMPORT-ONLY (D3).** So **the authoring head of the ecosystem could not hand its model to the PM product that already exists.** Miqdar had been given a path (`.bnn`); **Planitor had been given nothing.**
+
+### 2. ⚠⚠ THE FINDING THAT REFRAMED EVERYTHING: BIMsync is a platform built to fake what we get for free
+
+Planitor's v2.2 spec exists because *"the IFC model… **breaks when GUIDs churn**"*. So **BIMsync** must:
+
+| BIMsync must… | because Revit/IFC… | Bunyan (D1) |
+|---|---|---|
+| **mint a PEI** (Persistent Element Identity) | GUIDs churn on revision | the element `id` **IS** a PEI — derived from the recipe DAG |
+| **fingerprint** — `H(ifc_class, type, material, container, geometry_signature, qty)` — to re-link | identity was lost, so it must be **guessed back** | **not needed. Nothing was lost.** |
+| infer `change_type` by **diffing two models** | it only sees before/after | **read off the `UndoableEdit` log** — it *knows* the wall moved |
+| detect `reidentified` | an element got a new GUID | **cannot happen** |
+| infer `split`/`merge` | it must guess | **reported authoritatively** — they were *commands* |
+| run a **human "confusing-change resolution queue"** *(Planitor BLOCKS on it until it hits zero)* | ambiguity is unresolvable by machine | **the queue is EMPTY. Always. By construction.** |
+
+**⇒ The moat is not a claim, it is a structural fact:** *re-issue the model, and the schedule does not break* — down to *"the formwork area of that beam's soffit"* surviving the beam being resized. **Someone built an entire platform to manufacture this property. That is the measure of what D1 was worth**, and it is the strongest argument for Bunyan that exists anywhere in the portfolio.
+
+**⚠ BIMsync is NOT made redundant — it becomes the on-ramp for the world's existing models** (most of the market). **Two producers, one contract.**
+
+### 3. The contract already existed — so we adopt it, we do not invent one
+
+**The Clean Delta Package** (`Planitor/v2.2_spec.md` §4) is already shared by Planitor + BIMsync. Bunyan becomes a **third producer** (`source: "bunyan"`), and emits it **strictly stronger** (`change_type` from the edit log; `basis: "exact"`, per Part, per Material).
+
+⇒ **`.bnn` = the model** (Bunyan ↔ Miqdar). **Clean Delta = the change feed** (→ Planitor, Miqdar). **IFC = the door for outsiders**, and it *cannot* be the internal transport: **it carries neither a recipe, nor a `SubShapeRef`, nor a stable id.**
+
+### 4. ⚠ The other payoff of D30/D33, and I did not see it coming
+
+Planitor reconstructs a steel column's weight through a fallback ladder — *"section_area: `ifc.profile.area | param:section_area`; length: `ifc.qty:Length | geometry.length`"* — and **hardcodes `"density": 7850`**, because IFC so often will not say.
+
+**Bunyan holds every one of those inputs exactly**: the **Section** (D33), the **Material's density** (D33), the axis length, and the **part's true volume** (D30). ⇒ **The ladder collapses into a lookup**, and a **task can bind to the part it actually builds** (*the plasterer bills plaster*) rather than to `factor × element_qty`. **The estimate becomes a measurement.** *(Contract v1.1 adds `parts[]`.)*
+
+### 5. Three convergences — the evidence the domain model is right
+
+| Planitor (built months ago) | Bunyan (ruled this morning, independently) |
+|---|---|
+| `ElementType` | `BimObjectType` |
+| **`ConstructionVariant`** (RC vs steel column) | **`ElementStyle` (D31)** |
+| `ElementInstance` | element instance |
+| per-variant quantity basis needs **section × length × density** | **`Section` + `Material`-with-density registries (D33)** |
+
+**Three products, different people, different years, same model.** I derived D31 from Revit-parity and Miqdar's `DesignGroup`; it landed **exactly** on Planitor's `ConstructionVariant`.
+
+### 6. What was ruled (D34–D38) — full text in §4i
+
+**D34** Clean Delta producer + `.bnn` native + a **Model Revision** (⚠ *saving is not issuing*; `.bnn` had no revision concept). **D35** spatial tree `Site → Building → Level → Space` — ⚠ **a two-tower project was unmodellable**, `Space` did not exist, and **the tree IS Planitor's LBS**. **D36** `loadBearing` + `discipline` on every element (⚠ **Miqdar could not tell a shear wall from a partition, and must never guess**), and **the contract becomes one CI-validated JSON Schema** (it is a hand-maintained duplicate *that says so in its own text* — the drift class that has bitten us three times, on a contract carrying **money and schedule**). **D37** **Bunyan does not build a backend** — BIMsync is one. **D38** the format is **`.bnn`** (free now: never written to disk).
+
+### 7. ⚠ THE LIMIT OF THIS ENTRY, STATED PLAINLY
+
+**`BIMsync_cloude` IS NOT ON THIS BOX AND ITS SPEC HAS NOT BEEN READ.** Everything above about BIMsync is **inferred from one file** — `Planitor/v2.2_spec.md`. ⇒ **D37 is a DIRECTION and an INTERFACE OBLIGATION, not a description of BIMsync. No BIMsync document was edited, and none may be until its spec is on this box.** What is safe to act on today: **do not start building a Bunyan backend.**
+
+### 8. Docs updated
+
+**Bunyan:** `core_logic.md` (§3.2 spatial tree, §3.3 classification, **§3.15 the ecosystem**, domain rules **13–15**), `V1.0.0_spec.md` (**§7a The Ecosystem**, §5.1 types, §4.3 codecs, §6 manifest + the `.bnn` note, roadmap, **D34–D38**), `v1.0.0_imp_plan.md` (P3 revision chain, P5 spatial tree + classification, **P6 the Clean Delta exporter**), `Miqdar_v1.0.0_spec.md` (§3.2 the change feed; §3.4 rows 8–9 discharged). **Planitor:** `v2.2_spec.md` (**Bunyan as a third producer**, contract **v1.1** with `basis: "exact"` + `parts[]`, **D9–D11**), `General_description.md` (the ecosystem addendum).
+
+### 9. Next
+
+1. **P3 — the document model.** Now also: the **spatial container tree**, the **Model Revision chain**, and parts/styles (D30–D33). **The protocol still freezes at its end, and nothing in D30–D38 touches it.**
+2. **The Clean Delta JSON Schema (D36)** — agree it across the three repos *before* anyone writes a producer. It is the contract that carries money.
+3. **⚠ Get `BIMsync_cloude` onto this box and read it.** D37 is a direction written from inference; it needs confirming, and BIMsync's own docs need the reciprocal edits **that I deliberately did not make.**
+4. **Keep doing what found this:** every gap this project has found came from **using the thing for its real purpose** — modelling a building, cutting a real shape, or **reading the product against its ambition and against its neighbours.** *A spec cannot audit itself, and a product cannot see its own ecosystem.*

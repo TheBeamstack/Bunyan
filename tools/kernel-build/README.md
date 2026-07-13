@@ -138,7 +138,7 @@ moment when there is a `.wasm` but no repo around it.
 | Artifact   | `packages/kernel-occt/wasm/bunyan-kernel.{js,wasm}` — **15.36 MB raw / 4.24 MB gzip** (Entry 14) |
 
 ⚠ **The OCCT version + emcc version are the kernel _build id_** (`occt-7.9.3-emcc-6.0.2`, in
-`packages/kernel-occt/src/kernel.ts`). It is stamped into every saved `.bimproj` and invalidates the
+`packages/kernel-occt/src/kernel.ts`). It is stamped into every saved `.bnn` and invalidates the
 geometry cache when it changes (spec §6). Bump it deliberately, and **re-seed the goldens**
 (`tools/oracle`) whenever OCCT changes.
 

@@ -44,7 +44,7 @@ import type { OcctBounds, OcctModule } from '../wasm/bunyan-kernel.js';
 /**
  * The kernel build id — OCCT version + emscripten version.
  *
- * It is stamped into every saved `.bimproj` and invalidates the cached B-Rep when it changes
+ * It is stamped into every saved `.bnn` and invalidates the cached B-Rep when it changes
  * (spec §6). Bump it whenever `tools/kernel-build` produces a different binary, and re-seed the
  * goldens if OCCT itself moved.
  */
