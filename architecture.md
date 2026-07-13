@@ -352,7 +352,7 @@ CI runs the WASM build only; **the OCCT-native Python oracle (`cadquery-ocp`) is
 | **Amer** (agent) | Local PC (real browser) | Browser hot path: rendering, tessellation-consumer + provenance, section-cut views, TSL, React shell, ribbon/property-panel generation, commands/undo, persistence, service worker/PWA |
 | **Zayd** (agent) | Hetzner CX23 (headless) | Kernel: the OCCT→WASM build **and the kernel's C++ op set** (`kernel.cpp` — the kernel *is* C++), worker API, naming resolver, regression harness + offline seeding, IFC importer (IfcOpenShell, linked against our OCCT), CI, Cloudflare release pipeline |
 
-The **five registries** are the seams between actors. To avoid Amer idling on the Zayd-heavy P1→P2→P3 critical path, Zayd publishes a **protocol-conformant kernel mock** early so the shell is built in parallel. Contract-freeze is split (decision D13): protocol first, type contracts after Wall+Opening validate them.
+The **seven registries** (D33 added Material + Section, 2026-07-13) are the seams between actors. To avoid Amer idling on the Zayd-heavy P1→P2→P3 critical path, Zayd publishes a **protocol-conformant kernel mock** early so the shell is built in parallel. Contract-freeze is split (decision D13): protocol first, type contracts after Wall+Opening validate them.
 
 ---
 

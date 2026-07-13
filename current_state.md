@@ -93,6 +93,25 @@ pnpm verify  →  typecheck (strict) ✓   eslint ✓   139/139 tests ✓   pret
 building against a kernel four generations old. He can now build against **real geometry**:
 `@bunyan/kernel-occt/worker`.
 
+**⚠⚠ AND THE BIGGEST RULING SINCE THE KERNEL — ENTRY 16, AND IT CHANGES WHAT P3/P5 BUILD (D30–D33, §4h):**
+**Bunyan was a 3D modeller wearing a BIM tool's spec.** Studied against its *actual ambition* (beat
+Revit/ArchiCAD; be the base of an **ecosystem** with Miqdar) rather than against its own spec, four gaps
+appeared — and **all four were inside the freeze window**:
+- **D30 — an element owns ORDERED PARTS, not one solid.** A wall is blockwork + insulation + plaster.
+  *"How much plaster is on this wall?"* was **unanswerable at any price** ⇒ the **quantities north-star was
+  foreclosed**, in breach of **domain rule 8**. It also silently foreclosed **stairs, railings, curtain walls**.
+- **D31 — `ElementStyle`**, the shared named parameter set (Revit's Family Type). Bunyan had **two** levels
+  where every BIM tool has three. No *"change one wall type, update 400 walls"*. **And nothing for Miqdar's
+  `DesignGroup` to write into.**
+- **D32 — `LinearMember` → Beam · Column, and `Grid`.** **There was NO BEAM.** Miqdar's spec had *accepted* a
+  **lossy** beam round-trip in writing. **Kernel cost of the fix: ZERO.**
+- **D33 — `Material` + `Section` are REGISTRIES, not strings.** A material that is a string cannot carry
+  `f_ck`, be grouped by a schedule, or be read by an analysis engine — **the two things it existed for.**
+
+**⚠ NONE OF IT TOUCHES THE KERNEL OR THE PROTOCOL.** `nodeId` is an opaque string ⇒ **a Part is just its own
+DAG node.** It lands in `scene.json` + `BimObjectType`, which freeze at **P5**. `pnpm verify` is unchanged at
+**139/139** — no code moved. **Full brief: §4h + Entry 16.**
+
 **⚠ SEVEN THINGS A FRESH AGENT MUST NOT REDISCOVER THE HARD WAY:**
 
 1. **`opencascade.js` CANNOT be linked on this box — and we do not use it.** Its `-flto` object cache
@@ -576,6 +595,24 @@ standing box fact worth remembering: anything written to `/tmp` here consumes RA
 
 **Bunyan is not slowed down by any of this.** The v1.0.0 plan is unchanged; the only new obligation is *minutes of review at P5*.
 
+### 4h — THE FOURTH BIG ONE: **THE MODELLING LAYER. Bunyan was a 3D modeller pretending to be a BIM tool.** RULED 2026-07-13 (Entry 16). **D30–D33.**
+
+**How it was found:** by studying Bunyan against **what it says it is for** — beating Revit/ArchiCAD, *and* being the base of an **ecosystem** with Miqdar — rather than against its own spec. The owner spotted the tip of it (*"beams are not supported and this is unacceptable"*). Underneath sat four gaps, and they are one gap seen from four sides.
+
+**(D30) AN ELEMENT OWNS AN ORDERED LIST OF *PARTS*, NOT ONE SOLID.** A wall is blockwork + insulation + plaster. **The one-solid model foreclosed a declared north-star**: *"how much plaster is on this wall?"* is **unanswerable** against a monolithic solid at any price, and **domain rule 8 forbids foreclosing a north-star**. It also starved **Miqdar** (which idealizes a wall's *structural* layer) and silently **foreclosed stairs, railings and curtain walls** — all multi-solid, all sitting in the "deferred" list as though merely unscheduled. **One decision, not five.** ⚠ **The kernel was already built for it:** the OCCT build links **TKOffset** — Entry 4 records its purpose as *"wall layers"*.
+
+**(D31) `ElementStyle` — THE SHARED, NAMED PARAMETER SET.** Revit: Category→Family→**Type**→Instance. ArchiCAD: **Composites/Profiles/Favourites**. **Bunyan had TWO levels where every BIM tool has three or four** — the single largest modelling gap between it and the tools it means to beat. Without it: no *"change one wall type, update 400 walls"* (the most-used operation in Revit), **no scheduling by type** (which is *what a schedule is*), and **⚠ nothing for Miqdar's `DesignGroup` to write back into.**
+
+**(D32) `LinearMember` → Beam · Column, AND `Grid`.** **There was no Beam at all** — and Miqdar's own spec had *accepted* that its beams would land in Bunyan as `GenericSolid`, calling it *"lossy but correct… ACCEPTED, not a failure."* **It was neither.** A Beam is a Section swept along an axis; **Column was the identical concept rotated**, shipped as an unrelated type. **Kernel cost of the fix: ZERO** (`extrude` already sweeps a profile along a direction). And **`Grid`** is **Level's missing twin** — Level was called *"required scaffolding"* and organizes the model vertically; nothing organized it horizontally.
+
+**(D33) `Material` AND `Section` ARE REGISTRIES, NOT STRINGS.** `core_logic` §3.11 called a Material *"a property of an object/type"* — and that **quietly foreclosed both consumers the concept was reserved for**: a string cannot carry `f_ck`, cannot be **grouped by a schedule**, and cannot be **read by an analysis engine**. The concept could not do the two things it existed to do.
+
+**⚠⚠ THE FACT THAT MADE ALL FOUR CHEAP, AND IT IS WHY THEY LAND NOW RATHER THAN NEVER:** a `SubShapeRef` is `{nodeId, kind, role, occurrence}` and **`nodeId` is an opaque string** ⇒ **a Part is simply its own DAG node** (`wall-1.structure`). **No new kernel op. No protocol change. No `SubShapeRef` change. The P3 protocol freeze is untouched.** All four land in `scene.json` + `BimObjectType`, which freeze at **P5** — the window we are still inside. **After P5 every one of them is a contract amendment plus a migration of every saved file.**
+
+**⚠ AND THE ANTI-FUSE RULE (Entry 12) IS UNCHANGED — PARTS SHARPEN IT.** *Never fuse two **elements***. **A part is not a second element**: it belongs to one element, is built by its recipe, and dies with it. An Opening cutting every layer of its host is an ordinary *intra*-element boolean.
+
+**⚠ AND BEAM WAS *NOT* ADDED "ON MIQDAR'S ACCOUNT"** — the plan explicitly forbade that, and the caution was right. It is in because **a BIM authoring tool without a beam is not a BIM authoring tool.** Bunyan would have needed it had Miqdar never existed. **The no-schedule-coupling rule stands unamended.**
+
 ### 4b — STILL OPEN (needs an owner call before the next big move)
 
 **(A) ~~Kernel build sequencing~~ — RULED (see 4c-4): custom build first.** Superseded by **(E)** and
@@ -665,9 +702,16 @@ OOM-killed at a 2 GB cap even for a *minimal 6-symbol* build). The candidates, c
 > P3's own work.** Do not go looking for a missing op; there isn't one. **Go cut a shape nobody has cut.**
 
 1. **⚠⚠ P3 — THE DOCUMENT MODEL. This is the work. The protocol freezes at its end.**
-   The scene graph, the five registries, `.bimproj`, undo/redo as `UndoableEdit` deltas, and **the agent
+   The scene graph, the **seven** registries, `.bimproj`, undo/redo as `UndoableEdit` deltas, and **the agent
    surface** (D19–D23 — there is no separate "agent phase", and there must never be one: the agent API *is*
    the Command registry).
+
+   **⚠⚠ AND IT IS A BIGGER, BETTER-SPECIFIED JOB THAN IT WAS BEFORE ENTRY 16 (D30–D33, §4h):** the scene graph
+   is **parts-aware** (an element owns an ordered list of solids, each with a Material — **not one solid**),
+   it carries **`ElementStyle`** (the shared named parameter set — edit it, 400 walls rebuild), and the
+   registries now include the **Material Library** and the **Section Catalogue**. **None of this touches the
+   kernel or the protocol** — a Part is just its own DAG node, because `nodeId` is an opaque string. But it
+   **all freezes at P5**, so it must be built into P3, not bolted on after.
 
    **⚠ THREE THINGS THE MEASUREMENTS ALREADY BOUGHT YOU — carry them in, do not rediscover them:**
    - **ONE SOLID PER ELEMENT. NEVER FUSE TWO ELEMENTS** *(measured, Entry 12)*. Fusing two walls at a corner
@@ -2499,3 +2543,71 @@ project's containers stopped, no ports bound. `/tmp` = 86 MB.
 3. **⚠ AND KEEP CUTTING SHAPES NOBODY HAS CUT.** Every single protocol and naming gap this project has found
    was found by *using* the API to build something real — never by reading it. The score is now four: `at`,
    the groove, the floor plate, the round column. **The fifth is out there. Go find it.**
+
+---
+
+## Entry 16 — 2026-07-13 — Zayd (dev box) — **THE MODELLING LAYER. Bunyan was a 3D modeller wearing a BIM tool's spec — and the Miqdar round-trip was lossy on paper and nobody flinched.** D30–D33.
+
+**Task (owner):** *"remember the goal is to beat Revit/ArchiCAD, and Miqdar makes it an ECOSYSTEM, not a 3D app. Study the situation deeply, find the needed improvements — for example beams are not supported, and this is unacceptable — and the existing inconsistencies."*
+
+**He was right, and the beam was the tip of it.** I studied Bunyan against **what it says it is for** rather than against its own spec. Four gaps. They are one gap seen from four sides, and **all four were inside the freeze window.**
+
+### 1. What was actually wrong
+
+| # | Gap | Why it is not cosmetic |
+|---|---|---|
+| **D30** | **An element owned ONE SOLID.** | *"How much plaster is on this wall?"* is **unanswerable** against a monolithic solid **at any price**. **Quantity take-off is a declared north-star, and domain rule 8 forbids foreclosing one** — so the model was in breach of its own rule. It also starved **Miqdar** (which idealizes a wall's *structural* layer, not its finishes) and **foreclosed stairs, railings and curtain walls**, which sat in the non-goals list looking *deferred* when they were in fact **inexpressible**. ⚠ **The kernel had been built for it all along:** the OCCT build links **TKOffset**, and Entry 4 records its purpose as *"wall layers"*. |
+| **D31** | **No Type/Style layer.** Revit: Category→Family→**Type**→Instance. Bunyan: Type→Instance. | The **single largest modelling gap** between Bunyan and the tools it means to beat. No *"change one wall type, update 400 walls"* — **the most-used operation in Revit**. No **scheduling by type**, which is *what a schedule is*. And **⚠ Miqdar's `DesignGroup` had nothing to write back into** — an engineer assigns one section to a **group** of columns; without a Style, Miqdar would set a property on each instance one at a time, which is exactly the workflow engineers refuse. |
+| **D32** | **NO BEAM.** And `Column` was *"simple profile extrude"* — the same concept, unrecognised. | **Miqdar's own spec had ACCEPTED that its beams would land in Bunyan as `GenericSolid`** — *"lossy but correct… ACCEPTED, not a failure."* ⇒ **the ecosystem's flagship structure-first workflow round-tripped through a lossy channel at launch, in writing, and nobody flinched.** ⚠ **Kernel cost of the fix: ZERO.** `extrude` already sweeps a profile along a direction. **The reason Beam was missing was never technical.** Also **`Grid`** — Level's missing twin: Level was called *"required scaffolding"* and organizes vertically; **nothing organized the model horizontally.** |
+| **D33** | **`Material` was "a property"; `Section` did not exist.** | A material that is a **string on an object** cannot carry `f_ck`/`E`/density, **cannot be grouped by a schedule**, and **cannot be read by an analysis engine.** ⇒ **the concept could not do the two things it was reserved for.** And a free-form loop is not a Section: `IPE300` must be *a thing with a name*, or it cannot be scheduled, design-grouped, or round-tripped as anything but coordinates. |
+
+### 2. ⚠⚠ THE FACT THAT MADE ALL FOUR CHEAP — and it is why they land now rather than never
+
+**A `SubShapeRef` is `{nodeId, kind, role, occurrence}`, and `nodeId` is an OPAQUE STRING.** So **a Part is simply its own node in the DAG** (`wall-1.structure`, `wall-1.finish`).
+
+⇒ **No new kernel op. No protocol change. No `SubShapeRef` change. The P3 protocol freeze is untouched.**
+
+All four land in **`scene.json` + `BimObjectType`**, which freeze at **P5** — the window we are **still inside**. **After P5, every one of them is a contract amendment plus a migration of every saved file.** That is the entire reason this was worth stopping for.
+
+### 3. What the model looks like now
+
+```
+  ElementStyle "EXT-200-Concrete"        <- SHARED (D31). Edit it -> 400 walls rebuild.
+      layers: [ Plaster-15 (15), Blockwork-200 (200), EPS-80 (80) ]   <- Materials (D33)
+        |                                   Miqdar's DesignGroup binds HERE.
+  Wall "wall-1"  { styleId, axis, height, levelId, gridRefs }   <- UNIQUE to this element
+        |  buildGeometry(params, style)
+  Parts (ORDERED, one solid each)        <- D30. An element is NOT one solid.
+      wall-1.finish.interior -> Plaster-15
+      wall-1.structure       -> Blockwork-200     <- Miqdar idealizes THIS one
+      wall-1.insulation      -> EPS-80
+```
+
+### 4. ⚠ The anti-fuse rule is UNCHANGED — parts sharpen it, they do not weaken it
+
+*Never fuse two **elements*** (Entry 12: it re-owns the first's faces and **retroactively breaks every window hosted on it**). **A part is not a second element** — it belongs to one element, is built by that element's recipe, and dies with it. An **Opening cutting through all three layers of its host** is an ordinary **intra**-element boolean, which was always allowed. *(And a window that pierced only the structural layer would be an obvious, embarrassing bug — so P5 must test Opening against a **composite** wall, not a monolithic one. The plan now says so.)*
+
+### 5. ⚠ Beam is NOT in "on Miqdar's account" — and that distinction is load-bearing
+
+The plan **explicitly forbade** adding Beam for Miqdar's sake (*"that would be exactly the schedule coupling both specs forbid"*). **The caution was right; the conclusion was wrong.** Beam is in because **a BIM authoring tool without a beam is not a BIM authoring tool** — Revit and ArchiCAD both have one, and **Bunyan already shipped a Column, which is the identical concept rotated.** Bunyan would have needed it had Miqdar never existed. **The no-coupling rule stands, unamended.**
+
+### 6. Miqdar: three obligations DISCHARGED, one new caveat OWED
+
+- **✅ §3.4 row 6 (`core.beam`) — discharged, not deferred.** Its *"lossy but correct… ACCEPTED"* acceptance-task note is **void**: the structure-first round-trip is **full-fidelity at launch**.
+- **✅ Its §13 temporal-dependency chain is fully discharged** — `extrude`/`revolve` are built, and `core.beam` is in Bunyan **v1.0.0**, not a later 1.0.x Miqdar would have had to wait for. ⚠ **But the diagram is what made the gap visible, and that is the job it was written to do. Keep drawing these.**
+- **✅ `ElementStyle` (D31) is the counterpart of `DesignGroup`** — it did not exist when Miqdar's spec was written.
+- **⚠ NEW CAVEAT OWED (and now recorded in Miqdar §3.3): D28 is a bounded exception to the D1 guarantee Miqdar's binding contract leans on.** Miqdar's spec said bindings survive rebuild *"because of Bunyan D1"*, without qualification. After D28 that is **not strictly true** for a genuinely symmetric tie. *(Bounded: `transform` mints no identities, so moving an element in the world cannot re-rank anything — and structurally, a support sits on a base face, not a duct rim.)*
+- **⚠ AND MIQDAR IS A STAKEHOLDER IN D29:** it **writes** `.bimproj` and has a **solver, not an OCCT kernel** ⇒ **it cannot produce a BREP cache even in principle.** So *"the loader must work with no cache present"* is not merely Bunyan's internal invariant — **it is a hard requirement from a second product**, and it is an argument for dropping the cache.
+
+### 7. Docs updated
+
+`core_logic.md` (Part §3.3a, ElementStyle §3.4a, LinearMember §3.5a, Grid §3.2a, Material/Section/Quantity §3.11–§3.11b, relationships, **domain rules 11 + 12**, the quantities north-star), `V1.0.0_spec.md` (§4.1 type contract, **§4.4a/§4.4b the two new registries**, §5.1 MVP types, **§5.4 the element model**, §5.3 non-goals, §6 `scene.json`, roadmap, **D30–D33**), `architecture.md` (seven registries), `v1.0.0_imp_plan.md` (P3 steps 1–2, P5 objective/steps/exit criteria, **the "do not add Beam" line reversed with its reasoning**), `Miqdar_v1.0.0_spec.md` (§3.3, §3.4 rows 6–7, §6.5, §13).
+
+**No code changed. `pnpm verify` still 139/139** — which is the point: **none of this touches the kernel.**
+
+### 8. Next
+
+1. **P3 — the document model, and it is now a BIGGER and better-specified job than it was this morning:** parts-aware scene graph, `ElementStyle`, seven registries, the broken-reference state, `.bimproj`. **The protocol still freezes at its end — and nothing in D30–D33 touches it.**
+2. **⚠ The type contracts freeze at P5, and D30–D33 all land there.** Freeze `BimObjectType` against a **composite, styled** Wall — a single-solid wall would validate a contract the product cannot use.
+3. **D29 at P3 step 4, with the number.** Miqdar's inability to write a BREP cache is new evidence for the drop.
+4. **⚠ AND KEEP DOING WHAT FOUND THIS.** Every gap this project has ever found was found by **using the thing for its actual purpose** — modelling a building, cutting a real shape, or (today) **reading the product against its own ambition instead of against its own spec.** *A spec cannot audit itself.*

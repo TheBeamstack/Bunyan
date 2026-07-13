@@ -35,16 +35,38 @@ The whole design. A container of BIM Objects plus organizational scaffolding (le
 ### 3.2 Level / Story
 An elevation datum that organizes objects vertically (ground floor, first floor…). Objects reference a Level; a Level has an elevation. Levels are the primary *organizational* relationship in a building model and are scaffolding that everything BIM-shaped depends on. Identity: `levelId`.
 
+### 3.2a Grid / Axis (Level's missing twin — decision D32)
+
+Named structural axes (`A`, `B`, `C` / `1`, `2`, `3`) and their intersections. **Level organizes the model vertically; Grid organizes it horizontally**, and every BIM tool and every structural tool has both. It is placement scaffolding, exactly as Level is: a column sits at **B-3**, and it *stays* at B-3 when the grid spacing changes.
+
+⚠ **It is the engineer's coordinate system, not the modeller's.** Miqdar lays a frame out on grids; a drawing is read on grids. Bunyan carried Level from day one and called it *"required scaffolding for everything BIM-shaped that follows"* — **Grid is the half of that sentence that was missing.**
+
 ### 3.3 BIM Object (instance)
 A single modeled thing in the project — *this* wall, *that* column. It is an **instance of a BIM Object Type** carrying:
 - `id` — stable instance identity.
 - `typeId` — which Type governs it (§3.4).
-- `params` — the parameters that drive its geometry (length, height, thickness, profile…).
+- `styleId` — **which Style it is an instance OF** (§3.4a). *This* wall is a `core.wall`, and it is an **"EXT-200-Concrete"** — the Style carries everything shared, the instance carries only what is its own.
+- `params` — the parameters that are **this instance's alone** (length, height, the endpoints of its axis…). ⚠ **Anything shared with other instances of the same Style — the layer stack, the section, the materials — belongs on the STYLE, not here** (§3.4a).
 - `levelId` — its organizing Level.
+- `gridRefs[]` — optional placement against named **Grid** axes (§3.2a).
 - `transform` — placement in world space (millimetre coordinates).
 - `subShapeRefs[]` — references this object holds into *other* objects' geometry (§5), e.g. an Opening's reference to its host wall's face.
 
-An object's exact geometry is **not** stored on the instance as truth — it is produced by its Type's `buildGeometry(params)` and cached.
+An object's exact geometry is **not** stored on the instance as truth — it is produced by its Type's `buildGeometry(params, style)` and cached.
+
+### 3.3a Part (an element is not one solid — decision D30)
+
+**An element owns an ORDERED LIST of PARTS, and each part is one solid.** A wall is not a lump: it is `structure` (blockwork), `insulation`, `finish` (plaster) — in order, from one face to the other. A stair is treads + risers + stringers. Each **Part** carries:
+
+- `name` — its slot in the element's own vocabulary (`core`, `insulation`, `finish.interior`), **authored by the Type, never by OCCT's traversal**;
+- `materialId` — the **Material** it is made of (§3.11) — which is what makes a **quantity** answerable;
+- one **solid**, built by the Type from the element's params + its Style's layer stack.
+
+⚠ **THIS IS WHY IT EXISTS, AND IT IS NOT A CONVENIENCE.** *"How much plaster is on this wall?"* is **unanswerable** against a single monolithic solid — and **quantity take-off is a declared north-star** (§9), which **domain rule 8 forbids foreclosing**. It is also what Miqdar needs (it idealizes the **structural** layer of a wall, not its finishes), and what stairs, railings and curtain walls all wait on. *(The kernel was built for this and the domain simply had not caught up: the OCCT build deliberately links **TKOffset** — "wall layers" — from day one.)*
+
+⚠ **AND IT DOES NOT WEAKEN THE ANTI-FUSE RULE — IT SHARPENS IT.** *"Never fuse two elements"* stands, verbatim (it is what stops a neighbouring wall re-owning your wall's faces, breaking every window hosted on it). **A part is not a second element**: it belongs to exactly one element, is created by that element's own recipe, and dies with it. A boolean **between parts of one element** (an Opening cutting through every layer of its host) is an *intra*-element operation and is fine — it always was.
+
+⚠ **AND IT COSTS THE KERNEL NOTHING.** A `SubShapeRef` is `{nodeId, kind, role, occurrence}` and **`nodeId` is an opaque string**, so a part is simply **its own node in the DAG** (`wall-1.structure`, `wall-1.finish`). **No new op, no protocol change, no change to `SubShapeRef`.** Parts are a *document-model* concept end to end — which is precisely why they can land before the P5 type freeze without touching the P3 protocol freeze.
 
 ### 3.4 BIM Object Type (the governing contract)
 A *kind* of thing (Wall, Slab, Column, Opening, GenericSolid, and — later — Door, Window, Roof, Stair…). A Type is a registered contract, not a hard-coded class list. It defines:
@@ -56,10 +78,34 @@ A *kind* of thing (Wall, Slab, Column, Opening, GenericSolid, and — later — 
 
 **Domain rule:** adding a new kind of building element is adding a new Type, never editing the core. This is the mechanism by which Bunyan reaches toward Revit-class breadth incrementally.
 
+### 3.4a ElementStyle — the named, shared parameter set *(decision D31)*
+
+**A Type is a KIND of thing (`Wall`). A Style is a SPECIFIC KIND of that thing (`EXT-200-Concrete`, `IPE300`).** The instance is *this one, here*. Every serious BIM tool has all three — Revit calls the middle one a **Family Type**, ArchiCAD a **Composite / Profile / Favourite** — and Bunyan had **only two**, which is the single largest modelling gap between it and the tools it intends to beat.
+
+A **Style** is a first-class, named, versioned, **shared** entity carrying everything that is common to every instance using it:
+- the **layer stack** — the ordered `{ material, thickness }` list that becomes the element's **Parts** (§3.3a);
+- the **section** — for a LinearMember (§3.5a), the `Section` it is swept from (§3.11a);
+- any other parameter that is a property of *the kind of wall*, not of *this wall*.
+
+**Editing a Style rebuilds every instance that references it.** That is the point, and it is the most-used operation in Revit: change `EXT-200-Concrete` and four hundred walls update.
+
+⚠ **THREE THINGS ARE IMPOSSIBLE WITHOUT IT, AND THE THIRD IS THE ECOSYSTEM ONE:**
+1. **Changing one wall type and having every wall follow** — the operation an architect performs all day.
+2. **Scheduling by type** — which is *what a quantity schedule is*. "Give me all `EXT-200-Concrete`" is not a query you can ask of instances that each carry their own private copy of the same numbers.
+3. **⚠ Miqdar's `DesignGroup` has nothing to write back into.** An engineer assigns **one section to a GROUP of columns** and re-runs; without a Style, Miqdar would have to set the section on each instance one at a time — which is precisely the workflow engineers do not use. **The Style IS the DesignGroup's counterpart in Bunyan**, and the round-trip is only trustworthy because both sides now name the same shared thing.
+
 ### 3.5 GenericSolid (the escape hatch)
 A Type whose "parameters" are a free sketch plus an operation (extrude/revolve). It exists so the modeller is never blocked by the absence of a named Type, and it is the **import target for any geometry that does not map to a known Type** (e.g. unrecognized IFC entities import as GenericSolid with geometry preserved but non-parametric). It keeps the product useful at every stage of its growth.
 
 **⚠ "Geometry preserved" means an exact B-Rep solid — never a mesh.** This is a *domain* rule, not an implementation preference, and it follows directly from §2: an imported thing that is only triangles cannot be measured, sectioned, booleaned or edited. It would be a **backdrop, not a building** — present on screen but outside the model's rules. An importer that cannot produce solids is therefore not an acceptable importer, whatever its convenience. *(This is why IFC import is IfcOpenShell and not `web-ifc` — spec D16.)*
+
+### 3.5a LinearMember — Beam and Column are ONE concept *(decision D32)*
+
+**A section, swept along an axis, with a justification.** That is a beam. Rotate the axis and it is a column. Bunyan shipped a `Column` (*"simple profile extrude"*) and **no `Beam` at all** — and the two were never the same concept, though they always were.
+
+A **LinearMember** carries: an **axis** (two points, or two grid intersections), a **Section** from the catalogue (§3.11a, via its Style), a **cardinal point / justification** (which line of the section the axis actually runs through — top-of-steel, centroid, face; getting this wrong is a classic BIM error), and a **rotation** about the axis. `Beam` and `Column` are **specialisations**, not siblings — which is exactly how **IFC** sees it (`IfcBeam` and `IfcColumn` are both an `IfcExtrudedAreaSolid` swept along an axis), and how an engineer sees it.
+
+⚠ **WHY THIS IS NOT A "NICE TO HAVE": WITHOUT A BEAM, THE ECOSYSTEM'S FLAGSHIP WORKFLOW IS LOSSY AT LAUNCH.** Miqdar's *structure-first* path — engineer designs the frame, exports it to Bunyan, architect builds the building around it — is **mostly beams and columns**. With no Beam type, every beam would land in Bunyan as a **`GenericSolid`**: geometrically correct, semantically dead. It could not be scheduled, re-sectioned, or round-tripped. **Miqdar's own spec had written that off as "lossy but correct… ACCEPTED".** It is not acceptable — **the ecosystem is the product**, and the kernel cost of fixing it is **zero** (`extrude` already sweeps a profile along a direction).
 
 ### 3.6 Opening & Host (the canonical parametric relationship)
 An **Opening** is a void subtracted from a **Host** (a Wall or Slab). It is the archetype of a *reference-carrying* object and the reason persistent naming exists:
@@ -91,11 +137,26 @@ A **derived projection** of the document graph: the 3D view, a 2D plan cut, a 2D
 
 **A projection need not be visual.** The **semantic projection** an actor reads in order to *reason* about the model — ids, types, parameters, levels, quantities, relationships, expressed as data rather than pixels — is a Representation like any other (§3.13). The 3D view is the projection *for eyes*; this is the projection *for reasoning*. Both are derived, disposable, and never truth.
 
-### 3.11 Material & Quantity (declared now, realized later)
-The domain reserves two concepts so the model does not dead-end:
-- **Material** — a property of an object/type carrying appearance and (future) physical properties.
-- **Quantity** — typed measurable properties (length, area, volume, count) a Type can expose.
-These back the **analysis & quantities** north-star (§9); a Type may declare them before any consumer exists.
+### 3.11 Material — a first-class, shared ENTITY *(decision D33; was "a property", and that was the bug)*
+
+**A Material is a registered, named, versioned entity** — `C25/30`, `S235`, `EPS-80`, `Plaster-15` — carrying appearance **and physical properties** (density, E, f_ck, f_y, thermal conductivity). It is **shared**: a Part references it, a schedule groups by it, and **Miqdar reads its physical properties as solver input**.
+
+⚠ **The old model said Material was "a property of an object/type", and that quietly foreclosed both consumers it was reserved for.** A material that is a *string on an object* cannot carry `f_ck`, cannot be grouped by a schedule, and cannot be bound by an analysis engine. **The two things the concept existed to enable were the two things it could not do.**
+
+- **Part → Material** (§3.3a) is what makes *"how much plaster?"* answerable.
+- **Style → layer stack → Material** (§3.4a) is what makes it answerable for *four hundred walls at once*.
+
+### 3.11a Section — the catalogue *(decision D33)*
+
+A registered, named, versioned **profile**: `IPE300`, `HEA200`, `RECT-300x600`, a rebar bar. A **LinearMember** (§3.5a) is swept from one, **via its Style**.
+
+⚠ **A free-form authored loop is not a section.** `IPE300` must be a *thing with a name and identity* — otherwise it cannot be scheduled ("all IPE300"), cannot be design-grouped by Miqdar, and cannot survive a round-trip as anything but coordinates. The Profile (§3.7) remains the escape hatch for a shape the catalogue does not have.
+
+### 3.11b Quantity (declared, and now actually answerable)
+
+Typed measurable properties (length, area, volume, count) a Type exposes. **These stopped being theoretical** the moment `measure` gained a `ref` (it can measure a *named sub-shape*, not just a whole solid) and elements gained **Parts** with **Materials** — those are the two hooks a schedule needs, and both now exist.
+
+These back the **analysis & quantities** north-star (§9).
 
 ### 3.12 Command & UndoableEdit
 A **Command** is an *actor's* action (draw, extrude, boolean, move, array, retarget…) — where the actor may be a human at the UI **or an AI agent** (§3.13). Executing a Command against the Document produces an **UndoableEdit** — a *state delta*, not a recorded command to replay. Undo/redo moves the parametric state backward/forward and **re-resolves references**; because identity is stable and geometry is deterministically rebuildable, this avoids the classic "replay produces different topology" hazard. A Command whose kernel work fails produces **no** UndoableEdit (§7).
@@ -157,12 +218,15 @@ These rules are what let a reference (an Opening on a wall, a fillet on an edge)
 ## 6. Relationships (how entities connect)
 
 - **Object → Type** (`typeId`): governs how it builds and maps.
-- **Object → Level** (`levelId`): organizes it vertically.
-- **Object → Object via SubShapeRef** (host/dependent): the parametric backbone — Opening→Wall, Fillet→edge, future hosted families. Directed; drives dependency tracking and incremental rebuild.
+- **Object → Style** (`styleId`, §3.4a): the shared, named parameter set it is an instance of. ⚠ **Editing the Style rebuilds every object that references it** — this edge is the one that makes "change the wall type, update 400 walls" a single edit, and it is the edge Miqdar's `DesignGroup` writes along.
+- **Object → Level** (`levelId`): organizes it vertically. **Object → Grid** (`gridRefs[]`, §3.2a): organizes it horizontally.
+- **Object → Part** (ordered, §3.3a): an element owns an ordered list of parts, each one solid. **Part → Material** (§3.11): what it is made of — and therefore what it can be billed as.
+- **Style → layer stack → Material**, and **Style → Section** (§3.11a) for a LinearMember: the shared definitions the parts are built from.
+- **Object → Object via SubShapeRef** (host/dependent): the parametric backbone — Opening→Wall, Fillet→edge, future hosted families. Directed; drives dependency tracking and incremental rebuild. ⚠ **A ref targets a PART's node** (`wall-1.structure`), which is exactly why parts cost the identity system nothing: `nodeId` was always an opaque string.
 - **Operation → Operation** (DAG): input/output derivation; the substrate of identity and rebuild.
 - **Document → View** (derivation): views are projections, always regenerated.
 - **Type → Codec** (via `ifcMapping`): how a kind of object crosses the interchange boundary.
-- **Object → Material / Quantity** (declared, future-realized): the analysis substrate.
+- **Object → Quantity** (§3.11b): the analysis substrate — **realizable at last**, because a Part carries a Material and `measure` takes a `ref`.
 
 **Domain invariant:** the reference graph among objects is a DAG (no cyclic hosting). Dependency direction defines rebuild order.
 
@@ -194,6 +258,8 @@ These rules are what let a reference (an Opening on a wall, a fillet on an edge)
 8. Nothing in the current version may foreclose a declared north-star (§9).
 9. **There is exactly one command layer.** Every actor — human or agent — acts on the Document only through Commands (§3.13); no actor has a private path to the kernel. Every Command **returns** the state delta it produced, so every action is verifiable.
 10. **The model describes itself.** Types and Commands are discoverable at runtime from the registries that govern them (§3.13); there is no separately-maintained description of what the app can do.
+11. **An element owns an ordered list of PARTS; a part belongs to exactly one element.** *(D30.)* Never fuse two **elements** — that re-owns the first one's faces and retroactively breaks every reference hosted on it. But an element is **not** one solid: it is its parts, each with a material, and a boolean **among an element's own parts** (an opening cutting every layer of its host) is an ordinary intra-element operation. **A single-solid element is just an element with one part.**
+12. **What is shared lives on the STYLE; what is unique lives on the INSTANCE.** *(D31.)* If two elements can legitimately disagree about a value, it is an instance parameter; if they cannot, it belongs to the Style and duplicating it onto instances is a defect. **Materials and Sections are shared entities, never strings** *(D33)* — a value that must be grouped, scheduled, or read by an analysis engine cannot be a copy.
 
 ---
 
@@ -201,7 +267,7 @@ These rules are what let a reference (an Opening on a wall, a fillet on an edge)
 
 The domain model is shaped so these become **additive** growth, not rewrites. Each notes the domain hook already present.
 
-- **Analysis & quantities** (structural/energy analysis, schedules, quantity take-off). *Hook:* Types may declare typed **Quantities** and **Materials** (§3.11); Views can host schedule representations. The model treats geometry and measurable properties as separable so an analytical view of the same objects can be added later.
+- **Analysis & quantities** (structural/energy analysis, schedules, quantity take-off). *Hook:* **⚠ THE HOOKS STOPPED BEING THEORETICAL IN 2026-07-13 (D30/D31/D33).** An element owns **Parts**, each with a **Material** (§3.3a, §3.11) — so *"how much plaster is on this wall?"* is answerable at all; a **Style** groups instances (§3.4a) — so it is answerable for four hundred walls at once; and `measure` takes a **`ref`** — so it is answerable for a single named *face*. Views can host schedule representations. ⚠ **Until those three landed, this north-star was declared and quietly foreclosed** — a monolithic solid with a material *string* can be billed for nothing, and **domain rule 8 exists to prevent exactly that.** *(This is also the whole input surface of **Miqdar**, the analysis product — §11.)*
 - **Real-time multi-user co-editing** of the parametric graph. *Hook:* stable per-object and per-operation **identity** (§4), edits expressed as discrete **UndoableEdit deltas** (§3.12), and a DAG with explicit dependency direction — the substrate a future conflict-resolution layer (locked/sequential first, then concurrent) needs. The domain avoids hidden global mutable state that would make merging impossible.
 - **Server-side / headless kernel** (move heavy geometry off the browser, batch processing). *Hook:* geometry is produced behind an **engine-agnostic worker boundary** (a flat, versioned message protocol — see `architecture.md`), so the kernel's *location* is not baked into the domain. The identity system is explicitly designed to allow a future native/C++ implementation without changing meaning.
 - **Scripting & generative design** (script-authored parametric families, CadQuery/build123d spirit). *Hook:* a **BIM Object Type** is a contract, not a hard-coded class — a script can register a Type whose `buildGeometry` is user-defined, and its outputs are ordinary objects with no special-casing. Sketches are designed to later accept a **constraint solver**; the Opening **anchoring parameter** (§3.6) is the first, concrete constraint the model already carries.
