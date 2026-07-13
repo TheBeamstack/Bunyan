@@ -40,6 +40,11 @@ interface GoldenCase {
   readonly params: Readonly<Record<string, unknown>>;
   readonly analytic?: Reference;
   readonly crossCheck: Reference;
+  /**
+   * A closed form for the VOLUME ALONE (D28's through-duct). Some shapes have an exact form for one
+   * measure and none for the others — checking the one we can is strictly better than checking none.
+   */
+  readonly volumeClosedForm?: number;
 }
 
 const goldens = JSON.parse(
@@ -156,6 +161,71 @@ describe('goldens — hard geometry, against a native OCCT reference build', () 
     closeTo(m.volume, 3000 * 200 * 2500 - 1000 * 200 * 1400, 'wall-with-window volume');
 
     // Every sub-shape of the result is named, and named once — on the flush/coplanar case too.
+    expect(cut.refs.length).toBe(m.counts.faces + m.counts.edges);
+    expect(new Set(cut.refs).size).toBe(cut.refs.length);
+  });
+
+  /**
+   * ⚠ THE SHAPE THAT WAS UNBUILDABLE UNTIL D28 — and the reason it needs a GEOMETRY golden at all.
+   *
+   * `naming-revolve.test.ts` proves the two rims get distinct, stable identities. It asserts nothing
+   * about millimetres — so a positional key that shipped alongside a boolean quietly cutting the WRONG
+   * MATERIAL would pass it, and pass every other naming test in the repo. This case closes that gap.
+   *
+   * The area, edge length and counts of two intersecting cylinders have no closed form worth deriving
+   * (elliptic integrals, tangled with a seam — spec §9.0 forbids inventing an approximate one), so the
+   * native-OCCT oracle stands alone for those, exactly as it does for the fillet. **But the VOLUME has
+   * an exact form**, and it is precisely the measure that catches a cut which removed nothing or
+   * removed the wrong solid. The seeder checks it and aborts on disagreement; so does this test.
+   */
+  it('a duct drilled CLEAN THROUGH a round column matches native OCCT — and the exact volume agrees', async () => {
+    const golden = find('column-through-duct-r400-d80');
+    const col = golden.params['column'] as { radius: number; height: number };
+    const duct = golden.params['duct'] as {
+      radius: number;
+      axis: [number, number, number];
+      atZ: number;
+    };
+
+    const column = await client.request('makeCylinder', {
+      nodeId: 'column-1',
+      radius: col.radius,
+      height: col.height,
+    });
+    const tool = await client.request('makeCylinder', {
+      nodeId: 'duct-1',
+      radius: duct.radius,
+      height: 4 * col.radius,
+      at: [0, -2 * col.radius, duct.atZ],
+      axis: duct.axis,
+    });
+    const cut = await client.request('boolean', {
+      nodeId: 'cut-1',
+      kind: 'cut',
+      a: column.handle,
+      b: tool.handle,
+    });
+
+    await assertMatches(cut.handle, golden);
+
+    // The independent tier — computed from the RADII, never from the B-Rep (see
+    // `analytic.cylinder_through_duct_volume`). Held to 1e-5 rather than 1e-9 because OCCT's boolean
+    // carries a tolerance of its own (~6e-7 here); that is still far tighter than any wrong-solid bug.
+    const exact = golden.volumeClosedForm;
+    expect(exact, 'this case must carry a closed-form VOLUME tier').toBeDefined();
+    const m = await client.request('measure', { handle: cut.handle });
+    expect(
+      Math.abs(m.volume - (exact ?? 0)) / (exact ?? 1),
+      `through-duct volume vs the closed form: got ${String(m.volume)}, exact is ${String(exact)}`,
+    ).toBeLessThan(1e-5);
+
+    // It really is a THROUGH hole. A blind pocket, or a cut that missed, would still be a valid solid
+    // with a plausible volume — and would still name cleanly.
+    expect(m.volume).toBeLessThan(Math.PI * col.radius ** 2 * col.height);
+    expect(m.counts.faces, 'lateral + 2 caps + the hole wall').toBe(4);
+
+    // And the payload of the whole ruling: every sub-shape named, and named ONCE. Before D28 the two
+    // rims collided and the kernel refused the operation outright.
     expect(cut.refs.length).toBe(m.counts.faces + m.counts.edges);
     expect(new Set(cut.refs).size).toBe(cut.refs.length);
   });

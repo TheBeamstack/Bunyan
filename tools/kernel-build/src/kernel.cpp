@@ -356,6 +356,51 @@ bool sameDerivation(const NameRow& l, const NameRow& r) {
          l.srcKind == r.srcKind && l.srcIndex == r.srcIndex && l.viaA == r.viaA && l.viaB == r.viaB;
 }
 
+// ---------------------------------------------------------------------------------------------
+// THE BOUNDED POSITIONAL KEY (spec §4.5 + §6.5) — RULED IN by the owner, 2026-07-13 (D28).
+//
+// ⚠⚠ THIS IS THE ONLY PLACE IN BUNYAN WHERE GEOMETRY TOUCHES THE IDENTITY PATH. Everything else in
+// this file is pure topology. Read the four rules before you change a character of it:
+//
+//   1. IT IS A LAST RESORT, NOT A NAME. It never *identifies* a sub-shape — it only ORDERS two
+//      siblings that every structural test has already proven interchangeable (same derivation, same
+//      neighbours/endpoints). If structure can separate them, this code never runs.
+//   2. IT IS BOUNDED. The centroid is rounded to the **mm grid** — the unit everything is authored in
+//      (spec §6.5) — with a FIXED rounding mode, so the key is an integer and the comparison is exact.
+//      No tolerance, no epsilon, no FP compare.
+//   3. IT IS COMPUTED IN THE ELEMENT'S OWN BUILD FRAME, which is what makes the residual risk small:
+//      `transform` is pure INHERIT and mints no identities, so MOVING OR ROTATING a column in the
+//      world cannot re-rank anything. Only re-authoring the recipe that places the duct *within* the
+//      column can flip the tie — that hazard is real, it is why this needed an owner ruling, and it is
+//      the reason the key is bounded rather than free.
+//   4. A COLLISION IS A DEFECT, NOT A FALLBACK. If two distinct sub-shapes round to the SAME key, the
+//      grid was too coarse for the model, and spec §6.5 is explicit: surface it, never tolerate it.
+//      The call sites below REFUSE, exactly as they did before this key existed.
+//
+// The case that forced it (measured, probe case `cut_round_column_by_duct`): a duct drilled clean
+// through a ROUND column. The column's lateral face wraps 360°, so the duct enters and leaves through
+// the SAME face — the two rims share a derivation, share both bounding faces, and have identical
+// endpoint signatures. Nothing structural separates them. They sit ~one column-diameter apart, so the
+// mm grid separates them by hundreds of units.
+using PositionalKey = std::array<long long, 3>;
+
+// A fixed rounding mode (spec §6.5): round-half-away-from-zero, the one `llround` guarantees on every
+// platform, so the seeded key is reproducible across the two build actors' machines.
+long long toGrid(double mm) { return std::llround(mm); }
+
+PositionalKey centroidKey(const TopoDS_Shape& s) {
+  GProp_GProps props;
+  // A face's centroid is the centroid of its AREA; an edge's is the centroid of its LENGTH. Asking
+  // for the wrong one returns a plausible, meaningless point (the same trap `measure` documents).
+  if (s.ShapeType() == TopAbs_FACE) {
+    BRepGProp::SurfaceProperties(s, props);
+  } else {
+    BRepGProp::LinearProperties(s, props);
+  }
+  const gp_Pnt c = props.CentreOfMass();
+  return {toGrid(c.X()), toGrid(c.Y()), toGrid(c.Z())};
+}
+
 // A derivation, flattened to a comparable key — so that one sub-shape's derivation can appear inside
 // ANOTHER's tie-break signature. Deliberately excludes `rank`: rank is what the signature is being
 // used to compute, and feeding it back in would be circular.
@@ -470,24 +515,36 @@ bool nameDerived(const std::vector<const ShapeEntry*>& operands, BRepBuilderAPI_
     faceSig[occt] = sig;
   }
 
+  // The bounded positional key (D28) — computed for every face, but CONSULTED only where structure has
+  // already tied. It is the third and last sort key, never the first.
+  std::map<int, PositionalKey> facePos;
+  for (const auto& [row, occt] : faces) {
+    (void)row;
+    facePos[occt] = centroidKey(r.outF(occt));
+  }
+
   // The canonical re-sort, then the occurrence index for siblings that share a derivation.
   std::sort(faces.begin(), faces.end(), [&](const auto& l, const auto& r2) {
     if (!sameDerivation(l.first, r2.first)) return rowLess(l.first, r2.first);
-    return faceSig[l.second] < faceSig[r2.second];  // structural, not a coordinate
+    if (faceSig[l.second] != faceSig[r2.second]) {
+      return faceSig[l.second] < faceSig[r2.second];  // structural, and it decides almost always
+    }
+    return facePos[l.second] < facePos[r2.second];  // ⚠ D28: geometry, bounded, last resort only
   });
 
   for (std::size_t i = 0; i < faces.size(); ++i) {
     NameRow row = faces[i].first;
     if (i > 0 && sameDerivation(row, faces[i - 1].first)) {
-      if (faceSig[faces[i].second] == faceSig[faces[i - 1].second]) {
-        // ⚠ THE GENUINELY SYMMETRIC SPLIT (spec §4.5): same parent, same neighbours. Structure has
-        // nothing left to say, and the only sanctioned tie-break is a positional key — geometry on
-        // the identity path, which would fire by accident on a case nobody looked at. We refuse and
-        // say so. If a real model ever hits THIS, that is the signal to build the bounded positional
-        // key deliberately.
+      if (faceSig[faces[i].second] == faceSig[faces[i - 1].second] &&
+          facePos[faces[i].second] == facePos[faces[i - 1].second]) {
+        // ⚠ Same derivation, same neighbours, AND the same millimetre. Two distinct faces cannot
+        // occupy one centroid on the mm grid unless the grid is too coarse for this model — which
+        // spec §6.5 says is a determinism DEFECT to surface, never something to tolerate. Refuse,
+        // exactly as this site did before the key existed.
         g_lastError =
-            "UNRESOLVED_SUBSHAPE_REF: two faces of the result share a derivation AND the same "
-            "neighbouring faces — they cannot be told apart structurally";
+            "UNRESOLVED_SUBSHAPE_REF: two faces of the result share a derivation, the same "
+            "neighbouring faces AND the same mm-grid centroid — structure cannot tell them apart and "
+            "the positional key collides, so no identity can be assigned";
         return false;
       }
       row.rank = out.faces.back().rank + 1;  // same derivation, next occurrence
@@ -577,6 +634,15 @@ bool nameDerived(const std::vector<const ShapeEntry*>& operands, BRepBuilderAPI_
     endpointSig.push_back(sig);
   }
 
+  // ⚠ THE CASE D28 WAS RULED IN FOR IS AN EDGE CASE, AND IT IS THIS ONE. The two rims of a duct
+  // drilled through a ROUND column reach here with the same derivation and the same endpoint
+  // signature — the spec mis-predicted the shape of this case twice (first a mirror, then two faces),
+  // and both times measurement corrected it. The key is the third sort term, and only the third.
+  std::vector<PositionalKey> edgePos(edges.size());
+  for (std::size_t i = 0; i < edges.size(); ++i) {
+    edgePos[i] = centroidKey(r.outE(edges[i].second));
+  }
+
   // Sort canonically, carrying the tie-break signature along.
   std::vector<std::size_t> order(edges.size());
   for (std::size_t i = 0; i < order.size(); ++i) order[i] = i;
@@ -584,16 +650,22 @@ bool nameDerived(const std::vector<const ShapeEntry*>& operands, BRepBuilderAPI_
     if (!sameDerivation(edges[l].first, edges[r2].first)) {
       return rowLess(edges[l].first, edges[r2].first);
     }
-    return endpointSig[l] < endpointSig[r2];  // the structural tie-break, not a coordinate
+    if (endpointSig[l] != endpointSig[r2]) {
+      return endpointSig[l] < endpointSig[r2];  // the structural tie-break, and it decides first
+    }
+    return edgePos[l] < edgePos[r2];  // ⚠ D28: geometry, bounded, last resort only
   });
 
   for (std::size_t k = 0; k < order.size(); ++k) {
     NameRow row = edges[order[k]].first;
     if (k > 0 && sameDerivation(row, edges[order[k - 1]].first)) {
-      if (endpointSig[order[k]] == endpointSig[order[k - 1]]) {
+      if (endpointSig[order[k]] == endpointSig[order[k - 1]] &&
+          edgePos[order[k]] == edgePos[order[k - 1]]) {
+        // Same derivation, same endpoints, AND the same millimetre — the grid collided (spec §6.5).
         g_lastError =
-            "UNRESOLVED_SUBSHAPE_REF: two edges of the result share a derivation AND the same "
-            "endpoints — they cannot be told apart structurally";
+            "UNRESOLVED_SUBSHAPE_REF: two edges of the result share a derivation, the same endpoints "
+            "AND the same mm-grid centroid — structure cannot tell them apart and the positional key "
+            "collides, so no identity can be assigned";
         return false;
       }
       row.rank = out.edges.back().rank + 1;  // same derivation, next occurrence
@@ -1667,13 +1739,24 @@ Bounds getBounds(int handle) {
     return b;
   }
   Bnd_Box box;
-  BRepBndLib::Add(entry->shape, box);
 
-  // ⚠ OCCT's bounding box is TOLERANT, not tight: BRepBndLib enlarges it by the shape's tolerance
-  // (~1e-7 mm), and `Get` then returns min-gap / max+gap. So a box sitting exactly on the origin
+  // ⚠⚠ `AddOptimal`, NOT `Add` — AND THE DIFFERENCE IS INVISIBLE ON EVERY SHAPE BUT ONE.
+  //
+  // `BRepBndLib::Add` bounds a curve by its CONTROL POLYGON, and a B-spline's control points lie
+  // OUTSIDE the curve they define. On a box, a cylinder or any planar/analytic face the two agree
+  // exactly — which is why this stood for seven entries. The first shape in this project with a
+  // SPLINE edge is the rim of a duct drilled through a round column (D28), and there `Add` overshot
+  // the true box by 7 microns: it reported x-min = -400.0071 for a column of radius 400.
+  //
+  // Caught by the golden harness against the native OCCT oracle, which had used `AddOptimal` all
+  // along. Third time the harness has caught the same class of bug, and it is always the same class:
+  // OUR misuse of an OCCT API, never an OCCT defect (spec §9.0).
+  BRepBndLib::AddOptimal(entry->shape, box);
+
+  // ⚠ And OCCT's bounding box is TOLERANT, not tight: it is enlarged by the shape's tolerance
+  // (~1e-7 mm), and `Get` then returns min-gap / max+gap, so a box sitting exactly on the origin
   // reports xMin = -1e-7. The spec asks for the tight box (it is compared against exact goldens, and
-  // it is what the viewport frames), so drop the gap. Caught by the golden harness — our misreading of
-  // an OCCT API, which is exactly the class of bug it exists to find (spec §9.0).
+  // it is what the viewport frames), so drop the gap too.
   box.SetGap(0.0);
   box.Get(b.xMin, b.yMin, b.zMin, b.xMax, b.yMax, b.zMax);
   return b;

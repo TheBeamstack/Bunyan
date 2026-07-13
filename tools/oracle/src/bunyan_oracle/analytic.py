@@ -125,6 +125,50 @@ def cylinder(radius: float, height: float) -> Measures:
     )
 
 
+def cylinder_through_duct_volume(radius: float, height: float, duct_radius: float) -> float:
+    """The VOLUME of a round column with a duct drilled clean through it, exactly.
+
+    ⚠ VOLUME ONLY, AND THAT IS DELIBERATE. This case has no `Measures` tier: the area, the edge length
+    and the face/edge counts of two intersecting cylinders are elliptic integrals tangled up with a
+    seam, and spec §9.0 is explicit that inventing an approximate closed form is WORSE than having none
+    — it produces a golden that is confidently, quietly wrong. So the reference-build oracle stands
+    alone for those (exactly as it does for the fillet), and this function guards the one quantity that
+    *does* have an exact form, which is also the one that catches the bug that matters: **a boolean
+    that removed nothing, or removed the wrong solid.** Both are off by percent, not by epsilon.
+
+    THE DERIVATION (column radius R about Z; duct radius r about Y, crossing clean through):
+    a point of the duct's disc at (x, z) sits inside the column over a y-extent of 2*sqrt(R^2 - x^2),
+    and the disc's z-extent at x is 2*sqrt(r^2 - x^2). So
+
+        removed = 4 * INT_{-r}^{r} sqrt(R^2 - x^2) * sqrt(r^2 - x^2) dx
+
+    which is elliptic. Substituting x = r*sin(t) removes the square-root singularity at the limits and
+    leaves a smooth, analytic integrand, so Simpson converges to machine precision:
+
+        removed = 4r^2 * INT_{-pi/2}^{pi/2} cos^2(t) * sqrt(R^2 - r^2 sin^2(t)) dt
+
+    It is computed from the AUTHORED RADII, never from the B-Rep — which is what makes it an
+    independent tier at all. Agrees with the native OCCT boolean to ~6e-7 relative (that gap is OCCT's
+    boolean tolerance, not an error in either).
+    """
+    if duct_radius >= radius:
+        raise ValueError("the duct must be narrower than the column for a through-hole to exist")
+
+    n = 200_000  # even; Simpson
+    a, b = -math.pi / 2.0, math.pi / 2.0
+    h = (b - a) / n
+
+    def f(t: float) -> float:
+        return math.cos(t) ** 2 * math.sqrt(radius**2 - duct_radius**2 * math.sin(t) ** 2)
+
+    total = f(a) + f(b)
+    for i in range(1, n):
+        total += (4.0 if i % 2 else 2.0) * f(a + i * h)
+    removed = 4.0 * duct_radius**2 * total * h / 3.0
+
+    return math.pi * radius**2 * height - removed
+
+
 def wall_with_opening(
     dx: float, dy: float, dz: float, ox: float, oy: float, oz: float, at_x: float, at_z: float
 ) -> Measures:

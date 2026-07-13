@@ -19,9 +19,17 @@
  * Only genuinely NEW sub-shapes — a boolean's section edges, a fillet's rounded face, the pieces of a
  * face that was split in two — are owned by the operation that created them.
  *
- * ⚠ Nothing here reads a coordinate. If you ever find yourself wanting to, the answer is no: a
- * geometric rule silently re-targets references the moment a solid is moved or rebuilt, and it fails
- * in a way no volume check can catch (spec §4.5, core_logic §5).
+ * ⚠ NOTHING IN THIS FILE READS A COORDINATE, AND THAT IS STILL THE RULE. A geometric rule silently
+ * re-targets references the moment a solid is moved or rebuilt, and it fails in a way no volume check
+ * can catch (spec §4.5, core_logic §5).
+ *
+ * ⚠⚠ THERE IS NOW EXACTLY ONE SANCTIONED EXCEPTION IN THE WHOLE SYSTEM, AND IT IS NOT HERE — IT IS IN
+ * C++: the **bounded positional key** (D28, owner-ruled 2026-07-13; `kernel.cpp`, `centroidKey`). It
+ * orders two sub-shapes that every structural test has already proven interchangeable — the two rims
+ * of a duct drilled through a ROUND column — by their mm-rounded centroid. It never *identifies*
+ * anything; it only breaks a tie, and only after structure has run out of things to say. By the time a
+ * `rank` reaches this file it is already an integer, so the rule above holds here verbatim: if you
+ * find yourself wanting to read a coordinate *in this file*, the answer is still no.
  */
 
 import { decodeSubShapeRef, encodeSubShapeRef } from '@bunyan/protocol';

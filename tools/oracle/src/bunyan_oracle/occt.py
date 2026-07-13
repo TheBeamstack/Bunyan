@@ -110,6 +110,35 @@ def cylinder(radius: float, height: float) -> dict[str, Any]:
     return measure(BRepPrimAPI_MakeCylinder(radius, height).Shape())
 
 
+def column_with_through_duct(
+    radius: float, height: float, duct_radius: float, at_z: float
+) -> dict[str, Any]:
+    """A ROUND column with a service duct drilled clean through it — the case that forced D28.
+
+    ⚠ THE DUCT RUNS ALONG **Y**, AND THAT IS NOT ARBITRARY. OCCT puts a cylinder's seam on the +X
+    meridian, so a duct along X would exit straight through the seam and SPLIT the entry rim into two
+    halves — a different (and messier) topology, with three rim edges instead of two. Along Y the duct
+    misses the seam entirely, which isolates the case this golden exists for: **exactly two rims,
+    genuinely topologically symmetric**, which no structural rule can separate and which the bounded
+    positional key (spec §4.5, D28) orders by their mm-rounded centroid.
+
+    Geometrically it is just two intersecting cylinders — but it is the shape that was unbuildable
+    until 2026-07-13, so its geometry now needs certifying like any other.
+    """
+    column = BRepPrimAPI_MakeCylinder(radius, height).Shape()
+    duct = BRepPrimAPI_MakeCylinder(
+        gp_Ax2(gp_Pnt(0.0, -2.0 * radius, at_z), gp_Dir(0.0, 1.0, 0.0)),
+        duct_radius,
+        4.0 * radius,  # comfortably longer than the column is wide: it goes in one side and out the other
+    ).Shape()
+
+    cut = BRepAlgoAPI_Cut(column, duct)
+    cut.Build()
+    if not cut.IsDone():
+        raise RuntimeError("the reference cut did not complete")
+    return measure(cut.Shape())
+
+
 def wall_with_opening(
     dx: float, dy: float, dz: float, ox: float, oy: float, oz: float, at_x: float, at_z: float
 ) -> dict[str, Any]:

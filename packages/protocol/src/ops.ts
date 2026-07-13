@@ -8,6 +8,7 @@
 
 import type { Bounds, MeshBuffers, Vec3 } from './mesh.js';
 import type { KernelFailureCode } from './failures.js';
+import type { SubShapeRef } from './subshape.js';
 
 /**
  * An opaque token for a shape living on the WASM heap. The main thread NEVER holds a raw OCCT
@@ -411,6 +412,113 @@ export interface DemoFailurePayload {
   readonly message?: string;
 }
 
+/* ================================================================================================
+ * RESERVED OPS (D13, owner-ruled 2026-07-13) — DECLARED HERE, IMPLEMENTED IN P6.
+ *
+ * ⚠⚠ WHY THESE EXIST BEFORE THEIR BODIES DO, AND WHY IT IS NOT PREMATURE.
+ *
+ * The message protocol FREEZES at the end of P3. P6 needs a `sectionCut` op (the 2D plan and
+ * elevation — a headline v1.0.0 deliverable, and the *proof* that the kernel is the source of truth
+ * rather than a 3D toy) and IFC-import ops (D16 — IfcOpenShell exposed as new C++ ops, by
+ * construction). **Neither existed, and neither was scheduled before the freeze** — so P6 would have
+ * opened by amending a frozen contract, which makes the freeze theatre. Unnoticed for 12 entries;
+ * found by Entry 13's audit.
+ *
+ * The owner ruled BOTH halves (2026-07-13): D13 is re-worded so that *adding* an op is additive and
+ * permitted while *changing an existing op's envelope* needs sign-off — **and the shapes below are
+ * reserved now anyway**, because the expensive thing to get wrong is the PAYLOAD SHAPE, not the body.
+ *
+ * ⚠ THEY ARE DELIBERATELY UNIMPLEMENTED. No kernel registers a handler, so neither appears in
+ * `capabilities` (which is derived from the handler map — D28-era rule) and both answer `UNKNOWN_OP`.
+ * That is the contract: **the shape is frozen; the behaviour is P6's.** A test pins it.
+ * ================================================================================================ */
+
+/**
+ * SECTION CUT — the 2D plan, section and elevation (P6 step 1).
+ *
+ * ⚠ THE INVARIANT THIS OP EXISTS TO PROVE: a drawing is a **projection of the B-Rep**, never a
+ * separately-drawn artefact that can disagree with the model. Cut the same solids with a plane and you
+ * get the plan; that is the whole claim of the product, and this is the op that makes it true.
+ *
+ * ⚠ AND THE REASON IT RETURNS `ref` ON EVERY CURVE: a plan must be **annotatable and clickable**. A
+ * dimension anchored to a wall's face in plan is anchored to *that face's `SubShapeRef`*, so it
+ * survives the wall being edited — exactly as a 3D reference does. A section that returned anonymous
+ * polylines would be a picture, and pictures go stale. (Hidden-line removal is available to us:
+ * **TKHLR** is one of the 18 toolkits in our OCCT build, and it was chosen for this.)
+ */
+export interface SectionCutPayload {
+  /** Every solid to cut — typically a level's worth of elements. */
+  readonly handles: readonly ShapeHandle[];
+  /** The cutting plane. `xAxis` fixes the 2D frame the result's coordinates are expressed in. */
+  readonly plane: {
+    readonly origin: Vec3;
+    readonly normal: Vec3;
+    readonly xAxis: Vec3;
+  };
+  /**
+   * `cut` returns only the slice (what the plane passes through). `cut+projection` also returns the
+   * visible edges BEYOND the plane — which is what makes it a plan rather than a set of outlines.
+   */
+  readonly mode?: 'cut' | 'cut+projection';
+  /** How far beyond the plane to look, in mm. Unbounded when omitted. */
+  readonly depth?: number;
+}
+
+export interface SectionCurve {
+  /**
+   * The sub-shape this curve came from — the provenance that makes the drawing parametric. Absent only
+   * where a curve has no single owner (a silhouette of a curved surface has no edge behind it).
+   */
+  readonly ref?: SubShapeRef;
+  /** `cut` = the plane passes through solid material here. `projected` = visible beyond the plane. */
+  readonly kind: 'cut' | 'projected';
+  /** A polyline IN THE PLANE'S 2D FRAME, flat [x0,y0, x1,y1, …] in millimetres. */
+  readonly points: readonly number[];
+  /** A cut curve bounds material and is closed; a projected edge generally is not. */
+  readonly closed: boolean;
+}
+
+export interface SectionCutResult {
+  readonly curves: readonly SectionCurve[];
+}
+
+/**
+ * IFC IMPORT — exact solids, via IfcOpenShell (D16, P6 step 3).
+ *
+ * ⚠ `web-ifc` was REJECTED and this shape records why: it returns **meshes**, and a mesh cannot be
+ * measured, sectioned or edited — which would break the B-Rep-is-truth invariant the moment an
+ * imported wall needed a window. IfcOpenShell hands back **real B-Rep solids**, and it can do so only
+ * because *we own the OCCT build* and can link a second C++ library against it (owner ruling 11).
+ *
+ * ⚠ The result is deliberately SEMANTIC, not geometric-only: an IFC import that threw away
+ * `globalId`, the IFC type and the property sets would import a *shape* and lose the *building*.
+ */
+export interface ImportIfcPayload {
+  /** The raw file. Transferred, not copied — an IFC model is routinely hundreds of MB. */
+  readonly bytes: Uint8Array;
+  /**
+   * Import only these IFC types (`IfcWall`, `IfcSlab`, …). All when omitted. An unmapped type still
+   * imports — as a `GenericSolid`, which is precisely why `revolve` had to exist before P6.
+   */
+  readonly types?: readonly string[];
+}
+
+export interface ImportedElement {
+  /** The IFC `GlobalId` — the identity the source file gives it, and the key a re-import matches on. */
+  readonly globalId: string;
+  readonly ifcType: string;
+  readonly name?: string;
+  readonly handle: ShapeHandle;
+  /** IFC property sets, flattened. Carried through because quantities and schedules depend on them. */
+  readonly properties?: Readonly<Record<string, string | number | boolean>>;
+}
+
+export interface ImportIfcResult {
+  readonly elements: readonly ImportedElement[];
+  /** Entities the importer could not turn into a solid. Loud, never silent — spec §9's rule. */
+  readonly skipped: readonly { readonly globalId: string; readonly reason: string }[];
+}
+
 /**
  * The single source of truth for op names and their payload/result types. Adding an op is adding
  * a line here — the dispatcher, the client and the mock all derive their types from this map.
@@ -434,6 +542,11 @@ export interface OpMap {
   tessellate: { payload: TessellatePayload; result: MeshBuffers };
   releaseShape: { payload: ReleaseShapePayload; result: ReleaseShapeResult };
   demoFailure: { payload: DemoFailurePayload; result: never };
+
+  // RESERVED (D13) — the shape is frozen now; the body is P6's. No kernel implements these, so they
+  // are absent from `capabilities` and answer UNKNOWN_OP. See the block above `SectionCutPayload`.
+  sectionCut: { payload: SectionCutPayload; result: SectionCutResult };
+  importIfc: { payload: ImportIfcPayload; result: ImportIfcResult };
 }
 
 export type OpName = keyof OpMap;
@@ -459,7 +572,20 @@ export const OP_NAMES = [
   'tessellate',
   'releaseShape',
   'demoFailure',
+  'sectionCut',
+  'importIfc',
 ] as const satisfies readonly OpName[];
+
+/**
+ * RESERVED OPS (D13) — declared in the protocol, deliberately NOT implemented until P6.
+ *
+ * Their **payload shape is frozen** with the rest of the protocol at the end of P3; their behaviour is
+ * P6's. No kernel registers a handler for them, so they never appear in `capabilities` and they answer
+ * `UNKNOWN_OP` — which is the honest reply, and the same one the mock gives for a boolean it cannot
+ * fake. ⚠ **Reserved is not the same as missing:** a missing op means P6 must amend a frozen contract;
+ * a reserved one means P6 writes a body against a shape that was agreed while the protocol was soft.
+ */
+export const RESERVED_OPS = ['sectionCut', 'importIfc'] as const satisfies readonly OpName[];
 
 export function isOpName(value: string): value is OpName {
   return (OP_NAMES as readonly string[]).includes(value);

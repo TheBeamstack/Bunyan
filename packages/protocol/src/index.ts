@@ -28,7 +28,7 @@ export type { SubShapeKind, SubShapeRef } from './subshape.js';
 export { faceRefForTriangle, meshTransferables, triangleCount } from './mesh.js';
 export type { Bounds, EdgePolyline, MeshBuffers, MeshProvenance, Vec3 } from './mesh.js';
 
-export { OP_NAMES, INFRASTRUCTURE_OPS, capabilitiesOf, isOpName } from './ops.js';
+export { OP_NAMES, INFRASTRUCTURE_OPS, RESERVED_OPS, capabilitiesOf, isOpName } from './ops.js';
 export type {
   BooleanKind,
   BooleanPayload,
@@ -44,6 +44,9 @@ export type {
   ExtrudePayload,
   FilletPayload,
   HandshakeResult,
+  ImportedElement,
+  ImportIfcPayload,
+  ImportIfcResult,
   KernelInfo,
   MakeBoxPayload,
   MakeCylinderPayload,
@@ -59,6 +62,9 @@ export type {
   ReleaseShapeResult,
   RevolvePayload,
   RigidMotion,
+  SectionCurve,
+  SectionCutPayload,
+  SectionCutResult,
   ShapeHandle,
   ShapeResult,
   TransformPayload,

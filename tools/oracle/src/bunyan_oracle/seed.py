@@ -93,6 +93,42 @@ def _case_wall_with_opening(
     }
 
 
+def _case_column_with_through_duct(
+    name: str, radius: float, height: float, duct_radius: float, at_z: float
+) -> dict[str, Any]:
+    """A duct drilled CLEAN THROUGH a round column — the shape that forced the positional key (D28).
+
+    Until 2026-07-13 this did not build at all: the column's lateral face wraps 360°, so the duct
+    enters and leaves through the SAME face, and the two rims are genuinely topologically symmetric.
+    The kernel refused the whole operation. Now the bounded positional key orders them, and the solid
+    it produces has to be certified like any other — a naming fix that quietly cut the wrong material
+    would otherwise sail through, because `naming-revolve.test.ts` asserts identities, not millimetres.
+
+    ⚠ NO FULL `analytic` TIER, and `analytic.cylinder_through_duct_volume` explains why: the area,
+    edge length and counts of two intersecting cylinders are elliptic integrals around a seam, and
+    spec §9.0 says an approximate closed form is worse than none. **But the VOLUME has an exact form**,
+    and it is the one that catches the boolean bug that matters (a cut that removed nothing, or removed
+    the wrong solid — both off by percent, not epsilon). It is checked in `main()`, at seed time.
+    """
+    return {
+        "case": name,
+        "op": "boolean",
+        "params": {
+            "kind": "cut",
+            "column": {"radius": radius, "height": height},
+            # ⚠ ALONG Y ON PURPOSE — a duct along X would exit through OCCT's seam meridian and split
+            # the entry rim in two. Along Y there are exactly two rims, which IS the symmetric tie.
+            "duct": {"radius": duct_radius, "axis": [0.0, 1.0, 0.0], "atZ": at_z},
+        },
+        "crossCheck": occt.column_with_through_duct(radius, height, duct_radius, at_z),
+        "volumeClosedForm": analytic.cylinder_through_duct_volume(radius, height, duct_radius),
+        # OCCT's boolean carries a tolerance of its own (~6e-7 relative here), so the closed form is
+        # held to 1e-5 rather than the 1e-9 an exact primitive gets. That is still four orders tighter
+        # than any wrong-solid bug could hide in.
+        "tolerances": {"relative": 1e-9, "volumeClosedFormRelative": 1e-5},
+    }
+
+
 def _case_filleted_box(name: str, dx: float, dy: float, dz: float, radius: float) -> dict[str, Any]:
     """A box with its `x-max|y-min` edge rounded.
 
@@ -352,6 +388,12 @@ def build_goldens() -> dict[str, Any]:
             _case_revolved_tube("revolve-tube-r500-r1000-h3000", 500.0, 1000.0, 3000.0),
             _case_revolved_hemisphere("revolve-hemisphere-r1000", 1000.0),
             _case_revolved_tube_partial("revolve-tube-partial-90deg", 500.0, 1000.0, 3000.0, 90.0),
+            # THE POSITIONAL KEY (D28, owner-ruled 2026-07-13). A service duct through a round column:
+            # ordinary in every building, and UNBUILDABLE here until the key landed, because the two
+            # rims are genuinely topologically symmetric. `naming-revolve.test.ts` proves the identities
+            # are right; this proves the SOLID is — a naming fix that cut the wrong material would
+            # otherwise pass unnoticed.
+            _case_column_with_through_duct("column-through-duct-r400-d80", 400.0, 3000.0, 80.0, 1500.0),
         ],
     }
 
@@ -365,6 +407,21 @@ def main() -> int:
 
     # Cross-check tier 0 against tier 1 at seed time. If the closed form and OCCT disagree, one of
     # them is wrong and a human must look — never commit a golden that failed this.
+    # ⚠ THE PARTIAL CLOSED FORM (D28's case). A shape can have an exact form for ONE measure and none
+    # for the others — two intersecting cylinders do. Checking the measure we CAN check is strictly
+    # better than checking nothing because we cannot check all of them, and it is the measure that
+    # catches a boolean which removed nothing or removed the wrong solid.
+    for case in goldens["cases"]:
+        if "volumeClosedForm" not in case:
+            continue
+        lhs = float(case["volumeClosedForm"])
+        rhs = float(case["crossCheck"]["volume"])
+        tol = float(case["tolerances"]["volumeClosedFormRelative"])
+        if abs(lhs - rhs) > tol * max(abs(lhs), abs(rhs), 1.0):
+            raise SystemExit(
+                f"SEED ABORTED — {case['case']}: closed-form volume {lhs} disagrees with OCCT {rhs}"
+            )
+
     for case in goldens["cases"]:
         if "analytic" not in case:
             continue  # a fillet has no closed form — the oracle stands alone (spec §9.0)
@@ -395,7 +452,12 @@ def main() -> int:
     print(f"seeded {len(goldens['cases'])} case(s) -> {out_path}")
     for case in goldens["cases"]:
         volume = case.get("analytic", case["crossCheck"])["volume"]
-        tier = "analytic == OCCT" if "analytic" in case else "OCCT only (no closed form)"
+        if "analytic" in case:
+            tier = "analytic == OCCT"
+        elif "volumeClosedForm" in case:
+            tier = "OCCT + closed-form VOLUME (no closed form for area/counts)"
+        else:
+            tier = "OCCT only (no closed form)"
         print(f"  {case['case']}: volume={volume:.1f} mm^3 ({tier})")
     return 0
 

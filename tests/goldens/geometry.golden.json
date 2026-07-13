@@ -1,6 +1,6 @@
 {
   "$schema": "bunyan.goldens.v1",
-  "seededAt": "2026-07-13T04:46:27.215608+00:00",
+  "seededAt": "2026-07-13T11:52:47.575775+00:00",
   "env": {
     "oracle": "cadquery-ocp (OCP bindings to OCCT)",
     "ocpVersion": "7.9.3.1.1",
@@ -928,6 +928,54 @@
       },
       "tolerances": {
         "relative": 1e-09
+      }
+    },
+    {
+      "case": "column-through-duct-r400-d80",
+      "op": "boolean",
+      "params": {
+        "kind": "cut",
+        "column": {
+          "radius": 400.0,
+          "height": 3000.0
+        },
+        "duct": {
+          "radius": 80.0,
+          "axis": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "atZ": 1500.0
+        }
+      },
+      "crossCheck": {
+        "volume": 1491959392.3271823,
+        "area": 8902781.612413337,
+        "edgeLength": 9834.417840456894,
+        "counts": {
+          "solids": 1,
+          "faces": 4,
+          "edges": 6,
+          "vertices": 4
+        },
+        "bounds": {
+          "min": [
+            -400.0000001,
+            -400.0000001,
+            -1e-07
+          ],
+          "max": [
+            400.0000001,
+            400.0000001,
+            3000.0000001
+          ]
+        }
+      },
+      "volumeClosedForm": 1491960351.3489175,
+      "tolerances": {
+        "relative": 1e-09,
+        "volumeClosedFormRelative": 1e-05
       }
     }
   ]

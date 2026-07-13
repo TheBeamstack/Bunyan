@@ -24,7 +24,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { InProcessTransport, KernelClient } from '@bunyan/kernel-client';
 import { createOcctKernelHost } from '@bunyan/kernel-occt';
 import { createMockKernelHost } from '@bunyan/kernel-mock';
-import { INFRASTRUCTURE_OPS, OP_NAMES } from '@bunyan/protocol';
+import { INFRASTRUCTURE_OPS, OP_NAMES, RESERVED_OPS } from '@bunyan/protocol';
 
 describe('measure(ref) — the op that makes quantities possible', () => {
   let client: KernelClient;
@@ -124,11 +124,13 @@ describe('capabilities are DERIVED from the handlers, never hand-written', () =>
     try {
       const { kernel } = await client.request('handshake', { clientProtocolVersion: 1 });
 
-      // Every op in the protocol that is not plumbing, and that the kernel does NOT advertise, must
-      // genuinely be unimplemented — and every op it DOES advertise must genuinely answer. The list and
-      // the implementation cannot disagree, because the list IS the implementation.
+      // Every op in the protocol that is not plumbing and not RESERVED, and that the kernel does NOT
+      // advertise, must genuinely be unimplemented — and every op it DOES advertise must genuinely
+      // answer. The list and the implementation cannot disagree, because the list IS the implementation.
       const geometryOps = OP_NAMES.filter(
-        (op) => !(INFRASTRUCTURE_OPS as readonly string[]).includes(op),
+        (op) =>
+          !(INFRASTRUCTURE_OPS as readonly string[]).includes(op) &&
+          !(RESERVED_OPS as readonly string[]).includes(op),
       );
       expect(kernel.capabilities).toEqual(geometryOps);
 
@@ -167,6 +169,60 @@ describe('capabilities are DERIVED from the handlers, never hand-written', () =>
       ).rejects.toMatchObject({ failure: { code: 'UNKNOWN_OP' } });
     } finally {
       client.dispose();
+    }
+  });
+
+  /**
+   * ⚠⚠ THE RESERVED OPS (D13, owner-ruled 2026-07-13) — AND WHAT "RESERVED" ACTUALLY MEANS.
+   *
+   * The protocol freezes at the end of P3. **P6 needs `sectionCut`** (the 2D plan and elevation — a
+   * headline v1.0.0 deliverable, and the proof the kernel is the source of truth) **and IFC-import ops**
+   * (D16, new C++ ops by construction). Neither existed and neither was scheduled before the freeze, so
+   * **P6 would have opened by amending a frozen contract** — which makes the freeze theatre. Twelve
+   * entries missed it; Entry 13's audit found it.
+   *
+   * The ruling reserved the SHAPES now, because the expensive thing to get wrong is the payload, not the
+   * body. This test pins the two halves of what that means, so neither can rot:
+   *
+   *   1. the op is DECLARED (it is in `OpMap` and `OP_NAMES`, so its payload type is frozen with the
+   *      rest of the protocol), and
+   *   2. the op is HONESTLY UNIMPLEMENTED — no handler, so it is absent from `capabilities` and answers
+   *      `UNKNOWN_OP`. It does not pretend, and it does not silently return an empty result.
+   *
+   * ⚠ When P6 implements one, `capabilities` picks it up **with no other edit** — because the list is
+   * derived from the handler map. That is the whole design. **This test then fails, and it should:** the
+   * op must be removed from `RESERVED_OPS` deliberately, by a human who knows what they are doing.
+   */
+  it('the RESERVED ops are declared, unimplemented, and honest about it (D13)', async () => {
+    expect(RESERVED_OPS, 'the two ops P6 needs, reserved before the freeze').toEqual([
+      'sectionCut',
+      'importIfc',
+    ]);
+
+    // Declared in the protocol — the payload shape is frozen even though the body is not written.
+    for (const op of RESERVED_OPS) {
+      expect(OP_NAMES, `${op} must be in the protocol`).toContain(op);
+    }
+
+    for (const host of [await createOcctKernelHost(), createMockKernelHost()]) {
+      const client = new KernelClient(new InProcessTransport(host));
+      try {
+        const { kernel } = await client.request('handshake', { clientProtocolVersion: 1 });
+
+        for (const op of RESERVED_OPS) {
+          // Not advertised — because no handler exists, not because a list was maintained by hand.
+          expect(kernel.capabilities, `${op} is reserved, not shipped`).not.toContain(op);
+
+          // And genuinely refused. A reserved op that quietly returned `{ curves: [] }` would be far
+          // worse than one that says it cannot do the job.
+          await expect(
+            client.request(op, {} as never),
+            `${op} must answer UNKNOWN_OP until P6 implements it`,
+          ).rejects.toMatchObject({ failure: { code: 'UNKNOWN_OP' } });
+        }
+      } finally {
+        client.dispose();
+      }
     }
   });
 });
