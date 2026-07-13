@@ -31,6 +31,12 @@ B-Rep kernel (OpenCascade/OCCT compiled to WebAssembly) computes geometry; the d
 3. `V1.0.0_spec.md` — scope, decisions **D1–D18**, acceptance criteria. *What ships first.*
 4. `v1.0.0_imp_plan.md` — the 7 phases and their exit criteria. *The build sequence.*
 
+**Also in this repo, and NOT optional reading before a contract freeze:**
+
+5. **`Miqdar_v1.0.0_spec.md`** (+ `Miqdar_normative_register.md`) — **the second product** (structural analysis & design; owner-ruled 2026-07-12/13, **§4g**). ⚠ **It lives here for exactly one reason: Bunyan's contract freezes must not foreclose it.** **P5 has a gate that points at its §3.4** (`v1.0.0_imp_plan.md` step 6a). It is **not** a Bunyan work item — Miqdar starts only after **Bunyan v1.0.0** ships.
+
+⚠ **Version strings: always write "Bunyan v1.0.0" or "Miqdar v1.0.0" — never a bare "v1.0.0."** Two independently-versioned products now both have one, and this file exists to *remove* that kind of ambiguity, not create it. *(Miqdar M17.)*
+
 **The one non-negotiable invariant:** B-Rep is the source of truth; the parametric recipe is the
 source of truth for the B-Rep; meshes and 2D views are disposable. Everything else follows from it.
 
@@ -416,6 +422,33 @@ implemented (see §5).
 **(7) The 1.1 GB `/tmp` reclamation: APPROVED.** See Entry 3 — `/tmp` is a **tmpfs (RAM-backed)** on
 this box, and a dead session's throwaway venv was holding 1.1 GB of RAM hostage. Deleted. **This is a
 standing box fact worth remembering: anything written to `/tmp` here consumes RAM, not disk.**
+
+### 4g — THE THIRD BIG ONE: **MIQDAR — A SECOND PRODUCT.** RULED 2026-07-12/13 (Entry 10).
+
+**In one line: Bunyan MODELS (everything, structural and architectural). Miqdar ANALYSES & DESIGNS (only).** Two products over shared DNA — the Revit ↔ Robot Structural Analysis relationship, except the link is built on **stable identity (D1)** and **one command layer (D19)**, the two things that make the incumbents' link chronically painful.
+
+**⚠ Its spec lives IN THIS REPO on purpose:** **`Miqdar_v1.0.0_spec.md`** (+ **`Miqdar_normative_register.md`**). Not because Miqdar is built here — **Miqdar development starts only after Bunyan v1.0.0 ships** — but because **Bunyan's contract freezes must not foreclose it.** When Miqdar's repo exists, the spec moves and a pointer stays.
+
+**The five rulings so far (full reasoning in the spec's §15 M-series):**
+
+| # | Ruling |
+|---|---|
+| **M1** | Miqdar is a **separate product**: analysis & design only. Bidirectional, standalone-capable. *(2026-07-12)* |
+| **M8** | **Jurisdictions: France, Morocco, Algeria** — the *editions* are NOT ruled; they live in the owner-editable **normative register** and are ratified before Miqdar's S3. *(2026-07-12; corrected 2026-07-13)* |
+| **M9** | **Materials: RC + steel + prestressed.** Roads/bridges/tunnels → Miqdar 1.0.x domain modules. *(2026-07-12)* |
+| **M11-b** | **Optimizer `maxUtilization`, default 0.90 — not 1.0.** Optimizing to the code minimum puts dozens of members on the boundary with a clean green sheet and no margin. *(2026-07-13)* |
+| **M13** | ⚠ **MIQDAR IS CLOSED SOURCE.** **Bunyan open (AGPL) = the wedge; Miqdar proprietary = the moat.** *(2026-07-13)* |
+
+**⚠⚠ TWO CONSEQUENCES THAT LAND ON *BUNYAN*, AND A FRESH AGENT MUST NOT MISS THEM:**
+
+1. **THE P5 CONTRACT-FREEZE NOW HAS A MIQDAR GATE — `v1.0.0_imp_plan.md` P5 step 6a.** Before `BimObjectType`/`SubShapeRef`/`Command` freeze, open `Miqdar_v1.0.0_spec.md` **§3.4** and clear its rows. **The one that matters:** confirm `BimObjectType`'s **version+migration** mechanism suffices to add *optional analytical-hint fields* later (expected: **yes ⇒ reserve nothing**). If **no**, reserve one optional field **before the freeze**. *Domain rule 8 mandates this anyway — analysis & quantities is a declared north-star.* **Cost: minutes. Cost of skipping: a frozen contract that forecloses the north-star.**
+   ⚠ **This is a RECURRING cost, and the first draft of Miqdar's spec was wrong to call it "zero"** — every future Bunyan contract freeze carries it, until the spec moves to Miqdar's repo.
+
+2. **⚠ THE CLA IS NOW DOUBLY LOAD-BEARING — it protects MIQDAR, not just Bunyan's commercial licence.** A **closed** Miqdar sitting beside an **AGPL** Bunyan is safe **because the owner holds 100% of Bunyan's copyright** and can licence it to himself on any terms. **The moment one external PR merges without a signed CLA**, that contributor owns copyright on those lines (§4e) — and the owner's freedom to build a proprietary product against his own AGPL codebase gets murky. **§4e's CLA rule was already hard. It is now hard for two products.**
+
+**What Miqdar may NEVER require of Bunyan** (so no future session negotiates it away): no analysis code inside Bunyan · no second Bunyan API (D19 forbids it) · **no coupling of release schedules** · no Bunyan feature gated on Miqdar. Miqdar wants a **`core.beam`** type — that is an **additive Bunyan 1.0.x** registration **on Bunyan's own schedule**. ⚠ **Do not add Beam to Bunyan v1.0.0 scope on Miqdar's account.**
+
+**Bunyan is not slowed down by any of this.** The v1.0.0 plan is unchanged; the only new obligation is *minutes of review at P5*.
 
 ### 4b — STILL OPEN (needs an owner call before the next big move)
 
@@ -1497,3 +1530,106 @@ spec §8 so it is not discovered under release pressure.
 2. **P3.** The protocol freezes at its end. The known gaps are closed (`measure`, the query ops,
    placement); if P3 finds another, **fix it now, not after.**
 3. **CI, still unproven** (§5 task 2) — unchanged, and cheap for the owner to settle by eye.
+
+---
+
+## Entry 10 — 2026-07-12/13 — Zayd (dev box) — **MIQDAR: the second product is specified, and Bunyan now KNOWS about it.**
+
+**No code changed. No Bunyan scope changed. `pnpm verify` untouched and still green (95/95).** This entry is
+docs-only — but it plants the anchors that make a **future** Bunyan freeze safe, and it records **two owner
+rulings that reach back into Bunyan.**
+
+### 1. What Miqdar is (and why its spec is in *this* repo)
+
+**Bunyan MODELS. Miqdar ANALYSES & DESIGNS.** Revit ↔ Robot Structural Analysis — except the link is built
+on **D1 (stable identity)** and **D19 (one command layer)**, which is precisely what the incumbents' link
+lacks. Full text in **§4g**; the spec is **`Miqdar_v1.0.0_spec.md`**, with the code corpus split out into
+**`Miqdar_normative_register.md`** (owner-editable).
+
+**The spec lives here for ONE reason: Bunyan's contract freezes must not foreclose it.** Miqdar development
+**starts only after Bunyan v1.0.0 ships.** Nothing about Bunyan's plan changes.
+
+### 2. ⚠ THE REAL WORK OF THIS SESSION: the obligation had NO enforcement mechanism
+
+The first draft (2026-07-12) said *"every Bunyan contract freeze must check this spec first"* — and then
+relied on **convention** to make that happen. It also cited *"`current_state.md` §4g, Entry 10"* as its
+anchor. **Neither existed.** A grep for "Miqdar" across every Bunyan doc returned hits **only inside
+Miqdar's own spec**: a promise, in a file no Bunyan session had any reason to open.
+
+**That is exactly the failure mode this file exists to prevent.** So the anchors are now planted **inside
+Bunyan's own documents**, where a freezing agent will actually meet them:
+
+| Anchor | Where | Does what |
+|---|---|---|
+| **§4g** | this file | Records the ruling + the two consequences that land on Bunyan. |
+| **Reading list** | this file, §0 | Makes the spec non-optional reading before a freeze. |
+| **P5 step 6a** | `v1.0.0_imp_plan.md` | ⚠ **The gate.** Before the type contracts freeze, clear Miqdar spec §3.4. |
+| **P5 exit criterion** | `v1.0.0_imp_plan.md` | The check must be **done and its answers recorded**. |
+
+**What P5 must actually confirm** (minutes of work): that `BimObjectType`'s **version+migration** mechanism
+suffices for adding *optional analytical-hint fields* **after** the freeze — expected **yes ⇒ reserve
+nothing now**; if **no**, reserve one optional field **before** freezing. **Domain rule 8 mandates this
+review anyway** (analysis & quantities is a declared north-star, `core_logic.md` §9). This just makes it
+concrete, and *scheduled*.
+
+**Honest correction to the Miqdar spec, made in the same pass:** it claimed the cost to Bunyan was **"zero"**.
+It is not — the freeze check is **minutes, recurring, at every future freeze**. Small, but it is a cost, and
+it is now named as one.
+
+### 3. ⚠⚠ THE OWNER RULING THAT CHANGES THINGS: **MIQDAR IS CLOSED SOURCE** (2026-07-13)
+
+**Bunyan is open (AGPL-3.0 + commercial). Miqdar is proprietary.** Deliberate asymmetry: **Bunyan is the
+wedge, Miqdar is the moat.** Two consequences matter *here*, not just there:
+
+1. **THE LGPL PROBLEM RETURNS — for Miqdar, not for Bunyan.** Bunyan may statically link **LGPL-2.1 OCCT**
+   *only because Bunyan's source is public* — public buildable source auto-satisfies the relink obligation
+   (§4e, consequence 1). **A closed Miqdar gets no such pass.** So Miqdar's shipped artifact is
+   **permissive-only** (Eigen MPL-2.0 ✓), and **⚠ MIQDAR MUST NEVER LINK OCCT.** *(It doesn't need to: it
+   consumes `scene.json` **semantically** — parameters and identity, never B-Rep. But the first person who
+   wants to "draw an imported column properly" will reach for a kernel, and that reach is a licence
+   violation. It is now an explicit prohibition in Miqdar's spec §6.1.)*
+2. **⚠ THE CLA IS NOW DOUBLY LOAD-BEARING.** §4e already made it hard: dual-licensing needs the owner to own
+   **every line**. It is now **also what makes a closed Miqdar safe beside an AGPL Bunyan** — that safety
+   rests on the owner holding **100% of Bunyan's copyright**. **One external PR merged without a signed CLA
+   compromises both products, not one.**
+
+### 4. The other owner ruling: the optimizer gets a **utilization cap** (Miqdar M11-b)
+
+An optimizer constrained only by *"every code ratio ≤ 1.0"* will land **dozens of members at 0.99** — every
+check green, **zero margin** against anything the code checks do not model. A human designing by hand never
+does this; **the optimizer is what makes it reachable.** Ruling: **`maxUtilization` is an authored hard
+constraint per DesignGroup, default `0.90`** — Miqdar's parameter, never a code's, printed in the *note de
+calcul*. *(Recorded here because it is the clearest instance of the principle both products share: **a
+wrong-but-plausible result is worse than no result**.)*
+
+### 5. The code corpus: researched, and it moved (`Miqdar_normative_register.md`)
+
+M8's original matrix was **ratified while its own cells said "(verify)"** — a decision resting on unverified
+inputs. The editions are now split into an **owner-editable register**, graded by confidence, **ratified
+before Miqdar's S3**. The web pass (2026-07-13) found **three things that change the spec**:
+
+- **RPA 2024 (DTR B.C. 2.48, CTP 15 May 2024) ABROGATES RPA 99/2003** — the Algerian seismic code Miqdar
+  was going to ship. *(Confidence B — the JO decree was not read. **Confirm it.**)*
+- **Morocco has NO national RC code** — practice is **BAEL 91-99**. This **inverts** the spec's plan to file
+  BAEL as a 1.0.x "legacy pack": it may be the **Morocco RC module**.
+- **The 1st-generation Eurocodes are withdrawn by 30 March 2028** (2nd gen + NAs due 30 Sep 2027) — so a
+  France corpus, *the least-automatable work in the product*, risks being **built twice**.
+
+**These are for the owner to rule (O-M10/O-M11/O-M5), not for an agent to assume.**
+
+### 6. Verification & state
+
+- **Docs only.** No source file, no test, no contract touched. **`pnpm verify` still green (95/95)** — it was
+  not re-run for this entry because nothing it gates was modified. *(Said plainly, per the rule that a claim
+  without a method is not done: **this entry verified nothing about the code, and claims nothing about it.**)*
+- **NOT committed.** Working tree carries: `Miqdar_v1.0.0_spec.md` (rewritten), `Miqdar_normative_register.md`
+  (new), `v1.0.0_imp_plan.md` (P5 step 6a + exit criterion), `current_state.md` (§0, §4g, this entry).
+  **Commits are owner-gated.**
+- **Bunyan's next action is unchanged:** `transform` (P3), then the P3 protocol freeze. **CI still never
+  observed green** (§5 task 2).
+
+### 7. Next
+
+1. **Owner:** ratify the normative register, and rule **O-M5 / O-M10 / O-M11 / O-M12** (Miqdar spec §14).
+   None of it blocks Bunyan.
+2. **Bunyan:** unchanged — `transform`, then P3. **At P5, step 6a is now waiting.**
