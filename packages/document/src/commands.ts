@@ -1,0 +1,889 @@
+/**
+ * THE COMMAND LAYER — and there is only one (decision D19, domain rule 9).
+ *
+ * ⚠⚠ THE RULING, IN ONE LINE: **every action — a button, a drag, an agent verb — is a `Command`, and
+ * no actor has a private path to the kernel.**
+ *
+ *     button / drag ─┐
+ *     agent verb ────┼──►  Command registry ──► DocumentContext ──► KernelClient ──► OCCT
+ *     MCP [v1.0.x] ──┘         the only door
+ *
+ * **Every capability reachable only through the UI is a capability an agent can never have** — and
+ * nobody discovers the gap until an agent is asked to use it, a year later. So there is no second API,
+ * and this file is not "the agent's API": it is *the* API, and the agent is simply another actor at
+ * the same door.
+ *
+ * ⚠ AND THE TWO PROPERTIES THAT MAKE IT WORK (D21, D23):
+ *   - **`argsSchema`** — so the agent's tool list is GENERATED from the registry, never maintained
+ *     beside it (a hand-written one drifts within weeks; a derived one cannot).
+ *   - **`execute` RETURNS its `UndoableEdit`** — so the diff an actor verifies against and the delta
+ *     undo reverses are the same object, and verification costs nothing extra.
+ */
+
+import type {
+  BrokenReference,
+  Classification,
+  Element,
+  ElementId,
+  ElementStyle,
+  Grid,
+  Material,
+  ParamValue,
+  Params,
+  Section,
+  SpatialContainer,
+} from './entities.js';
+import type { Registries } from './registries.js';
+import type { Scene, SceneChange } from './scene.js';
+import { hostedBy } from './scene.js';
+import type { ParamSchema } from './schema.js';
+import { validateParams, withDefaults } from './schema.js';
+import type { UndoableEdit } from './undo.js';
+import type { ModelRevision } from './revision.js';
+import { nextRevision } from './revision.js';
+
+/**
+ * A typed command failure. **Reject + keep last-good** (domain rule 4, spec §6.4): a failed command
+ * produces NO `UndoableEdit` and the document remains at its last valid state.
+ */
+export class CommandFailure extends Error {
+  readonly code: 'INVALID_ARGS' | 'NOT_FOUND' | 'REFUSED' | 'GEOMETRY_FAILED';
+  readonly details: readonly string[];
+
+  constructor(code: CommandFailure['code'], message: string, details: readonly string[] = []) {
+    super(message);
+    this.name = 'CommandFailure';
+    this.code = code;
+    this.details = details;
+  }
+}
+
+/**
+ * What a command may do. Note what is ABSENT: the kernel (D19), the undo stack, and any way to mutate
+ * the scene directly. **A command PROPOSES a state delta; it does not apply one.** That is what keeps
+ * "reject + keep last-good" true by construction rather than by discipline — a command that fails
+ * cannot have half-changed anything, because it never had the power to change anything.
+ */
+export interface CommandContext {
+  readonly scene: Scene;
+  readonly registries: Registries;
+  /**
+   * Mint a new element id — its **PEI** (D44). A prefixed ULID (`wall-01J8Z3K7Q2`), never a counter:
+   * a counter reuses the ids of deleted elements, and it forecloses co-editing (see `ulid.ts`).
+   */
+  readonly mintId: (prefix: string) => string;
+  /** The revision this document was last ISSUED at (D34). `undefined` ⇒ never issued. */
+  readonly revision: ModelRevision | undefined;
+  /** The journal `seq` this command's edit will carry (D40) — what `issued_at_seq` anchors to. */
+  readonly seq: number;
+  /** Build the `UndoableEdit` this command returns. `rebuilt` = the elements whose geometry is stale. */
+  readonly edit: (
+    label: string,
+    changes: readonly SceneChange[],
+    rebuilt: readonly ElementId[],
+    extra?: { readonly revision?: ModelRevision },
+  ) => UndoableEdit;
+}
+
+export interface Command {
+  /** `core.createElement`. The verb an agent calls, and the id the ribbon binds a button to. */
+  readonly id: string;
+  readonly label: string;
+  readonly description?: string;
+  /** ⚠ The field that makes capability discovery generated rather than maintained (D21). */
+  readonly argsSchema: ParamSchema;
+  /** ⚠ Returns the delta (D23). The thing undo reverses and the thing an actor verifies with. */
+  readonly execute: (ctx: CommandContext, args: Params) => Promise<UndoableEdit> | UndoableEdit;
+}
+
+/* ================================================================================================
+ * Helpers
+ * ============================================================================================= */
+
+function requireElement(scene: Scene, id: unknown): Element {
+  if (typeof id !== 'string' || scene.elements[id] === undefined) {
+    throw new CommandFailure('NOT_FOUND', `no element "${String(id)}" in this document`);
+  }
+  return scene.elements[id];
+}
+
+function checkArgs(command: Command, args: Params): Params {
+  const issues = validateParams(command.argsSchema, args);
+  if (issues.length > 0) {
+    throw new CommandFailure(
+      'INVALID_ARGS',
+      `invalid arguments for "${command.id}"`,
+      issues.map((i) => i.message),
+    );
+  }
+  return withDefaults(command.argsSchema, args);
+}
+
+/**
+ * Narrow a validated `ParamValue` to a string / number.
+ *
+ * ⚠ NOT `String(value)`. A `ParamValue` may be an object, and `String({})` is `"[object Object]"` — a
+ * value that would sail through every id check in this file and then name a style, a material or a
+ * DAG node. The schema has already proven the type (`validateParams` walked every field); these
+ * narrow to it rather than coercing, so a bug in the schema surfaces as a refusal, not as an element
+ * called `[object Object]`.
+ */
+function text(value: ParamValue | undefined, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback;
+}
+function num(value: ParamValue | undefined, fallback = 0): number {
+  return typeof value === 'number' ? value : fallback;
+}
+
+/**
+ * The layer stack, out of a validated `ParamValue` bag. The schema has already proven the shape
+ * (`validateParams` walked every field), so this narrows rather than trusts.
+ */
+function asLayers(raw: unknown): ElementStyle['layers'] | undefined {
+  if (raw === undefined) return undefined;
+  return raw as ElementStyle['layers'];
+}
+
+/**
+ * ⚠ `/` and `#` are the `SubShapeRef` token separators — a string containing one could forge a ref.
+ *
+ * ⚠⚠ **AND NOTE WHAT THIS MUST BE CALLED ON.** It used to be called only on a **minted** id — which is
+ * a ULID and *can never contain a separator*, so the guard was on the one path that never needed it,
+ * while the strings that actually reach a `nodeId` — **the style's layer names, which an agent
+ * authors** — went unchecked. A guard on the safe path is not a guard.
+ */
+function checkNameSafe(name: string, what: string): void {
+  // ⚠ `/` and `#` separate a `SubShapeRef`'s parts (`node/face/y-min#0`); `~` separates a cut's node
+  // (`wall-1.structure~window-2`). A name carrying one could forge a token naming another solid's face.
+  //
+  // ⚠ **`.` is deliberately ALLOWED** — `finish.interior` is the established part-name convention, and
+  // it is unambiguous: a part's node is `${elementId}.${partName}`, and an element id is a prefixed
+  // ULID that **contains no dot**. So the first dot always separates the id from the name, however many
+  // follow it. (Ban it and you break every layer stack in the product for no safety at all.)
+  if (/[/#~]/.test(name)) {
+    throw new CommandFailure(
+      'REFUSED',
+      `${what} "${name}" contains one of "/", "#" or "~" — these are SubShapeRef / DAG-node ` +
+        `separators, and a name carrying one could forge a reference to another element's face`,
+    );
+  }
+}
+
+/**
+ * ⚠⚠ THE LAYER STACK IS AN IDENTITY-BEARING STRUCTURE, AND THESE ARE IDENTITY CHECKS.
+ *
+ * A layer becomes a **Part**, and a Part's DAG node is `${elementId}.${layerName}` — so:
+ *
+ *   - **two layers with the same name mint BYTE-IDENTICAL `SubShapeRef` tokens** for different faces of
+ *     different solids. Measured: two layers called `structure` produced 6 colliding ref tokens. A
+ *     window hosted on one of them is hosted on both, or on neither, and nothing downstream can recover
+ *     which was meant. *(`core_logic.md` §5: an identity that cannot be derived structurally is a
+ *     refusal, never an invention.)*
+ *   - a layer naming a **material that does not exist** yields a part whose mass cannot be computed —
+ *     and `updateStyle` checked this while `createStyle` did not, so the *first* way anyone creates a
+ *     style was the unguarded one.
+ */
+function checkLayers(scene: Scene, layers: ElementStyle['layers']): void {
+  const names = new Set<string>();
+  for (const layer of layers ?? []) {
+    checkNameSafe(layer.name, 'layer name');
+    if (names.has(layer.name)) {
+      throw new CommandFailure(
+        'REFUSED',
+        `two layers are both named "${layer.name}" — their parts would share a DAG node and mint ` +
+          `identical SubShapeRefs for different faces. Layer names must be unique within a style.`,
+      );
+    }
+    names.add(layer.name);
+    if (scene.materials[layer.materialId] === undefined) {
+      throw new CommandFailure('NOT_FOUND', `unknown material "${layer.materialId}"`);
+    }
+  }
+}
+
+/* ================================================================================================
+ * THE CORE COMMANDS
+ * ============================================================================================= */
+
+/**
+ * ⚠ TYPE-DRIVEN VERBS, AND PRIMITIVES ARE THE ESCAPE HATCH (D20).
+ * `createElement('core.wall.v1', {...})` — **not** "draw a rectangle then extrude it". It is free,
+ * because a BIM Object Type already *is* the recipe from params to geometry. An agent asked to place a
+ * wall should say "wall", and the kernel's primitives should not be its vocabulary.
+ */
+export const createElementCommand: Command = {
+  id: 'core.createElement',
+  label: 'Create element',
+  description:
+    "Create a BIM element of a registered type. Params are validated against the type's parameterSchema.",
+  argsSchema: {
+    typeId: { kind: 'string', label: 'Type', required: true, description: 'e.g. core.wall.v1' },
+    params: { kind: 'object', label: 'Parameters', required: true },
+    styleId: {
+      kind: 'ref',
+      refTo: 'style',
+      label: 'Style',
+      description: 'The shared parameter set',
+    },
+    name: { kind: 'string', label: 'Name' },
+    containerId: { kind: 'ref', refTo: 'container', label: 'Level / Space' },
+    gridRefs: {
+      kind: 'array',
+      label: 'Grid refs',
+      items: { kind: 'ref', refTo: 'grid', label: 'Grid' },
+    },
+    hostId: { kind: 'ref', refTo: 'element', label: 'Host', description: 'For a hosted void' },
+    hostRef: { kind: 'subShapeRef', label: 'Host face', description: 'The face it is hosted on' },
+    placement: {
+      kind: 'array',
+      label: 'Placement',
+      description:
+        'Rigid motions putting the element in the world. Applied AFTER its openings are cut.',
+      items: { kind: 'object', label: 'Motion' },
+    },
+    loadBearing: {
+      kind: 'boolean',
+      label: 'Load-bearing',
+      description: 'D36 — Miqdar must not guess',
+    },
+    // ⚠ NO `discipline` ARG (D45). It is a property of a PART, authored on the style's layer — an RC
+    // wall is a structural core with architectural plaster on it, and an element-level value says
+    // something false about exactly the parts that matter.
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createElementCommand, rawArgs);
+    const typeId = text(args['typeId']);
+    const type = ctx.registries.types.get(typeId);
+    if (type === undefined) throw new CommandFailure('NOT_FOUND', `unknown type "${typeId}"`);
+
+    const params = (args['params'] ?? {}) as Params;
+    const issues = validateParams(type.parameterSchema, params);
+    if (issues.length > 0) {
+      throw new CommandFailure(
+        'INVALID_ARGS',
+        `invalid params for type "${typeId}"`,
+        issues.map((i) => i.message),
+      );
+    }
+
+    const styleId = args['styleId'] as string | undefined;
+    if (styleId !== undefined) {
+      const style = ctx.scene.styles[styleId];
+      if (style === undefined) throw new CommandFailure('NOT_FOUND', `unknown style "${styleId}"`);
+      // ⚠ A Wall style cannot be worn by a Slab. The style names the type it is FOR, and that is not
+      // bureaucracy: a layer stack means something different to each, and a silent mismatch would
+      // build a plausible, wrong solid.
+      if (style.typeId !== typeId) {
+        throw new CommandFailure(
+          'REFUSED',
+          `style "${styleId}" is for type "${style.typeId}", not "${typeId}"`,
+        );
+      }
+    }
+
+    const hostId = args['hostId'] as string | undefined;
+    if (hostId !== undefined) requireElement(ctx.scene, hostId);
+
+    // ⚠ THE LBS ADDRESS, AND IT WAS UNVALIDATED. `containerId` is the element's place in the spatial
+    // tree (D35) — which IS Planitor's Location Breakdown Structure. A typo did not fail: `elevationOf`
+    // returns 0 for an unknown container, so the wall was silently built **on the ground floor** (z-min
+    // 9000 → 0, measured). A wrong building AND a wrong work package, from one mistyped string.
+    const containerId = args['containerId'] as string | undefined;
+    if (containerId !== undefined && ctx.scene.containers[containerId] === undefined) {
+      throw new CommandFailure('NOT_FOUND', `unknown container "${containerId}"`);
+    }
+    const gridRefs = args['gridRefs'] as readonly string[] | undefined;
+    for (const gridRef of gridRefs ?? []) {
+      if (ctx.scene.grids[gridRef] === undefined) {
+        throw new CommandFailure('NOT_FOUND', `unknown grid "${gridRef}"`);
+      }
+    }
+
+    const id = ctx.mintId(typeId.split('.')[1] ?? 'element');
+
+    const classification: Classification = {
+      ifcClass: type.defaultClassification.ifcClass,
+      loadBearing:
+        (args['loadBearing'] as boolean | undefined) ?? type.defaultClassification.loadBearing,
+    };
+
+    const element: Element = {
+      id,
+      typeId,
+      typeVersion: type.version,
+      params,
+      classification,
+      ...(styleId === undefined ? {} : { styleId }),
+      ...(args['name'] === undefined ? {} : { name: text(args['name']) }),
+      ...(containerId === undefined ? {} : { containerId }),
+      ...(gridRefs === undefined ? {} : { gridRefs }),
+      ...(hostId === undefined ? {} : { hostId }),
+      ...(args['hostRef'] === undefined ? {} : { hostRef: text(args['hostRef']) }),
+      ...(args['placement'] === undefined
+        ? {}
+        : { placement: args['placement'] as NonNullable<Element['placement']> }),
+    };
+
+    return ctx.edit(
+      `Create ${type.label}`,
+      [{ collection: 'elements', id, after: element }],
+      // A new void invalidates its HOST's geometry — the wall now has a hole in it.
+      hostId === undefined ? [id] : [hostId],
+    );
+  },
+};
+
+export const setParamsCommand: Command = {
+  id: 'core.setParams',
+  label: 'Change parameters',
+  description:
+    "Change an element's instance parameters. The geometry is rebuilt from the new recipe.",
+  argsSchema: {
+    elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    params: {
+      kind: 'object',
+      label: 'Parameters',
+      required: true,
+      description: 'Merged over existing',
+    },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(setParamsCommand, rawArgs);
+    const element = requireElement(ctx.scene, args['elementId']);
+    const type = ctx.registries.types.require(element.typeId);
+
+    const params: Params = { ...element.params, ...((args['params'] ?? {}) as Params) };
+    const issues = validateParams(type.parameterSchema, params);
+    if (issues.length > 0) {
+      throw new CommandFailure(
+        'INVALID_ARGS',
+        `invalid params for "${element.id}"`,
+        issues.map((i) => i.message),
+      );
+    }
+
+    const after: Element = { ...element, params };
+    return ctx.edit(
+      `Edit ${type.label}`,
+      [{ collection: 'elements', id: element.id, before: element, after }],
+      // ⚠ Its hosted openings rebuild WITH it: they are anchored to its faces, and the faces moved.
+      [element.id, ...hostedBy(ctx.scene, element.id).map((o) => o.id)],
+    );
+  },
+};
+
+/**
+ * ⚠⚠ THE MOST-USED OPERATION IN REVIT, AND BUNYAN COULD NOT EXPRESS IT UNTIL D31.
+ * Edit `EXT-200-Concrete` and **four hundred walls rebuild.** That is the point of a Style, and it is
+ * also the hook Miqdar's `DesignGroup` writes into (one section, assigned to a GROUP of columns).
+ */
+export const updateStyleCommand: Command = {
+  id: 'core.updateStyle',
+  label: 'Edit style',
+  description:
+    'Edit a shared style. EVERY element referencing it rebuilds — this is "change one wall type, update 400 walls".',
+  argsSchema: {
+    styleId: { kind: 'ref', refTo: 'style', label: 'Style', required: true },
+    name: { kind: 'string', label: 'Name' },
+    layers: {
+      kind: 'array',
+      label: 'Layer stack',
+      description: 'Ordered. Each layer becomes a PART of every instance (D30).',
+      items: {
+        kind: 'object',
+        label: 'Layer',
+        fields: {
+          name: { kind: 'string', label: 'Part name', required: true },
+          materialId: { kind: 'ref', refTo: 'material', label: 'Material', required: true },
+          thickness: { kind: 'number', label: 'Thickness', unit: 'mm', required: true, min: 0 },
+          // ⚠ D45 — whose trade builds this layer. Required: the concreter and the plasterer are routed
+          // to different work packages **on the same wall**, and nothing else in the model can say so.
+          discipline: {
+            kind: 'enum',
+            label: 'Discipline',
+            required: true,
+            options: ['architectural', 'structural', 'mep', 'other'],
+          },
+        },
+      },
+    },
+    sectionId: { kind: 'ref', refTo: 'section', label: 'Section' },
+    params: { kind: 'object', label: 'Shared parameters' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(updateStyleCommand, rawArgs);
+    const styleId = text(args['styleId']);
+    const style = ctx.scene.styles[styleId];
+    if (style === undefined) throw new CommandFailure('NOT_FOUND', `unknown style "${styleId}"`);
+
+    const layers = asLayers(args['layers']);
+    checkLayers(ctx.scene, layers);
+    const sectionId = args['sectionId'] as string | undefined;
+    if (sectionId !== undefined && ctx.scene.sections[sectionId] === undefined) {
+      throw new CommandFailure('NOT_FOUND', `unknown section "${sectionId}"`);
+    }
+
+    const after: ElementStyle = {
+      ...style,
+      version: style.version + 1,
+      ...(args['name'] === undefined ? {} : { name: text(args['name']) }),
+      ...(layers === undefined ? {} : { layers }),
+      ...(sectionId === undefined ? {} : { sectionId }),
+      ...(args['params'] === undefined ? {} : { params: args['params'] as Params }),
+    };
+
+    const instances = Object.values(ctx.scene.elements).filter((e) => e.styleId === styleId);
+    return ctx.edit(
+      `Edit style ${style.name}`,
+      [{ collection: 'styles', id: styleId, before: style, after }],
+      instances.flatMap((e) => [e.id, ...hostedBy(ctx.scene, e.id).map((o) => o.id)]),
+    );
+  },
+};
+
+/**
+ * ⚠⚠ CASCADE-DELETE. **OWNER RULING (D39), 2026-07-13.**
+ *
+ * **Deleting a wall deletes the windows hosted in it — in ONE undoable edit, so undo restores both.**
+ *
+ * The question this settles: P3's exit criteria demanded that "deleting a wall that hosts a window has
+ * a defined, tested outcome", and **no document said which outcome.** Domain rule 3 ("a broken
+ * reference is a first-class state awaiting manual retargeting, never auto-healed") plainly governs a
+ * ref whose SUB-SHAPE vanished — the face a window sat on disappearing when the wall is re-authored.
+ * It does not settle what happens when the HOST ITSELF is deleted, and reading it as though it did
+ * would make "broken" the normal state of the document after any delete.
+ *
+ * **The ruling, and the reasoning the owner accepted:** an Opening is DEFINED BY its host — a window
+ * floating in space is not a thing, and its geometry is a boolean against a solid that no longer
+ * exists. Revit and ArchiCAD both cascade (with a warning). So:
+ *   - **cascade**, in one edit, undoably;
+ *   - the caller **warns first** — ⚠ **and as of D42 that is `execute(…, { dryRun: true })`, NOT a
+ *     `planDelete()`**, which is **deleted**. The dry run's would-be `UndoableEdit` already lists the
+ *     entire cascade, because the *real command* computed it. A hand-written `plan…()` beside every
+ *     verb is a second description of one behaviour, and a second description drifts (D21: **generated,
+ *     never maintained**);
+ *   - **broken-ref stays reserved for its real case**, which keeps domain rule 3 sharp instead of
+ *     making it the routine outcome of a routine action.
+ */
+export const deleteElementCommand: Command = {
+  id: 'core.deleteElement',
+  label: 'Delete element',
+  description:
+    'Delete an element AND everything hosted on it (D39), as one undoable edit. To see what will go BEFORE acting, run it with { dryRun: true } — the returned edit already lists the whole cascade (D42).',
+  argsSchema: {
+    elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteElementCommand, rawArgs);
+    const element = requireElement(ctx.scene, args['elementId']);
+    const type = ctx.registries.types.require(element.typeId);
+
+    const doomed = [element, ...cascadeOf(ctx.scene, element.id)];
+    const changes: SceneChange[] = doomed.map((e) => ({
+      collection: 'elements' as const,
+      id: e.id,
+      before: e,
+    }));
+
+    // ⚠ Broken refs are NOT in the delta: they are DERIVED by the rebuild, not authored state. Deleting
+    // the wall a complaint was about therefore retires the complaint automatically, on the next
+    // rebuild — rather than leaving the document grumbling about an element nobody can see any more.
+
+    // If the element was itself hosted, its HOST must rebuild — the hole is gone.
+    const rebuilt = element.hostId === undefined ? [] : [element.hostId];
+
+    return ctx.edit(
+      doomed.length === 1
+        ? `Delete ${type.label}`
+        : `Delete ${type.label} and ${doomed.length - 1} hosted element(s)`,
+      changes,
+      rebuilt,
+    );
+  },
+};
+
+/** Everything that dies WITH this element (D39). Transitive: a window in a wall, a vent in the window. */
+export function cascadeOf(scene: Scene, id: ElementId): readonly Element[] {
+  const doomed: Element[] = [];
+  const queue = [id];
+  const seen = new Set<ElementId>([id]);
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    for (const hosted of hostedBy(scene, current)) {
+      if (seen.has(hosted.id)) continue;
+      seen.add(hosted.id);
+      doomed.push(hosted);
+      queue.push(hosted.id);
+    }
+  }
+  return doomed;
+}
+
+/**
+ * ⚠ MANUAL RETARGETING OF A BROKEN REFERENCE — and it is **itself an `UndoableEdit`** (spec §6.1).
+ *
+ * This is the other half of domain rule 3, and the half that is easy to leave unbuilt: a broken
+ * reference that can be *seen* but not *fixed* is a document in a state the user cannot leave. The
+ * fix is an ordinary command, so it undoes like everything else.
+ */
+export const retargetReferenceCommand: Command = {
+  id: 'core.retargetReference',
+  label: 'Retarget reference',
+  description:
+    'Point a broken hosted element at a new host face. The ONLY way a broken reference is ever repaired — it is never auto-healed (domain rule 3).',
+  argsSchema: {
+    elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    hostId: { kind: 'ref', refTo: 'element', label: 'New host', required: true },
+    hostRef: { kind: 'subShapeRef', label: 'New host face', required: true },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(retargetReferenceCommand, rawArgs);
+    const element = requireElement(ctx.scene, args['elementId']);
+    const host = requireElement(ctx.scene, args['hostId']);
+
+    const after: Element = { ...element, hostId: host.id, hostRef: text(args['hostRef']) };
+    const rebuilt = [host.id];
+    if (element.hostId !== undefined && element.hostId !== host.id) rebuilt.push(element.hostId);
+
+    return ctx.edit(
+      `Retarget ${element.name ?? element.id}`,
+      [{ collection: 'elements', id: element.id, before: element, after }],
+      rebuilt,
+    );
+  },
+};
+
+/**
+ * D36 — a Wall may be a shear wall or a partition. **Miqdar must never guess**; it must be told.
+ *
+ * ⚠ **`discipline` IS NOT SETTABLE HERE ANY MORE (D45).** It is a property of a PART, authored on the
+ * style's layer. Miqdar filters on **`loadBearing`**, which is what this command is actually for.
+ */
+export const setClassificationCommand: Command = {
+  id: 'core.setClassification',
+  label: 'Set classification',
+  description:
+    'Set loadBearing / IFC class. D36 — this is what tells Miqdar which elements are structural, and it must never be inferred. (Discipline lives on the PART — D45.)',
+  argsSchema: {
+    elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    loadBearing: { kind: 'boolean', label: 'Load-bearing' },
+    ifcClass: { kind: 'string', label: 'IFC class' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(setClassificationCommand, rawArgs);
+    const element = requireElement(ctx.scene, args['elementId']);
+    const classification: Classification = {
+      ifcClass: (args['ifcClass'] as string | undefined) ?? element.classification.ifcClass,
+      loadBearing:
+        (args['loadBearing'] as boolean | undefined) ?? element.classification.loadBearing,
+    };
+    const after: Element = { ...element, classification };
+    // Classification is metadata: it changes what the element MEANS, not what it looks like. No rebuild.
+    return ctx.edit(
+      `Classify ${element.name ?? element.id}`,
+      [{ collection: 'elements', id: element.id, before: element, after }],
+      [],
+    );
+  },
+};
+
+/* ---- The library commands: styles, materials, sections, containers, grids ---------------------- */
+
+export const createStyleCommand: Command = {
+  id: 'core.createStyle',
+  label: 'Create style',
+  description:
+    'Create a shared, named parameter set (D31) — a layer stack, a section, shared params.',
+  argsSchema: {
+    id: { kind: 'string', label: 'Id', required: true },
+    name: { kind: 'string', label: 'Name', required: true },
+    typeId: { kind: 'string', label: 'For type', required: true },
+    layers: {
+      kind: 'array',
+      label: 'Layer stack',
+      items: {
+        kind: 'object',
+        label: 'Layer',
+        fields: {
+          name: { kind: 'string', label: 'Part name', required: true },
+          materialId: { kind: 'ref', refTo: 'material', label: 'Material', required: true },
+          thickness: { kind: 'number', label: 'Thickness', unit: 'mm', required: true, min: 0 },
+          // ⚠ D45 — whose trade builds this layer. Required: the concreter and the plasterer are routed
+          // to different work packages **on the same wall**, and nothing else in the model can say so.
+          discipline: {
+            kind: 'enum',
+            label: 'Discipline',
+            required: true,
+            options: ['architectural', 'structural', 'mep', 'other'],
+          },
+        },
+      },
+    },
+    sectionId: { kind: 'ref', refTo: 'section', label: 'Section' },
+    params: { kind: 'object', label: 'Shared parameters' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createStyleCommand, rawArgs);
+    const id = text(args['id']);
+    if (ctx.scene.styles[id] !== undefined) {
+      throw new CommandFailure('REFUSED', `style "${id}" already exists`);
+    }
+    if (!ctx.registries.types.has(text(args['typeId']))) {
+      throw new CommandFailure('NOT_FOUND', `unknown type "${text(args['typeId'])}"`);
+    }
+    const layers = asLayers(args['layers']);
+    // ⚠ `updateStyle` validated its materials and `createStyle` did not — so the FIRST way anyone
+    // creates a style was the unguarded one, and a dangling materialId reached `quantities()` as
+    // `0 kg, basis: 'exact'`. Both now go through the same check.
+    checkLayers(ctx.scene, layers);
+    const style: ElementStyle = {
+      id,
+      name: text(args['name']),
+      typeId: text(args['typeId']),
+      version: 1,
+      ...(layers === undefined ? {} : { layers }),
+      ...(args['sectionId'] === undefined ? {} : { sectionId: text(args['sectionId']) }),
+      ...(args['params'] === undefined ? {} : { params: args['params'] as Params }),
+    };
+    return ctx.edit(`Create style ${style.name}`, [{ collection: 'styles', id, after: style }], []);
+  },
+};
+
+/**
+ * ⚠ A Material is an ENTITY, not a string (D33) — `density` is REQUIRED because a material that
+ * cannot answer a weight cannot do half of what it exists for, and because it is the number that
+ * collapses Planitor's quantity fallback ladder (which hardcodes 7850 for steel, since IFC will
+ * so often not say) into a lookup.
+ */
+export const createMaterialCommand: Command = {
+  id: 'core.createMaterial',
+  label: 'Create material',
+  description: 'Add a material to the document (D33). Carries density and structural properties.',
+  argsSchema: {
+    id: { kind: 'string', label: 'Id', required: true },
+    name: { kind: 'string', label: 'Name', required: true },
+    category: {
+      kind: 'enum',
+      label: 'Category',
+      required: true,
+      options: ['concrete', 'steel', 'timber', 'masonry', 'insulation', 'finish', 'other'],
+    },
+    density: { kind: 'number', label: 'Density', unit: 'kg/m³', required: true, min: 0 },
+    structural: {
+      kind: 'object',
+      label: 'Structural properties',
+      description: 'f_ck, E, f_y — Miqdar reads these',
+    },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createMaterialCommand, rawArgs);
+    const id = text(args['id']);
+    if (ctx.scene.materials[id] !== undefined) {
+      throw new CommandFailure('REFUSED', `material "${id}" already exists`);
+    }
+    const material: Material = {
+      id,
+      name: text(args['name']),
+      category: args['category'] as Material['category'],
+      density: num(args['density']),
+      ...(args['structural'] === undefined
+        ? {}
+        : { structural: args['structural'] as Record<string, number> }),
+    };
+    return ctx.edit(
+      `Create material ${material.name}`,
+      [{ collection: 'materials', id, after: material }],
+      [],
+    );
+  },
+};
+
+export const createSectionCommand: Command = {
+  id: 'core.createSection',
+  label: 'Create section',
+  description: 'Add a section to the document catalogue (D33) — IPE300, RECT-300x600.',
+  argsSchema: {
+    id: { kind: 'string', label: 'Id', required: true },
+    name: { kind: 'string', label: 'Name', required: true },
+    shape: {
+      kind: 'enum',
+      label: 'Shape',
+      required: true,
+      options: ['rectangle', 'circle', 'i-beam', 'custom'],
+    },
+    dimensions: { kind: 'object', label: 'Dimensions', required: true, description: 'mm' },
+    standard: { kind: 'string', label: 'Standard' },
+    properties: {
+      kind: 'object',
+      label: 'Section properties',
+      description: 'area, Iy, Iz — Miqdar reads these',
+    },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createSectionCommand, rawArgs);
+    const id = text(args['id']);
+    if (ctx.scene.sections[id] !== undefined) {
+      throw new CommandFailure('REFUSED', `section "${id}" already exists`);
+    }
+    const section: Section = {
+      id,
+      name: text(args['name']),
+      shape: args['shape'] as Section['shape'],
+      dimensions: args['dimensions'] as Record<string, number>,
+      ...(args['standard'] === undefined ? {} : { standard: text(args['standard']) }),
+      ...(args['properties'] === undefined
+        ? {}
+        : { properties: args['properties'] as Record<string, number> }),
+    };
+    return ctx.edit(
+      `Create section ${section.name}`,
+      [{ collection: 'sections', id, after: section }],
+      [],
+    );
+  },
+};
+
+/** D35 — `Site → Building → Level → Space`. ⚠ A two-tower project was unmodellable without this. */
+export const createContainerCommand: Command = {
+  id: 'core.createContainer',
+  label: 'Create spatial container',
+  description:
+    'Create a Site, Building, Level or Space (D35). This tree IS the downstream Location Breakdown Structure.',
+  argsSchema: {
+    id: { kind: 'string', label: 'Id', required: true },
+    kind: {
+      kind: 'enum',
+      label: 'Kind',
+      required: true,
+      options: ['site', 'building', 'level', 'space'],
+    },
+    name: { kind: 'string', label: 'Name', required: true },
+    parentId: { kind: 'ref', refTo: 'container', label: 'Parent' },
+    elevation: { kind: 'number', label: 'Elevation', unit: 'mm', description: 'For a level' },
+    number: { kind: 'string', label: 'Number', description: 'For a space — "214"' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createContainerCommand, rawArgs);
+    const id = text(args['id']);
+    if (ctx.scene.containers[id] !== undefined) {
+      throw new CommandFailure('REFUSED', `container "${id}" already exists`);
+    }
+    const parentId = args['parentId'] as string | undefined;
+    if (parentId !== undefined && ctx.scene.containers[parentId] === undefined) {
+      throw new CommandFailure('NOT_FOUND', `unknown parent container "${parentId}"`);
+    }
+    const container: SpatialContainer = {
+      id,
+      kind: args['kind'] as SpatialContainer['kind'],
+      name: text(args['name']),
+      ...(parentId === undefined ? {} : { parentId }),
+      ...(args['elevation'] === undefined ? {} : { elevation: num(args['elevation']) }),
+      ...(args['number'] === undefined ? {} : { number: text(args['number']) }),
+    };
+    return ctx.edit(
+      `Create ${container.kind} ${container.name}`,
+      [{ collection: 'containers', id, after: container }],
+      [],
+    );
+  },
+};
+
+/** D32 — Level's missing twin. A column sits at B-3, and it STAYS at B-3 when the spacing changes. */
+export const createGridCommand: Command = {
+  id: 'core.createGrid',
+  label: 'Create grid',
+  description:
+    'Create a named structural axis (D32). Level organizes vertically; Grid horizontally.',
+  argsSchema: {
+    id: { kind: 'string', label: 'Id', required: true },
+    name: { kind: 'string', label: 'Name', required: true },
+    axis: { kind: 'enum', label: 'Axis', required: true, options: ['x', 'y'] },
+    offset: { kind: 'number', label: 'Offset', unit: 'mm', required: true },
+    buildingId: { kind: 'ref', refTo: 'container', label: 'Building' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createGridCommand, rawArgs);
+    const id = text(args['id']);
+    if (ctx.scene.grids[id] !== undefined) {
+      throw new CommandFailure('REFUSED', `grid "${id}" already exists`);
+    }
+    const grid: Grid = {
+      id,
+      name: text(args['name']),
+      axis: args['axis'] as Grid['axis'],
+      offset: num(args['offset']),
+      ...(args['buildingId'] === undefined ? {} : { buildingId: text(args['buildingId']) }),
+    };
+    return ctx.edit(`Create grid ${grid.name}`, [{ collection: 'grids', id, after: grid }], []);
+  },
+};
+
+/* ================================================================================================
+ * ISSUING A REVISION — a COMMAND, not a file operation (decision D41)
+ * ============================================================================================= */
+
+/**
+ * ⚠⚠ **ISSUE THE MODEL** — *"this is the version I am handing downstream"* (D34, D40, **D41**).
+ *
+ * **SAVING IS NOT ISSUING.** Save ten times and no revision is minted; none of those saves was a
+ * statement about what you are handing to anyone. A revision is a **deliberate act**, and it is the
+ * anchor every downstream delta is computed against.
+ *
+ * ⚠ **WHY IT IS A COMMAND, AND WHY THAT WAS A RULING.** It was a free function in the persistence codec
+ * (`bnn.ts`), which meant **an agent could author a building but could not release one** — the single
+ * new concept the entire ecosystem rests on was reachable only from a file menu, and `listCommands()`
+ * never mentioned it. Domain rule 9 admits **no second path**: anything an actor can do to the Document
+ * is a Command. It also makes D40's anchor fall out for free — the document knows its own journal
+ * position, so `issued_at_seq` is simply *the seq of this edit*.
+ *
+ * ⚠ **It changes no scene state, and it is deliberately NOT undoable.** Its `changes` are empty: what
+ * it produces is a *revision*, which is document state, not scene state. And you cannot recall a
+ * revision you have already handed to the contractor — an "undo" of it would be a lie in the one log
+ * three products compute payments from. It is journalled (that is the point) but never pushed onto the
+ * undo stack, so nothing offers to reverse it.
+ */
+export const issueRevisionCommand: Command = {
+  id: 'core.issueRevision',
+  label: 'Issue revision',
+  description:
+    'ISSUE the model — declare this state a baseline to hand downstream (D34/D41). Saving is not issuing. The revision records its journal position (issued_at_seq), which is what makes "what changed since revision N?" answerable at all.',
+  argsSchema: {
+    by: { kind: 'string', label: 'Issued by', required: true, description: 'Who is releasing it' },
+    lineage: {
+      kind: 'string',
+      label: 'Lineage',
+      description: 'The thread every revision on this model hangs on. Defaults to the current one.',
+    },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(issueRevisionCommand, rawArgs);
+    // ⚠ `issued_at_seq` IS THIS EDIT'S OWN SEQ. So the delta since this revision —
+    // `journal.filter(e => e.seq > issued_at_seq)` — excludes the issuance itself and includes exactly
+    // what happens after it. That is the whole mechanism, and it is one line.
+    const revision = nextRevision(
+      ctx.revision,
+      text(args['by']),
+      ctx.seq,
+      args['lineage'] === undefined ? undefined : text(args['lineage']),
+    );
+    return ctx.edit(`Issue revision ${String(revision.snapshot_number)}`, [], [], { revision });
+  },
+};
+
+/** Every core command. Registered by `createRegistries`'s caller — additively, like everything else. */
+export const CORE_COMMANDS: readonly Command[] = [
+  createElementCommand,
+  setParamsCommand,
+  updateStyleCommand,
+  deleteElementCommand,
+  retargetReferenceCommand,
+  setClassificationCommand,
+  createStyleCommand,
+  createMaterialCommand,
+  createSectionCommand,
+  createContainerCommand,
+  createGridCommand,
+  issueRevisionCommand,
+];
+
+export type { BrokenReference };

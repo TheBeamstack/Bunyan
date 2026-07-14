@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // The document layer runs on the browser's main thread (it is what the React shell talks to), so
+    // DOM is the honest lib here — `TextEncoder`/`TextDecoder` are web APIs. It reaches for no other
+    // browser capability: storage is behind `StorageAdapter`, which Amer implements where it can be
+    // tested. This package does NOT depend on `@bunyan/kernel-client` — that is D19, made structural.
+    "lib": ["ES2022", "DOM"],
+    "types": []
+  },
+  "include": ["src/**/*.ts"]
+}

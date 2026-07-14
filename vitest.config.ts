@@ -12,6 +12,7 @@ export default defineConfig({
       '@bunyan/kernel-mock': pkg('kernel-mock'),
       '@bunyan/kernel-occt': pkg('kernel-occt'),
       '@bunyan/kernel-client': pkg('kernel-client'),
+      '@bunyan/document': pkg('document'),
     },
   },
   // The Emscripten module resolves its own .wasm from `import.meta.url` and reads it off disk under

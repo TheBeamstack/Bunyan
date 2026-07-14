@@ -413,6 +413,125 @@ export interface DemoFailurePayload {
 }
 
 /* ================================================================================================
+ * `instantiate` — RESERVED (owner ruling, 2026-07-14). The answer to the STYLE-EDIT PERFORMANCE CLIFF.
+ * ============================================================================================= */
+
+/**
+ * ⚠⚠ **RE-OWN AN EXISTING SOLID UNDER A NEW `nodeId`** — and it exists to collapse the single largest
+ * performance problem the product has.
+ *
+ * **THE MEASUREMENT (Entry 18, `document-scale.test.ts`):** a style edit across 50 walls costs 2,677 ms
+ * — **~21 seconds extrapolated to Revit's "change one wall type, update 400 walls"**, which is **D31's
+ * headline feature**. 100% of that time is inside OCCT (our plumbing is 0.2%), and **no disk cache can
+ * help it**: it is the interactive path, not the load path.
+ *
+ * **THE OBSERVATION:** 400 walls sharing a style *and* their instance params have **byte-identical
+ * local geometry.** They differ only in `placement` — and the rebuild engine already **builds every
+ * element in its own frame and places it last** (D25: `transform` mints no identities). So the base
+ * solid could be built **once** and re-used by all 400.
+ *
+ * **THE BLOCKER, AND THE ONLY REASON THIS NEEDS AN OP AT ALL:** two elements sharing one solid would
+ * share its `SubShapeRef`s — so a window hosted on `wall-A`'s `y-min` face would be hosted on
+ * `wall-B`'s too. **Catastrophic, and silently so.** `instantiate` is the fix: it says *"this shape,
+ * under a NEW node"*, minting a **fresh, independent set of identities** for a topologically identical
+ * solid. In OCCT a `TopoDS_Shape` copy is cheap — it shares the underlying `TShape` — so the re-own is
+ * close to free.
+ *
+ *     TODAY:            400 × (build + boolean)                    ~21 s
+ *     WITH instantiate:   1 × (build + boolean) + 400 × re-own     ~1 boolean + noise
+ *
+ * ⚠ **RESERVED, NOT BUILT** (D13) — the shape is frozen with the protocol; the body is v1.0.x's, and it
+ * is **unmeasured: a hypothesis, not a plan.** It is declared *now* because **the expensive thing to get
+ * wrong is the payload shape, not the body**, and the protocol freezes at the end of P3. Adding an op
+ * after the freeze is permitted (D13) — but agreeing the *shape* while the protocol is still soft is
+ * exactly the argument that reserved `sectionCut` and `importIfc`.
+ *
+ * ⚠ **AND THE INVARIANT IT MUST NOT BREAK:** the caller is asserting *"this solid is the geometry of a
+ * DIFFERENT element."* The kernel therefore re-derives the identities **from the new `nodeId`** — it
+ * does **not** copy the source's tokens and rewrite their prefix. Identity is *assigned by the
+ * operation that mints it*, never transplanted (D1).
+ */
+export interface InstantiatePayload {
+  /** The solid to re-own. It is **not** consumed: the source stays live and keeps its own identities. */
+  readonly handle: ShapeHandle;
+  /** The DAG node the new copy's identities belong to — `wall-01J8Z3K7Q2.structure`. */
+  readonly nodeId: string;
+}
+
+/* ================================================================================================
+ * `exportBrep` / `importBrep` — RESERVED. **THE GEOMETRY CACHE (D29 — owner ruling, 2026-07-14: SHIP).**
+ * ============================================================================================= */
+
+/**
+ * ⚠⚠ **THE CACHE, AND THE ONE THING IT MUST NOT DO: MIS-NAME A FACE.**
+ *
+ * **The ruling (2026-07-14):** `geometry-cache.brep` **SHIPS in v1.0.0.** A 195-element building
+ * cold-loads in **7.3 s** with no cache, and it scales linearly — a 2,000-element project would be
+ * ~75 s, which is past what a splash screen can hide.
+ *
+ * ⚠⚠ **BUT A `.brep` STORES SHAPES AND NOT THEIR NAMES, AND THAT IS THE WHOLE DIFFICULTY.** Every
+ * `SubShapeRef` in Bunyan is **derived by re-running the recipe** — identity is *assigned by the
+ * operation that mints it* (D1). Load a solid from a cache and **the recipe never runs**, so no
+ * identities are minted, and the window hosted on `wall-7.plaster/face/y-min#0` has **nothing to attach
+ * to.** ⇒ the cache must carry the tokens too — which is a **persisted name→shape index**, i.e. exactly
+ * the "identity token map" that D1 forbids (*"never a geometric index"*) and that the spec deleted from
+ * §4.5 one session ago.
+ *
+ * **⇒ THE RULED DESIGN, AND IT KEEPS D1 INTACT:**
+ *
+ *   1. **Bind by CANONICAL ORDER, never by raw OCCT index.** The tokens are stored in the order of the
+ *      **same deterministic canonical re-sort the resolver already applies before assigning identities**
+ *      (D8). So a token is re-attached by a rule *derived from the shape itself* — not by trusting a
+ *      position in a file.
+ *   2. **VERIFY, THEN TRUST.** `exportBrep` also returns a `fingerprint`: a digest over each named
+ *      sub-shape's measured geometry (area / centroid, mm-rounded — the D28 basis). `importBrep`
+ *      recomputes it and **refuses with `CACHE_STALE` on any disagreement.**
+ *   3. **A REFUSAL IS FREE.** The recipe is the source of truth and can always rebuild. So a stale, a
+ *      re-ordered, a corrupted or a **hostile** cache costs a rebuild — never a wrong name. **The cache
+ *      is a bet the document is always free to abandon**, and that is what makes shipping it safe.
+ *
+ * ⚠ **THE SECURITY NOTE IS NOT DECORATION.** A `.bnn` is a file a user can be **SENT**, and this is the
+ * one part of it fed as **binary** to OCCT's deserializer. `importBrep` must treat its bytes as
+ * hostile — bounded, validated, and refused with a typed failure rather than a crash. (This was one of
+ * the standing arguments *against* the cache; shipping it means paying that cost deliberately.)
+ *
+ * ⚠ **RESERVED, NOT BUILT.** The shapes freeze with the protocol at the end of P3; the bodies are the
+ * next Zayd work item. **Nothing may assume the cache exists** — the no-cache load path is the primary
+ * one, must remain supported forever, and is the only path **Miqdar** will ever have (it holds a solver,
+ * not an OCCT kernel, so it *cannot* produce a cache even in principle).
+ */
+export interface ExportBrepPayload {
+  readonly handle: ShapeHandle;
+}
+
+export interface ExportBrepResult {
+  /** `BRepTools::Write` output. ⚠ The only binary in a `.bnn`, and the only untrusted input to OCCT. */
+  readonly brep: Uint8Array;
+  /**
+   * Every identity this solid carries, **in canonical order** — the order `importBrep` will re-attach
+   * them in. ⚠ It is not a lookup table: it is the *output* of the same sort the resolver uses.
+   */
+  readonly refs: readonly string[];
+  /**
+   * A digest over each named sub-shape's measured geometry, in the same canonical order. ⚠ **This is
+   * what makes a mis-attached token impossible rather than merely unlikely** — `importBrep` recomputes
+   * it from the shape it actually read, and refuses if it disagrees.
+   */
+  readonly fingerprint: string;
+}
+
+export interface ImportBrepPayload {
+  /** The DAG node these identities belong to. The refs below must already be derived from it. */
+  readonly nodeId: string;
+  /** ⚠ UNTRUSTED BYTES. Validate; never assume a well-formed BREP. */
+  readonly brep: Uint8Array;
+  /** The tokens to re-attach, in canonical order, exactly as `exportBrep` emitted them. */
+  readonly refs: readonly string[];
+  /** ⚠ Recomputed and compared. A mismatch is `CACHE_STALE` — a refusal, never a shape. */
+  readonly fingerprint: string;
+}
+
+/* ================================================================================================
  * RESERVED OPS (D13, owner-ruled 2026-07-13) — DECLARED HERE, IMPLEMENTED IN P6.
  *
  * ⚠⚠ WHY THESE EXIST BEFORE THEIR BODIES DO, AND WHY IT IS NOT PREMATURE.
@@ -547,6 +666,17 @@ export interface OpMap {
   // are absent from `capabilities` and answer UNKNOWN_OP. See the block above `SectionCutPayload`.
   sectionCut: { payload: SectionCutPayload; result: SectionCutResult };
   importIfc: { payload: ImportIfcPayload; result: ImportIfcResult };
+  /**
+   * ⚠ RESERVED (owner ruling 2026-07-14) — the answer to the style-edit performance cliff (§4j).
+   * Returns an ordinary `ShapeResult`: a new handle, and a FRESH set of refs derived from `nodeId`.
+   */
+  instantiate: { payload: InstantiatePayload; result: ShapeResult };
+  /**
+   * ⚠ RESERVED (D29, owner ruling 2026-07-14: the geometry cache SHIPS). `importBrep` returns an
+   * ordinary `ShapeResult` — but only after VERIFYING the fingerprint. A mismatch is `CACHE_STALE`.
+   */
+  exportBrep: { payload: ExportBrepPayload; result: ExportBrepResult };
+  importBrep: { payload: ImportBrepPayload; result: ShapeResult };
 }
 
 export type OpName = keyof OpMap;
@@ -574,6 +704,9 @@ export const OP_NAMES = [
   'demoFailure',
   'sectionCut',
   'importIfc',
+  'instantiate',
+  'exportBrep',
+  'importBrep',
 ] as const satisfies readonly OpName[];
 
 /**
@@ -585,7 +718,13 @@ export const OP_NAMES = [
  * fake. ⚠ **Reserved is not the same as missing:** a missing op means P6 must amend a frozen contract;
  * a reserved one means P6 writes a body against a shape that was agreed while the protocol was soft.
  */
-export const RESERVED_OPS = ['sectionCut', 'importIfc'] as const satisfies readonly OpName[];
+export const RESERVED_OPS = [
+  'sectionCut',
+  'importIfc',
+  'instantiate',
+  'exportBrep',
+  'importBrep',
+] as const satisfies readonly OpName[];
 
 export function isOpName(value: string): value is OpName {
   return (OP_NAMES as readonly string[]).includes(value);

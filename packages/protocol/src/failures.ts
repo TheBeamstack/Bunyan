@@ -30,6 +30,23 @@ export const KERNEL_FAILURE_CODES = [
   'HANDLE_NOT_FOUND',
   'UNRESOLVED_SUBSHAPE_REF',
 
+  /**
+   * ⚠⚠ THE GEOMETRY CACHE DOES NOT MATCH ITS RECIPE, AND SO IT IS REFUSED (D29, owner ruling
+   * 2026-07-14).
+   *
+   * `importBrep` re-attaches identity tokens to a cached solid **by canonical order**, then **verifies
+   * every one of them against a fingerprint taken at write time**. Any disagreement — a different OCCT
+   * build, a re-sorted topology, a corrupted file, a hostile one — yields **this code, and never a
+   * shape.**
+   *
+   * ⚠ **It is not an error condition; it is the cache working as designed.** The recipe is the source
+   * of truth and can always rebuild, so the *correct* response is to throw the cache away and rebuild —
+   * which is why a cache can never mis-name a face: it is a bet the document is always free to abandon.
+   * A silently mis-attached token, by contrast, would be a window that moves to a different wall and
+   * nobody ever finds out.
+   */
+  'CACHE_STALE',
+
   // --- last resort ---
   'INTERNAL',
 ] as const;

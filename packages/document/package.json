@@ -1,0 +1,19 @@
+{
+  "name": "@bunyan/document",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The document model: the parametric truth layer above the kernel — scene graph, parts, styles, the seven registries, commands, undo, the agent surface and the .bnn codec.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --build"
+  },
+  "dependencies": {
+    "@bunyan/protocol": "workspace:*",
+    "fflate": "^0.8.2"
+  }
+}

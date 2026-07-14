@@ -194,9 +194,24 @@ describe('capabilities are DERIVED from the handlers, never hand-written', () =>
    * op must be removed from `RESERVED_OPS` deliberately, by a human who knows what they are doing.
    */
   it('the RESERVED ops are declared, unimplemented, and honest about it (D13)', async () => {
-    expect(RESERVED_OPS, 'the two ops P6 needs, reserved before the freeze').toEqual([
+    // ⚠ FIVE, AND EACH ONE IS RESERVED FOR THE SAME REASON: the expensive thing to get wrong is the
+    // PAYLOAD SHAPE, not the body — and the protocol freezes at the end of P3, which is now.
+    //
+    //   sectionCut · importIfc  — P6's (the 2D drawing; the IFC door).            [Entry 15]
+    //   instantiate             — the answer to the ~21 s style edit across 400 walls, and the ONE
+    //                             lever that needed a protocol decision (§4j-3c).  [owner, 2026-07-14]
+    //   exportBrep · importBrep — the geometry cache. ⚠ D29 was RULED **SHIP** (owner, 2026-07-14),
+    //                             so these are not speculative: they are scheduled work whose shape had
+    //                             to be agreed while the protocol was still soft. See `ops.ts` for why
+    //                             a cache that carries identity tokens does NOT reintroduce a token map:
+    //                             it binds by CANONICAL ORDER and VERIFIES, and refuses (CACHE_STALE)
+    //                             rather than mis-name a face.
+    expect(RESERVED_OPS, 'declared before the freeze; bodies come later').toEqual([
       'sectionCut',
       'importIfc',
+      'instantiate',
+      'exportBrep',
+      'importBrep',
     ]);
 
     // Declared in the protocol — the payload shape is frozen even though the body is not written.
