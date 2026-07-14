@@ -147,7 +147,9 @@ export function App() {
     [app, version],
   );
 
-  /** Every built element's parts, flattened for the viewport — a building is many solids (D30). */
+  /** Every built element's parts, flattened for the viewport — a building is many solids (D30). Each
+   *  carries its identity (element id, part name, stable `nodeId`) so the viewport can cache a mesh
+   *  against it and re-tessellate only what changed (step 2b). */
   const renderParts = useMemo<readonly RenderPart[]>(() => {
     if (app === null) return [];
     const out: RenderPart[] = [];
@@ -155,7 +157,13 @@ export function App() {
       const parts = app.doc.partsOf(element.id);
       if (parts === undefined) continue;
       parts.forEach((part, i) =>
-        out.push({ handle: part.handle, color: PART_COLORS[i % PART_COLORS.length]! }),
+        out.push({
+          elementId: element.id,
+          nodeId: part.nodeId,
+          partName: part.name,
+          handle: part.handle,
+          color: PART_COLORS[i % PART_COLORS.length]!,
+        }),
       );
     }
     return out;

@@ -1,26 +1,33 @@
 /**
  * The three.js scene manager — kernel meshes → `BufferGeometry`, orbit camera, grid, axes.
  *
- * ⚠ SCOPE (P4, foundation pass). This is the WebGL2 renderer. P4 step 1 wants `WebGPURenderer` with a
- * WebGL2 fallback and P4 step 7 wants TSL shading; both are follow-ups. The seam that matters is
- * already right: this class receives a `RenderGateway` and never a `KernelClient`, and it consumes
- * `MeshBuffers` + provenance so sub-shape picking (P4 step 4) can be layered on without reshaping it.
+ * ⚠ SCOPE (P4). This is the WebGL2 renderer. P4 step 1 wants `WebGPURenderer` with a WebGL2 fallback
+ * and P4 step 7 wants TSL shading; both are follow-ups. The seam that matters is already right: this
+ * class receives a `RenderGateway` and never a `KernelClient`.
  *
- * ⚠ AN ELEMENT IS ITS PARTS (D30). `setElement` tessellates EACH part and renders each as its own mesh
- * with its own material colour — a wall is three solids, not one. Quantities never come from these
- * triangles (`doc.quantities()` reads the B-Rep); this mesh is a disposable projection for the eyes.
+ * ⚠ AN ELEMENT IS ITS PARTS (D30). Each part is its own mesh with its own material colour — a wall is
+ * three solids, not one. Quantities never come from these triangles (`doc.quantities()` reads the
+ * B-Rep); this mesh is a disposable projection for the eyes.
+ *
+ * ⚠ THE REDRAW IS INCREMENTAL (P4 step 2b). `setScene` keeps a mesh cache keyed by each part's STABLE
+ * `nodeId` and re-tessellates only the parts whose `handle` changed — an untouched element costs
+ * nothing. See `reconcile.ts` for the plan and why the changed handle is a sufficient dirty signal.
+ * *(`toBufferGeometry` still drops the provenance/edge maps — that is step 2c, next.)*
  */
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-import type { MeshBuffers, ShapeHandle } from '@bunyan/protocol';
+import type { MeshBuffers } from '@bunyan/protocol';
 import type { RenderGateway } from './RenderGateway';
+import type { RenderPart } from './RenderPart';
+import { planRedraw, type CachedPart } from './reconcile';
 
-/** One part to draw: its handle and a display colour. */
-export interface RenderPart {
-  readonly handle: ShapeHandle;
-  readonly color: number;
+export type { RenderPart } from './RenderPart';
+
+/** A part currently on screen: what it was built from, plus its live three.js mesh. */
+interface DrawnPart extends CachedPart {
+  readonly mesh: THREE.Mesh;
 }
 
 export class Viewport {
@@ -29,8 +36,10 @@ export class Viewport {
   readonly #scene = new THREE.Scene();
   readonly #camera: THREE.PerspectiveCamera;
   readonly #controls: OrbitControls;
-  /** Everything we drew for the current element — disposed and replaced on each `setElement`. */
-  readonly #elementGroup = new THREE.Group();
+  /** Everything currently drawn. */
+  readonly #sceneGroup = new THREE.Group();
+  /** Mesh cache keyed by the STABLE part `nodeId` — the substrate of the incremental redraw (step 2b). */
+  readonly #drawn = new Map<string, DrawnPart>();
   #frame = 0;
   #disposed = false;
 
@@ -61,7 +70,7 @@ export class Viewport {
     this.#scene.add(grid);
     this.#scene.add(new THREE.AxesHelper(2000));
 
-    this.#scene.add(this.#elementGroup);
+    this.#scene.add(this.#sceneGroup);
 
     this.#renderer.setAnimationLoop(this.#tick);
   }
@@ -74,37 +83,76 @@ export class Viewport {
     this.#camera.updateProjectionMatrix();
   }
 
-  /** Tessellate and draw an element's parts. Replaces whatever was drawn before. */
-  async setElement(parts: readonly RenderPart[]): Promise<void> {
-    // A rebuild in flight while a newer one arrives: tag each call and bail if superseded.
+  /**
+   * Draw `parts`, reusing every mesh whose geometry did not change (P4 step 2b). Only parts with a new
+   * or changed `handle` are tessellated; a part that merely changed colour swaps its material; a part
+   * that left the scene is disposed. This replaces the old `setElement`, which re-tessellated the whole
+   * model on every call — the dominant interactive cost the review measured (Entry 24).
+   */
+  async setScene(parts: readonly RenderPart[]): Promise<void> {
+    // A newer setScene may supersede this one while we await the kernel; tag it and bail if so.
     const frame = ++this.#frame;
-    const meshes = await Promise.all(
-      parts.map(async (part) => ({
-        mesh: toBufferGeometry(await this.#render.tessellate(part.handle)),
-        color: part.color,
+    const plan = planRedraw(this.#drawn, parts);
+
+    // Tessellate ONLY the dirty parts, in parallel. (The render path is still un-coalesced — step 2d.)
+    const built = await Promise.all(
+      plan.tessellate.map(async (part) => ({
+        part,
+        geometry: toBufferGeometry(await this.#render.tessellate(part.handle)),
       })),
     );
+
     if (this.#disposed || frame !== this.#frame) {
-      for (const { mesh } of meshes) mesh.dispose();
+      for (const { geometry } of built) geometry.dispose();
       return;
     }
 
-    this.#clearElement();
-    for (const { mesh, color } of meshes) {
-      const material = new THREE.MeshStandardMaterial({
-        color,
-        roughness: 0.85,
-        metalness: 0.0,
-      });
-      this.#elementGroup.add(new THREE.Mesh(mesh, material));
-    }
+    for (const nodeId of plan.remove) this.#removePart(nodeId);
+    for (const part of plan.recolor) this.#recolorPart(part);
+    for (const { part, geometry } of built) this.#installPart(part, geometry);
   }
 
-  #clearElement(): void {
-    for (const child of [...this.#elementGroup.children]) {
-      this.#elementGroup.remove(child);
-      if (child instanceof THREE.Mesh) disposeMesh(child);
+  #installPart(part: RenderPart, geometry: THREE.BufferGeometry): void {
+    this.#removePart(part.nodeId); // a rebuilt part replaces its old mesh
+    const material = new THREE.MeshStandardMaterial({
+      color: part.color,
+      roughness: 0.85,
+      metalness: 0.0,
+    });
+    const mesh = new THREE.Mesh(geometry, material);
+    // Carry identity onto the object so a raycast hit (step 4) maps back to element + part.
+    mesh.userData['nodeId'] = part.nodeId;
+    mesh.userData['elementId'] = part.elementId;
+    this.#sceneGroup.add(mesh);
+    this.#drawn.set(part.nodeId, { handle: part.handle, color: part.color, mesh });
+  }
+
+  #recolorPart(part: RenderPart): void {
+    const existing = this.#drawn.get(part.nodeId);
+    if (existing === undefined) return;
+    const { material } = existing.mesh;
+    if (material instanceof THREE.MeshStandardMaterial) material.color.setHex(part.color);
+    this.#drawn.set(part.nodeId, {
+      handle: existing.handle,
+      color: part.color,
+      mesh: existing.mesh,
+    });
+  }
+
+  #removePart(nodeId: string): void {
+    const existing = this.#drawn.get(nodeId);
+    if (existing === undefined) return;
+    this.#sceneGroup.remove(existing.mesh);
+    disposeMesh(existing.mesh);
+    this.#drawn.delete(nodeId);
+  }
+
+  #clearAll(): void {
+    for (const { mesh } of this.#drawn.values()) {
+      this.#sceneGroup.remove(mesh);
+      disposeMesh(mesh);
     }
+    this.#drawn.clear();
   }
 
   readonly #tick = (): void => {
@@ -115,7 +163,7 @@ export class Viewport {
   dispose(): void {
     this.#disposed = true;
     this.#renderer.setAnimationLoop(null);
-    this.#clearElement();
+    this.#clearAll();
     this.#controls.dispose();
     this.#renderer.dispose();
   }

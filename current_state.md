@@ -1747,3 +1747,24 @@ decision the freeze waits on.
 
 ### 6. Next (still Amer, still P4 — NOT started here)
 **Step 2a/2b: give `RenderPart` identity and make the redraw incremental** (`{handle,color}` → carry element id + part name + `nodeId`; key a mesh cache by `nodeId`; re-tessellate only `edit.changes`). That single type unblocks picking, incremental redraw, hover and render coalescing at once (Entry 24 §4, `review_P4.md`). Then 2c (retain provenance/`edgePositions`), 2d (coalesce the render path), then the rest of P4 and P4.5. **Commit of THIS step is owner-gated — the diff is the four files above.**
+
+---
+
+## Entry 26 — 2026-07-14 — Amer (local PC, Windows, real browser) — **P4 STEP 2a/2b: THE REDRAW IS INCREMENTAL. AN EDIT RE-TESSELLATES ONLY WHAT CHANGED — MEASURED LIVE IN A REAL BROWSER: 3 PARTS, NOT 6.**
+
+**Task (owner):** continue P4 after step 0 — **step 2a (`RenderPart` identity) + 2b (incremental redraw)**, the 865-of-965-ms win the review measured (Entry 24 §3, `review_P4.md`). Step 0's gate now makes this checkable.
+
+### 1. WHAT CHANGED (all in `apps/web`, renderer only — no kernel, no document, no protocol)
+- **2a — `RenderPart` carries identity.** New `render/RenderPart.ts`: `{ elementId, nodeId, partName, handle, color }` (was `{ handle, color }`). `nodeId` is the part's DAG node — **stable across rebuilds** ⇒ the mesh-cache key; `handle` is a `ShapeHandle` (a string), minted **fresh by every rebuild** ⇒ for a given `nodeId`, a **changed handle IS the dirty signal**. `elementId`/`partName` are what sub-shape picking (step 4) will map a hit back to; `Viewport` already stamps them onto each mesh's `userData`.
+- **2b — the redraw is incremental.** New `render/reconcile.ts`: `planRedraw(cache, parts)` — pure, returns `{ tessellate, recolor, remove }` by diffing handles per `nodeId`. `Viewport` now keeps a `Map<nodeId, {handle,color,mesh}>` and `setScene` (replaces `setElement`) tessellates **only** `plan.tessellate`, swaps material for `recolor`, disposes `remove`, and **reuses every untouched mesh**. `App.renderParts` widened to emit the identity; `ViewportCanvas` calls `setScene`.
+- **⚠ Deliberately NOT reading `edit.changes`.** The plan suggested it; **handle-diffing is strictly better** — it is also correct on undo/redo and on a fresh load, where there is no single edit to consult. The handles carry the truth by themselves.
+
+### 2. PROVEN — TWICE
+- **Headless (the CI gate):** `render/reconcile.test.ts` — a 3-wall × 3-part scene; when one wall is rebuilt (its parts get fresh handles), `planRedraw` returns **3** tessellations, **not 9**, and all 3 belong to that wall. Plus recolor-only, add, remove and no-op cases. This is P4's *"assert by COUNTING, not timing"* exit criterion, in Node. Suite **189 → 194**.
+- **⚠⚠ LIVE IN THE REAL BROWSER (the method that caught Entry 23's bug):** booted the app on the real OCCT kernel, authored a 2nd wall through `window.bunyan`, and instrumented the kernel worker's `postMessage` from the page (verification-only, no repo change). **Editing Wall 1 re-tessellated exactly 3 parts — Wall 1's — while Wall 2 (length 2500) was served untouched from the mesh cache; Wall 1 rebuilt to 5500 (confirmed from the B-Rep volume).** Before this change that same edit re-tessellated all 6. **Zero console errors.** *(⚠ the in-app `screenshot` still times out on the WebGL canvas on this box — a known local limitation; the functional proof stands without it.)*
+
+### 3. ⚠ A REAL GAP THIS SURFACED (not fixed here — flagging it)
+**Agent edits do NOT refresh the UI.** `window.bunyan.execute(...)` calls `doc.execute` directly and never bumps App's React `version`, so a wall authored by an agent does not appear until a *UI* action next bumps it. This is the **same class** as the D19 equivalence gap the plan names (P4 exit criteria): the human and agent surfaces must be interchangeable, and here they observably are not. It wants App to subscribe to a document change signal rather than bump a counter in `dispatch`. **Left for the D19-equivalence work; noting it so it is not rediscovered.**
+
+### 4. Next (still Amer, still P4)
+**2c** — retain the provenance / `edgePositions` maps `toBufferGeometry` currently drops (no rendered edges today; and it is the substrate for picking). **2d** — coalesce the render path (`RenderGateway.tessellate` passes no `coalesceKey`). Then step 4 (sub-shape picking, now that `RenderPart` and `userData` carry identity), the failure-state surfaces (step 10), the typed-`SUPERSEDED` fix (step 11), and the D19 equivalence test. **Commit of THIS step is owner-gated — the diff is: `render/RenderPart.ts` (new), `render/reconcile.ts` (new), `render/reconcile.test.ts` (new), `render/Viewport.ts`, `render/ViewportCanvas.tsx`, `App.tsx`.**

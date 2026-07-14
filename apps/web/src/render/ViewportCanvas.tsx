@@ -41,9 +41,10 @@ export function ViewportCanvas({
     };
   }, [render]);
 
-  // Push new geometry to the (already-created) viewport whenever it changes.
+  // Push the desired scene to the (already-created) viewport whenever it changes; the viewport
+  // re-tessellates only the parts whose geometry actually changed (step 2b).
   useEffect(() => {
-    void viewportRef.current?.setElement(parts);
+    void viewportRef.current?.setScene(parts);
   }, [parts]);
 
   return <canvas ref={canvasRef} className="viewport-canvas" />;
