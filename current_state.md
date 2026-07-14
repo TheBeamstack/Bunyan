@@ -65,6 +65,72 @@ the dev box** (they are not in this repo and do not travel).
 
 **Phase: P2 is CLOSED. ✅ P3 — THE DOCUMENT MODEL — IS BUILT, CORRECTED AND CLOSED (Entry 21).**
 **✅ THE PROTOCOL IS FROZEN** (P3 step 8). The type contracts freeze at P5.
+**⚠⚠ P4 IS OPEN, REVIEWED, AND IT GREW A PHASE — SEE ENTRY 24 AND `review_P4.md`.**
+
+> ## ⚠⚠ **THE P4 REVIEW (Entry 24, 2026-07-14, `review_P4.md`) — FOUR OWNER RULINGS, AND THE HEADLINE IS NOT A BUG.**
+>
+> **The owner found the UI primitive next to ArchiCAD/Revit. He was right, and the cause is NOT in Amer's React
+> — it is in the DOCUMENTS.** There is **no interaction model in any of the four contract documents.** The only
+> one ever written down is *"button/drag → Command"*, which describes how an action **reaches** the model, not
+> how a human **authors a building**. **`snap` · `inference` · `preview` · `hover` · `gizmo` · `tool state`
+> appear NOWHERE in the repo** (every "snap" hit is *"snapshot"*). ⇒ **Amer built, faithfully and well, exactly
+> what the plan describes — and what the plan describes is a form over a command registry.** *To place a window
+> today a human must hand-type `wall-01J8Z3….finish.interior/face/y-min#0` into a text box.*
+>
+> **⇒ THE DIAGNOSIS, IN ONE SENTENCE: `argsSchema` IS A MACHINE-READABLE CONTRACT FOR AN AGENT, AND THE APP IS
+> USING IT AS A UI SPECIFICATION FOR A HUMAN.** D21 is right for the property panel and right for the agent tool
+> list; **for the RIBBON it silently substituted a *form* for a *tool*.**
+>
+> **THE FOUR RULINGS (owner, 2026-07-14):**
+> 1. **✅ A NEW PHASE — `P4.5 — THE INTERACTION MODEL` — LANDS BEFORE THE P5 FREEZE.** The tool state machine, snapping,
+>    the preview, numeric entry, **the spatial-query seam none of the three existing seams provides** — and it
+>    **reserves the command shapes** (`move`/`setPlacement`, the baseline-driven Wall) *while the contracts are still soft.*
+>    ⚠ **`Command`/`BimObjectType` freeze at P5; a `Command` whose `argsSchema` has never been driven by a pointing
+>    device is a `Command` frozen against a guess.**
+> 2. **✅ THE INTERACTIVE TARGET IS `10,000+` ELEMENTS — a BINDING budget.** ⚠ **The current architecture misses it by
+>    1–2 orders of magnitude on three measured axes, and the fourth is UNMEASURED (see §1a).**
+> 3. **✅ DRAWINGS STAY v1.0.x — BUT THEIR CONTRACTS ARE RESERVED BEFORE THE FREEZE** (plan P5 step 6b). *"2D is additive"*
+>    has been asserted in the spec for months and **never once checked against a contract.**
+> 4. **✅ THE FIXES LIVE IN `v1.0.0_imp_plan.md`, NOT IN A SEPARATE CORRECTION DOC.** Unlike P3 (revert-verifiable bugs in
+>    shipped code ⇒ it earned `P3_correction_plan.md`), **most of these findings are UNBUILT WORK, and unbuilt work belongs
+>    in the plan as steps with exit criteria.** A parallel fixes list is a **second description of one body of work** —
+>    exactly what rule 10 and D21 forbid. **`review_P4.md` is the EVIDENCE; the plan is the WORK.**
+
+### §1a — ⚠⚠ THE FOUR NUMBERS THAT PRICE P4, AND WHY THE PERFORMANCE STRATEGY WAS AIMED AT THE WRONG HALF
+
+**Measured against the real OCCT WASM on the same 5-storey building the D29 measurement uses (`review_P4.md` §4):**
+
+```
+                              rebuild 1 wall   REDRAW ALL (as built)   redraw only the changed wall   TOTAL/EDIT
+  39 elements /  62 solids        102 ms              175 ms                    10.4 ms                 277 ms
+ 117 elements / 186 solids        124 ms              538 ms                    17.2 ms                 662 ms
+ 195 elements / 310 solids        100 ms              865 ms                    12.0 ms                 965 ms
+```
+
+**Read the columns, not the rows.** The **rebuild is FLAT** (it is always one wall). The **redraw grows LINEARLY with
+the whole model** (~2.8 ms/solid), because `App.tsx` re-tessellates **every part of every element on every edit**.
+At 195 elements, **865 of the 965 ms an edit costs is re-drawing 309 solids that did not change.**
+
+> ## ⚠⚠ **AND THIS IS THE STRATEGIC FINDING, NOT THE PERFORMANCE ONE:**
+> **All three of this project's performance levers — the D29 BREP cache (RULED SHIP), `instantiate` (RESERVED IN THE
+> FROZEN PROTOCOL), and multithreading (v1.0.x) — attack the KERNEL REBUILD. NOT ONE OF THEM TOUCHES THIS.** After
+> `instantiate` collapses 400 booleans to one, a single-element edit on a 195-element building **still costs ~865 ms**,
+> and the temptation will be to conclude the kernel is *still* too slow and reach for threads. **The dominant interactive
+> cost in the app as built is not in the kernel at all** — and it was invisible because **every measurement this project
+> has ever taken was taken BELOW the renderer.**
+
+**Extrapolated to the owner's 10,000-element target (~16,000 solids), from the measured linearity:**
+
+```
+  ONE PARAMETER EDIT (redraw all, as built) ......  ~45 SECONDS
+  COLD LOAD from scene.json, no cache ............  ~6.3 MINUTES   (37.6 ms/element, D29 §4j)
+  DRAW CALLS (one THREE.Mesh per part) ...........  ~16,000        (~10–20× a 60 fps budget)
+  WASM HEAP (every solid stays live, nothing evicts) ⚠⚠ UNMEASURED — AND IT IS THE MOST DANGEROUS UNKNOWN IN THE PROJECT
+```
+
+⚠ **The heap number is a RELEASE GATE and a CONTRACT question, not a renderer one:** *what may be released and rebuilt on
+demand* is a question about the recipe and the rebuild engine ⇒ **it touches the contracts, so it must be known BEFORE P5
+FREEZES.** **Plan P4 step 9 (the scale harness) exists to produce all four numbers. Do not design the renderer without them.**
 
 > ## ✅ **THE SIX P3 DEFECTS ARE FIXED, AND EVERY FIX WAS VERIFIED BY REVERTING IT** (Entry 21).
 > The review (Entry 19, `review_P3.md`) found six defects behind a green suite; the owner ruled seven
@@ -413,6 +479,11 @@ harness exists for. ⚠ **§4j breaks that streak: the boolean's cost is real OC
 | **D43** | **✅ RULED — an unknown OR FUTURE type/schema: the document OPENS, the element is `failed` + visible + PRESERVED VERBATIM through save.** Never built, never edited, never a host. *Dropping it would delete Miqdar's columns on a round-trip.* |
 | **D44** | **✅ RULED — the PEI is a PREFIXED ULID** (`wall-01J8Z3K7Q2`). A counter needs an allocator = a backend (D37 forbids) ⇒ it **forecloses co-editing** (rule 8). And it makes id-reuse **impossible by construction**. |
 | **D45** | **✅ RULED — `discipline` lives on the PART, not the element** (not even derived). `Classification` = `{ifcClass, loadBearing}`. A void has none. **Miqdar filters on `loadBearing`**; **the Clean Delta carries discipline PER PART.** A quantity that cannot be measured is **omitted, never zeroed**. |
+| **D47** | **✅ RULED (2026-07-14) — THE TOOL / INTERACTION LAYER IS A FIRST-CLASS LAYER, AND IT IS MISSING.** A ribbon button **activates a TOOL** (collect input from the viewport → snap → preview → numeric override → commit **ONE** Command); it does **not** open a form over an `argsSchema`. ⚠ *`argsSchema` is a machine-readable contract for an AGENT; the app used it as a UI spec for a HUMAN.* **New phase `P4.5`, BEFORE the freeze.** |
+| **D48** | **✅ RULED (2026-07-14) — THE INTERACTIVE TARGET IS `10,000+` ELEMENTS. BINDING.** ⚠ The current architecture misses it by 1–2 orders of magnitude on three **measured** axes, and the fourth (**WASM heap** — every solid stays live all session, nothing evicts) **is unmeasured and is a CONTRACT question** ⇒ it must be answered **before P5 freezes**. Plan **P4 step 9**. |
+| **D49** | **✅ RULED (2026-07-14) — 2D DOCUMENTATION STAYS v1.0.x, BUT ITS ANCHORING CONTRACTS ARE RESERVED PRE-FREEZE** (plan P5 step 6b). An annotation is a **persistent reference to `SubShapeRef`s and element ids**; *"2D is additive"* has been asserted in the spec for months and **never checked against a contract.** |
+| **D50** | **✅✅ RULED (2026-07-14) — ⚠⚠⚠ THE FULL CONSTRAINT MODEL IS IN v1.0.0. THE LARGEST SCOPE RULING THIS PROJECT HAS MADE.** *Found by review:* **Bunyan has exactly ONE associative relationship — `opening → host face`. Everything else is absolute.** A **Level cannot be moved** (no `updateContainer`; floor-to-floor height is **immutable**); a **Grid hosts nothing** (`gridRefs` is validated and **never read by the build** — D32 is half-built); joins do nothing; **containers/materials/sections/grids are CREATE-ONLY** and **no command moves an element.** ⇒ *"Parametric" has meant **"each element has a recipe"**; in Revit it means **"elements are constrained to each other"** — and the second is what people mean by BIM.* **⇒ Plan P5 step 0: the TYPED DEPENDENCY GRAPH + hosting (Level/Grid as active datums) + base/top constraints + wall joins + a SKETCH CONSTRAINT SOLVER.** ⚠⚠ **THE ANTI-FUSE RULE (§4h) STILL BINDS ABSOLUTELY — a join is a display/quantities cleanup, NEVER a fuse. A CONSTRAINT IS NOT A BOOLEAN.** ⚠ **`core_logic.md` §9 lists the constraint solver as a north-star HOOK (explicitly not v1.0.0) — D50 moves it in, and THE SCHEDULE MUST BE RE-CUT.** |
+| **D51** | **✅ RULED (2026-07-14) — A COMMAND MAY NEVER SILENTLY RE-IDENTIFY.** *Reproduced:* `core.updateStyle` **accepts a layer rename** and **silently orphans every opening hosted on it** — the wall rebuilds at **full volume with no hole**, `brokenRefs` 0 → 1, **no refusal, no warning.** ⚠ **D26 already stated this rule** for the analogous case (*"a document command must never do it silently"*) — **the rule existed; the guard did not.** ⇒ **Refuse**, with a typed failure naming the refs it would break, unless explicitly acknowledged or given a retarget map. ⚠⚠ **AND WRITE DOWN WHAT NO DOCUMENT SAYS: A STYLE LAYER'S NAME IS IDENTITY-BEARING** (it is *inside* the `SubShapeRef` token) **while the UI renders it as ordinary editable text.** |
 | **D46** | **✅ RULED — one physical thing = one element, one PEI.** Superposition rules **PROVISIONAL**: MEP never collides; arch/struct may; **structural always wins**. ⚠ The MEP-vs-structure *clash* question is **open and named**. |
 
 **⚠ D40–D46 are ALL BUILT as of Entry 21** — they are no longer rulings awaiting code. The code is
@@ -692,6 +763,41 @@ core_logic §2), and the one real question under it — *can a kernel-less consu
 > ⚠ **`-O3`/LTO is MEASURED AND ANSWERED (§4j-3b): `-O3` buys NO speed. Do not re-run that experiment.**
 
 **For Amer (browser hot path):**
+
+> ## ⚠⚠⚠ **STOP. READ ENTRY 24 AND `review_P4.md` BEFORE WRITING A LINE OF UI. THE ORDER OF WORK HAS CHANGED.**
+>
+> **Your Entry 22–23 work is good and none of it is being thrown away** — the D19 bootstrap, the generated ribbon,
+> the schema-driven panel and the single-flight runner all stand. **But the phase around it moved.**
+>
+> **1. ⚠⚠ PLAN P4 STEP 0 COMES FIRST, AND NOTHING ELSE IS VERIFIABLE UNTIL IT PASSES: THE GATES CANNOT SEE `apps/web`.**
+> `pnpm typecheck` and `pnpm lint` **both exit 0** with `export const X: number = "not a number"` sitting in `App.tsx`
+> (reproduced). The root `typecheck` never invokes `apps/web/tsconfig.json`, and **`vitest.config.ts` includes only
+> `tests/**` — so `pnpm test` cannot collect an `apps/` test even if you wrote one.** ⇒ **Add the tsconfig to the
+> `typecheck` script; add `apps/**/*.test.ts?(x)` to the vitest `include`; then PROVE it with a mutation test.**
+> *(This is Entry 14's bug in a new place. It is not housekeeping — it is why the rest of this list went unnoticed.)*
+>
+> **2. THE REDRAW IS 90% WASTE, AND THE FIX IS ALREADY IN YOUR HAND.** `App.tsx` re-tessellates **every part of every
+> element on every edit** — **865 of the 965 ms an edit costs at 195 elements** (measured; §1a). **`doc.execute` RETURNS
+> the `UndoableEdit`, and `edit.changes` already names exactly which elements changed** — you read it for selection and
+> then throw it away. **Key a mesh cache by part `nodeId` and re-tessellate only the dirty parts.** ⚠ **And widen
+> `RenderPart` — `{handle, color}` carries no identity, and that one type blocks picking, incremental redraw, hover AND
+> render coalescing at once.**
+>
+> **3. ⚠ `P4.5 — THE INTERACTION MODEL` IS A NEW PHASE AND IT IS YOURS (with the Architect).** The owner found the UI
+> primitive; **the review found the cause is that no document ever described a tool.** You will build the tool state
+> machine, snapping, the preview and numeric entry — and **reserve `move`/`setPlacement` and the baseline-Wall shape
+> BEFORE P5 freezes them.** ⚠ **Do not design a private path to the kernel for snapping** — the spatial seam is
+> read-only and mints nothing, exactly like your `RenderGateway` (which was the right call, and is the precedent).
+>
+> **4. THE INTERACTIVE TARGET IS NOW `10,000+` ELEMENTS (binding).** ⇒ **plan P4 step 9: the scale harness.** Four
+> numbers — heap/solid, draw calls, cold load, edit latency. ⚠ **The WASM-heap number does not exist and is the most
+> dangerous unknown in the project.** *Do not design the renderer without them; ~16,000 draw calls at target is 10–20×
+> a 60 fps budget, and one `THREE.Mesh` per part will not get there.*
+>
+> **5. Small, cheap, and all now plan steps:** the failure states are **invisible, not merely absent** (`if (parts ===
+> undefined) continue` silently hides an unbuildable element — the one thing D43 forbids) · **stop regexing
+> `/superseded/i`** — the frozen protocol has a typed `SUPERSEDED` code, and `CommandFailure`'s codes **freeze at P5** ·
+> **the provenance map is promised in three of your comments and retained by none of your code.**
 
 > ## ⚠⚠ THE DOCUMENT MODEL EXISTS NOW. **BUILD AGAINST `@bunyan/document`, NOT AGAINST THE KERNEL.**
 >
@@ -1457,3 +1563,156 @@ the agent surface is a first-class actor, and only exercising it AS one found th
 ⚠ **Nothing is committed — commits/pushes are owner-gated.** The working tree now also carries `apps/web/src/ui/*`,
 `apps/web/src/edit/*`, the rewritten `App.tsx`/`App.css`, the `window.bunyan` wiring moved to App (`bootstrap.ts`, `vite-env.d.ts`),
 and the scaffold param bounds. **`.claude/launch.json` is unchanged from Entry 22.**
+
+---
+
+## Entry 24 — 2026-07-14 — Zayd (dev box, headless) — **THE P4 REVIEW. THE UI IS PRIMITIVE BECAUSE THE SPECIFICATION IS PRIMITIVE — AND THE GATES CANNOT SEE THE APP.**
+
+**Task (owner):** review Amer's `apps/web` (Entries 22–23) and all prior work, per `review_prompt.md`; the owner
+supplied one insight to act on — *the UI is very primitive next to ArchiCAD/Revit.* Then: **fix while it is cheap,
+ask the owner the design questions, and fold the work into the plan.** Full evidence: **`review_P4.md`**.
+⚠ **I implemented nothing.** Three throwaway probes, run and deleted; one injected type error, reverted. Tree clean.
+
+### 1. ⚠⚠ THE HEADLINE — AND IT IS NOT AMER'S BUG
+
+**There is no interaction model in any of the four contract documents.** Only *"button/drag → Command"*, which is
+**how an action reaches the model, not how a human authors a building.** `snap` · `inference` · `preview` · `hover` ·
+`gizmo` · `context menu` · `tool state` appear **nowhere in the repo.** Sixteen domain rules, **every one about the
+model**; five north-stars, and **the one about authoring is the *agent's*.** ⇒ **Amer built exactly what the plan says.
+The plan says: a form over a command registry.** *(To place a window a human must hand-type a `SubShapeRef` derivation
+token — while D44 forbids ever showing an element id to a user as a name.)*
+⇒ **`argsSchema` is a machine-readable contract for an AGENT, and the app used it as a UI spec for a HUMAN.**
+**D21 is right for the property panel and the agent tool list; for the RIBBON it substituted a *form* for a *tool*.**
+
+### 2. ⚠⚠ THE FINDING THAT LET ALL THE OTHERS HAPPEN — **THE GATES ARE BLIND TO `apps/web`**
+
+**Reproduced:** append `export const X: number = "not a number";` to `App.tsx` → **`pnpm typecheck` EXITS 0. `pnpm lint`
+EXITS 0.** Only `tsc -p apps/web/tsconfig.json` — **which no script and no CI step ever runs** — catches it. The root
+`typecheck` never invokes the app's tsconfig; root `tsconfig.json` includes only `packages/*/src/**/*.ts` + `tests/**`
+(and only `.ts`, never `.tsx`); **`vitest.config.ts` includes only `tests/**`, so `pnpm test` CANNOT collect a test in
+`apps/web`** — and **none exists.** **1,458 lines of the only surface a user touches are covered by eslint and prettier
+and nothing else.**
+⚠⚠ **THIS IS ENTRY 14'S BUG IN A NEW PLACE** (*"CI had never been green and could not be"*): **a gate everyone believes
+covers something it structurally cannot.** It is **why every other finding could happen at once, in good faith, with
+every gate green** — and it is **plan P4 step 0**, ahead of everything.
+
+### 2a. ⚠⚠⚠ AND WHILE CHECKING THAT, I FOUND CI IS **RED ON `main` RIGHT NOW** — **ENTRY 14'S BUG, LITERALLY, FOR THE THIRD TIME**
+
+**`pnpm verify` = `typecheck && lint && test`. CI runs FIVE steps: typecheck · lint · `format:check` · test · re-seed gate.**
+⇒ **`pnpm verify` can be green while CI is red — and it is.** **`pnpm format:check` FAILS on the committed tree:**
+`package.json`'s `"onlyBuiltDependencies": ["esbuild"]` (added in Entry 22 to make Vite start) must be expanded across
+lines by prettier. **Verified: the same file at `03ed47c` PASSES; at `3a6d068` it FAILS.** *Nobody needed the Actions tab —
+**CI's steps are commands, and they run on this box.** That is Entry 14's own sentence, and it went unrun again.*
+
+> ## ⇒ **THE RULE THAT SHOULD HAVE EXISTED SINCE ENTRY 14, AND NOW MUST: `verify` IS THE CI STEP LIST, EXACTLY.**
+> **A local gate that is a strict SUBSET of the remote gate is not a gate — it is a false-negative generator.** Three
+> sessions have now been told "green" by a command that does not run everything CI runs. *(Plan P4 step 0.)*
+
+### 3. ⚠⚠ THE MEASUREMENT, AND IT RE-AIMS THE WHOLE PERFORMANCE STRATEGY — **§1a HAS THE TABLE**
+
+**One parameter edit re-tessellates the ENTIRE model.** At 195 elements: **865 of 965 ms is redrawing 309 solids that
+did not change** (redrawing only the changed wall: **12 ms**). The rebuild is **flat**; the redraw is **linear in the
+whole model**. ⇒ **The D29 cache, `instantiate` and multithreading ALL attack the kernel rebuild. NOT ONE TOUCHES THIS.**
+**The dominant interactive cost is not in the kernel** — and it was invisible because **every measurement this project
+ever took was taken BELOW the renderer.** *(A fourth data point for §1's method table: found by TIMING it, not reading it.)*
+
+### 4. THE OTHER FINDINGS (all reproduced; all now plan steps)
+
+| | Finding | Where it lands |
+|---|---|---|
+| 1 | **P4's own named enforcement mechanism — the D19 EQUIVALENCE TEST — DOES NOT EXIST.** The plan says *"without it, D19 is a good intention."* ⚠ **And the two surfaces have already diverged once in a way only agent-driving caught** (Entry 23's StrictMode bug). **That one was found by hand.** | P4 exit criteria |
+| 2 | **The provenance map is promised in THREE comments and an Entry, with ZERO code.** `toBufferGeometry` drops `provenance`, `edgePositions` and `bounds` on the floor. ⚠ **The BREP-cache signature, exactly** (Entry 13). *(`edgePositions` dropped ⇒ **no rendered edges at all** — much of why the viewport reads as a toy.)* | P4 step 2c |
+| 3 | **`RenderPart` is `{handle, color}` — it carries NO identity.** That one narrow type simultaneously blocks **picking, incremental redraw, hover, and render coalescing.** Cheapest high-leverage fix in the review. | P4 step 2a |
+| 4 | **The app matches superseded drag frames by GREPPING ENGLISH PROSE** (`/superseded/i` on the message) **while the FROZEN protocol carries a typed `SUPERSEDED` code** the document layer discards. Reword one string ⇒ **every drag frame raises a red banner at the user.** ⚠ `CommandFailure`'s codes **freeze at P5.** | P4 step 11 |
+| 5 | **`GeometryGateway` says *"`tessellate` is absent"*. It is not** — `OpName = keyof OpMap` and `tessellate` is in it; a call **typechecks** (proved). **Two files build the D19 render-seam argument on a false premise.** One line: `Exclude<OpName,'tessellate'>`. | P4 step 12 |
+| 6 | **The two failure states are INVISIBLE — and worse than "not built".** `App.tsx` does `if (parts === undefined) continue`, so an **unbuildable element is silently skipped and simply does not appear.** A Miqdar column in a file you opened to look at **is not there**, with no indication. **That is the one outcome D43 was ruled to prevent.** | P4 step 10 |
+| 7 | **⚠⚠ `quantities()` THROWS ON A VOID** — *"element has no built geometry"* — so **the obvious implementation of P5's own exit criterion (*"how much C25/30 is in this building?"*) CRASHES on the first Opening.** There is **no project-wide roll-up at all.** ⚠ **Planitor and Miqdar both consume this, and the Clean Delta carries quantities per part** ⇒ **it is on the moat's critical path, not beside it.** | P5 exit criteria |
+| 8 | **No hide / isolate / selection set / view filter anywhere.** At 10,000 elements this is not optional. | P4.5 step 7 |
+
+### 5. THE FOUR OWNER RULINGS (2026-07-14) — **all four are now in `v1.0.0_imp_plan.md`**
+
+1. **`P4.5 — THE INTERACTION MODEL` is a NEW PHASE, and it lands BEFORE the P5 freeze.** Tool state machine · snapping ·
+   **the spatial-query seam** (⚠ *no actor in the app can ask a geometric question in world space today — the agent
+   surface returns semantics, the render seam returns triangles, and **every snap is a geometric question***) · the
+   **baseline-driven Wall** (*"drag the wall's end" is a compound change to `length` AND `placement` — **which no Command
+   expresses***) · and **reserving `move`/`setPlacement` before they freeze.**
+2. **The interactive target is `10,000+` elements — BINDING.** ⇒ **plan P4 step 9: the scale harness.** ⚠ **The WASM-heap
+   number does not exist and it is the most dangerous unknown in the project** (every solid stays live all session,
+   nothing evicts) — **and it is a CONTRACT question, so it must be answered before P5 freezes.**
+3. **Drawings stay v1.0.x — but their contracts are RESERVED before the freeze** (plan P5 step 6b). An annotation is a
+   **persistent reference to `SubShapeRef`s**; *"2D is additive"* has been asserted for months and **never checked.**
+4. **The fixes live in the PLAN, not in a separate correction doc.** *(P3 earned `P3_correction_plan.md` because its six
+   defects were revert-verifiable bugs in **shipped** code. **These are mostly UNBUILT WORK** ⇒ they belong in the plan as
+   steps. A parallel list is a **second description of one body of work** — rule 10, D21.)* **`review_P4.md` is the
+   evidence; the plan is the work.**
+
+### 6. ⚠ WHAT IS GENUINELY FINE — and how I checked
+
+`pnpm verify` **is** green (186/186 — my first red was my own missing `pnpm install`; **Amer's claim holds**). **D19 is
+real and genuinely machine-checked**, and `d19-boundary.test.ts` **does** cover `apps/` — it is the one gate that does.
+**The ribbon and property panel really are generated** (`describeCommands` / `parameterSchema`), not hand-wired. **The
+single-flight edit runner is correct reasoning** (two concurrent `execute`s interleaving heap frees is a race that
+reject-and-keep-last-good does *not* cover). **And Amer's method — driving `window.bunyan` AS an agent — caught a
+StrictMode bug every DOM-level check passed.** That is exactly the right instinct and it should not be lost in a review
+that is otherwise about gaps.
+
+### 7. ⚠ COVERAGE — what this review would NOT have caught
+
+**I never ran the app** (this box is headless — no browser, no GPU). Everything about three.js is read from the code or
+measured at the kernel seam **beneath** it: **if the renderer is wrong in a way that only shows on screen, I did not see
+it.** Amer's browser verification is complementary and is **not** superseded by this. My scale numbers are Node +
+`InProcessTransport`, not browser + Worker — **the redundancy ratio is architectural and holds anywhere; the absolute
+milliseconds will differ.** I did **not** re-verify the document layer or the kernel (Entries 19/21 did, thoroughly), did
+**not** audit `SchemaForm`'s JSON textarea for hostile input, and did **not** read `Miqdar_v1.0.0_spec.md` §3.4 — ⚠ **which
+is now entangled with ruling 1: if the interaction model changes the type contracts, the Miqdar gate must be cleared
+against the CHANGED ones.**
+
+### 8. Next
+**Amer:** plan **P4 step 0 first** (the gate — nothing else is verifiable until it passes), then 2a/2b/2c, then the rest of P4.
+**Zayd:** the D29 cache bodies still stand (§4j-2) — **but P4 step 9's heap number now outranks it**, because it can change
+the contracts and the cache cannot. **Architect:** the **baseline-Wall parameterisation call** (P4.5 step 4) is the one
+decision the freeze waits on.
+
+---
+
+## Entry 24b — 2026-07-14 — Zayd (dev box) — **THE SECOND SWEEP: THE MODEL IS NOT ASSOCIATIVE, AND A COMMAND SILENTLY RE-IDENTIFIES. TWO MORE OWNER RULINGS (D50, D51).**
+
+**Task (owner):** *"is there a pending decision, a design not 100% fixed, a design that wouldn't fulfil our goal, or something just not right?"* ⇒ a second hunt, aimed at **Hunt 5** (*what does the domain demand that nobody has written down?*). **It found the deepest thing in the review.** ⚠ I implemented nothing; one probe, run and deleted.
+
+### 1. ⚠⚠⚠ THE FINDING — **BUNYAN HAS EXACTLY ONE ASSOCIATIVE RELATIONSHIP**
+
+**`opening → host face`. Everything else in the model is ABSOLUTE.** All reproduced against the real kernel:
+
+| What a BIM tool does every day | What Bunyan does |
+|---|---|
+| **Move a level; the storey follows.** | ⚠ **A LEVEL CANNOT BE MOVED AT ALL.** There is **no `core.updateContainer`**; re-creating the id is refused. **Floor-to-floor height is immutable after creation.** |
+| **Bind a column to grid A-3; move the grid; the column follows.** | ⚠ **`gridRefs` IS STORED, VALIDATED — AND NEVER READ BY THE BUILD.** **Grid hosts nothing.** *D32 says "named axes and intersections as **placement hosts**." It is decoration.* |
+| **Join two walls at a corner.** | Nothing. *(Deferred to v1.0.x as a "display concern" — which is only true if a baseline exists to join.)* |
+| **Fix a material's density typo.** | ⚠ **NO `updateMaterial`.** Containers, materials, sections and grids are **CREATE-ONLY.** |
+| **Move an element.** | ⚠ **NO COMMAND MOVES AN ELEMENT.** `placement` is set at creation and can **never** change. |
+
+> ## ⇒ **"PARAMETRIC" HAS MEANT "EACH ELEMENT HAS A RECIPE." IN REVIT IT MEANS "ELEMENTS ARE CONSTRAINED TO EACH OTHER."**
+> **Those are different products, and the second is what people mean by BIM.** *This is why the product reads as a 3D modeller with BIM metadata rather than as BIM — and it is the same root as the primitive-UI finding: **nobody ever wrote down how the pieces relate, only what each piece is.***
+
+### 2. ⚠⚠ THE LATENT BUG THAT APPEARS THE DAY SOMEBODY FIXES IT — **AN EDGE THE BUILD READS AND THE INVALIDATOR DOES NOT KNOW**
+
+**`build.ts:379` ALREADY reads `elevationOf(scene, element.containerId)`** — so an element's geometry **already depends on its container's elevation.** **And `DocumentContext.#touched()` — the rebuild invalidator — does not handle the `containers` collection at all** (it has exactly three hard-coded cases: element self, `hostId`, style→instances).
+⇒ **The moment `core.updateContainer` lands, every wall on that level will silently keep its old Z** — correct-looking, passing, wrong. **⚠ `#touched()` is not a dependency graph; it is a lookup that happens to be right for the three edges that exist.** **D50 replaces it with declared, typed edges. An edge the build READS must be an edge the invalidator KNOWS.**
+
+### 3. ⚠⚠ D51 — A COMMAND SILENTLY RE-IDENTIFIES, **AND THE RULE FORBIDDING IT WAS ALREADY WRITTEN**
+
+**Reproduced:** `core.updateStyle` with a **renamed layer** → **ACCEPTED**. The wall rebuilds at **full volume with no hole in it** (`structure = 2.8e9 = 5000×200×2800`, uncut); `brokenRefs` **0 → 1**; **no refusal, no warning.** ⇒ **One rename orphans every opening on every wall wearing that style — which, per D31, is 400 of them.**
+
+> **⚠⚠ AND D26 ALREADY SAYS THIS, IN THE SPEC, IN THESE WORDS:** *"reordering the segment array re-targets every reference into the shape, exactly as renaming a wall would: editing a vertex is safe, permuting the list is not, and **a document command must never do it silently.**"*
+> **THE RULE EXISTED. THE GUARD WAS NEVER BUILT.** *(A new species for §1's table: not "we never thought of it" — **"we wrote it down and never enforced it."** Grep the docs for other rules stated as prose with no gate behind them.)*
+>
+> **⚠⚠ AND THE THING NO DOCUMENT SAYS AT ALL: A STYLE LAYER'S NAME IS IDENTITY-BEARING.** It is *inside* the `SubShapeRef` token — `wall-X.**finish.interior**/face/y-min#0` — **while the UI renders it as ordinary editable text.** A user renaming a layer in a dialog **has no idea they are re-minting identities across 400 walls.**
+
+### 4. THE TWO RULINGS (owner, 2026-07-14) — **both are now in `v1.0.0_imp_plan.md` P5 step 0**
+
+- **D50 — THE FULL CONSTRAINT MODEL IS IN v1.0.0.** The typed dependency graph · Level and Grid as **active datums** · **base/top constraints** (a wall spans L1→L2 and its height is *derived*) · wall joins · **a sketch constraint solver** · and the missing CRUD. ⚠⚠ **THE ANTI-FUSE RULE STILL BINDS: a join is a display/quantities cleanup, NEVER a fuse — fusing re-owns 4 of 6 faces and retroactively breaks every hosted window (measured, Entry 12). A CONSTRAINT IS NOT A BOOLEAN.**
+  ⚠⚠ **SCHEDULE: `core_logic.md` §9 lists the constraint solver as a north-star HOOK — explicitly NOT v1.0.0 scope. D50 moves it in. THE RELEASE DATE MUST BE RE-CUT, AND THE ARCHITECT HAS BEEN TOLD SO.** *(Zayd's recommendation on record: adopt an existing solver — FreeCAD's `planegcs`, LGPL — rather than write one; and stage it so the **dependency graph + hosting** land first, since they are what the freeze actually waits on, while the sketch solver does not touch the type contracts.)*
+- **D51 — `updateStyle` MUST REFUSE AN ORPHANING RENAME** unless explicitly acknowledged or given a retarget map, and **layer names must be documented as identity-bearing.**
+
+### 5. Next
+**The freeze now waits on THREE Architect decisions, not one:** the **baseline-Wall parameterisation** (P4.5 step 4) · the **base/top constraint shape** (P5 step 0b — *same question from the other side; answer them together and freeze once*) · and the **WASM-heap ceiling** (P4 step 9, D48 — it decides whether the recipe must support eviction, which is a contract).
