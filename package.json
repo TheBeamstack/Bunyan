@@ -9,16 +9,19 @@
     "node": ">=20"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json && tsc -p packages/kernel-mock/tsconfig.json && tsc -p packages/kernel-occt/tsconfig.json && tsc -p packages/document/tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p packages/kernel-mock/tsconfig.json && tsc -p packages/kernel-occt/tsconfig.json && tsc -p packages/document/tsconfig.json && tsc -p apps/web/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "verify": "pnpm typecheck && pnpm lint && pnpm test"
+    "reseed:check": "node scripts/check-reseed.mjs",
+    "verify": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm reseed:check"
   },
   "devDependencies": {
     "@bunyan/document": "workspace:*",

@@ -1716,3 +1716,34 @@ decision the freeze waits on.
 
 ### 5. Next
 **The freeze now waits on THREE Architect decisions, not one:** the **baseline-Wall parameterisation** (P4.5 step 4) · the **base/top constraint shape** (P5 step 0b — *same question from the other side; answer them together and freeze once*) · and the **WASM-heap ceiling** (P4 step 9, D48 — it decides whether the recipe must support eviction, which is a contract).
+
+---
+
+## Entry 25 — 2026-07-14 — Amer (local PC, Windows, real browser) — **P4 STEP 0 IS DONE: THE GATE NOW SEES `apps/web`, `verify` IS THE CI STEP LIST EXACTLY, AND CI IS GREEN AGAIN — PROVEN BY MUTATION.**
+
+**Task (owner):** the P4 handoff — do **plan P4 step 0 first** (the gate; nothing below it is verifiable until it passes), per Entry 24 §2/§2a and `review_P4.md`. **This entry is step 0 only.** Steps 2a/2b onward are still owed.
+
+### 1. WHAT WAS WRONG (all reproduced before touching anything)
+- **`pnpm verify` was a strict SUBSET of CI.** `verify = typecheck && lint && test`; **CI runs FIVE steps** — typecheck · lint · `format:check` · test · re-seed gate. A subset gate is a false-negative generator (Entry 24 §2a).
+- **CI was RED on `main`** since `3a6d068`: `pnpm format:check` fails on the committed `package.json` — prettier wants `"onlyBuiltDependencies": ["esbuild"]` **expanded across lines**. Exactly as the review predicted.
+- **The gate could not see `apps/web`.** Root `typecheck` never invoked `apps/web/tsconfig.json`; `vitest.config.ts` collected only `tests/**`. **Confirmed:** `export const X: number = 'not a number'` in `App.tsx` → `pnpm typecheck` **exited 0**.
+
+### 2. THE FIX (4 files; `git status` is exactly these)
+- **`package.json`** — `typecheck` now ends with `&& tsc -p apps/web/tsconfig.json`; new `reseed:check` script; **`verify` is now `typecheck && lint && format:check && test && reseed:check` — the CI step list, exactly**; `onlyBuiltDependencies` re-wrapped by prettier (the committed-content fix that un-reds CI).
+- **`vitest.config.ts`** — `include` is now `['tests/**/*.test.ts', 'apps/**/*.test.ts?(x)']`. An `apps/` test is collectable at last.
+- **`apps/web/src/edit/runner.test.ts`** — NEW, and the first test that lives inside `apps/web`. Covers `createLatestRunner` (the single-flight / trailing-latest drag discipline, Entry 23, previously untested). Pure logic, runs in plain Node. **Suite: 186 → 189.**
+- **`.prettierrc.json`** — added `"endOfLine": "auto"`. ⚠ **SEE §3 — this is not cosmetic; without it `verify` is permanently red on THIS box.**
+
+### 3. ⚠ THE WINDOWS WRINKLE STEP 0 SURFACED — **A LOCAL GATE THAT COULD NEVER GO GREEN IS STILL NOT A GATE**
+`core.autocrlf=true` **and there is no `.gitattributes`**, so my Windows checkout is **CRLF** while the committed blobs are **LF** (git normalises on commit — `git diff` sees none of it). Prettier's default `endOfLine` is `"lf"`, so **`format:check` flagged all 89 CRLF files** — meaning the moment `format:check` entered `verify`, **`verify` went red on Amer's box for a reason CI (Linux, LF) never sees.** The whole lesson of Entry 14 is *"CI's steps are commands, and they run on this box"* — which only holds if the box's bytes match CI's. `endOfLine: "auto"` makes prettier accept each file's existing endings on **both** platforms; **CI on LF still catches real issues** (the `package.json` wrap is still caught — it is an array-shape diff, not a line-ending one). ⚠ **The stricter alternative is a `.gitattributes` with `* text=auto eol=lf` + a working-tree renormalise; I did not do it because renormalising cleanly needs a commit/hard-reset and commits are owner-gated. If the owner prefers enforced-LF-in-repo over tolerant-prettier, that is the one-line swap.**
+
+### 4. PROVEN BY MUTATION (Entry 21's standing rule — *a fix without a check that fails in its absence is an assertion*)
+- **Type error →** appended the review's exact `export const X: number = 'not a number';` to `App.tsx` → `pnpm typecheck` **exit 2**, `App.tsx(335,14): error TS2322`. Reverted (`git checkout`), clean.
+- **Failing test →** broke one assertion in `runner.test.ts` → vitest **collected and ran it** and it went **red** (exit 1). Reverted.
+- **Green baseline:** full `pnpm verify` **exits 0** — typecheck (incl. apps/web) · lint · `format:check` (*All matched files use Prettier code style!*) · **189/189** · re-seed gate skips (no `BASE_REF`, correct off-PR).
+
+### 5. ⚠ ONE OPERATIONAL CAVEAT FOR THE NEXT AMER SESSION (not a repo bug)
+`verify` chains `pnpm` sub-scripts, so running it needs **bare `pnpm` on PATH**. CI has it (`pnpm/action-setup`) and so does an interactive shell where `corepack enable` succeeded. **This automation shell did not** (`corepack enable` → `EPERM` on `C:\Program Files\nodejs`, needs admin), so `corepack pnpm run verify` fails at the first nested `pnpm`. Worked around **session-only** with a `pnpm.cmd → corepack pnpm` shim on PATH; **nothing in the repo depends on it.** If a future session hits this, either `corepack enable` as admin once, or run the five steps individually via `corepack pnpm run <step>`.
+
+### 6. Next (still Amer, still P4 — NOT started here)
+**Step 2a/2b: give `RenderPart` identity and make the redraw incremental** (`{handle,color}` → carry element id + part name + `nodeId`; key a mesh cache by `nodeId`; re-tessellate only `edit.changes`). That single type unblocks picking, incremental redraw, hover and render coalescing at once (Entry 24 §4, `review_P4.md`). Then 2c (retain provenance/`edgePositions`), 2d (coalesce the render path), then the rest of P4 and P4.5. **Commit of THIS step is owner-gated — the diff is the four files above.**

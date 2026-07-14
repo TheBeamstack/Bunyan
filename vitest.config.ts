@@ -24,6 +24,10 @@ export default defineConfig({
     // The kernel is transport-agnostic, so the whole seam is testable in plain Node — no browser,
     // no jsdom. That is what lets the headless build box run the same suite CI runs.
     environment: 'node',
-    include: ['tests/**/*.test.ts'],
+    // `tests/**` is the kernel + document suite; `apps/**` is Amer's browser hot path. Both are
+    // collected so a test written beside the app it covers actually runs — before P4 step 0 the app
+    // could not be tested at all (review_P4.md §2 / Entry 24). App tests that need the DOM opt into
+    // jsdom per-file; the pure logic here (the edit runner) runs in plain Node like everything else.
+    include: ['tests/**/*.test.ts', 'apps/**/*.test.ts?(x)'],
   },
 });
