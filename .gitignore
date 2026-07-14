@@ -28,3 +28,7 @@ tools/kernel-build/dist/
 *.log
 .env
 .env.local
+
+# Claude Code: launch.json (the shared dev-server config) IS committed; settings.local.json is
+# per-machine permissions and must not be.
+.claude/settings.local.json

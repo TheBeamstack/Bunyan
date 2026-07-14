@@ -96,9 +96,14 @@ parts-aware scene graph, ElementStyle, the six registries, the Command layer, **
 `core.issueRevision`**, the **transactional (staged) rebuild + universal `dryRun`**, undo as state deltas,
 the broken-reference state, **the unbuildable-element state**, the agent surface, and the `.bnn` format.
 
-**What does NOT exist:** `apps/web` (Amer's), the renderer, browser storage (FSA/OPFS/IndexedDB — behind a
-`StorageAdapter` seam), 2D views, IFC import, the Clean Delta exporter, **and the `geometry-cache.brep`
-bodies (D29 is RULED SHIP and its ops are RESERVED — see §4j-2; it does NOT block Amer).**
+**What does NOT exist:** browser storage (FSA/OPFS/IndexedDB — behind a `StorageAdapter` seam),
+sub-shape picking, 2D views, IFC import, the Clean Delta exporter, **and the
+`geometry-cache.brep` bodies (D29 is RULED SHIP and its ops are RESERVED — see §4j-2).** ⚠ **`apps/web`
+EXISTS (Entry 22 foundation + Entry 23):** the D19 bootstrap, a read-only render seam, a WebGL2 three.js
+viewport, **a registry-generated ribbon (`describeCommands`) + command dialog, and a schema-driven
+property panel that makes the scaffold wall EDITABLE** — a param edit → `core.setParams` → OCCT rebuild
+→ re-tessellate, `coalesceKey` on drags. All verified in a real browser on the REAL OCCT kernel. **The
+rest of P4/P5 is still owed — see Entry 23 §5 (items 3–6).**
 
 ### ✅ THE FIVE THINGS THAT WERE OWED — ALL FIVE ARE DISCHARGED (Entry 21)
 
@@ -1294,3 +1299,161 @@ deliberately unimplemented** — a test pins that they answer `UNKNOWN_OP` and n
 3. **Amer is unblocked** — §5's handoff lists the four API changes since Entry 18 (`planDelete` is gone;
    `discipline` is on the part; ids are ULIDs; `mass` may be absent) and the two new UI surfaces
    (`unbuildable()`, `changeFeed()`).
+
+---
+
+## Entry 22 — 2026-07-14 — Amer (local PC, Windows, real browser) — **THE BROWSER APP EXISTS. `apps/web` BOOTS THE REAL OCCT KERNEL AND AUTHORS A COMPOSITE WALL THROUGH THE COMMAND LAYER — VERIFIED IN A REAL BROWSER.**
+
+**Task (owner):** *"resume implementation."* Picked up Zayd's Entry-21 handoff. **P3 is closed and the protocol
+is frozen, so the next work is mine: `apps/web`, which did not exist.** This is the **first browser code in
+the project** — the whole hot path Amer owns. Built the FOUNDATION and verified the entire seam end to end
+against the **real OCCT WASM**, not the mock.
+
+### 1. What was built (`apps/web` — Vite + React 18 + three.js)
+
+- **`src/bootstrap.ts` — THE ONE ALLOWED `KernelClient` HOLDER (D19).** Constructs the OCCT worker
+  (`new Worker(new URL('@bunyan/kernel-occt/worker', import.meta.url), { type: 'module' })`), wraps it in
+  `KernelClient`/`WorkerTransport`, handshakes, registers `CORE_COMMANDS` + the scaffold type, builds
+  `DocumentContext` on the narrow `GeometryGateway`, and wires `window.bunyan = createAgentSurface(doc)`.
+  `tests/d19-boundary.test.ts` allowlisted this path in advance; **the rule landed before the code, exactly
+  as intended.**
+- **`src/render/RenderGateway.ts` — the render seam, and a real D19 decision.** The renderer needs
+  `tessellate`; `GeometryGateway` **deliberately omits it** (the document is parametric truth, never
+  triangles). So the bootstrap derives a **narrow, read-only `RenderGateway` (just `tessellate`)** from the
+  same client and hands it to the viewport. ⚠ **The document AUTHORS geometry (the only door); the renderer
+  only DRAWS.** A component has no `KernelClient` to reach past this with — it cannot `makeBox`, cannot mint
+  an identity. *This is how the browser renders without breaking "no component holds a KernelClient."*
+- **`src/render/Viewport.ts` + `ViewportCanvas.tsx` — the three.js scene** (WebGL2). `MeshBuffers` →
+  `BufferGeometry`, orbit camera, Z-up mm world, grid/axes. **An element is its PARTS (D30): each part is
+  tessellated and drawn as its own mesh** — a wall is three solids, not one. The provenance map is carried
+  through `MeshBuffers` for sub-shape picking (P4 step 4, not yet wired).
+- **`src/scaffold/` — a placeholder Wall type + demo seed.** ⚠ **NOT the shipped types** (those are P5);
+  app-local (not imported from `tests/`) and clearly marked. The seed drives materials → style → wall
+  **entirely through `doc.execute`** — every call is one an agent could issue verbatim.
+
+### 2. ⚠ VERIFIED IN A REAL BROWSER (the thing a headless box could never check)
+
+`corepack pnpm --filter @bunyan/web dev`, opened in the browser:
+- **The real OCCT 7.9.3 WASM booted** — status bar reads `occt 7.9.3 · occt-7.9.3-emcc-6.0.2` from the
+  handshake (the build id that will key the service-worker cache, D11).
+- **A composite 3-layer wall was authored through the command layer and quantities came back EXACT from the
+  B-Rep, per part, per material (D30/D45):** structure (blockwork, structural) 2.24e9 mm³ → **3136 kg**;
+  insulation (EPS, architectural) 896e6 mm³ → **26.9 kg**; finish (plaster) 168e6 mm³ → **201.6 kg**. All
+  hand-checked against `L×t×h × density`.
+- **`window.bunyan` exposes 12 commands + the type** (agent surface live, D22). **Zero console errors.**
+- **Gates green:** `apps/web` typecheck (strict) ✓, eslint ✓, prettier ✓. `d19-boundary` ✓.
+
+### 3. ⚠⚠ A CROSS-PLATFORM TEST BUG THE HANDOFF TO WINDOWS SURFACED — AND IT HAD BEEN RED ALL ALONG
+
+`tests/d19-boundary.test.ts` matched an allowlist of **forward-slash** regexes (`/^tests\//`,
+`/^apps\/…bootstrap\.ts$/`) against `path.relative()` output — which is **backslashes on Windows.** So on
+**any Windows checkout the whole test was red**, flagging every legitimately-allowed file (all of `tests/`)
+as a D19 offender. **CI (Linux) never saw it; Amer's box hit it on the first `vitest` run.** Fixed by
+normalising separators (`.replaceAll('\\\\', '/')`) — intent unchanged, and now green on both OSes.
+⚠ **The lesson: the harness had never run on Amer's OS.** More of it may assume POSIX; watch for it.
+
+### 4. One toolchain note for the local PC (Windows)
+
+`pnpm` is corepack-only here too (`corepack pnpm …`). pnpm 10 blocks build scripts by default, so **esbuild's
+postinstall was skipped and Vite could not start** until allowlisted — added `pnpm.onlyBuiltDependencies:
+["esbuild"]` to the root `package.json` and `corepack pnpm rebuild esbuild`.
+
+### 5. NOT done (the rest of P4/P5/P6 that is mine), roughly in order
+
+1. **The ribbon generated from the Command registry** (`describeCommands`) — a button per verb, zero hand-wiring.
+2. **The auto property panel from each type's `parameterSchema`** — editing a param dispatches
+   `core.setParams` (debounced, `coalesceKey` on drags).
+3. **Sub-shape picking** — picked triangle → `SubShapeRef` via the provenance map already carried.
+4. **Browser storage** — implement `StorageAdapter` (`bnn.ts`) over **IndexedDB / OPFS / File System Access**,
+   wire `Autosave`. ⚠ **`list()` MUST return keys already in the store** or autosave overwrites the last
+   session (there is a three-session test for exactly this).
+5. **The two failure-state UI surfaces** — `doc.unbuildable()` (greyed, never "fix"/drop — it round-trips
+   verbatim, D43) and `doc.brokenRefs()`; and the **change feed**: on save persist
+   `saveBnn(scene, { journal: doc.changeFeed(), revision: doc.revision })` — **`doc.history()` there is the
+   moat-losing bug.**
+6. **WebGPURenderer + WebGL2 fallback + TSL** (foundation is WebGL2 only), service worker/PWA (D11),
+   Cloudflare Pages deploy.
+
+⚠ **Nothing is committed — commits/pushes are owner-gated.** The working tree carries `apps/web/`, the root
+`package.json` pnpm key, the `.claude/launch.json` (a `web` dev-server config), and the one-line
+`d19-boundary` cross-platform fix. **The scaffold types are placeholders; delete them when P5's real types land.**
+
+---
+
+## Entry 23 — 2026-07-14 — Amer (local PC, Windows, real browser) — **THE WALL IS EDITABLE. THE RIBBON AND THE PROPERTY PANEL ARE BOTH GENERATED FROM THE SAME SCHEMA — D21 MADE VISIBLE — AND DRIVING `window.bunyan` AT THE RUNNING APP CAUGHT A STRICTMODE BUG EVERY HAPPY-PATH CHECK MISSED.**
+
+**Task (owner):** *"resume implementation."* Continued Entry 22's foundation with the next two items from its §5:
+the **registry-generated ribbon** and the **auto property panel**. The wall now edits: a param change → `core.setParams`
+→ OCCT rebuild → viewport re-tessellates → exact quantities. Verified in a real browser against the **real OCCT WASM**.
+
+### 1. What was built (`apps/web/src/ui/` + `edit/`)
+
+- **`ui/SchemaForm.tsx` — ONE renderer, TWO consumers (D21 made visible).** A `ParamSchema` → a form: number/integer
+  (a **slider when bounded**, else a typed input), boolean, enum (`<select>`), point, ref/subShapeRef (text), object/array
+  (JSON textarea that only emits once it parses). ⚠⚠ **The property panel and the ribbon's command dialog are the SAME
+  component** — one over a Type's `parameterSchema`, one over a Command's `argsSchema`. Register a type or a command and its
+  editing UI exists for free, the exact mirror of the generated agent tool list.
+- **`ui/PropertyPanel.tsx` — the wall becomes editable (D19).** Every edit dispatches `core.setParams` through the one door.
+  ⚠ **Dispatch discipline (`edit/runner.ts`):** a **single-flight, trailing-latest runner** collapses a drag to one
+  in-flight `execute` — the app-level analogue of the kernel's `coalesceKey`, and it is what keeps two commits from
+  interleaving their heap frees (reject+keep-last-good protects a FAILED command, not two that succeed at once). A live
+  slider drag ALSO carries `coalesceKey: setParams:${id}` so the kernel discards superseded frames. The panel keeps a local
+  `draft` so inputs stay at 60 fps, and resyncs from the document only when NOT mid-gesture (so undo shows, a drag is never
+  snapped back).
+- **`ui/Ribbon.tsx` — a button per verb from `describeCommands`, zero hand-wiring.** Clicking opens a dialog whose form is
+  `SchemaForm` over the command's `argsSchema`; submit dispatches through the one door. **A button press and an agent's
+  `window.bunyan` call are the identical operation.** Undo/redo sit alongside — deliberately NOT commands (`describeCommands`
+  omits them; they drive `doc.undo()`/`redo()`).
+- **`App.tsx` rewritten as the orchestrator.** Holds a `DocumentContext` (author) + `RenderGateway` (draw), never a
+  `KernelClient`. `dispatch` = the one door as a bound fn: on success bump `version` (the signal a non-reactive doc changed
+  under React), on real failure raise a header banner, on a superseded drag frame swallow silently. Renders **every** built
+  element's parts (D30), quantities for the selected one, an element picker when there is more than one.
+
+### 2. ⚠ VERIFIED IN A REAL BROWSER (port 5185 — see §4 for why not 5173)
+
+- **12 command buttons, generated** (createContainer…updateStyle, alphabetically) + Undo/Redo. `window.bunyan` lists the same 12.
+- **Property panel edit — exact rebuild.** Length 4000→6000: structure **4704 kg** (6000·200·2800·1400/1e9), insulation 40.3,
+  finish 302.4 — all hand-checked. **Undo reverted to 3136 kg** and the panel resynced.
+- **The ribbon dispatches through `doc.execute`.** Filled the generated `createMaterial` dialog (id/name/**category enum**/density/
+  `structural` JSON), Run → committed, modal closed, no banner.
+- **The live slider path (coalesceKey).** Dragged Height to 3500.6 → structure **3920.7 kg** (4000·200·3500.6·1400/1e9), exact,
+  length preserved, **zero console errors** across the whole session.
+- **Gates green:** `apps/web` typecheck (strict) ✓ · eslint ✓ · prettier ✓ · `d19-boundary` (3/3) ✓. The new UI files import
+  only `@bunyan/document` + `@bunyan/protocol` + React — never the kernel client, so the D19 machine check stays green.
+
+### 3. ⚠⚠ THE BUG THE METHOD FOUND — `window.bunyan` RACED ITS OWN DEAD DOCUMENT ONTO THE GLOBAL (StrictMode)
+
+`bootstrap()` set `window.bunyan = agent` **unconditionally**, inside itself. Under React StrictMode the boot effect mounts
+**twice**; the first app is **disposed before it is ever seeded** (`seedDemoScene` runs in App, only on the survivor). So the
+global ended up pointing at mount-1's document — **empty scene, kernel already terminated** — while the UI used mount-2's live
+one. **Symptom that exposed it:** `window.bunyan.listMaterials()` returned `[]` even though the wall's quantities resolved real
+material names, and a duplicate `createMaterial` was **not refused** (the guard only fires against a scene that HAS the id).
+Every visible-in-the-DOM check was green; only *driving the agent surface itself* caught it. **Fix:** `bootstrap()` no longer
+touches `window`; **App wires `window.bunyan = bunyan.agent` on the surviving mount alone** (after the `if (!live)` guard). Now
+`listMaterials()` = `[blockwork, eps-80, plaster-15]` and `query()` returns the wall. ⚠ **A data point for §1's second method:
+the agent surface is a first-class actor, and only exercising it AS one found this. A UI-only pass never would have.**
+
+### 4. Toolchain notes (local PC, Windows)
+
+- **Another chat holds port 5173.** ⚠ Vite's default `strictPort:false` silently moves to 5174, which desynced the preview
+  harness (it expected the declared port). Passed `--port 5185 --strictPort` via `runtimeArgs` — ⚠ **and pnpm forwards trailing
+  args to the `dev` script directly; adding a `--` separator makes Vite receive the literal `--` and IGNORE the port.**
+  `.claude/launch.json` is left at the canonical `dev` on **5173** (what a clean box uses); the verify server ran on 5185.
+- **Scaffold change:** the wall's `length`/`height` params gained `min`+`max` — so the panel renders a **drag slider** (the
+  live/coalesce path has something to drive). Ordinary wall bounds, not a UI hack. Still a placeholder; delete with P5's types.
+
+### 5. NOT done (the rest of P4/P5/P6 that is mine) — Entry 22 §5 items 3–6 remain
+
+1. ✅ **Ribbon from `describeCommands`** — done (Entry 23).
+2. ✅ **Auto property panel from `parameterSchema`** (setParams, single-flight runner, `coalesceKey` on drags) — done (Entry 23).
+3. **Sub-shape picking** — picked triangle → `SubShapeRef` via the provenance map `MeshBuffers` already carries.
+4. **Browser storage** — `StorageAdapter` (`bnn.ts`) over IndexedDB / OPFS / File System Access, wire `Autosave`. ⚠ **`list()`
+   MUST return keys already in the store** (three-session test).
+5. **The two failure-state UI surfaces** — `doc.unbuildable()` (greyed, never fix/drop — round-trips verbatim, D43) and
+   `doc.brokenRefs()`; and the change feed on save: `saveBnn(scene, { journal: doc.changeFeed(), revision: doc.revision })`
+   — ⚠ **`doc.history()` there is the moat-losing bug.**
+6. **WebGPURenderer + WebGL2 fallback + TSL**, service worker/PWA (D11), Cloudflare Pages deploy.
+
+⚠ **Nothing is committed — commits/pushes are owner-gated.** The working tree now also carries `apps/web/src/ui/*`,
+`apps/web/src/edit/*`, the rewritten `App.tsx`/`App.css`, the `window.bunyan` wiring moved to App (`bootstrap.ts`, `vite-env.d.ts`),
+and the scaffold param bounds. **`.claude/launch.json` is unchanged from Entry 22.**

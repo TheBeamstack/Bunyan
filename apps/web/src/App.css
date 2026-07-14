@@ -1,0 +1,359 @@
+:root {
+  color-scheme: dark;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #14171a;
+  color: #e6e8ea;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #2a2f36;
+  background: #1a1d21;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.status {
+  font-size: 13px;
+  color: #9aa0a6;
+}
+
+.status[data-kind='error'] {
+  color: #e8837a;
+}
+
+.status[data-kind='ready'] {
+  color: #7fb069;
+}
+
+.app-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.viewport-canvas {
+  flex: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.panel {
+  width: 380px;
+  padding: 16px;
+  border-left: 1px solid #2a2f36;
+  background: #1a1d21;
+  overflow: auto;
+}
+
+.panel h2 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+.panel .hint {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #9aa0a6;
+}
+
+.panel table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.panel th,
+.panel td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid #23272d;
+}
+
+.panel th {
+  color: #9aa0a6;
+  font-weight: 600;
+}
+
+.overlay.error {
+  position: absolute;
+  inset: 16px;
+  padding: 16px;
+  background: rgba(60, 20, 20, 0.9);
+  border: 1px solid #7a3b3b;
+  border-radius: 8px;
+  color: #f0c8c4;
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
+/* ---- The error banner (in the header) --------------------------------------------------------- */
+
+.banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  max-width: 60%;
+  padding: 4px 10px;
+  border: 1px solid #7a3b3b;
+  border-radius: 6px;
+  background: rgba(60, 20, 20, 0.6);
+  color: #f0c8c4;
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.banner-dismiss {
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+}
+
+/* ---- The generated ribbon --------------------------------------------------------------------- */
+
+.ribbon {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #2a2f36;
+  background: #16191d;
+  flex-wrap: wrap;
+}
+
+.ribbon-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ribbon-history {
+  margin-left: auto;
+}
+
+.ribbon-button {
+  padding: 5px 11px;
+  border: 1px solid #333a42;
+  border-radius: 6px;
+  background: #222831;
+  color: #dfe3e7;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.ribbon-button:hover:not(:disabled) {
+  background: #2b333d;
+  border-color: #3d4650;
+}
+
+.ribbon-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ribbon-button.primary {
+  background: #2f6f4f;
+  border-color: #3a8560;
+  color: #eaf6ef;
+}
+
+.ribbon-button.primary:hover:not(:disabled) {
+  background: #367a58;
+}
+
+/* ---- Panel sections --------------------------------------------------------------------------- */
+
+.panel-section {
+  margin-bottom: 20px;
+}
+
+.panel-section h2 {
+  margin: 0 0 4px;
+  font-size: 15px;
+}
+
+/* ---- The schema-driven form (property panel + command dialog) --------------------------------- */
+
+.schema-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 12px;
+  color: #c4c9ce;
+}
+
+.field-unit {
+  color: #7f868d;
+}
+
+.field-required {
+  color: #e0a35a;
+}
+
+.field-desc {
+  font-size: 11px;
+  color: #7f868d;
+}
+
+.field-error {
+  font-size: 11px;
+  color: #e8837a;
+}
+
+.field-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-control input[type='text'],
+.field-control input[type='number'],
+.field-control select,
+.field-control textarea {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 8px;
+  border: 1px solid #333a42;
+  border-radius: 5px;
+  background: #12151a;
+  color: #e6e8ea;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.field-control textarea {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  resize: vertical;
+}
+
+.field-number input[type='range'] {
+  flex: 1;
+  min-width: 0;
+}
+
+.field-number input[type='number'] {
+  flex: 0 0 84px;
+}
+
+.field-point input[type='number'] {
+  flex: 1;
+}
+
+.field-json {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.form-empty {
+  font-size: 12px;
+  color: #7f868d;
+  margin: 0;
+}
+
+/* ---- The command dialog (modal) --------------------------------------------------------------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.modal {
+  width: min(460px, 92vw);
+  max-height: 88vh;
+  overflow: auto;
+  padding: 18px;
+  border: 1px solid #333a42;
+  border-radius: 10px;
+  background: #1a1d21;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.modal-verb {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: #7f868d;
+}
+
+.modal-desc {
+  margin: 0 0 14px;
+  font-size: 12px;
+  color: #9aa0a6;
+}
+
+.modal-rejected {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: #e8837a;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}

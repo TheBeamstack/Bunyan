@@ -61,7 +61,10 @@ describe('D19 — the kernel has exactly one door', () => {
     expect(files.length).toBeGreaterThan(10);
 
     const offenders = files
-      .map((file) => relative(ROOT, file))
+      // ⚠ Normalise to POSIX separators: `path.relative` yields backslashes on Windows (Amer's box),
+      // and the ALLOWED patterns are written with `/`. Without this the allowlist never matches there
+      // and every legitimately-allowed file (all of `tests/`, the bootstrap) reads as an offender.
+      .map((file) => relative(ROOT, file).replaceAll('\\', '/'))
       .filter((file) => !ALLOWED.some((pattern) => pattern.test(file)))
       .filter((file) =>
         /from\s+'@bunyan\/kernel-client'/.test(readFileSync(join(ROOT, file), 'utf8')),
