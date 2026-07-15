@@ -33,12 +33,17 @@ export interface GeometryRequestOptions {
 /**
  * The kernel ops the document layer is allowed to reach for. Structurally a subset of `KernelClient`.
  *
- * ⚠ It is deliberately NOT `all of OpMap`. `tessellate` is absent: the document model is the
- * *parametric truth*, and triangles are a disposable projection for the renderer. A document-layer
- * call that wanted a mesh would be a document layer that had started rendering.
+ * ⚠ It is deliberately NOT `all of OpMap`. `tessellate` is absent — and now the TYPE enforces that,
+ * not just this comment (P4 step 12): `Exclude<OpName, 'tessellate'>` makes `g.request('tessellate', …)`
+ * a compile error. The document model is the *parametric truth*, and triangles are a disposable
+ * projection for the renderer; a document-layer call that wanted a mesh would be a document layer that
+ * had started rendering. The renderer reaches `tessellate` through its own `RenderGateway`, off the same
+ * client, which is the one narrow view of the kernel that IS allowed to render (see `apps/web`).
  */
+export type DocumentOpName = Exclude<OpName, 'tessellate'>;
+
 export interface GeometryGateway {
-  request<Op extends OpName>(
+  request<Op extends DocumentOpName>(
     op: Op,
     payload: OpPayload<Op>,
     options?: GeometryRequestOptions,

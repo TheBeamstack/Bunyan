@@ -29,6 +29,7 @@ import { describe, expect, it } from 'vitest';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import type { GeometryGateway } from '@bunyan/document';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
@@ -85,6 +86,21 @@ describe('D19 — the kernel has exactly one door', () => {
     // advisory — and it is why `DocumentContext` takes a `GeometryGateway`, not a `KernelClient`.
     expect(Object.keys(manifest.dependencies ?? {})).not.toContain('@bunyan/kernel-client');
     expect(Object.keys(manifest.dependencies ?? {})).toContain('@bunyan/protocol');
+  });
+
+  it('⚠ GeometryGateway EXCLUDES tessellate at the TYPE level, not merely in a comment (step 12)', () => {
+    // The review found `geometry.ts` CLAIMED `tessellate` was absent while the type admitted it —
+    // `g.request('tessellate', …)` typechecked cleanly. This locks the fix: the assertion below is a
+    // COMPILE-TIME check that the document layer cannot ask the kernel for a mesh. If the exclusion
+    // regresses, `@ts-expect-error` becomes an unused suppression and `tsc` (the typecheck step) fails.
+    // ⚠ The body is never invoked — it exists to be typechecked, not run.
+    const _assertExcludesTessellate = (g: GeometryGateway): void => {
+      // @ts-expect-error — 'tessellate' is excluded from DocumentOpName; the document must never render.
+      void g.request('tessellate', { handle: 'h', deflection: 5 });
+      // …while a genuine geometry query still typechecks, proving we narrowed ONLY tessellate.
+      void g.request('bounds', { handle: 'h' });
+    };
+    expect(typeof _assertExcludesTessellate).toBe('function');
   });
 
   it('⚠ no command, no type and no agent surface can reach a kernel op', () => {

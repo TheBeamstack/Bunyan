@@ -87,6 +87,65 @@ body,
   color: #9aa0a6;
 }
 
+.panel .picked {
+  margin: 0 0 12px;
+  padding: 6px 8px;
+  font-size: 12px;
+  color: #cdd2d8;
+  background: #1f242b;
+  border-left: 2px solid #f4d35e;
+  border-radius: 2px;
+}
+
+.panel .picked code {
+  font-size: 11px;
+  color: #f4d35e;
+  word-break: break-all;
+}
+
+.panel-section.problems {
+  border-left: 2px solid #c45b5b;
+}
+
+.problem-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+}
+
+.problem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+  border-bottom: 1px solid #23272d;
+}
+
+.problem-link {
+  align-self: flex-start;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: #e8e8e8;
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+
+.problem.unbuildable .problem-link {
+  color: #9aa0a6; /* greyed — the app cannot build it (D43) */
+}
+
+.problem-reason {
+  font-size: 11px;
+  color: #9aa0a6;
+  word-break: break-all;
+}
+
+.problem-reason code {
+  color: #c45b5b;
+}
+
 .panel table {
   width: 100%;
   border-collapse: collapse;

@@ -12,23 +12,50 @@
  * ⚠ THE REDRAW IS INCREMENTAL (P4 step 2b). `setScene` keeps a mesh cache keyed by each part's STABLE
  * `nodeId` and re-tessellates only the parts whose `handle` changed — an untouched element costs
  * nothing. See `reconcile.ts` for the plan and why the changed handle is a sufficient dirty signal.
- * *(`toBufferGeometry` still drops the provenance/edge maps — that is step 2c, next.)*
+ *
+ * ⚠ THE PROVENANCE MAP IS RETAINED (P4 step 2c). `toBufferGeometry` used to read `positions`/`normals`/
+ * `indices` and let `provenance`, `edgePositions` and `bounds` fall out of scope — so the model had NO
+ * rendered edges (why it read as a 3D-viewer toy) and picking (step 4) had no substrate. Now each drawn
+ * part keeps its `MeshProvenance` (triangle → face `SubShapeRef`) beside its mesh, renders its edge
+ * polylines as `LineSegments`, and uses the kernel's tight `bounds` for the geometry's bounding volume.
+ * The picking read that consumes the retained provenance is `pick()` (step 4).
  */
 
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-import type { MeshBuffers } from '@bunyan/protocol';
+import { isKernelFailureError, type MeshBuffers } from '@bunyan/protocol';
+import type { ElementId } from '@bunyan/document';
 import type { RenderGateway } from './RenderGateway';
 import type { RenderPart } from './RenderPart';
 import { planRedraw, type CachedPart } from './reconcile';
+import { resolveFacePick, type PickResult } from './pick';
 
 export type { RenderPart } from './RenderPart';
+export type { PickResult } from './pick';
 
-/** A part currently on screen: what it was built from, plus its live three.js mesh. */
+/**
+ * A part currently on screen: what it was built from (`CachedPart`), its live three.js objects, and the
+ * provenance/bounds retained from tessellation so a pick can be resolved without going back to the kernel.
+ */
 interface DrawnPart extends CachedPart {
+  readonly elementId: ElementId;
+  readonly nodeId: string;
+  readonly partName: string;
   readonly mesh: THREE.Mesh;
+  /** The part's edge polylines, or `null` for a solid the kernel returned no edges for. */
+  readonly edges: THREE.LineSegments | null;
+  /**
+   * The `MeshBuffers` this part was drawn from — RETAINED (step 2c), where the foundation pass dropped
+   * it. It carries the `provenance` map that `pick()` (step 4) maps a triangle back to a `SubShapeRef`
+   * through. Its `positions`/`normals`/`indices` arrays are the very ones the `BufferGeometry` attributes
+   * already reference, so holding them here costs no extra memory.
+   */
+  readonly buffers: MeshBuffers;
 }
+
+/** Edge colour — near-black, so edges read as CAD linework over the shaded faces. */
+const EDGE_COLOR = 0x11141a;
 
 export class Viewport {
   readonly #render: RenderGateway;
@@ -40,6 +67,7 @@ export class Viewport {
   readonly #sceneGroup = new THREE.Group();
   /** Mesh cache keyed by the STABLE part `nodeId` — the substrate of the incremental redraw (step 2b). */
   readonly #drawn = new Map<string, DrawnPart>();
+  readonly #raycaster = new THREE.Raycaster();
   #frame = 0;
   #disposed = false;
 
@@ -94,37 +122,92 @@ export class Viewport {
     const frame = ++this.#frame;
     const plan = planRedraw(this.#drawn, parts);
 
-    // Tessellate ONLY the dirty parts, in parallel. (The render path is still un-coalesced — step 2d.)
+    // Tessellate ONLY the dirty parts, in parallel — each keyed per-node so a newer frame's tessellation
+    // SUPERSEDES this one's in the kernel client rather than racing it (step 2d). A superseded (or, on
+    // teardown, cancelled) part resolves to `null`: a newer setScene is already redrawing it, and this
+    // whole frame is by definition stale, so the `#frame` guard below drops it.
     const built = await Promise.all(
-      plan.tessellate.map(async (part) => ({
-        part,
-        geometry: toBufferGeometry(await this.#render.tessellate(part.handle)),
-      })),
+      plan.tessellate.map(async (part) => {
+        try {
+          return {
+            part,
+            buffers: await this.#render.tessellate(part.handle, {
+              coalesceKey: renderKey(part.nodeId),
+            }),
+          };
+        } catch (error) {
+          if (isSupersededOrCancelled(error)) return null;
+          throw error;
+        }
+      }),
     );
 
-    if (this.#disposed || frame !== this.#frame) {
-      for (const { geometry } of built) geometry.dispose();
-      return;
-    }
+    // Superseded while awaiting, or a newer frame started: drop it. No GPU geometry was built yet (it
+    // happens in `#installPart` below), so there is nothing to dispose — the raw `MeshBuffers` are plain
+    // typed arrays, GC'd.
+    if (this.#disposed || frame !== this.#frame) return;
 
     for (const nodeId of plan.remove) this.#removePart(nodeId);
     for (const part of plan.recolor) this.#recolorPart(part);
-    for (const { part, geometry } of built) this.#installPart(part, geometry);
+    for (const result of built) {
+      if (result !== null) this.#installPart(result.part, result.buffers);
+    }
   }
 
-  #installPart(part: RenderPart, geometry: THREE.BufferGeometry): void {
-    this.#removePart(part.nodeId); // a rebuilt part replaces its old mesh
+  /**
+   * Resolve a canvas-relative pointer (NDC in [-1, 1]) to the face it is over (P4 step 4). Raycasts the
+   * drawn face meshes (never the edge lines or the helpers), takes the nearest hit, and maps its triangle
+   * back to a `SubShapeRef` through the provenance retained in step 2c. Returns `null` on empty space.
+   */
+  pick(ndcX: number, ndcY: number): PickResult | null {
+    if (this.#disposed) return null;
+    this.#raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), this.#camera);
+    const meshes = [...this.#drawn.values()].map((d) => d.mesh);
+    const hits = this.#raycaster.intersectObjects(meshes, false);
+    for (const hit of hits) {
+      const nodeId = hit.object.userData['nodeId'] as string | undefined;
+      if (nodeId === undefined || hit.faceIndex === undefined || hit.faceIndex === null) continue;
+      const drawn = this.#drawn.get(nodeId);
+      if (drawn === undefined) continue;
+      const result = resolveFacePick(drawn, hit.faceIndex);
+      if (result !== null) return result;
+      // else: fall through to the next hit behind this triangle.
+    }
+    return null;
+  }
+
+  #installPart(part: RenderPart, buffers: MeshBuffers): void {
+    this.#removePart(part.nodeId); // a rebuilt part replaces its old mesh + edges
+
+    const geometry = toBufferGeometry(buffers);
     const material = new THREE.MeshStandardMaterial({
       color: part.color,
       roughness: 0.85,
       metalness: 0.0,
+      // Push faces back a hair so the edge lines sit cleanly on top without z-fighting.
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1,
     });
     const mesh = new THREE.Mesh(geometry, material);
     // Carry identity onto the object so a raycast hit (step 4) maps back to element + part.
     mesh.userData['nodeId'] = part.nodeId;
     mesh.userData['elementId'] = part.elementId;
     this.#sceneGroup.add(mesh);
-    this.#drawn.set(part.nodeId, { handle: part.handle, color: part.color, mesh });
+
+    const edges = buildEdgeSegments(buffers);
+    if (edges !== null) this.#sceneGroup.add(edges);
+
+    this.#drawn.set(part.nodeId, {
+      handle: part.handle,
+      color: part.color,
+      elementId: part.elementId,
+      nodeId: part.nodeId,
+      partName: part.partName,
+      mesh,
+      edges,
+      buffers,
+    });
   }
 
   #recolorPart(part: RenderPart): void {
@@ -132,11 +215,7 @@ export class Viewport {
     if (existing === undefined) return;
     const { material } = existing.mesh;
     if (material instanceof THREE.MeshStandardMaterial) material.color.setHex(part.color);
-    this.#drawn.set(part.nodeId, {
-      handle: existing.handle,
-      color: part.color,
-      mesh: existing.mesh,
-    });
+    this.#drawn.set(part.nodeId, { ...existing, color: part.color });
   }
 
   #removePart(nodeId: string): void {
@@ -144,13 +223,21 @@ export class Viewport {
     if (existing === undefined) return;
     this.#sceneGroup.remove(existing.mesh);
     disposeMesh(existing.mesh);
+    if (existing.edges !== null) {
+      this.#sceneGroup.remove(existing.edges);
+      disposeMesh(existing.edges);
+    }
     this.#drawn.delete(nodeId);
   }
 
   #clearAll(): void {
-    for (const { mesh } of this.#drawn.values()) {
+    for (const { mesh, edges } of this.#drawn.values()) {
       this.#sceneGroup.remove(mesh);
       disposeMesh(mesh);
+      if (edges !== null) {
+        this.#sceneGroup.remove(edges);
+        disposeMesh(edges);
+      }
     }
     this.#drawn.clear();
   }
@@ -167,6 +254,23 @@ export class Viewport {
     this.#controls.dispose();
     this.#renderer.dispose();
   }
+}
+
+/** The per-node coalesce key for a tessellation (step 2d) — namespaced off the document's `rebuild:` key. */
+function renderKey(nodeId: string): string {
+  return `render:tessellate:${nodeId}`;
+}
+
+/**
+ * True for the two failures a stale render frame EXPECTS: `SUPERSEDED` (a newer tessellation of the same
+ * node coalesced this one away — step 2d) and `CANCELLED` (the client was disposed mid-flight). Any other
+ * failure is a real problem and propagates.
+ */
+function isSupersededOrCancelled(error: unknown): boolean {
+  return (
+    isKernelFailureError(error) &&
+    (error.failure.code === 'SUPERSEDED' || error.failure.code === 'CANCELLED')
+  );
 }
 
 interface Disposable {
@@ -186,11 +290,49 @@ function disposeMesh(child: THREE.Object3D): void {
   for (const one of Array.isArray(material) ? material : [material]) one.dispose();
 }
 
-/** `MeshBuffers` → a three.js `BufferGeometry`. The provenance map rides along for picking (P4 step 4). */
+/**
+ * `MeshBuffers` → a three.js face `BufferGeometry`. The tight kernel `bounds` become the geometry's
+ * bounding volume directly — tighter than three's mesh-AABB and floating-point-stable across machines,
+ * which keeps frustum culling and fit-to-view honest.
+ */
 function toBufferGeometry(mesh: MeshBuffers): THREE.BufferGeometry {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(mesh.positions, 3));
   geometry.setAttribute('normal', new THREE.BufferAttribute(mesh.normals, 3));
   geometry.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
+
+  const { min, max } = mesh.bounds;
+  const box = new THREE.Box3(
+    new THREE.Vector3(min[0], min[1], min[2]),
+    new THREE.Vector3(max[0], max[1], max[2]),
+  );
+  geometry.boundingBox = box;
+  geometry.boundingSphere = box.getBoundingSphere(new THREE.Sphere());
   return geometry;
+}
+
+/**
+ * The part's edge polylines → one `LineSegments` (P4 step 2c). Each `EdgePolyline` is a contiguous run
+ * of `count` vertices in `edgePositions`; we expand it into consecutive segment pairs and index into the
+ * shared position buffer, so no vertex data is duplicated. Returns `null` when the kernel gave no edges.
+ *
+ * ⚠ ONE `LineSegments` PER PART is fine at the foundation; batching edges by material is a step-9 (scale
+ * harness) decision, alongside the same call for the face meshes — do not privately optimise it here.
+ */
+function buildEdgeSegments(mesh: MeshBuffers): THREE.LineSegments | null {
+  const { edgePositions, provenance } = mesh;
+  if (edgePositions.length === 0 || provenance.edges.length === 0) return null;
+
+  const indices: number[] = [];
+  for (const edge of provenance.edges) {
+    for (let i = 0; i < edge.count - 1; i++) {
+      indices.push(edge.start + i, edge.start + i + 1);
+    }
+  }
+  if (indices.length === 0) return null;
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(edgePositions, 3));
+  geometry.setIndex(indices);
+  return new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: EDGE_COLOR }));
 }

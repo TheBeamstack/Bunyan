@@ -23,13 +23,16 @@ import { bootstrap } from './bootstrap';
 import type { BunyanApp } from './bootstrap';
 import { seedDemoScene } from './scaffold/seed';
 import { ViewportCanvas } from './render/ViewportCanvas';
-import type { RenderPart } from './render/Viewport';
+import type { RenderPart, PickResult } from './render/Viewport';
+import { encodeSubShapeRef } from '@bunyan/protocol';
 import { Ribbon } from './ui/Ribbon';
 import { PropertyPanel } from './ui/PropertyPanel';
 import { formatError, isSuperseded } from './edit/runner';
 import type { Dispatch } from './edit/runner';
+import { withUiRefresh } from './edit/agentRefresh';
 import {
   describeCommands,
+  type BrokenReference,
   type CommandDescriptor,
   type Element,
   type ElementId,
@@ -52,6 +55,9 @@ export function App() {
   const [app, setApp] = useState<BunyanApp | null>(null);
   const [status, setStatus] = useState<Status>({ kind: 'booting' });
   const [selectedId, setSelectedId] = useState<ElementId | null>(null);
+  // The last face the user clicked (P4 step 4) — carries its `SubShapeRef`. This is the substrate
+  // P4.5 places a window on: a picked face resolves to a token no human ever types.
+  const [picked, setPicked] = useState<PickResult | null>(null);
   const [quantities, setQuantities] = useState<readonly PartQuantity[]>([]);
   const [banner, setBanner] = useState<string | null>(null);
   // Bumped after every committed edit — the signal that the document changed under React's feet.
@@ -77,7 +83,9 @@ export function App() {
 
         // ⚠ Wire the agent surface (D22) HERE, on the surviving app only — never inside `bootstrap()`,
         // or StrictMode's discarded first mount races its dead, unseeded document onto the global.
-        window.bunyan = bunyan.agent;
+        // ⚠ Wrapped so an agent edit REFRESHES THE VIEW like a human edit does (the D19 equivalence gap
+        // Entry 26 found): `bump` is React's stable reducer dispatch, safe to close over here.
+        window.bunyan = withUiRefresh(bunyan.agent, bump);
 
         setApp(bunyan);
         setSelectedId(wallId);
@@ -169,6 +177,23 @@ export function App() {
     return out;
   }, [app, elements, version]);
 
+  /**
+   * ⚠ THE TWO FAILURE STATES THE DOCUMENT MODEL EXISTS TO EXPOSE (P4 step 10). An element the app cannot
+   * build (an unregistered/future Type — a Miqdar column, a plugin) is NOT dropped: it round-trips
+   * verbatim through save (D43), so it must be SHOWN, not silently skipped. Likewise a broken host ref
+   * (domain rule 3). The viewport can't draw either (no geometry), so they surface here instead — the one
+   * thing D43 forbids is an unbuildable element being invisible.
+   */
+  const problems = useMemo(() => {
+    if (app === null) return { unbuildable: [], broken: [] };
+    return { unbuildable: app.doc.unbuildable(), broken: app.doc.brokenRefs() };
+  }, [app, version]);
+
+  const unbuildableIds = useMemo(
+    () => new Set(problems.unbuildable.map((u) => u.elementId)),
+    [problems],
+  );
+
   const selected = useMemo(() => {
     if (app === null || selectedId === null) return null;
     const element = app.doc.scene.elements[selectedId];
@@ -209,6 +234,12 @@ export function App() {
     if (created !== undefined) setSelectedId(created.id);
   }, []);
 
+  /** A face was clicked in the viewport (P4 step 4) — select its element and keep the picked face. */
+  const onPick = useCallback((hit: PickResult | null) => {
+    setPicked(hit);
+    if (hit !== null) setSelectedId(hit.elementId);
+  }, []);
+
   return (
     <div className="app">
       <header className="app-header">
@@ -247,13 +278,24 @@ export function App() {
       )}
 
       <main className="app-body">
-        {app !== null && <ViewportCanvas render={app.render} parts={renderParts} />}
+        {app !== null && <ViewportCanvas render={app.render} parts={renderParts} onPick={onPick} />}
         {status.kind === 'error' && <div className="overlay error">{status.message}</div>}
 
         <aside className="panel">
+          <ProblemsPanel
+            unbuildable={problems.unbuildable}
+            broken={problems.broken}
+            elements={elements}
+            onSelect={setSelectedId}
+          />
           {selected !== null ? (
             <>
-              <ElementPicker elements={elements} selectedId={selectedId} onSelect={setSelectedId} />
+              <ElementPicker
+                elements={elements}
+                selectedId={selectedId}
+                unbuildableIds={unbuildableIds}
+                onSelect={setSelectedId}
+              />
 
               <section className="panel-section">
                 <h2>{selected.element.name ?? selected.element.id}</h2>
@@ -261,6 +303,12 @@ export function App() {
                   {selected.type.label} · {selected.element.typeId}. Edit a parameter and the
                   geometry rebuilds from the recipe (D19).
                 </p>
+                {picked !== null && picked.elementId === selected.element.id && (
+                  <p className="picked" title="Click a face in the viewport to pick its sub-shape">
+                    Picked face · <strong>{picked.partName}</strong> ·{' '}
+                    <code>{encodeSubShapeRef(picked.faceRef)}</code>
+                  </p>
+                )}
                 <PropertyPanel
                   element={selected.element}
                   type={selected.type}
@@ -310,10 +358,12 @@ export function App() {
 function ElementPicker({
   elements,
   selectedId,
+  unbuildableIds,
   onSelect,
 }: {
   readonly elements: readonly Element[];
   readonly selectedId: ElementId | null;
+  readonly unbuildableIds: ReadonlySet<ElementId>;
   readonly onSelect: (id: ElementId) => void;
 }) {
   if (elements.length <= 1) return null;
@@ -331,12 +381,90 @@ function ElementPicker({
           >
             {elements.map((element) => (
               <option key={element.id} value={element.id}>
-                {element.name ?? element.id}
+                {(element.name ?? element.id) +
+                  (unbuildableIds.has(element.id) ? ' ⚠ unbuildable' : '')}
               </option>
             ))}
           </select>
         </span>
       </label>
+    </section>
+  );
+}
+
+/**
+ * The two first-class failure states, surfaced (P4 step 10). ⚠ NEITHER is ever offered a "fix" or a
+ * "drop": an unbuildable element is somebody's data the app merely can't build (D43) — dropping it
+ * deletes their columns from a file they opened to look at — and a broken ref is healed only by a manual
+ * retarget, which is itself an `UndoableEdit`. This panel names them and stops; it does not act.
+ */
+function ProblemsPanel({
+  unbuildable,
+  broken,
+  elements,
+  onSelect,
+}: {
+  readonly unbuildable: readonly { readonly elementId: ElementId; readonly reason: string }[];
+  readonly broken: readonly BrokenReference[];
+  readonly elements: readonly Element[];
+  readonly onSelect: (id: ElementId) => void;
+}) {
+  if (unbuildable.length === 0 && broken.length === 0) return null;
+  const nameOf = (id: ElementId): string => elements.find((e) => e.id === id)?.name ?? id;
+
+  return (
+    <section className="panel-section problems">
+      <h2>Problems</h2>
+      {unbuildable.length > 0 && (
+        <>
+          <p className="hint">
+            The app cannot build these elements (an unregistered or newer Type). They are preserved
+            exactly and never modified (D43) — not dropped.
+          </p>
+          <ul className="problem-list">
+            {unbuildable.map((u) => (
+              <li key={u.elementId} className="problem unbuildable">
+                <button
+                  type="button"
+                  className="problem-link"
+                  onClick={() => {
+                    onSelect(u.elementId);
+                  }}
+                >
+                  {nameOf(u.elementId)}
+                </button>
+                <span className="problem-reason">{u.reason}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {broken.length > 0 && (
+        <>
+          <p className="hint">
+            These elements are hosted on a sub-shape that no longer resolves. Retarget them manually
+            — they are never auto-healed (domain rule 3).
+          </p>
+          <ul className="problem-list">
+            {broken.map((b) => (
+              <li key={`${b.elementId}:${b.ref}`} className="problem broken-ref">
+                <button
+                  type="button"
+                  className="problem-link"
+                  onClick={() => {
+                    onSelect(b.elementId);
+                  }}
+                >
+                  {nameOf(b.elementId)}
+                </button>
+                <span className="problem-reason">
+                  {b.reason} · <code>{b.ref}</code>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </section>
   );
 }

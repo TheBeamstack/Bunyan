@@ -19,13 +19,28 @@ import type { MeshBuffers, ShapeHandle } from '@bunyan/protocol';
 /** Chordal deviation for display meshes, in mm. Coarser than a quantities-grade mesh — this is for eyes. */
 export const DISPLAY_DEFLECTION_MM = 5;
 
+/** Per-call knobs for a tessellation. */
+export interface TessellateOptions {
+  /** Chordal deviation override (mm). Defaults to `DISPLAY_DEFLECTION_MM`. */
+  readonly deflection?: number;
+  /**
+   * ⚠ COALESCE KEY (P4 step 2d). During a drag the same part is re-tessellated every frame; passing a
+   * per-node key (`render:tessellate:<nodeId>`) makes a newer tessellation SUPERSEDE the in-flight one
+   * in the kernel client, so the kernel is not left computing meshes the `#frame` guard would only throw
+   * away *after* the work was done. The document path already disciplines its rebuilds this way; this
+   * gives the render path the same discipline. ⚠ Namespaced so it never collides with the document's
+   * `rebuild:<elementId>` key on the shared client.
+   */
+  readonly coalesceKey?: string;
+}
+
 export interface RenderGateway {
   /**
-   * Tessellate a built part's `ShapeHandle` into a mesh + its provenance map (the substrate for
-   * sub-shape picking, P4 step 4). ⚠ Never measure from this mesh — a tessellated curved solid
+   * Tessellate a built part's `ShapeHandle` into a mesh + its provenance map (which the viewport RETAINS
+   * for sub-shape picking, P4 step 2c/4). ⚠ Never measure from this mesh — a tessellated curved solid
    * under-reports its true size by the chord error. Quantities come from `doc.quantities()`.
    */
-  tessellate(handle: ShapeHandle, deflection?: number): Promise<MeshBuffers>;
+  tessellate(handle: ShapeHandle, options?: TessellateOptions): Promise<MeshBuffers>;
 }
 
 /** Anything with a protocol `request` — a `KernelClient` structurally satisfies this. */
@@ -39,8 +54,13 @@ interface Tessellator {
 
 export function createRenderGateway(kernel: Tessellator): RenderGateway {
   return {
-    async tessellate(handle, deflection = DISPLAY_DEFLECTION_MM) {
-      return kernel.request('tessellate', { handle, deflection });
+    async tessellate(handle, options) {
+      const deflection = options?.deflection ?? DISPLAY_DEFLECTION_MM;
+      return kernel.request(
+        'tessellate',
+        { handle, deflection },
+        options?.coalesceKey !== undefined ? { coalesceKey: options.coalesceKey } : undefined,
+      );
     },
   };
 }

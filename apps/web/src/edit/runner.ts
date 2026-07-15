@@ -73,16 +73,40 @@ export function createLatestRunner(onIdle?: () => void): LatestRunner {
 }
 
 /**
+ * The marker the kernel's FROZEN `SUPERSEDED` failure code leaves in a message. `KernelFailureError`
+ * renders itself as `` `[${failure.code}] ${failure.message}` ``, so `[SUPERSEDED]` is the *code* in
+ * brackets — it changes only if the frozen protocol code changes, NOT if someone rewords the human
+ * sentence after it. Keying on this is strictly safer than the old `/superseded/i`, which matched the
+ * English word "superseded" and so (a) broke the moment the message was reworded and (b) swallowed any
+ * genuine geometry failure whose prose happened to contain that word.
+ */
+const SUPERSEDED_MARKER = /\[SUPERSEDED\]/;
+
+/**
  * A rebuild that was SUPERSEDED by a newer edit on the same `coalesceKey` — the kernel settled the
- * in-flight op as `SUPERSEDED`, which surfaces here as a `GEOMETRY_FAILED` command failure. This is the
- * EXPECTED outcome of an intermediate drag frame, not an error: the newer frame is already on its way.
- * The caller swallows it and keeps the last committed geometry.
+ * in-flight op as `SUPERSEDED`. This is the EXPECTED outcome of an intermediate drag frame, not an
+ * error: the newer frame is already on its way. The caller swallows it and keeps the last committed
+ * geometry.
+ *
+ * ⚠⚠ STOPGAP — THE CLEAN FIX IS A DOCUMENT-LAYER CHANGE AND IT NEEDS ZAYD + OWNER SIGN-OFF (P4 step 11).
+ * The kernel raises a TYPED `SUPERSEDED` code, but `DocumentContext` collapses every rebuild failure into
+ * `GEOMETRY_FAILED` (`document.ts` — the message is `buildAssembly`'s `messageOf(kernelError)` concatenated
+ * in), so the typed code is lost at the document boundary and can only be recovered from the string. The
+ * proper fix preserves it across that boundary:
+ *   1. `build.ts` — capture the originating `KernelFailureCode` on a failed `ElementGeometry`
+ *      (`failureCode?`, beside the existing `error` string), read off `isKernelFailureError(error)`.
+ *   2. `document.ts` `#stage` — carry it on `StagedRebuild.failure`.
+ *   3. `commands.ts` — add a `SUPERSEDED` `CommandFailure` code (or a `cause?: KernelFailureCode`), and
+ *      have `document.execute` emit it instead of folding it into `GEOMETRY_FAILED`.
+ *   4. here — `error.code === 'SUPERSEDED'`, and delete this string match.
+ * ⚠ `CommandFailure`'s code set is part of the document contract and FREEZES AT P5 — this is free now and
+ * an amendment later, so it wants doing before the freeze. It is Zayd's package; do not land it solo.
  */
 export function isSuperseded(error: unknown): boolean {
   return (
     error instanceof CommandFailure &&
     error.code === 'GEOMETRY_FAILED' &&
-    /superseded/i.test(error.message)
+    SUPERSEDED_MARKER.test(error.message)
   );
 }
 
