@@ -1992,3 +1992,51 @@ CHANGED: `packages/protocol/src/ops.ts` (`FaceFramePayload`/`FaceFrameResult` + 
 (call `faceFrame`; `inward = -normal`; `inwardNormal` deleted) · `tests/fixtures/bim-types.ts` (the Opening's frame path for curved
 faces) · `tests/quantities-and-contract.test.ts` (capabilities list + `faceFrame`) · `current_state.md` (this entry + §1/§2).
 **Commit + push are owner-gated.**
+
+---
+
+## Entry 31 — 2026-07-16 — Zayd (dev box, headless) — **THE PRE-FREEZE AUDIT: SEVEN NEW POINTS THAT MUST BE HANDLED BEFORE `SubShapeRef` / `BimObjectType` / `Command` FREEZE, FOLDED INTO THE PLAN AS THE "FREEZE GATE".**
+
+**Task (owner):** *"reanalyse deeply and find all points needed to be handled before the freeze, then update the plan so the next entry starts implementing; if necessary find other proper methods to discover more."* This entry is that analysis and that plan update. **No code changed** — this is a review; the work is now in `v1.0.0_imp_plan.md` as **THE FREEZE GATE** (a consolidated, ordered, authoritative checklist at the head of P5).
+
+> ## ⚠⚠ WHY A FREEZE AUDIT AT ALL: THE FREEZE IS THE ONE IRREVERSIBLE ACT.
+> After P5 a wrong contract costs an **amendment across three products** (`.bnn` files in the field, Miqdar, Planitor), not an afternoon. The known pre-freeze items were scattered through P4.5 and P5 step 0/6; **nobody had ever walked the freezing contracts field-by-field asking "what forces this to change after the freeze?"** That walk found seven new points.
+
+### 1. THE FIVE METHODS THIS AUDIT USED — and they are now written into the plan so the next agent extends the list rather than trusting it complete
+
+1. **The freeze-forcing test** — for each frozen FIELD, name a v1.0.0/north-star feature that forces its *shape* to change.
+2. **The three-consumers walk** — every contract must satisfy **all three** of Miqdar, Planitor, agent+UI; walk each.
+3. **The rename/delete test** — every identity-bearing REFERENCE needs a refuse-or-retarget path, and the arg must be in the `argsSchema` before it freezes.
+4. **The migration test** — can `migrate` express rename/split/merge/add/remove, for **element AND style** params?
+5. **Keep modelling real buildings** (the standing method, 11 gaps) — ⚠ **now re-aimed at the shapes D50 introduces** (grid-hosted columns, base/top walls, joins, a Space), because *the kernel-level gaps are nearly mined out and the next ones live in the constraint model, which does not exist yet* — so this method only bites once step 0 is being built.
+
+### 2. ⚠⚠ THE SEVEN NEW PRE-FREEZE POINTS (none was on any list before this audit)
+
+| | Point | Contract it would move AFTER the freeze | Disposition |
+|---|---|---|---|
+| **ⓐ** | **`BuildContext` must expose the constraint/hosting inputs.** `buildGeometry` gets ONE `elevation`; a base/top wall needs TWO level datums, a grid-hosted column needs the grid intersection coords. No `grid()`, no top-datum. | `BuildContext` | Buildable — it IS the specific contract change D50 forces; folded into **P5 step 0b**. |
+| **ⓒ** | **`ifcMapping` on `BimObjectType`.** P6 registers a Type per IFC class and must map entity↔type/params. **The plan's step 3 already lists `ifcMapping` as a type field — the actual type has none.** | `BimObjectType` (+1 optional field) | Reserve — **new step 0g**. Else P6 amends a frozen type. |
+| **ⓓ** | **Generalise D51 to EVERY reference.** D51 guards a style-LAYER rename; `materialId`/`sectionId`/`containerId`/`gridRefs`/`styleId` are the same class. Each `update…`/`delete…` needs the `acknowledge`/`retargetMap` arg **before its `argsSchema` freezes**. | `Command.argsSchema` (all CRUD) | Buildable — widened **P5 step 0f**. |
+| **ⓕ** | **A style-migration hook.** `ElementStyle` is versioned but **nothing migrates a style** — only `BimObjectType.migrate` (element params). A styleSchema change in v1.0.x cannot bring old styles forward. | `BimObjectType` (+1 optional hook) | Reserve `migrateStyle`, or record the no-change promise — **new step 0g**. |
+| **ⓖ** | **The Space EXTENT model is undefined.** A `Space` reports *"area from the real geometry"* — but a Space is `{id,kind,name,number}` with **no boundary.** Floor area is the most-scheduled quantity in the building (domain rule 8). | `SpatialContainer` | Decide boundary-profile / derived / reserved — folded into **P5 step 1** + step 0g. |
+| **③** | **Reserve `SubShapeRef` `kind:'vertex'`?** The kernel names faces+edges; **vertices are "not exported yet."** A dimension/tag or a Miqdar structural node binds to a corner. | `SubShapeRef` — *the one that must never move* | 🔴 Owner decision. |
+| **④/⑤** | **Reserve `Element.phase`** (Planitor construction sequencing) and **`ParamField.relevantWhen`** (conditional fields — Revit-class types have them). | `Element` / `ParamSchema` | 🔴 Owner decisions; cheap to reserve, a `.bnn` migration to skip. |
+
+### 3. THE ITEMS THAT WERE ALREADY KNOWN (consolidated, not re-derived)
+
+The Freeze Gate also gathers the pre-existing pre-freeze work so it lives in **one** place: **①** the baseline-Wall parameterisation (P4.5 s4 = P5 s0b, still open) · **②** where constraints live (params vs a scene structure) · **⑦** the whole of D50 step 0 (dependency graph, hosting, joins, sketch solver, CRUD, D51) · **ⓑ** reserving `move`/`setPlacement` (P4.5 s5) · **⑧** the Miqdar §3.4 gate (P5 s6a) · **⑨** the 2D-annotation anchoring check (P5 s6b). ✅ **The heap ceiling (D48) is CLOSED** (Entry 29: it fits).
+
+### 4. ⚠⚠ THE ONE THAT CANNOT BE CLOSED HEADLESS — AND IT IS THE MOST EXPENSIVE
+
+**⑥ THE CLEAN DELTA JSON SCHEMA** (*"the contract that carries money"*, Entry 17). It must be agreed across the three repos **before the freeze**, or `UndoableEdit`/`SceneChange`/the journal freeze against a **guess** about what a change-feed consumer needs (`change_type`, per-part discipline, quantity deltas, moved-vs-modified). ⚠ **BLOCKED: the BIMsync spec is NOT on this box (D37), so its shape is only inferred from `Planitor/v2.2_spec.md`.** ⇒ **ESCALATION to the Architect: get the BIMsync spec onto the box, OR sign off freezing the transport shapes on a written, explicit guess.** This is the single pre-freeze item a headless agent cannot resolve.
+
+### 5. NEXT — AND THE PLAN NOW SAYS IT IN ORDER (Freeze Gate "THE ORDER TO CLOSE IT")
+
+1. **Owner rules ①–⑤** (the parameterisation + four reservations) — minutes of decision, days of foreclosed cost.
+2. **Escalate ⑥** (BIMsync spec / signed-off guess).
+3. **Zayd builds D50 step 0** staged: the **dependency graph (0a)** + **hosting/associativity (0b, incl. ⓐ)** first (what the freeze waits on), then **CRUD + generalised-D51 (0e/0f, incl. ⓓ)**, then the **reserve-the-shapes pass (0g)**; the **sketch solver (0d)** last (evaluate `planegcs`). ⚠ **The `#touched()` invalidator IS the dependency-graph seam and the first thing to replace** (Entry 24b's latent container→element bug is the proof).
+4. **Then the types (1–5), the gates (⑧/⑨), then FREEZE (6).**
+5. ⚠ **Re-cut the schedule** — D50 moved the constraint solver from a north-star hook into v1.0.0 (Entry 24b).
+
+### FILES
+CHANGED: `v1.0.0_imp_plan.md` (**THE FREEZE GATE** at the head of P5 — the consolidated checklist + the five methods + the close order; plus explicit call-outs folded into steps 0b/0f/1 and a new step 0g) · `current_state.md` (this entry). **No source changed — this is a review. Commit + push are owner-gated.**
