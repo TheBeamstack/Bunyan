@@ -2072,3 +2072,30 @@ The Freeze Gate's own close-order made ①–⑤ the first thing to settle — *
 
 ### FILES
 CHANGED: `v1.0.0_imp_plan.md` (Freeze Gate owner-decisions table marked **RULED** with D52–D54; close-order step 1 marked done, step 2 flagged NEXT) · `current_state.md` (decisions log gains D52/D53/D54; this entry). **No source changed — rulings only. Commit is owner-gated (authorised for this doc update).**
+
+---
+
+## Entry 33 — 2026-07-16 — Zayd (dev box, headless) — **D50 STEP 0a BUILT: THE REBUILD INVALIDATOR IS NOW A TYPED, DECLARED DEPENDENCY GRAPH — AND THE ONCE-MISSING `container→element` EDGE IS CLOSED.**
+
+The first thing the freeze waits on (Freeze Gate ⑦, step 0a). The old rebuild invalidator was `DocumentContext.#touched()` — three hard-coded cases (element-self, `hostId`, style→instances) with a comment that materials/sections rebuild nothing. **It was not a graph; it was a lookup that happened to be right for the three edges that existed — and it was already wrong for a fourth** (Entry 24b): `build.ts:393` reads `elevationOf(scene, element.containerId)`, so an element's geometry depends on its container's elevation, yet `#touched` did not handle the `containers` collection at all. **The moment `updateContainer` lands (step 0e), every element on a moved level would silently keep its old Z, with a green suite.**
+
+**What was built (`packages/document/src/dependency.ts`, new):**
+
+- **`dependents(scene, change): ElementId[]`** — resolves a `SceneChange` to the elements whose BUILT GEOMETRY depends on the changed entity. Every edge is a labelled `case` mirroring the exact line in the build it reflects:
+  - **`elements`** → element-self + host↔hosted (an opening change re-stages its host wall's solid, which carries the hole; `affectedAssemblies` collapses to the root downstream).
+  - **`styles`** → style→instance (the 400-walls edge, D31).
+  - **`containers`** → ⚠ **THE ONCE-MISSING EDGE.** Every element whose `containerPath` includes the changed container (walks root-ward, so an element on a Space three levels under the moved Building is caught too). Mirrors `elevationOf`.
+  - **`grids`** → grid→element (D32), **DECLARED but DORMANT** — the build does not read `gridRefs` yet (step 0b activates it) and there is no `updateGrid` command, so it over-invalidates harmlessly today; declaring it now means the invalidator already knows the edge the instant 0b starts reading it.
+  - **`materials` / `sections`** → a **declared, explicit "nothing"** (a part's shape comes from style THICKNESS + swept profile, not from density). Not the silent gap the container edge was.
+- ⚠⚠ **THE STRUCTURAL FIX, not just the container fix: the switch is EXHAUSTIVE over `SceneCollection`** (a `default: assertNever(collection)`), so **a new collection is a compile error until its rebuild edge is declared here.** A collection can no longer silently invalidate nothing — which is *exactly* how the container edge was lost. This is the "every edge DECLARED, not inferred; an edge the build reads must be an edge the invalidator knows" rule made mechanical.
+- **`DocumentContext.#touched()`** is now a three-line seam that FEEDS the graph (`for (const change of changes) for (const id of dependents(this.#scene, change)) ...`). The edges no longer live in `document.ts`.
+- **D53 hook recorded in the file:** when the first-class `constraints` collection lands (0b/0c), its edges are declared in `dependency.ts` alongside these — the one typed structure the invalidator and Miqdar/Planitor both read.
+
+**Test (`tests/dependency-graph.test.ts`, new — 7, PURE, no kernel):** the container edge discriminates (move L0 ⇒ only wall-L0; move the Building ⇒ both levels; an empty container ⇒ nothing); style/host/self edges unchanged; materials/sections/dormant-grid behave as declared. ⚠ **REVERT-VERIFIED:** neuter the container `case` (return `[]`, the old behaviour) and 2 tests fail — the walls on the moved level are never re-staged. *A pure test is right here: "what must rebuild" is answerable from the recipe alone, which is the whole point of a dependency graph.*
+
+**Verification:** full suite **224 green** (32 files); `pnpm typecheck` / `lint` / `format:check` all clean.
+
+**Deliberately NOT done here (it is 0b, not 0a):** the build still does not READ the grid edge, and `BuildContext` still gets one `elevation`, not base/top datums (row ⓐ). 0a makes the invalidator correct and typed; 0b makes the associativity real (a Level you can move, a Grid that hosts) on the new baseline-`{start,end}` wall (D52), and activates the dormant grid edge. That is the next entry.
+
+### FILES
+CHANGED: `packages/document/src/dependency.ts` (**new** — the typed graph) · `packages/document/src/document.ts` (`#touched` now feeds `dependents`; dropped the inline edges + the `assembliesUsingStyle` import) · `packages/document/src/index.ts` (export `dependency.js`) · `tests/dependency-graph.test.ts` (**new** — 7, revert-verified) · `v1.0.0_imp_plan.md` (step 0a marked ✅ BUILT) · `current_state.md` (this entry). **Green; commit is owner-gated.**

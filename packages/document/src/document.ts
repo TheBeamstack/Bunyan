@@ -31,7 +31,8 @@
 
 import type { BrokenReference, ElementId, Part } from './entities.js';
 import type { GeometryGateway } from './geometry.js';
-import { affectedAssemblies, assembliesUsingStyle, assemblyRoot, buildAssembly } from './build.js';
+import { affectedAssemblies, assemblyRoot, buildAssembly } from './build.js';
+import { dependents } from './dependency.js';
 import type { ElementGeometry } from './build.js';
 import { CommandFailure } from './commands.js';
 import type { Command, CommandContext } from './commands.js';
@@ -470,22 +471,17 @@ export class DocumentContext {
     return [...new Set([...edit.rebuilt, ...this.#touched(edit.changes)])];
   }
 
-  /** Which elements a delta touched — including the ones a STYLE edit reaches (all 400 of them, D31). */
+  /**
+   * Which elements a delta touched — via the TYPED DEPENDENCY GRAPH (`dependency.ts`, D50 step 0a). Every
+   * rebuild edge (element-self, style→instance, container→element, grid→element) is DECLARED there, and
+   * the switch is exhaustive over `SceneCollection` so no collection can silently invalidate nothing — the
+   * hole through which the container→element edge (Entry 24b) was lost. This method is now the seam that
+   * FEEDS the graph, not the place the edges live.
+   */
   #touched(changes: readonly SceneChange[]): readonly ElementId[] {
     const ids = new Set<ElementId>();
     for (const change of changes) {
-      if (change.collection === 'elements') {
-        const element = (change.after ?? change.before) as { id: ElementId; hostId?: ElementId };
-        ids.add(element.id);
-        if (element.hostId !== undefined) ids.add(element.hostId);
-      }
-      if (change.collection === 'styles') {
-        for (const id of assembliesUsingStyle(this.#scene, change.id)) ids.add(id);
-      }
-      // ⚠ Materials and sections deliberately rebuild NOTHING. A material carries density and
-      // structural properties — it is read by `quantities()` and by Miqdar, and **no geometry depends
-      // on it**: a part's shape comes from the style's layer THICKNESS. Blanket-rebuilding the document
-      // on a material change was pure cost for zero effect.
+      for (const id of dependents(this.#scene, change)) ids.add(id);
     }
     return [...ids];
   }
