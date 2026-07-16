@@ -132,6 +132,38 @@ export interface VoidBuildContext extends BuildContext {
       readonly min: readonly [number, number, number];
       readonly max: readonly [number, number, number];
     };
+    /**
+     * ⚠⚠ WHICH WAY IS INTO THE HOST — the unit vector pointing from this face into the host SOLID
+     * (found by modelling, 2026-07-15; see `tests/gap-void-inward-direction.test.ts`).
+     *
+     * A hosted void MUST project its cut along `inward`, never along a guessed `+normal`. A planar face
+     * has a solid on exactly ONE side, and its bounding box **cannot say which** — so a void that
+     * guesses (as the fixture Opening once did) cuts the right way for a MIN-side face and the WRONG way
+     * for a MAX-side face, silently leaving matter behind a window on a wall's *exterior* face or a
+     * stairwell in a slab. `inward` is `-frame.normal` — the exact inward direction for any planar face,
+     * axis-aligned or not.
+     */
+    readonly inward: readonly [number, number, number];
+    /**
+     * ⚠⚠ THE FACE'S LOCAL FRAME, READ FROM THE B-REP SURFACE — origin, outward normal and two in-plane
+     * tangents, evaluated at the face's parametric centre (found by modelling, Entry 30, 2026-07-16;
+     * `tests/gap-void-curved-face.test.ts`).
+     *
+     * ⚠ **`bounds` and `inward` are enough for a PLANAR AXIS-ALIGNED face and nothing else.** A CURVED
+     * face — a round column's or pipe's single wrap-around `lateral` face — has a bounding box **equal to
+     * the whole solid's**, so neither `bounds` (no position on the surface) nor a single bbox-derived
+     * `inward` (degenerate — it fell back to `+z` and bored a pocket *down the column's axis*) can place
+     * a void on it. The frame comes from the actual surface (`faceFrame`), so a void projects its cut
+     * along `-frame.normal` (into the host) from `frame.origin`, oriented by `uAxis`/`vAxis` — which cuts
+     * a straight duct **through the side** of a round column. For a planar axis-aligned host the frame's
+     * axes coincide with the world axes, so the older `bounds`+`inward` path stays byte-identical.
+     */
+    readonly frame: {
+      readonly origin: readonly [number, number, number];
+      readonly normal: readonly [number, number, number];
+      readonly uAxis: readonly [number, number, number];
+      readonly vAxis: readonly [number, number, number];
+    };
   };
 }
 

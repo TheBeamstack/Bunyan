@@ -68,6 +68,7 @@
 #include <TopoDS_Edge.hxx>
 #include <TopoDS_Vertex.hxx>
 #include <TopExp.hxx>
+#include <TopAbs_Orientation.hxx>
 #include <TopTools_IndexedMapOfShape.hxx>
 #include <TopTools_IndexedDataMapOfShapeListOfShape.hxx>
 #include <TopTools_ListOfShape.hxx>
@@ -78,6 +79,7 @@
 #include <Standard_Failure.hxx>
 #include <GCPnts_AbscissaPoint.hxx>
 #include <BRepAdaptor_Curve.hxx>
+#include <BRepAdaptor_Surface.hxx>
 #include <gp_Ax2.hxx>
 #include <gp_Pnt.hxx>
 #include <gp_Dir.hxx>
@@ -85,6 +87,7 @@
 #include <algorithm>
 #include <cmath>
 #include <array>
+#include <malloc.h>
 #include <map>
 #include <sstream>
 #include <string>
@@ -111,6 +114,16 @@ struct Proximity {
   double distance;
   double ax, ay, az;  // the witness point on shape A …
   double bx, by, bz;  // … and on shape B. Together they say WHERE the two shapes are closest.
+};
+
+// A face's local frame at its parametric centre: a point on the surface, its OUTWARD normal, and two
+// in-plane tangents. Read from the B-Rep surface — never from a bounding box, which for a curved face
+// cannot say which way is out. It is what a hosted void needs to cut THROUGH a round column's side.
+struct Frame {
+  double ox, oy, oz;  // origin: a point ON the surface, at the parametric centre
+  double nx, ny, nz;  // OUTWARD unit normal at the origin (orientation-corrected)
+  double ux, uy, uz;  // in-plane unit tangent
+  double vx, vy, vz;  // in-plane unit tangent, orthogonal to u
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -1797,6 +1810,70 @@ Bounds subShapeBounds(int handle, int kind, int index) {
   return b;
 }
 
+// THE FACE FRAME — origin, outward normal and two in-plane tangents at the face's parametric centre,
+// read from the actual surface. It is what a hosted void needs to place a cut on a face whose bounding
+// box cannot describe it: a cylinder's lateral face has a bbox equal to the whole solid, so the
+// bbox-only `inward` guess degenerates and a "duct through a round column" was silently bored down the
+// column's own axis instead of through its side (Entry 30). This reads the B-Rep, so it is exact for a
+// planar face and correct at the sampled point for a curved one — which is what a straight duct needs.
+Frame faceFrame(int handle, int index) {
+  Frame f{0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0};
+  g_lastError.clear();
+  const ShapeEntry* entry = lookup(handle);
+  if (entry == nullptr) {
+    g_lastError = "HANDLE_NOT_FOUND";
+    return f;
+  }
+  if (index < 0 || index >= static_cast<int>(entry->faceOcct.size())) {
+    g_lastError = "UNRESOLVED_SUBSHAPE_REF: no such named face on this shape";
+    return f;
+  }
+  TopTools_IndexedMapOfShape faces;
+  TopExp::MapShapes(entry->shape, TopAbs_FACE, faces);
+  try {
+    const TopoDS_Face face = TopoDS::Face(faces(entry->faceOcct[static_cast<std::size_t>(index)]));
+    BRepAdaptor_Surface surf(face);
+    // The parametric centre — a point that is genuinely ON the face (a hole-punched or trimmed face
+    // still has this midpoint inside its outer bound for the convex primitives the MVP hosts on).
+    const double u = 0.5 * (surf.FirstUParameter() + surf.LastUParameter());
+    const double v = 0.5 * (surf.FirstVParameter() + surf.LastVParameter());
+    gp_Pnt p;
+    gp_Vec du, dv;
+    surf.D1(u, v, p, du, dv);
+
+    gp_Vec n = du.Crossed(dv);
+    if (n.Magnitude() < 1e-12 || du.Magnitude() < 1e-12 || dv.Magnitude() < 1e-12) {
+      g_lastError = "OCCT_STANDARD_FAILURE: the face has a degenerate frame at its centre";
+      return f;
+    }
+    n.Normalize();
+    // ⚠ OUTWARD, not just "the surface normal": the cross product follows the (u,v) parameterisation,
+    // and a face stored TopAbs_REVERSED has its material on the OTHER side — so flip to point out of
+    // the solid. This is the sign the bbox heuristic could not recover on a curved face.
+    if (face.Orientation() == TopAbs_REVERSED) n.Reverse();
+
+    gp_Vec uAxis = du;
+    uAxis.Normalize();
+    // Re-orthogonalise v against (n, u) so the frame is a clean right-handed basis regardless of how
+    // the surface's own u/v skew.
+    gp_Vec vAxis = n.Crossed(uAxis);
+    if (vAxis.Magnitude() < 1e-12) {
+      g_lastError = "OCCT_STANDARD_FAILURE: the face tangents are parallel";
+      return f;
+    }
+    vAxis.Normalize();
+
+    f.ox = p.X();  f.oy = p.Y();  f.oz = p.Z();
+    f.nx = n.X();  f.ny = n.Y();  f.nz = n.Z();
+    f.ux = uAxis.X();  f.uy = uAxis.Y();  f.uz = uAxis.Z();
+    f.vx = vAxis.X();  f.vy = vAxis.Y();  f.vz = vAxis.Z();
+    return f;
+  } catch (const Standard_Failure& e) {
+    g_lastError = std::string("OCCT_STANDARD_FAILURE: ") + e.GetMessageString();
+    return f;
+  }
+}
+
 // The minimum distance between two shapes, with the two points that realise it. Distance 0 means they
 // touch or overlap — which is what makes this the clash-detection primitive as well as the
 // "what is near this column" primitive.
@@ -2076,6 +2153,17 @@ emscripten::val tessellate(int handle, double deflection) {
 bool releaseShape(int handle) { return g_shapes.erase(handle) > 0; }
 int liveHandles() { return static_cast<int>(g_shapes.size()); }
 
+// The dlmalloc bytes currently IN USE (mallinfo.uordblks) — the WASM side's OWN witness to how much
+// heap the live OCCT solids actually occupy, the fine-grained companion to liveHandles() for the scale
+// gate (P4 step 9a: every solid stays live all session, nothing evicts, and WASM32 caps at 4 GB). It
+// is the per-solid signal the LINEAR-memory size cannot give — that starts at 64 MB and only jumps at
+// growth boundaries, whereas this tracks each allocation. Returned as a double so it stays exact past
+// 2 GB, where mallinfo's int field wraps. See tests/document-heap-scale.test.ts.
+double heapUsedBytes() {
+  struct mallinfo info = mallinfo();
+  return static_cast<double>(static_cast<unsigned int>(info.uordblks));
+}
+
 EMSCRIPTEN_BINDINGS(bunyan_kernel) {
   using namespace emscripten;
 
@@ -2100,6 +2188,12 @@ EMSCRIPTEN_BINDINGS(bunyan_kernel) {
       .field("distance", &Proximity::distance)
       .field("ax", &Proximity::ax).field("ay", &Proximity::ay).field("az", &Proximity::az)
       .field("bx", &Proximity::bx).field("by", &Proximity::by).field("bz", &Proximity::bz);
+
+  value_object<Frame>("Frame")
+      .field("ox", &Frame::ox).field("oy", &Frame::oy).field("oz", &Frame::oz)
+      .field("nx", &Frame::nx).field("ny", &Frame::ny).field("nz", &Frame::nz)
+      .field("ux", &Frame::ux).field("uy", &Frame::uy).field("uz", &Frame::uz)
+      .field("vx", &Frame::vx).field("vy", &Frame::vy).field("vz", &Frame::vz);
 
   // The naming contract, crossing the boundary as pure structure. TypeScript turns it into identity.
   value_object<NameRow>("NameRow")
@@ -2132,11 +2226,13 @@ EMSCRIPTEN_BINDINGS(bunyan_kernel) {
   function("getNaming", &getNaming);
   function("getBounds", &getBounds);
   function("subShapeBounds", &subShapeBounds);
+  function("faceFrame", &faceFrame);
   function("distanceBetween", &distanceBetween);
   function("classifyPoint", &classifyPoint);
   function("measure", &measure);
   function("tessellate", &tessellate);
   function("releaseShape", &releaseShape);
   function("liveHandles", &liveHandles);
+  function("heapUsedBytes", &heapUsedBytes);
   function("lastError", &lastError);
 }

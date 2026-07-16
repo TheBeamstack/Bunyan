@@ -251,9 +251,23 @@ export async function buildAssembly(
     let hostFace;
     try {
       const bounds = await request('bounds', { handle: hostPart.handle, ref: hostRef });
+      // ⚠ THE FACE'S FRAME, READ FROM THE B-REP SURFACE — never guessed from a bounding box. `inward`
+      // is `-normal`: for a planar axis-aligned face this is byte-identical to the old bbox-derived
+      // datum, and for a CURVED face (a round column's lateral, whose bbox equals the whole solid's) it
+      // is the only thing that can say which way is in — the bbox heuristic bored a pocket down the
+      // column's axis (Entry 30, `tests/gap-void-curved-face.test.ts`).
+      const frame = await request('faceFrame', { handle: hostPart.handle, ref: hostRef });
+      const { normal } = frame;
       hostFace = {
         ref: hostRef,
         bounds: { min: bounds.bounds.min, max: bounds.bounds.max },
+        inward: [-normal[0], -normal[1], -normal[2]] as [number, number, number],
+        frame: {
+          origin: frame.origin,
+          normal: frame.normal,
+          uAxis: frame.uAxis,
+          vAxis: frame.vAxis,
+        },
       };
     } catch (error) {
       voidResults.push({

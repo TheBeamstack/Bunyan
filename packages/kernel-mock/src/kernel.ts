@@ -17,6 +17,7 @@ import {
   boxDistance,
   boxEdgeRefs,
   boxFaceRefs,
+  boxFaceFrame,
   boxBounds,
   boxMeasure,
   boxSubShapeBounds,
@@ -156,6 +157,19 @@ export function createMockKernel(): KernelImplementation {
         payload.tolerance ?? 1e-7,
       ),
     }),
+
+    faceFrame: (payload) => {
+      const params = liveShape(payload.handle, 'faceFrame');
+      const frame = boxFaceFrame(params, payload.ref);
+      if (frame === undefined) {
+        throw new KernelFailureError(
+          kernelFailure('UNRESOLVED_SUBSHAPE_REF', `"${payload.ref}" is not a face of this shape`, {
+            op: 'faceFrame',
+          }),
+        );
+      }
+      return frame;
+    },
 
     tessellate: (payload) => tessellateBox(liveShape(payload.handle, 'tessellate')),
 

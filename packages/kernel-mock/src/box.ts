@@ -18,6 +18,7 @@ import type {
   Bounds,
   DistanceResult,
   EdgePolyline,
+  FaceFrameResult,
   MeasureResult,
   MeshBuffers,
 } from '@bunyan/protocol';
@@ -140,6 +141,48 @@ export function boxSubShapeBounds(p: BoxParams, token: string): Bounds | undefin
   }
   const expected = ref.kind === 'face' ? 1 : 2;
   return roles.length === expected ? { min: lo, max: hi } : undefined;
+}
+
+/**
+ * The local frame of ONE named box face, from its ROLE — the closed form the real kernel evaluates off
+ * the surface. An axis-aligned face has an exact frame: origin at the face centre, `normal` the outward
+ * axis, `uAxis`/`vAxis` the two in-plane axes (right-handed). Same numbers the OCCT kernel returns.
+ */
+export function boxFaceFrame(p: BoxParams, token: string): FaceFrameResult | undefined {
+  const ref = decodeSubShapeRef(token);
+  if (ref === undefined || ref.nodeId !== p.nodeId || ref.kind !== 'face') return undefined;
+
+  const { min, max } = boxBounds(p);
+  const mid: [number, number, number] = [
+    (min[0] + max[0]) / 2,
+    (min[1] + max[1]) / 2,
+    (min[2] + max[2]) / 2,
+  ];
+  const face: Record<BoxFaceRole, { axis: number; sign: number; coord: number }> = {
+    'x-min': { axis: 0, sign: -1, coord: min[0] },
+    'x-max': { axis: 0, sign: 1, coord: max[0] },
+    'y-min': { axis: 1, sign: -1, coord: min[1] },
+    'y-max': { axis: 1, sign: 1, coord: max[1] },
+    'z-min': { axis: 2, sign: -1, coord: min[2] },
+    'z-max': { axis: 2, sign: 1, coord: max[2] },
+  };
+  const f = face[ref.role as BoxFaceRole];
+  if (f === undefined) return undefined;
+
+  const origin: [number, number, number] = [...mid];
+  origin[f.axis] = f.coord;
+  const normal: [number, number, number] = [0, 0, 0];
+  normal[f.axis] = f.sign;
+  // The two in-plane axes, in ascending index order; `vAxis = normal × uAxis` keeps it right-handed.
+  const inPlane = [0, 1, 2].filter((a) => a !== f.axis) as [number, number];
+  const uAxis: [number, number, number] = [0, 0, 0];
+  uAxis[inPlane[0]] = 1;
+  const vAxis: [number, number, number] = [
+    normal[1] * uAxis[2] - normal[2] * uAxis[1],
+    normal[2] * uAxis[0] - normal[0] * uAxis[2],
+    normal[0] * uAxis[1] - normal[1] * uAxis[0],
+  ];
+  return { origin, normal, uAxis, vAxis };
 }
 
 /** 0 when the boxes touch or overlap — which is what makes this the clash primitive as well. */

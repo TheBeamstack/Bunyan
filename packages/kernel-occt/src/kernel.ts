@@ -282,10 +282,25 @@ const toBounds = (b: OcctBounds): Bounds => ({
  */
 export interface OcctKernel extends KernelImplementation {
   wasmLiveHandles(): number;
+  /**
+   * The dlmalloc bytes the live OCCT solids currently occupy — the WASM side's own witness, and the
+   * fine-grained companion to `wasmLiveHandles`. It is the per-solid heap signal the scale gate needs
+   * (P4 step 9a): the linear-memory size starts at 64 MB and only jumps at growth boundaries, so it
+   * cannot price a single solid, but this tracks every allocation. See `tests/document-heap-scale.test.ts`.
+   */
+  wasmHeapUsedBytes(): number;
 }
 
-export async function createOcctKernel(): Promise<OcctKernel> {
-  const wasm = await initBunyanKernel();
+export async function createOcctKernel(
+  // ⚠ Optional emscripten module overrides, forwarded verbatim to the WASM factory. The BROWSER PATH
+  // passes nothing and is untouched; it exists solely so a HEADLESS harness can inject an
+  // `instantiateWasm` hook and keep a handle on the exported `WebAssembly.Memory` — the only way to
+  // witness the true linear-memory size, which is the scale-harness release gate (P4 step 9a: every
+  // OCCT solid lives in this heap for the whole session and nothing evicts). See
+  // `tests/document-heap-scale.test.ts`.
+  moduleArg?: Record<string, unknown>,
+): Promise<OcctKernel> {
+  const wasm = await initBunyanKernel(moduleArg);
 
   // The registry is the single owner of WASM-heap memory: OCCT shapes are NOT garbage-collected, so
   // releasing a handle here is what actually frees the solid over there (spec §6.2).
@@ -651,6 +666,21 @@ export async function createOcctKernel(): Promise<OcctKernel> {
       return { state: state === 1 ? 'inside' : state === 2 ? 'on' : 'outside' };
     },
 
+    faceFrame: (payload) => {
+      const shape = liveShape(payload.handle, 'faceFrame');
+      // A frame is a FACE concept. `indexOf` yields -1 for an edge token (or a stranger), which the
+      // C++ turns into UNRESOLVED_SUBSHAPE_REF — the honest reply, surfaced through `lastError`.
+      const faceIndex = shape.faceRefs.indexOf(payload.ref);
+      const f = wasm.faceFrame(shape.id, faceIndex);
+      if (wasm.lastError() !== '') throw failFromKernel(wasm, 'faceFrame');
+      return {
+        origin: [f.ox, f.oy, f.oz],
+        normal: [f.nx, f.ny, f.nz],
+        uAxis: [f.ux, f.uy, f.uz],
+        vAxis: [f.vx, f.vy, f.vz],
+      };
+    },
+
     tessellate: (payload) => {
       const shape = liveShape(payload.handle, 'tessellate');
       const views = wasm.tessellate(shape.id, payload.deflection);
@@ -708,6 +738,7 @@ export async function createOcctKernel(): Promise<OcctKernel> {
     info: { ...OCCT_KERNEL_META, capabilities: capabilitiesOf(handlers) },
     handlers,
     wasmLiveHandles: () => wasm.liveHandles(),
+    wasmHeapUsedBytes: () => wasm.heapUsedBytes(),
     dispose: () => {
       shapes.releaseAll();
     },

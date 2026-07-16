@@ -159,6 +159,7 @@ describe('capabilities are DERIVED from the handlers, never hand-written', () =>
         'bounds',
         'distance',
         'classifyPoint',
+        'faceFrame',
         'tessellate',
       ]);
 

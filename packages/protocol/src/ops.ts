@@ -396,6 +396,40 @@ export interface ClassifyPointResult {
   readonly state: 'inside' | 'outside' | 'on';
 }
 
+export interface FaceFramePayload {
+  readonly handle: ShapeHandle;
+  /** The `SubShapeRef` token of the FACE to frame. Must resolve to a face, never an edge. */
+  readonly ref: string;
+}
+
+/**
+ * ⚠⚠ A FACE'S LOCAL FRAME — origin, outward normal, and two in-plane tangents — evaluated at the face's
+ * parametric centre, **from the B-Rep surface, never from a bounding box** (found by modelling, Entry
+ * 30, 2026-07-16; `tests/gap-void-curved-face.test.ts`).
+ *
+ * It exists because a hosted void needs to know **which way is into the host, and how the face is
+ * oriented in space** — and for a CURVED face a bounding box cannot say either. A cylinder's single
+ * wrap-around `lateral` face has a bbox equal to the whole solid's, so the bbox-only `inward` heuristic
+ * degenerates: a "duct through a round column" was silently cut as a square pocket *down the column's
+ * own axis*. The kernel evaluates the actual surface (`BRepAdaptor_Surface`), so the frame is exact for
+ * a planar face and correct at the sampled point for a curved one — which is what a straight duct needs.
+ *
+ * ⚠ `normal` is the OUTWARD normal (it respects the face's `TopAbs_REVERSED` orientation), so
+ * `inward = -normal`. `uAxis`/`vAxis` are unit tangents spanning the face at `origin`; `normal`,
+ * `uAxis`, `vAxis` form a right-handed orthonormal frame. This is the general datum P6 section views and
+ * P4.5 snapping will also want — it is a surface primitive, not an opening-specific one.
+ */
+export interface FaceFrameResult {
+  /** A point ON the face surface, at its parametric centre (mm). */
+  readonly origin: readonly [number, number, number];
+  /** Unit OUTWARD normal at `origin` (orientation-corrected). `inward` is its negation. */
+  readonly normal: readonly [number, number, number];
+  /** Unit in-plane tangent at `origin`. */
+  readonly uAxis: readonly [number, number, number];
+  /** Unit in-plane tangent at `origin`, orthogonal to `uAxis`. */
+  readonly vAxis: readonly [number, number, number];
+}
+
 export interface ReleaseShapePayload {
   readonly handle: ShapeHandle;
 }
@@ -658,6 +692,7 @@ export interface OpMap {
   bounds: { payload: BoundsPayload; result: BoundsResult };
   distance: { payload: DistancePayload; result: DistanceResult };
   classifyPoint: { payload: ClassifyPointPayload; result: ClassifyPointResult };
+  faceFrame: { payload: FaceFramePayload; result: FaceFrameResult };
   tessellate: { payload: TessellatePayload; result: MeshBuffers };
   releaseShape: { payload: ReleaseShapePayload; result: ReleaseShapeResult };
   demoFailure: { payload: DemoFailurePayload; result: never };
@@ -699,6 +734,7 @@ export const OP_NAMES = [
   'bounds',
   'distance',
   'classifyPoint',
+  'faceFrame',
   'tessellate',
   'releaseShape',
   'demoFailure',

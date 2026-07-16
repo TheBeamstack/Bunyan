@@ -102,6 +102,22 @@ export interface OcctBounds {
   readonly zMax: number;
 }
 
+/** A face's local frame at its parametric centre (origin, outward normal, two in-plane tangents). */
+export interface OcctFrame {
+  readonly ox: number;
+  readonly oy: number;
+  readonly oz: number;
+  readonly nx: number;
+  readonly ny: number;
+  readonly nz: number;
+  readonly ux: number;
+  readonly uy: number;
+  readonly uz: number;
+  readonly vx: number;
+  readonly vy: number;
+  readonly vz: number;
+}
+
 /** Exact properties from OCCT's `BRepGProp` — not derived from the mesh. */
 export interface OcctMeasure {
   readonly volume: number;
@@ -201,6 +217,8 @@ export interface OcctModule {
   getBounds(shapeId: number): OcctBounds;
   /** kind: -1 = the whole shape, 0 = a face, 1 = an edge (by canonical index). */
   subShapeBounds(shapeId: number, kind: number, index: number): OcctBounds;
+  /** The local frame of one named FACE (by canonical index) — origin, outward normal, tangents. */
+  faceFrame(shapeId: number, index: number): OcctFrame;
   distanceBetween(a: number, b: number): OcctProximity;
   /** 0 = outside, 1 = inside, 2 = on the boundary, -1 = failed. */
   classifyPoint(shapeId: number, x: number, y: number, z: number, tolerance: number): number;
@@ -213,6 +231,11 @@ export interface OcctModule {
   releaseShape(shapeId: number): boolean;
   /** Live shapes on the WASM heap. The leak canary (spec §6.2). */
   liveHandles(): number;
+  /**
+   * dlmalloc bytes currently in use (`mallinfo.uordblks`) — the fine-grained heap-per-solid signal for
+   * the scale gate (P4 step 9a). A double, so it stays exact past 2 GB. See `document-heap-scale.test.ts`.
+   */
+  heapUsedBytes(): number;
   lastError(): string;
 }
 

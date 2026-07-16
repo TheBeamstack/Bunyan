@@ -297,10 +297,73 @@ export const openingType: BimObjectType = {
     const anchor = asText(ctx.params['anchor'], 'fixed');
     const { min, max } = ctx.hostFace.bounds;
 
-    // The face's NORMAL axis is the one it has no extent along — read off the geometry rather than
-    // assumed, so this works on whichever face of the host the opening was actually hosted on.
-    const spans = [max[0] - min[0], max[1] - min[1], max[2] - min[2]] as const;
-    const normalAxis = spans.indexOf(Math.min(...spans));
+    // ⚠ TWO KINDS OF HOST FACE, AND THEY NEED DIFFERENT DATA. A PLANAR AXIS-ALIGNED face (a wall/slab/
+    // rectangular-beam face — the whole MVP so far) collapses to a plane in exactly one axis, and its
+    // bounding box says everything: where it is, how big it is, which axis is flat. A CURVED face — a
+    // round column's or pipe's single wrap-around `lateral` face — does NOT: its bbox equals the whole
+    // solid's, so it says nothing about the surface. For that we need `hostFace.frame`, read from the
+    // B-Rep (Entry 30, `tests/gap-void-curved-face.test.ts`).
+    const TOL = 1e-6;
+    const flatAxes = [0, 1, 2].filter(
+      (axis) => Math.abs((max[axis] ?? 0) - (min[axis] ?? 0)) < TOL,
+    );
+
+    if (flatAxes.length !== 1) {
+      // ===== CURVED / OBLIQUE FACE — project the cut along the surface frame. =====
+      // The bbox cannot place a void here; the frame can. Start 100 mm OUTSIDE the face (along the
+      // OUTWARD normal) and sweep a width×height rectangle INWARD, deep enough to clear the whole host —
+      // an oriented "duct" that goes THROUGH a round column's side instead of a pocket down its axis.
+      const { origin, normal, uAxis, vAxis } = ctx.hostFace.frame;
+      const offU = anchor === 'centered' ? 0 : Number(ctx.params['offsetU']);
+      const offV = anchor === 'centered' ? 0 : Number(ctx.params['offsetV']);
+      const inward: [number, number, number] = [-normal[0], -normal[1], -normal[2]];
+      // The cut's start plane: on the face (+ any offset along the tangents), then pulled 100 mm out.
+      const start: [number, number, number] = [
+        origin[0] + offU * uAxis[0] + offV * vAxis[0] + 100 * normal[0],
+        origin[1] + offU * uAxis[1] + offV * vAxis[1] + 100 * normal[1],
+        origin[2] + offU * uAxis[2] + offV * vAxis[2] + 100 * normal[2],
+      ];
+      // Sweep far enough to clear the whole host from any entry point (the bbox diagonal is a safe upper
+      // bound); excess is outside the solid, so the boolean removes nothing extra — a clean through-cut.
+      const span =
+        Math.hypot(
+          (max[0] ?? 0) - (min[0] ?? 0),
+          (max[1] ?? 0) - (min[1] ?? 0),
+          (max[2] ?? 0) - (min[2] ?? 0),
+        ) + 200;
+      const solid = await ctx.geometry.request('extrude', {
+        nodeId: ctx.element.id,
+        profile: {
+          plane: { origin: start, normal: inward, xAxis: [...uAxis] as [number, number, number] },
+          start: [-width / 2, -height / 2],
+          segments: [
+            { kind: 'line', to: [width / 2, -height / 2] },
+            { kind: 'line', to: [width / 2, height / 2] },
+            { kind: 'line', to: [-width / 2, height / 2] },
+            { kind: 'line', to: [-width / 2, -height / 2] },
+          ],
+        },
+        height: span,
+        direction: inward,
+      });
+      return { handle: solid.handle };
+    }
+
+    // ===== PLANAR AXIS-ALIGNED FACE — the wall/slab/rectangular-beam case. BYTE-IDENTICAL to before. =====
+    const { inward } = ctx.hostFace;
+
+    // ⚠ THE NORMAL AXIS COMES FROM `inward`, NOT FROM A GUESS. A face bbox says which axis is flat, but
+    // NOT which side the host is on — so we take the engine's `inward` vector (which does know) and read
+    // both the axis and the sign off it. (Found by modelling: guessing "+normal from min" cut the wrong
+    // way for every max-side face — a window on a wall's exterior, a stairwell in a slab. See
+    // `tests/gap-void-inward-direction.test.ts`.)
+    const normalAxis =
+      Math.abs(inward[0]) >= Math.abs(inward[1]) && Math.abs(inward[0]) >= Math.abs(inward[2])
+        ? 0
+        : Math.abs(inward[1]) >= Math.abs(inward[2])
+          ? 1
+          : 2;
+    const inwardSign = inward[normalAxis] >= 0 ? 1 : -1;
     // Of the two axes the face DOES span, the vertical one (z, if present) is "up the face".
     const inPlane = [0, 1, 2].filter((axis) => axis !== normalAxis);
     const vAxis = inPlane.includes(2) ? 2 : (inPlane[1] ?? 1);
@@ -320,15 +383,22 @@ export const openingType: BimObjectType = {
     // boolean, and the classic way to get an invalid solid out of a valid-looking operation.
     const depth = totalThickness(ctx) + 200;
 
+    // The face plane sits at `faceCoord` along the normal axis. Start the cut 100 mm OUTSIDE the host
+    // (against `inward`) and run it `depth` INTO the host (along `inward`) — direction-agnostic, so it
+    // is right whichever side's face was named. `makeBox` wants a min corner + positive sizes.
+    const faceCoord = min[normalAxis];
+    const near = faceCoord - 100 * inwardSign;
+    const far = faceCoord + depth * inwardSign;
+
     const at: [number, number, number] = [0, 0, 0];
     at[uAxis] = u;
     at[vAxis] = v;
-    at[normalAxis] = min[normalAxis]! - 100;
+    at[normalAxis] = Math.min(near, far);
 
     const size: [number, number, number] = [0, 0, 0];
     size[uAxis] = width;
     size[vAxis] = height;
-    size[normalAxis] = depth;
+    size[normalAxis] = Math.abs(far - near);
 
     const solid = await ctx.geometry.request('makeBox', {
       nodeId: ctx.element.id,

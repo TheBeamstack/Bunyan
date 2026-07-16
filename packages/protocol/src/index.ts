@@ -42,6 +42,8 @@ export type {
   DistanceResult,
   EchoPayload,
   ExtrudePayload,
+  FaceFramePayload,
+  FaceFrameResult,
   FilletPayload,
   HandshakeResult,
   ImportedElement,

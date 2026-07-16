@@ -125,12 +125,24 @@ At 195 elements, **865 of the 965 ms an edit costs is re-drawing 309 solids that
   ONE PARAMETER EDIT (redraw all, as built) ......  ~45 SECONDS
   COLD LOAD from scene.json, no cache ............  ~6.3 MINUTES   (37.6 ms/element, D29 §4j)
   DRAW CALLS (one THREE.Mesh per part) ...........  ~16,000        (~10–20× a 60 fps budget)
-  WASM HEAP (every solid stays live, nothing evicts) ⚠⚠ UNMEASURED — AND IT IS THE MOST DANGEROUS UNKNOWN IN THE PROJECT
+  WASM HEAP (every solid stays live, nothing evicts) ✅ MEASURED (Entry 29): ~16 KB/solid ⇒ ~0.3 GB at target — FITS
 ```
 
-⚠ **The heap number is a RELEASE GATE and a CONTRACT question, not a renderer one:** *what may be released and rebuilt on
-demand* is a question about the recipe and the rebuild engine ⇒ **it touches the contracts, so it must be known BEFORE P5
-FREEZES.** **Plan P4 step 9 (the scale harness) exists to produce all four numbers. Do not design the renderer without them.**
+> ## ✅ **THE HEAP NUMBER IS IN, AND IT IS THE GOOD KIND OF ANSWER (Entry 29, 2026-07-15).**
+> **~16.2 KB of dlmalloc heap per live solid, dead-linear across 62→310 solids, intercept ~0.** Extrapolated to
+> ~16,000 solids: **~0.25 GB of live-solid heap + a ~64 MB OCCT/code floor ≈ ~0.3 GB total** — comfortably inside a
+> browser tab (practical ~1.5 GB budget; WASM32's 4 GB hard cap). ⇒ **The heap is NOT the binding constraint at the
+> 10,000-element target, and it does NOT force a pre-freeze contract change:** heap-eviction / lazy-build stays a
+> v1.0.x *option*, not a v1.0.0 requirement (contra the §1a warning it might be). **Three of P4's four numbers were
+> alarming; this one is reassuring — and it was the one that could have repealed a contract.** *(Method: a headless
+> scale harness, `tests/document-heap-scale.test.ts`, on the REAL kernel, measuring the WASM side's OWN allocator via
+> a new `heapUsedBytes()` diagnostic — the fine-grained companion to `liveHandles()`. The three renderer axes — draw
+> calls, cold load, edit latency — remain Amer's, in the browser.)*
+
+⚠ **The heap number WAS a RELEASE GATE and a CONTRACT question, not a renderer one:** *what may be released and rebuilt on
+demand* is a question about the recipe and the rebuild engine ⇒ **it touched the contracts, so it had to be known BEFORE P5
+FREEZES.** ✅ **Now known (Entry 29): the answer is "it fits," so the freeze is unblocked on this axis.** **Plan P4 step 9
+(the scale harness) still owes its other three numbers — all in the renderer, all Amer's.**
 
 > ## ✅ **THE SIX P3 DEFECTS ARE FIXED, AND EVERY FIX WAS VERIFIED BY REVERTING IT** (Entry 21).
 > The review (Entry 19, `review_P3.md`) found six defects behind a green suite; the owner ruled seven
@@ -233,7 +245,10 @@ rest of P4/P5 is still owed — see Entry 23 §5 (items 3–6).**
 | **THE SIX P3 DEFECTS** (Entry 19, §4k) — the change feed, the reused PEI, the half-rolled-back rebuild, the unopenable file, the stale autosave, the `exact` 0 kg | **driving the document API at its FAILURE boundaries** — deleting then reloading; crashing *twice*; failing a rebuild *midway*; loading a file with a type we do not have. ⚠ **Every happy path was already green.** |
 | **⚠ THE `BuildContext` HEAP-LEAK HOLE** (Entry 21) — a Type that runs **two** kernel ops per part had **no way to declare its intermediate**, and leaked one OCCT solid per part per rebuild | **writing ONE new fixture type that does what a real type does** (a wall with a rounded corner: box → fillet). **Every fixture until then ran exactly ONE op per part**, so nothing had ever needed it. ⚠ **`BimObjectType` freezes at P5, and P5's real Wall/Slab/Opening will ALL run two or more ops.** |
 
-**⇒ Keep modelling real buildings with the API. The next gap is out there. (It has found NINE.)**
+| **the VOID INWARD-DIRECTION gap** (Entry 28) — a hosted void could not tell which side of its host face the SOLID was on, so it cut the wrong way on every max-side face (a window on a wall's *exterior*, a stairwell in a slab, a duct through a beam) — silently, `basis: exact` | **cutting a DUCT THROUGH A BEAM** — a void had only ever been cut through a wall, and only ever on its `y-min` interior face, the one side the guess happened to fit |
+| **the CURVED-FACE HOSTING gap** (Entry 30) — a hosted void on a CURVED face (a round column's `lateral`, whose bbox equals the whole solid's) got a degenerate bbox-derived `inward` (`[0,0,1]`), so *"a duct through a round column"* was bored down the column's **own axis** instead of through its side — silently, `basis: exact` | **cutting a DUCT THROUGH A ROUND COLUMN** — every void had only ever been hosted on a PLANAR AXIS-ALIGNED face (a wall, a slab, a *rectangular* beam); the one curved-face host nobody had cut. Fix: a new `faceFrame` kernel op reads the real surface normal (owner ruled: SUPPORT it, don't refuse it) |
+
+**⇒ Keep modelling real buildings with the API. The next gap is out there. (It has found ELEVEN — the newest is Entry 30.)**
 
 **⚠⚠ AND ENTRY 19 ADDS A SECOND METHOD, BECAUSE IT FOUND WHAT MODELLING WOULD NOT HAVE:**
 
@@ -268,9 +283,9 @@ The **split contract-freeze** (D13) is the rule that lets Amer and Zayd work in 
 
 | Contract | Status | Freezes |
 |---|---|---|
-| **Kernel message protocol** (`@bunyan/protocol`) | **✅ FROZEN, v1 (Entry 21, P3 step 8)** — **18 live ops + 5 RESERVED** + the `CACHE_STALE` failure code. Reserved (declared, typed, deliberately unimplemented, so a later phase never opens by amending a frozen contract): **`sectionCut`** · **`importIfc`** (P6) · **`instantiate`** (the ~21 s style-edit answer — §4j-3) · **`exportBrep`** + **`importBrep`** (the D29 geometry cache — **RULED SHIP**, §4j-2). Pre-freeze debt from P2 is **ZERO**. ⚠ **The document model (P3) needed NO protocol change** — the proof D30–D38 were as cheap as claimed; **every one of P3's six defects was fixed without touching it either.** | **✅ FROZEN.** Changing an existing op's envelope now needs **Architect sign-off**; **adding a new op stays additive and permitted** (D13, as re-worded Entry 15). |
+| **Kernel message protocol** (`@bunyan/protocol`) | **✅ FROZEN, v1 (Entry 21, P3 step 8)** — **19 live ops + 5 RESERVED** + the `CACHE_STALE` failure code. ⚠ **`faceFrame` is the FIRST post-freeze op (Entry 30) — a face's frame from the B-Rep surface, EXPLICITLY PERMITTED (D13: adding a new op is additive).** Reserved (declared, typed, deliberately unimplemented, so a later phase never opens by amending a frozen contract): **`sectionCut`** · **`importIfc`** (P6) · **`instantiate`** (the ~21 s style-edit answer — §4j-3) · **`exportBrep`** + **`importBrep`** (the D29 geometry cache — **RULED SHIP**, §4j-2). Pre-freeze debt from P2 is **ZERO**. ⚠ **The document model (P3) needed NO protocol change** — the proof D30–D38 were as cheap as claimed; **every one of P3's six defects was fixed without touching it either.** | **✅ FROZEN.** Changing an existing op's envelope now needs **Architect sign-off**; **adding a new op stays additive and permitted** (D13, as re-worded Entry 15). ⚠ `faceFrame` added under exactly this rule (Entry 30). |
 | **`SubShapeRef`** | **Release-candidate** — now exercised by the real kernel **and by the document model** (a window survives a save→load→rebuild, and a 30° rotation) | **P5** |
-| **`BimObjectType`** | **✅ WRITTEN (Entry 18), CORRECTED (Entry 21)** — `packages/document/src/types.ts`. Carries `parameterSchema`, `styleSchema`, `defaultClassification`, **`defaultDiscipline` (D45)**, `buildGeometry → Part[]` (D30), `buildVoid` (hosted), `migrate`. ⚠⚠ **AND `BuildContext.discard(handle)` — NEW, and it is a REAL FIX:** every fixture type ran exactly **one** kernel op per part, so nothing had ever needed to declare an intermediate — and **the first Type to run two (box → fillet) leaked four OCCT solids per rebuild.** **P5's real Wall/Slab/Opening will all run two or more** (extrude→chamfer, box→fillet). ⚠ **Declare BEFORE the risky op**, never after: `discard` only *declares* (the engine frees at the end of the rebuild), so the handle is still a valid operand — declare it afterwards and a kernel refusal throws straight past the declaration, leaking on exactly the path where a leak is hardest to see. Release-candidate. | **P5** (⚠ freeze it against a **composite, styled** wall — a single-solid wall would validate a contract the product cannot use) |
+| **`BimObjectType`** | **✅ WRITTEN (Entry 18), CORRECTED (Entry 21)** — `packages/document/src/types.ts`. Carries `parameterSchema`, `styleSchema`, `defaultClassification`, **`defaultDiscipline` (D45)**, `buildGeometry → Part[]` (D30), `buildVoid` (hosted), `migrate`. ⚠⚠ **AND `BuildContext.discard(handle)` — NEW, and it is a REAL FIX:** every fixture type ran exactly **one** kernel op per part, so nothing had ever needed to declare an intermediate — and **the first Type to run two (box → fillet) leaked four OCCT solids per rebuild.** **P5's real Wall/Slab/Opening will all run two or more** (extrude→chamfer, box→fillet). ⚠ **Declare BEFORE the risky op**, never after: `discard` only *declares* (the engine frees at the end of the rebuild), so the handle is still a valid operand — declare it afterwards and a kernel refusal throws straight past the declaration, leaking on exactly the path where a leak is hardest to see. ⚠⚠ **AND `VoidBuildContext.hostFace.inward` — NEW (Entry 28):** a hosted void MUST project its cut along the host's inward normal, not a guessed `+normal`, or it silently mis-cuts every max-side face (a window on a wall's exterior, a stairwell in a slab). **P5's real Opening depends on it.** ⚠⚠ **AND `VoidBuildContext.hostFace.frame` — NEW (Entry 30):** `{origin, normal, uAxis, vAxis}`, read from the B-Rep surface via the new `faceFrame` op — `inward` is now `-frame.normal`, honest for CURVED faces too (a bbox-only `inward` bored a duct down a round column's axis instead of through its side). **P5's real Opening must project a curved/oblique host's void along `frame`.** Release-candidate. | **P5** (⚠ freeze it against a **composite, styled** wall — a single-solid wall would validate a contract the product cannot use) |
 | **`Command`** | **✅ WRITTEN (Entry 18)** — carries an **`argsSchema`** and `execute` **returns** its `UndoableEdit`. It is **the agent API** (§4f). | **P5** (**with** its `argsSchema`) |
 | **`ElementStyle` / `Part` / `Material` / `Section` / spatial tree** | **✅ WRITTEN (Entry 18)** — `scene.json` is `packages/document/src/scene.ts`. | **P5** |
 | **Agent surface** (`window.bunyan`) | **✅ WRITTEN (Entry 18)** as a pure module (`createAgentSurface`). **Versioned separately** (`agentApi: 1`) — does **not** inherit the P5 freeze (D22). Amer wires `window.bunyan = createAgentSurface(doc)`. | Never frozen with the type contracts; evolves on its own clock. |
@@ -1797,3 +1812,183 @@ decision the freeze waits on.
 ### 4. FILES (the diff for the owner-gated commit)
 NEW: `apps/web/src/render/pick.ts` + `pick.test.ts` · `apps/web/src/edit/agentRefresh.ts` + `agentRefresh.test.ts` · `tests/d19-equivalence.test.ts`.
 CHANGED: `apps/web/src/render/Viewport.ts` · `RenderGateway.ts` · `ViewportCanvas.tsx` · `apps/web/src/App.tsx` · `App.css` · `apps/web/src/edit/runner.ts` + `runner.test.ts` · `packages/document/src/geometry.ts` · `tests/d19-boundary.test.ts`. **Commit + push are owner-gated.**
+
+---
+
+## Entry 28 — 2026-07-15 — Zayd (dev box, headless) — **THE TENTH GAP: A HOSTED VOID COULD NOT TELL WHICH WAY IS INTO ITS HOST. FOUND BY MODELLING A DUCT THROUGH A BEAM; FIXED AND REVERT-VERIFIED THE SAME DAY.**
+
+**Task (owner):** resume the plan; owner chose the **"keep modelling real buildings"** method (§5 item 2) over the D29 cache and the scale harness, then — after the batch — ruled **"build the inward-normal fix."** This entry is that hunt and that fix.
+
+> ## ⚠⚠ THE GAP: `VoidBuildContext.hostFace` GAVE A VOID `{ref, bounds}` AND NOT *WHICH SIDE THE HOST SOLID IS ON.*
+>
+> A hosted void had **only ever been cut through a Wall, and only ever hosted on that wall's INTERIOR (`y-min`) face.** Host one on **any other face** and the fixture Opening cut the **WRONG WAY** — because a planar face has a host on exactly one side, and its **bounding box cannot say which.** The fixture had to GUESS ("+normal, from the min corner"): a coin-flip, right for a MIN-side face, wrong for a MAX-side one, where the void projects *away* from the host and only the −100 mm margin overlaps. **Silent — no broken-ref, `basis: exact`.** Three shipping-shape manifestations, each the *commonest* opening of its kind:
+>
+> ```
+>   window on a wall's EXTERIOR face .. 200mm structure cut only 85mm — blockwork behind the glass
+>   STAIRWELL void in a slab (top face)  250mm slab cut only 100mm — concrete across the hole
+>   duct through a beam (min vs max) ... 11,250,000 mm³  vs  2,250,000 mm³  — a silent 5× from the SIDE alone
+> ```
+>
+> **⚠ IT IS A CONTRACT GAP, NOT A FIXTURE BUG.** The missing datum is genuinely absent from `VoidBuildContext`, which is **release-candidate and freezes at P5** — exactly the pre-freeze window this method exists to protect. Today's Wall "worked" only because every test hosts on the one face (`y-min`) where the coin lands heads.
+>
+> **THE FIX (built, this entry):** the rebuild engine **already holds the host solid's handle** when it resolves the face, so it now also reads the **whole solid's bounds** and computes an **`inward` unit vector** (`build.ts:inwardNormal` — the face's flat axis, signed toward the solid's bulk; face-centre→solid-centre for a curved/oblique face). It rides on `hostFace.inward`, and the fixture Opening **projects its cut along `inward`** instead of guessing. Correct for any face of any axis-aligned host; a best-effort inward for a curved one.
+>
+> **✅ REVERT-VERIFIED** (the standing rule, Entry 21): forcing `inwardNormal` back to the old always-`+normal` guess makes **all three cases fail**; restoring it makes them pass. *A fix without a test that fails in its absence is an assertion.*
+
+### ALSO SURFACED IN THE BATCH (three shapes modelled: beam duct, stair, boundary voids)
+
+- **✅ POSITIVE — `extrude` + `lateral.k` NAMING IS ROBUST ON A NON-CONVEX, 12-SEGMENT PROFILE.** A 5-step stair (a sawtooth swept across the flight) built to the **exact** volume, named all 12 lateral faces stably, and rebuilt cleanly on a 5→8-step edit. **A different subsystem from the void seam, and it is solid — do not re-check it.**
+- **✅ POSITIVE — TANGENTIAL/BOUNDARY BOOLEANS ARE GEOMETRICALLY CORRECT.** A window overhanging the wall's end cuts *only* the in-bounds overlap (no invalid solid, no crash). *(Whether it should WARN is a P5 UX matter, not a contract gap.)*
+- **⚠ SOFT — A `fixed`-ANCHORED OPENING POSITIONED OFF ITS HOST SILENTLY CONTRIBUTES NO HOLE** and is **neither broken-ref nor flagged** (its host FACE still resolves; the void just lands in empty space). Reproduced by shrinking a wall so a window falls past its end: clean wall, no warning. **NOT fixed — it is a P5 validation/anchoring item (D12 / `core_logic` §3.6), not a contract gap.** Recorded here so it is not re-discovered.
+
+### PROVEN
+- **`pnpm verify` GREEN — all five CI steps on the dev box** (typecheck incl. apps/web · lint · format:check · **212/212 tests** · reseed skips off-PR). Was 209; **+3**, the three reproduction cases, now asserting clean THROUGH-cuts.
+- All document tests, including `document-openings` (the interior-face window on a rotated composite wall), **still pass** — the interior face is a min-side face, so `inward` reproduces the old projection exactly there; nothing regressed.
+
+### CONTRACT NOTE (§2)
+`VoidBuildContext.hostFace` gains **`inward: readonly [number, number, number]`** — **additive** to a **release-candidate** contract. It travels with `BimObjectType`/the void-build surface and **freezes at P5**. No protocol change; the frozen kernel protocol is untouched (this is pure document-layer). ⚠ **P5's real Opening MUST project along `inward`** — a window on an exterior face and a stairwell in a slab are not edge cases.
+
+### FILES (the diff for the owner-gated commit)
+NEW: `tests/gap-void-inward-direction.test.ts` (three cases: beam min-vs-max, wall exterior window, slab stairwell — each a clean through-cut, each the revert-check).
+CHANGED: `packages/document/src/types.ts` (the `inward` field + its doc) · `packages/document/src/build.ts` (`inwardNormal` + the whole-solid bounds query) · `tests/fixtures/bim-types.ts` (the Opening projects along `inward`). **Commit + push are owner-gated.**
+
+---
+
+## Entry 29 — 2026-07-15 — Zayd (dev box, headless) — **THE MOST DANGEROUS UNKNOWN IS PRICED: WASM HEAP ≈ 16 KB/SOLID ⇒ ~0.3 GB AT THE 10,000-ELEMENT TARGET. IT FITS. THE FREEZE IS UNBLOCKED ON THIS AXIS.**
+
+**Task (owner):** resume the plan; owner chose **"measure the WASM heap"** (plan P4 step 9a) from the three open Zayd items — the headless axis §1a called **"the most dangerous unknown in the project,"** a **release gate** and a **contract question that must be answered before P5 freezes.**
+
+> ## ✅ THE ANSWER: ~16.2 KB OF HEAP PER LIVE SOLID, DEAD-LINEAR, AND ~16,000 SOLIDS FIT IN A TAB.
+>
+> ```
+>    62 solids   used   1.0 MB     124   2.0 MB     186   3.0 MB     248   4.0 MB     310   4.9 MB
+>    ─────────────────────────────────────────────────────────────────────────────────────────────
+>    MARGINAL per live solid : 16.2 KB     (linear; regression intercept ~0)
+>    PROJECTED @ 16,000 solids: ~0.25 GB dynamic + ~64 MB OCCT/code floor = ~0.3 GB total
+>    vs practical 1-tab budget (~1.5 GB) : FITS      vs WASM32 hard cap (4 GB) : fits, huge margin
+> ```
+>
+> **⇒ THE HEAP IS NOT THE BINDING CONSTRAINT AT TARGET, AND IT FORCES NO PRE-FREEZE CONTRACT CHANGE.** Heap-eviction /
+> lazy-build — which §1a/D48 warned might be a **v1.0.0 requirement** — stays a **v1.0.x option.** *Three of P4's four
+> scale numbers are alarming (45 s redraw, 6.3 min cold load, 16k draw calls); this is the fourth, it is reassuring, and
+> it was the one that could have repealed a contract.* **The P5 freeze is unblocked on the heap axis.** *(The other three
+> axes are all in the renderer — Amer's, in the browser. This entry closes only the headless, contract-bearing one.)*
+
+### HOW IT WAS MEASURED (and why the obvious instrument lies)
+
+- **The tempting instrument — WASM linear-memory `byteLength` — is USELESS at feasible scale.** The build sets
+  `INITIAL_MEMORY=64 MB`, so 300 solids never move it: **measured flat at 64 MB ⇒ a per-solid slope of ZERO.** Pricing a
+  solid this way needs *thousands* of solids (more time and more box RAM than the whole measurement is worth).
+- **The fine instrument had to come from inside the kernel.** All 14 wasm exports are **minified** (`bi`…`oi`), so no
+  allocator function is callable from JS by name. ⇒ **New embind diagnostic `heapUsedBytes()`** (dlmalloc `mallinfo.uordblks`,
+  returned as a double so it stays exact past 2 GB) — **the fine-grained companion to `liveHandles()`**, and the WASM side's
+  OWN witness to what the live solids occupy. One-file kernel change, **~76 s rebuild** (§6), artifact unchanged in size
+  (14.59 MB), **every golden/naming test still passes** (same geometry, same identities — the diagnostic is inert to it).
+- **Regression, not division:** heap = floor + per-solid × solids; a single-scale division would smear the fixed OCCT/code
+  floor across the solids and lie. A least-squares fit puts the floor in the intercept and the marginal in the slope. Fresh
+  kernel per scale (linear memory never shrinks, so a shared kernel reports cumulative high-water).
+- **`createOcctKernel` gained one optional `moduleArg` passthrough** so the *headless harness* can inject an emscripten
+  `instantiateWasm` hook and read the linear-memory `byteLength` too (reported as `reserved` — the true tab floor). ⚠ **The
+  browser path passes nothing and is byte-for-byte untouched** — the Node-only wasm-loading lives entirely in the test.
+
+### PROVEN
+- **`pnpm verify` GREEN — all five CI steps on the dev box** (typecheck incl. apps/web · lint · format:check · **214/214
+  tests** · reseed skips off-PR). Was 212; **+2**, the harness's two cases (heap grows monotonically with live solids; the
+  projection fits). **The rebuilt `.wasm` regressed nothing** — every native-oracle golden and every naming test still passes.
+
+### CONTRACT NOTE (§2)
+No frozen-protocol change. `heapUsedBytes()` is an **additive kernel diagnostic** (like `liveHandles()`), and the
+`createOcctKernel(moduleArg?)` param is **additive and optional**. **No document-layer contract moves.** ⚠ The relevant
+contract *decision* this entry settles is **D48's open sub-question**: the heap does NOT require a pre-freeze
+release/rebuild-on-demand contract ⇒ **nothing to reserve before P5 on the heap's account.**
+
+### FILES (the diff for the owner-gated commit)
+NEW: `tests/document-heap-scale.test.ts`.
+CHANGED: `tools/kernel-build/src/kernel.cpp` (`heapUsedBytes()` + `<malloc.h>` + its binding) · `packages/kernel-occt/wasm/bunyan-kernel.{js,wasm}` (rebuilt artifact) · `packages/kernel-occt/wasm/bunyan-kernel.d.ts` (declares `heapUsedBytes`) · `packages/kernel-occt/src/kernel.ts` (`wasmHeapUsedBytes()` on `OcctKernel` + the `moduleArg` passthrough) · `current_state.md` (§1a heap line + this entry). **Commit + push are owner-gated.**
+
+---
+
+## Entry 30 — 2026-07-16 — Zayd (dev box, headless) — **THE ELEVENTH GAP: A DUCT THROUGH A ROUND COLUMN WAS SILENTLY BORED DOWN THE COLUMN'S OWN AXIS. FOUND BY MODELLING, FIXED (OWNER RULED: SUPPORT IT) AND REVERT-VERIFIED THE SAME DAY.**
+
+**Task (owner):** resume the plan; owner chose the **"keep modelling real buildings"** method (§5 item 2) — *"to find all existing gaps before freezing, to truly achieve the app's goal."* This entry is that hunt, the gap it found, and the fix the owner then ruled.
+
+> ## ⚠⚠ THE GAP: A HOSTED VOID ON A **CURVED** FACE (a round column's `lateral`) WAS SILENTLY MIS-CUT — `basis: exact`, no broken ref.
+>
+> **Every void this project had ever cut was hosted on a PLANAR AXIS-ALIGNED face** — a wall's face, a slab's top, a
+> *rectangular* beam's side (Entry 28 was a **rectangular** beam). A round column's single wrap-around `lateral` face is
+> **curved**, and it had never been hosted on. Model *"a duct through a round column"* — an utterly ordinary MEP-vs-structure
+> penetration — and it came out as a **square pocket bored straight down the column's own axis**, not a hole through its side:
+>
+> ```
+>   classifyPoint, R300 column, 150×150 duct "centered" on the lateral:
+>     axis @ z=100 (near base) ....... OUTSIDE   ← a hole bored down the axis
+>     axis @ z=1500 (mid) ............ INSIDE    ← the pocket is shallow
+>     +x side @ z=100 (a real duct)... INSIDE    ← NO hole through the side at all
+>   removed = 13.5M mm³, basis: exact, brokenRefs: 0, no warning.   ← the Entry-28 signature, exactly.
+> ```
+>
+> **ROOT CAUSE:** the old `inward` datum was derived **from the face's bounding box** (`build.ts:inwardNormal`). A cylinder's
+> lateral face has a **bbox equal to the whole solid's**, so the curved-branch heuristic (`face centre → solid centre`) gave a
+> **zero vector** and fell back to the hardcoded **`[0,0,1]`** — up the column axis. ⚠ **This is the branch Entry 28 flagged as
+> untested best-effort** (*"a best-effort inward for a curved or oblique one"*); it was never exercised because Entry 28's beam
+> was rectangular. **A bounding box cannot describe a curved face** — the D28 lesson (geometry from a bbox is a lie on curves),
+> in a new place.
+
+> ## ✅ THE FIX (OWNER RULED, 2026-07-16: **SUPPORT curved-face hosting now**, do NOT refuse it) — AND THE REAL DELIVERABLE IS A NEW SURFACE PRIMITIVE.
+>
+> **A new, additive kernel op `faceFrame(handle, ref)`** returns a face's **frame read from the actual B-Rep surface**
+> (`BRepAdaptor_Surface`, evaluated at the face's parametric centre): `origin`, the **OUTWARD** normal (orientation-corrected),
+> and two in-plane tangents `uAxis`/`vAxis`. **The engine derives the honest `inward = -normal` from it** (byte-identical to the
+> old bbox datum for a planar axis-aligned face; *correct* for a curved one), and hands the whole frame to the void on
+> `hostFace.frame`. The fixture Opening then, **for a curved/oblique face** (detected as "not exactly one flat axis in the face
+> bounds"), **sweeps the cut along `-normal` from `origin`** via `extrude` — an oriented duct that clears the whole host (depth =
+> the bbox diagonal, so it never under-reaches a big column). The **planar axis-aligned path is byte-identical** (`makeBox` +
+> `inward`, unchanged) — all of Entry 28's and `document-openings`' tests still pass untouched.
+>
+> **✅ REVERT-VERIFIED:** disable the frame path and the through-cut assertions fail — the far side of a 1000 mm-diameter column
+> stays solid (a naive axis-aligned box under-reaches, exactly the bug). Restore ⇒ green. *A fix without a test that fails in its
+> absence is an assertion.*
+>
+> **⚠ `faceFrame` is a general primitive, not an opening-specific hack** — P6 section views and P4.5 snapping both need "a face's
+> normal/frame in world space", and neither had a seam for it. It reads the B-Rep, never the mesh (D23).
+
+### ALSO SURFACED IN THE BATCH (four uncut shapes modelled) — THREE POSITIVES, ALL ON THE QUANTITIES NORTH-STAR, ALL CORRECT
+
+- **✅ PAINT AREA OF A WALL FACE *WITH A WINDOW IN IT*** — `faceArea` returns full − hole **exactly** (9,520,000 for a
+  3000×2500 face with a 1200×1400 window). The real take-off quantity `measure(ref)` exists for, and **never once measured on a
+  holed face** (the existing test measures a plain face). The window's hole leaves the `y-min` face as **one** holed face that
+  keeps its token. **Correct — worth an eventual regression test.**
+- **✅ TWO WINDOWS IN ONE WALL** — both cut, `brokenRefs: 0`, structure volume = full − 2 holes exactly.
+- **✅ A DOOR FLUSH TO THE FLOOR (a tangential bottom cut) + A FULL-HEIGHT SPLITTING CUT** — a door's U-notched face measures
+  full − door exactly; a full-height opening that **disconnects the wall into two solids** names the split faces honestly
+  (`…/face/cut(structure.face.y-min~0)#0` / `#1`, the D28 1→N split), volumes/areas exact. The old token then throwing
+  `NOT_FOUND` is **loud** (domain rule 3), not silent — so **not a gap.**
+
+**⇒ The method has now found ELEVEN gaps, and it is still the only method that ever has.** Curved-face hosting was the one nobody
+had cut.
+
+### PROVEN
+- **`pnpm verify` GREEN — all five CI steps on the dev box** (typecheck incl. apps/web · lint · format:check · **217/217 tests** ·
+  reseed skips off-PR). Was 214; **+3**, the curved-face test's three cases. **The rebuilt `.wasm` regressed nothing** — every
+  native-oracle golden and every naming test still passes (`faceFrame` is inert to existing geometry).
+
+### CONTRACT NOTE (§2) — ⚠ TWO ADDITIVE CONTRACT CHANGES, BOTH PERMITTED, BOTH PRE-FREEZE
+1. **The FROZEN kernel protocol gained a live op `faceFrame`** — **19 live ops + 5 RESERVED** (was 18+5). ⚠ **This is the first
+   post-freeze op, and it is EXPLICITLY PERMITTED (D13: *"adding a new op is additive and permitted; changing an existing op's
+   envelope needs Architect sign-off"*).** `capabilities` picks it up by derivation (both kernels implement it); the mock answers
+   it in closed form for a box, so the "mock and real emit identical" invariant holds.
+2. **`VoidBuildContext.hostFace` gains `frame` (`{origin, normal, uAxis, vAxis}`)** — additive to a **release-candidate** contract
+   that **freezes at P5**. `inward` stays (now sourced from `-frame.normal`, so it is honest for curved faces too). ⚠ **P5's real
+   Opening must project a curved/oblique host's void along `frame`, not along a bbox-derived guess** — a duct through a round
+   column or pipe is not an edge case. No document-layer *type* other than this moves.
+
+### FILES (the diff for the owner-gated commit)
+NEW: `tests/gap-void-curved-face.test.ts` (through-cut vs axial-pocket via `classifyPoint`, + a resize rebuild, + the revert-check).
+CHANGED: `packages/protocol/src/ops.ts` (`FaceFramePayload`/`FaceFrameResult` + `OpMap`/`OP_NAMES`) · `packages/protocol/src/index.ts`
+(exports) · `tools/kernel-build/src/kernel.cpp` (the `Frame` struct + `faceFrame()` surface eval + binding + `<BRepAdaptor_Surface.hxx>`)
+· `packages/kernel-occt/wasm/bunyan-kernel.{js,wasm}` (rebuilt artifact, 76 s) · `packages/kernel-occt/wasm/bunyan-kernel.d.ts`
+(`OcctFrame` + `faceFrame`) · `packages/kernel-occt/src/kernel.ts` (the `faceFrame` adapter) · `packages/kernel-mock/src/box.ts`
++ `kernel.ts` (`boxFaceFrame` + its handler) · `packages/document/src/types.ts` (`hostFace.frame`) · `packages/document/src/build.ts`
+(call `faceFrame`; `inward = -normal`; `inwardNormal` deleted) · `tests/fixtures/bim-types.ts` (the Opening's frame path for curved
+faces) · `tests/quantities-and-contract.test.ts` (capabilities list + `faceFrame`) · `current_state.md` (this entry + §1/§2).
+**Commit + push are owner-gated.**
