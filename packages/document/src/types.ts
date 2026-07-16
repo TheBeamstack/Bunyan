@@ -16,6 +16,7 @@ import type {
   Discipline,
   Element,
   ElementStyle,
+  Grid,
   Material,
   Params,
   Section,
@@ -44,6 +45,24 @@ export interface BuildContext {
   readonly container: (id: string) => SpatialContainer | undefined;
   /** The elevation of the element's Level, in mm. `0` if it is not on one. */
   readonly elevation: number;
+  /**
+   * ⚠ THE ACTIVE-DATUM INPUTS (D50 step 0b, Freeze-Gate row ⓐ). Before 0b a Type got one scalar
+   * `elevation`; an associative element needs more, and the engine resolves it from the element's
+   * `Constraint`s so a Type stays a pure function of scalars (it never sees the scene).
+   */
+  /** The elevation of any container, in mm — not just the element's own (a base/top wall reads two). */
+  readonly elevationOf: (containerId: string) => number;
+  /** Resolve a grid axis the element is placed on. */
+  readonly grid: (id: string) => Grid | undefined;
+  /**
+   * The element's `base`/`top` constraint elevations (offset folded in) — `height` is DERIVED as
+   * `topElevation − baseElevation` (D52). `undefined` when the element has no constraint of that kind, so
+   * an un-constrained element falls back to `elevation` + its own `height` param (byte-identical to pre-0b).
+   */
+  readonly baseElevation?: number;
+  readonly topElevation?: number;
+  /** The (x, y) intersection of the element's `grid` constraints, if it is grid-placed. */
+  readonly gridPoint?: readonly [number, number];
   /**
    * The Type's own `defaultDiscipline` (D45) — the stamp for a part built with **no style layer**.
    * A styled part takes its discipline from **its layer** (`ctx.style.layers[i].discipline`), which is

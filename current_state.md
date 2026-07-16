@@ -2099,3 +2099,30 @@ The first thing the freeze waits on (Freeze Gate ⑦, step 0a). The old rebuild 
 
 ### FILES
 CHANGED: `packages/document/src/dependency.ts` (**new** — the typed graph) · `packages/document/src/document.ts` (`#touched` now feeds `dependents`; dropped the inline edges + the `assembliesUsingStyle` import) · `packages/document/src/index.ts` (export `dependency.js`) · `tests/dependency-graph.test.ts` (**new** — 7, revert-verified) · `v1.0.0_imp_plan.md` (step 0a marked ✅ BUILT) · `current_state.md` (this entry). **Green; commit is owner-gated.**
+
+---
+
+## Entry 34 — 2026-07-16 — Zayd (dev box, headless) — **D50 STEP 0b BUILT: THE MODEL IS ASSOCIATIVE. AND A DESIGN-FIRST + COMPETITIVE-REANALYSIS PASS RESHAPED THE `Constraint` CONTRACT BEFORE IT FROZE.**
+
+The owner asked for a **proper design before building** (not a note) and, on the model itself, *"reanalyse / test that this is the direction that competes with ArchiCAD & Revit."* Both were done — the reanalysis was the consequential one.
+
+**The design + the reanalysis (in `P5_step0b_design.md`, rev. 2, committed `1523ef1`).** The first draft modelled a constraint as a flat `{ element, kind, target: string }`. Stress-testing it against **9 real Revit/ArchiCAD associativity operations** found **two freeze-fatal gaps**:
+
+- **Finding 1 — `offset` is mandatory.** A base/top constraint with no offset cannot express a **parapet** (top = Roof + 1100), a **footing** (base = L0 − 300), or a dropped slab. These are ordinary walls; Revit's dialog *leads* with Base/Top Offset. ⇒ `offset` **shipped in 0b**, not reserved.
+- **Finding 2 — a constraint is not always `{one element, one string target}`.** Attach-to-roof, align-and-lock a face, locked/EQ dimensions, and sketch constraints (0d) all have a **second operand** — sometimes an *element*, sometimes a *`SubShapeRef`*. A stringly-typed single `target` can't grow into that without redefining the field ⇒ a post-freeze `Constraint` amendment across three products. ⇒ **`Constraint` is now a discriminated union on `kind`, and `ConstraintTarget` a tagged union** (`level`/`grid` now; `element`/`ref` reserved). New constraint classes are additive **members**, never edits — the only shape that lets a Revit/ArchiCAD-class model grow past a datum binding after the freeze. *The direction (first-class constraints, D53) survived; the record shape did not — which is exactly what a design review is for.*
+
+**What was built** (all in `@bunyan/document`):
+
+- **`entities.ts`** — `Constraint = DatumConstraint` (union), `ConstraintTarget` (tagged union), `ConstraintId`; **`Element.gridRefs` REMOVED** (owner decision A — one binding mechanism; the field had zero readers, so nothing migrated).
+- **`scene.ts`** — `Scene.constraints` collection, `SCENE_SCHEMA_VERSION` 1→2 (a v1 `.bnn` loads: `{...emptyScene(), ...parsed}` defaults `constraints` to `{}`), `SceneCollection += 'constraints'`, and the **one resolver both the invalidator and the build read** (`constraintsOf`/`datumElevations`/`gridPointOf`/`elementsConstrainedTo{Level,Grid}`).
+- **`dependency.ts`** — new `constraints` edge; **`containers`/`grids` widened** to follow datum bindings. ⚠ Adding `'constraints'` to `SceneCollection` **tripped 0a's exhaustive switch** — the file did not compile until its edge was declared. *The ruling (D53) and the 0a guard reinforced each other exactly as the design predicted.* The grid edge is **no longer dormant**.
+- **`types.ts` `BuildContext`** (Freeze-Gate row ⓐ discharged) — `+elevationOf` `+grid` `+baseElevation?` `+topElevation?` `+gridPoint?`. **`build.ts`** resolves them from the element's constraints, so a Type reads scalars and never touches the scene (D19 preserved). Back-compat: no constraints ⇒ all `undefined` ⇒ the old `elevation`+`height` path is byte-identical (every existing fixture stayed green).
+- **`commands.ts`** — `createElement` folds `base`/`top`/`grid` into **one atomic `UndoableEdit`** (owner decision); `+createConstraint`/`+deleteConstraint`, each refusing an unknown datum with a typed failure.
+- **Fixture `constrainedMemberType`** + `constraint-model.test.ts` (8, real kernel): height derived from Levels; **parapet** (+1100) and **footing** (−300) offsets; grid-intersection placement; ⚠⚠ **rebind a datum → the solid follows** (the associativity proof, via `delete`+`create` constraint since `updateContainer` is 0e); unknown-datum refusal; and a **freeze-safety type check** proving the union extends without editing existing members. Plus 3 new pure edge tests in `dependency-graph.test.ts`.
+
+**Verification:** full suite **234 green** (33 files); `pnpm typecheck`/`lint`/`format:check`/`reseed:check` all clean.
+
+**Still owed (explicitly 0e, not 0b):** literally editing a Level's `elevation` or a Grid's `offset` needs `updateContainer`/`updateGrid`. Their **invalidation edges are already in the graph and revert-verified**, so 0e only adds the mutating verb — "move a Level, the building follows" is then a two-line command away, and the geometry half is already proven (rebind-a-datum). Next in the close-order after 0b: **0c joins** (anti-fuse) and **0e/0f CRUD + generalised-D51**, with **0d sketch solver** last.
+
+### FILES
+CHANGED: `packages/document/src/entities.ts` · `scene.ts` · `dependency.ts` · `types.ts` · `build.ts` · `commands.ts` · `tests/fixtures/bim-types.ts` (constrainedMember) · `tests/constraint-model.test.ts` (**new**) · `tests/dependency-graph.test.ts` (+3) · `v1.0.0_imp_plan.md` (0b ✅ BUILT) · `P5_step0b_design.md` (committed `1523ef1`) · `current_state.md` (this entry). **Green; commit is owner-gated.**

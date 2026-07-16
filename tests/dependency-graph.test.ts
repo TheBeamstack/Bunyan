@@ -22,6 +22,7 @@ import { describe, expect, it } from 'vitest';
 import { dependents, emptyScene } from '@bunyan/document';
 import type {
   Classification,
+  Constraint,
   Element,
   ElementId,
   Scene,
@@ -46,16 +47,24 @@ function container(id: string, over: Partial<SpatialContainer> = {}): SpatialCon
   return { id, kind: 'level', name: id, ...over };
 }
 
-function sceneOf(containers: readonly SpatialContainer[], elements: readonly Element[]): Scene {
+function sceneOf(
+  containers: readonly SpatialContainer[],
+  elements: readonly Element[],
+  constraints: readonly Constraint[] = [],
+): Scene {
   return {
     ...emptyScene(),
     containers: Object.fromEntries(containers.map((c) => [c.id, c])),
     elements: Object.fromEntries(elements.map((e) => [e.id, e])),
+    constraints: Object.fromEntries(constraints.map((c) => [c.id, c])),
   };
 }
 
 /** A two-level building: `site → tower → {L0, L1}`, one wall on each level. */
-function twoLevelScene(extra: readonly Element[] = []): Scene {
+function twoLevelScene(
+  extra: readonly Element[] = [],
+  constraints: readonly Constraint[] = [],
+): Scene {
   return sceneOf(
     [
       container('site', { kind: 'site' }),
@@ -68,6 +77,7 @@ function twoLevelScene(extra: readonly Element[] = []): Scene {
       element('wall-L1', { containerId: 'L1', styleId: 'EXT' }),
       ...extra,
     ],
+    constraints,
   );
 }
 
@@ -131,12 +141,59 @@ describe('the typed dependency graph — the rebuild invalidator is a declared g
     expect(dependents(scene, change('sections', 'IPE300'))).toEqual([]);
   });
 
-  it('grid→element: the edge is DECLARED (dormant until step 0b) — a grid change re-stages bound elements', () => {
-    const col = element('col', { typeId: 'core.linearMember.v1', gridRefs: ['A', '3'] });
-    const scene = twoLevelScene([col]);
-    // Declared now so the invalidator already knows the edge the moment step 0b makes a Grid a real host;
-    // over-invalidating today is harmless (there is no updateGrid command yet, and the build ignores it).
+  it('grid→element (step 0b, no longer dormant): a grid change re-stages elements CONSTRAINED to that axis', () => {
+    const col = element('col', { typeId: 'core.linearMember.v1' });
+    const scene = twoLevelScene(
+      [col],
+      [
+        { id: 'k1', element: 'col', kind: 'grid', target: { kind: 'grid', id: 'A' } },
+        { id: 'k2', element: 'col', kind: 'grid', target: { kind: 'grid', id: '3' } },
+      ],
+    );
+    // The binding is a `grid` constraint now (gridRefs is gone — owner decision A). Move grid A and the
+    // column follows; a grid nobody is bound to re-stages nothing.
     expect(dependents(scene, change('grids', 'A'))).toEqual(['col']);
+    expect(dependents(scene, change('grids', '3'))).toEqual(['col']);
     expect(dependents(scene, change('grids', 'ZZ'))).toEqual([]);
+  });
+
+  it('⚠ container→element via a base/top CONSTRAINT: a wall spanning L0→L1 follows either Level', () => {
+    // wall-span sits on neither container (no containerId) — it is bound purely by base/top constraints.
+    const span = element('wall-span');
+    const scene = twoLevelScene(
+      [span],
+      [
+        { id: 'b', element: 'wall-span', kind: 'base', target: { kind: 'level', id: 'L0' } },
+        {
+          id: 't',
+          element: 'wall-span',
+          kind: 'top',
+          target: { kind: 'level', id: 'L1' },
+          offset: 1100,
+        },
+      ],
+    );
+    // Move L0 (its base) or L1 (its top) and the span rebuilds — "move a Level, the building follows",
+    // through the constraint edge, not the containerId path. (wall-L0/wall-L1 come via the path edge.)
+    expect(ids(dependents(scene, change('containers', 'L0')))).toEqual(['wall-L0', 'wall-span']);
+    expect(ids(dependents(scene, change('containers', 'L1')))).toEqual(['wall-L1', 'wall-span']);
+  });
+
+  it('constraint→element: adding/moving/removing a binding re-stages the element it drives', () => {
+    const span = element('wall-span');
+    const base: Constraint = {
+      id: 'b',
+      element: 'wall-span',
+      kind: 'base',
+      target: { kind: 'level', id: 'L0' },
+    };
+    const scene = twoLevelScene([span], [base]);
+    expect(dependents(scene, { collection: 'constraints', id: 'b', after: base })).toEqual([
+      'wall-span',
+    ]);
+    // A delete (before only, no after) still re-stages the element — it must rebuild without the binding.
+    expect(dependents(scene, { collection: 'constraints', id: 'b', before: base })).toEqual([
+      'wall-span',
+    ]);
   });
 });

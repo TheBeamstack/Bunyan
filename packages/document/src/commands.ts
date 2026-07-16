@@ -23,6 +23,8 @@
 import type {
   BrokenReference,
   Classification,
+  ConstraintTarget,
+  DatumConstraint,
   Element,
   ElementId,
   ElementStyle,
@@ -227,9 +229,24 @@ export const createElementCommand: Command = {
     },
     name: { kind: 'string', label: 'Name' },
     containerId: { kind: 'ref', refTo: 'container', label: 'Level / Space' },
+    // ⚠ ACTIVE-DATUM BINDINGS (D50 step 0b). These fold the element and its `Constraint`s into ONE edit
+    // (owner decision, one atomic undo). `baseLevel`/`topLevel` span a wall between two Levels — height
+    // is DERIVED (D52); `*Offset` lifts/drops the extent (a parapet, a footing — Finding 1). `gridRefs`
+    // places the element on grid axes (its intersection). All are stored as constraints, never on the
+    // element (owner decision A). Standalone `createConstraint`/`deleteConstraint` edit them afterward.
+    baseLevel: { kind: 'ref', refTo: 'container', label: 'Base level' },
+    baseOffset: { kind: 'number', label: 'Base offset', unit: 'mm' },
+    topLevel: {
+      kind: 'ref',
+      refTo: 'container',
+      label: 'Top level',
+      description: 'Height is derived',
+    },
+    topOffset: { kind: 'number', label: 'Top offset', unit: 'mm' },
     gridRefs: {
       kind: 'array',
-      label: 'Grid refs',
+      label: 'Grid axes',
+      description: 'Grid axes to place on — their intersection is the placement point',
       items: { kind: 'ref', refTo: 'grid', label: 'Grid' },
     },
     hostId: { kind: 'ref', refTo: 'element', label: 'Host', description: 'For a hosted void' },
@@ -292,14 +309,13 @@ export const createElementCommand: Command = {
     if (containerId !== undefined && ctx.scene.containers[containerId] === undefined) {
       throw new CommandFailure('NOT_FOUND', `unknown container "${containerId}"`);
     }
-    const gridRefs = args['gridRefs'] as readonly string[] | undefined;
-    for (const gridRef of gridRefs ?? []) {
-      if (ctx.scene.grids[gridRef] === undefined) {
-        throw new CommandFailure('NOT_FOUND', `unknown grid "${gridRef}"`);
-      }
-    }
 
     const id = ctx.mintId(typeId.split('.')[1] ?? 'element');
+
+    // ⚠ THE DATUM BINDINGS become `Constraint`s in the SAME edit (D50 step 0b) — one atomic, one-undo
+    // "create a wall from L1 to L2". `datumConstraintsFor` validates every target exists (a typo refuses,
+    // it never silently places on the ground floor — the LBS lesson, one level up).
+    const constraints = datumConstraintsFor(ctx, id, args);
 
     const classification: Classification = {
       ifcClass: type.defaultClassification.ifcClass,
@@ -316,7 +332,6 @@ export const createElementCommand: Command = {
       ...(styleId === undefined ? {} : { styleId }),
       ...(args['name'] === undefined ? {} : { name: text(args['name']) }),
       ...(containerId === undefined ? {} : { containerId }),
-      ...(gridRefs === undefined ? {} : { gridRefs }),
       ...(hostId === undefined ? {} : { hostId }),
       ...(args['hostRef'] === undefined ? {} : { hostRef: text(args['hostRef']) }),
       ...(args['placement'] === undefined
@@ -326,12 +341,57 @@ export const createElementCommand: Command = {
 
     return ctx.edit(
       `Create ${type.label}`,
-      [{ collection: 'elements', id, after: element }],
+      [
+        { collection: 'elements', id, after: element },
+        ...constraints.map((c): SceneChange => ({ collection: 'constraints', id: c.id, after: c })),
+      ],
       // A new void invalidates its HOST's geometry — the wall now has a hole in it.
       hostId === undefined ? [id] : [hostId],
     );
   },
 };
+
+/**
+ * Build the `base`/`top`/`grid` `Constraint`s a `createElement` requested, validating every target exists.
+ * A datum binding is first-class (D53) — never a param, never an element field — so it is minted here and
+ * emitted in the create's edit. Offsets are folded onto base/top (Finding 1: a parapet is `top` + 1100).
+ */
+function datumConstraintsFor(
+  ctx: CommandContext,
+  element: ElementId,
+  args: Params,
+): readonly DatumConstraint[] {
+  const out: DatumConstraint[] = [];
+  const level = (kind: 'base' | 'top', levelArg: string, offsetArg: string): void => {
+    const target = args[levelArg] as string | undefined;
+    if (target === undefined) return;
+    if (ctx.scene.containers[target] === undefined) {
+      throw new CommandFailure('NOT_FOUND', `unknown ${kind} level "${target}"`);
+    }
+    const offset = args[offsetArg] as number | undefined;
+    out.push({
+      id: ctx.mintId('constraint'),
+      element,
+      kind,
+      target: { kind: 'level', id: target },
+      ...(offset === undefined ? {} : { offset }),
+    });
+  };
+  level('base', 'baseLevel', 'baseOffset');
+  level('top', 'topLevel', 'topOffset');
+  for (const gridId of (args['gridRefs'] as readonly string[] | undefined) ?? []) {
+    if (ctx.scene.grids[gridId] === undefined) {
+      throw new CommandFailure('NOT_FOUND', `unknown grid "${gridId}"`);
+    }
+    out.push({
+      id: ctx.mintId('constraint'),
+      element,
+      kind: 'grid',
+      target: { kind: 'grid', id: gridId },
+    });
+  }
+  return out;
+}
 
 export const setParamsCommand: Command = {
   id: 'core.setParams',
@@ -819,6 +879,94 @@ export const createGridCommand: Command = {
 };
 
 /* ================================================================================================
+ * CONSTRAINTS — the active-datum bindings, editable on their own (D50 step 0b, D53)
+ * ============================================================================================= */
+
+/**
+ * Bind an existing element to a datum — a `base`/`top` Level (with an optional offset) or a `grid` axis.
+ * The create-time path folds these into `createElement`; this edits them afterward (attach a wall top to a
+ * newly-drawn level, move a column onto a grid). The re-stage is the element the constraint drives.
+ */
+export const createConstraintCommand: Command = {
+  id: 'core.createConstraint',
+  label: 'Add constraint',
+  description:
+    'Bind an element to a datum: base/top to a Level (height derived, offset optional) or grid to an axis.',
+  argsSchema: {
+    element: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    kind: { kind: 'enum', label: 'Kind', required: true, options: ['base', 'top', 'grid'] },
+    target: {
+      kind: 'string',
+      label: 'Target',
+      required: true,
+      description: 'A container id for base/top, a grid id for grid',
+    },
+    offset: { kind: 'number', label: 'Offset', unit: 'mm', description: 'base/top only' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createConstraintCommand, rawArgs);
+    const element = requireElement(ctx.scene, args['element']);
+    const kind = args['kind'] as DatumConstraint['kind'];
+    const targetId = text(args['target']);
+    const target = constraintTarget(ctx, kind, targetId);
+    const offset = args['offset'] as number | undefined;
+    const constraint: DatumConstraint = {
+      id: ctx.mintId('constraint'),
+      element: element.id,
+      kind,
+      target,
+      ...(offset === undefined ? {} : { offset }),
+    };
+    return ctx.edit(
+      `Constrain ${element.id} (${kind})`,
+      [{ collection: 'constraints', id: constraint.id, after: constraint }],
+      [element.id],
+    );
+  },
+};
+
+/** Remove a datum binding. The element it drove re-stages (it falls back to its own params). */
+export const deleteConstraintCommand: Command = {
+  id: 'core.deleteConstraint',
+  label: 'Remove constraint',
+  description: 'Remove an active-datum binding; the element rebuilds without it.',
+  argsSchema: {
+    id: { kind: 'string', label: 'Constraint id', required: true },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteConstraintCommand, rawArgs);
+    const id = text(args['id']);
+    const constraint = ctx.scene.constraints[id];
+    if (constraint === undefined) {
+      throw new CommandFailure('NOT_FOUND', `no constraint "${id}" in this document`);
+    }
+    return ctx.edit(
+      `Remove constraint ${id}`,
+      [{ collection: 'constraints', id, before: constraint }],
+      [constraint.element],
+    );
+  },
+};
+
+/** Resolve a constraint's target id to a validated, typed `ConstraintTarget` (base/top→Level, grid→Grid). */
+function constraintTarget(
+  ctx: CommandContext,
+  kind: DatumConstraint['kind'],
+  targetId: string,
+): ConstraintTarget {
+  if (kind === 'grid') {
+    if (ctx.scene.grids[targetId] === undefined) {
+      throw new CommandFailure('NOT_FOUND', `unknown grid "${targetId}"`);
+    }
+    return { kind: 'grid', id: targetId };
+  }
+  if (ctx.scene.containers[targetId] === undefined) {
+    throw new CommandFailure('NOT_FOUND', `unknown ${kind} level "${targetId}"`);
+  }
+  return { kind: 'level', id: targetId };
+}
+
+/* ================================================================================================
  * ISSUING A REVISION — a COMMAND, not a file operation (decision D41)
  * ============================================================================================= */
 
@@ -883,6 +1031,8 @@ export const CORE_COMMANDS: readonly Command[] = [
   createSectionCommand,
   createContainerCommand,
   createGridCommand,
+  createConstraintCommand,
+  deleteConstraintCommand,
   issueRevisionCommand,
 ];
 

@@ -13,7 +13,10 @@
 
 import type {
   BrokenReference,
+  Constraint,
+  ConstraintId,
   ContainerId,
+  DatumConstraint,
   Element,
   ElementId,
   ElementStyle,
@@ -27,8 +30,12 @@ import type {
   StyleId,
 } from './entities.js';
 
-/** Bumped when `scene.json`'s own shape changes (not a type's — that is `element.typeVersion`). */
-export const SCENE_SCHEMA_VERSION = 1;
+/**
+ * Bumped when `scene.json`'s own shape changes (not a type's — that is `element.typeVersion`).
+ * - v1 → v2 (D50 step 0b): added the first-class `constraints` collection (D53). A v1 file has no
+ *   `constraints` key; the loader defaults it to `{}`, so old `.bnn` files open unchanged.
+ */
+export const SCENE_SCHEMA_VERSION = 2;
 
 export interface Scene {
   readonly schemaVersion: number;
@@ -48,6 +55,12 @@ export interface Scene {
   readonly containers: Readonly<Record<ContainerId, SpatialContainer>>;
   readonly grids: Readonly<Record<GridId, Grid>>;
   /**
+   * The ACTIVE-DATUM bindings (D50 step 0b, D53) — base/top level spans and grid placements, first-class
+   * and orthogonal to params. This is the one structure the rebuild invalidator (`dependency.ts`) and the
+   * ecosystem consumers (Miqdar/Planitor) both read; the sketch solver (0d) extends the `Constraint` union.
+   */
+  readonly constraints: Readonly<Record<ConstraintId, Constraint>>;
+  /**
    * References that did not resolve on the last rebuild (domain rule 3).
    *
    * ⚠ PERSISTED ON PURPOSE. A broken reference is a first-class, visible state awaiting manual
@@ -66,13 +79,14 @@ export function emptyScene(): Scene {
     sections: {},
     containers: {},
     grids: {},
+    constraints: {},
     brokenRefs: [],
   };
 }
 
 /** The collections a `SceneChange` can touch. Undo is a diff over these (spec §6.1). */
 export type SceneCollection =
-  'elements' | 'styles' | 'materials' | 'sections' | 'containers' | 'grids';
+  'elements' | 'styles' | 'materials' | 'sections' | 'containers' | 'grids' | 'constraints';
 
 /**
  * One atomic change to the scene — and the unit undo is built from.
@@ -153,4 +167,82 @@ export function elevationOf(scene: Scene, containerId: ContainerId | undefined):
     if (container.elevation !== undefined) return container.elevation;
   }
   return 0;
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * CONSTRAINT RESOLUTION (D50 step 0b) — the datum bindings, read the same way by the invalidator
+ * (`dependency.ts`) and the build (`build.ts`). Kept here so both read ONE resolver, never two.
+ * ---------------------------------------------------------------------------------------------- */
+
+/** Every datum constraint owned by an element. */
+export function constraintsOf(scene: Scene, elementId: ElementId): readonly DatumConstraint[] {
+  return Object.values(scene.constraints).filter((c) => c.element === elementId);
+}
+
+/** Elements with a `base`/`top` constraint targeting this Level — the container→element datum edge. */
+export function elementsConstrainedToLevel(
+  scene: Scene,
+  containerId: ContainerId,
+): readonly ElementId[] {
+  return datumEdges(scene, ['base', 'top'], 'level', containerId);
+}
+
+/** Elements with a `grid` constraint on this axis — the grid→element edge (activated in 0b). */
+export function elementsConstrainedToGrid(scene: Scene, gridId: GridId): readonly ElementId[] {
+  return datumEdges(scene, ['grid'], 'grid', gridId);
+}
+
+function datumEdges(
+  scene: Scene,
+  kinds: readonly Constraint['kind'][],
+  targetKind: 'level' | 'grid',
+  targetId: string,
+): readonly ElementId[] {
+  return Object.values(scene.constraints)
+    .filter(
+      (c) => kinds.includes(c.kind) && c.target.kind === targetKind && c.target.id === targetId,
+    )
+    .map((c) => c.element);
+}
+
+/**
+ * Resolve an element's `base`/`top` constraints to absolute elevations (offset folded in). Either side is
+ * `undefined` when the element has no constraint of that kind — the build then falls back to its own
+ * container elevation + a `height` param, which is byte-identical to the pre-0b behaviour.
+ */
+export function datumElevations(
+  scene: Scene,
+  elementId: ElementId,
+): { base?: number; top?: number } {
+  const result: { base?: number; top?: number } = {};
+  for (const c of constraintsOf(scene, elementId)) {
+    if (c.target.kind !== 'level') continue;
+    const z = elevationOf(scene, c.target.id) + (c.offset ?? 0);
+    if (c.kind === 'base') result.base = z;
+    if (c.kind === 'top') result.top = z;
+  }
+  return result;
+}
+
+/**
+ * Resolve an element's `grid` constraints to an (x, y) placement point — the intersection of the axes it is
+ * bound to. A grid `axis: 'x'` line runs along X at `offset` in Y (and vice-versa), so the `y`-axis grid
+ * fixes X and the `x`-axis grid fixes Y. `undefined` unless the element is bound to at least one grid of
+ * each orientation (or the coordinate it does fix, with the other left at 0 — a single-axis binding).
+ */
+export function gridPointOf(
+  scene: Scene,
+  elementId: ElementId,
+): readonly [number, number] | undefined {
+  let x: number | undefined;
+  let y: number | undefined;
+  for (const c of constraintsOf(scene, elementId)) {
+    if (c.kind !== 'grid' || c.target.kind !== 'grid') continue;
+    const grid = scene.grids[c.target.id];
+    if (grid === undefined) continue;
+    if (grid.axis === 'y') x = grid.offset; // a line running along Y is fixed in X
+    if (grid.axis === 'x') y = grid.offset; // a line running along X is fixed in Y
+  }
+  if (x === undefined && y === undefined) return undefined;
+  return [x ?? 0, y ?? 0];
 }

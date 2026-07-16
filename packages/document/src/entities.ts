@@ -186,8 +186,8 @@ export interface SpatialContainer {
  * A named structural axis — `A`, `B`, `1`, `2`. **Level organizes the model vertically; Grid organizes
  * it horizontally** (D32), and every BIM tool and every structural tool has both.
  *
- * A column sits at B-3, and it *stays* at B-3 when the grid spacing changes — which is why an element
- * carries `gridRefs`, not a copy of the coordinate.
+ * A column sits at B-3, and it *stays* at B-3 when the grid spacing changes — which is why the binding is
+ * a `grid` `Constraint` naming the axis (D50 step 0b), not a copy of the coordinate on the element.
  */
 export interface Grid {
   readonly id: GridId;
@@ -196,6 +196,48 @@ export interface Grid {
   /** mm along the perpendicular axis. */
   readonly offset: number;
   readonly buildingId?: ContainerId;
+}
+
+/* ================================================================================================
+ * THE CONSTRAINT — an ACTIVE-DATUM binding (D50 step 0b, D53)
+ * ============================================================================================= */
+
+export type ConstraintId = string;
+
+/**
+ * What a constraint points AT. A tagged union so the operand can widen without redefining a field
+ * (P5_step0b_design.md §2, Finding 2). Today: a Level or a Grid axis. Reserved-additive: an `element`
+ * (attach a wall top to a roof) or a `ref` (a `SubShapeRef` token — align/lock a face). ⚠ Adding those
+ * members must never edit these two.
+ */
+export type ConstraintTarget =
+  | { readonly kind: 'level'; readonly id: ContainerId }
+  | { readonly kind: 'grid'; readonly id: GridId };
+// FUTURE (additive, not built in 0b): { kind: 'element'; id: ElementId } · { kind: 'ref'; token: string }
+
+/**
+ * A datum binding — "this element's geometry FOLLOWS that datum" (D53). First-class, in `scene.constraints`,
+ * **never a param** — so the dependency graph reads one structure and `ParamSchema` stays a value schema.
+ *
+ * ⚠⚠ `Constraint` IS A DISCRIMINATED UNION ON `kind` (`P5_step0b_design.md` §2, Finding 2). Today it has
+ * one member (`DatumConstraint`); attach/align/dimension (rows 6–8) and the sketch constraints (0d) land as
+ * NEW members — `Constraint = DatumConstraint | AttachConstraint | …` — which is purely additive and is the
+ * only shape that lets a Revit/ArchiCAD-class constraint model grow past a datum binding after the freeze.
+ */
+export type Constraint = DatumConstraint;
+
+export interface DatumConstraint {
+  readonly id: ConstraintId;
+  /** The dependent — the element whose geometry follows the datum. */
+  readonly element: ElementId;
+  /** `base`/`top` bind a vertical extent to a Level; `grid` places the element on an axis (two ⇒ a point). */
+  readonly kind: 'base' | 'top' | 'grid';
+  readonly target: ConstraintTarget;
+  /**
+   * mm along the datum's normal. For `base`/`top`: the vertical offset from the Level — a parapet is
+   * `top` + 1100, a footing is `base` − 300 (P5_step0b_design.md §2, Finding 1). Unused for `grid`.
+   */
+  readonly offset?: number;
 }
 
 /* ================================================================================================
@@ -236,8 +278,9 @@ export interface Element {
   readonly params: Params;
   /** The spatial container it lives in (a Level, usually; D35). */
   readonly containerId?: ContainerId;
-  /** The grid intersection it is placed on, if any (D32) — `["B", "3"]`. */
-  readonly gridRefs?: readonly GridId[];
+  // ⚠ `gridRefs` was REMOVED here (D50 step 0b, owner decision A): grid placement is now a first-class
+  // `grid` `Constraint` in `scene.constraints`, not an element field — one binding mechanism (D53). The
+  // field had zero readers, so nothing migrated; the constraint carries the same "column stays at B-3".
   readonly classification: Classification;
   /**
    * WHERE IT IS IN THE WORLD — a rigid motion applied to its finished parts (spec §6: `transform`).

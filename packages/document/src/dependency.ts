@@ -19,14 +19,16 @@
  * which is exactly how the container edge was lost. Every edge is DECLARED, with the line in the build it
  * mirrors, not inferred.
  *
- * ⚠ CONSTRAINTS ARE A FIRST-CLASS SCENE COLLECTION (D53). When the `constraints` collection lands
- * (step 0b/0c), its edges are declared HERE alongside these — this file is the one typed structure the
- * invalidator and the ecosystem consumers (Miqdar/Planitor) both read.
+ * ⚠ CONSTRAINTS ARE A FIRST-CLASS SCENE COLLECTION (D53, landed step 0b). The `constraints` edges are
+ * declared HERE alongside the rest — a `constraint` change re-stages its element, and the `containers`/
+ * `grids` cases widened to also follow datum bindings (base/top→Level, grid→axis). This file is the one
+ * typed structure the invalidator and the ecosystem consumers (Miqdar/Planitor) both read. The sketch
+ * solver (0d) will add sketch-constraint members to the `Constraint` union without touching these edges.
  */
 
-import type { Element, ElementId } from './entities.js';
+import type { Constraint, Element, ElementId } from './entities.js';
 import type { Scene, SceneChange, SceneCollection } from './scene.js';
-import { containerPath } from './scene.js';
+import { containerPath, elementsConstrainedToGrid, elementsConstrainedToLevel } from './scene.js';
 
 /**
  * The element ids whose BUILT GEOMETRY depends on the entity this change touched — i.e. the ones that
@@ -56,17 +58,25 @@ export function dependents(scene: Scene, change: SceneChange): readonly ElementI
       // edit the shared style and every wall wearing it rebuilds. (The 400-walls edge.)
       return elementsUsingStyle(scene, change.id);
     case 'containers':
-      // EDGE: container→element (elevation). ⚠ THE ONCE-MISSING EDGE. Mirrors `build.ts:393`
-      // `elevation: elevationOf(scene, element.containerId)`, which walks the whole container path — so an
-      // element depends on EVERY container along its path (a Level's elevation, and any ancestor's). Change
-      // a container and every element whose path includes it must rebuild at the new datum.
-      return elementsUnderContainer(scene, change.id);
+      // EDGE: container→element. ⚠ THE ONCE-MISSING EDGE, now with TWO paths (D50 step 0b). (1) elevation:
+      // mirrors `build.ts` `elevationOf(scene, element.containerId)`, which walks the whole container path,
+      // so an element depends on every container along its path. (2) datum: an element with a `base`/`top`
+      // constraint targeting this Level follows it too — "move a Level, the building follows".
+      return unique([
+        ...elementsUnderContainer(scene, change.id),
+        ...elementsConstrainedToLevel(scene, change.id),
+      ]);
     case 'grids':
-      // EDGE: grid→element (axis placement, D32). Declared now, DORMANT until step 0b makes a Grid a real
-      // placement host (today `gridRefs` is stored and validated but the build never reads it, so this
-      // over-invalidates harmlessly — and there is no `updateGrid` command yet to trigger it). Declaring it
-      // here means the invalidator already knows the edge the moment the build starts reading it.
-      return elementsBoundToGrid(scene, change.id);
+      // EDGE: grid→element (D32) — NO LONGER DORMANT (step 0b). An element with a `grid` constraint on this
+      // axis is placed at its intersection, so the build reads it and it must re-stage — "move a Grid line,
+      // its columns follow". (`gridRefs` is gone; the binding is a constraint now — owner decision A.)
+      return elementsConstrainedToGrid(scene, change.id);
+    case 'constraints': {
+      // EDGE: constraint→element. A datum binding appeared, moved or vanished ⇒ re-stage the element that
+      // depends on it. (The container/grid the constraint TARGETS is handled by the two cases above.)
+      const c = (change.after ?? change.before) as Constraint | undefined;
+      return c === undefined ? [] : [c.element];
+    }
     case 'materials':
     case 'sections':
       // NO GEOMETRY EDGE — and this is a deliberate, declared "nothing", not an oversight. A part's SHAPE
@@ -78,6 +88,10 @@ export function dependents(scene: Scene, change: SceneChange): readonly ElementI
     default:
       return assertNever(collection);
   }
+}
+
+function unique(ids: readonly ElementId[]): readonly ElementId[] {
+  return [...new Set(ids)];
 }
 
 /** Every element wearing a given style — the style→instance edge. */
@@ -94,11 +108,6 @@ function elementsUnderContainer(scene: Scene, containerId: string): readonly Ele
   return elementIdsWhere(scene, (e) =>
     containerPath(scene, e.containerId).some((c) => c.id === containerId),
   );
-}
-
-/** Every element bound to a given grid axis — the grid→element edge (dormant until step 0b). */
-function elementsBoundToGrid(scene: Scene, gridId: string): readonly ElementId[] {
-  return elementIdsWhere(scene, (e) => e.gridRefs?.includes(gridId) ?? false);
 }
 
 function elementIdsWhere(

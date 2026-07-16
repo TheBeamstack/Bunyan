@@ -30,7 +30,7 @@
 import type { BrokenReference, Element, ElementId, Params, Part } from './entities.js';
 import { cutNodeId, partNodeId } from './geometry.js';
 import type { GeometryGateway, GeometryRequestOptions } from './geometry.js';
-import { elevationOf, hostedBy } from './scene.js';
+import { datumElevations, elevationOf, gridPointOf, hostedBy } from './scene.js';
 import type { Scene } from './scene.js';
 import { withDefaults } from './schema.js';
 import type { Registries } from './registries.js';
@@ -383,6 +383,10 @@ function contextFor(
 ): BuildContext {
   const type = registries.types.require(element.typeId);
   const style = element.styleId === undefined ? undefined : scene.styles[element.styleId];
+  // ⚠ THE ACTIVE-DATUM INPUTS (D50 step 0b). Resolved ONCE from the element's `Constraint`s so the Type
+  // reads scalars and never touches the scene — the recipe→solids one-way street (D19) is preserved.
+  const datums = datumElevations(scene, element.id);
+  const gridPoint = gridPointOf(scene, element.id);
   return {
     element,
     params: withDefaults(type.parameterSchema, rawParams),
@@ -391,6 +395,11 @@ function contextFor(
     section: (id) => scene.sections[id],
     container: (id) => scene.containers[id],
     elevation: elevationOf(scene, element.containerId),
+    elevationOf: (id) => elevationOf(scene, id),
+    grid: (id) => scene.grids[id],
+    ...(datums.base === undefined ? {} : { baseElevation: datums.base }),
+    ...(datums.top === undefined ? {} : { topElevation: datums.top }),
+    ...(gridPoint === undefined ? {} : { gridPoint }),
     // ⚠ `other` only when a Type declares none AND builds an unstyled part — an honest "nobody said",
     // never a guess at the trade. D45: never inferred from the material.
     defaultDiscipline: type.defaultDiscipline ?? 'other',

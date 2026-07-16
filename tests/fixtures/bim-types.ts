@@ -469,4 +469,78 @@ function rectangleProfile(
   };
 }
 
-export const FIXTURE_TYPES = [wallType, slabType, linearMemberType, openingType];
+/* ================================================================================================
+ * CONSTRAINED MEMBER — the fixture that exercises the ACTIVE-DATUM inputs (D50 step 0b).
+ * ============================================================================================= */
+
+/**
+ * A single-solid vertical member whose GEOMETRY FOLLOWS ITS CONSTRAINTS, not just its params — the
+ * fixture that proves the 0b `BuildContext` contract (base/top Levels, grid placement) the way the real
+ * Wall (P5 step 3) will use it.
+ *
+ * - Its **Z extent is derived**: bottom = `baseElevation` (a Level + offset), top = `topElevation` —
+ *   height is `top − base`, never a param (D52). With no base/top constraint it falls back to the
+ *   element's own `elevation` + a `height` param, so it stays a perfectly ordinary member.
+ * - Its **XY placement follows the grid**: it is centred on `gridPoint` (the intersection of its `grid`
+ *   constraints) when it has one, else on the world origin.
+ *
+ * A parapet is `top` + 1100; a footing is `base` − 300 — expressible because the constraint carries an
+ * `offset` (P5_step0b_design.md §2, Finding 1).
+ */
+export const constrainedMemberType: BimObjectType = {
+  id: 'core.constrainedMember.v1',
+  version: 1,
+  label: 'Constrained member',
+  description:
+    'A vertical member spanning base→top Levels, placed on a grid intersection (D50 step 0b).',
+  parameterSchema: {
+    width: { kind: 'number', label: 'Width', unit: 'mm', required: true, min: 1 },
+    depth: { kind: 'number', label: 'Depth', unit: 'mm', required: true, min: 1 },
+    // Fallback height, used ONLY when the member has no top constraint (an un-constrained member).
+    height: { kind: 'number', label: 'Height', unit: 'mm', min: 1 },
+  },
+  defaultClassification: { ifcClass: 'IfcColumn', loadBearing: true },
+  defaultDiscipline: 'structural',
+
+  async buildGeometry(ctx: BuildContext): Promise<readonly BuiltPart[]> {
+    const width = Number(ctx.params['width']);
+    const depth = Number(ctx.params['depth']);
+    // ⚠ HEIGHT IS DERIVED FROM THE DATUMS (D52) — a param only as the un-constrained fallback.
+    const base = ctx.baseElevation ?? ctx.elevation;
+    const top = ctx.topElevation ?? base + Number(ctx.params['height'] ?? 0);
+    const height = top - base;
+    if (height <= 0) {
+      throw new Error(
+        `constrained member "${ctx.element.id}" has non-positive height (base ${base}, top ${top})`,
+      );
+    }
+    const [cx, cy] = ctx.gridPoint ?? [0, 0];
+    const nodeId = ctx.nodeId('member');
+    const solid = await ctx.geometry.request('makeBox', {
+      nodeId,
+      dx: width,
+      dy: depth,
+      dz: height,
+      // centred on the grid intersection in XY, sitting on the base datum in Z.
+      at: [cx - width / 2, cy - depth / 2, base],
+    });
+    return [
+      {
+        name: 'member',
+        materialId: '',
+        discipline: 'structural',
+        nodeId,
+        handle: solid.handle,
+        refs: solid.refs,
+      },
+    ];
+  },
+};
+
+export const FIXTURE_TYPES = [
+  wallType,
+  slabType,
+  linearMemberType,
+  openingType,
+  constrainedMemberType,
+];
