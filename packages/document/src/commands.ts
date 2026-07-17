@@ -37,7 +37,7 @@ import type {
 } from './entities.js';
 import type { Registries } from './registries.js';
 import type { Scene, SceneChange } from './scene.js';
-import { hostedBy } from './scene.js';
+import { hostedBy, instancesOfStyle, stylesUsingMaterial, stylesUsingSection } from './scene.js';
 import type { ParamSchema } from './schema.js';
 import { validateParams, withDefaults } from './schema.js';
 import type { UndoableEdit } from './undo.js';
@@ -201,6 +201,215 @@ function checkLayers(scene: Scene, layers: ElementStyle['layers']): void {
       throw new CommandFailure('NOT_FOUND', `unknown material "${layer.materialId}"`);
     }
   }
+}
+
+/* ================================================================================================
+ * THE REFUSE-OR-RETARGET GUARD (D50 step 0f, D51 generalised — Freeze-Gate row ⓓ)
+ *
+ * ⚠⚠ THE RULE, IN ONE LINE: **a command never silently changes what a reference points at.** A destructive
+ * or repointing edit computes what it would break; if anything, it REFUSES with a typed failure that NAMES
+ * the references — unless the caller passes `retargetMap` (redirect them) or `acknowledge` (proceed, let
+ * them break, first-class). Modelled on a database foreign key: RESTRICT | SET | (acknowledged) CASCADE.
+ *
+ * ⚠ WHY ONE HELPER, NOT A CHECK PER COMMAND. D51 was WRITTEN as a rule ("a command must never do it
+ * silently", D26) and NEVER BUILT — `updateStyle` renamed a layer and orphaned every opening hosted on it,
+ * `brokenRefs` 0→1, no warning. The rule existed; the single place to enforce it did not. This is that place.
+ * ============================================================================================= */
+
+/** One thing that references the entity a command is about to remove or repoint. */
+interface Referrer {
+  /** Named in the refusal, so the UI/agent sees exactly what is at stake. */
+  readonly describe: string;
+  /** The `retargetMap` key that resolves this referrer — the OLD id/token being removed or renamed. */
+  readonly retargetKey: string;
+  /** The change that repoints this referrer to `to` (used when `retargetMap` supplies a replacement). */
+  readonly redirect: (to: string) => SceneChange;
+}
+
+/** The two args every guarded command carries. ⚠ THIS SHAPE FREEZES at P5 (row ⓓ). */
+const GUARD_ARGS: ParamSchema = {
+  acknowledge: {
+    kind: 'boolean',
+    label: 'Acknowledge',
+    description: 'Proceed even though it breaks references — they become first-class broken refs.',
+  },
+  retargetMap: {
+    kind: 'object',
+    label: 'Retarget map',
+    description: 'old id/token → new — redirect each reference instead of breaking it.',
+  },
+};
+
+/**
+ * Refuse-or-retarget. Returns the extra `SceneChange`s that repoint the redirected referrers (folded into
+ * the command's own edit, so it is one atomic, undoable unit). Throws `REFUSED` — naming every reference —
+ * if any would break and the caller neither retargeted nor acknowledged it.
+ */
+function guardReferences(
+  subject: string,
+  referrers: readonly Referrer[],
+  args: Params,
+): readonly SceneChange[] {
+  if (referrers.length === 0) return [];
+  const acknowledge = args['acknowledge'] === true;
+  const map = (args['retargetMap'] ?? {}) as Record<string, string>;
+  const extra: SceneChange[] = [];
+  const blocked: string[] = [];
+  for (const r of referrers) {
+    const to = map[r.retargetKey];
+    if (to !== undefined) extra.push(r.redirect(to));
+    else if (!acknowledge) blocked.push(r.describe);
+  }
+  if (blocked.length > 0) {
+    throw new CommandFailure(
+      'REFUSED',
+      `${subject} is still referenced — refusing to break ${blocked.length} reference(s) silently. ` +
+        `Pass retargetMap to redirect them, or acknowledge:true to proceed and let them break.`,
+      blocked,
+    );
+  }
+  return extra;
+}
+
+/* ---- Reference finders: who points AT a library entity (the §1 taxonomy of the 0e design) -------- */
+
+/** Styles with a layer built of this material → redirect swaps the material in every matching layer. */
+function materialReferrers(scene: Scene, materialId: string): readonly Referrer[] {
+  return stylesUsingMaterial(scene, materialId).map((style) => ({
+    describe: `style "${style.id}" has a layer of material "${materialId}"`,
+    retargetKey: materialId,
+    redirect: (to) =>
+      bumpStyle(style, {
+        layers: (style.layers ?? []).map((l) =>
+          l.materialId === materialId ? { ...l, materialId: to } : l,
+        ),
+      }),
+  }));
+}
+
+/** Styles that name this section → redirect swaps the `sectionId`. */
+function sectionReferrers(scene: Scene, sectionId: string): readonly Referrer[] {
+  return stylesUsingSection(scene, sectionId).map((style) => ({
+    describe: `style "${style.id}" is swept from section "${sectionId}"`,
+    retargetKey: sectionId,
+    redirect: (to) => bumpStyle(style, { sectionId: to }),
+  }));
+}
+
+/** Elements wearing this style → redirect swaps the `styleId`. */
+function styleReferrers(scene: Scene, styleId: string): readonly Referrer[] {
+  return instancesOfStyle(scene, styleId).map((el) => ({
+    describe: `element "${el.id}" wears style "${styleId}"`,
+    retargetKey: styleId,
+    redirect: (to) => elementChange(el, { ...el, styleId: to }),
+  }));
+}
+
+/** Everything anchored to a container: elements on it, base/top constraints, and child containers. */
+function containerReferrers(scene: Scene, containerId: string): readonly Referrer[] {
+  const out: Referrer[] = [];
+  for (const el of Object.values(scene.elements)) {
+    if (el.containerId === containerId) {
+      out.push({
+        describe: `element "${el.id}" is on container "${containerId}"`,
+        retargetKey: containerId,
+        redirect: (to) => elementChange(el, { ...el, containerId: to }),
+      });
+    }
+  }
+  for (const c of Object.values(scene.constraints)) {
+    if (c.target.kind === 'level' && c.target.id === containerId) {
+      out.push({
+        describe: `constraint "${c.id}" (${c.kind}) targets level "${containerId}"`,
+        retargetKey: containerId,
+        redirect: (to) => constraintChange(c, { ...c, target: { kind: 'level', id: to } }),
+      });
+    }
+  }
+  for (const child of Object.values(scene.containers)) {
+    if (child.parentId === containerId) {
+      out.push({
+        describe: `container "${child.id}" is a child of "${containerId}"`,
+        retargetKey: containerId,
+        redirect: (to) => ({
+          collection: 'containers',
+          id: child.id,
+          before: child,
+          after: { ...child, parentId: to },
+        }),
+      });
+    }
+  }
+  return out;
+}
+
+/** Grid constraints that place an element on this axis → redirect swaps the axis. */
+function gridReferrers(scene: Scene, gridId: string): readonly Referrer[] {
+  return Object.values(scene.constraints)
+    .filter((c) => c.target.kind === 'grid' && c.target.id === gridId)
+    .map((c) => ({
+      describe: `constraint "${c.id}" places element "${c.element}" on grid "${gridId}"`,
+      retargetKey: gridId,
+      redirect: (to) => constraintChange(c, { ...c, target: { kind: 'grid', id: to } }),
+    }));
+}
+
+/**
+ * ⚠⚠ THE ORIGINAL D51 CASE. Openings hosted on a style layer whose NAME is disappearing (renamed or
+ * removed). The layer name is INSIDE the `SubShapeRef` token (`wall-1.finish.interior/face/y-min#0`), so a
+ * rename re-mints identities across every wall wearing the style. `retargetMap` maps the OLD layer name to
+ * the NEW one, and the redirect rewrites the token's node segment; `acknowledge` lets the openings orphan.
+ */
+function layerRenameReferrers(
+  scene: Scene,
+  style: ElementStyle,
+  newLayers: ElementStyle['layers'],
+): readonly Referrer[] {
+  const kept = new Set((newLayers ?? []).map((l) => l.name));
+  const lost = new Set((style.layers ?? []).map((l) => l.name).filter((n) => !kept.has(n)));
+  if (lost.size === 0) return [];
+  const instances = new Set(instancesOfStyle(scene, style.id).map((e) => e.id));
+  const out: Referrer[] = [];
+  for (const el of Object.values(scene.elements)) {
+    if (el.hostId === undefined || el.hostRef === undefined || !instances.has(el.hostId)) continue;
+    const layer = layerNameOfRef(el.hostId, el.hostRef);
+    if (layer === undefined || !lost.has(layer)) continue;
+    out.push({
+      describe: `opening "${el.id}" is hosted on layer "${layer}"`,
+      retargetKey: layer,
+      redirect: (to) =>
+        elementChange(el, { ...el, hostRef: rewriteLayerInRef(el.hostId!, el.hostRef!, to) }),
+    });
+  }
+  return out;
+}
+
+/** The layer name inside a hosted opening's `SubShapeRef` — `<hostId>.<layerName>/face/…` → `layerName`. */
+function layerNameOfRef(hostId: ElementId, ref: string): string | undefined {
+  const slash = ref.indexOf('/');
+  const node = slash === -1 ? ref : ref.slice(0, slash);
+  return node.startsWith(`${hostId}.`) ? node.slice(hostId.length + 1) : undefined;
+}
+
+/** Rewrite the layer-name segment of a hosted opening's `SubShapeRef` to `newName`. */
+function rewriteLayerInRef(hostId: ElementId, ref: string, newName: string): string {
+  const slash = ref.indexOf('/');
+  return `${hostId}.${newName}${slash === -1 ? '' : ref.slice(slash)}`;
+}
+
+function bumpStyle(style: ElementStyle, patch: Partial<ElementStyle>): SceneChange {
+  return {
+    collection: 'styles',
+    id: style.id,
+    before: style,
+    after: { ...style, ...patch, version: style.version + 1 },
+  };
+}
+function elementChange(before: Element, after: Element): SceneChange {
+  return { collection: 'elements', id: after.id, before, after };
+}
+function constraintChange(before: DatumConstraint, after: DatumConstraint): SceneChange {
+  return { collection: 'constraints', id: after.id, before, after };
 }
 
 /* ================================================================================================
@@ -469,6 +678,10 @@ export const updateStyleCommand: Command = {
     },
     sectionId: { kind: 'ref', refTo: 'section', label: 'Section' },
     params: { kind: 'object', label: 'Shared parameters' },
+    // ⚠⚠ THE D51 GUARD (row ⓓ). Renaming or removing a layer whose NAME is inside a hosted opening's
+    // `SubShapeRef` re-mints identities across every wall wearing the style — it is REFUSED unless the
+    // caller redirects the openings (`retargetMap` old-layer-name → new) or accepts the break.
+    ...GUARD_ARGS,
   },
   execute(ctx, rawArgs) {
     const args = checkArgs(updateStyleCommand, rawArgs);
@@ -483,6 +696,17 @@ export const updateStyleCommand: Command = {
       throw new CommandFailure('NOT_FOUND', `unknown section "${sectionId}"`);
     }
 
+    // ⚠⚠ D51: a layer rename/removal that orphans openings is REFUSED here (the guard that was written as
+    // a rule and never built), unless retargeted or acknowledged. Only relevant when `layers` is edited.
+    const orphanRetargets =
+      layers === undefined
+        ? []
+        : guardReferences(
+            `style "${styleId}" layer rename`,
+            layerRenameReferrers(ctx.scene, style, layers),
+            args,
+          );
+
     const after: ElementStyle = {
       ...style,
       version: style.version + 1,
@@ -495,7 +719,7 @@ export const updateStyleCommand: Command = {
     const instances = Object.values(ctx.scene.elements).filter((e) => e.styleId === styleId);
     return ctx.edit(
       `Edit style ${style.name}`,
-      [{ collection: 'styles', id: styleId, before: style, after }],
+      [{ collection: 'styles', id: styleId, before: style, after }, ...orphanRetargets],
       instances.flatMap((e) => [e.id, ...hostedBy(ctx.scene, e.id).map((o) => o.id)]),
     );
   },
@@ -967,6 +1191,306 @@ function constraintTarget(
 }
 
 /* ================================================================================================
+ * THE MISSING CRUD — updates & guarded deletes (D50 step 0e/0f). The registries were CREATE-ONLY:
+ * a density typo could not be fixed, a Level could not be moved, an unused style could not be removed.
+ *
+ * ⚠ NOTE THE RE-STAGE ARG IS `[]` ON EVERY ONE. The typed dependency graph (step 0a/0b) derives what
+ * rebuilds from the emitted `SceneChange`s — a container change re-stages the elements on it, a section
+ * change their instances, a constraint retarget its element. The command emits the change; the invalidator
+ * does the cascade. (This is the payoff of 0a: correctness by construction, not by each command remembering.)
+ * ============================================================================================= */
+
+/**
+ * ⚠⚠ EDIT A LEVEL — AND THE BUILDING FOLLOWS. Changing a Level's `elevation` re-stages every element on it
+ * (the 0a container→element edge). This is the verb that makes "move a Level, the building follows" true
+ * END TO END — 0b proved the datum path by rebinding; this edits the number, the real user action.
+ */
+export const updateContainerCommand: Command = {
+  id: 'core.updateContainer',
+  label: 'Edit container',
+  description:
+    "Edit a Level/Space (elevation, name, number). Changing a Level's elevation re-stages every element on it — the building follows.",
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'container', label: 'Container', required: true },
+    name: { kind: 'string', label: 'Name' },
+    elevation: { kind: 'number', label: 'Elevation', unit: 'mm' },
+    number: { kind: 'string', label: 'Number' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(updateContainerCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.containers[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown container "${id}"`);
+    const after: SpatialContainer = {
+      ...before,
+      ...(args['name'] === undefined ? {} : { name: text(args['name']) }),
+      ...(args['elevation'] === undefined ? {} : { elevation: num(args['elevation']) }),
+      ...(args['number'] === undefined ? {} : { number: text(args['number']) }),
+    };
+    return ctx.edit(
+      `Edit ${before.kind} ${after.name}`,
+      [{ collection: 'containers', id, before, after }],
+      [],
+    );
+  },
+};
+
+/** ⚠ EDIT A GRID — nudge its `offset` and every grid-hosted element follows (the 0b grid edge). */
+export const updateGridCommand: Command = {
+  id: 'core.updateGrid',
+  label: 'Edit grid',
+  description:
+    'Edit a grid axis (offset/axis/name). Moving the offset re-stages the columns on it.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'grid', label: 'Grid', required: true },
+    name: { kind: 'string', label: 'Name' },
+    axis: { kind: 'enum', label: 'Axis', options: ['x', 'y'] },
+    offset: { kind: 'number', label: 'Offset', unit: 'mm' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(updateGridCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.grids[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown grid "${id}"`);
+    const after: Grid = {
+      ...before,
+      ...(args['name'] === undefined ? {} : { name: text(args['name']) }),
+      ...(args['axis'] === undefined ? {} : { axis: args['axis'] as Grid['axis'] }),
+      ...(args['offset'] === undefined ? {} : { offset: num(args['offset']) }),
+    };
+    return ctx.edit(`Edit grid ${after.name}`, [{ collection: 'grids', id, before, after }], []);
+  },
+};
+
+/**
+ * Fix a density typo. ⚠ Re-stages NOTHING geometric (a solid's shape never depends on density — D30) —
+ * the change is picked up lazily by `quantities()`. That non-rebuild is the point of the material→"nothing"
+ * dependency edge, not a bug.
+ */
+export const updateMaterialCommand: Command = {
+  id: 'core.updateMaterial',
+  label: 'Edit material',
+  description:
+    'Edit a material (density, category, structural props). Quantities update; no rebuild.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'material', label: 'Material', required: true },
+    name: { kind: 'string', label: 'Name' },
+    density: { kind: 'number', label: 'Density', unit: 'kg/m³', min: 0 },
+    category: { kind: 'string', label: 'Category' },
+    structural: { kind: 'object', label: 'Structural properties' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(updateMaterialCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.materials[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown material "${id}"`);
+    const after: Material = {
+      ...before,
+      ...(args['name'] === undefined ? {} : { name: text(args['name']) }),
+      ...(args['density'] === undefined ? {} : { density: num(args['density']) }),
+      ...(args['category'] === undefined
+        ? {}
+        : { category: text(args['category']) as Material['category'] }),
+      ...(args['structural'] === undefined
+        ? {}
+        : { structural: args['structural'] as NonNullable<Material['structural']> }),
+    };
+    return ctx.edit(
+      `Edit material ${after.name}`,
+      [{ collection: 'materials', id, before, after }],
+      [],
+    );
+  },
+};
+
+/**
+ * ⚠ EDIT A SECTION — and this is why the `sections` dependency edge stopped being "nothing" (step 0e). A
+ * Section is swept into a LinearMember's PROFILE, so changing its dimensions re-stages every element whose
+ * style names it.
+ */
+export const updateSectionCommand: Command = {
+  id: 'core.updateSection',
+  label: 'Edit section',
+  description: 'Edit a section (shape/dimensions/standard). Re-stages every member swept from it.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'section', label: 'Section', required: true },
+    name: { kind: 'string', label: 'Name' },
+    shape: { kind: 'string', label: 'Shape' },
+    dimensions: { kind: 'object', label: 'Dimensions' },
+    standard: { kind: 'string', label: 'Standard' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(updateSectionCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.sections[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown section "${id}"`);
+    const after: Section = {
+      ...before,
+      ...(args['name'] === undefined ? {} : { name: text(args['name']) }),
+      ...(args['shape'] === undefined ? {} : { shape: args['shape'] as Section['shape'] }),
+      ...(args['dimensions'] === undefined
+        ? {}
+        : { dimensions: args['dimensions'] as Record<string, number> }),
+      ...(args['standard'] === undefined ? {} : { standard: text(args['standard']) }),
+    };
+    return ctx.edit(
+      `Edit section ${after.name}`,
+      [{ collection: 'sections', id, before, after }],
+      [],
+    );
+  },
+};
+
+/** Edit a constraint — move a parapet's offset, or repoint the datum it follows. */
+export const updateConstraintCommand: Command = {
+  id: 'core.updateConstraint',
+  label: 'Edit constraint',
+  description: "Edit a datum binding's offset or target; the element it drives re-stages.",
+  argsSchema: {
+    id: { kind: 'string', label: 'Constraint id', required: true },
+    offset: { kind: 'number', label: 'Offset', unit: 'mm' },
+    target: { kind: 'string', label: 'New target', description: 'Repoint to another Level/Grid' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(updateConstraintCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.constraints[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `no constraint "${id}"`);
+    const target =
+      args['target'] === undefined
+        ? before.target
+        : constraintTarget(ctx, before.kind, text(args['target']));
+    const after: DatumConstraint = {
+      ...before,
+      target,
+      ...(args['offset'] === undefined ? {} : { offset: num(args['offset']) }),
+    };
+    return ctx.edit(
+      `Edit constraint ${id}`,
+      [{ collection: 'constraints', id, before, after }],
+      [before.element],
+    );
+  },
+};
+
+/* ---- Guarded deletes: RESTRICT by default, retargetMap to redirect, acknowledge to break (0f) ------ */
+
+export const deleteStyleCommand: Command = {
+  id: 'core.deleteStyle',
+  label: 'Delete style',
+  description:
+    'Delete a shared style. REFUSED if any element wears it, unless retargetMap redirects them or acknowledge:true.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'style', label: 'Style', required: true },
+    ...GUARD_ARGS,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteStyleCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.styles[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown style "${id}"`);
+    const extra = guardReferences(`style "${id}"`, styleReferrers(ctx.scene, id), args);
+    return ctx.edit(
+      `Delete style ${before.name}`,
+      [...extra, { collection: 'styles', id, before }],
+      [],
+    );
+  },
+};
+
+export const deleteMaterialCommand: Command = {
+  id: 'core.deleteMaterial',
+  label: 'Delete material',
+  description:
+    'Delete a material. REFUSED if a style layer uses it, unless retargetMap redirects them or acknowledge:true.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'material', label: 'Material', required: true },
+    ...GUARD_ARGS,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteMaterialCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.materials[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown material "${id}"`);
+    const extra = guardReferences(`material "${id}"`, materialReferrers(ctx.scene, id), args);
+    return ctx.edit(
+      `Delete material ${before.name}`,
+      [...extra, { collection: 'materials', id, before }],
+      [],
+    );
+  },
+};
+
+export const deleteSectionCommand: Command = {
+  id: 'core.deleteSection',
+  label: 'Delete section',
+  description:
+    'Delete a section. REFUSED if a style is swept from it, unless retargetMap redirects them or acknowledge:true.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'section', label: 'Section', required: true },
+    ...GUARD_ARGS,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteSectionCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.sections[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown section "${id}"`);
+    const extra = guardReferences(`section "${id}"`, sectionReferrers(ctx.scene, id), args);
+    return ctx.edit(
+      `Delete section ${before.name}`,
+      [...extra, { collection: 'sections', id, before }],
+      [],
+    );
+  },
+};
+
+export const deleteContainerCommand: Command = {
+  id: 'core.deleteContainer',
+  label: 'Delete container',
+  description:
+    'Delete a Level/Space. REFUSED if elements/constraints/child containers reference it, unless retargetMap or acknowledge:true.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'container', label: 'Container', required: true },
+    ...GUARD_ARGS,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteContainerCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.containers[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown container "${id}"`);
+    const extra = guardReferences(`container "${id}"`, containerReferrers(ctx.scene, id), args);
+    return ctx.edit(
+      `Delete ${before.kind} ${before.name}`,
+      [...extra, { collection: 'containers', id, before }],
+      [],
+    );
+  },
+};
+
+export const deleteGridCommand: Command = {
+  id: 'core.deleteGrid',
+  label: 'Delete grid',
+  description:
+    'Delete a grid axis. REFUSED if a constraint places an element on it, unless retargetMap or acknowledge:true.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'grid', label: 'Grid', required: true },
+    ...GUARD_ARGS,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteGridCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.grids[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown grid "${id}"`);
+    const extra = guardReferences(`grid "${id}"`, gridReferrers(ctx.scene, id), args);
+    return ctx.edit(
+      `Delete grid ${before.name}`,
+      [...extra, { collection: 'grids', id, before }],
+      [],
+    );
+  },
+};
+
+/* ================================================================================================
  * ISSUING A REVISION — a COMMAND, not a file operation (decision D41)
  * ============================================================================================= */
 
@@ -1033,6 +1557,16 @@ export const CORE_COMMANDS: readonly Command[] = [
   createGridCommand,
   createConstraintCommand,
   deleteConstraintCommand,
+  updateContainerCommand,
+  updateGridCommand,
+  updateMaterialCommand,
+  updateSectionCommand,
+  updateConstraintCommand,
+  deleteStyleCommand,
+  deleteMaterialCommand,
+  deleteSectionCommand,
+  deleteContainerCommand,
+  deleteGridCommand,
   issueRevisionCommand,
 ];
 

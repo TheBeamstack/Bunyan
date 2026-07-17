@@ -28,7 +28,12 @@
 
 import type { Constraint, Element, ElementId } from './entities.js';
 import type { Scene, SceneChange, SceneCollection } from './scene.js';
-import { containerPath, elementsConstrainedToGrid, elementsConstrainedToLevel } from './scene.js';
+import {
+  containerPath,
+  elementsConstrainedToGrid,
+  elementsConstrainedToLevel,
+  elementsUsingSection,
+} from './scene.js';
 
 /**
  * The element ids whose BUILT GEOMETRY depends on the entity this change touched — i.e. the ones that
@@ -77,13 +82,16 @@ export function dependents(scene: Scene, change: SceneChange): readonly ElementI
       const c = (change.after ?? change.before) as Constraint | undefined;
       return c === undefined ? [] : [c.element];
     }
-    case 'materials':
     case 'sections':
-      // NO GEOMETRY EDGE — and this is a deliberate, declared "nothing", not an oversight. A part's SHAPE
-      // comes from the style layer's THICKNESS and the section's profile is swept at build time from the
-      // element's own params; a material carries density/structural properties read by `quantities()` and
-      // Miqdar, and no solid's geometry depends on it. (A section edit that changed a profile WOULD matter,
-      // but sections are create-only until step 0e; when `updateSection` lands, revisit this line.)
+      // EDGE: section→element (D50 step 0e). ⚠ NO LONGER "nothing" — `updateSection` landed. A `Section`
+      // is swept into a LinearMember's PROFILE, so a section change re-stages every element whose style
+      // names it (section → styles-using-it → their instances). (0a's note here said exactly this: "when
+      // `updateSection` lands, revisit this line.")
+      return elementsUsingSection(scene, change.id);
+    case 'materials':
+      // NO GEOMETRY EDGE — a deliberate, declared "nothing". A part's SHAPE comes from the style layer's
+      // THICKNESS; a material carries only density/structural properties read by `quantities()` and Miqdar,
+      // and no solid's geometry depends on it. A density edit re-computes quantities lazily, rebuilds nothing.
       return [];
     default:
       return assertNever(collection);

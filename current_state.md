@@ -2126,3 +2126,26 @@ The owner asked for a **proper design before building** (not a note) and, on the
 
 ### FILES
 CHANGED: `packages/document/src/entities.ts` · `scene.ts` · `dependency.ts` · `types.ts` · `build.ts` · `commands.ts` · `tests/fixtures/bim-types.ts` (constrainedMember) · `tests/constraint-model.test.ts` (**new**) · `tests/dependency-graph.test.ts` (+3) · `v1.0.0_imp_plan.md` (0b ✅ BUILT) · `P5_step0b_design.md` (committed `1523ef1`) · `current_state.md` (this entry). **Green; commit is owner-gated.**
+
+---
+
+## Entry 35 — 2026-07-17 — Zayd (dev box, headless) — **D50 STEP 0e/0f BUILT: THE MODEL IS EDITABLE, NOT JUST CREATABLE — AND D51's GUARD IS FINALLY BUILT (GENERALISED).**
+
+Designed first (`P5_step0e_design.md`, owner-approved: two flat guard args; `move` deferred to P4.5; `updateConstraint` included). The registries were **create-only** — a density typo could not be fixed, a Level could not be moved, an unused style could not be removed — and **D51's guard had been written as a rule (D26) and never built**: `updateStyle` renamed a layer and silently orphaned every opening hosted on it (`brokenRefs` 0→1, no warning).
+
+**What was built** (all `@bunyan/document`, additive — no core edit):
+
+- **Updates:** `updateContainer` · `updateGrid` · `updateMaterial` · `updateSection` · `updateConstraint`. ⚠ Each passes `rebuilt: []` — **the 0a/0b dependency graph derives the re-stage set from the emitted `SceneChange`s.** So `updateContainer`/`updateGrid` make *"move a Level / a Grid, the building follows"* true **END TO END** (edit the number, not rebind — 0b's honest gap, now closed). `updateMaterial` re-stages nothing (density is not a shape; quantities recompute lazily).
+- ⚠ **`updateSection` made the `sections` dependency edge REAL** — it was a declared "nothing" with 0a's note *"revisit when updateSection lands."* It landed: a `Section` is swept into a LinearMember's profile, so a section edit re-stages every element whose style names it (`elementsUsingSection`).
+- **Guarded deletes:** `deleteStyle` · `deleteMaterial` · `deleteSection` · `deleteContainer` · `deleteGrid`.
+- **⚠⚠ THE REFUSE-OR-RETARGET GUARD (0f, row ⓓ, the frozen part):** one shared `guardReferences` helper + the two-arg shape **`acknowledge?` / `retargetMap?`** on every destructive/repointing command, modelled on a DB foreign key — **RESTRICT by default** (a typed `REFUSED` failure whose `details` NAME every reference it would break), `retargetMap` to redirect-then-act in one atomic edit, `acknowledge` to proceed-and-break (first-class broken refs; a dangling material → mass **omitted**, not zeroed — domain rule 15). *One helper, not a per-command check — the D51 lesson was that the rule existed but the single enforcement point did not.*
+- **The original D51 case is guarded:** `updateStyle` refuses a layer rename that orphans an opening (the layer name lives inside the `SubShapeRef` token); `retargetMap {oldLayer: newLayer}` rewrites the opening's token so it still cuts; `acknowledge` lets it orphan. Generalised to `materialId`/`sectionId`/`styleId`/`containerId`/grid targets.
+
+**Test (`crud-and-guard.test.ts`, 12, real kernel):** move-a-Level-end-to-end; move-a-Grid; updateSection re-stages; updateMaterial changes the quantity and rebuilds no geometry; the D51 guard (refuse / retarget-and-still-cuts / acknowledge-and-orphan); referential integrity for material/style/container/grid; a retargeting delete is one undoable edit that undo restores atomically. ⚠ **Revert-verified:** neuter `layerRenameReferrers` and the refusal + retarget tests fail (the wall comes back with no hole — exactly today's silent bug). Plus the pure `section→element` edge test in `dependency-graph.test.ts`.
+
+**Verification:** full suite **247 green** (34 files); `pnpm typecheck`/`lint`/`format:check`/`reseed:check` all clean.
+
+**Freeze-Gate status:** ①–⑤ ruled · **0a ✅ · 0b ✅ · 0e/0f ✅**. Remaining in step 0: **0c** wall-to-wall joins (needs the real Wall — step 3 — to join, so it sequences with/after the types), **0g** the reserve-the-shapes pass (D54 a/b/c + ⓒ/ⓕ/ⓖ), and **0d** the sketch solver (last; evaluate `planegcs`). ⑥ Clean Delta still blocked (BIMsync spec off-box). The constraint model + the editable registries mean the exit-criteria "the model is associative AND editable" is now met except for joins and the sketch solver.
+
+### FILES
+CHANGED: `packages/document/src/commands.ts` (the guard + 10 commands + the D51 guard on `updateStyle`) · `scene.ts` (`stylesUsingMaterial`/`stylesUsingSection`/`elementsUsingSection`) · `dependency.ts` (`sections` edge is real) · `tests/crud-and-guard.test.ts` (**new**, 12) · `tests/dependency-graph.test.ts` (+section edge) · `v1.0.0_imp_plan.md` (0e/0f ✅ BUILT) · `P5_step0e_design.md` (committed `d621bd9`) · `current_state.md` (this entry). **Green; commit is owner-gated.**

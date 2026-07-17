@@ -133,12 +133,29 @@ describe('the typed dependency graph — the rebuild invalidator is a declared g
     ).toEqual(['wall-L1']);
   });
 
-  it('materials/sections declare NO geometry edge — a density edit re-stages nothing', () => {
+  it('materials declare NO geometry edge — a density edit re-stages nothing (quantities recompute lazily)', () => {
     const scene = twoLevelScene();
     // A material carries density read by quantities()/Miqdar; no solid's SHAPE depends on it. This is a
     // declared "nothing", enforced by the exhaustive switch — not the silent gap the container edge was.
     expect(dependents(scene, change('materials', 'blockwork-200'))).toEqual([]);
-    expect(dependents(scene, change('sections', 'IPE300'))).toEqual([]);
+  });
+
+  it('section→element (step 0e): a section change re-stages every element whose STYLE names it', () => {
+    // A Section is swept into a LinearMember's profile, so `updateSection` must re-stage — the edge that
+    // used to be "nothing" (0a's note: "revisit when updateSection lands"). Revert-verifiable.
+    const scene: Scene = {
+      ...emptyScene(),
+      sections: { S: { id: 'S', name: 'S', shape: 'circle', dimensions: { radius: 150 } } },
+      styles: {
+        COL: { id: 'COL', name: 'COL', typeId: 'core.linearMember.v1', version: 1, sectionId: 'S' },
+      },
+      elements: {
+        col: element('col', { typeId: 'core.linearMember.v1', styleId: 'COL' }),
+        wall: element('wall', { styleId: 'OTHER' }),
+      },
+    };
+    expect(dependents(scene, change('sections', 'S'))).toEqual(['col']);
+    expect(dependents(scene, change('sections', 'unused'))).toEqual([]);
   });
 
   it('grid→element (step 0b, no longer dormant): a grid change re-stages elements CONSTRAINED to that axis', () => {

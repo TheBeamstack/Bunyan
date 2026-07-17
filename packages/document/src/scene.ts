@@ -143,6 +143,28 @@ export function instancesOfStyle(scene: Scene, styleId: StyleId): readonly Eleme
   return Object.values(scene.elements).filter((e) => e.styleId === styleId);
 }
 
+/** Every style that names this section (D33). */
+export function stylesUsingSection(scene: Scene, sectionId: SectionId): readonly ElementStyle[] {
+  return Object.values(scene.styles).filter((s) => s.sectionId === sectionId);
+}
+
+/** Every style with a layer built of this material (D33). */
+export function stylesUsingMaterial(scene: Scene, materialId: MaterialId): readonly ElementStyle[] {
+  return Object.values(scene.styles).filter((s) =>
+    (s.layers ?? []).some((l) => l.materialId === materialId),
+  );
+}
+
+/**
+ * Every element whose geometry is swept from this section — its style names it, so a section edit
+ * re-stages its instances (D50 step 0e: the `sections` dependency edge, once "nothing", is now real).
+ */
+export function elementsUsingSection(scene: Scene, sectionId: SectionId): readonly ElementId[] {
+  return stylesUsingSection(scene, sectionId).flatMap((s) =>
+    instancesOfStyle(scene, s.id).map((e) => e.id),
+  );
+}
+
 /** The spatial container chain, root-first: `[Site, Building, Level]` — Planitor's LBS path (D35). */
 export function containerPath(
   scene: Scene,
