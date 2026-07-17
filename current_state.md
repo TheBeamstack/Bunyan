@@ -2149,3 +2149,25 @@ Designed first (`P5_step0e_design.md`, owner-approved: two flat guard args; `mov
 
 ### FILES
 CHANGED: `packages/document/src/commands.ts` (the guard + 10 commands + the D51 guard on `updateStyle`) · `scene.ts` (`stylesUsingMaterial`/`stylesUsingSection`/`elementsUsingSection`) · `dependency.ts` (`sections` edge is real) · `tests/crud-and-guard.test.ts` (**new**, 12) · `tests/dependency-graph.test.ts` (+section edge) · `v1.0.0_imp_plan.md` (0e/0f ✅ BUILT) · `P5_step0e_design.md` (committed `d621bd9`) · `current_state.md` (this entry). **Green; commit is owner-gated.**
+
+---
+
+## Entry 36 — 2026-07-17 — Zayd (dev box, headless) — **PAUSE + HANDOFF: PRE-FREEZE AUDIT ROUND 2 (THE REVIT-BEATING LENS) FOUND SIX MORE, ONE A FORECLOSURE OF A v1.0.0 ELEMENT.**
+
+Owner: *"pause here and guide the next agent to ensure all needed work is done before the freeze for a CAD app that would beat Revit."* So this entry is a handoff **and** a second pre-freeze audit — the five methods again, now against a BUILT model, asking *"what does a Revit/ArchiCAD-class tool need that the frozen contracts can't express?"*
+
+**The audit found six (Freeze Gate rows ⓙ–ⓞ):**
+
+- **⚠⚠ ⓙ — A HOSTED ELEMENT CAN ONLY CUT A HOLE, NOT BUILD GEOMETRY. VERIFIED IN THE BUILD.** `build.ts` §2 builds a hosted element via **`buildVoid` only** — `voidResults` are always `parts: []`, and its own `buildGeometry` is **never called**. So a Door/Window is a hole with **no leaf, frame, sill or mullions** — which every Revit/ArchiCAD door and window has. **This is the one true foreclosure:** freezing `BimObjectType` + the build wire now makes real doors/windows impossible (a v1.0.0 element, step 5). ⇒ **Step 5 must confirm a hosted type may provide BOTH `buildVoid` AND `buildGeometry` and wire the engine to build both, before the freeze.** (`VoidBuildContext` already carries `hostFace`, so a door's parts can be placed in the opening frame.)
+- **ⓚ — Project georeference on `scene.json`** (base point + true north) — multi-building coordination and IFC import/export (P6, `IfcMapConversion`/`IfcSite`) need it; `scene.json` has none. Reserve before it freezes.
+- **ⓛ — Phasing is TWO datums** (`phaseCreated`/`phaseDemolished`), not the one field D54b reserved — Revit's model, and demolition sequencing (Planitor) needs the second. Refine the ④ reservation in 0g.
+- **ⓜ — Computed/formula parameters** (`ParamField.formula?`) — Revit family formulas; sibling of ⑤ (`relevantWhen`). Reserve or record as out-of-schema.
+- **ⓝ — Element nesting/groups** — curtain walls (panels+mullions), groups, assemblies are elements-of-elements; today an element has PARTS but not child ELEMENTS. Reserve a `groupId`/`parentElementId` or prove a `groups` collection is additive.
+- **ⓞ — Space extent (ⓖ, still open)** — fold the decision into ⓙ's resolution (room-bounding needs to know which elements bound a Space, and doors are openings in those bounds).
+
+**Verdict:** ⓙ is the only true foreclosure and is a **step-5 build-engine change** (not a reservation); ⓚ–ⓝ are cheap additive reservations for 0g; ⓞ folds into ⓖ. **None blocks the remaining step-0 work (0g/0d/0c)** — they are step-5-and-freeze concerns — but every one must be closed or recorded before step 6 tags the contracts frozen. The FREEZE GATE and a new **"⚠⚠⚠ NEXT AGENT — START HERE"** section in `v1.0.0_imp_plan.md` carry the full ordered handoff.
+
+**State at pause:** 0a/0b/0e/0f ✅ built, committed, green (Entries 33–35). Full suite **247 green**, `verify` clean. Freeze-Gate remaining: **0g** (reservations incl. ⓚ/ⓛ/ⓜ/ⓝ + the one open owner decision, Space extent ⓖ) → **types 1–5** (step 5 resolves ⓙ) → **0d** sketch solver → **0c** joins (with the real Wall, anti-fuse absolute) → **gates ⑧/⑨** → **FREEZE**. ⑥ Clean Delta still blocked (BIMsync spec off-box). No source changed this entry — audit + handoff only. Commit is owner-gated.
+
+### FILES
+CHANGED: `v1.0.0_imp_plan.md` (Freeze Gate: round-2 audit rows ⓙ–ⓞ + the "NEXT AGENT — START HERE" handoff; close-order updated to done-state; step 0g gains ⓚ/ⓛ/ⓜ/ⓝ; step 5 gains the ⓙ mandate) · `current_state.md` (this entry). **Audit + handoff only; commit is owner-gated.**
