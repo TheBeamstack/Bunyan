@@ -186,6 +186,18 @@ export interface VoidBuildContext extends BuildContext {
   };
 }
 
+/**
+ * ⚠ RESERVED (Freeze-Gate ⓒ, `P5_step0g_design.md` §4). The IMPORT mapping (P6): which IFC entity this
+ * Type is the target for, and how an entity's attributes fill its params. `defaultClassification.ifcClass`
+ * is the OUTBOUND identity; this is the INBOUND rule. Shaped-but-open; the P6 importer defines the resolution.
+ */
+export interface IfcMapping {
+  /** The IFC entity type this Type imports (`IfcWallStandardCase`, `IfcBeam`, …). */
+  readonly ifcClass: string;
+  /** Optional map: Bunyan param name ← IFC property/quantity name. Open-ended by design. */
+  readonly params?: Readonly<Record<string, string>>;
+}
+
 export interface BimObjectType {
   readonly id: TypeId;
   /**
@@ -225,6 +237,22 @@ export interface BimObjectType {
    * element, when `element.typeVersion < type.version`.
    */
   readonly migrate?: (params: Params, fromVersion: number) => Params;
+
+  /* ----------------------------------------------------------------------------------------------
+   * RESERVED-AT-FREEZE (P5 step 0g, `P5_step0g_design.md` §4/§5). Optional, additive, no body in 0g.
+   * -------------------------------------------------------------------------------------------- */
+  /**
+   * ⚠ RESERVED (Freeze-Gate ⓒ). The IFC import mapping — reserve it now or P6 amends a frozen
+   * `BimObjectType`. Absent ⇒ the Type is not an IFC import target (imported as `GenericSolid`). The
+   * plan's step 3 already LISTS `ifcMapping` as a type field; this makes the contract carry it.
+   */
+  readonly ifcMapping?: IfcMapping;
+  /**
+   * ⚠ RESERVED (Freeze-Gate ⓕ). Bring a STYLE's params/layers authored against an older `styleSchema`
+   * forward — the twin of `migrate`, which only handles element params. Called on load when a style's
+   * version < the schema's current version. Absent ⇒ a style is loaded verbatim (today's behaviour).
+   */
+  readonly migrateStyle?: (styleParams: Params, fromVersion: number) => Params;
 }
 
 /** A Type that hosts itself ON another element (an Opening) rather than standing on its own. */

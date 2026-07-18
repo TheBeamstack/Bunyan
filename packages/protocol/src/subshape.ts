@@ -10,6 +10,15 @@
  * matching geometry after the fact.
  */
 
+/**
+ * ⚠ `'vertex'` IS RESERVED (D54a, Freeze-Gate ③, owner-ruled). The token grammar already carries it —
+ * `encode`/`decode`/`compare` round-trip a vertex ref exactly like a face/edge — but the KERNEL does not
+ * export vertices yet (it names faces + edges). Reserved means: the shape is frozen so the first consumer
+ * (a dimension/tag anchor, a Miqdar structural node binding to a corner) triggers the kernel-side export
+ * ADDITIVELY, never a contract change. Reserved role grammar: a vertex is named STRUCTURALLY, as the
+ * canonical intersection of the faces/edges that generate it (role `corner`, occurrence disambiguating
+ * after the canonical re-sort) — never a coordinate, exactly the D1 rule that governs faces and edges.
+ */
 export type SubShapeKind = 'face' | 'edge' | 'vertex';
 
 export interface SubShapeRef {

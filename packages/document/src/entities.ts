@@ -35,6 +35,7 @@ export type MaterialId = string;
 export type SectionId = string;
 export type ContainerId = string;
 export type GridId = string;
+export type RoomSeparatorId = string;
 /** e.g. `core.wall.v1` — a registered contract, never a hard-coded class (domain rule 5). */
 export type TypeId = string;
 
@@ -180,6 +181,38 @@ export interface SpatialContainer {
   readonly elevation?: number;
   /** For a `space`: its number ("214"). Area/volume are MEASURED from geometry, never stored. */
   readonly number?: string;
+  /* ----------------------------------------------------------------------------------------------
+   * THE SPACE EXTENT MODEL — Option B (owner-ruled 2026-07-17, `P5_step0g_design.md` §8).
+   *
+   * ⚠ A Space's boundary is DERIVED from its bounding walls by a room-bounding solve (Revit's model)
+   * and, being derived, is NEVER stored (recipe-is-truth — like a Part or a mesh). What IS stored are
+   * the room's *identity inputs*: the seed point that says WHICH enclosed region this room is, and its
+   * vertical extent. The solver (which turns these into an area) ships in v1.0.0 — a second heavy
+   * subsystem alongside the sketch solver (0d); the schedule is re-cut for it. These fields freeze at P5.
+   * -------------------------------------------------------------------------------------------- */
+  /**
+   * For a `space`: the SEED POINT — (x, y) in the Level's plane, mm — identifying which enclosed region
+   * on the Level this room is. Its IDENTITY ANCHOR: the boundary is re-solved from it after walls move,
+   * so the room persists across edits (Revit's "room location point"). Absent ⇒ the solver's default region.
+   */
+  readonly location?: readonly [number, number];
+  /**
+   * For a `space`: its vertical extent (Revit's Room model). Base = this Space's own Level (`parentId`)
+   * + `baseOffset`; top = `upperLevelId` (another Level) + `limitOffset`. All optional; absent ⇒ base at
+   * the Level plane, top at the next Level up. Height is DERIVED from these, never stored (D52's rule).
+   */
+  readonly baseOffset?: number;
+  readonly upperLevelId?: ContainerId;
+  readonly limitOffset?: number;
+  /* ----------------------------------------------------------------------------------------------
+   * ⚠ RESERVED (Freeze-Gate ⓤ, 0g-review 2026-07-18). The SAME IFC/agent escape hatch `Element` gets
+   * (ⓟ/ⓠ) — an imported `IfcSpace`/`IfcBuildingStorey`/`IfcSite` carries psets (Pset_SpaceCommon:
+   * area, occupancy, fire compartment) and classification codes that map to no Bunyan field, and P6
+   * import (v1.0.0) would silently DROP them without a slot. Optional and additive (no
+   * `SCENE_SCHEMA_VERSION` bump); absent ⇒ today's behaviour. Shape mirrors `Element`.
+   * -------------------------------------------------------------------------------------------- */
+  readonly properties?: Readonly<Record<string, Readonly<Record<string, ParamValue>>>>;
+  readonly classifications?: Readonly<Record<string, string>>;
 }
 
 /**
@@ -196,6 +229,58 @@ export interface Grid {
   /** mm along the perpendicular axis. */
   readonly offset: number;
   readonly buildingId?: ContainerId;
+  /**
+   * ⚠ RESERVED (Freeze-Gate ⓢ, owner-ruled 2026-07-17). Non-orthogonal grid geometry — an angled or a
+   * radial/curved axis (Revit parity: stadiums, curved façades). When present it SUPERSEDES `axis`+`offset`
+   * for placement; `axis`+`offset` stay REQUIRED as the orthogonal fast path (so every existing grid is
+   * untouched — the deliberate price of a purely-additive reserve is that a `geometry`-bearing grid keeps
+   * `axis` only as its nominal orientation label). Absent ⇒ an ordinary axis-aligned grid (today's only case).
+   *
+   * ⚠⚠ THE INVARIANT ALL THREE CONSUMERS (Miqdar, Planitor, a 2D tagger) MUST READ (Freeze-Gate ⓥ): when
+   * `geometry` is present, `axis`+`offset` are a NON-POSITIONAL nominal label — never read for placement.
+   * Placement comes from `geometry` alone. Reading `axis`+`offset` on a `geometry`-bearing grid is a bug.
+   */
+  readonly geometry?: GridGeometry;
+  /**
+   * ⚠ RESERVED (Freeze-Gate ⓤ, 0g-review 2026-07-18). IFC psets / classification codes an imported
+   * `IfcGrid` carries — the same escape hatch `Element`/`SpatialContainer` get, so P6 import (v1.0.0)
+   * drops nothing. Optional and additive; absent ⇒ today's behaviour.
+   */
+  readonly properties?: Readonly<Record<string, Readonly<Record<string, ParamValue>>>>;
+  readonly classifications?: Readonly<Record<string, string>>;
+}
+
+/**
+ * ⚠ RESERVED (Freeze-Gate ⓢ, owner-ruled 2026-07-17). The geometry of a non-orthogonal `Grid`. A TAGGED
+ * UNION so new forms (spline, multi-segment) are additive MEMBERS, never edits — the same discipline that
+ * shapes `ConstraintTarget`. Points are (x, y) in the building plane, mm; angles in degrees.
+ */
+export type GridGeometry =
+  | {
+      readonly kind: 'line';
+      readonly start: readonly [number, number];
+      readonly end: readonly [number, number];
+    }
+  | {
+      readonly kind: 'arc';
+      readonly center: readonly [number, number];
+      readonly radius: number;
+      readonly startAngle: number;
+      readonly endAngle: number;
+    };
+
+/**
+ * ⚠ RESERVED (owner-ruled 2026-07-17, `P5_step0g_design.md` §8.2). A room SEPARATION LINE — a 2D polyline
+ * that bounds a `Space` where no wall runs (open-plan, a lobby flowing into a corridor). Revit's model,
+ * as a chain (owner chose a polyline over a single segment). Authored in a Level's plane; consumed by the
+ * room-bounding solver (v1.0.0). The CRUD to author one lands with that solver; 0g reserves the shape.
+ */
+export interface RoomSeparator {
+  readonly id: RoomSeparatorId;
+  /** The Level whose plane this separator lies in. */
+  readonly levelId: ContainerId;
+  /** The chain of points defining the boundary line, in the Level's plane, mm (≥ 2 points). */
+  readonly points: readonly (readonly [number, number])[];
 }
 
 /* ================================================================================================
@@ -309,6 +394,47 @@ export interface Element {
    */
   readonly hostId?: ElementId;
   readonly hostRef?: string;
+  /* ----------------------------------------------------------------------------------------------
+   * RESERVED-AT-FREEZE FIELDS (P5 step 0g, `P5_step0g_design.md`). Each is optional and defaults to
+   * today's behaviour, so every existing element and every saved `.bnn` is untouched. They exist so a
+   * v1.0.x / P6 / ecosystem feature never has to AMEND this frozen contract + migrate every file. No
+   * body reads them yet — 0g reserves the SHAPE; the consumers land in their own phases.
+   * -------------------------------------------------------------------------------------------- */
+  /**
+   * ⚠ RESERVED (D54b + Freeze-Gate ⓛ). Construction-sequencing datums — the phase in which this element
+   * is CREATED and the one in which it is DEMOLISHED (Revit's model; Planitor sequences by both). Absent
+   * `phaseCreated` ⇒ exists from the start ("new"); absent `phaseDemolished` ⇒ never demolished. A phase-id
+   * reference, never parsed — the `phases` DEFINITION collection is a purely-additive v1.0.x collection.
+   */
+  readonly phaseCreated?: string;
+  readonly phaseDemolished?: string;
+  /**
+   * ⚠ RESERVED (Freeze-Gate ⓝ). The element this one is NESTED IN — a curtain wall's panels/mullions, an
+   * assembly's members (Revit-class). Absent ⇒ a top-level element (today's only case). Distinct from
+   * `hostId` (a boolean host) and from PARTS (solids of ONE element). Flat named `groups` are a separate,
+   * additive v1.0.x scene collection, not this field.
+   */
+  readonly parentElementId?: ElementId;
+  /**
+   * ⚠ RESERVED (Freeze-Gate ⓟ). Arbitrary property sets — the round-trip escape hatch for IFC data that
+   * maps to no Bunyan param (P6 carries `IfcPropertySet`s the way `GenericSolid` carries unmapped geometry),
+   * AND where an agent or a user attaches metadata without a schema change (provenance folds in here as a
+   * `bunyan.*` pset). ⚠ This is the deliberate UNSCHEMATISED lane — it does not weaken the schema-driven
+   * model (D21); it is the named exception to it. Shape: pset name → { property → value }.
+   */
+  readonly properties?: Readonly<Record<string, Readonly<Record<string, ParamValue>>>>;
+  /**
+   * ⚠ RESERVED (Freeze-Gate ⓠ). Classification-system codes — `Uniclass2015`, `OmniClass`, `AssemblyCode`
+   * (system → code). The frozen `Classification` is `{ ifcClass, loadBearing }` and carries no cost code;
+   * estimating and Planitor's scheduling run on these. A separate open map so `Classification` stays untouched.
+   */
+  readonly classifications?: Readonly<Record<string, string>>;
+  /**
+   * ⚠ RESERVED (Freeze-Gate ⓡ). The human-facing per-instance MARK — `W-01`, `C12` — used on schedules and
+   * drawing tags (v1.0.x 2D documentation). Distinct from `id` (the ULID/machine identity, never shown) and
+   * from `name` (a description). Absent ⇒ untagged.
+   */
+  readonly mark?: string;
 }
 
 /* ================================================================================================

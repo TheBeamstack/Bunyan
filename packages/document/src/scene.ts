@@ -24,6 +24,8 @@ import type {
   GridId,
   Material,
   MaterialId,
+  RoomSeparator,
+  RoomSeparatorId,
   Section,
   SectionId,
   SpatialContainer,
@@ -34,8 +36,23 @@ import type {
  * Bumped when `scene.json`'s own shape changes (not a type's — that is `element.typeVersion`).
  * - v1 → v2 (D50 step 0b): added the first-class `constraints` collection (D53). A v1 file has no
  *   `constraints` key; the loader defaults it to `{}`, so old `.bnn` files open unchanged.
+ * - v2 (P5 step 0g): `roomSeparators` + `georeference` were FOLDED IN without a bump — pre-freeze the
+ *   schema is release-candidate (no shipped v2 file distinguishes their absence), and both are
+ *   absent-defaulted by `emptyScene()` on load, so no migration is needed. They freeze into v2 at P5.
  */
 export const SCENE_SCHEMA_VERSION = 2;
+
+/**
+ * ⚠ RESERVED (Freeze-Gate ⓚ, `P5_step0g_design.md` §6). The project's placement in the world — a survey
+ * base point + true north — for multi-building coordination and IFC georeferencing (`IfcMapConversion` /
+ * `IfcProjectedCRS`). Shaped-but-open: IFC/GIS fields (CRS name, easting/northing) are additive members.
+ */
+export interface ProjectGeoreference {
+  /** Survey point in world coordinates, mm — the model origin's true location. */
+  readonly basePoint: readonly [number, number, number];
+  /** Clockwise rotation from world +Y to true north, degrees. */
+  readonly trueNorth: number;
+}
 
 export interface Scene {
   readonly schemaVersion: number;
@@ -68,6 +85,19 @@ export interface Scene {
    * forgetting the problem. That is the silent wrongness the whole design exists to refuse.
    */
   readonly brokenRefs: readonly BrokenReference[];
+  /**
+   * ⚠ RESERVED (owner-ruled 2026-07-17, `P5_step0g_design.md` §8.2). Room SEPARATION LINES — 2D polylines
+   * that bound a `Space` where no wall runs. A first-class collection so it participates in undo and the
+   * dependency graph (its geometry edge is a declared "nothing" — a separator re-bounds a room, a query, not
+   * an element's solid). No command authors one in 0g; the CRUD lands with the room-bounding solver (v1.0.0).
+   */
+  readonly roomSeparators: Readonly<Record<RoomSeparatorId, RoomSeparator>>;
+  /**
+   * ⚠ RESERVED (Freeze-Gate ⓚ). The project's georeference — base point + true north. Absent ⇒ the model is
+   * in its own local frame at the origin (today's behaviour, and the common case). An OPTIONAL field, not a
+   * collection: no default row, so no `emptyScene` entry and no `SceneCollection` member.
+   */
+  readonly georeference?: ProjectGeoreference;
 }
 
 export function emptyScene(): Scene {
@@ -81,12 +111,20 @@ export function emptyScene(): Scene {
     grids: {},
     constraints: {},
     brokenRefs: [],
+    roomSeparators: {},
   };
 }
 
 /** The collections a `SceneChange` can touch. Undo is a diff over these (spec §6.1). */
 export type SceneCollection =
-  'elements' | 'styles' | 'materials' | 'sections' | 'containers' | 'grids' | 'constraints';
+  | 'elements'
+  | 'styles'
+  | 'materials'
+  | 'sections'
+  | 'containers'
+  | 'grids'
+  | 'constraints'
+  | 'roomSeparators';
 
 /**
  * One atomic change to the scene — and the unit undo is built from.

@@ -475,6 +475,43 @@ export const createElementCommand: Command = {
     // ⚠ NO `discipline` ARG (D45). It is a property of a PART, authored on the style's layer — an RC
     // wall is a structural core with architectural plaster on it, and an element-level value says
     // something false about exactly the parts that matter.
+    //
+    // ⚠⚠ RESERVED-AT-FREEZE METADATA (0g.2, Freeze-Gate ⓣ). 0g (Entry 37) reserved these SHAPES on
+    // `Element`; `Command.argsSchema` freezes at the SAME step 6, so the AUTHORING slot must be reserved
+    // WITH them — else a later body (P6 writes `properties`; 2D writes `mark`; Planitor writes `phase*`)
+    // amends a frozen contract + the agent tool-list. All optional; an element can be BORN with them in
+    // ONE atomic edit. Post-create editing is `core.setElementMetadata` (below). No body reads them yet.
+    mark: {
+      kind: 'string',
+      label: 'Mark',
+      description: 'Schedule / drawing-tag identifier — W-01, C12 (ⓡ)',
+    },
+    phaseCreated: {
+      kind: 'string',
+      label: 'Phase created',
+      description: 'Construction phase this element appears in (ⓛ)',
+    },
+    phaseDemolished: {
+      kind: 'string',
+      label: 'Phase demolished',
+      description: 'Construction phase this element is removed in (ⓛ)',
+    },
+    parentElementId: {
+      kind: 'ref',
+      refTo: 'element',
+      label: 'Parent element',
+      description: 'Nesting — a curtain-wall panel/mullion, an assembly member (ⓝ)',
+    },
+    properties: {
+      kind: 'object',
+      label: 'Properties',
+      description: 'IFC / agent property sets — pset name → { property → value } (ⓟ)',
+    },
+    classifications: {
+      kind: 'object',
+      label: 'Classifications',
+      description: 'Classification-system codes — system → code, e.g. Uniclass2015 → EF_25_10 (ⓠ)',
+    },
   },
   execute(ctx, rawArgs) {
     const args = checkArgs(createElementCommand, rawArgs);
@@ -519,6 +556,11 @@ export const createElementCommand: Command = {
       throw new CommandFailure('NOT_FOUND', `unknown container "${containerId}"`);
     }
 
+    // ⚠ RESERVED FIELD, but a REF is still validated (a dangling ref is the silent breakage this project
+    // refuses — the `containerId` lesson). Nesting semantics land in a later phase; the id must resolve.
+    const parentElementId = args['parentElementId'] as string | undefined;
+    if (parentElementId !== undefined) requireElement(ctx.scene, parentElementId);
+
     const id = ctx.mintId(typeId.split('.')[1] ?? 'element');
 
     // ⚠ THE DATUM BINDINGS become `Constraint`s in the SAME edit (D50 step 0b) — one atomic, one-undo
@@ -546,6 +588,19 @@ export const createElementCommand: Command = {
       ...(args['placement'] === undefined
         ? {}
         : { placement: args['placement'] as NonNullable<Element['placement']> }),
+      // ⚠ 0g.2 (ⓣ) — the reserved metadata, born WITH the element in this one atomic edit.
+      ...(args['mark'] === undefined ? {} : { mark: text(args['mark']) }),
+      ...(args['phaseCreated'] === undefined ? {} : { phaseCreated: text(args['phaseCreated']) }),
+      ...(args['phaseDemolished'] === undefined
+        ? {}
+        : { phaseDemolished: text(args['phaseDemolished']) }),
+      ...(parentElementId === undefined ? {} : { parentElementId }),
+      ...(args['properties'] === undefined
+        ? {}
+        : { properties: args['properties'] as NonNullable<Element['properties']> }),
+      ...(args['classifications'] === undefined
+        ? {}
+        : { classifications: args['classifications'] as NonNullable<Element['classifications']> }),
     };
 
     return ctx.edit(
@@ -865,6 +920,67 @@ export const setClassificationCommand: Command = {
     // Classification is metadata: it changes what the element MEANS, not what it looks like. No rebuild.
     return ctx.edit(
       `Classify ${element.name ?? element.id}`,
+      [{ collection: 'elements', id: element.id, before: element, after }],
+      [],
+    );
+  },
+};
+
+/**
+ * ⚠ 0g.2 (Freeze-Gate ⓣ) — THE POST-CREATE AUTHORING PATH for the metadata reserved at freeze.
+ *
+ * `createElement` lets an element be BORN with a mark / phase / property; this edits them afterward — the
+ * verb P6 (IFC `properties`/`classifications`), 2D documentation (`mark`) and Planitor (`phase*`) will
+ * drive. Its `argsSchema` freezes at step 6 WITH those fields, so it is reserved now even though no body
+ * reads them yet — the same "reserve the shape, not the body" pattern as the 0g data fields.
+ *
+ * ⚠ SEMANTICS: a PROVIDED arg SETS the field; an ABSENT one leaves it UNCHANGED. Clearing a field is a
+ * future ADDITIVE arg (e.g. a `clear: string[]`), never an overload of `null` — baking a value-vs-cleared
+ * ambiguity into a frozen contract is exactly what this project reserves shapes to avoid.
+ *
+ * ⚠ NO GUARD, NO REBUILD: none of these fields is identity- or quantity-bearing (unlike a style-layer name
+ * or a `materialId` — D51/ⓓ), so no refuse-or-retarget guard applies; and none feeds the build, so it
+ * re-stages nothing (`rebuilt: []`, like `setClassification`).
+ */
+export const setElementMetadataCommand: Command = {
+  id: 'core.setElementMetadata',
+  label: 'Set element metadata',
+  description:
+    'Set the non-geometric metadata reserved at freeze — mark, construction phases, nesting parent, IFC/agent property sets, classification codes. Absent args are left unchanged. No geometry rebuild.',
+  argsSchema: {
+    elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    mark: { kind: 'string', label: 'Mark' },
+    phaseCreated: { kind: 'string', label: 'Phase created' },
+    phaseDemolished: { kind: 'string', label: 'Phase demolished' },
+    parentElementId: { kind: 'ref', refTo: 'element', label: 'Parent element' },
+    properties: { kind: 'object', label: 'Properties' },
+    classifications: { kind: 'object', label: 'Classifications' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(setElementMetadataCommand, rawArgs);
+    const element = requireElement(ctx.scene, args['elementId']);
+
+    const parentElementId = args['parentElementId'] as string | undefined;
+    if (parentElementId !== undefined) requireElement(ctx.scene, parentElementId);
+
+    const after: Element = {
+      ...element,
+      ...(args['mark'] === undefined ? {} : { mark: text(args['mark']) }),
+      ...(args['phaseCreated'] === undefined ? {} : { phaseCreated: text(args['phaseCreated']) }),
+      ...(args['phaseDemolished'] === undefined
+        ? {}
+        : { phaseDemolished: text(args['phaseDemolished']) }),
+      ...(parentElementId === undefined ? {} : { parentElementId }),
+      ...(args['properties'] === undefined
+        ? {}
+        : { properties: args['properties'] as NonNullable<Element['properties']> }),
+      ...(args['classifications'] === undefined
+        ? {}
+        : { classifications: args['classifications'] as NonNullable<Element['classifications']> }),
+    };
+    // Metadata changes what the element MEANS, not what it looks like. No rebuild (like setClassification).
+    return ctx.edit(
+      `Set metadata on ${element.name ?? element.id}`,
       [{ collection: 'elements', id: element.id, before: element, after }],
       [],
     );
@@ -1550,6 +1666,7 @@ export const CORE_COMMANDS: readonly Command[] = [
   deleteElementCommand,
   retargetReferenceCommand,
   setClassificationCommand,
+  setElementMetadataCommand,
   createStyleCommand,
   createMaterialCommand,
   createSectionCommand,

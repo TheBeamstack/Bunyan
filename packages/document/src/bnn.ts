@@ -151,6 +151,11 @@ export function loadBnn(bytes: Uint8Array): BnnPackage {
     'sections',
     'containers',
     'grids',
+    // ⚠ `constraints` (0b) and `roomSeparators` (0g) are first-class collections a hostile `.bnn` can set
+    // to `null` too — `{ ...emptyScene(), ...parsed }` would then overwrite the `{}` default with `null`
+    // and crash deeper in (`typeof null === 'object'`, the exact trap the guard below exists for).
+    'constraints',
+    'roomSeparators',
   ] as const) {
     // ⚠⚠ **`typeof null === 'object'`.** The guard here used to be `typeof scene[key] !== 'object'` —
     // so a `.bnn` carrying `"elements": null` sailed straight through the check written to catch it and

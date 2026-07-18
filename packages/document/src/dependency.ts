@@ -93,6 +93,12 @@ export function dependents(scene: Scene, change: SceneChange): readonly ElementI
       // THICKNESS; a material carries only density/structural properties read by `quantities()` and Miqdar,
       // and no solid's geometry depends on it. A density edit re-computes quantities lazily, rebuilds nothing.
       return [];
+    case 'roomSeparators':
+      // NO ELEMENT-GEOMETRY EDGE — a declared "nothing", like `materials` (P5 step 0g). A separator re-bounds
+      // a SPACE (a query the room-bounding solver recomputes on demand), never an element's SOLID — no wall,
+      // slab or opening changes shape when a separator moves. The edge is declared here so the exhaustive
+      // switch stays satisfied; the room-area invalidation lives with the solver, not in the rebuild graph.
+      return [];
     default:
       return assertNever(collection);
   }

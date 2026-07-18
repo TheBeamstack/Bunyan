@@ -54,6 +54,30 @@ export interface ParamField {
   /** For `array`: the shape of each item. For `object`: the shape of its fields. */
   readonly items?: ParamField;
   readonly fields?: ParamSchema;
+  /**
+   * ⚠ RESERVED (D54c, Freeze-Gate ⑤). Conditional visibility — show this field only when a sibling field's
+   * value matches (Revit's family "conditional" fields). Absent ⇒ always shown, so every existing schema is
+   * unaffected. Evaluated by the property panel / agent tool projection in a later phase; 0g reserves the shape.
+   */
+  readonly relevantWhen?: ParamCondition;
+  /**
+   * ⚠ RESERVED (Freeze-Gate ⓜ). A Revit-style family FORMULA — an expression over sibling params that
+   * computes this field's value (the field is then driven, read-only in the UI). Absent ⇒ author-entered.
+   * The expression grammar + evaluator are a later phase; the STRING slot freezes now.
+   */
+  readonly formula?: string;
+}
+
+/**
+ * ⚠ RESERVED (D54c). A predicate over another field's value, for `ParamField.relevantWhen`. A shaped
+ * record so richer operators (`in`, `notEquals`, ranges) are additive members later, never edits — the
+ * same discipline that shapes `ConstraintTarget`.
+ */
+export interface ParamCondition {
+  /** The sibling field this visibility depends on. */
+  readonly field: string;
+  /** Shown when the sibling equals this value. (Future: `in`, `notEquals` — additive.) */
+  readonly equals: ParamValue;
 }
 
 export type ParamSchema = Readonly<Record<string, ParamField>>;
