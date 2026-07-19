@@ -21,8 +21,10 @@ import type {
   BuildContext,
   BuiltPart,
   BuiltVoid,
+  SolvedSketch,
   VoidBuildContext,
 } from '@bunyan/document';
+import { readSketch } from '@bunyan/document';
 import type { ParamValue } from '@bunyan/document';
 import type { Profile, Vec2 } from '@bunyan/protocol';
 
@@ -537,10 +539,83 @@ export const constrainedMemberType: BimObjectType = {
   },
 };
 
+/* ================================================================================================
+ * SKETCH PROFILE — the fixture that exercises the SKETCH SOLVER (D50 §0d). Its profile is a CONSTRAINED
+ * 2D sketch: the Type hands `ctx.solveSketch` its rough points + authored segments, the engine attaches
+ * the element's `SketchConstraint`s and runs planegcs, and the SOLVED coordinates are extruded to a solid.
+ *
+ * ⚠ THE WHOLE POINT OF THE PIPELINE, IN ONE TYPE: `solve → Profile → extrude`. `lateral.k` is the face
+ * swept from authored SEGMENT k (D26) — so a re-solve after a dimensional edit moves the geometry while a
+ * window hosted on `lateral.2` stays on `lateral.2`. That is the sketch analogue of 0b's rebind-a-datum.
+ * ============================================================================================= */
+export const sketchProfileType: BimObjectType = {
+  id: 'core.sketchProfile.v1',
+  version: 1,
+  label: 'Sketch profile',
+  description:
+    'A solved 2D sketch extruded to a thickness — the 0d pipeline (solve → profile → extrude).',
+  parameterSchema: {
+    sketch: {
+      kind: 'object',
+      label: 'Sketch',
+      required: true,
+      description:
+        '{ points:[{id,x,y,fixed?}], segments:[{from,to}] } — geometry lives in params (Q1=A).',
+    },
+    thickness: { kind: 'number', label: 'Thickness', unit: 'mm', required: true, min: 1 },
+  },
+  defaultClassification: { ifcClass: 'IfcSlab', loadBearing: false },
+  defaultDiscipline: 'architectural',
+
+  async buildGeometry(ctx: BuildContext): Promise<readonly BuiltPart[]> {
+    const sketch = readSketch(ctx.params);
+    if (sketch === undefined) {
+      throw new Error(`sketch element "${ctx.element.id}" has no sketch in its params`);
+    }
+    const thickness = Number(ctx.params['thickness']);
+    // ⚠ SOLVE FIRST. The engine attaches this element's SketchConstraints and runs planegcs. An
+    // over-constrained sketch THROWS here ⇒ a `geometry` failure ⇒ D42 rejects the command that made it.
+    const solved = ctx.solveSketch(sketch);
+    const nodeId = ctx.nodeId('profile');
+    const solid = await ctx.geometry.request('extrude', {
+      nodeId,
+      profile: profileFromSketch(solved, ctx.elevation),
+      height: thickness,
+    });
+    return [
+      {
+        name: 'profile',
+        materialId: '',
+        discipline: ctx.defaultDiscipline,
+        nodeId,
+        handle: solid.handle,
+        refs: solid.refs,
+      },
+    ];
+  },
+};
+
+/** A closed `Profile` from a SOLVED sketch, in AUTHORED segment order — segment k becomes `lateral.k` (D26). */
+function profileFromSketch(solved: SolvedSketch, z: number): Profile {
+  const segments = solved.segments;
+  if (segments.length < 3) throw new Error('a sketch profile needs at least three segments');
+  const at = (pointId: string): Vec2 => {
+    const p = solved.points[pointId];
+    if (p === undefined) throw new Error(`sketch profile references unknown point "${pointId}"`);
+    return [p[0], p[1]];
+  };
+  return {
+    plane: { origin: [0, 0, z], normal: [0, 0, 1], xAxis: [1, 0, 0] },
+    start: at(segments[0]!.from),
+    segments: segments.map((s) => ({ kind: 'line' as const, to: at(s.to) })),
+  };
+}
+
 export const FIXTURE_TYPES = [
   wallType,
   slabType,
   linearMemberType,
   openingType,
   constrainedMemberType,
+  sketchProfileType,
 ];

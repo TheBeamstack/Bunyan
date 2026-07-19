@@ -1,0 +1,19 @@
+{
+  "name": "@bunyan/sketch-solver",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The 2D sketch constraint solver: planegcs (FreeCAD's GCS in WASM) behind the @bunyan/document SketchSolver seam (D50 §0d).",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --build"
+  },
+  "dependencies": {
+    "@bunyan/document": "workspace:*",
+    "@salusoft89/planegcs": "^1.2.0"
+  }
+}

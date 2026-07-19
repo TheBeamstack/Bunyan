@@ -39,7 +39,17 @@ import type { Command, CommandContext } from './commands.js';
 import type { Registries } from './registries.js';
 import { applyChanges, emptyScene, revertChanges } from './scene.js';
 import type { Scene, SceneChange } from './scene.js';
-import type { Params } from './entities.js';
+import { MockSketchSolver } from './sketch.js';
+import type { SketchSolver } from './sketch.js';
+import {
+  PlanarRoomSolver,
+  assembleRoomInput,
+  polygonPerimeter,
+  signedArea,
+  verticalExtentOf,
+} from './room.js';
+import type { RoomSolver, Vec2 } from './room.js';
+import type { ContainerId, Params } from './entities.js';
 import type { ModelRevision } from './revision.js';
 import { Journal, UndoStack, reversalOf } from './undo.js';
 import type { UndoableEdit } from './undo.js';
@@ -52,6 +62,18 @@ export interface DocumentOptions {
    * the client and hands it here; a `KernelClient` satisfies this interface structurally.
    */
   readonly geometry: GeometryGateway;
+  /**
+   * The 2D sketch solver (D50 §0d) — injected like the kernel, for the same reasons (D19 precedent). The
+   * app's bootstrap hands over the planegcs-backed `@bunyan/sketch-solver`; absent ⇒ a `MockSketchSolver`
+   * (identity solve), which keeps every non-sketch test green without booting a second WASM module.
+   */
+  readonly sketchSolver?: SketchSolver | undefined;
+  /**
+   * The room-bounding solver (D50 §Space-extent B / D55) — injected like the kernel/sketch solver (D19
+   * precedent), but DEFAULTING to the real `PlanarRoomSolver`: it is pure TypeScript (Q2), so unlike
+   * planegcs there is no second WASM module to quarantine, and no reason to default to a mock.
+   */
+  readonly roomSolver?: RoomSolver | undefined;
   readonly scene?: Scene | undefined;
   /** The journal, restored from a loaded `.bnn`'s `history.json` (D40). */
   readonly journal?: readonly UndoableEdit[] | undefined;
@@ -95,6 +117,29 @@ export interface QuantityBreakdown {
   readonly basis: 'exact';
 }
 
+/**
+ * A Space's measured extent (D50 §Space-extent B / D55) — DERIVED from its bounding walls, never stored.
+ *
+ * ⚠ `enclosed: false` reports the room as UNAVAILABLE, never `area: 0` (D45, the `quantities()` discipline):
+ * a seed that is not enclosed is an unknown, not a nought. `volume` is present only when the vertical extent
+ * is derivable (a top Level or `upperLevelId`); an un-derivable height omits the volume while area stands.
+ */
+export type RoomMetrics =
+  | { readonly enclosed: false }
+  | {
+      readonly enclosed: true;
+      /** mm² — the floor area on the wall inner finish face (Q1). */
+      readonly area: number;
+      /** mm — the boundary length. */
+      readonly perimeter: number;
+      /** The boundary polygon (CCW), mm, in the Level's plane. */
+      readonly boundary: readonly Vec2[];
+      /** mm — the derived room height (top − base), present iff the vertical extent is derivable. */
+      readonly height?: number;
+      /** mm³ — prismatic volume (area × height), present iff `height` is (Q5). */
+      readonly volume?: number;
+    };
+
 /** What a staged rebuild produced, before anything live has been touched (D42). */
 interface StagedRebuild {
   readonly geometry: Map<ElementId, ElementGeometry>;
@@ -130,6 +175,8 @@ export class DocumentContext {
   #scene: Scene;
   readonly #registries: Registries;
   readonly #geometry: GeometryGateway;
+  readonly #sketchSolver: SketchSolver;
+  readonly #roomSolver: RoomSolver;
   readonly #undo = new UndoStack();
   /** ⚠ The change feed (D40). Append-only, never trimmed — NOT the undo stack. */
   readonly #journal = new Journal();
@@ -140,6 +187,8 @@ export class DocumentContext {
   constructor(options: DocumentOptions) {
     this.#registries = options.registries;
     this.#geometry = options.geometry;
+    this.#sketchSolver = options.sketchSolver ?? new MockSketchSolver();
+    this.#roomSolver = options.roomSolver ?? new PlanarRoomSolver();
     this.#scene = options.scene ?? emptyScene();
     this.#revision = options.revision;
     if (options.journal !== undefined) this.#journal.restore(options.journal);
@@ -411,6 +460,35 @@ export class DocumentContext {
     return measured.area;
   }
 
+  /**
+   * ⚠ THE ROOM METRIC (D50 §Space-extent B / D55). A Space's floor area/volume, DERIVED from its bounding
+   * walls by the room-bounding solver — never stored (recipe-is-truth), never cached (design §1): it reads
+   * the LIVE scene, so moving a wall and re-querying returns the new area with nothing to invalidate.
+   *
+   * *"How much floor area is this room?"* — architecture's most-scheduled quantity (paint, ceilings, screed).
+   * Synchronous: room bounding is pure 2D document-layer work (Q2), it never reaches the kernel.
+   */
+  roomMetrics(spaceId: ContainerId): RoomMetrics {
+    const input = assembleRoomInput(this.#scene, spaceId);
+    if (input === undefined) return { enclosed: false };
+    const result = this.#roomSolver.solve(input);
+    if (!result.enclosed) return { enclosed: false };
+
+    const area = Math.abs(signedArea(result.boundary));
+    const perimeter = polygonPerimeter(result.boundary);
+    const space = this.#scene.containers[spaceId]!;
+    const extent = verticalExtentOf(this.#scene, space);
+    const base = {
+      enclosed: true as const,
+      area,
+      perimeter,
+      boundary: result.boundary,
+    };
+    if (extent === undefined) return base;
+    const height = extent.top - extent.base;
+    return { ...base, height, volume: area * height };
+  }
+
   /* ============================================================================================
    * Internals
    * ========================================================================================= */
@@ -519,6 +597,7 @@ export class DocumentContext {
         scene,
         this.#registries,
         this.#geometry,
+        this.#sketchSolver,
         root,
         options.coalesceKey === undefined ? {} : { coalesceKey: options.coalesceKey },
       );

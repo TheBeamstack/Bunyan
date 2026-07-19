@@ -12,6 +12,8 @@ export * from './entities.js';
 export * from './schema.js';
 export * from './scene.js';
 export * from './geometry.js';
+export * from './sketch.js';
+export * from './room.js';
 export * from './types.js';
 export * from './registries.js';
 export * from './ulid.js';

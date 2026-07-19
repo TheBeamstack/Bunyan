@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // planegcs is a WASM module loaded on the main thread; DOM carries the ambient WebAssembly types it
+    // needs. This package depends on `@salusoft89/planegcs` (the only place in the product that does) and
+    // on `@bunyan/document` for the `SketchSolver` seam it implements — nothing else.
+    "lib": ["ES2022", "DOM"],
+    "types": []
+  },
+  "include": ["src/**/*.ts"]
+}

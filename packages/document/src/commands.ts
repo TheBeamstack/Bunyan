@@ -33,8 +33,13 @@ import type {
   ParamValue,
   Params,
   Section,
+  SketchConstraint,
+  SketchConstraintKind,
+  SketchOperands,
   SpatialContainer,
 } from './entities.js';
+import { isDatumConstraint } from './entities.js';
+import { readSketch } from './sketch.js';
 import type { Registries } from './registries.js';
 import type { Scene, SceneChange } from './scene.js';
 import { hostedBy, instancesOfStyle, stylesUsingMaterial, stylesUsingSection } from './scene.js';
@@ -318,7 +323,7 @@ function containerReferrers(scene: Scene, containerId: string): readonly Referre
     }
   }
   for (const c of Object.values(scene.constraints)) {
-    if (c.target.kind === 'level' && c.target.id === containerId) {
+    if (isDatumConstraint(c) && c.target.kind === 'level' && c.target.id === containerId) {
       out.push({
         describe: `constraint "${c.id}" (${c.kind}) targets level "${containerId}"`,
         retargetKey: containerId,
@@ -346,7 +351,10 @@ function containerReferrers(scene: Scene, containerId: string): readonly Referre
 /** Grid constraints that place an element on this axis → redirect swaps the axis. */
 function gridReferrers(scene: Scene, gridId: string): readonly Referrer[] {
   return Object.values(scene.constraints)
-    .filter((c) => c.target.kind === 'grid' && c.target.id === gridId)
+    .filter(
+      (c): c is DatumConstraint =>
+        isDatumConstraint(c) && c.target.kind === 'grid' && c.target.id === gridId,
+    )
     .map((c) => ({
       describe: `constraint "${c.id}" places element "${c.element}" on grid "${gridId}"`,
       retargetKey: gridId,
@@ -1280,6 +1288,12 @@ export const deleteConstraintCommand: Command = {
     if (constraint === undefined) {
       throw new CommandFailure('NOT_FOUND', `no constraint "${id}" in this document`);
     }
+    if (!isDatumConstraint(constraint)) {
+      throw new CommandFailure(
+        'REFUSED',
+        `"${id}" is a sketch constraint — remove it with deleteSketchConstraint`,
+      );
+    }
     return ctx.edit(
       `Remove constraint ${id}`,
       [{ collection: 'constraints', id, before: constraint }],
@@ -1305,6 +1319,164 @@ function constraintTarget(
   }
   return { kind: 'level', id: targetId };
 }
+
+/* ================================================================================================
+ * SKETCH CONSTRAINTS — the 2D solver's rules, as first-class union members (D50 §0d, Q2 owner-ruled:
+ * DEDICATED verbs, not folded into createConstraint). A sketch constraint relates geometry WITHIN one
+ * element's profile (two points coincident, two segments perpendicular, |p1 p2| = 3000) — sketch-local
+ * operands, never a scene datum.
+ *
+ * ⚠ THE OVER-CONSTRAINED REFUSAL IS NOT HERE — IT IS AT BUILD TIME. Adding a conflicting constraint makes
+ * the element's `buildGeometry` solve fail; that surfaces as a `geometry` failure, and D42 rejects the whole
+ * command and keeps last-good (`document.ts`). So this command only validates the OPERAND SHAPE; the solver
+ * (via the staged rebuild) is what proves the constraint is satisfiable. One refusal path, not two.
+ * ============================================================================================= */
+
+/** How many points / segments each sketch-constraint kind takes — validated before it can be minted. */
+const SKETCH_OPERAND_ARITY: Record<SketchConstraintKind, { points: number; segments: number }> = {
+  coincident: { points: 2, segments: 0 },
+  distance: { points: 2, segments: 0 },
+  horizontal: { points: 0, segments: 1 },
+  vertical: { points: 0, segments: 1 },
+  parallel: { points: 0, segments: 2 },
+  perpendicular: { points: 0, segments: 2 },
+  equal: { points: 0, segments: 2 },
+  tangent: { points: 0, segments: 2 },
+};
+
+const SKETCH_CONSTRAINT_KINDS = Object.keys(
+  SKETCH_OPERAND_ARITY,
+) as readonly SketchConstraintKind[];
+
+/** Validate operand arity + that every referenced point id / segment index exists in the element's sketch. */
+function checkSketchOperands(
+  element: Element,
+  kind: SketchConstraintKind,
+  operands: SketchOperands,
+  value: number | undefined,
+): void {
+  const want = SKETCH_OPERAND_ARITY[kind];
+  const points = operands.points ?? [];
+  const segments = operands.segments ?? [];
+  if (points.length !== want.points || segments.length !== want.segments) {
+    throw new CommandFailure(
+      'INVALID_ARGS',
+      `sketch constraint "${kind}" takes ${String(want.points)} point(s) and ${String(want.segments)} segment(s), ` +
+        `got ${String(points.length)} and ${String(segments.length)}`,
+    );
+  }
+  if (kind === 'distance' && typeof value !== 'number') {
+    throw new CommandFailure(
+      'INVALID_ARGS',
+      `sketch constraint "distance" needs a numeric value (mm)`,
+    );
+  }
+  const sketch = readSketch(element.params);
+  if (sketch === undefined) {
+    throw new CommandFailure('REFUSED', `element "${element.id}" has no sketch to constrain`);
+  }
+  const pointIds = new Set(sketch.points.map((p) => p.id));
+  for (const id of points) {
+    if (!pointIds.has(id)) {
+      throw new CommandFailure(
+        'NOT_FOUND',
+        `sketch point "${id}" is not in element "${element.id}"`,
+      );
+    }
+  }
+  for (const index of segments) {
+    if (!Number.isInteger(index) || index < 0 || index >= sketch.segments.length) {
+      throw new CommandFailure(
+        'NOT_FOUND',
+        `sketch segment index ${String(index)} is out of range for element "${element.id}" ` +
+          `(${String(sketch.segments.length)} segments)`,
+      );
+    }
+  }
+}
+
+/** Read the operand arrays out of a validated args bag — the schema proved they are arrays of the right kind. */
+function sketchOperandsFrom(args: Params): SketchOperands {
+  const points = (args['points'] as readonly ParamValue[] | undefined) ?? [];
+  const segments = (args['segments'] as readonly ParamValue[] | undefined) ?? [];
+  return {
+    points: points.map((p) => text(p)),
+    segments: segments.map((s) => num(s)),
+  };
+}
+
+export const createSketchConstraintCommand: Command = {
+  id: 'core.createSketchConstraint',
+  label: 'Add sketch constraint',
+  description:
+    'Constrain an element sketch: coincident/distance take two point ids; horizontal/vertical one segment index; parallel/perpendicular/equal/tangent two.',
+  argsSchema: {
+    element: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    kind: { kind: 'enum', label: 'Kind', required: true, options: [...SKETCH_CONSTRAINT_KINDS] },
+    points: {
+      kind: 'array',
+      label: 'Point ids',
+      description: 'Sketch point ids (coincident/distance).',
+      items: { kind: 'string', label: 'Point id' },
+    },
+    segments: {
+      kind: 'array',
+      label: 'Segment indices',
+      description:
+        'Sketch segment indices, 0-based authored order (horizontal/vertical/parallel/…).',
+      items: { kind: 'number', label: 'Segment index' },
+    },
+    value: { kind: 'number', label: 'Value', unit: 'mm', description: 'distance only' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createSketchConstraintCommand, rawArgs);
+    const element = requireElement(ctx.scene, args['element']);
+    const kind = args['kind'] as SketchConstraintKind;
+    const operands = sketchOperandsFrom(args);
+    const value = args['value'] as number | undefined;
+    checkSketchOperands(element, kind, operands, value);
+    const constraint: SketchConstraint = {
+      id: ctx.mintId('sketchc'),
+      element: element.id,
+      kind,
+      operands,
+      ...(value === undefined ? {} : { value }),
+    };
+    return ctx.edit(
+      `Sketch-constrain ${element.id} (${kind})`,
+      [{ collection: 'constraints', id: constraint.id, after: constraint }],
+      [element.id],
+    );
+  },
+};
+
+export const deleteSketchConstraintCommand: Command = {
+  id: 'core.deleteSketchConstraint',
+  label: 'Remove sketch constraint',
+  description: 'Remove a sketch constraint; the element re-solves and rebuilds without it.',
+  argsSchema: {
+    id: { kind: 'string', label: 'Constraint id', required: true },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteSketchConstraintCommand, rawArgs);
+    const id = text(args['id']);
+    const constraint = ctx.scene.constraints[id];
+    if (constraint === undefined) {
+      throw new CommandFailure('NOT_FOUND', `no constraint "${id}" in this document`);
+    }
+    if (isDatumConstraint(constraint)) {
+      throw new CommandFailure(
+        'REFUSED',
+        `"${id}" is a datum binding, not a sketch constraint — remove it with deleteConstraint`,
+      );
+    }
+    return ctx.edit(
+      `Remove sketch constraint ${id}`,
+      [{ collection: 'constraints', id, before: constraint }],
+      [constraint.element],
+    );
+  },
+};
 
 /* ================================================================================================
  * THE MISSING CRUD — updates & guarded deletes (D50 step 0e/0f). The registries were CREATE-ONLY:
@@ -1472,6 +1644,12 @@ export const updateConstraintCommand: Command = {
     const id = text(args['id']);
     const before = ctx.scene.constraints[id];
     if (before === undefined) throw new CommandFailure('NOT_FOUND', `no constraint "${id}"`);
+    if (!isDatumConstraint(before)) {
+      throw new CommandFailure(
+        'REFUSED',
+        `"${id}" is a sketch constraint, not a datum binding — edit it via deleteSketchConstraint + createSketchConstraint`,
+      );
+    }
     const target =
       args['target'] === undefined
         ? before.target
@@ -1674,6 +1852,8 @@ export const CORE_COMMANDS: readonly Command[] = [
   createGridCommand,
   createConstraintCommand,
   deleteConstraintCommand,
+  createSketchConstraintCommand,
+  deleteSketchConstraintCommand,
   updateContainerCommand,
   updateGridCommand,
   updateMaterialCommand,

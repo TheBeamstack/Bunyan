@@ -24,6 +24,8 @@ import type {
   TypeId,
 } from './entities.js';
 import type { GeometryGateway } from './geometry.js';
+import type { Sketch } from './entities.js';
+import type { SolvedSketch } from './sketch.js';
 import type { ParamSchema } from './schema.js';
 
 /**
@@ -73,6 +75,18 @@ export interface BuildContext {
   readonly geometry: GeometryGateway;
   /** The DAG node id for one of this element's parts: `wall-1.structure`. */
   readonly nodeId: (partName: string) => string;
+  /**
+   * ⚠ THE SKETCH SOLVER (D50 §0d). Hand it this element's 2D profile; it attaches the element's
+   * `SketchConstraint`s (resolved from the scene, so the Type never touches the scene — the 0b move), runs
+   * the solver, and returns solved coordinates by point id plus the AUTHORED segment array (D26). The Type
+   * then emits a `Profile` from the solved coordinates in that order and feeds it to `extrude`/`revolve`.
+   *
+   * ⚠⚠ It THROWS (`SketchSolveError`) on an unsatisfiable sketch (over-constrained / non-convergent) —
+   * which the rebuild turns into a `geometry` failure, so the command that made it is rejected and the
+   * document stays at last-good (D42). An under-constrained sketch is NOT an error: it returns coordinates
+   * with `dof > 0`. A Type that has no sketch simply never calls this.
+   */
+  readonly solveSketch: (sketch: Sketch) => SolvedSketch;
   /**
    * ⚠⚠ **DECLARE A SOLID THIS TYPE CREATED AND NO LONGER NEEDS** — and every Type that runs **more than
    * one kernel op per part** must call it, or it leaks one OCCT solid per rebuild, per part, forever.

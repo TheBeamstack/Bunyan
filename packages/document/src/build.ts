@@ -30,8 +30,16 @@
 import type { BrokenReference, Element, ElementId, Params, Part } from './entities.js';
 import { cutNodeId, partNodeId } from './geometry.js';
 import type { GeometryGateway, GeometryRequestOptions } from './geometry.js';
-import { datumElevations, elevationOf, gridPointOf, hostedBy } from './scene.js';
+import {
+  datumElevations,
+  elevationOf,
+  gridPointOf,
+  hostedBy,
+  sketchConstraintsOf,
+} from './scene.js';
 import type { Scene } from './scene.js';
+import { solveSketch as runSketchSolve } from './sketch.js';
+import type { SketchSolver } from './sketch.js';
 import { withDefaults } from './schema.js';
 import type { Registries } from './registries.js';
 import type { BuildContext, BuiltPart, VoidBuildContext } from './types.js';
@@ -117,6 +125,7 @@ export async function buildAssembly(
   scene: Scene,
   registries: Registries,
   geometry: GeometryGateway,
+  solver: SketchSolver,
   rootId: ElementId,
   options: BuildOptions = {},
 ): Promise<{
@@ -179,7 +188,7 @@ export async function buildAssembly(
   let base: readonly BuiltPart[];
   try {
     base = await type.buildGeometry(
-      contextFor(scene, registries, { request }, element, element.params, discard),
+      contextFor(scene, registries, { request }, solver, element, element.params, discard),
     );
   } catch (error) {
     return failed(messageOf(error));
@@ -281,7 +290,7 @@ export async function buildAssembly(
 
     try {
       const built = await voidType.buildVoid(
-        voidContextFor(scene, registries, { request }, opening, element, hostFace, discard),
+        voidContextFor(scene, registries, { request }, solver, opening, element, hostFace, discard),
       );
       intermediates.push(built.handle);
       cuts.push({ opening, handle: built.handle });
@@ -377,6 +386,7 @@ function contextFor(
   scene: Scene,
   registries: Registries,
   geometry: GeometryGateway,
+  solver: SketchSolver,
   element: Element,
   rawParams: Params,
   discard: (handle: string) => void = () => undefined,
@@ -405,6 +415,11 @@ function contextFor(
     defaultDiscipline: type.defaultDiscipline ?? 'other',
     geometry,
     nodeId: (partName) => partNodeId(element.id, partName),
+    // ⚠ THE SKETCH SOLVER (0d). The Type passes its own profile; the engine attaches this element's
+    // `SketchConstraint`s (resolved from the scene, so the Type stays pure — the 0b move) and solves. It
+    // THROWS on an unsatisfiable sketch, which `buildGeometry`'s catch turns into a `geometry` failure ⇒
+    // D42 rejects the command that made it (the over-constrained refusal, done at build time — one path).
+    solveSketch: (sketch) => runSketchSolve(solver, sketch, sketchConstraintsOf(scene, element.id)),
     // ⚠ The Type DECLARES its garbage; the engine collects it; `DocumentContext` frees it — once, at
     // the end of the rebuild, and only after checking it is not also somebody's final solid.
     discard,
@@ -415,6 +430,7 @@ function voidContextFor(
   scene: Scene,
   registries: Registries,
   geometry: GeometryGateway,
+  solver: SketchSolver,
   opening: Element,
   host: Element,
   hostFace: VoidBuildContext['hostFace'],
@@ -423,7 +439,7 @@ function voidContextFor(
   const hostType = registries.types.require(host.typeId);
   const hostStyle = host.styleId === undefined ? undefined : scene.styles[host.styleId];
   return {
-    ...contextFor(scene, registries, geometry, opening, opening.params, discard),
+    ...contextFor(scene, registries, geometry, solver, opening, opening.params, discard),
     host,
     hostParams: withDefaults(hostType.parameterSchema, host.params),
     ...(hostStyle === undefined ? {} : { hostStyle }),

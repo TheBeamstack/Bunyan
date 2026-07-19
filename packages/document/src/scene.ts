@@ -28,9 +28,11 @@ import type {
   RoomSeparatorId,
   Section,
   SectionId,
+  SketchConstraint,
   SpatialContainer,
   StyleId,
 } from './entities.js';
+import { isDatumConstraint, isSketchConstraint } from './entities.js';
 
 /**
  * Bumped when `scene.json`'s own shape changes (not a type's — that is `element.typeVersion`).
@@ -234,9 +236,24 @@ export function elevationOf(scene: Scene, containerId: ContainerId | undefined):
  * (`dependency.ts`) and the build (`build.ts`). Kept here so both read ONE resolver, never two.
  * ---------------------------------------------------------------------------------------------- */
 
-/** Every datum constraint owned by an element. */
+/** Every DATUM constraint owned by an element (the sketch ones are `sketchConstraintsOf`). */
 export function constraintsOf(scene: Scene, elementId: ElementId): readonly DatumConstraint[] {
-  return Object.values(scene.constraints).filter((c) => c.element === elementId);
+  return Object.values(scene.constraints).filter(
+    (c): c is DatumConstraint => c.element === elementId && isDatumConstraint(c),
+  );
+}
+
+/**
+ * Every SKETCH constraint owned by an element — the rules the sketch solver enforces on this element's
+ * profile (0d). Kept beside `constraintsOf` so the build resolves both from ONE collection, never two.
+ */
+export function sketchConstraintsOf(
+  scene: Scene,
+  elementId: ElementId,
+): readonly SketchConstraint[] {
+  return Object.values(scene.constraints).filter(
+    (c): c is SketchConstraint => c.element === elementId && isSketchConstraint(c),
+  );
 }
 
 /** Elements with a `base`/`top` constraint targeting this Level — the container→element datum edge. */
@@ -254,13 +271,17 @@ export function elementsConstrainedToGrid(scene: Scene, gridId: GridId): readonl
 
 function datumEdges(
   scene: Scene,
-  kinds: readonly Constraint['kind'][],
+  kinds: readonly DatumConstraint['kind'][],
   targetKind: 'level' | 'grid',
   targetId: string,
 ): readonly ElementId[] {
   return Object.values(scene.constraints)
     .filter(
-      (c) => kinds.includes(c.kind) && c.target.kind === targetKind && c.target.id === targetId,
+      (c) =>
+        isDatumConstraint(c) &&
+        kinds.includes(c.kind) &&
+        c.target.kind === targetKind &&
+        c.target.id === targetId,
     )
     .map((c) => c.element);
 }

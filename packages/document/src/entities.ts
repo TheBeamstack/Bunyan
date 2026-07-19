@@ -309,7 +309,7 @@ export type ConstraintTarget =
  * NEW members — `Constraint = DatumConstraint | AttachConstraint | …` — which is purely additive and is the
  * only shape that lets a Revit/ArchiCAD-class constraint model grow past a datum binding after the freeze.
  */
-export type Constraint = DatumConstraint;
+export type Constraint = DatumConstraint | SketchConstraint;
 
 export interface DatumConstraint {
   readonly id: ConstraintId;
@@ -323,6 +323,101 @@ export interface DatumConstraint {
    * `top` + 1100, a footing is `base` − 300 (P5_step0b_design.md §2, Finding 1). Unused for `grid`.
    */
   readonly offset?: number;
+}
+
+/** ⚠ NARROW BEFORE YOU REACH FOR `.target`. A `DatumConstraint` binds to a scene datum; a sketch one does not. */
+export function isDatumConstraint(c: Constraint): c is DatumConstraint {
+  return c.kind === 'base' || c.kind === 'top' || c.kind === 'grid';
+}
+
+export function isSketchConstraint(c: Constraint): c is SketchConstraint {
+  return !isDatumConstraint(c);
+}
+
+/* ================================================================================================
+ * THE SKETCH — a 2D constrained profile (D50 §0d, `P5_step0d_design.md`). Q1=A (owner-ruled): the
+ * sketch GEOMETRY lives in the element's `params` (a structured `ParamValue`); its RULES are first-class
+ * `SketchConstraint`s in `scene.constraints`. That is D53's value-vs-relationship split applied to a
+ * sketch — coordinates are values, constraints are relationships — the same split it drew for datums.
+ *
+ * ⚠⚠ THE POINT IDS AND THE SEGMENT ARRAY ORDER ARE FROZEN CONTRACT (D1/D26). A constraint names a point
+ * by its stable id; a segment is named `lateral.k` by its INDEX in the authored array. The solver may move
+ * a point's coordinates; it must NEVER permute the segment array, because reordering re-targets every
+ * `SubShapeRef` into the extruded solid — silently, catastrophically (§5 of the design; the guard lives in
+ * `sketch.ts`). The array is authored, never sorted.
+ * ============================================================================================= */
+
+/** A sketch vertex the solver moves. Its `id` is stable and unique within the sketch — a constraint names it. */
+export interface SketchPoint {
+  readonly id: string;
+  readonly x: number;
+  readonly y: number;
+  /** Anchored — the solver holds it fixed. Absent ⇒ free. A sketch needs ≥ 1 anchor to be locatable. */
+  readonly fixed?: boolean;
+}
+
+/**
+ * One profile segment: `from` → `to` by point id. Absent `arc` ⇒ a straight line. Present ⇒ a circular arc
+ * from `from` to `to` about `arc.center` (another point id). ⚠ Its slot in `Sketch.segments` IS its identity
+ * (`lateral.k`, D26) — the array is authored, never permuted.
+ */
+export interface SketchSegment {
+  readonly from: string;
+  readonly to: string;
+  readonly arc?: { readonly center: string; readonly clockwise?: boolean };
+}
+
+/** A constrained profile: the vertices, the ordered segment loop between them. Lives in `element.params`. */
+export interface Sketch {
+  readonly points: readonly SketchPoint[];
+  readonly segments: readonly SketchSegment[];
+}
+
+/**
+ * The v1.0.0 sketch-constraint kinds (Q3, owner-ruled: the FULL named set). All are one-line planegcs
+ * mappings. New kinds are additive union-of-kinds members later — never an edit to this list.
+ */
+export type SketchConstraintKind =
+  | 'coincident' // two points share a location
+  | 'parallel' // two segments parallel
+  | 'perpendicular' // two segments perpendicular
+  | 'tangent' // segment ↔ arc, or arc ↔ arc
+  | 'horizontal' // a segment is horizontal in the sketch plane
+  | 'vertical' // a segment is vertical
+  | 'distance' // |p1 p2| = value  (the DRIVING dimension)
+  | 'equal'; // two segments equal length
+
+/**
+ * Sketch-LOCAL operands. `points` are point ids; `segments` are segment INDICES (0-based, authored order —
+ * D26). Arity is per-kind: coincident/distance → 2 points; horizontal/vertical → 1 segment;
+ * parallel/perpendicular/equal/tangent → 2 segments. The command validates the shape; the solver maps it.
+ *
+ * ⚠ This is deliberately NOT a `ConstraintTarget` (which addresses SCENE datums — Levels/Grids). A datum
+ * constraint binds an element to the scene; a sketch constraint relates geometry within one element.
+ */
+export interface SketchOperands {
+  readonly points?: readonly string[];
+  readonly segments?: readonly number[];
+}
+
+/**
+ * A rule relating geometry inside ONE element's sketch (0d). A discriminated-union member beside
+ * `DatumConstraint`; it shares the `id`/`element` spine and the `scene.constraints` collection.
+ */
+export interface SketchConstraint {
+  readonly id: ConstraintId;
+  /** The element whose sketch this constrains — the dependency subject (an element-self edge, 0a). */
+  readonly element: ElementId;
+  readonly kind: SketchConstraintKind;
+  readonly operands: SketchOperands;
+  /** mm or degrees — present only for the dimensional kinds (`distance`; later `angle`/`radius`). */
+  readonly value?: number;
+  /**
+   * ⚠ RESERVED, always true in v1.0.0. planegcs's non-driving constraints are buggy (design §1), so every
+   * v1.0.0 constraint DRIVES its geometry. A future reference/reporting dimension sets this false; reserving
+   * the field now keeps that additive.
+   */
+  readonly driving?: boolean;
 }
 
 /* ================================================================================================

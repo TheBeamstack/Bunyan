@@ -13,12 +13,13 @@ export default defineConfig({
       '@bunyan/kernel-occt': pkg('kernel-occt'),
       '@bunyan/kernel-client': pkg('kernel-client'),
       '@bunyan/document': pkg('document'),
+      '@bunyan/sketch-solver': pkg('sketch-solver'),
     },
   },
-  // The Emscripten module resolves its own .wasm from `import.meta.url` and reads it off disk under
-  // Node. Leave it untransformed — Vite would rewrite that URL and the kernel would fail to find its
-  // own binary.
-  optimizeDeps: { exclude: ['@bunyan/kernel-occt'] },
+  // The Emscripten modules resolve their own .wasm from `import.meta.url` and read it off disk under
+  // Node. Leave them untransformed — Vite would rewrite that URL and the module would fail to find its
+  // own binary. `@salusoft89/planegcs` (the sketch solver's WASM, 0d) is the same kind of module.
+  optimizeDeps: { exclude: ['@bunyan/kernel-occt', '@salusoft89/planegcs'] },
   test: {
     globals: true,
     // The kernel is transport-agnostic, so the whole seam is testable in plain Node — no browser,
