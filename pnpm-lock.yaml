@@ -29,6 +29,9 @@ importers:
       '@bunyan/sketch-solver':
         specifier: workspace:*
         version: link:packages/sketch-solver
+      '@bunyan/types':
+        specifier: workspace:*
+        version: link:packages/types
       '@eslint/js':
         specifier: ^9.17.0
         version: 9.39.5
@@ -143,6 +146,15 @@ importers:
       '@salusoft89/planegcs':
         specifier: ^1.2.0
         version: 1.2.0
+
+  packages/types:
+    dependencies:
+      '@bunyan/document':
+        specifier: workspace:*
+        version: link:../document
+      '@bunyan/protocol':
+        specifier: workspace:*
+        version: link:../protocol
 
 packages:
 

@@ -29,6 +29,7 @@ import type {
   ElementId,
   ElementStyle,
   Grid,
+  JoinConstraint,
   Material,
   ParamValue,
   Params,
@@ -38,7 +39,8 @@ import type {
   SketchOperands,
   SpatialContainer,
 } from './entities.js';
-import { isDatumConstraint } from './entities.js';
+import { isDatumConstraint, isJoinConstraint } from './entities.js';
+import { joinOverridesOf, wallsShareCorner } from './joins.js';
 import { readSketch } from './sketch.js';
 import type { Registries } from './registries.js';
 import type { Scene, SceneChange } from './scene.js';
@@ -832,6 +834,18 @@ export const deleteElementCommand: Command = {
       before: e,
     }));
 
+    // ⚠ CLEAN UP JOIN OVERRIDES that name a doomed wall (0c) — else a stored override would dangle in
+    // `scene.json`, referencing an element that no longer exists. The corner's other wall re-stages to a
+    // plain cap automatically: the invalidator's join edge sees the doomed wall's before-endpoints (§4).
+    const clearedJoins = new Set<string>();
+    for (const e of doomed) {
+      for (const o of joinOverridesOf(ctx.scene, e.id)) {
+        if (clearedJoins.has(o.id)) continue;
+        clearedJoins.add(o.id);
+        changes.push({ collection: 'constraints', id: o.id, before: o });
+      }
+    }
+
     // ⚠ Broken refs are NOT in the delta: they are DERIVED by the rebuild, not authored state. Deleting
     // the wall a complaint was about therefore retires the complaint automatically, on the next
     // rebuild — rather than leaving the document grumbling about an element nobody can see any more.
@@ -1319,6 +1333,115 @@ function constraintTarget(
   }
   return { kind: 'level', id: targetId };
 }
+
+/* ================================================================================================
+ * WALL-TO-WALL JOIN OVERRIDES (D50 step 0c, `P5_step0c_design.md` §6). ⚠ THERE IS NO create-a-join
+ * verb — corners auto-miter on proximity (owner-ruled Q3). These verbs only DEVIATE a corner from the
+ * auto-default: `setJoin` forces butt / explicit mitre / none (Disallow Join); `clearJoin` restores the
+ * auto-miter. Both freeze WITH their `argsSchema` at step 6.
+ *
+ * ⚠⚠ A join is a DISPLAY/QUANTITIES cleanup, NEVER a fuse (§4h). Setting it re-stages both walls of the
+ * corner (the 0c dependency edge); it re-owns no face — a wall's side faces keep their tokens (D26).
+ * ============================================================================================= */
+
+/** The existing override for the {a, b} corner, whichever order it was stored in — or `undefined`. */
+function existingJoinOverride(
+  scene: Scene,
+  a: ElementId,
+  b: ElementId,
+): JoinConstraint | undefined {
+  return joinOverridesOf(scene, a).find((o) => o.element === b || o.other === b);
+}
+
+export const setJoinCommand: Command = {
+  id: 'core.setJoin',
+  label: 'Set wall join',
+  description:
+    'Override a wall corner: butt (element into other), an explicit mitre, or none (Disallow Join). Corners auto-mitre by default — this only deviates one. The two walls must meet at a shared endpoint.',
+  argsSchema: {
+    element: { kind: 'ref', refTo: 'element', label: 'Wall', required: true },
+    other: { kind: 'ref', refTo: 'element', label: 'Joined wall', required: true },
+    resolution: {
+      kind: 'enum',
+      label: 'Resolution',
+      required: true,
+      options: ['butt', 'mitre', 'none'],
+      description:
+        'butt ⇒ element butts into other; mitre ⇒ symmetric; none ⇒ walls stay separate boxes',
+    },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(setJoinCommand, rawArgs);
+    const element = requireElement(ctx.scene, args['element']);
+    const other = requireElement(ctx.scene, args['other']);
+    if (element.id === other.id) {
+      throw new CommandFailure('INVALID_ARGS', 'a wall cannot be joined to itself');
+    }
+    if (!wallsShareCorner(element, other)) {
+      throw new CommandFailure(
+        'REFUSED',
+        `"${element.id}" and "${other.id}" do not meet at a corner — nothing to join`,
+      );
+    }
+    const resolution = text(args['resolution']) as JoinConstraint['resolution'];
+    // ⚠ ONE OVERRIDE PER CORNER. If the pair already carries one, REPLACE it in place (same id, undoable
+    // before→after) so a document never accumulates two contradictory overrides for one corner.
+    const prior = existingJoinOverride(ctx.scene, element.id, other.id);
+    const id = prior?.id ?? ctx.mintId('join');
+    const join: JoinConstraint = {
+      id,
+      element: element.id,
+      other: other.id,
+      kind: 'join',
+      resolution,
+    };
+    return ctx.edit(
+      `Join ${element.id}↔${other.id} (${resolution})`,
+      [{ collection: 'constraints', id, before: prior, after: join }],
+      // Both walls of the corner re-stage — the dependency graph would derive this from the constraint
+      // change too, but naming it makes the intent explicit and covers the butt-direction flip.
+      [element.id, other.id],
+    );
+  },
+};
+
+export const clearJoinCommand: Command = {
+  id: 'core.clearJoin',
+  label: 'Clear wall join',
+  description:
+    'Remove a join override; the corner returns to the auto-mitre default. Takes the override id, or both wall ids.',
+  argsSchema: {
+    id: {
+      kind: 'string',
+      label: 'Override id',
+      description: 'The JoinConstraint id (or pass element+other)',
+    },
+    element: { kind: 'ref', refTo: 'element', label: 'Wall' },
+    other: { kind: 'ref', refTo: 'element', label: 'Joined wall' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(clearJoinCommand, rawArgs);
+    const explicit = text(args['id']);
+    const override =
+      explicit !== ''
+        ? ctx.scene.constraints[explicit]
+        : existingJoinOverride(ctx.scene, text(args['element']), text(args['other']));
+    if (override === undefined) {
+      throw new CommandFailure('NOT_FOUND', 'no join override matches these arguments');
+    }
+    if (!isJoinConstraint(override)) {
+      throw new CommandFailure(
+        'REFUSED',
+        `"${override.id}" is not a wall join — use deleteConstraint / deleteSketchConstraint`,
+      );
+    }
+    return ctx.edit(
+      `Clear join ${override.id}`,
+      [{ collection: 'constraints', id: override.id, before: override }],
+      [override.element, override.other],
+    );
+  },
+};
 
 /* ================================================================================================
  * SKETCH CONSTRAINTS — the 2D solver's rules, as first-class union members (D50 §0d, Q2 owner-ruled:
@@ -1854,6 +1977,8 @@ export const CORE_COMMANDS: readonly Command[] = [
   deleteConstraintCommand,
   createSketchConstraintCommand,
   deleteSketchConstraintCommand,
+  setJoinCommand,
+  clearJoinCommand,
   updateContainerCommand,
   updateGridCommand,
   updateMaterialCommand,

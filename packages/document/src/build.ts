@@ -37,6 +37,7 @@ import {
   hostedBy,
   sketchConstraintsOf,
 } from './scene.js';
+import { resolveJoins } from './joins.js';
 import type { Scene } from './scene.js';
 import { solveSketch as runSketchSolve } from './sketch.js';
 import type { SketchSolver } from './sketch.js';
@@ -397,6 +398,10 @@ function contextFor(
   // reads scalars and never touches the scene — the recipe→solids one-way street (D19) is preserved.
   const datums = datumElevations(scene, element.id);
   const gridPoint = gridPointOf(scene, element.id);
+  // ⚠ THE WALL JOINS (0c), resolved from the scene to plane cap-lines here so the Type reads scalars and
+  // never touches the scene (the 0b move). Empty for a plain wall or a non-wall element — the optional
+  // field stays absent then, so nothing but a joined wall ever sees it.
+  const joins = resolveJoins(scene, element.id);
   return {
     element,
     params: withDefaults(type.parameterSchema, rawParams),
@@ -410,6 +415,7 @@ function contextFor(
     ...(datums.base === undefined ? {} : { baseElevation: datums.base }),
     ...(datums.top === undefined ? {} : { topElevation: datums.top }),
     ...(gridPoint === undefined ? {} : { gridPoint }),
+    ...(joins.length === 0 ? {} : { joins }),
     // ⚠ `other` only when a Type declares none AND builds an unstyled part — an honest "nobody said",
     // never a guess at the trade. D45: never inferred from the material.
     defaultDiscipline: type.defaultDiscipline ?? 'other',

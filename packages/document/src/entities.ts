@@ -309,7 +309,7 @@ export type ConstraintTarget =
  * NEW members — `Constraint = DatumConstraint | AttachConstraint | …` — which is purely additive and is the
  * only shape that lets a Revit/ArchiCAD-class constraint model grow past a datum binding after the freeze.
  */
-export type Constraint = DatumConstraint | SketchConstraint;
+export type Constraint = DatumConstraint | SketchConstraint | JoinConstraint;
 
 export interface DatumConstraint {
   readonly id: ConstraintId;
@@ -330,8 +330,41 @@ export function isDatumConstraint(c: Constraint): c is DatumConstraint {
   return c.kind === 'base' || c.kind === 'top' || c.kind === 'grid';
 }
 
+/**
+ * A WALL-TO-WALL JOIN OVERRIDE (D50 step 0c, `P5_step0c_design.md` §3). ⚠ IT IS AN *OVERRIDE*, NOT THE
+ * JOIN ITSELF. Two wall baselines that meet auto-join as a **mitre** (§0a — a pure function of their
+ * `{start,end}` params, so recipe-is-truth and D1-safe); this record exists ONLY to deviate a specific
+ * corner from that default — `butt` (this wall butts into `other`, which continues), an explicit `mitre`,
+ * or `none` (Revit's *Disallow Join* — the two walls stay separate boxes). Absent ⇒ the auto-mitre.
+ *
+ * ⚠⚠ NEVER A FUSE (§4h, measured Entry 12). A join reshapes ONLY the wall's END-CAP within its own
+ * recipe; the two long side faces (where windows live) keep byte-identical `SubShapeRef` tokens (D26), so
+ * every hosted opening survives. A constraint is not a boolean.
+ *
+ * ⚠ A NEW MEMBER of the `Constraint` union (D53's growth path), never an edit to `DatumConstraint`: a peer
+ * corner relationship is not a datum binding. `element`/`other` order encodes the butt direction.
+ */
+export interface JoinConstraint {
+  readonly id: ConstraintId;
+  /** The dependency subject — the wall this override is filed under (the element-self edge, 0a). */
+  readonly element: ElementId;
+  /** The wall it joins. `{element, other}` IS the corner; order encodes which wall butts into which. */
+  readonly other: ElementId;
+  readonly kind: 'join';
+  /** `butt` ⇒ `element` butts into `other`; `mitre` ⇒ symmetric bisector; `none` ⇒ disallow (stay boxes). */
+  readonly resolution: 'butt' | 'mitre' | 'none';
+  // FUTURE (additive, v1.0.x): readonly priority?: Readonly<Record<string, number>>  // per-layer join
+}
+
+/** ⚠ A peer corner override — not a datum binding, not a sketch rule. Narrow before reaching for `.other`. */
+export function isJoinConstraint(c: Constraint): c is JoinConstraint {
+  return c.kind === 'join';
+}
+
 export function isSketchConstraint(c: Constraint): c is SketchConstraint {
-  return !isDatumConstraint(c);
+  // ⚠ POSITIVE-BY-ELIMINATION over the THREE members (0c added `join`). A bare `!isDatumConstraint` would
+  // now mis-classify a `JoinConstraint` as a sketch constraint — the three must partition cleanly.
+  return !isDatumConstraint(c) && !isJoinConstraint(c);
 }
 
 /* ================================================================================================

@@ -29,6 +29,21 @@ import type { SolvedSketch } from './sketch.js';
 import type { ParamSchema } from './schema.js';
 
 /**
+ * A line in the Level plane a wall's end-cap must lie on (D50 step 0c). A point on the line + its
+ * direction. The wall clips each layer's two side-lines to it to place that end's cap corners.
+ */
+export interface CapLine {
+  readonly point: readonly [number, number];
+  readonly dir: readonly [number, number];
+}
+
+/** One resolved join on a wall: which of its baseline ends is joined, and the cap line that end takes. */
+export interface ResolvedJoin {
+  readonly end: 'start' | 'end';
+  readonly capLine: CapLine;
+}
+
+/**
  * What a Type's `buildGeometry` gets. Note what it does NOT get: a `KernelClient` (D19), the undo
  * stack, or any way to mutate the document. **A Type is a pure function from recipe to solids** — it
  * reads the parametric truth and produces geometry, and that one-way street is what makes the model
@@ -65,6 +80,19 @@ export interface BuildContext {
   readonly topElevation?: number;
   /** The (x, y) intersection of the element's `grid` constraints, if it is grid-placed. */
   readonly gridPoint?: readonly [number, number];
+  /**
+   * ⚠ THE WALL-TO-WALL JOINS on THIS element (D50 step 0c, `P5_step0c_design.md` §5), resolved by the
+   * engine from the scene into plane geometry — so a Type reads scalars and never touches the scene (the
+   * 0b move). One entry per NON-DEFAULT end: a `capLine` the wall's end-cap must lie on, instead of the
+   * plain perpendicular the wall draws by default. An end that auto-mitres, butts, or is unjoined that the
+   * engine could resolve appears here; an unjoined or `none` end does NOT (the wall uses its default cap).
+   *
+   * ⚠⚠ THE ANTI-FUSE PROPERTY LIVES HERE: a join only ever moves a wall's CAP. The wall clips each layer's
+   * two long SIDE-lines (the window-hosting faces) to these cap lines; the side segments keep their
+   * authored index, so their `lateral.k` tokens are byte-identical across any join edit (D26). Empty ⇒ a
+   * plain wall. NEVER a boolean fuse of two elements (§4h, measured Entry 12).
+   */
+  readonly joins?: readonly ResolvedJoin[];
   /**
    * The Type's own `defaultDiscipline` (D45) — the stamp for a part built with **no style layer**.
    * A styled part takes its discipline from **its layer** (`ctx.style.layers[i].discipline`), which is

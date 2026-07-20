@@ -14,7 +14,7 @@
     ]
   },
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json && tsc -p packages/kernel-mock/tsconfig.json && tsc -p packages/kernel-occt/tsconfig.json && tsc -p packages/document/tsconfig.json && tsc -p packages/sketch-solver/tsconfig.json && tsc -p apps/web/tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p packages/kernel-mock/tsconfig.json && tsc -p packages/kernel-occt/tsconfig.json && tsc -p packages/document/tsconfig.json && tsc -p packages/sketch-solver/tsconfig.json && tsc -p packages/types/tsconfig.json && tsc -p apps/web/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
@@ -31,6 +31,7 @@
     "@bunyan/kernel-occt": "workspace:*",
     "@bunyan/protocol": "workspace:*",
     "@bunyan/sketch-solver": "workspace:*",
+    "@bunyan/types": "workspace:*",
     "@eslint/js": "^9.17.0",
     "@types/node": "^20.17.10",
     "eslint": "^9.17.0",

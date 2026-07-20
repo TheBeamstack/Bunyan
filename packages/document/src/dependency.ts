@@ -27,6 +27,7 @@
  */
 
 import type { Constraint, Element, ElementId } from './entities.js';
+import { isJoinConstraint } from './entities.js';
 import type { Scene, SceneChange, SceneCollection } from './scene.js';
 import {
   containerPath,
@@ -34,6 +35,7 @@ import {
   elementsConstrainedToLevel,
   elementsUsingSection,
 } from './scene.js';
+import { endpointsOf, wallsJoinedTo } from './joins.js';
 
 /**
  * The element ids whose BUILT GEOMETRY depends on the entity this change touched — i.e. the ones that
@@ -56,6 +58,16 @@ export function dependents(scene: Scene, change: SceneChange): readonly ElementI
       if (element === undefined) return [];
       const ids: ElementId[] = [element.id];
       if (element.hostId !== undefined) ids.push(element.hostId);
+      // EDGE: wall↔wall JOIN (0c) — the bidirectional element↔element edge. When a wall moves, every wall
+      // whose cap is joined to it must re-stage so its miter follows (`P5_step0c_design.md` §4). "Joined"
+      // is a proximity fact over baselines, so we scan the wall's OLD and NEW endpoints (before/after): the
+      // old ones catch a neighbour it is LEAVING, the new ones a neighbour it is now MEETING. Overrides
+      // naming it are added too. This is what makes "move a wall, its neighbour's corner follows" true.
+      const points = [
+        ...endpointsOf(change.before as Element | undefined),
+        ...endpointsOf(change.after as Element | undefined),
+      ];
+      if (points.length > 0) ids.push(...wallsJoinedTo(scene, element.id, points));
       return ids;
     }
     case 'styles':
@@ -79,8 +91,12 @@ export function dependents(scene: Scene, change: SceneChange): readonly ElementI
     case 'constraints': {
       // EDGE: constraint→element. A datum binding appeared, moved or vanished ⇒ re-stage the element that
       // depends on it. (The container/grid the constraint TARGETS is handled by the two cases above.)
+      // ⚠ A JOIN override (0c) re-stages BOTH walls of the corner: setting/clearing it changes each wall's
+      // cap (butt affects only the butting wall's geometry, but flipping to/from miter can move both, so we
+      // re-stage the pair unconditionally — correct and cheap).
       const c = (change.after ?? change.before) as Constraint | undefined;
-      return c === undefined ? [] : [c.element];
+      if (c === undefined) return [];
+      return isJoinConstraint(c) ? [c.element, c.other] : [c.element];
     }
     case 'sections':
       // EDGE: section→element (D50 step 0e). ⚠ NO LONGER "nothing" — `updateSection` landed. A `Section`

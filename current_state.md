@@ -75,13 +75,14 @@ the dev box** (they are not in this repo and do not travel).
 **release-candidate** and freeze at **P5 step 6**. That freeze is the one irreversible act — after it a
 wrong contract costs an amendment across three products (`.bnn` in the field, Miqdar, Planitor).
 
-**P5 STEP 0 (the D50 constraint model — the largest scope ruling this project made) is the current work,
-staged.** Done and green: **0a** typed dependency graph · **0b** associativity/hosting (datums,
-base/top constraints, grid-hosting) · **0e/0f** the missing CRUD + the generalised no-silent-re-identify
-guard · **0g** the reserve-the-shapes pass + the verb half · **0d** the sketch constraint solver (real
-planegcs, headless, D26 revert-verified — Entry 40). **Remaining:** **the room-bounding solver** (D55,
-its own design doc — the heavier one) · **0c** wall-to-wall joins (with the real Wall). Then the **types
-(steps 1–5)**, the gates, and the FREEZE. See `v1.0.0_imp_plan.md` FREEZE GATE + Entry 40.
+**P5 STEP 0 (the D50 constraint model — the largest scope ruling this project made) is COMPLETE.** Done and
+green: **0a** typed dependency graph · **0b** associativity/hosting (datums, base/top constraints,
+grid-hosting) · **0e/0f** the missing CRUD + the generalised no-silent-re-identify guard · **0g** the
+reserve-the-shapes pass + the verb half · **0d** the sketch constraint solver (real planegcs, D26
+revert-verified — Entry 40) · **the room-bounding solver** (D55 — Entry 41) · **0c wall-to-wall joins**
+(auto-miter, anti-fuse gate green, the real D52 Wall in `@bunyan/types` — Entry 42). **Remaining:** the
+**types (steps 4–5)** — freeze `BimObjectType` against a composite styled Wall (step 5/Opening resolves
+ⓙ) — the gates ⑧/⑨, and the FREEZE (step 6). See `v1.0.0_imp_plan.md` FREEZE GATE + Entry 42.
 
 > **⚠⚠ THE P4 REVIEW HEADLINE (Entry 24) — STILL THE FRAME:** there was **no interaction model in any
 > contract document** — only *"button/drag → Command"*, which is how an action *reaches* the model, not
@@ -187,8 +188,8 @@ is additive and permitted; *changing an existing op's envelope* needs Architect 
 | **Kernel message protocol** (`@bunyan/protocol`) | **✅ FROZEN, v1 (Entry 21)** — **19 live ops + 5 RESERVED** + `CACHE_STALE`. ⚠ `faceFrame` is the FIRST post-freeze op (Entry 30) — a face's frame from the B-Rep surface, explicitly permitted (D13). Reserved: `sectionCut` · `importIfc` (P6) · `instantiate` (the ~21 s style-edit answer, §4j) · `exportBrep`+`importBrep` (the D29 cache — RULED SHIP, §4j). | **✅ FROZEN.** |
 | **`SubShapeRef`** | RC — exercised by the real kernel + the document model (a window survives save→load→rebuild + a 30° rotation). ⚠ `kind:'vertex'` **reserved** (D54a, 0g). | **P5** |
 | **`BimObjectType`** | **✅ WRITTEN (Entry 18), corrected (21), extended.** Carries `parameterSchema`, `styleSchema`, `defaultClassification`, `defaultDiscipline` (D45), `buildGeometry→Part[]` (D30), `buildVoid`, `migrate`, and (0g) `ifcMapping?`/`migrateStyle?`. ⚠⚠ `BuildContext.discard(handle)` — a Type running two ops per part MUST declare its intermediate or it leaks; **declare BEFORE the risky op.** ⚠⚠ `VoidBuildContext.hostFace.inward` (Entry 28) + `.frame` (Entry 30, from `faceFrame`) — a hosted void projects along the host's honest inward normal (correct for curved faces too). `BuildContext` gained `grid()`/base+top datums (0b). ⚠ **ⓙ (Entry 36): a hosted type today can ONLY cut a void, not build parts — step 5 must let a door provide BOTH `buildVoid` AND `buildGeometry`, or the freeze forecloses real doors/windows.** | **P5** (freeze against a **composite, styled** wall) |
-| **`Command`** | **✅ WRITTEN (Entry 18)** — `argsSchema` + `execute` returns its `UndoableEdit`. **The agent API** (§4f). CRUD verbs carry the D51 refuse-or-retarget args (`acknowledge`/`retargetMap`, 0e/0f); `createElement` carries the six reserved-metadata args + `core.setElementMetadata` (0g.2). **0d BUILT `core.createSketchConstraint`/`core.deleteSketchConstraint`** (Entry 40; datum verbs and sketch verbs each refuse the other's ids). | **P5** (with its `argsSchema`) |
-| **`ElementStyle`/`Part`/`Material`/`Section`/spatial tree/`Constraint`/`scene.json`** | **✅ WRITTEN.** `scene.json` = `packages/document/src/scene.ts`. **0b:** `scene.constraints` (discriminated-union `Constraint`, `SCENE_SCHEMA_VERSION` 1→2). **0d (Entry 40):** `SketchConstraint` is the union's SECOND member; the `Sketch` data model lives in `element.params` (Q1=A — no schema bump). **0g:** reserved fields on `Element` (`phaseCreated?`/`phaseDemolished?`/`parentElementId?`/`properties?`/`classifications?`/`mark?`), `SpatialContainer`/`Grid` (IFC bags + Space extent inputs + `Grid.geometry?`), `Scene.georeference?`/`roomSeparators`, `ParamField.relevantWhen?`/`formula?`. | **P5** |
+| **`Command`** | **✅ WRITTEN (Entry 18)** — `argsSchema` + `execute` returns its `UndoableEdit`. **The agent API** (§4f). CRUD verbs carry the D51 refuse-or-retarget args (`acknowledge`/`retargetMap`, 0e/0f); `createElement` carries the six reserved-metadata args + `core.setElementMetadata` (0g.2). **0d BUILT `core.createSketchConstraint`/`core.deleteSketchConstraint`** (Entry 40; datum verbs and sketch verbs each refuse the other's ids). **0c BUILT `core.setJoin`/`core.clearJoin`** (Entry 42 — override verbs; joins are AUTOMATIC on proximity, these only deviate a corner to butt/mitre/none). | **P5** (with its `argsSchema`) |
+| **`ElementStyle`/`Part`/`Material`/`Section`/spatial tree/`Constraint`/`scene.json`** | **✅ WRITTEN.** `scene.json` = `packages/document/src/scene.ts`. **0b:** `scene.constraints` (discriminated-union `Constraint`, `SCENE_SCHEMA_VERSION` 1→2). **0d (Entry 40):** `SketchConstraint` is the union's SECOND member; the `Sketch` data model lives in `element.params` (Q1=A — no schema bump). **0c (Entry 42):** `JoinConstraint` is the union's THIRD member (`{element, other, kind:'join', resolution:'butt'|'mitre'|'none'}`) — an OVERRIDE of the auto-miter default; no schema bump. **0g:** reserved fields on `Element` (`phaseCreated?`/`phaseDemolished?`/`parentElementId?`/`properties?`/`classifications?`/`mark?`), `SpatialContainer`/`Grid` (IFC bags + Space extent inputs + `Grid.geometry?`), `Scene.georeference?`/`roomSeparators`, `ParamField.relevantWhen?`/`formula?`. | **P5** |
 | **Agent surface** (`window.bunyan`) | **✅ WRITTEN** — `createAgentSurface`, versioned separately (`agentApi: 1`, D22); does **not** inherit the P5 freeze. | evolves on its own clock |
 | **`.bnn`** | **✅ WRITTEN + FINISHED (Entry 21).** Zip of `manifest.json` + `scene.json` + `history.json` (the JOURNAL — append-only `seq`; an undo appends a REVERSAL) + optional `thumbnail.png`. Ids are prefixed ULIDs (D44); unknown/future-typed elements round-trip VERBATIM (D43). `geometry-cache.brep` (D29) is purely additive — breaks no saved file when it lands. | **P5** |
 
@@ -211,6 +212,10 @@ packages/
                     src/planegcs-solver.ts  SketchSolver seam. THE ONLY package that imports @salusoft89/planegcs;
                                              injected at construction (like the kernel client). Lines + 7 point/line
                                              constraints; arc/tangent frozen in the CONTRACT but v1.0.x in the impl.
+  types/        ★ @bunyan/types           THE SHIPPED MVP BimObjectTypes (P5) — the REAL registered elements, distinct
+                    src/wall.ts             from the tests/ exercise fixtures. So far: the D52 baseline, join-aware Wall
+                                             (`core.wall`, 0c/step 3). Opening/Slab/etc. join it in steps 4–5. D19: the
+                                             document engine loads these, never depends on them.
   document/     ★ @bunyan/document      THE PARAMETRIC TRUTH LAYER (Entry 18; corrected 21; D50 step-0 33–38)
                     entities.ts    Element/Part/ElementStyle/Material/Section/spatial tree/Grid/Constraint/
                                      RoomSeparator (Part carries `discipline`, D45; Classification={ifcClass,loadBearing})
@@ -231,6 +236,9 @@ packages/
                     geometry.ts    ★ GeometryGateway — the narrow seam that makes D19 STRUCTURAL (excludes `tessellate`)
                     sketch.ts    ★ 0d — the SketchSolver SEAM + solver-neutral IR + MockSketchSolver + readSketch +
                                      solveSketch (the D26 guard). @bunyan/document stays pure (no planegcs dep).
+                    joins.ts     ★ 0c — the WALL-JOIN resolver (Entry 42): auto-miter on proximity + butt near-face,
+                                     all plane geometry from the {start,end} params (recipe = truth, D1-safe). Feeds
+                                     BuildContext.joins (cap-lines). The bidirectional wall↔wall dependency edge lives here.
 apps/web/        ★ Amer's Vite/React shell — bootstrap (the one KernelClient holder), WebGL2 three.js viewport,
                     generated ribbon + property panel, incremental redraw, sub-shape picking, failure-state panels
 tests/            268 tests (all document tests run against the REAL OCCT kernel, never the mock) + goldens + harness
@@ -294,7 +302,8 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
   the BIMsync spec is not on this box, D37; escalation).
 - No `LICENSE`/CLA/OCCT attribution yet (§4e; must land before public). No service worker/PWA/Cloudflare
   deploy (Amer's).
-- **0c wall-to-wall joins** — not built (with the real Wall; anti-fuse absolute).
+- ~~0c wall-to-wall joins~~ — **✅ BUILT + GREEN (Entry 42).** Auto-miter on proximity + butt/none overrides,
+  the real D52 Wall in `@bunyan/types`, anti-fuse gate + associativity edge revert-verified.
 
 ---
 
@@ -343,8 +352,8 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | D55 | **Space extent = Option B (room-bounding).** Boundary DERIVED from bounding walls (+ separators), never stored. **The room-bounding solver ships in v1.0.0.** |
 | D56 | The pre-freeze reservation set (0g): phasing = TWO datums; `ifcMapping`/`migrateStyle`/`georeference`/`formula`/`parentElementId` + the Revit-parity sweep (`properties`/`classifications`/`mark`/`Grid.geometry`). |
 
-**⚠ D40–D46 are ALL BUILT (Entry 21), each with a test that fails if the fix is reverted. D50 step 0 is
-mostly built (0a/0b/0e/0f/0g — Entries 33–38); 0d + 0c remain.**
+**⚠ D40–D46 are ALL BUILT (Entry 21), each with a test that fails if the fix is reverted. D50 STEP 0 IS
+NOW FULLY BUILT — 0a/0b/0e/0f/0g (Entries 33–38), 0d (Entry 40), room-bounding (Entry 41), 0c (Entry 42).**
 
 ### 4b — Verification scope: WE TRUST OCCT; WE VERIFY OUR OWN CODE (D9)
 
@@ -434,10 +443,12 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 
 ## §5 — Next actions (in priority order)
 
-> ## ✅ BOTH v1.0.0 SOLVERS ARE BUILT + GREEN (0d Entry 40, room-bounding Entry 41). NEXT: 0c JOINS → TYPES.
-> Both solvers shipped before the types, as ruled: **0d (real planegcs, D26 revert-verified)** and the
-> **room-bounding solver (D55, inner-finish-face, ⓞ resolved — Entry 41).** Remaining step-0 item: **0c
-> wall-to-wall joins** (with the real Wall; anti-fuse absolute). Then the types (steps 1–5), the gates, FREEZE.
+> ## ✅✅ STEP 0 IS CLOSED — BOTH SOLVERS + 0c JOINS ARE BUILT + GREEN (0d E40, room-bounding E41, 0c E42). NEXT: THE TYPES → FREEZE.
+> All of D50 step 0 is done: **0a–0g**, **0d (real planegcs, D26 revert-verified)**, the **room-bounding
+> solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
+> the real D52 Wall pulled forward into `@bunyan/types`).** ⚠⚠ THE ANTI-FUSE RULE HELD (a join reshapes only
+> the cap; side faces keep their tokens, D26). **NEXT: the types (steps 4–5) — freeze `BimObjectType`
+> against a composite styled Wall; step 5 (Opening) MUST resolve ⓙ — then the gates ⑧/⑨, then FREEZE.**
 
 **For Zayd (kernel / document / headless) — the close-order:**
 
@@ -453,10 +464,14 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
    `RoomSolver` seam (`packages/document/src/room.ts` + `DocumentContext.roomMetrics`). Inner-finish-face area
    + perimeter + prismatic volume, derived on demand (never stored/cached). **Freeze-Gate ⓞ resolved**
    (openings don't leak rooms). No frozen byte moved. **Estimate re-inverted: ~1 session, not 5–8.**
-3. **⏭ START HERE — 0c — WALL-TO-WALL JOINS** (with the real Wall, step 3). ⚠⚠ **THE ANTI-FUSE RULE IS ABSOLUTE** — a
-   join is display/quantities cleanup, NEVER a fuse. If the join test (every hosted window still resolves)
-   is green, the join is not a fuse.
-4. **THE TYPES (steps 1–5).** Freeze `BimObjectType` against a COMPOSITE, STYLED wall. ⚠⚠ **STEP 5
+3. **✅ DONE — 0c — WALL-TO-WALL JOINS** (Entry 42). Auto-miter on proximity (owner Q3) + `core.setJoin`/
+   `core.clearJoin` overrides (butt/mitre/none); the real D52 Wall pulled forward into `@bunyan/types`
+   (`core.wall`). ⚠⚠ **THE ANTI-FUSE RULE HELD** — the wall builds as an extruded plan polygon in fixed
+   segment order, a join reshapes only the CAP, side faces keep byte-identical `lateral.k` tokens (D26).
+   The anti-fuse gate + the bidirectional join edge are revert-verified. Did NOT touch the frozen kernel
+   protocol; `JoinConstraint` is the `Constraint` union's additive third member.
+4. **⏭ START HERE — THE TYPES (steps 4–5).** Freeze `BimObjectType` against a COMPOSITE, STYLED wall (the
+   real `@bunyan/types` Wall now exists — freeze validates against it + its Opening). ⚠⚠ **STEP 5
    (Opening) MUST RESOLVE ⓙ** — a hosted type providing BOTH `buildVoid` AND `buildGeometry` (a real
    door/window is a hole *plus* a leaf/frame); the build engine calls only `buildVoid` today. Then the
    gates (⑧ Miqdar §3.4, ⑨ 2D-annotation anchoring), then **FREEZE (step 6).**
@@ -469,7 +484,9 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 freeze (D13) · CI (all five steps pass here) · the document model + agent surface + `.bnn` + undo +
 broken-ref state + cascade delete (Entry 18) · all six P3 defects + D40–D46 (Entry 21, revert-verified) ·
 `-O3`/LTO (MEASURED — no speed; do not re-run) · the heap ceiling (Entry 29 — it fits) · D50 step
-0a/0b/0e/0f/0g (Entries 33–38) · **0d the sketch constraint solver (Entry 40 — real planegcs, green).**
+0a/0b/0e/0f/0g (Entries 33–38) · **0d the sketch constraint solver (Entry 40 — real planegcs, green)** ·
+the **room-bounding solver (Entry 41)** · **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate
+green, real Wall in `@bunyan/types`). ⇒ ALL OF D50 STEP 0 IS CLOSED.**
 
 **For Amer (browser hot path):** P4 steps done through Entry 27 (the gate now sees `apps/web`; incremental
 redraw; sub-shape picking; the failure-state panels; the D19 equivalence test). ⚠ Build against
@@ -758,3 +775,50 @@ verify` fully green (**294 tests, +19**; typecheck incl. apps/web, lint, format,
 display/quantities cleanup, NEVER a boolean) → the **types (steps 1–5)**, ⚠⚠ step 5 (Opening) must resolve
 ⓙ (a hosted type providing BOTH `buildVoid` AND `buildGeometry`) → the gates (⑧ Miqdar §3.4, ⑨ 2D anchoring)
 → **FREEZE.** **No commit yet — commits are owner-gated.** ⚠ Box: no containers touched, no ports bound.
+
+### Entry 42 — 2026-07-20 — Zayd — **D50 STEP 0c BUILT + GREEN: WALL-TO-WALL JOINS SHIP — AUTO-MITER, ANTI-FUSE, AND THE REAL WALL PULLED FORWARD. STEP 0 IS CLOSED.**
+**Task (owner):** resume implementing — build the next item, 0c, its own design doc first. Designed
+(`P5_step0c_design.md`), owner ruled Q1–Q5 **and two follow-ups §9a-A/§9a-B**, built, `pnpm verify` fully
+green (**302 tests, +8**; typecheck incl. the new package + apps/web, lint, format, reseed).
+
+- **✅ OWNER RULED Q1–Q5 + §9a (design §9/§9a). ⚠ TWO RULINGS OVERRODE THE RECOMMENDATIONS and reshaped the
+  frozen contract — recorded because a future agent will assume the recommendation held:** Q1 = **butt +
+  mitre** (per-layer priority v1.0.x) · Q2 = a **dedicated `JoinConstraint`** union member · **Q3 =
+  AUTOMATIC ON PROXIMITY** (not the recommended explicit command) · **Q4 = PULL THE REAL WALL FORWARD** (not
+  a fixture — build the shipped D52 Wall and join on it) · §9a-A = **`JoinConstraint` is an OVERRIDE-ONLY
+  record, auto-default = mitre, `resolution ∈ {butt,mitre,none}`** · §9a-B = **MINIMAL** (just the real Wall
+  this session; home = my call → a new `@bunyan/types` package).
+- **⚠⚠ THE ANTI-FUSE RULE HELD, STRUCTURALLY AND BY GATE (§4h, measured Entry 12).** A join is a
+  DISPLAY/QUANTITIES cleanup, NEVER a boolean fuse. The wall builds as an **extruded plan polygon** in a
+  FIXED segment order (`start-cap → a-side → end-cap → b-side`); a join reshapes ONLY the two CAP segments,
+  so the window-hosting **side faces `lateral.1`/`lateral.3` keep byte-identical tokens (D26)**. **The gate
+  (`tests/wall-joins.test.ts` §7.1): a window on a wall's side face survives the corner being joined —
+  token byte-identical, void volume unchanged.** If green, the join is not a fuse.
+- **⚠ AUTOMATIC-ON-PROXIMITY IS D1-SAFE (design §0a — write this down).** "Do two ends meet?" is decided
+  from the `{start,end}` PARAMS (the recipe, the same inputs `footprintOf` reads), never from a built
+  solid — a pure function of truth, like room-bounding. A stored `JoinConstraint` is only an OVERRIDE
+  (butt / explicit mitre / `none` = Disallow Join); absent ⇒ auto-mitre. No stored row per plain corner.
+- **The pipeline:** `packages/document/src/joins.ts` (engine-side resolver — auto-join detection + miter
+  bisector + butt near-face, all plane geometry, headless) → `BuildContext.joins` (resolved cap-lines, the
+  0b "Type reads scalars, never the scene" move) → the shipped **`@bunyan/types` `wallType`** clips each
+  layer's side-lines to the two cap-lines and extrudes. `core.setJoin`/`core.clearJoin` author overrides;
+  wall-delete cascades dangling overrides. **Bidirectional dependency edge** (`dependency.ts`): move a
+  wall → its joined neighbours re-stage (proximity over old+new endpoints), and a `JoinConstraint` change
+  re-stages both walls. **REVERT-VERIFIED:** disabling the join edge → the associativity + auto-miter +
+  composite tests go red (3 fail).
+- **Tests (`tests/wall-joins.test.ts`, 8, real OCCT):** the anti-fuse gate · auto-miter geometry (cap
+  reaches past the corner) · butt lands on the through wall's face · `none` disallows · **associativity**
+  (move a wall, the neighbour's miter follows) · deletion reverts the neighbour + clears the override ·
+  **composite wall miters EVERY layer** + window pierces all · save→load round-trip (the override is in
+  the recipe).
+- **⚠⚠ NO FROZEN BYTE BROKEN, ONLY ADDED.** `JoinConstraint` is the `Constraint` union's THIRD member
+  (D53's growth path); `BuildContext.joins`, `core.setJoin`/`core.clearJoin` are additive; **no
+  `SCENE_SCHEMA_VERSION` bump, frozen kernel protocol untouched.** New package `@bunyan/types` (the shipped
+  MVP types' home; the legacy `length/height` fixture `core.wall.v1` stays for the 14 tests that use it).
+
+**NEXT:** **BOTH v1.0.0 solvers AND joins are done — STEP 0 IS CLOSED.** The **types (steps 4–5)** are next:
+freeze `BimObjectType` against a composite, styled wall; ⚠⚠ **step 5 (Opening) MUST RESOLVE ⓙ** (a hosted
+type providing BOTH `buildVoid` AND `buildGeometry`) → the gates (⑧ Miqdar §3.4, ⑨ 2D anchoring) → **FREEZE
+(step 6).** ⚠ The real Wall is now a shipped `@bunyan/types` type — the freeze validates against it (and its
+Opening). **No commit yet — commits are owner-gated.** ⚠ Box: installed nothing new (workspace-only link);
+no containers touched, no ports bound.

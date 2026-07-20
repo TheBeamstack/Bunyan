@@ -14,6 +14,7 @@ export default defineConfig({
       '@bunyan/kernel-client': pkg('kernel-client'),
       '@bunyan/document': pkg('document'),
       '@bunyan/sketch-solver': pkg('sketch-solver'),
+      '@bunyan/types': pkg('types'),
     },
   },
   // The Emscripten modules resolve their own .wasm from `import.meta.url` and read it off disk under

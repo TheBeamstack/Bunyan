@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // The shipped types are pure recipe→geometry functions: they depend on `@bunyan/document` (the
+    // `BimObjectType`/`BuildContext` contracts they implement) and `@bunyan/protocol` (the `Profile` they
+    // hand the kernel), and on nothing else — no DOM, no kernel client (D19).
+    "types": []
+  },
+  "include": ["src/**/*.ts"]
+}
