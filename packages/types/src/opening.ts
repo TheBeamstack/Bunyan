@@ -14,8 +14,8 @@
  * ⚠ BOTH HALVES POSITION FROM `hostFace.frame` (origin + outward normal + two in-plane tangents, read from
  * the B-Rep surface — Entry 30), so the leaf lands exactly in the hole whatever the wall's orientation: a
  * wall running NE has an oblique side face, and a bbox cannot place anything on it, but the frame can. The
- * hole and the leaf share ONE convention (centre at `offsetU`/`offsetV` from the face centre), so they
- * cannot drift apart.
+ * hole and the leaf share ONE convention (`offsetU` from the wall START, `offsetV` from the face centre —
+ * Revit's model, owner-ruled 2026-07-21), so they cannot drift apart AND a join never moves the door.
  *
  * ⚠ IT HAS `buildLeaf`, NOT `buildGeometry` — and that is the contract, not a detail. A door is a solid
  * ONLY when hosted (it builds in its wall's opening frame); an un-hosted door is correctly `unbuildable`,
@@ -36,9 +36,11 @@ export const openingType: BimObjectType = {
   parameterSchema: {
     width: { kind: 'number', label: 'Width', unit: 'mm', required: true, min: 1 },
     height: { kind: 'number', label: 'Height', unit: 'mm', required: true, min: 1 },
-    // Where the opening CENTRE sits on the host face, from the face centre — the ONE convention the void
-    // and the leaf share (so they never drift apart). `offsetV` is a sill/head offset; `0` = centred.
-    offsetU: { kind: 'number', label: 'Offset along the face', unit: 'mm', default: 0 },
+    // ⚠ REVIT'S MODEL (owner-ruled 2026-07-21): `offsetU` is the door centre's distance FROM THE HOST WALL'S
+    // START, measured along the wall — NOT from the (join-mobile) face centre, so a join/resize never moves
+    // the door (tests/opening-join-drift). The void and the leaf share this one convention, so they never
+    // drift apart. `offsetV` is a sill/head offset from the face centre; `0` = vertically centred.
+    offsetU: { kind: 'number', label: 'Offset from the wall start', unit: 'mm', default: 0 },
     offsetV: { kind: 'number', label: 'Offset up the face', unit: 'mm', default: 0 },
     // The door's OWN solids. Absent leaf material ⇒ the leaf still builds; its mass is simply unmeasurable
     // (D45 — omitted, never zeroed), exactly as for a wall layer with an unresolved material.
@@ -156,8 +158,15 @@ function readSize(ctx: VoidBuildContext): { readonly width: number; readonly hei
   return { width, height };
 }
 
-/** The opening's local basis on the host face: the CENTRE (face centre + offsets), the outward normal, and
- * the two in-plane axes — every solid is placed in this one frame, so the hole and the leaf cannot drift. */
+/** The opening's local basis on the host face: the CENTRE, the outward normal, and the two in-plane axes —
+ * every solid is placed in this one frame, so the hole and the leaf cannot drift.
+ *
+ * ⚠ REVIT'S MODEL (owner-ruled 2026-07-21): `offsetU` is measured from the HOST WALL'S START along the face,
+ * not from the face's parametric centre. A mitre/join/resize extends the built face and moves its centre,
+ * which silently relocated the door (measured 50 mm, `tests/opening-join-drift`). The wall's {start,end}
+ * baseline is a RECIPE value a join never touches, so anchoring to it is stable — and the frozen
+ * `VoidBuildContext` already carries it (`hostParams`), so this needs no frozen-contract change. A host with
+ * no baseline (a slab/column face) has no start to anchor to ⇒ the face centre, exactly as before. */
 function faceBasis(ctx: VoidBuildContext): {
   readonly centre: Vec3;
   readonly normal: Vec3;
@@ -166,8 +175,23 @@ function faceBasis(ctx: VoidBuildContext): {
   const { origin, normal, uAxis, vAxis } = ctx.hostFace.frame;
   const offU = num(ctx.params['offsetU'], 0);
   const offV = num(ctx.params['offsetV'], 0);
-  const centre = shift(shift(origin, uAxis, offU), vAxis, offV);
-  return { centre, normal, u: uAxis };
+
+  // Orient u to point start→end (whatever sign OCCT gave the face parametrisation), then anchor at the wall
+  // start. Both are derived from the host recipe (`hostParams`), so the anchor is stable across joins/resizes.
+  const start = readVec2(ctx.hostParams['start']);
+  const end = readVec2(ctx.hostParams['end']);
+  let u: Vec3 = uAxis;
+  let anchor: Vec3 = origin;
+  if (start !== undefined) {
+    if (end !== undefined && (end[0] - start[0]) * uAxis[0] + (end[1] - start[1]) * uAxis[1] < 0) {
+      u = [-uAxis[0], -uAxis[1], -uAxis[2]];
+    }
+    // Foot of the wall start on the u-axis through the frame origin (the face is vertical ⇒ z is immaterial).
+    const du = (start[0] - origin[0]) * u[0] + (start[1] - origin[1]) * u[1];
+    anchor = shift(origin, u, du);
+  }
+  const centre = shift(shift(anchor, u, offU), vAxis, offV);
+  return { centre, normal, u };
 }
 
 /** How far the cut must run to clear the host — its full thickness, with margin added by the caller. */
@@ -209,4 +233,12 @@ function num(value: unknown, fallback: number): number {
 /** A material ref may be absent (an unpriced door still builds — its mass is just omitted, D45). */
 function str(value: unknown): string {
   return typeof value === 'string' ? value : '';
+}
+
+/** Read a 2D point (`[x, y]`) from a param value — the host wall's {start,end} baseline (D52). */
+function readVec2(value: unknown): readonly [number, number] | undefined {
+  if (!Array.isArray(value) || value.length < 2) return undefined;
+  const x: unknown = value[0];
+  const y: unknown = value[1];
+  return typeof x === 'number' && typeof y === 'number' ? [x, y] : undefined;
 }

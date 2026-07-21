@@ -97,7 +97,7 @@ describe('ⓙ — a hosted Door builds a leaf + frame, not only a hole (P5 step 
         params: {
           width: DW,
           height: DH,
-          offsetU: 0,
+          offsetU: 2000, // Revit's model: distance from the wall start ⇒ centred on the 4000 baseline
           offsetV: 0,
           leafThickness: LEAF_T,
           frameWidth: FRAME,
@@ -155,7 +155,7 @@ describe('ⓙ — a hosted Door builds a leaf + frame, not only a hole (P5 step 
     const bounds = (await client.request('bounds', { handle: leaf.handle })).bounds;
 
     // The wall runs along +X with its finish face at y = −(TW/2 + …); the leaf spans LEAF_W in X and
-    // LEAF_H in Z, centred on the wall (offsetU/offsetV = 0 ⇒ centred on the 4000×H face).
+    // LEAF_H in Z (offsetU = 2000 from the wall start ⇒ centred on the 4000 baseline; offsetV = 0 ⇒ mid-height).
     expect(bounds.max[0] - bounds.min[0]).toBeCloseTo(LEAF_W, 2); // width along the wall
     expect(bounds.max[2] - bounds.min[2]).toBeCloseTo(LEAF_H, 2); // height up the wall
     expect(bounds.max[1] - bounds.min[1]).toBeCloseTo(LEAF_T, 2); // thin through the wall

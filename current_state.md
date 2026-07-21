@@ -959,3 +959,38 @@ the contracts frozen) is owner-gated and NOT done — everything owed *before* i
   signs off, tag `SubShapeRef`/`BimObjectType`(+`buildLeaf`)/`Command`/`scene.json`/`ParamSchema`/`UndoableEdit`
   frozen) and the commit of this session's work. **No commit yet — owner-gated.** ⚠ Box: installed nothing;
   no containers touched, no ports bound.
+
+### Entry 45 — 2026-07-21 — Zayd — **PRE-FREEZE GAP-HUNT: ONE REAL GAP FOUND + FIXED (a join silently moved a hosted door). NO FORECLOSURE — FREEZE-READY CONFIRMED. Entry 44 COMMITTED + PUSHED.**
+**Task (owner):** commit Entry 44's design, then run tests to find unconsidered points/gaps that must be handled
+before the freeze; on the door finding, adopt Revit's model, then commit + push. `pnpm verify` fully green
+(**310 tests, +1**; typecheck incl. apps/web, lint, format, reseed).
+
+- **Entry 44 committed + pushed** (`4f91344`) — the ⓙ door-leaf fix, ⑥ Clean Delta design, gates ⑧/⑨. It no
+  longer "outruns the artifacts" (the exact `review_P5` Finding-1 trap). Verified green on the working tree first.
+- **THE GAP (measured, real kernel):** composing the two NEWEST surfaces for the first time — the `buildLeaf`
+  door (Entry 44) + 0c wall joins (Entry 42) — a centred door on a wall **drifted +T/4 (50 mm) when a NEIGHBOUR
+  wall arrived at the far corner.** Nobody touched the door or its wall. Cause: `core.opening` anchored `offsetU`
+  to the host face's PARAMETRIC CENTRE (`hostFace.frame.origin`), and an auto-mitre extends the joined side-face
+  (`wall-joins` §7.2), moving that centre. ⚠ Entry 42's anti-fuse gate never caught it — it checked the host
+  TOKEN + void VOLUME, not the door's POSITION, and drove the LEGACY fixture opening, not the shipped one.
+- **⚠⚠ NOT A FORECLOSURE — the freeze is SAFE.** `core.opening` is a registry type (additive, D19), not a frozen
+  contract; and the frozen `VoidBuildContext` ALREADY carries the host wall's `{start,end}` baseline (`hostParams`),
+  a stable anchor a join never touches. So the fix needed **no frozen-contract change** — freeze-positive evidence.
+- **✅ OWNER RULED: Revit's model.** `offsetU` is now the door centre's distance FROM THE WALL START along the
+  baseline (oriented start→end, orientation-independent anchor), not from the face centre. Both `buildVoid` and
+  `buildLeaf` share the one `faceBasis`, so hole + leaf co-move (never drift apart). A slab/column host with no
+  baseline falls back to the face centre (today's behaviour). **REVERT-VERIFIED:** anchor back to `frame.origin`
+  → `tests/opening-join-drift` fails (door at 5000, not 3000; the 50 mm drift returns).
+- **Tests:** new `tests/opening-join-drift.test.ts` (1, real OCCT) — a neighbour join does NOT move the door;
+  `tests/opening-leaf.test.ts` updated (`offsetU: 2000` = centred on the 4000 baseline, was `0`).
+- **THE FREEZE-FORCING / THREE-CONSUMERS SWEEP (recorded, all freeze-safe, so a future agent doesn't re-derive):**
+  mirror is already in `RigidMotion` + ruled (a mirror is a new element); length/count deliberately omitted from
+  `QuantityBreakdown` (ⓗ, exporter-derived); **raked/gable + curved walls** are additive (a new type or an optional
+  `BuildContext` field — today's wall extrudes by ONE scalar height); a multi-floor **shaft** is N openings today /
+  a future additive type; **ⓑ/ⓘ** — no `core.move`/`setPlacement`/`rotate`/`copy`/`array` exists and `transactionId`
+  is reserved-but-unused, but adding a move verb later is additive (D19), `transactionId` is reserved, and D52 folds
+  "drag the wall's end" into `setParams` (one edit) — freeze-safe, though the plan's pointing-device validation
+  (Amer's track) is still unrecorded. **⇒ No hard foreclosure found; the contracts are freeze-ready.**
+
+**NEXT:** unchanged — the **owner-gated FREEZE (step 6)** is the only remaining step. ⚠ Box: installed nothing;
+no containers touched, no ports bound.
