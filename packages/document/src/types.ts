@@ -266,13 +266,45 @@ export interface BimObjectType {
   readonly defaultDiscipline?: Discipline;
 
   /**
-   * Build the element's parts from its recipe. **Ordered.** Absent for a hosted void (an Opening
-   * contributes a hole, not a solid).
+   * Build the element's parts from its recipe. **Ordered.** This is the STANDALONE-element builder — an
+   * element that stands on its own (a wall, a slab, a column). Absent for a hosted void (an Opening
+   * contributes a hole, not a solid) — a hosted element that also has a solid builds it with `buildLeaf`,
+   * NOT this, because a door leaf cannot be built without its host frame (see `buildLeaf`).
    */
   readonly buildGeometry?: (ctx: BuildContext) => Promise<readonly BuiltPart[]>;
 
   /** A hosted VOID (an Opening): the solid to subtract from every part of its host. */
   readonly buildVoid?: (ctx: VoidBuildContext) => Promise<BuiltVoid>;
+
+  /**
+   * ⚠⚠ THE HOSTED-SOLID HALF OF A DOOR/WINDOW (Freeze-Gate ⓙ, resolved P5 step 5, `review_P5.md` #2).
+   *
+   * A hosted element is not only a hole. A real door has a **leaf, frame and sill**; a real window has
+   * a **frame and glazing** — solids that live IN the opening. Before this, a hosted type could ONLY
+   * cut a void (`build.ts` called `buildVoid` and pushed `parts: []`); freezing the build wire without
+   * this **forecloses every real door and window**, a declared v1.0.0 element.
+   *
+   * ⚠ IT IS A SEPARATE METHOD FROM `buildGeometry`, AND THE SEPARATION IS THE CONTRACT — not an accident:
+   *   1. A leaf must be placed in the host's opening frame, so it needs the host geometry — it takes a
+   *      `VoidBuildContext` (`hostFace`/`host`/`hostStyle`), exactly like `buildVoid`. `buildGeometry`
+   *      takes a plain `BuildContext`, and under `strictFunctionTypes` a `(VoidBuildContext) ⇒ …` is NOT
+   *      assignable to a `(BuildContext) ⇒ …` (proven: `TS2322`) — so `buildGeometry` structurally
+   *      cannot be the leaf builder without widening the frozen `BuildContext` for every element.
+   *   2. A door builds a solid ONLY when hosted. `buildGeometry` means *"I stand on my own"*; a door
+   *      does not, and an un-hosted door is correctly `unbuildable` (a door with no wall is not a thing).
+   *      Putting the leaf on `buildGeometry` would wrongly let the engine try to build it standalone,
+   *      with no `hostFace` — garbage. `buildLeaf` says exactly *"I am a solid, but only in a host."*
+   *
+   * ⚠ IT NEEDS NO NEW FROZEN FIELD (the pre-freeze proof, `review_P5.md` #2): it reuses `VoidBuildContext`
+   * and `BuiltPart` UNCHANGED — `hostFace.frame`/`bounds`/`inward` already place a leaf, and a leaf part is
+   * an ordinary `BuiltPart`. The ONLY additive surface is this one optional method, landed pre-freeze.
+   *
+   * ⚠ Build the leaf in the HOST's LOCAL frame (from `hostFace`, like `buildVoid`); the engine applies the
+   * host's placement last, so the door moves with its wall. The parts become the OPENING element's own
+   * `parts` (its `quantities` measure the leaf, per part, per material — a door schedules its ironmongery).
+   * Absent ⇒ the hosted element is a pure void (a plain opening / a rough hole), exactly as before.
+   */
+  readonly buildLeaf?: (ctx: VoidBuildContext) => Promise<readonly BuiltPart[]>;
 
   /**
    * Bring params authored against an older version of this Type forward. Called on load, once per

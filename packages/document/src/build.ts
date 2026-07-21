@@ -43,7 +43,7 @@ import { solveSketch as runSketchSolve } from './sketch.js';
 import type { SketchSolver } from './sketch.js';
 import { withDefaults } from './schema.js';
 import type { Registries } from './registries.js';
-import type { BuildContext, BuiltPart, VoidBuildContext } from './types.js';
+import type { BimObjectType, BuildContext, BuiltPart, VoidBuildContext } from './types.js';
 
 /** What a rebuild produced for one element. */
 export interface ElementGeometry {
@@ -290,12 +290,28 @@ export async function buildAssembly(
     }
 
     try {
-      const built = await voidType.buildVoid(
-        voidContextFor(scene, registries, { request }, solver, opening, element, hostFace, discard),
+      const voidCtx = voidContextFor(
+        scene,
+        registries,
+        { request },
+        solver,
+        opening,
+        element,
+        hostFace,
+        discard,
       );
+      const built = await voidType.buildVoid(voidCtx);
       intermediates.push(built.handle);
       cuts.push({ opening, handle: built.handle });
-      voidResults.push({ elementId: opening.id, parts: [], state: 'valid' });
+
+      // ---- ⓙ: A HOSTED ELEMENT MAY ALSO BUILD A SOLID (a door's leaf/frame), not only a hole. --------
+      // Freeze-Gate ⓙ (`review_P5.md` #2): before this, a hosted element was built via `buildVoid` ONLY
+      // and its own `parts` were always `[]` — so a door was a hole with no leaf. A hosted type that
+      // provides `buildLeaf` builds its solid IN THE HOST'S LOCAL FRAME (from `hostFace`, like the void);
+      // the engine applies the host's placement last, so the door moves with its wall. The leaf becomes
+      // the OPENING element's own parts (`quantities` then measures the door, per part, per material).
+      const leafParts = await buildLeafParts(voidType, voidCtx, element, request, intermediates);
+      voidResults.push({ elementId: opening.id, parts: leafParts, state: 'valid' });
     } catch (error) {
       voidResults.push({
         elementId: opening.id,
@@ -451,6 +467,77 @@ function voidContextFor(
     ...(hostStyle === undefined ? {} : { hostStyle }),
     hostFace,
   };
+}
+
+/**
+ * ⓙ — BUILD A HOSTED ELEMENT'S SOLID (a door's leaf/frame). The other half of a hosted element: `buildVoid`
+ * makes the hole, `buildLeaf` makes the thing IN the hole. Absent ⇒ a pure void (a plain opening), and this
+ * returns `[]` — byte-identical to the pre-ⓙ behaviour.
+ *
+ * The leaf is built in the HOST's local frame (from `hostFace`, like the void); here the engine applies the
+ * host's placement last, so the door rides its wall into the world. Throws on a duplicate leaf node id or a
+ * placement refusal — the caller marks the opening `failed` (the wall + its hole survive; only the door is
+ * lost), and every solid this touched is handed back as garbage so nothing leaks on the failure path.
+ */
+async function buildLeafParts(
+  voidType: BimObjectType,
+  ctx: VoidBuildContext,
+  host: Element,
+  request: GeometryGateway['request'],
+  intermediates: string[],
+): Promise<readonly Part[]> {
+  if (voidType.buildLeaf === undefined) return [];
+
+  const leaves = await voidType.buildLeaf(ctx);
+  if (leaves.length === 0) return [];
+
+  // ⚠ IDENTITY CHECK, exactly as for base parts (see step 1): two leaf parts on ONE DAG node would mint
+  // byte-identical `SubShapeRef` tokens for different solids — the ironmongery hosted on one would be on
+  // both, or neither. `core_logic.md` §5: an identity that cannot be derived structurally is a REFUSAL.
+  const nodes = new Set<string>();
+  for (const leaf of leaves) {
+    if (nodes.has(leaf.nodeId)) {
+      for (const built of leaves) intermediates.push(built.handle);
+      throw new Error(
+        `opening "${ctx.element.id}" builds two leaf parts on the DAG node "${leaf.nodeId}" — their ` +
+          `sub-shape references would be identical tokens naming different faces. Part names must be unique.`,
+      );
+    }
+    nodes.add(leaf.nodeId);
+  }
+
+  const placed: Part[] = [];
+  try {
+    for (const leaf of leaves) {
+      let handle = leaf.handle;
+      let refs = leaf.refs;
+      // ⚠ IT IS THE HOST's placement the leaf rides, never the opening's — the void that made room for it
+      // was cut in the host's OWN frame BEFORE the host was placed (step 3 places host parts last), so the
+      // leaf must follow the same motion to stay in its doorway. `transform` mints no identities (D25), so
+      // the leaf's `refs` come back token for token — a rotated door is the same door.
+      if (host.placement !== undefined && host.placement.length > 0) {
+        const result = await request('transform', { handle, motions: host.placement });
+        intermediates.push(handle); // the pre-placement solid is now garbage
+        handle = result.handle;
+        refs = result.refs;
+      }
+      placed.push({
+        name: leaf.name,
+        materialId: leaf.materialId,
+        discipline: leaf.discipline,
+        nodeId: leaf.nodeId,
+        handle,
+        refs,
+      });
+    }
+  } catch (error) {
+    // A placement refused mid-way: every solid we hold — the raw leaves and the ones already placed — is
+    // now garbage. Hand it all back so nothing leaks, then let the caller mark the opening failed.
+    for (const leaf of leaves) intermediates.push(leaf.handle);
+    for (const part of placed) intermediates.push(part.handle);
+    throw error;
+  }
+  return placed;
 }
 
 function messageOf(error: unknown): string {

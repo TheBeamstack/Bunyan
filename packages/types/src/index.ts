@@ -8,3 +8,4 @@
  */
 
 export { wallType } from './wall.js';
+export { openingType } from './opening.js';

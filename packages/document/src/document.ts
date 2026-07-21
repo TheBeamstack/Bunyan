@@ -623,7 +623,16 @@ export class DocumentContext {
       }
 
       geometry.set(root, built.result);
-      for (const voidGeometry of built.voids) geometry.set(voidGeometry.elementId, voidGeometry);
+      for (const voidGeometry of built.voids) {
+        geometry.set(voidGeometry.elementId, voidGeometry);
+        // ⚠ ⓙ: a hosted element now carries its OWN parts (a door's leaf), so its previous solids must be
+        // freed when its assembly rebuilds — exactly like the root's. Before ⓙ a void's parts were always
+        // `[]`, so this was a no-op and the void was never superseded; now a re-staged door would LEAK its
+        // old leaf every rebuild without this (the Entry-21 heap-leak pattern — measured, revert-verified).
+        if (this.#geometryByElement.has(voidGeometry.elementId)) {
+          superseded.push(voidGeometry.elementId);
+        }
+      }
       broken.push(...built.brokenRefs);
       if (this.#geometryByElement.has(root)) superseded.push(root);
     }

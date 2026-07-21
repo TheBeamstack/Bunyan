@@ -41,7 +41,7 @@ work item — Miqdar starts only after **Bunyan v1.0.0** ships.
 **Design docs** (the design-first record for step 0): `P5_step0b_design.md` (associativity/constraints),
 `P5_step0e_design.md` (CRUD + guard), `P5_step0g_design.md` (reserve-the-shapes + Space extent),
 **`P5_step0d_design.md` (the sketch solver — ✅ BUILT + green, Entry 40).** Reviews:
-`review_P3.md`, `review_P4.md`. `P3_correction_plan.md` is fully executed.
+`review_P3.md`, `review_P4.md`, **`review_P5.md` (the pre-freeze review, Entry 43).** `P3_correction_plan.md` is fully executed.
 
 ⚠ **Version strings: always "Bunyan v1.0.0" or "Miqdar v1.0.0" — never a bare "v1.0.0."** Two
 independently-versioned products both have one. *(Miqdar M17.)*
@@ -116,6 +116,17 @@ three axes (draw calls, cold load, edit latency) are **all in the renderer — A
 > interactive cost — and it was invisible because **every measurement this project ever took was taken
 > BELOW the renderer.** (Amer's incremental-redraw work in Entries 26–27 addresses it browser-side.)
 
+> **⚠ CORRECTION (Entry 43, `review_P5.md` finding #3): "the other three axes are ALL in the renderer" is
+> no longer true.** 0c joins (Entry 42) added a NEW cost to the **rebuild path** (Zayd's layer): the
+> wall-join resolver is **O(N²)** in element count — `partnersAt`/`wallsJoinedTo` scan every element, and
+> `resolveJoins` runs per element in the build (`build.ts:404`), even when nothing joins. **Measured** (pure
+> TS, no kernel): ~97 µs/wall at 40 walls → 2113 µs/wall at 1984 walls (**4.2 s of join scan alone at
+> ~2000 walls**; quadratic). Negligible at a house's few-hundred walls; ~100 s at the 10k BINDING target,
+> on top of the kernel. **NOT a freeze item** — fixable anytime with an endpoint spatial hash, no contract
+> change — so it is a **v1.0.x perf item**, but the D48 "scale is settled / it's all Amer's" narrative must
+> account for it. ⚠ **Re-run the D29 5-storey measurement WITH joins in the path** — the headline number
+> above predates them.
+
 ### §1b — THE METHOD THAT HAS FOUND EVERY GAP — it is not reading; it is USING the API
 
 **Keep modelling real buildings against the real kernel, and measure.** It has found **eleven** gaps; no
@@ -187,7 +198,7 @@ is additive and permitted; *changing an existing op's envelope* needs Architect 
 |---|---|---|
 | **Kernel message protocol** (`@bunyan/protocol`) | **✅ FROZEN, v1 (Entry 21)** — **19 live ops + 5 RESERVED** + `CACHE_STALE`. ⚠ `faceFrame` is the FIRST post-freeze op (Entry 30) — a face's frame from the B-Rep surface, explicitly permitted (D13). Reserved: `sectionCut` · `importIfc` (P6) · `instantiate` (the ~21 s style-edit answer, §4j) · `exportBrep`+`importBrep` (the D29 cache — RULED SHIP, §4j). | **✅ FROZEN.** |
 | **`SubShapeRef`** | RC — exercised by the real kernel + the document model (a window survives save→load→rebuild + a 30° rotation). ⚠ `kind:'vertex'` **reserved** (D54a, 0g). | **P5** |
-| **`BimObjectType`** | **✅ WRITTEN (Entry 18), corrected (21), extended.** Carries `parameterSchema`, `styleSchema`, `defaultClassification`, `defaultDiscipline` (D45), `buildGeometry→Part[]` (D30), `buildVoid`, `migrate`, and (0g) `ifcMapping?`/`migrateStyle?`. ⚠⚠ `BuildContext.discard(handle)` — a Type running two ops per part MUST declare its intermediate or it leaks; **declare BEFORE the risky op.** ⚠⚠ `VoidBuildContext.hostFace.inward` (Entry 28) + `.frame` (Entry 30, from `faceFrame`) — a hosted void projects along the host's honest inward normal (correct for curved faces too). `BuildContext` gained `grid()`/base+top datums (0b). ⚠ **ⓙ (Entry 36): a hosted type today can ONLY cut a void, not build parts — step 5 must let a door provide BOTH `buildVoid` AND `buildGeometry`, or the freeze forecloses real doors/windows.** | **P5** (freeze against a **composite, styled** wall) |
+| **`BimObjectType`** | **✅ WRITTEN (Entry 18), corrected (21), extended.** Carries `parameterSchema`, `styleSchema`, `defaultClassification`, `defaultDiscipline` (D45), `buildGeometry→Part[]` (D30), `buildVoid`, `migrate`, and (0g) `ifcMapping?`/`migrateStyle?`. ⚠⚠ `BuildContext.discard(handle)` — a Type running two ops per part MUST declare its intermediate or it leaks; **declare BEFORE the risky op.** ⚠⚠ `VoidBuildContext.hostFace.inward` (Entry 28) + `.frame` (Entry 30, from `faceFrame`) — a hosted void projects along the host's honest inward normal (correct for curved faces too). `BuildContext` gained `grid()`/base+top datums (0b). ✅ **ⓙ RESOLVED (Entry 44): a hosted type provides BOTH `buildVoid` AND the new additive `buildLeaf?(VoidBuildContext)` — a door builds a leaf+frame, not just a hole; the real `core.opening` ships it. PROVEN no new `VoidBuildContext`/`BuiltPart`/`hostFace` field (a `tsc` TS2322 proof); `buildLeaf`, not `buildGeometry`, because a door is a solid only when hosted.** | **P5** (freeze against the composite Wall + the real Opening — both now exist) |
 | **`Command`** | **✅ WRITTEN (Entry 18)** — `argsSchema` + `execute` returns its `UndoableEdit`. **The agent API** (§4f). CRUD verbs carry the D51 refuse-or-retarget args (`acknowledge`/`retargetMap`, 0e/0f); `createElement` carries the six reserved-metadata args + `core.setElementMetadata` (0g.2). **0d BUILT `core.createSketchConstraint`/`core.deleteSketchConstraint`** (Entry 40; datum verbs and sketch verbs each refuse the other's ids). **0c BUILT `core.setJoin`/`core.clearJoin`** (Entry 42 — override verbs; joins are AUTOMATIC on proximity, these only deviate a corner to butt/mitre/none). | **P5** (with its `argsSchema`) |
 | **`ElementStyle`/`Part`/`Material`/`Section`/spatial tree/`Constraint`/`scene.json`** | **✅ WRITTEN.** `scene.json` = `packages/document/src/scene.ts`. **0b:** `scene.constraints` (discriminated-union `Constraint`, `SCENE_SCHEMA_VERSION` 1→2). **0d (Entry 40):** `SketchConstraint` is the union's SECOND member; the `Sketch` data model lives in `element.params` (Q1=A — no schema bump). **0c (Entry 42):** `JoinConstraint` is the union's THIRD member (`{element, other, kind:'join', resolution:'butt'|'mitre'|'none'}`) — an OVERRIDE of the auto-miter default; no schema bump. **0g:** reserved fields on `Element` (`phaseCreated?`/`phaseDemolished?`/`parentElementId?`/`properties?`/`classifications?`/`mark?`), `SpatialContainer`/`Grid` (IFC bags + Space extent inputs + `Grid.geometry?`), `Scene.georeference?`/`roomSeparators`, `ParamField.relevantWhen?`/`formula?`. | **P5** |
 | **Agent surface** (`window.bunyan`) | **✅ WRITTEN** — `createAgentSurface`, versioned separately (`agentApi: 1`, D22); does **not** inherit the P5 freeze. | evolves on its own clock |
@@ -298,8 +309,9 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 - **No browser storage** (FSA/OPFS/IndexedDB behind `StorageAdapter`, a `MemoryStore` keeps the seam
   tested) — **Amer's** (cannot be verified headless). ⚠ `list()` MUST return keys already in the store.
 - No sweep-along-path, no loft (out of scope). **No 2D views, no IFC import** (P6; both ops reserved).
-- No Clean Delta exporter / **no Clean Delta JSON Schema agreed across the three repos** (⑥, blocked —
-  the BIMsync spec is not on this box, D37; escalation).
+- No Clean Delta exporter / **no Clean Delta JSON Schema yet** (⑥). ⚠ **NOT blocked (D57):** Bunyan
+  designs it on its own terms for **Planitor + Miqdar** (on-box consumers); BIMsync is unbuilt and adapts.
+  Headless-closable design work, must be right before the `UndoableEdit`/`SceneChange`/journal freeze.
 - No `LICENSE`/CLA/OCCT attribution yet (§4e; must land before public). No service worker/PWA/Cloudflare
   deploy (Amer's).
 - ~~0c wall-to-wall joins~~ — **✅ BUILT + GREEN (Entry 42).** Auto-miter on proximity + butt/none overrides,
@@ -351,6 +363,7 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | D54 | Reserve three optional shapes (a/b/c): `SubShapeRef kind:'vertex'` · `Element.phase` · `ParamField.relevantWhen`. |
 | D55 | **Space extent = Option B (room-bounding).** Boundary DERIVED from bounding walls (+ separators), never stored. **The room-bounding solver ships in v1.0.0.** |
 | D56 | The pre-freeze reservation set (0g): phasing = TWO datums; `ifcMapping`/`migrateStyle`/`georeference`/`formula`/`parentElementId` + the Revit-parity sweep (`properties`/`classifications`/`mark`/`Grid.geometry`). |
+| D57 | **The Clean Delta is designed on BUNYAN's terms; BIMsync is UNBUILT and adapts (owner, 2026-07-20).** ⑥ was mis-filed as an external blocker on an off-box BIMsync spec. BIMsync is built from scratch *after* Bunyan v1.0.0; its spec conforms to Bunyan. ⇒ Design the change-feed payload for **Planitor + Miqdar** (the on-box, known consumers); never wait on or infer from BIMsync. ⑥ is headless-closable design work, not an escalation. |
 
 **⚠ D40–D46 are ALL BUILT (Entry 21), each with a test that fails if the fix is reverted. D50 STEP 0 IS
 NOW FULLY BUILT — 0a/0b/0e/0f/0g (Entries 33–38), 0d (Entry 40), room-bounding (Entry 41), 0c (Entry 42).**
@@ -443,7 +456,15 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 
 ## §5 — Next actions (in priority order)
 
-> ## ✅✅ STEP 0 IS CLOSED — BOTH SOLVERS + 0c JOINS ARE BUILT + GREEN (0d E40, room-bounding E41, 0c E42). NEXT: THE TYPES → FREEZE.
+> ## ✅✅ THE PRE-FREEZE GATE IS CLOSED (Entry 44) — ⓙ RESOLVED, ⑥ DESIGNED, #4/⑧/⑨ DISCHARGED. NEXT: THE OWNER-GATED FREEZE (step 6).
+> Everything owed *before* the freeze is now closed and green (309 tests). **ⓙ** — a hosted type builds a leaf
+> (`buildLeaf`, the real `core.opening` Door), no new frozen field, revert-verified · **⑥** — the Clean Delta
+> designed against on-box Planitor v2.2 §4, needs no frozen change (`P5_step6_clean_delta_design.md`) · **#4**
+> mid-span additivity confirmed · **⑧** Miqdar §3.4 reserve-nothing · **⑨** annotation anchoring survives resize.
+> **⇒ The only thing left is the FREEZE itself — Architect signs off + tags the contracts frozen (step 6), and
+> the commit. Both owner-gated. See Entry 44.**
+>
+> ## ✅✅ STEP 0 IS CLOSED — BOTH SOLVERS + 0c JOINS ARE BUILT + GREEN (0d E40, room-bounding E41, 0c E42).
 > All of D50 step 0 is done: **0a–0g**, **0d (real planegcs, D26 revert-verified)**, the **room-bounding
 > solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
 > the real D52 Wall pulled forward into `@bunyan/types`).** ⚠⚠ THE ANTI-FUSE RULE HELD (a join reshapes only
@@ -473,11 +494,23 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 4. **⏭ START HERE — THE TYPES (steps 4–5).** Freeze `BimObjectType` against a COMPOSITE, STYLED wall (the
    real `@bunyan/types` Wall now exists — freeze validates against it + its Opening). ⚠⚠ **STEP 5
    (Opening) MUST RESOLVE ⓙ** — a hosted type providing BOTH `buildVoid` AND `buildGeometry` (a real
-   door/window is a hole *plus* a leaf/frame); the build engine calls only `buildVoid` today. Then the
-   gates (⑧ Miqdar §3.4, ⑨ 2D-annotation anchoring), then **FREEZE (step 6).**
-5. **Still owed, lower priority:** the D29 cache bodies (§4j-2 — read first) · the Clean Delta JSON Schema
-   (⑥ — blocked on the BIMsync spec being off-box, D37; escalate) · housekeeping (`LICENSE` AGPL-3.0,
-   the CLA, the OCCT + planegcs attribution notices — none blocks work, all block going public).
+   door/window is a hole *plus* a leaf/frame); the build engine calls only `buildVoid` today (`build.ts`
+   §2, verified `review_P5.md` #2). ⚠ **Prove the ⓙ fix needs NO new frozen field** (a leaf placed in the
+   opening frame via the existing `VoidBuildContext.hostFace`); if it needs a new `VoidBuildContext`/
+   `BuiltPart` field, that field is itself pre-freeze. Then the gates (⑧ Miqdar §3.4, ⑨ 2D-annotation
+   anchoring), then **FREEZE (step 6).**
+   - ⚠ **`review_P5.md` #4 — a cheap pre-freeze check:** confirm the frozen `JoinConstraint`
+     (`{element, other, resolution}`) can carry a **mid-span / T-junction** join later — today both
+     auto-join and `setJoin` require **endpoint-to-endpoint** corners (`wallsShareCorner`), so a partition
+     butting a wall's mid-span (the commonest interior condition) is unreachable. Likely additive; **record
+     a reservation or a proof it is additive** before step 6.
+5. **⑥ THE CLEAN DELTA — DESIGN IT (D57), promoted from "blocked/lower-priority."** ⚠ **NOT an escalation
+   any more:** Bunyan owns the change-feed payload; design it on its own terms for **Planitor + Miqdar**
+   (on-box consumers), BIMsync adapts. Headless-closable; must be right before the journal freeze. Best done
+   alongside the types (it freezes the same step).
+6. **Still owed, lower priority:** the D29 cache bodies (§4j-2 — read first) · the join O(N²) endpoint index
+   (`review_P5.md` #3 — a v1.0.x perf item, no contract change) · housekeeping (`LICENSE` AGPL-3.0, the CLA,
+   the OCCT + planegcs attribution notices — none blocks work, all block going public).
 
 **✅ CLOSED, DO NOT REDO:** the op set (`transform`/`extrude`/`chamfer`/`revolve`/`faceFrame`) ·
 `measure(ref)` + derived `capabilities` + `INVALID_RESULT` · the positional key (D28) · the protocol
@@ -822,3 +855,107 @@ type providing BOTH `buildVoid` AND `buildGeometry`) → the gates (⑧ Miqdar �
 (step 6).** ⚠ The real Wall is now a shipped `@bunyan/types` type — the freeze validates against it (and its
 Opening). **No commit yet — commits are owner-gated.** ⚠ Box: installed nothing new (workspace-only link);
 no containers touched, no ports bound.
+
+### Entry 43 — 2026-07-20 — Zayd — **PRE-FREEZE REVIEW (`review_P5.md`) + ENTRY 42 COMMITTED/PUSHED + THE BIMsync REFRAME (D57). ZAYD IS THE NEXT SESSION.**
+**Task (owner):** review whether Bunyan will fulfil its promise (the competitive BIM ecosystem) and
+recommend corrective actions; then commit+push; then pick the next agent; then correct the docs. Reviewer
+method per `review_prompt.md` — verify against ARTIFACTS, not prose. Full report: **`review_P5.md`**.
+
+- **Ground truth:** `pnpm verify` fully green (**302 tests**, real OCCT kernel; typecheck/lint/format/reseed).
+- **Finding #1 (headline):** *"STEP 0 CLOSED" outran the artifacts* — all of Entry 42 (0c joins, the new
+  `@bunyan/types` package, `wall-joins.test.ts`) was **uncommitted**, existing only in the working tree.
+  ✅ **RESOLVED THIS ENTRY: committed + pushed** (`8e16b8a` step 0c; also pushed the stranded `cb5833f`
+  Entry 40/41; review is `824de8f`). Step 0 is now genuinely safe in git.
+- **Finding #2 — ⓙ verified still OPEN.** `build.ts:218–300` builds a hosted element via `buildVoid` ONLY
+  (`parts:[]`, `:298`); the opening's own `buildGeometry` is never called. A door is a hole. **Must be
+  resolved at step 5 before the type freeze** — and prove the fix needs no new frozen field (§5.4).
+- **Finding #3 — the wall-join resolver is O(N²), MEASURED, undocumented.** Runs on every rebuild; ~4.2 s
+  of pure-TS join scan at ~2000 walls, quadratic. Corrects the §1a "it's all in the renderer" claim. NOT a
+  freeze item — a v1.0.x endpoint-index fix. See §1a correction + `review_P5.md` #3.
+- **Finding #4 — mid-span / T-junction joins can't be expressed** (endpoint-only `wallsShareCorner`). A
+  cheap pre-freeze check: confirm `JoinConstraint` survives adding them (§5.4).
+- **✅ WHAT IS FINE (checked):** suite real + green vs the real kernel; the **anti-fuse rule genuinely
+  holds** (joins compute cap-lines from `{start,end}` params, never fuse solids; the byte-identical
+  host-token gate is real); the dependency graph is exhaustive-over-collections; the journal delivers
+  read-not-inferred deltas via `issued_at_seq`. Coverage NOT earned: Amer's renderer at scale, gates ⑧/⑨,
+  hostile-`.bnn` BREP, IFC.
+- **⚠⚠ THE STRATEGIC REFRAME — OWNER RULING D57 (2026-07-20):** ⑥ was mis-filed as *blocked on an off-box
+  BIMsync spec*. **BIMsync is UNBUILT — built from scratch after Bunyan v1.0.0, its spec ADAPTS to Bunyan.**
+  ⇒ the Clean Delta is a **design Bunyan owns**, shaped for **Planitor + Miqdar** (on-box, known); ⑥ is
+  headless-closable design work, NOT an escalation. This DE-blocks the freeze path and puts the once-and-
+  forever ecosystem-contract work squarely in Zayd's lap. Docs corrected: imp_plan ⑥ row + close-order,
+  current_state §1a/§3/§4a-D57/§5.
+- **✅ NEXT SESSION = ZAYD (owner asked; reasoning recorded).** The pre-freeze window's priority is the
+  IRREVERSIBLE work, and it is all Zayd's: the **types (steps 4–5)**, **ⓙ**, and the **⑥ Clean Delta design
+  on Bunyan's terms**. Amer's renderer/interaction (P4.5, storage, WebGPU) is essential to the product but
+  improvable forever — it is the PARALLEL track, not the pre-freeze bottleneck. (Amer's own pre-freeze
+  obligation: drive `move`/`setPlacement`/`array` arg shapes with a real pointing device — ⓑ/ⓘ — and close
+  the D48 renderer-at-scale coverage gap `review_P5.md` names.)
+
+**NEXT (Zayd):** the **types (steps 4–5)** — freeze `BimObjectType` against a composite styled Wall + a
+real Opening; **resolve ⓙ first** (door builds a leaf, not just a void; prove no new frozen field); **design
+the ⑥ Clean Delta on Bunyan's terms** (Planitor + Miqdar); confirm the mid-span-join reservation (#4); then
+gates ⑧/⑨ → **FREEZE**. Commits owner-gated. ⚠ Box: no containers touched, no ports bound.
+
+### Entry 44 — 2026-07-20 — Zayd — **THE PRE-FREEZE GATE IS CLOSED: ⓙ RESOLVED (door builds a leaf), ⑥ DESIGNED, #4/⑧/⑨ DISCHARGED. READY TO FREEZE (owner-gated).**
+**Task (owner):** close the pre-freeze gate on the type contracts — resolve ⓙ first, design the ⑥ Clean
+Delta, confirm the #4 mid-span reservation, clear gates ⑧/⑨, then freeze. `pnpm verify` fully green
+(**309 tests, +7**; typecheck incl. apps/web, lint, format, reseed). ⚠ **The FREEZE itself (step 6, tagging
+the contracts frozen) is owner-gated and NOT done — everything owed *before* it is now closed.**
+
+- **ⓙ RESOLVED — a hosted element now builds a SOLID, not only a hole (the one true foreclosure).** The build
+  engine called `buildVoid` only and pushed `parts: []`; a door was a hole. Fixed in three parts, each
+  revert-verified against the REAL kernel:
+  - **Contract (additive, pre-freeze):** one new optional method on `BimObjectType` — **`buildLeaf?(ctx:
+    VoidBuildContext) => Promise<readonly BuiltPart[]>`** (`types.ts`). ⚠⚠ **THE FROZEN-FIELD PROOF (owed by
+    `review_P5.md` #2) IS AIRTIGHT, NOT ASSERTED:** a leaf must sit in the opening frame ⇒ its builder needs
+    `hostFace` ⇒ it must take a `VoidBuildContext`; and under `strictFunctionTypes` (on via `strict:true`) a
+    `(VoidBuildContext)⇒…` is **NOT** assignable to `buildGeometry`'s `(BuildContext)⇒…` (demonstrated with a
+    `tsc` probe → **TS2322**). So `buildGeometry` cannot be reused; a new entry point is required. ⚠ **BUT NO
+    new field on `VoidBuildContext` / `BuiltPart` / `hostFace`** — the review's specific worry: `hostFace.frame`
+    already places a leaf, a leaf is an ordinary `BuiltPart`. The additive surface is exactly ONE optional
+    method. **`buildLeaf` (not reusing `buildGeometry`) is also MORE correct:** a door builds a solid ONLY when
+    hosted, so an un-hosted door is correctly `unbuildable` (tested) — reusing `buildGeometry` would wrongly
+    permit it standalone.
+  - **Engine wire (`build.ts`):** after `buildVoid`, call `buildLeaf` with the SAME void context; the leaf is
+    built in the host's local frame and rides the HOST's placement (a door moves with its wall). Leaf-nodeId
+    uniqueness checked (identity, like base parts); a leaf failure marks the opening `failed` (wall + hole
+    survive), all handles handed back — no leak on the failure path.
+  - **Lifecycle (`document.ts`) — the leak the fix would have introduced:** a void element now carries its own
+    parts, so it must be marked **superseded** on rebuild or each re-stage LEAKS the old leaf (the Entry-21
+    pattern). Added one line; **revert-verified it leaks exactly 2 handles/rebuild without it (14→28).**
+  - **The real shipped Door (`packages/types/src/opening.ts`, `core.opening`):** provides BOTH `buildVoid`
+    (hole) AND `buildLeaf` (a `leaf` panel + a `frame` lining — two Parts, two Materials; the frame is
+    outer−inner ⇒ exercises `ctx.discard` on the leaf path). Both halves position from `hostFace.frame`, so the
+    leaf lands in the hole on any wall orientation. **`quantities(door)` now returns per-part-per-material mass**
+    (the plan's ⓙ note about project roll-up crashing on openings is dissolved — a door has parts).
+  - **Tests (`tests/opening-leaf.test.ts`, 4, real OCCT):** the door has leaf+frame measured per part per
+    material · the leaf sits inside the hole (one frame) · **no heap leak across rebuilds** · an un-hosted door
+    is `unbuildable`. **Revert-verified:** remove the wire → §1/§2 fail; remove the supersede → §3 leaks.
+- **#4 MID-SPAN / T-JUNCTION — additivity CONFIRMED and recorded (`tests/wall-join-midspan.test.ts`, 2, real
+  OCCT).** Modelled a partition meeting a wall's mid-span: it does not auto-join and `setJoin` refuses (the
+  current limit, now locked in). ⚠ **PROOF IT IS ADDITIVE:** two STRAIGHT baselines meet at ≤1 point, so the
+  frozen `JoinConstraint {element, other, resolution}` is an unambiguous key and the landing point is DERIVED
+  from the baselines (recipe-is-truth) — exactly like the mitre bisector today. A future mid-span relaxes the
+  `wallsShareCorner` precondition and adds resolver geometry; **no new frozen field.**
+- **⑥ THE CLEAN DELTA — DESIGNED, and it needs NO frozen change (`P5_step6_clean_delta_design.md`).** Designed
+  against the **real, on-box** consumer contract — `../Planitor/v2.2_spec.md` §4 (`source:"bunyan"`,
+  `contract_version:"1.1"`), per D57 (Planitor is on-box; BIMsync adapts later). ⚠⚠ **Field-by-field mapping
+  proves every Clean Delta field maps to a frozen shape or is exporter-derived from the frozen journal
+  (`UndoableEdit.command`/`rebuilt` + `SceneChange.before/after` + `ModelRevision.issued_at_seq`).** `change_type`
+  (incl. `modified_move` vs `modified_qty` and the associative-cascade case via `rebuilt`), `prior`-state, and
+  per-part quantities all DERIVE — read, not inferred. **Freeze-Gate ⓗ (length/count) is discharged:** the
+  schedule's length is a semantic axis PARAM, not `measure.edgeLength` — exporter-derived, no field. ⇒ **the
+  exporter + JSON Schema is a v1.0.x deliverable; the transport freezes clean. `review_P5.md` Finding 1 is
+  retired against the real consumer, not a guess.**
+- **GATE ⑧ (Miqdar §3.4) DISCHARGED — reserve nothing.** `BimObjectType.version`+`migrate` suffice for optional
+  analytical-hint fields later: hints live in Miqdar's own graph bound by PEI (not on the type); and the
+  reservation pattern (`ifcMapping?`/`migrateStyle?`/now `buildLeaf?`) proves an optional field is additive.
+  Rows 1–4/6 already satisfied.
+- **GATE ⑨ (2D-annotation anchoring) DISCHARGED (`tests/annotation-anchoring.test.ts`, 1, real OCCT).** A
+  dimension = `{elementId, [refA, refB]}`; after a resize both `SubShapeRef`s stay byte-identical (D1) and the
+  value re-derives. A v1.0.x annotation collection is additive over the frozen refs — no new field.
+- **⇒ EVERYTHING OWED BEFORE THE FREEZE IS CLOSED.** Remaining: the **owner-gated FREEZE** (step 6 — Architect
+  signs off, tag `SubShapeRef`/`BimObjectType`(+`buildLeaf`)/`Command`/`scene.json`/`ParamSchema`/`UndoableEdit`
+  frozen) and the commit of this session's work. **No commit yet — owner-gated.** ⚠ Box: installed nothing;
+  no containers touched, no ports bound.
