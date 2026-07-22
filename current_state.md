@@ -67,6 +67,16 @@ the dev box** (they are not in this repo and do not travel).
 
 ---
 
+## §0a — DISTANCE TO FREEZE ≠ DISTANCE TO REVIT (read this before you feel "almost done") *(2026-07-21 strategic review)*
+
+**The freeze checklist being ~closed says NOTHING about competitiveness with Revit. They are different axes, years apart, and the docs used to conflate them.** A fresh agent reads "step 0 closed, gates discharged, ready to freeze" and absorbs "nearly a Revit competitor." That is the exact failure mode of §1's own history ("P2 declared done twice", "the whole modelling layer was missing") — *measuring against the checklist, never against the ambition.*
+
+**Ground truth (verified by build, not prose — 2026-07-21):** the shipped product is **two element types** (`@bunyan/types`: `core.wall`, `core.opening`) on an exact kernel. What is genuinely excellent — the exact-B-Rep + persistent-naming + parametric-recipe core, the agent-native single command layer, the stable-PEI ecosystem substrate — is *the hard, rare part most Revit challengers never finish*, which is why it comes first. **But it is a foundation, not a Revit competitor.** What Bunyan is NOT yet: a documentation tool (Revit's actual product — one plan/section/schedule ships in v1.0.0, the rest is the largest parity item, D58), multi-user (D60), MEP (D62), families-by-users (D61), DWG-interoperable (D63); its 10k-element target is unproven on 3 of 4 axes (D66); and its taxonomy is almost entirely unbuilt (`core_logic.md` §9a).
+
+**⇒ THE STANDING METHOD (added to §1b): measure the product against the Revit-parity ledger (`v1.0.0_imp_plan.md` "Road to Revit parity"), NOT against the phase's exit criteria.** The owner validated D58–D66 to make this measurable and to reserve the contracts these capabilities need before the freeze. *The distance to Revit is not what the momentum in these docs makes it feel like — and the freeze is the moment to reserve for it, because after it every gap is a three-product amendment.*
+
+---
+
 ## §1 — Where the build is right now
 
 **Phases P1–P3 CLOSED; the kernel protocol is FROZEN (18→now 19 live ops + 5 reserved).** P4 + P4.5
@@ -80,9 +90,12 @@ green: **0a** typed dependency graph · **0b** associativity/hosting (datums, ba
 grid-hosting) · **0e/0f** the missing CRUD + the generalised no-silent-re-identify guard · **0g** the
 reserve-the-shapes pass + the verb half · **0d** the sketch constraint solver (real planegcs, D26
 revert-verified — Entry 40) · **the room-bounding solver** (D55 — Entry 41) · **0c wall-to-wall joins**
-(auto-miter, anti-fuse gate green, the real D52 Wall in `@bunyan/types` — Entry 42). **Remaining:** the
-**types (steps 4–5)** — freeze `BimObjectType` against a composite styled Wall (step 5/Opening resolves
-ⓙ) — the gates ⑧/⑨, and the FREEZE (step 6). See `v1.0.0_imp_plan.md` FREEZE GATE + Entry 42.
+(auto-miter, anti-fuse gate green, the real D52 Wall in `@bunyan/types` — Entry 42). The types (steps 4–5)
++ the MVP-checklist gates are also done (ⓙ door-leaf, ⑥ Clean Delta, #4/⑧/⑨ — Entries 44–45).
+**⚠⚠ REMAINING — AND THE FREEZE IS REOPENED (Entry 46):** the 2026-07-21 strategic review (the "will it beat
+Revit, ecosystem built?" lens) added **pre-freeze rows Ⓐ–Ⓕ + the D66 scale measurement** (see §5 + imp_plan
+"🟠 REOPENED"). These land **before** the FREEZE (step 6). The MVP checklist was closed; the parity/foreclosure
+lens was not. See `v1.0.0_imp_plan.md` FREEZE GATE (🟠 REOPENED) + §0a + Entry 46.
 
 > **⚠⚠ THE P4 REVIEW HEADLINE (Entry 24) — STILL THE FRAME:** there was **no interaction model in any
 > contract document** — only *"button/drag → Command"*, which is how an action *reaches* the model, not
@@ -116,6 +129,15 @@ three axes (draw calls, cold load, edit latency) are **all in the renderer — A
 > interactive cost — and it was invisible because **every measurement this project ever took was taken
 > BELOW the renderer.** (Amer's incremental-redraw work in Entries 26–27 addresses it browser-side.)
 
+> **⚠⚠ STRONGER CORRECTION (Entry 46, 2026-07-21 review — D66): "the one contract-bearing axis is measured and
+> it FITS ⇒ scale is settled" is a measurement scoped to ITS input (the §2 trap turned on ourselves). Only ONE
+> of the four scale axes (WASM heap) was measured; the other three — edit latency (~45 s/edit extrapolated),
+> cold load (~6.3 min), draw calls (~16k, 10–20× a 60 fps budget) — extrapolate the WRONG way at target, and the
+> O(N²) join scan below adds ~100 s on the REBUILD side. "It's all in the renderer / scale is settled" is false.**
+> **The 4-axis measurement is now a BINDING PRE-FREEZE deliverable (D66)** because heap-eviction "touches contracts,
+> must be known before P5 freezes" and a failed single-threaded target reopens D8 (multithreading). ⚠ Renderer
+> batching + heap eviction are, by the plan's own words, "a rewrite not an optimisation" if found late.
+>
 > **⚠ CORRECTION (Entry 43, `review_P5.md` finding #3): "the other three axes are ALL in the renderer" is
 > no longer true.** 0c joins (Entry 42) added a NEW cost to the **rebuild path** (Zayd's layer): the
 > wall-join resolver is **O(N²)** in element count — `partnersAt`/`wallsJoinedTo` scan every element, and
@@ -364,6 +386,15 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | D55 | **Space extent = Option B (room-bounding).** Boundary DERIVED from bounding walls (+ separators), never stored. **The room-bounding solver ships in v1.0.0.** |
 | D56 | The pre-freeze reservation set (0g): phasing = TWO datums; `ifcMapping`/`migrateStyle`/`georeference`/`formula`/`parentElementId` + the Revit-parity sweep (`properties`/`classifications`/`mark`/`Grid.geometry`). |
 | D57 | **The Clean Delta is designed on BUNYAN's terms; BIMsync is UNBUILT and adapts (owner, 2026-07-20).** ⑥ was mis-filed as an external blocker on an off-box BIMsync spec. BIMsync is built from scratch *after* Bunyan v1.0.0; its spec conforms to Bunyan. ⇒ Design the change-feed payload for **Planitor + Miqdar** (the on-box, known consumers); never wait on or infer from BIMsync. ⑥ is headless-closable design work, not an escalation. |
+| **D58** | **2026-07-21 — Documentation is a live projection of the B-Rep (core_logic rule 17). v1.0.0 ships MINIMAL 2D (1 plan + 1 section + 1 schedule); full apparatus is post-v1.0.0. ⚠ PRE-FREEZE: the View/Schedule/Dimension/Tag/Sheet ANCHORING contracts freeze at P5 (row Ⓐ).** |
+| **D59** | **2026-07-21 — An element may own child ELEMENTS, not only Parts (rule 18): curtain walls, stairs, groups. Nesting is mandatory for parity. ⚠ PRE-FREEZE: owner chose DESIGN the full composition/hosting model before freeze (row Ⓑ), not merely reserve `parentElementId`.** |
+| **D60** | **2026-07-21 — Multi-user co-authoring is Bunyan's (ecosystem apps are downstream consumers, not co-authors). ⚠ PRE-FREEZE: reserve a concurrency/merge SEAM on the journal + `.bnn` (row Ⓒ). Client-only in v1.0.0 (D37 stands).** |
+| **D61** | **2026-07-21 — Data-driven family authoring (Revit Family Editor moat): families as DATA, not code. ⚠ PRE-FREEZE: reserve a family-definition data-format seam (row Ⓓ). Code-types stay for complex behaviour.** |
+| **D62** | **2026-07-21 — MEP systems & connectors reserved (networks + connectors + routing; needs sweep-along-path/loft ops, additive per D13). System/connector type contracts reserved (row Ⓕ).** |
+| **D63** | **2026-07-21 — Reserve a DWG codec seam (2D-CAD interop); IFC export stays v1.0.x (D3); point-cloud/RVT recorded absent (row Ⓕ).** |
+| **D64** | **2026-07-21 — RE-OPEN gate ⑧'s "reserve nothing": confirm whether an on-element analytical-anchor is needed for real Miqdar structural/energy analysis, or the PEI-bound side-graph suffices (row Ⓔ). ⚠ PRE-FREEZE.** |
+| **D65** | **2026-07-21 — Reserve Design Options + phase filters/overrides + area schemes (gross-net; room solver gives net only) (row Ⓕ).** |
+| **D66** | **2026-07-21 — The 4-axis scale measurement (edit latency · cold load · draw calls · heap) is a BINDING PRE-FREEZE deliverable, not settled. Only heap was measured; the other 3 extrapolate the wrong way. Resolve the heap-eviction contract hook pre-freeze; a failed single-thread target reopens D8.** |
 
 **⚠ D40–D46 are ALL BUILT (Entry 21), each with a test that fails if the fix is reverted. D50 STEP 0 IS
 NOW FULLY BUILT — 0a/0b/0e/0f/0g (Entries 33–38), 0d (Entry 40), room-bounding (Entry 41), 0c (Entry 42).**
@@ -456,20 +487,23 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 
 ## §5 — Next actions (in priority order)
 
-> ## ✅✅ THE PRE-FREEZE GATE IS CLOSED (Entry 44) — ⓙ RESOLVED, ⑥ DESIGNED, #4/⑧/⑨ DISCHARGED. NEXT: THE OWNER-GATED FREEZE (step 6).
-> Everything owed *before* the freeze is now closed and green (309 tests). **ⓙ** — a hosted type builds a leaf
-> (`buildLeaf`, the real `core.opening` Door), no new frozen field, revert-verified · **⑥** — the Clean Delta
-> designed against on-box Planitor v2.2 §4, needs no frozen change (`P5_step6_clean_delta_design.md`) · **#4**
-> mid-span additivity confirmed · **⑧** Miqdar §3.4 reserve-nothing · **⑨** annotation anchoring survives resize.
-> **⇒ The only thing left is the FREEZE itself — Architect signs off + tags the contracts frozen (step 6), and
-> the commit. Both owner-gated. See Entry 44.**
+> ## ⚠⚠ THE FREEZE IS REOPENED (Entry 46, 2026-07-21) — THE MVP CHECKLIST WAS CLOSED; THE REVIT-PARITY LENS ADDED PRE-FREEZE WORK.
+> **Entries 44–45 closed everything the *MVP's own checklist* owed (ⓙ door-leaf, ⑥ Clean Delta, #4, ⑧, ⑨ — 310 green).
+> The 2026-07-21 strategic review then measured the product against *"will it beat Revit, with the ecosystem built?"* —
+> the §1b method turned on the product itself — and the owner validated nine new decisions (D58–D66). Six add pre-freeze
+> work, because the contract they lean on freezes at P5.** ⇒ **NOT ready to freeze.** Land first (imp_plan "🟠 REOPENED"):
+> **Ⓐ** documentation anchoring contracts (D58 — v1.0.0 now ships one schedule too) · **Ⓑ** element composition/nesting
+> **DESIGNED** (D59, owner chose design-now over reserve) · **Ⓒ** co-authoring concurrency seam on the journal+`.bnn` (D60)
+> · **Ⓓ** family-definition data-format seam (D61) · **Ⓔ** reopen gate ⑧'s analytical-anchor (D64) · **Ⓕ** MEP/DWG/
+> Design-Option reservations (D62/63/65) · **plus D66** the 4-axis scale measurement (pre-freeze). **THEN the owner-gated
+> freeze (step 6).** See Entry 46 + `v1.0.0_imp_plan.md` "🟠 REOPENED" + "Road to Revit parity."
 >
 > ## ✅✅ STEP 0 IS CLOSED — BOTH SOLVERS + 0c JOINS ARE BUILT + GREEN (0d E40, room-bounding E41, 0c E42).
 > All of D50 step 0 is done: **0a–0g**, **0d (real planegcs, D26 revert-verified)**, the **room-bounding
 > solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
 > the real D52 Wall pulled forward into `@bunyan/types`).** ⚠⚠ THE ANTI-FUSE RULE HELD (a join reshapes only
-> the cap; side faces keep their tokens, D26). **NEXT: the types (steps 4–5) — freeze `BimObjectType`
-> against a composite styled Wall; step 5 (Opening) MUST resolve ⓙ — then the gates ⑧/⑨, then FREEZE.**
+> the cap; side faces keep their tokens, D26). The types (steps 4–5) + MVP gates are also DONE (Entries 44–45).
+> **NEXT is NOT the freeze — it is the REOPENED pre-freeze work Ⓐ–Ⓕ + D66 (Entry 46, §0a, §5 step 5).**
 
 **For Zayd (kernel / document / headless) — the close-order:**
 
@@ -491,26 +525,44 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
    segment order, a join reshapes only the CAP, side faces keep byte-identical `lateral.k` tokens (D26).
    The anti-fuse gate + the bidirectional join edge are revert-verified. Did NOT touch the frozen kernel
    protocol; `JoinConstraint` is the `Constraint` union's additive third member.
-4. **⏭ START HERE — THE TYPES (steps 4–5).** Freeze `BimObjectType` against a COMPOSITE, STYLED wall (the
-   real `@bunyan/types` Wall now exists — freeze validates against it + its Opening). ⚠⚠ **STEP 5
-   (Opening) MUST RESOLVE ⓙ** — a hosted type providing BOTH `buildVoid` AND `buildGeometry` (a real
-   door/window is a hole *plus* a leaf/frame); the build engine calls only `buildVoid` today (`build.ts`
-   §2, verified `review_P5.md` #2). ⚠ **Prove the ⓙ fix needs NO new frozen field** (a leaf placed in the
-   opening frame via the existing `VoidBuildContext.hostFace`); if it needs a new `VoidBuildContext`/
-   `BuiltPart` field, that field is itself pre-freeze. Then the gates (⑧ Miqdar §3.4, ⑨ 2D-annotation
-   anchoring), then **FREEZE (step 6).**
-   - ⚠ **`review_P5.md` #4 — a cheap pre-freeze check:** confirm the frozen `JoinConstraint`
-     (`{element, other, resolution}`) can carry a **mid-span / T-junction** join later — today both
-     auto-join and `setJoin` require **endpoint-to-endpoint** corners (`wallsShareCorner`), so a partition
-     butting a wall's mid-span (the commonest interior condition) is unreachable. Likely additive; **record
-     a reservation or a proof it is additive** before step 6.
-5. **⑥ THE CLEAN DELTA — DESIGN IT (D57), promoted from "blocked/lower-priority."** ⚠ **NOT an escalation
-   any more:** Bunyan owns the change-feed payload; design it on its own terms for **Planitor + Miqdar**
-   (on-box consumers), BIMsync adapts. Headless-closable; must be right before the journal freeze. Best done
-   alongside the types (it freezes the same step).
-6. **Still owed, lower priority:** the D29 cache bodies (§4j-2 — read first) · the join O(N²) endpoint index
-   (`review_P5.md` #3 — a v1.0.x perf item, no contract change) · housekeeping (`LICENSE` AGPL-3.0, the CLA,
-   the OCCT + planegcs attribution notices — none blocks work, all block going public).
+4. **✅ DONE — THE TYPES (steps 4–5) + the MVP-checklist gates** (Entries 44–45). ⓙ resolved (`core.opening`
+   Door builds a leaf via `buildLeaf`, no new frozen field, revert-verified); ⑥ Clean Delta designed (no
+   frozen change, `P5_step6_clean_delta_design.md`); #4 mid-span additivity confirmed; gates ⑧/⑨ discharged;
+   the join-drift gap fixed (Entry 45, offsetU anchors to the baseline). 310 green.
+5. **⏭⏭ START HERE — THE REOPENED PRE-FREEZE WORK (Entry 46, D58–D66). ⚠ THE FREEZE IS NOT READY UNTIL THESE
+   LAND.** Mostly reservations + one design doc + one gate re-examination; none is a big build, all are
+   contract-shaping and therefore genuinely pre-freeze. Suggested order (see imp_plan "🟠 REOPENED"):
+   - **Ⓐ D58 — documentation anchoring contracts. ✅ DONE + GREEN (Entry 47, `P5_step5A_documentation_
+     anchoring_design.md`).** Reserved on `scene.json` as four OPTIONAL, absent-defaulted collections
+     (`views`/`annotations`/`schedules`/`sheets`; `documentation.ts`): a `ViewDescriptor` (plan/section/
+     elevation/3d union), an `AnnotationAnchor`-based Dimension/Tag (ref/vertex/element/point union), a
+     `ScheduleDefinition` bound to type/param/quantity KEYS, a Sheet nesting Viewports. Gate ⑨ WIDENED
+     (`tests/documentation-anchoring.test.ts`, +8, real OCCT): a Schedule's type/param/quantity keys
+     re-derive across a resize (the row ⑨ never covered), a Dimension's `SubShapeRef`s stay byte-identical,
+     the whole surface round-trips. No frozen byte moved, no `SCENE_SCHEMA_VERSION` bump, no verb owed (a
+     documentation command is an additive registry entry, D19 — distinct from ⓣ). 319 green.
+   - **Ⓑ D59 — element composition / nesting DESIGN **+ a REQUIRED probe** (owner ruled: design AND build one).**
+     A design doc for elements-of-elements (curtain wall / stair / groups), hosting deeper than one level; prove
+     the frozen `BimObjectType`/`scene.json` carries `parentElementId`/groups. **⚠ Then BUILD one nested type
+     (curtain wall or stair) end-to-end against the real kernel to validate the design (owner ruling — not a
+     recommendation).** **The heaviest reopened item — the anti-fuse rule (D30) binds.**
+   - **Ⓒ D60 — co-authoring concurrency/merge seam** on the journal + `.bnn` (a merge-ordered `seq`/lineage
+     the single-user path ignores — D40's own caveat, made a reservation before issued files exist).
+   - **Ⓓ D61 — family-definition data-format seam** (families as data, not code; touches type/registry).
+   - **Ⓔ D64 — reopen gate ⑧'s "reserve nothing":** **owner DELEGATED the call to Zayd** — read
+     `Miqdar_v1.0.0_spec.md` §3.4, then rule *with evidence* whether an on-element analytical-anchor is
+     needed for real structural/energy analysis or the PEI-bound side-graph suffices, and record the reasoning.
+   - **Ⓕ D62/63/65 — cheap reservations:** MEP sweep-op + system/connector; DWG codec seam; Design-Options +
+     phase filters/overrides + area schemes. Record as reserved/additive.
+   - **D66 — the 4-axis scale measurement** (pre-freeze): partly Amer's (renderer), but the **heap-eviction
+     contract hook is Zayd's and is pre-freeze** — "must be known before P5 freezes." A failed single-thread
+     target reopens D8.
+   - **THEN the owner-gated FREEZE (step 6)** — now also tagging the Ⓐ–Ⓕ reservations frozen.
+6. **Still owed, lower priority (post-freeze / v1.0.x):** the D29 cache bodies (§4j-2 — read first) · the
+   join O(N²) endpoint index (`review_P5.md` #3 — no contract change) · housekeeping (`LICENSE` AGPL-3.0,
+   the CLA, the OCCT + planegcs attribution notices — none blocks work, all block going public) · then the
+   **"Road to Revit parity"** phase map (imp_plan appendix) — the taxonomy, full documentation, MEP,
+   families, worksharing, DWG, scale. *That is the actual distance to beating Revit; v1.0.0 is its foundation.*
 
 **✅ CLOSED, DO NOT REDO:** the op set (`transform`/`extrude`/`chamfer`/`revolve`/`faceFrame`) ·
 `measure(ref)` + derived `capabilities` + `INVALID_RESULT` · the positional key (D28) · the protocol
@@ -994,3 +1046,106 @@ before the freeze; on the door finding, adopt Revit's model, then commit + push.
 
 **NEXT:** unchanged — the **owner-gated FREEZE (step 6)** is the only remaining step. ⚠ Box: installed nothing;
 no containers touched, no ports bound.
+
+### Entry 46 — 2026-07-21 — **STRATEGIC REVIEW ("will Bunyan beat Revit?") + DOC REALIGNMENT. THE FREEZE IS REOPENED: 9 owner-validated decisions (D58–D66), 6 add pre-freeze work.**
+**Task (owner):** review whether Bunyan is on a trajectory to a Revit competitor (assuming the ecosystem apps get
+built as claimed), not believing the docs; then apply a validated slate of doc updates so the next agents aim at
+parity, not just the freeze; then realign current_state; then hand off. Reviewer method per `review_prompt.md` —
+verify against ARTIFACTS. `pnpm verify` re-run green (**310 tests**, real OCCT; typecheck/lint/format/reseed).
+
+- **THE HEADLINE (verified by build, not prose):** the shipped product is **two element types** (`@bunyan/types`:
+  `core.wall`, `core.opening`); the web app registers **one** (`scaffoldWallType`); `sectionCut`/IFC ops are
+  **reserved, not implemented**. The docs measured progress against the *freeze checklist* (≈closed) and let that
+  read as *≈Revit-competitive* (years away). **The freeze being ready is not the product being ready** — the exact
+  §1 failure mode ("P2 done twice"; "the whole modelling layer was missing"), turned on the whole product.
+- **WHAT IS GENUINELY EXCELLENT (and rare):** the exact-B-Rep + persistent-naming (D1/D24) + parametric-recipe core,
+  the agent-native single command layer (D19–D23), the stable-PEI ecosystem substrate (D34). *This is the hard part
+  most Revit challengers never finish — which is why it is the foundation and comes first.*
+- **THE GAPS vs Revit (with the ecosystem assumed built):** no construction documentation (Revit's actual product —
+  D58); no multi-user worksharing (D60); no MEP (D62); no user-authored families (D61); no DWG interop (D63); the
+  taxonomy is almost entirely unbuilt (`core_logic.md` §9a); nesting/element-of-elements only reserved (D59); the
+  10k-element target measured on 1 of 4 axes and the other 3 extrapolate the wrong way (D66).
+- **OWNER VALIDATED THE FULL DOC SLATE + 4 DESIGN DECISIONS → D58–D66.** Co-authoring = **reserve seam now, build
+  later** (D60); families = **data-driven** (D61); 2D docs = **minimal in v1.0.0** = 1 plan + 1 section + **1 schedule**
+  (D58); nesting = **design the full composition model before freeze** (D59). ⚠⚠ **Two of these (D60 seam, D59 design)
+  + D58's anchors + D61's seam are on the PRE-FREEZE CRITICAL PATH** ⇒ **the freeze is REOPENED** (Entries 44–45's
+  "ready to freeze" was true only of the MVP checklist).
+- **DOCS UPDATED THIS ENTRY (source unchanged — docs only):**
+  - `core_logic.md`: rule 17 (drawing = projection of B-Rep), rule 18 (element owns child elements); sharpened the
+    co-editing + families north-stars into reserved seams; **new §9a "The Revit-parity surface"** (taxonomy,
+    documentation, MEP, collaboration, families, project-org, interop, analytical — with status).
+  - `V1.0.0_spec.md`: **D58–D66** in §14; a **"⚠⚠ WHAT v1.0.0 IS NOT"** block at the head of §5; §5.3 non-goals
+    reframed as the parity backlog with pre-freeze reservations.
+  - `v1.0.0_imp_plan.md`: **"🟠 REOPENED"** freeze-gate block (rows Ⓐ–Ⓕ + D66); P6 objective marked minimal-2D +
+    anchors-reserved; **new appendix "Road to Revit parity"** (the capability ledger + the post-v1.0.0 phase map).
+  - `current_state.md`: **§0a** (distance-to-freeze ≠ distance-to-Revit) + the §1b method; §1 remaining-work +
+    §1a scale narrative corrected (D66); §4a D58–D66; §5 close-order rewritten (reopened Ⓐ–Ⓕ); the §5 banner; this Entry.
+- **⚠ NEXT SESSION = ZAYD.** Every reopened row is contract-shaping (journal/`.bnn`/`BimObjectType`/`scene.json`) —
+  the pre-freeze window's priority is the irreversible work, and it is all Zayd's (D58 anchors, D59 nesting design,
+  D60 seam, D61 seam, D64 gate re-examination, D62/63/65 reservations, D66's heap-eviction hook). Amer's parallel
+  track: the renderer half of the D66 scale measurement + P4.5 interaction model (essential, improvable forever, not
+  the pre-freeze bottleneck) — same reasoning as Entry 43.
+- **⚠ NO COMMIT YET — commits/pushes are owner-gated.** ⚠ Box: installed nothing; no containers touched, no ports
+  bound; `du -sh /tmp` clear.
+
+**NEXT (Zayd):** land the reopened pre-freeze work in §5-step-5 order (Ⓐ documentation anchors → Ⓑ nesting design →
+Ⓒ journal concurrency seam → Ⓓ family-format seam → Ⓔ analytical re-examination → Ⓕ MEP/DWG/Design-Option
+reservations → D66 heap-eviction hook), each its own design doc + revert-verified where it lands code; **then** the
+owner-gated FREEZE (step 6). Commits owner-gated.
+
+### Entry 47 — 2026-07-21 — Zayd — **REOPENED ROW Ⓐ DONE: THE DOCUMENTATION ANCHORING CONTRACTS ARE RESERVED (D58) — GATE ⑨ WIDENED FROM ONE DIMENSION TO THE WHOLE SURFACE.**
+**Task (owner):** land the reopened pre-freeze work in order, starting with Ⓐ; design-doc-first, reserve
+SHAPES not bodies, revert-verify where code lands, verify against artifacts. `pnpm verify` fully green
+(**319 tests, +8**; typecheck incl. apps/web, lint, format, reseed). ⚠ **No commit — owner-gated.**
+
+- **DESIGNED FIRST (`P5_step5A_documentation_anchoring_design.md`).** The freeze question Ⓐ answers, and gate
+  ⑨ did not: v1.0.0 now ships a MINIMAL 2D body in P6 (one plan + one section + **one schedule**, D58), so the
+  freeze must not foreclose the WHOLE documentation surface. Gate ⑨ (Entry 44) proved only ONE dimension
+  between two faces. Method: the freeze-forcing test + the three-consumers walk, per entity.
+- **THE INVARIANT THAT MAKES IT SAFE TO RESERVE-NOW-BUILD-LATER (rule 17):** a drawing stores a DEFINITION
+  (a cut plane / an anchor set / a filter + columns), NEVER the projected 2D geometry — which is DERIVED, like
+  a mesh / a `Part` / a room boundary. ⇒ a documentation entity's value is a pure function of the frozen scene;
+  a resize updates it with zero re-authoring. Its future `dependency.ts` edge is a declared "nothing" (a
+  projection refresh, a query — the `roomMetrics`/`roomSeparators` precedent), so no rebuild to invalidate.
+- **RESERVED SHAPES (`packages/document/src/documentation.ts`), all optional/additive, tagged-union-where-they-
+  grow (the D53 discipline):** `AnnotationAnchor` = `ref | vertex | element | point` (the widened anchor
+  vocabulary — each ref/vertex carries its OWN `elementId` so a CROSS-element dimension works; gate ⑨'s
+  single-element case is the degenerate one) · `Annotation` = `Dimension | Tag` (store an anchor + a rule,
+  never a value; the tag `subject` is a stable KEY — `mark`/`type`/`param:*`/`quantity:*`) · `ScheduleDefinition`
+  = a filter (typeId/Classification/containerId) + `ScheduleColumn` union (`field | param | quantity | count`)
+  — the anchor gate ⑨ never covered · `ViewDescriptor` = `plan | section | elevation | 3d` (stores HOW to
+  project; the `sectionCut` op is ALREADY reserved in the frozen protocol — no new op) · `Sheet` nests
+  `Viewport`s.
+- **LANDED ON `scene.json` AS FOUR OPTIONAL, ABSENT-DEFAULTED COLLECTIONS** (`views`/`annotations`/`schedules`/
+  `sheets`) — the **`georeference` precedent, NOT `roomSeparators`**: NOT in `emptyScene()`, NOT in
+  `SceneCollection`, NOT in the hostile-`.bnn` guard, because no body authors/reads them yet (nothing to
+  default, invalidate, or crash). ⚠ **TOP-LEVEL, not a nested `documentation?` bag**, so each is promotable to
+  a full `SceneCollection` ADDITIVELY when its CRUD lands (the flat-key undo machinery indexes `scene[key]`; a
+  nested collection would force a migration). **No `SCENE_SCHEMA_VERSION` bump** (folds into frozen v2 exactly
+  as 0g's reservations).
+- **⚠ NO VERB RESERVATION IS OWED (distinct from ⓣ, recorded so it is not re-opened):** documentation entities
+  are NOT elements — their CRUD is NEW commands, and a new command is a purely additive registry entry (D19).
+  ⓣ had to widen `createElement`'s frozen `argsSchema`; Ⓐ does not, because nothing here is born via
+  `createElement`.
+- **GATE ⑨ WIDENED (`tests/documentation-anchoring.test.ts`, +8; real OCCT + pure).** Part 1 (real OCCT): a
+  `Dimension` (the reserved shape) keeps its `SubShapeRef` anchors byte-identical and re-derives 3000→5000
+  across a `setParams{end}` resize; **a `Schedule` bound to type/param/quantity KEYS re-derives across a resize
+  with an UNCHANGED definition** — the wall's `quantity:volume` column doubles on a 3000→6000 drag, the
+  filter's frozen `typeId` selects exactly the two walls (a `core.opening` filter selects zero), the param/
+  field/count keys are unchanged; a `Tag`'s element PEI anchor + `mark` subject survive. Part 2 (compile-time):
+  every field optional/absent-able, every union grows by MEMBER. Part 3 (round-trip): the whole surface saves→
+  loads byte-identical, and a `.bnn` with none defaults absent. **REVERT-VERIFIED:** stripping the `schedules?`
+  reservation from `Scene` breaks compilation (its imports go dead, the test loses `.schedules`) — the reserved
+  field is genuinely load-bearing, the reserve-shapes compile-time revert-check.
+- **⚠ FOUR OWNER FRAMING QUESTIONS flagged in the design §9 (I built against the recommended defaults — all
+  additive, reshape-cheap pre-commit):** Q1 top-level collections (vs nested bag) · Q2 per-anchor `elementId`
+  (vs one per dimension) · Q3 `source`-tagged schedule columns (vs a fixed set) · Q4 a `titleblock` string id
+  on `Sheet` now (vs defer). None blocks the remaining rows.
+
+**NEXT (Zayd):** row **Ⓑ (D59 nesting)** — the heaviest reopened item: DESIGN the element-composition/hosting
+model (its own doc + owner-ruled framing questions, the 0d/0c/room-solver rhythm), prove `parentElementId`/
+groups carry it, **then BUILD one nested type (curtain wall or stair) end-to-end against the real kernel** (owner
+ruled build, not just design; the anti-fuse rule D30 binds). Then Ⓒ (D60 journal concurrency seam) → Ⓓ (D61
+family-format seam) → Ⓔ (D64 — read `Miqdar_v1.0.0_spec.md` §3.4, rule the analytical-anchor with evidence) →
+Ⓕ (D62/63/65 reservations) → D66 (heap-eviction hook) → owner-gated FREEZE (step 6). ⚠ Box: installed nothing;
+no containers touched, no ports bound; `du -sh /tmp` clear.

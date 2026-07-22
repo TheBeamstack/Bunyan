@@ -33,6 +33,16 @@ import type {
   StyleId,
 } from './entities.js';
 import { isDatumConstraint, isSketchConstraint } from './entities.js';
+import type {
+  Annotation,
+  AnnotationId,
+  ScheduleDefinition,
+  ScheduleId,
+  Sheet,
+  SheetId,
+  ViewDescriptor,
+  ViewId,
+} from './documentation.js';
 
 /**
  * Bumped when `scene.json`'s own shape changes (not a type's — that is `element.typeVersion`).
@@ -100,6 +110,25 @@ export interface Scene {
    * collection: no default row, so no `emptyScene` entry and no `SceneCollection` member.
    */
   readonly georeference?: ProjectGeoreference;
+  /* ----------------------------------------------------------------------------------------------
+   * THE DOCUMENTATION LAYER — RESERVED (D58, Freeze-Gate row Ⓐ; `P5_step5A_documentation_anchoring_
+   * design.md`; `documentation.ts`). A drawing is a LIVE PROJECTION of the B-Rep (`core_logic.md` rule 17):
+   * the projected 2D geometry is DERIVED and never stored — only the DEFINITION (a cut plane, an anchor set,
+   * a filter + columns) lives here. v1.0.0 ships a MINIMAL body in P6 (one plan + one section + one schedule);
+   * the full apparatus is Parity-B. No body authors or reads these yet.
+   *
+   * ⚠ FOUR OPTIONAL COLLECTIONS, ABSENT-DEFAULTED (the `georeference` precedent, NOT `roomSeparators`):
+   * absent ⇒ no documentation (today's behaviour). NOT in `emptyScene()`, NOT in `SceneCollection`, NOT in
+   * the hostile-`.bnn` guard — because no body produces undo for them or reads them, so there is nothing to
+   * default, invalidate, or crash. TOP-LEVEL (not a nested `documentation?` bag) so each is promotable to a
+   * full `SceneCollection` ADDITIVELY when its CRUD lands (the flat-key undo machinery indexes `scene[key]`):
+   * P6 adds the `emptyScene` entry + the `isPlainObject` guard + the "nothing" dependency edge in the same
+   * additive step. No `SCENE_SCHEMA_VERSION` bump (they fold into the frozen v2, exactly as 0g's reservations).
+   * -------------------------------------------------------------------------------------------- */
+  readonly views?: Readonly<Record<ViewId, ViewDescriptor>>;
+  readonly annotations?: Readonly<Record<AnnotationId, Annotation>>;
+  readonly schedules?: Readonly<Record<ScheduleId, ScheduleDefinition>>;
+  readonly sheets?: Readonly<Record<SheetId, Sheet>>;
 }
 
 export function emptyScene(): Scene {
