@@ -27,8 +27,9 @@
  *      would OOM the tab in a minute.
  */
 
-import type { BrokenReference, Element, ElementId, Params, Part } from './entities.js';
-import { cutNodeId, partNodeId } from './geometry.js';
+import type { RigidMotion } from '@bunyan/protocol';
+import type { BrokenReference, Element, ElementId, Params, Part, TypeId } from './entities.js';
+import { childElementId, cutNodeId, partNodeId } from './geometry.js';
 import type { GeometryGateway, GeometryRequestOptions } from './geometry.js';
 import {
   datumElevations,
@@ -44,6 +45,10 @@ import type { SketchSolver } from './sketch.js';
 import { withDefaults } from './schema.js';
 import type { Registries } from './registries.js';
 import type { BimObjectType, BuildContext, BuiltPart, VoidBuildContext } from './types.js';
+
+/** The recursion-depth backstop for generative composition (D59) — a cycle guard catches self-nesting
+ * types first; this bounds a pathological but acyclic type graph so a rebuild can never hang. */
+const MAX_COMPOSITION_DEPTH = 8;
 
 /** What a rebuild produced for one element. */
 export interface ElementGeometry {
@@ -69,6 +74,15 @@ export interface ElementGeometry {
    * managed to be the same line of code.
    */
   readonly failure?: 'unbuildable' | 'geometry';
+  /**
+   * ⚠ GENERATED CHILD ELEMENTS (D59 composition, Model A — owner-ruled 2026-07-22 Q3: a TREE). A composite
+   * parent (a curtain wall) owns child elements (panels/mullions), each a full `ElementGeometry` with its own
+   * DERIVED PEI (`${parentId}/${slot}`) and its own parts — regenerated each rebuild, never a stored scene row
+   * (recipe-is-truth, D30). A child may itself be composite (its own `children`), so this is a TREE and hosting
+   * is NOT one level deep (rule 18). Absent ⇒ a flat element (today's only case). `quantities`/tags/schedules
+   * walk it; `DocumentContext` also registers every descendant FLAT by its PEI for heap + per-child queries.
+   */
+  readonly children?: readonly ElementGeometry[];
 }
 
 export interface BuildResult {
@@ -132,6 +146,10 @@ export async function buildAssembly(
 ): Promise<{
   readonly result: ElementGeometry;
   readonly voids: readonly ElementGeometry[];
+  /** ⚠ D59 — every DESCENDANT of this assembly's root, FLATTENED by derived PEI. `DocumentContext` registers
+   * and supersedes each one exactly like a void, so a curtain wall's panels share the heap discipline. The
+   * TREE (ownership edges) lives on `result.children`; this is the flat projection for the geometry map. */
+  readonly children: readonly ElementGeometry[];
   readonly brokenRefs: readonly BrokenReference[];
   readonly intermediates: readonly string[];
 }> {
@@ -153,6 +171,7 @@ export async function buildAssembly(
   const unbuildable = (error: string): Awaited<ReturnType<typeof buildAssembly>> => ({
     result: { elementId: rootId, parts: [], state: 'failed', error, failure: 'unbuildable' },
     voids: [],
+    children: [],
     brokenRefs,
     intermediates,
   });
@@ -170,14 +189,17 @@ export async function buildAssembly(
         `and this app has v${String(type.version)} — it is from the future and cannot be built`,
     );
   }
-  if (type.buildGeometry === undefined) {
-    return unbuildable(`type "${element.typeId}" cannot build a solid (no buildGeometry)`);
+  // ⚠ D59: a PURE COMPOSITE (a curtain wall) has NO `buildGeometry` — its geometry IS its children. A type
+  // that can build NEITHER a solid NOR children is genuinely unbuildable; one with `buildChildren` is not.
+  if (type.buildGeometry === undefined && type.buildChildren === undefined) {
+    return unbuildable(`type "${element.typeId}" cannot build a solid or children`);
   }
 
   // ---- 1. THE BASE PARTS. An element is its parts, in order (D30). --------------------------------
   const failed = (error: string): Awaited<ReturnType<typeof buildAssembly>> => ({
     result: { elementId: rootId, parts: [], state: 'failed', error, failure: 'geometry' },
     voids: [],
+    children: [],
     brokenRefs,
     intermediates,
   });
@@ -188,10 +210,38 @@ export async function buildAssembly(
 
   let base: readonly BuiltPart[];
   try {
-    base = await type.buildGeometry(
-      contextFor(scene, registries, { request }, solver, element, element.params, discard),
+    // ⚠ D59: a pure composite has no `buildGeometry` — its own frame parts are empty; its children carry it.
+    base =
+      type.buildGeometry === undefined
+        ? []
+        : await type.buildGeometry(
+            contextFor(scene, registries, { request }, solver, element, element.params, discard),
+          );
+  } catch (error) {
+    return failed(messageOf(error));
+  }
+
+  // ---- 1b. GENERATED CHILDREN (D59 composition, Model A). Built UNPLACED in the root's local frame; the -----
+  // root's placement rides the whole subtree last (step 3). A composite parent (a curtain wall) generates its
+  // panels/mullions here — each a first-class element with a DERIVED PEI, its own parts, its own material —
+  // regenerated every rebuild, never a stored scene row (recipe-is-truth, D30). A child failure that is a KERNEL
+  // refusal (`geometry`) rejects the whole assembly (D42), so every child handle built so far is handed back.
+  const childFlatUnplaced: ElementGeometry[] = [];
+  let childTreeUnplaced: readonly ElementGeometry[] = [];
+  try {
+    childTreeUnplaced = await buildChildrenTree(
+      scene,
+      registries,
+      { request },
+      solver,
+      element,
+      new Set<TypeId>([type.id]),
+      0,
+      discard,
+      childFlatUnplaced,
     );
   } catch (error) {
+    for (const g of childFlatUnplaced) for (const p of g.parts) intermediates.push(p.handle);
     return failed(messageOf(error));
   }
 
@@ -372,6 +422,8 @@ export async function buildAssembly(
     // ⚠ `failure: 'geometry'` is what tells `DocumentContext` this one REJECTS THE COMMAND (D42),
     // where an `unbuildable` type merely marks the element and lets the document carry on (D43).
     for (const part of parts) intermediates.push(part.handle);
+    // ⚠ D59: the children were built (in the local frame) before this cut failed — free their handles too.
+    for (const g of childFlatUnplaced) for (const p of g.parts) intermediates.push(p.handle);
     return {
       result: {
         elementId: rootId,
@@ -381,15 +433,33 @@ export async function buildAssembly(
         failure: 'geometry',
       },
       voids: voidResults,
+      children: [],
       brokenRefs,
       intermediates,
     };
   }
 
+  // ---- 3b. PLACE THE CHILD SUBTREE. The children were built in the root's LOCAL frame (their positioning ----
+  // params are root-local); the root's placement rides the whole subtree last, so a curtain wall moves as one
+  // unit (`transform` mints no identities, D25 — a rotated panel is the same panel). Empty placement ⇒ handles
+  // pass through unchanged. This yields the placed TREE (`result.children`) and the placed FLAT list.
+  const placedChildren = await placeTree(
+    childTreeUnplaced,
+    element.placement ?? [],
+    request,
+    intermediates,
+  );
+
   const state = brokenRefs.length > 0 ? 'broken-ref' : 'valid';
   return {
-    result: { elementId: rootId, parts, state },
+    result: {
+      elementId: rootId,
+      parts,
+      state,
+      ...(placedChildren.tree.length === 0 ? {} : { children: placedChildren.tree }),
+    },
     voids: voidResults,
+    children: placedChildren.flat,
     brokenRefs,
     intermediates,
   };
@@ -467,6 +537,186 @@ function voidContextFor(
     ...(hostStyle === undefined ? {} : { hostStyle }),
     hostFace,
   };
+}
+
+/**
+ * D59 — GENERATE A COMPOSITE PARENT'S CHILD ELEMENTS (owner-ruled 2026-07-22, Model A). A curtain wall's
+ * panels/mullions; a stair's treads. Each is a first-class element (rule 18) — its own DERIVED PEI
+ * (`${parentId}/${slot}`), its own parts, its own material — but generated from the parent's recipe and never
+ * stored (recipe-is-truth, D30). Returns the DIRECT-children tree, UNPLACED (in the parent's local frame); the
+ * root's placement rides the whole subtree last (`placeTree`). Every descendant is also pushed to `flat` so a
+ * failure can free its handles and the document can register it in the geometry map.
+ *
+ * ⚠⚠ It refuses a duplicate SLOT (byte-identical child PEIs, `core_logic.md` §5), two child parts on one DAG
+ * node (same rule as a base part), a self-nesting TYPE (a cycle → never terminates), and depth past the
+ * backstop — all `geometry` failures (D42 rejects; never a hang). An UNREGISTERED child type is D43's business:
+ * a visible `failed`/`unbuildable` child that does NOT reject the parent (one Miqdar-authored child ≠ a dead file).
+ */
+async function buildChildrenTree(
+  scene: Scene,
+  registries: Registries,
+  geometry: { readonly request: GeometryGateway['request'] },
+  solver: SketchSolver,
+  parentElement: Element,
+  ancestry: ReadonlySet<TypeId>,
+  depth: number,
+  discard: (handle: string) => void,
+  flat: ElementGeometry[],
+): Promise<readonly ElementGeometry[]> {
+  const parentType = registries.types.require(parentElement.typeId);
+  if (parentType.buildChildren === undefined) return [];
+  if (depth >= MAX_COMPOSITION_DEPTH) {
+    throw new Error(
+      `element "${parentElement.id}" nests deeper than ${String(MAX_COMPOSITION_DEPTH)} levels — a composition cycle or runaway recipe`,
+    );
+  }
+
+  const descriptors = await parentType.buildChildren(
+    contextFor(scene, registries, geometry, solver, parentElement, parentElement.params, discard),
+  );
+
+  const tree: ElementGeometry[] = [];
+  const slots = new Set<string>();
+  for (const child of descriptors) {
+    if (slots.has(child.slot)) {
+      throw new Error(
+        `element "${parentElement.id}" generates two children on the slot "${child.slot}" — their ` +
+          `derived PEIs would be byte-identical tokens naming different elements. Slots must be unique.`,
+      );
+    }
+    slots.add(child.slot);
+    const childId = childElementId(parentElement.id, child.slot);
+
+    const childType = registries.types.get(child.typeId);
+    if (childType === undefined) {
+      // ⚠ D43 — an unregistered child type is TOLERATED (a visible failed child), never a rejection.
+      const g: ElementGeometry = {
+        elementId: childId,
+        parts: [],
+        state: 'failed',
+        error: `child type "${child.typeId}" is not registered in this app`,
+        failure: 'unbuildable',
+      };
+      tree.push(g);
+      flat.push(g);
+      continue;
+    }
+    // ⚠ THE CYCLE GUARD. Generation is deterministic from params, so a type that transitively nests itself
+    // never terminates — refuse it before it recurses (a `geometry` failure, D42; never a hang).
+    if (ancestry.has(child.typeId)) {
+      throw new Error(
+        `composition cycle: type "${child.typeId}" nests itself (building child "${childId}")`,
+      );
+    }
+
+    const childElement: Element = {
+      id: childId,
+      typeId: child.typeId,
+      typeVersion: childType.version,
+      params: child.params,
+      classification: child.classification ?? childType.defaultClassification,
+      parentElementId: parentElement.id,
+      ...(child.styleId === undefined ? {} : { styleId: child.styleId }),
+      ...(child.name === undefined ? {} : { name: child.name }),
+    };
+
+    // The child's OWN parts (a panel's glazing, a mullion's aluminium) — built in the parent's local frame.
+    let childParts: readonly BuiltPart[] = [];
+    if (childType.buildGeometry !== undefined) {
+      childParts = await childType.buildGeometry(
+        contextFor(scene, registries, geometry, solver, childElement, child.params, discard),
+      );
+    }
+    // Identity check — same rule as a base part (step 1): two parts on one DAG node is a REFUSAL.
+    const nodes = new Set<string>();
+    for (const part of childParts) {
+      if (nodes.has(part.nodeId)) {
+        for (const built of childParts) discard(built.handle);
+        throw new Error(
+          `child "${childId}" builds two parts on the DAG node "${part.nodeId}" — their sub-shape ` +
+            `references would be identical tokens naming different faces. Part names must be unique.`,
+        );
+      }
+      nodes.add(part.nodeId);
+    }
+
+    // ⚠ RECURSE — a child may itself be composite (rule 18: hosting is NOT one level deep). A door-panel that
+    // generates its own leaf/frame is depth 2; the cycle guard grows by this child's type.
+    const grand = await buildChildrenTree(
+      scene,
+      registries,
+      geometry,
+      solver,
+      childElement,
+      new Set<TypeId>([...ancestry, child.typeId]),
+      depth + 1,
+      discard,
+      flat,
+    );
+
+    const g: ElementGeometry = {
+      elementId: childId,
+      parts: childParts.map((p) => ({
+        name: p.name,
+        materialId: p.materialId,
+        discipline: p.discipline,
+        nodeId: p.nodeId,
+        handle: p.handle,
+        refs: p.refs,
+      })),
+      state: 'valid',
+      ...(grand.length === 0 ? {} : { children: grand }),
+    };
+    tree.push(g);
+    flat.push(g);
+  }
+  return tree;
+}
+
+/**
+ * D59 — apply the root's placement to a whole child SUBTREE, producing the placed tree + its flat projection.
+ * The children were built in the root's LOCAL frame; `transform` mints no identities (D25), so a placed panel
+ * is the same panel token-for-token. An empty placement passes handles through unchanged (no transform, no
+ * garbage). Each transformed pre-placement solid is handed back as an intermediate.
+ */
+async function placeTree(
+  tree: readonly ElementGeometry[],
+  motions: readonly RigidMotion[],
+  request: GeometryGateway['request'],
+  intermediates: string[],
+): Promise<{
+  readonly tree: readonly ElementGeometry[];
+  readonly flat: readonly ElementGeometry[];
+}> {
+  const placedTree: ElementGeometry[] = [];
+  const flat: ElementGeometry[] = [];
+  for (const node of tree) {
+    let placedParts: readonly Part[] = node.parts;
+    if (motions.length > 0 && node.parts.length > 0) {
+      const next: Part[] = [];
+      for (const part of node.parts) {
+        const result = await request('transform', { handle: part.handle, motions });
+        intermediates.push(part.handle); // the pre-placement solid is now garbage
+        next.push({ ...part, handle: result.handle, refs: result.refs });
+      }
+      placedParts = next;
+    }
+    const sub =
+      node.children === undefined
+        ? { tree: [] as readonly ElementGeometry[], flat: [] as readonly ElementGeometry[] }
+        : await placeTree(node.children, motions, request, intermediates);
+    const placedNode: ElementGeometry = {
+      elementId: node.elementId,
+      parts: placedParts,
+      state: node.state,
+      ...(node.error === undefined ? {} : { error: node.error }),
+      ...(node.failure === undefined ? {} : { failure: node.failure }),
+      ...(sub.tree.length === 0 ? {} : { children: sub.tree }),
+    };
+    placedTree.push(placedNode);
+    flat.push(placedNode, ...sub.flat);
+  }
+  return { tree: placedTree, flat };
 }
 
 /**

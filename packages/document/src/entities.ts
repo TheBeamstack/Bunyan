@@ -476,6 +476,24 @@ export interface Classification {
 }
 
 /**
+ * ⚠ RESERVED (D59, Freeze-Gate row Ⓑ, owner Q4 2026-07-22). A per-child override on a composite parent's
+ * generated child, keyed by the child's slot (`Element.childOverrides`). All fields optional — an override
+ * is a SPARSE PATCH, never a full re-specification. `hidden` drops the child; `typeId`/`styleId`/`params`
+ * swap or re-parametrise it; a partial `params` merges over the recipe-generated ones. Shaped-but-minimal:
+ * new override facets are additive fields (the reserve-shapes discipline). NO body reads it in v1.0.0.
+ */
+export interface ChildOverride {
+  /** Drop this generated child entirely (Revit's "delete a curtain panel"). */
+  readonly hidden?: boolean;
+  /** Swap the child's Type (a glass panel → a door). */
+  readonly typeId?: TypeId;
+  /** Override the child's style. */
+  readonly styleId?: StyleId;
+  /** Merge over the recipe-generated child params (a partial patch, not a replacement). */
+  readonly params?: Params;
+}
+
+/**
  * A BIM object instance — a wall, a slab, a beam, an opening.
  *
  * ⚠ It carries only what is UNIQUE to it (domain rule 12): its axis, its height, where it is. What is
@@ -537,12 +555,28 @@ export interface Element {
   readonly phaseCreated?: string;
   readonly phaseDemolished?: string;
   /**
-   * ⚠ RESERVED (Freeze-Gate ⓝ). The element this one is NESTED IN — a curtain wall's panels/mullions, an
-   * assembly's members (Revit-class). Absent ⇒ a top-level element (today's only case). Distinct from
-   * `hostId` (a boolean host) and from PARTS (solids of ONE element). Flat named `groups` are a separate,
-   * additive v1.0.x scene collection, not this field.
+   * ⚠ RESERVED (Freeze-Gate ⓝ). The element this one is a MANUAL member/child of — a GROUP/assembly's
+   * members (a table + four chairs bundled to move together). Absent ⇒ a top-level element (today's case).
+   *
+   * ⚠⚠ RE-PINNED (D59, owner-ruled 2026-07-22, Model A — `P5_step5B_composition_nesting_design.md` §5).
+   * This is NOT the carrier for a curtain wall's panels/mullions. Those are GENERATED children: DERIVED
+   * from the parent's recipe (Model A), never stored `scene.elements` rows, so nothing points UP at the
+   * parent — the child's own DERIVED PEI (`${parentId}/${slot}`, `childElementId`) carries the edge, and
+   * the parent's `buildChildren` regenerates them each rebuild (recipe-is-truth, D30). This field is for
+   * the OTHER relationship rule 18 names — a MANUAL group of independently-authored elements — whose flat
+   * `groups` scene collection is a separate, purely-additive v1.0.x collection (proven additive, not built).
+   * Distinct from `hostId` (a boolean host) and from PARTS (solids of ONE element).
    */
   readonly parentElementId?: ElementId;
+  /**
+   * ⚠ RESERVED (D59, Freeze-Gate row Ⓑ, owner Q4 2026-07-22). A SPARSE, SLOT-KEYED override patch on a
+   * COMPOSITE parent — the one place Model A (derived children) is weaker than Revit. A generated child is
+   * addressed by its slot (`panel.r2c3`); an entry here overrides that child ("swap panel R2C3 for a door",
+   * "pin this mullion", "hide this panel") without promoting it to a stored row. Absent ⇒ every child is
+   * exactly as the recipe generates it (v1.0.0's only case — NO body reads this yet). Reserving the shape
+   * now keeps Model C (per-child overrides) purely additive. Key = child slot; value = a partial override.
+   */
+  readonly childOverrides?: Readonly<Record<string, ChildOverride>>;
   /**
    * ⚠ RESERVED (Freeze-Gate ⓟ). Arbitrary property sets — the round-trip escape hatch for IFC data that
    * maps to no Bunyan param (P6 carries `IfcPropertySet`s the way `GenericSolid` carries unmapped geometry),

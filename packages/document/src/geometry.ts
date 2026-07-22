@@ -62,6 +62,30 @@ export function partNodeId(elementId: string, partName: string): string {
 }
 
 /**
+ * The DERIVED PEI of a GENERATED CHILD element (D59 composition, Model A — owner-ruled 2026-07-22).
+ *
+ * ⚠ A curtain wall's panels/mullions are DERIVED from the parent's recipe, exactly as Parts are — so
+ * they are NOT stored `scene.elements` rows; they are regenerated each rebuild. Their identity is derived
+ * from `parentId` + a stable SLOT key, the same discipline as `partNodeId`/`lateral.k` (D26) promoted one
+ * level.
+ *
+ * ⚠⚠ THE SEPARATOR IS `:`, AND IT IS NOT ARBITRARY (found by building — the D59 probe). A child PEI flows
+ * into its parts' nodeIds (`${childPei}.${partName}`), and a nodeId is a `SubShapeRef` component: the ref
+ * grammar reserves `/` (`TOKEN_SEP`) and `#` (`OCCURRENCE_SEP`), so a nodeId containing either FAILS to
+ * encode (`subshape.ts`). `:` is reserved by neither, never appears in an authored PEI (a `[a-z]+-` prefix
+ * + Crockford base32 ULID), and never in a part name — so `${parentId}:${slot}` is an unambiguous, encodable
+ * derived identity. A tag/schedule binds to it; a vanished slot is a broken-ref (the D1 story, one level up).
+ */
+export function childElementId(parentId: string, slot: string): string {
+  return `${parentId}:${slot}`;
+}
+
+/** True for a DERIVED child PEI (D59). Authored PEIs never contain `:`; a generated child always does. */
+export function isDerivedChildId(id: string): boolean {
+  return id.includes(':');
+}
+
+/**
  * The node that owns the identities a HOSTED VOID creates when it cuts a part — the reveal faces of a
  * window, and the section edges around them.
  *

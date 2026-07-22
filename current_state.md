@@ -220,7 +220,7 @@ is additive and permitted; *changing an existing op's envelope* needs Architect 
 |---|---|---|
 | **Kernel message protocol** (`@bunyan/protocol`) | **✅ FROZEN, v1 (Entry 21)** — **19 live ops + 5 RESERVED** + `CACHE_STALE`. ⚠ `faceFrame` is the FIRST post-freeze op (Entry 30) — a face's frame from the B-Rep surface, explicitly permitted (D13). Reserved: `sectionCut` · `importIfc` (P6) · `instantiate` (the ~21 s style-edit answer, §4j) · `exportBrep`+`importBrep` (the D29 cache — RULED SHIP, §4j). | **✅ FROZEN.** |
 | **`SubShapeRef`** | RC — exercised by the real kernel + the document model (a window survives save→load→rebuild + a 30° rotation). ⚠ `kind:'vertex'` **reserved** (D54a, 0g). | **P5** |
-| **`BimObjectType`** | **✅ WRITTEN (Entry 18), corrected (21), extended.** Carries `parameterSchema`, `styleSchema`, `defaultClassification`, `defaultDiscipline` (D45), `buildGeometry→Part[]` (D30), `buildVoid`, `migrate`, and (0g) `ifcMapping?`/`migrateStyle?`. ⚠⚠ `BuildContext.discard(handle)` — a Type running two ops per part MUST declare its intermediate or it leaks; **declare BEFORE the risky op.** ⚠⚠ `VoidBuildContext.hostFace.inward` (Entry 28) + `.frame` (Entry 30, from `faceFrame`) — a hosted void projects along the host's honest inward normal (correct for curved faces too). `BuildContext` gained `grid()`/base+top datums (0b). ✅ **ⓙ RESOLVED (Entry 44): a hosted type provides BOTH `buildVoid` AND the new additive `buildLeaf?(VoidBuildContext)` — a door builds a leaf+frame, not just a hole; the real `core.opening` ships it. PROVEN no new `VoidBuildContext`/`BuiltPart`/`hostFace` field (a `tsc` TS2322 proof); `buildLeaf`, not `buildGeometry`, because a door is a solid only when hosted.** | **P5** (freeze against the composite Wall + the real Opening — both now exist) |
+| **`BimObjectType`** | **✅ WRITTEN (Entry 18), corrected (21), extended.** Carries `parameterSchema`, `styleSchema`, `defaultClassification`, `defaultDiscipline` (D45), `buildGeometry→Part[]` (D30), `buildVoid`, `migrate`, and (0g) `ifcMapping?`/`migrateStyle?`. ⚠⚠ `BuildContext.discard(handle)` — a Type running two ops per part MUST declare its intermediate or it leaks; **declare BEFORE the risky op.** ⚠⚠ `VoidBuildContext.hostFace.inward` (Entry 28) + `.frame` (Entry 30, from `faceFrame`) — a hosted void projects along the host's honest inward normal (correct for curved faces too). `BuildContext` gained `grid()`/base+top datums (0b). ✅ **ⓙ RESOLVED (Entry 44): a hosted type provides BOTH `buildVoid` AND the new additive `buildLeaf?(VoidBuildContext)` — a door builds a leaf+frame, not just a hole; the real `core.opening` ships it. PROVEN no new `VoidBuildContext`/`BuiltPart`/`hostFace` field (a `tsc` TS2322 proof); `buildLeaf`, not `buildGeometry`, because a door is a solid only when hosted.** ✅ **D59 COMPOSITION (Entry 48): gained the additive `buildChildren?(ctx)=>BuiltChild[]` (a parent owns child ELEMENTS, rule 18 — the real `core.curtainwall` ships it, Model A = children DERIVED by PEI `${parentId}:${slot}`, never stored). `Element` gained reserved `childOverrides?`/`ChildOverride`; `parentElementId` RE-PINNED to the group/manual-nest meaning.** | **P5** (freeze against the composite Wall + the real Opening + the composite Curtain Wall — all now exist) |
 | **`Command`** | **✅ WRITTEN (Entry 18)** — `argsSchema` + `execute` returns its `UndoableEdit`. **The agent API** (§4f). CRUD verbs carry the D51 refuse-or-retarget args (`acknowledge`/`retargetMap`, 0e/0f); `createElement` carries the six reserved-metadata args + `core.setElementMetadata` (0g.2). **0d BUILT `core.createSketchConstraint`/`core.deleteSketchConstraint`** (Entry 40; datum verbs and sketch verbs each refuse the other's ids). **0c BUILT `core.setJoin`/`core.clearJoin`** (Entry 42 — override verbs; joins are AUTOMATIC on proximity, these only deviate a corner to butt/mitre/none). | **P5** (with its `argsSchema`) |
 | **`ElementStyle`/`Part`/`Material`/`Section`/spatial tree/`Constraint`/`scene.json`** | **✅ WRITTEN.** `scene.json` = `packages/document/src/scene.ts`. **0b:** `scene.constraints` (discriminated-union `Constraint`, `SCENE_SCHEMA_VERSION` 1→2). **0d (Entry 40):** `SketchConstraint` is the union's SECOND member; the `Sketch` data model lives in `element.params` (Q1=A — no schema bump). **0c (Entry 42):** `JoinConstraint` is the union's THIRD member (`{element, other, kind:'join', resolution:'butt'|'mitre'|'none'}`) — an OVERRIDE of the auto-miter default; no schema bump. **0g:** reserved fields on `Element` (`phaseCreated?`/`phaseDemolished?`/`parentElementId?`/`properties?`/`classifications?`/`mark?`), `SpatialContainer`/`Grid` (IFC bags + Space extent inputs + `Grid.geometry?`), `Scene.georeference?`/`roomSeparators`, `ParamField.relevantWhen?`/`formula?`. | **P5** |
 | **Agent surface** (`window.bunyan`) | **✅ WRITTEN** — `createAgentSurface`, versioned separately (`agentApi: 1`, D22); does **not** inherit the P5 freeze. | evolves on its own clock |
@@ -246,9 +246,11 @@ packages/
                                              injected at construction (like the kernel client). Lines + 7 point/line
                                              constraints; arc/tangent frozen in the CONTRACT but v1.0.x in the impl.
   types/        ★ @bunyan/types           THE SHIPPED MVP BimObjectTypes (P5) — the REAL registered elements, distinct
-                    src/wall.ts             from the tests/ exercise fixtures. So far: the D52 baseline, join-aware Wall
-                                             (`core.wall`, 0c/step 3). Opening/Slab/etc. join it in steps 4–5. D19: the
-                                             document engine loads these, never depends on them.
+                    src/wall.ts             from the tests/ exercise fixtures. D52 baseline join-aware Wall (`core.wall`);
+                    src/opening.ts          the ⓙ Door (`core.opening`, buildVoid+buildLeaf); and (D59, Entry 48) the
+                    src/curtainwall.ts      composite Curtain Wall (`core.curtainwall` + column/panel/mullion child types
+                                             — `buildChildren`, elements-of-elements, depth-2). D19: the document engine
+                                             loads these, never depends on them.
   document/     ★ @bunyan/document      THE PARAMETRIC TRUTH LAYER (Entry 18; corrected 21; D50 step-0 33–38)
                     entities.ts    Element/Part/ElementStyle/Material/Section/spatial tree/Grid/Constraint/
                                      RoomSeparator (Part carries `discipline`, D45; Classification={ifcClass,loadBearing})
@@ -387,7 +389,7 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | D56 | The pre-freeze reservation set (0g): phasing = TWO datums; `ifcMapping`/`migrateStyle`/`georeference`/`formula`/`parentElementId` + the Revit-parity sweep (`properties`/`classifications`/`mark`/`Grid.geometry`). |
 | D57 | **The Clean Delta is designed on BUNYAN's terms; BIMsync is UNBUILT and adapts (owner, 2026-07-20).** ⑥ was mis-filed as an external blocker on an off-box BIMsync spec. BIMsync is built from scratch *after* Bunyan v1.0.0; its spec conforms to Bunyan. ⇒ Design the change-feed payload for **Planitor + Miqdar** (the on-box, known consumers); never wait on or infer from BIMsync. ⑥ is headless-closable design work, not an escalation. |
 | **D58** | **2026-07-21 — Documentation is a live projection of the B-Rep (core_logic rule 17). v1.0.0 ships MINIMAL 2D (1 plan + 1 section + 1 schedule); full apparatus is post-v1.0.0. ⚠ PRE-FREEZE: the View/Schedule/Dimension/Tag/Sheet ANCHORING contracts freeze at P5 (row Ⓐ).** |
-| **D59** | **2026-07-21 — An element may own child ELEMENTS, not only Parts (rule 18): curtain walls, stairs, groups. Nesting is mandatory for parity. ⚠ PRE-FREEZE: owner chose DESIGN the full composition/hosting model before freeze (row Ⓑ), not merely reserve `parentElementId`.** |
+| **D59** | **2026-07-21 — An element may own child ELEMENTS, not only Parts (rule 18): curtain walls, stairs, groups. Nesting is mandatory for parity. ✅ DESIGNED + BUILT (Entry 48, Model A = children DERIVED, never stored): `BimObjectType.buildChildren?` + `ElementGeometry.children?` (a tree) + `Element.childOverrides?`; `parentElementId` re-pinned to groups. The real `core.curtainwall` (depth-2) validates it; anti-fuse held; 328 green.** |
 | **D60** | **2026-07-21 — Multi-user co-authoring is Bunyan's (ecosystem apps are downstream consumers, not co-authors). ⚠ PRE-FREEZE: reserve a concurrency/merge SEAM on the journal + `.bnn` (row Ⓒ). Client-only in v1.0.0 (D37 stands).** |
 | **D61** | **2026-07-21 — Data-driven family authoring (Revit Family Editor moat): families as DATA, not code. ⚠ PRE-FREEZE: reserve a family-definition data-format seam (row Ⓓ). Code-types stay for complex behaviour.** |
 | **D62** | **2026-07-21 — MEP systems & connectors reserved (networks + connectors + routing; needs sweep-along-path/loft ops, additive per D13). System/connector type contracts reserved (row Ⓕ).** |
@@ -492,8 +494,8 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 > The 2026-07-21 strategic review then measured the product against *"will it beat Revit, with the ecosystem built?"* —
 > the §1b method turned on the product itself — and the owner validated nine new decisions (D58–D66). Six add pre-freeze
 > work, because the contract they lean on freezes at P5.** ⇒ **NOT ready to freeze.** Land first (imp_plan "🟠 REOPENED"):
-> **Ⓐ** documentation anchoring contracts (D58 — v1.0.0 now ships one schedule too) · **Ⓑ** element composition/nesting
-> **DESIGNED** (D59, owner chose design-now over reserve) · **Ⓒ** co-authoring concurrency seam on the journal+`.bnn` (D60)
+> **Ⓐ** documentation anchoring contracts (D58 — ✅ DONE Entry 47) · **Ⓑ** element composition/nesting
+> **DESIGNED + BUILT** (D59 — ✅ DONE Entry 48, the real `core.curtainwall`) · **Ⓒ** co-authoring concurrency seam on the journal+`.bnn` (D60)
 > · **Ⓓ** family-definition data-format seam (D61) · **Ⓔ** reopen gate ⑧'s analytical-anchor (D64) · **Ⓕ** MEP/DWG/
 > Design-Option reservations (D62/63/65) · **plus D66** the 4-axis scale measurement (pre-freeze). **THEN the owner-gated
 > freeze (step 6).** See Entry 46 + `v1.0.0_imp_plan.md` "🟠 REOPENED" + "Road to Revit parity."
@@ -529,9 +531,9 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
    Door builds a leaf via `buildLeaf`, no new frozen field, revert-verified); ⑥ Clean Delta designed (no
    frozen change, `P5_step6_clean_delta_design.md`); #4 mid-span additivity confirmed; gates ⑧/⑨ discharged;
    the join-drift gap fixed (Entry 45, offsetU anchors to the baseline). 310 green.
-5. **⏭⏭ START HERE — THE REOPENED PRE-FREEZE WORK (Entry 46, D58–D66). ⚠ THE FREEZE IS NOT READY UNTIL THESE
-   LAND.** Mostly reservations + one design doc + one gate re-examination; none is a big build, all are
-   contract-shaping and therefore genuinely pre-freeze. Suggested order (see imp_plan "🟠 REOPENED"):
+5. **THE REOPENED PRE-FREEZE WORK (Entry 46, D58–D66). ⚠ THE FREEZE IS NOT READY UNTIL THESE LAND. Ⓐ + Ⓑ DONE
+   (Entries 47–48); ⏭⏭ START HERE = Ⓒ.** Mostly reservations + one gate re-examination; the two builds (Ⓐ anchors,
+   Ⓑ nesting) are done. All are contract-shaping and therefore genuinely pre-freeze. Order (see imp_plan "🟠 REOPENED"):
    - **Ⓐ D58 — documentation anchoring contracts. ✅ DONE + GREEN (Entry 47, `P5_step5A_documentation_
      anchoring_design.md`).** Reserved on `scene.json` as four OPTIONAL, absent-defaulted collections
      (`views`/`annotations`/`schedules`/`sheets`; `documentation.ts`): a `ViewDescriptor` (plan/section/
@@ -541,13 +543,17 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
      re-derive across a resize (the row ⑨ never covered), a Dimension's `SubShapeRef`s stay byte-identical,
      the whole surface round-trips. No frozen byte moved, no `SCENE_SCHEMA_VERSION` bump, no verb owed (a
      documentation command is an additive registry entry, D19 — distinct from ⓣ). 319 green.
-   - **Ⓑ D59 — element composition / nesting DESIGN **+ a REQUIRED probe** (owner ruled: design AND build one).**
-     A design doc for elements-of-elements (curtain wall / stair / groups), hosting deeper than one level; prove
-     the frozen `BimObjectType`/`scene.json` carries `parentElementId`/groups. **⚠ Then BUILD one nested type
-     (curtain wall or stair) end-to-end against the real kernel to validate the design (owner ruling — not a
-     recommendation).** **The heaviest reopened item — the anti-fuse rule (D30) binds.**
-   - **Ⓒ D60 — co-authoring concurrency/merge seam** on the journal + `.bnn` (a merge-ordered `seq`/lineage
-     the single-user path ignores — D40's own caveat, made a reservation before issued files exist).
+   - **Ⓑ D59 — element composition / nesting. ✅ DONE + GREEN (Entry 48, `P5_step5B_composition_nesting_
+     design.md`).** Owner ruled Q1–Q5 (Model A = DERIVED children; curtain wall; a tree; reserve the override
+     patch; `parentElementId` re-pinned to groups). Built the frozen surface (`BimObjectType.buildChildren?` +
+     `BuiltChild`, `ElementGeometry.children?`, `Element.childOverrides?`/`ChildOverride`), the recursive engine
+     (`buildChildrenTree`/`placeTree`, cycle guard, subtree supersede/sweep), and the real shipped
+     `core.curtainwall` (4 types, genuinely depth-2: wall → columns → panels + mullions). **Anti-fuse held**
+     (a panel token byte-identical across a `cols` change); quantities roll the tree up to glass m² + aluminium
+     kg per child per material. No frozen byte moved, no `SCENE_SCHEMA_VERSION` bump. `tests/composition-
+     nesting.test.ts` (9, real OCCT), revert-verified. 328 green.
+   - **⏭⏭ Ⓒ D60 — co-authoring concurrency/merge seam (START HERE)** on the journal + `.bnn` (a merge-ordered
+     `seq`/lineage the single-user path ignores — D40's own caveat, made a reservation before issued files exist).
    - **Ⓓ D61 — family-definition data-format seam** (families as data, not code; touches type/registry).
    - **Ⓔ D64 — reopen gate ⑧'s "reserve nothing":** **owner DELEGATED the call to Zayd** — read
      `Miqdar_v1.0.0_spec.md` §3.4, then rule *with evidence* whether an on-element analytical-anchor is
@@ -1149,3 +1155,53 @@ ruled build, not just design; the anti-fuse rule D30 binds). Then Ⓒ (D60 journ
 family-format seam) → Ⓔ (D64 — read `Miqdar_v1.0.0_spec.md` §3.4, rule the analytical-anchor with evidence) →
 Ⓕ (D62/63/65 reservations) → D66 (heap-eviction hook) → owner-gated FREEZE (step 6). ⚠ Box: installed nothing;
 no containers touched, no ports bound; `du -sh /tmp` clear.
+
+### Entry 48 — 2026-07-22 — Zayd — **REOPENED ROW Ⓑ DONE: ELEMENT COMPOSITION / NESTING (D59) — DESIGNED, OWNER-RULED, AND BUILT END-TO-END (a real curtain wall of child elements, real OCCT).**
+**Task (owner):** resume implementing — land the reopened pre-freeze work in order; Ⓑ is next (design AND build).
+Design-doc-first, owner rules the framing questions, build + revert-verify. `pnpm verify` fully green (**328
+tests, +9**; typecheck incl. apps/web, lint, format, reseed). ⚠ **No commit — owner-gated.**
+
+- **DESIGNED FIRST (`P5_step5B_composition_nesting_design.md`), then OWNER RULED Q1–Q5 (all as recommended):**
+  **Q1 = Model A (DERIVED children)** — the freeze-critical fork. A curtain wall's panels/mullions are
+  GENERATED from the parent's recipe, each a first-class element with its own PEI, but **never a stored
+  `scene.elements` row** — recipe-is-truth (D30) + persistent-naming-by-derivation (D1) promoted one level
+  (the `nodeId`/`lateral.k` discipline). **Rejected Model B (authored panels)** because it forces a rebuild to
+  MUTATE the element set — a change to the D42/D19 rebuild contract itself, the expensive foreclosure. **Q2 =
+  curtain wall** (the §9a canonical probe). **Q3 = a TREE** (`ElementGeometry.children?`). **Q4 = reserve the
+  slot-keyed override patch** (`Element.childOverrides?`+`ChildOverride`, so Model C per-panel overrides are
+  additive). **Q5 = `parentElementId` RE-PINNED** to the manual group/nest meaning (NOT generated children);
+  a flat `groups` collection is proven purely-additive v1.0.x (not built).
+- **THE FROZEN SURFACE — one optional Type method + one optional build-result field, all additive:**
+  `BimObjectType.buildChildren?(ctx) => BuiltChild[]` (a `BuiltChild` = `slot`+`typeId`+`params`, the sibling of
+  `buildLeaf`); `ElementGeometry.children?` (the tree); `Element.childOverrides?`/`ChildOverride` +
+  `parentElementId` re-pinned (shape unchanged). **NO `SubShapeRef`/`Part`/`VoidBuildContext`/kernel-protocol/
+  `SCENE_SCHEMA_VERSION` change.** A derived child PEI is `childElementId(parentId, slot)`.
+- **THE ENGINE (`build.ts`):** `buildChildrenTree` generates children recursively (a child may itself be
+  composite — depth > 1, "hosting deeper than one level"), `placeTree` rides the root's placement over the whole
+  subtree (D25). Cycle guard (a self-nesting type refuses — a `geometry` failure, never a hang) + a depth
+  backstop. `document.ts` registers every descendant FLAT by derived PEI for `quantities`/`geometryOf`/heap, and
+  supersedes the root's whole prior subtree on rebuild (a vanished slot is freed AND deleted); `#commit` sweeps a
+  deleted parent's subtree.
+- **THE PROBE (`packages/types/src/curtainwall.ts`, 4 types — the real shipped `core.curtainwall`):** a pure
+  composite (no own parts) → column children (composite) → panel children (leaf, glazing) + mullion children
+  (leaf, aluminium). **Genuinely depth-2.** `quantities` reaches a panel by its derived PEI and rolls the tree
+  up to glass m² + aluminium kg per material — the moat quantity a monolithic curtain wall could never answer.
+- **⚠⚠ THE ANTI-FUSE RULE HELD (rule 11/§4h):** every panel/mullion is its OWN box, NO sibling boolean; a
+  panel's face token is byte-identical across a `cols` change (`tests/composition-nesting.test.ts` §3, real OCCT).
+- **THREE FINDINGS THE BUILD PRODUCED (the §1b method — building found what reading did not):** (1) **the
+  derived-PEI separator is `:`, not `/`** — a nodeId is a `SubShapeRef` component whose grammar reserves `/` and
+  `#` (`subshape.ts`), so `/` fails to encode; `:` is reserved by neither and absent from every authored PEI. (2)
+  **a pure composite has no `buildGeometry`** — the `buildAssembly` guard had to widen to "neither solid nor
+  children ⇒ unbuildable". (3) **a superseded generated child must be DELETED from the geometry map, not just
+  freed** — else a vanished slot lingers with a dangling handle (`#commit`).
+- **Tests (`tests/composition-nesting.test.ts`, 9, real OCCT):** the tree + derived PEIs · per-child + rolled-up
+  quantities · the anti-fuse token gate · depth-2 nesting · placement rides the subtree · heap (rebuild leaks
+  nothing, a shrunk grid frees vanished slots, delete sweeps the subtree) · a cycle is refused · round-trip from
+  ONE authored row (children regenerate). **REVERT-VERIFIED:** neuter the recursive child build → 7 fail; remove
+  the `#stage` subtree-supersede → the rebuild leaks (104 vs 26); remove the `#commit` subtree-sweep → delete leaks.
+
+**NEXT (Zayd):** row **Ⓒ (D60 co-authoring concurrency/merge seam)** on the journal + `.bnn` — a merge-ordered
+`seq`/lineage the single-user path ignores (a reservation, D40's own caveat). Then Ⓓ (D61 family-format seam) →
+Ⓔ (D64 — read `Miqdar_v1.0.0_spec.md` §3.4, rule the analytical-anchor with evidence) → Ⓕ (D62/63/65
+reservations) → D66 (heap-eviction hook) → owner-gated FREEZE (step 6). ⚠ Box: installed nothing; no containers
+touched, no ports bound; `du -sh /tmp` clear.

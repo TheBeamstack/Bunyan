@@ -31,6 +31,7 @@
 
 import type { BrokenReference, ElementId, Part } from './entities.js';
 import type { GeometryGateway } from './geometry.js';
+import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly } from './build.js';
 import { dependents } from './dependency.js';
 import type { ElementGeometry } from './build.js';
@@ -633,8 +634,20 @@ export class DocumentContext {
           superseded.push(voidGeometry.elementId);
         }
       }
+      // ⚠ D59 COMPOSITION: register every generated child FLAT by its derived PEI, so `quantities`/`geometryOf`
+      // reach a panel and the heap discipline covers it. The TREE (ownership) lives on `built.result.children`.
+      for (const childGeometry of built.children) {
+        geometry.set(childGeometry.elementId, childGeometry);
+      }
       broken.push(...built.brokenRefs);
       if (this.#geometryByElement.has(root)) superseded.push(root);
+      // ⚠⚠ SUPERSEDE THE ROOT'S PRIOR SUBTREE (freed at commit). The freshly-built children above REPLACE the
+      // previous set; every prior descendant (`${root}/…`, including a slot that VANISHED this rebuild — a
+      // shrunk grid) is superseded so nothing leaks. A persistent slot's new solid is live (skipped by
+      // `#release`); its old one is freed. This is the void-supersede pattern, one level up (Entry-21 leak class).
+      for (const id of this.#geometryByElement.keys()) {
+        if (id.startsWith(`${root}:`)) superseded.push(id);
+      }
     }
 
     return { geometry, brokenRefs: broken, intermediates, superseded };
@@ -653,15 +666,36 @@ export class DocumentContext {
     const garbage: string[] = [...staged.intermediates];
 
     // Elements that vanished (a delete) take their geometry — and their handles — with them.
-    for (const [id, geometry] of this.#geometryByElement) {
-      if (this.#scene.elements[id] === undefined) {
-        for (const part of geometry.parts) garbage.push(part.handle);
-        this.#geometryByElement.delete(id);
+    // ⚠⚠ D59: a derived CHILD (a `${parentId}/…` PEI) is never a scene row, so this scene-delete scan must
+    // SKIP it — else it would free every panel of a live curtain wall on every commit (a use-after-free). A
+    // child is freed ONLY via its parent's subtree-supersede (a rebuild, `#stage`) or with its parent here (a
+    // delete): so when an AUTHORED parent vanishes, we sweep its whole generated subtree with it, or a deleted
+    // curtain wall leaks all its panels.
+    const deletedRoots: ElementId[] = [];
+    for (const id of this.#geometryByElement.keys()) {
+      if (isDerivedChildId(id)) continue;
+      if (this.#scene.elements[id] === undefined) deletedRoots.push(id);
+    }
+    for (const id of deletedRoots) {
+      const geometry = this.#geometryByElement.get(id);
+      if (geometry !== undefined) for (const part of geometry.parts) garbage.push(part.handle);
+      this.#geometryByElement.delete(id);
+      for (const childId of [...this.#geometryByElement.keys()]) {
+        if (!childId.startsWith(`${id}:`)) continue;
+        const childGeometry = this.#geometryByElement.get(childId);
+        if (childGeometry !== undefined)
+          for (const part of childGeometry.parts) garbage.push(part.handle);
+        this.#geometryByElement.delete(childId);
       }
     }
     for (const id of staged.superseded) {
       const previous = this.#geometryByElement.get(id);
       if (previous !== undefined) for (const part of previous.parts) garbage.push(part.handle);
+      // ⚠⚠ D59: DELETE, don't just free. A persistent element is re-set from `staged.geometry` below; but a
+      // VANISHED generated child (a shrunk grid's dropped slot) is superseded and NOT in the fresh set — if
+      // we only freed its handle it would LINGER in the map with a dangling (freed) handle. Delete first, let
+      // the fresh set re-add the survivors. (For the root/voids this is a harmless delete-then-immediate-set.)
+      this.#geometryByElement.delete(id);
     }
     for (const [id, geometry] of staged.geometry) this.#geometryByElement.set(id, geometry);
 

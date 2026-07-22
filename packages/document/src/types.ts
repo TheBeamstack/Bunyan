@@ -20,8 +20,9 @@ import type {
   Material,
   Params,
   Section,
-  SpatialContainer,
+  StyleId,
   TypeId,
+  SpatialContainer,
 } from './entities.js';
 import type { GeometryGateway } from './geometry.js';
 import type { Sketch } from './entities.js';
@@ -177,6 +178,40 @@ export interface BuiltVoid {
   readonly handle: ShapeHandle;
 }
 
+/**
+ * ⚠⚠ A GENERATED CHILD ELEMENT (D59 composition, Model A — owner-ruled 2026-07-22, `P5_step5B_composition_
+ * nesting_design.md`). A curtain wall's panel or mullion; a stair's tread. What a composite parent's
+ * `buildChildren` RETURNS — a first-class element (its own PEI, its own Type, its own parts and material),
+ * but DERIVED from the parent's recipe, not stored (recipe-is-truth, D30). The engine builds each child
+ * recursively via its `typeId` and gives it the DERIVED PEI `${parentId}/${slot}` (`childElementId`).
+ *
+ * ⚠ IT CARRIES A `typeId` + `params`, NOT PRE-BUILT SOLIDS — because a child IS an element (rule 18), so
+ * it is built by its own Type in the parent's local frame (the parent computes each child's positioning
+ * params). The parent's placement then rides the whole subtree last (the D25 isomorphism, like a door leaf).
+ *
+ * ⚠⚠ THE ANTI-FUSE RULE BINDS (rule 11, §4h): a child is its OWN solid, next to its siblings — NEVER fused.
+ * Composition is spatial adjacency + identity ownership, never a boolean.
+ */
+export interface BuiltChild {
+  /**
+   * ⚠ THE STABLE SLOT KEY — the child's derived-PEI suffix (`panel.r0c0`, `mullion.v1`). It is IDENTITY
+   * (D26): stable across rebuilds while the slot exists; a slot that vanishes (a grid shrinks) drops the
+   * child, and any tag on its PEI becomes a broken-ref. Unique among one parent's children — the engine
+   * refuses a duplicate slot (two children would mint byte-identical PEIs, the `core_logic.md` §5 rule).
+   */
+  readonly slot: string;
+  /** The child's Type — it is a first-class element of this kind (a `core.curtainwall.panel`). */
+  readonly typeId: TypeId;
+  /** The child's instance params — the parent computes them (a panel's cell rectangle, a mullion's line). */
+  readonly params: Params;
+  /** The child's shared style, if any (D31) — a panel style shared across every panel. */
+  readonly styleId?: StyleId;
+  /** The child's classification. Absent ⇒ the child Type's `defaultClassification` (a panel is `IfcPlate`). */
+  readonly classification?: Classification;
+  /** A human-facing name for the child (a schedule/tag reads it). Absent ⇒ unnamed. */
+  readonly name?: string;
+}
+
 /** What a hosted type's `buildVoid` gets, on top of the ordinary build context. */
 export interface VoidBuildContext extends BuildContext {
   readonly host: Element;
@@ -305,6 +340,24 @@ export interface BimObjectType {
    * Absent ⇒ the hosted element is a pure void (a plain opening / a rough hole), exactly as before.
    */
   readonly buildLeaf?: (ctx: VoidBuildContext) => Promise<readonly BuiltPart[]>;
+
+  /**
+   * ⚠⚠ THE COMPOSITE HALF — a parent that owns CHILD ELEMENTS, not only Parts (D59, Freeze-Gate row Ⓑ,
+   * owner-ruled 2026-07-22 Model A, `P5_step5B_composition_nesting_design.md`).
+   *
+   * A curtain wall is panels + mullions on a grid; a stair is treads + stringers. Each is a first-class
+   * element with its own PEI (rule 18) — but DERIVED from this parent's recipe, not a stored `scene.elements`
+   * row (Model A: recipe-is-truth, the identity discipline of `partNodeId`/`lateral.k` promoted one level).
+   * This method GENERATES them: it returns `BuiltChild` descriptors (each a `typeId` + `params`), and the
+   * engine builds each recursively in this parent's local frame, gives it the derived PEI `${parentId}/${slot}`,
+   * and rides the whole subtree on the parent's placement last. A child may itself be composite (depth > 1).
+   *
+   * ⚠ A composite parent may have `buildGeometry` (its own frame parts) OR `buildChildren` OR BOTH. Absent ⇒
+   * a flat element (today's only case). ⚠⚠ The engine refuses a type that transitively nests ITSELF (a cycle
+   * → a `geometry` failure, D42 — never a hang) and a duplicate slot (byte-identical child PEIs, §5). It
+   * needs NO new frozen field: a `BuiltChild` is a `typeId`+`params`, a child's parts are ordinary `BuiltPart`s.
+   */
+  readonly buildChildren?: (ctx: BuildContext) => Promise<readonly BuiltChild[]>;
 
   /**
    * Bring params authored against an older version of this Type forward. Called on load, once per
