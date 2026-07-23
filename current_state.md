@@ -570,9 +570,11 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
      produces by closing over the def. `tests/family-seam.test.ts` (4 — a fully-shaped def, built FROM the round-tripped
      `.bnn`, drives a real OCCT element with exact quantities; the whole grammar round-trips). No frozen byte moved, no
      `SCENE_SCHEMA_VERSION` bump, no verb, no backend. Revert-verified. 341 green.
-   - **⏭⏭ Ⓔ D64 — reopen gate ⑧'s "reserve nothing" (START HERE):** **owner DELEGATED the call to Zayd** — read
-     `Miqdar_v1.0.0_spec.md` §3.4, then rule *with evidence* whether an on-element analytical-anchor is
-     needed for real structural/energy analysis or the PEI-bound side-graph suffices, and record the reasoning.
+   - **⏭⏭ Ⓔ D64 — reopen gate ⑧'s "reserve nothing" (START HERE) — ⚠ NOW GATED ON A PROPER MIQDAR SPEC (owner redirect
+     2026-07-23, Entry 51).** **owner DELEGATED the call to Zayd** — but ruled it may NOT be made from the thin existing
+     draft. ⇒ first build a proper Miqdar v1.0.0 spec (**`~/projects/Miqdar/START_HERE.md`** — the build prompt), then
+     rule *with evidence* whether an on-element analytical-anchor is needed for real structural/energy analysis or the
+     PEI-bound side-graph suffices, record the reasoning here, and repoint this gate at the new spec.
    - **Ⓕ D62/63/65 — cheap reservations:** MEP sweep-op + system/connector; DWG codec seam; Design-Options +
      phase filters/overrides + area schemes. Record as reserved/additive.
    - **D66 — the 4-axis scale measurement** (pre-freeze): partly Amer's (renderer), but the **heap-eviction
@@ -1314,3 +1316,32 @@ analytical field belongs on the frozen type/part for real structural/energy anal
 suffices (owner DELEGATED the call to Zayd). Then Ⓕ (D62/63/65 reservations) → D66 (heap-eviction hook) → owner-gated
 FREEZE (step 6). ⚠ Box: installed nothing (pnpm via corepack only); no containers touched, no ports bound; `/tmp` 102M
 (own scratchpads).
+
+### Entry 51 — 2026-07-23 — Zayd — **Ⓒ + Ⓓ COMMITTED + PUSHED. OWNER REDIRECT: D64 (Ⓔ) IS GATED ON BUILDING A PROPER MIQDAR SPEC FIRST — new `~/projects/Miqdar` project seeded with the build prompt.**
+**Task (owner):** commit + push Ⓒ/Ⓓ; then build a proper, accurate Miqdar spec that meets Bunyan + the BIM-ecosystem
+goal, via a prompt for the next Zayd placed in a new `Miqdar` folder next to Bunyan; then continue Bunyan D64 using the
+Miqdar spec as evidence.
+
+- **COMMITTED + PUSHED (owner-gated, now authorized):** two commits on `main` (the project's linear direct-to-main
+  convention) — `1a0e74b` row Ⓒ (Entry 49, co-authoring merge seam) + `aab5c8b` row Ⓓ (Entry 50, family seam). The
+  handoff-log text for both entries rides in the Ⓓ commit (current_state.md carries both). Pushed to
+  `origin` (`github.com:Davidian-Abdo/Bunyan`). `pnpm verify` was green (341) before the commits; docs prettier-clean.
+- **⚠ OWNER REDIRECT ON D64 (Ⓔ).** D64 asks *with evidence* whether Bunyan must reserve an on-element analytical anchor
+  or the PEI-bound side-graph suffices. The existing `Miqdar_v1.0.0_spec.md` is a **FIRST DRAFT** that *asserts* the
+  answer (§3.4 row 5 "expected yes ⇒ reserve nothing") rather than *earning* it — the §0a trap. **The owner ruled the
+  D64 call may NOT be made from that thin draft.** ⇒ **D64 is now gated on Phase 1: build a PROPER Miqdar v1.0.0 spec**
+  (a real product spec, in its own project, sourced, meeting Bunyan's spec discipline), whose ecosystem-contract section
+  (the two-graph principle §4.1 + the obligations-on-Bunyan §3.4) is rigorous enough to be the D64 evidence.
+- **CREATED `~/projects/Miqdar/`** (a fresh git repo, next to Bunyan — NOT inside it). Seeded with **`START_HERE.md`**
+  (the full two-phase build prompt: Phase 1 build the spec + surface the O-M open questions to the owner — esp. **energy
+  scope**, code editions, who-can-sign; Phase 2 rule Bunyan D64 from the spec's evidence, record it as a Bunyan Entry,
+  repoint Bunyan's Miqdar gate at the new spec, then continue Ⓕ → D66 → freeze) + a short `README.md`. The prompt points
+  the next Zayd at the existing draft + normative register (in the Bunyan repo) as starting material to ELEVATE, not
+  trust; the Bunyan copies stay put (referenced by the freeze gate + §4g) — migrating them out is an owner call the spec
+  session surfaces. ⚠ **Miqdar is a separate location; the Bunyan `git push` does not include it** (no remote yet).
+- **⚠⚠ THE NON-COUPLING INVARIANTS STILL BIND** (§4g/§4i): Miqdar may never require analysis code in Bunyan, a second
+  Bunyan API, or coupled schedules; the binding is PEI + Clean Delta forever; BIMsync is off-box and untouched.
+
+**NEXT (Zayd):** execute `~/projects/Miqdar/START_HERE.md` — Phase 1 (build the proper Miqdar spec) → Phase 2 (rule
+Bunyan D64 with that evidence, record it, repoint the gate) → Bunyan Ⓕ → D66 → owner-gated FREEZE. ⚠ Box: created the
+`Miqdar` folder + `git init` only; installed nothing; no containers touched, no ports bound.
