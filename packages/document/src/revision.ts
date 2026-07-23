@@ -33,6 +33,16 @@ export interface ModelRevision {
    * since this revision". Without it, a revision is a date stamp.
    */
   readonly issued_at_seq: number;
+  /**
+   * ⚠ RESERVED, NOT BUILT (D60, row Ⓒ — `P5_step5C_coauthoring_merge_seam_design.md`). The merge
+   * **frontier** at issuance: `origin → highest lamport included`. **ABSENT ⇒ use the scalar
+   * `issued_at_seq`** (single writer, today's exact behaviour).
+   *
+   * The scalar cut point is ambiguous across replicas (two peers both have a `seq = 42`), so under a
+   * merge *"what changed since revision N?"* cannot be `seq > N` — it is *"every edit causally BEYOND
+   * this frontier."* Carried on the issued revision so a peer computes the delta with no extra handshake.
+   */
+  readonly frontier?: Readonly<Record<string, number>>;
 }
 
 /**

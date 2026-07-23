@@ -45,6 +45,15 @@ export interface Manifest {
   readonly typeVersions: Readonly<Record<string, number>>;
   /** ⚠ Absent until the model is ISSUED. Saving does not create one (D34). */
   readonly revision?: ModelRevision;
+  /**
+   * ⚠ RESERVED, NOT BUILT (D60, row Ⓒ — `P5_step5C_coauthoring_merge_seam_design.md`). A stable
+   * per-document id (ULID), minted at document birth, so **two `.bnn` files are recognizable as the same
+   * mergeable document even before any revision is issued.** **ABSENT ⇒ a single standalone document**
+   * (v1.0.0 never mints one). The only other document-lifetime id — `ModelRevision.lineage` — does not
+   * exist until `core.issueRevision` runs, so it cannot identify the *normal* co-editing case (peers
+   * editing before anyone issues a baseline). Once issued, `lineage` threads through this id.
+   */
+  readonly documentLineage?: string;
 }
 
 export interface BnnPackage {
@@ -69,6 +78,11 @@ export interface SaveOptions {
    * `core.issueRevision` does (D41). Carried into the manifest so a consumer can compute the delta.
    */
   readonly revision?: ModelRevision | undefined;
+  /**
+   * ⚠ RESERVED, NOT BUILT (D60, row Ⓒ). The document's stable merge-lineage id (`Manifest.documentLineage`).
+   * Absent in v1.0.0 (no transport mints one); a co-editing transport supplies it additively.
+   */
+  readonly documentLineage?: string | undefined;
 }
 
 const encoder = new TextEncoder();
@@ -93,6 +107,8 @@ export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
     kernelBuildId: options.kernelBuildId,
     typeVersions: typeVersionsOf(scene),
     ...(options.revision === undefined ? {} : { revision: options.revision }),
+    // ⚠ RESERVED (D60, row Ⓒ) — additive, absent in v1.0.0. Round-trips when a transport supplies it.
+    ...(options.documentLineage === undefined ? {} : { documentLineage: options.documentLineage }),
   };
 
   const files: Record<string, Uint8Array> = {

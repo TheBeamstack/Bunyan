@@ -33,6 +33,15 @@
  * single-user v1.0.0. **Co-editing will need a merge-ordered journal** (a Lamport/vector clock, or a
  * CRDT). That is **not solved here — and not foreclosed either**: `seq` is a field on an edit, and the
  * PEIs are already globally unique ULIDs (D44).
+ *
+ * ⚠⚠ **AND THAT REASSURANCE WAS INCOMPLETE — D60 (row Ⓒ, 2026-07-22) turned the caveat into a
+ * RESERVATION** (`P5_step5C_coauthoring_merge_seam_design.md`). *Element* PEIs are ULIDs, yes — but the
+ * EDIT's own `id` is `edit-${seq}-${command}` (document-scoped, `document.ts`), so **two replicas both
+ * mint `edit-42-…`**, and `reverses` matches an edit by exact-string `id` equality (below). ⇒ the
+ * globally-unique edit key must be **`(origin, id)`**, and a merge orders by **`(lamport, origin)`**. Both
+ * are reserved below as OPTIONAL fields the single-user path never sets (absent ⇒ today's exact `seq`
+ * order). D37 still stands: a ULID `origin` needs no allocator, so the seam is client-only. The revision
+ * frontier (`revision.ts`) and the document lineage (`bnn.ts`) complete the reservation.
  */
 
 import type { SceneChange } from './scene.js';
@@ -53,6 +62,28 @@ export interface UndoableEdit {
   readonly seq: number;
   /** When it happened. A consumer orders by `seq`; a human reads this. */
   readonly at: string;
+  /**
+   * ⚠ RESERVED, NOT BUILT (D60, row Ⓒ). The replica that produced this edit — a ULID-shaped id, minted
+   * with **no allocator** (the D44 mechanism), so it stays client-only (D37).
+   *
+   * **ABSENT ⇒ the single local replica — v1.0.0 never sets it and orders purely by `seq`.** When a
+   * co-editing transport lands, the **globally-unique edit key is `(origin, id)`** — `id` stays
+   * document-scoped and human-readable (`edit-42-core.createElement`); `origin` disambiguates the
+   * `edit-42` collision two replicas would otherwise share. `reverses` stays a bare `id` resolved WITHIN
+   * the same `origin` (undo is replica-local — you undo your own edits); a future cross-replica undo
+   * carries an `origin:id` composite, additive to the string, foreclosing nothing.
+   */
+  readonly origin?: string;
+  /**
+   * ⚠ RESERVED, NOT BUILT (D60, row Ⓒ). A **Lamport logical clock** — `max(every lamport this replica has
+   * seen) + 1`. **ABSENT ⇒ equals `seq`** (single writer), so a one-origin journal orders identically
+   * whether read by `seq` or by `(lamport, origin)`; v1.0.0's ordering is the degenerate case, unchanged.
+   *
+   * A merge-ordered journal totally-orders by **`(lamport, origin)`** lexicographically — deterministic
+   * and causality-respecting. Reserving the scalar does NOT commit to Lamport-over-vector-clock: a
+   * version-vector transport ignores `lamport` and orders by per-origin `seq`; neither is foreclosed.
+   */
+  readonly lamport?: number;
   /**
    * ⚠ Set when this edit is the **REVERSAL** of an earlier one (an undo): the `id` of the edit it
    * reverses. The reversed edit **stays in the journal** — a downstream consumer may already hold the
