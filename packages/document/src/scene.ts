@@ -43,6 +43,7 @@ import type {
   ViewDescriptor,
   ViewId,
 } from './documentation.js';
+import type { FamilyDefinition, FamilyId } from './families.js';
 
 /**
  * Bumped when `scene.json`'s own shape changes (not a type's — that is `element.typeVersion`).
@@ -129,6 +130,22 @@ export interface Scene {
   readonly annotations?: Readonly<Record<AnnotationId, Annotation>>;
   readonly schedules?: Readonly<Record<ScheduleId, ScheduleDefinition>>;
   readonly sheets?: Readonly<Record<SheetId, Sheet>>;
+  /* ----------------------------------------------------------------------------------------------
+   * THE FAMILY LAYER — RESERVED (D61, Freeze-Gate row Ⓓ; `P5_step5D_family_seam_design.md`; `families.ts`).
+   * A family is a building-element type authored as DATA, not code (Revit's Family Editor moat, Parity-D).
+   * The DEFINITION is EMBEDDED here (owner Q1) so a `.bnn` is self-contained — a family-typed element on a
+   * machine without the family's code STILL builds, exactly why materials are embedded (rule 15). The library/
+   * registry is the palette; a document embeds copies of the families it uses (the materials/sections dual).
+   *
+   * ⚠ ONE OPTIONAL COLLECTION, ABSENT-DEFAULTED (the `views`/documentation precedent, NOT `roomSeparators`):
+   * absent ⇒ no data-families (today's only case). NOT in `emptyScene()`, NOT in `SceneCollection`, NOT in the
+   * hostile-`.bnn` guard, NOT in the dependency graph — because in v1.0.0 no body authors, reads, invalidates,
+   * or undoes a family (the loader/resolver/CRUD are Parity-D). TOP-LEVEL so it is promotable to a full
+   * `SceneCollection` ADDITIVELY when Parity-D's CRUD lands (add the `emptyScene` entry + the `isPlainObject`
+   * guard row + the "a family edit rebuilds its instances" dependency edge, one additive step). No
+   * `SCENE_SCHEMA_VERSION` bump (it folds into frozen v2, exactly as 0g's / Ⓐ's reservations).
+   * -------------------------------------------------------------------------------------------- */
+  readonly families?: Readonly<Record<FamilyId, FamilyDefinition>>;
 }
 
 export function emptyScene(): Scene {

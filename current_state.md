@@ -222,9 +222,9 @@ is additive and permitted; *changing an existing op's envelope* needs Architect 
 | **`SubShapeRef`** | RC — exercised by the real kernel + the document model (a window survives save→load→rebuild + a 30° rotation). ⚠ `kind:'vertex'` **reserved** (D54a, 0g). | **P5** |
 | **`BimObjectType`** | **✅ WRITTEN (Entry 18), corrected (21), extended.** Carries `parameterSchema`, `styleSchema`, `defaultClassification`, `defaultDiscipline` (D45), `buildGeometry→Part[]` (D30), `buildVoid`, `migrate`, and (0g) `ifcMapping?`/`migrateStyle?`. ⚠⚠ `BuildContext.discard(handle)` — a Type running two ops per part MUST declare its intermediate or it leaks; **declare BEFORE the risky op.** ⚠⚠ `VoidBuildContext.hostFace.inward` (Entry 28) + `.frame` (Entry 30, from `faceFrame`) — a hosted void projects along the host's honest inward normal (correct for curved faces too). `BuildContext` gained `grid()`/base+top datums (0b). ✅ **ⓙ RESOLVED (Entry 44): a hosted type provides BOTH `buildVoid` AND the new additive `buildLeaf?(VoidBuildContext)` — a door builds a leaf+frame, not just a hole; the real `core.opening` ships it. PROVEN no new `VoidBuildContext`/`BuiltPart`/`hostFace` field (a `tsc` TS2322 proof); `buildLeaf`, not `buildGeometry`, because a door is a solid only when hosted.** ✅ **D59 COMPOSITION (Entry 48): gained the additive `buildChildren?(ctx)=>BuiltChild[]` (a parent owns child ELEMENTS, rule 18 — the real `core.curtainwall` ships it, Model A = children DERIVED by PEI `${parentId}:${slot}`, never stored). `Element` gained reserved `childOverrides?`/`ChildOverride`; `parentElementId` RE-PINNED to the group/manual-nest meaning.** | **P5** (freeze against the composite Wall + the real Opening + the composite Curtain Wall — all now exist) |
 | **`Command`** | **✅ WRITTEN (Entry 18)** — `argsSchema` + `execute` returns its `UndoableEdit`. **The agent API** (§4f). CRUD verbs carry the D51 refuse-or-retarget args (`acknowledge`/`retargetMap`, 0e/0f); `createElement` carries the six reserved-metadata args + `core.setElementMetadata` (0g.2). **0d BUILT `core.createSketchConstraint`/`core.deleteSketchConstraint`** (Entry 40; datum verbs and sketch verbs each refuse the other's ids). **0c BUILT `core.setJoin`/`core.clearJoin`** (Entry 42 — override verbs; joins are AUTOMATIC on proximity, these only deviate a corner to butt/mitre/none). | **P5** (with its `argsSchema`) |
-| **`ElementStyle`/`Part`/`Material`/`Section`/spatial tree/`Constraint`/`scene.json`** | **✅ WRITTEN.** `scene.json` = `packages/document/src/scene.ts`. **0b:** `scene.constraints` (discriminated-union `Constraint`, `SCENE_SCHEMA_VERSION` 1→2). **0d (Entry 40):** `SketchConstraint` is the union's SECOND member; the `Sketch` data model lives in `element.params` (Q1=A — no schema bump). **0c (Entry 42):** `JoinConstraint` is the union's THIRD member (`{element, other, kind:'join', resolution:'butt'|'mitre'|'none'}`) — an OVERRIDE of the auto-miter default; no schema bump. **0g:** reserved fields on `Element` (`phaseCreated?`/`phaseDemolished?`/`parentElementId?`/`properties?`/`classifications?`/`mark?`), `SpatialContainer`/`Grid` (IFC bags + Space extent inputs + `Grid.geometry?`), `Scene.georeference?`/`roomSeparators`, `ParamField.relevantWhen?`/`formula?`. | **P5** |
+| **`ElementStyle`/`Part`/`Material`/`Section`/spatial tree/`Constraint`/`scene.json`** | **✅ WRITTEN.** `scene.json` = `packages/document/src/scene.ts`. **0b:** `scene.constraints` (discriminated-union `Constraint`, `SCENE_SCHEMA_VERSION` 1→2). **0d (Entry 40):** `SketchConstraint` is the union's SECOND member; the `Sketch` data model lives in `element.params` (Q1=A — no schema bump). **0c (Entry 42):** `JoinConstraint` is the union's THIRD member (`{element, other, kind:'join', resolution:'butt'|'mitre'|'none'}`) — an OVERRIDE of the auto-miter default; no schema bump. **0g:** reserved fields on `Element` (`phaseCreated?`/`phaseDemolished?`/`parentElementId?`/`properties?`/`classifications?`/`mark?`), `SpatialContainer`/`Grid` (IFC bags + Space extent inputs + `Grid.geometry?`), `Scene.georeference?`/`roomSeparators`, `ParamField.relevantWhen?`/`formula?`. **Ⓐ (Entry 47):** `Scene.views?`/`annotations?`/`schedules?`/`sheets?` (documentation, `documentation.ts`) — optional absent-defaulted, no bump. **Ⓓ (Entry 50, D61):** `Scene.families?` (`families.ts`) — a data-family DEFINITION embedded (self-contained per rule 15); a fully-shaped discriminated-union grammar; optional absent-defaulted, no bump; PROVEN to need no `BimObjectType` field. | **P5** |
 | **Agent surface** (`window.bunyan`) | **✅ WRITTEN** — `createAgentSurface`, versioned separately (`agentApi: 1`, D22); does **not** inherit the P5 freeze. | evolves on its own clock |
-| **`.bnn`** | **✅ WRITTEN + FINISHED (Entry 21).** Zip of `manifest.json` + `scene.json` + `history.json` (the JOURNAL — append-only `seq`; an undo appends a REVERSAL) + optional `thumbnail.png`. Ids are prefixed ULIDs (D44); unknown/future-typed elements round-trip VERBATIM (D43). `geometry-cache.brep` (D29) is purely additive — breaks no saved file when it lands. | **P5** |
+| **`.bnn`** | **✅ WRITTEN + FINISHED (Entry 21).** Zip of `manifest.json` + `scene.json` + `history.json` (the JOURNAL — append-only `seq`; an undo appends a REVERSAL) + optional `thumbnail.png`. Ids are prefixed ULIDs (D44); unknown/future-typed elements round-trip VERBATIM (D43). `geometry-cache.brep` (D29) is purely additive — breaks no saved file when it lands. ✅ **D60 MERGE SEAM RESERVED (Entry 49): `manifest.documentLineage?` (a ULID doc id for un-issued files) + the journal's `UndoableEdit.origin?`/`lamport?` + `ModelRevision.frontier?` — all optional, absent in v1.0.0, round-trip additively; no `SCENE_SCHEMA_VERSION` bump.** | **P5** |
 
 ---
 
@@ -390,7 +390,7 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | D57 | **The Clean Delta is designed on BUNYAN's terms; BIMsync is UNBUILT and adapts (owner, 2026-07-20).** ⑥ was mis-filed as an external blocker on an off-box BIMsync spec. BIMsync is built from scratch *after* Bunyan v1.0.0; its spec conforms to Bunyan. ⇒ Design the change-feed payload for **Planitor + Miqdar** (the on-box, known consumers); never wait on or infer from BIMsync. ⑥ is headless-closable design work, not an escalation. |
 | **D58** | **2026-07-21 — Documentation is a live projection of the B-Rep (core_logic rule 17). v1.0.0 ships MINIMAL 2D (1 plan + 1 section + 1 schedule); full apparatus is post-v1.0.0. ⚠ PRE-FREEZE: the View/Schedule/Dimension/Tag/Sheet ANCHORING contracts freeze at P5 (row Ⓐ).** |
 | **D59** | **2026-07-21 — An element may own child ELEMENTS, not only Parts (rule 18): curtain walls, stairs, groups. Nesting is mandatory for parity. ✅ DESIGNED + BUILT (Entry 48, Model A = children DERIVED, never stored): `BimObjectType.buildChildren?` + `ElementGeometry.children?` (a tree) + `Element.childOverrides?`; `parentElementId` re-pinned to groups. The real `core.curtainwall` (depth-2) validates it; anti-fuse held; 328 green.** |
-| **D60** | **2026-07-21 — Multi-user co-authoring is Bunyan's (ecosystem apps are downstream consumers, not co-authors). ⚠ PRE-FREEZE: reserve a concurrency/merge SEAM on the journal + `.bnn` (row Ⓒ). Client-only in v1.0.0 (D37 stands).** |
+| **D60** | **2026-07-21 — Multi-user co-authoring is Bunyan's (ecosystem apps are downstream consumers, not co-authors). ✅ SEAM RESERVED (Entry 49, row Ⓒ): four optional additive fields — `UndoableEdit.origin?`/`lamport?`, `ModelRevision.frontier?`, `Manifest.documentLineage?` — proven mergeable by a pure commutative `mergeOrdered()`; no `scene.json`/schema/verb/backend change (D37 stands). Found 3 foreclosures the D44-ULID prose missed (the edit id is `seq`-derived; the anchor is scalar; un-issued files have no doc identity).** |
 | **D61** | **2026-07-21 — Data-driven family authoring (Revit Family Editor moat): families as DATA, not code. ⚠ PRE-FREEZE: reserve a family-definition data-format seam (row Ⓓ). Code-types stay for complex behaviour.** |
 | **D62** | **2026-07-21 — MEP systems & connectors reserved (networks + connectors + routing; needs sweep-along-path/loft ops, additive per D13). System/connector type contracts reserved (row Ⓕ).** |
 | **D63** | **2026-07-21 — Reserve a DWG codec seam (2D-CAD interop); IFC export stays v1.0.x (D3); point-cloud/RVT recorded absent (row Ⓕ).** |
@@ -495,8 +495,8 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 > the §1b method turned on the product itself — and the owner validated nine new decisions (D58–D66). Six add pre-freeze
 > work, because the contract they lean on freezes at P5.** ⇒ **NOT ready to freeze.** Land first (imp_plan "🟠 REOPENED"):
 > **Ⓐ** documentation anchoring contracts (D58 — ✅ DONE Entry 47) · **Ⓑ** element composition/nesting
-> **DESIGNED + BUILT** (D59 — ✅ DONE Entry 48, the real `core.curtainwall`) · **Ⓒ** co-authoring concurrency seam on the journal+`.bnn` (D60)
-> · **Ⓓ** family-definition data-format seam (D61) · **Ⓔ** reopen gate ⑧'s analytical-anchor (D64) · **Ⓕ** MEP/DWG/
+> **DESIGNED + BUILT** (D59 — ✅ DONE Entry 48, the real `core.curtainwall`) · **Ⓒ** co-authoring concurrency seam on the journal+`.bnn`
+> (D60 — ✅ DONE Entry 49) · **Ⓓ** family-definition data-format seam (D61) · **Ⓔ** reopen gate ⑧'s analytical-anchor (D64) · **Ⓕ** MEP/DWG/
 > Design-Option reservations (D62/63/65) · **plus D66** the 4-axis scale measurement (pre-freeze). **THEN the owner-gated
 > freeze (step 6).** See Entry 46 + `v1.0.0_imp_plan.md` "🟠 REOPENED" + "Road to Revit parity."
 >
@@ -531,9 +531,9 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
    Door builds a leaf via `buildLeaf`, no new frozen field, revert-verified); ⑥ Clean Delta designed (no
    frozen change, `P5_step6_clean_delta_design.md`); #4 mid-span additivity confirmed; gates ⑧/⑨ discharged;
    the join-drift gap fixed (Entry 45, offsetU anchors to the baseline). 310 green.
-5. **THE REOPENED PRE-FREEZE WORK (Entry 46, D58–D66). ⚠ THE FREEZE IS NOT READY UNTIL THESE LAND. Ⓐ + Ⓑ DONE
-   (Entries 47–48); ⏭⏭ START HERE = Ⓒ.** Mostly reservations + one gate re-examination; the two builds (Ⓐ anchors,
-   Ⓑ nesting) are done. All are contract-shaping and therefore genuinely pre-freeze. Order (see imp_plan "🟠 REOPENED"):
+5. **THE REOPENED PRE-FREEZE WORK (Entry 46, D58–D66). ⚠ THE FREEZE IS NOT READY UNTIL THESE LAND. Ⓐ + Ⓑ + Ⓒ + Ⓓ DONE
+   (Entries 47–50); ⏭⏭ START HERE = Ⓔ.** Mostly reservations + one gate re-examination; the builds so far (Ⓐ anchors,
+   Ⓑ nesting, Ⓒ merge seam, Ⓓ family seam) are done. All are contract-shaping and therefore genuinely pre-freeze. Order (see imp_plan "🟠 REOPENED"):
    - **Ⓐ D58 — documentation anchoring contracts. ✅ DONE + GREEN (Entry 47, `P5_step5A_documentation_
      anchoring_design.md`).** Reserved on `scene.json` as four OPTIONAL, absent-defaulted collections
      (`views`/`annotations`/`schedules`/`sheets`; `documentation.ts`): a `ViewDescriptor` (plan/section/
@@ -552,10 +552,25 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
      (a panel token byte-identical across a `cols` change); quantities roll the tree up to glass m² + aluminium
      kg per child per material. No frozen byte moved, no `SCENE_SCHEMA_VERSION` bump. `tests/composition-
      nesting.test.ts` (9, real OCCT), revert-verified. 328 green.
-   - **⏭⏭ Ⓒ D60 — co-authoring concurrency/merge seam (START HERE)** on the journal + `.bnn` (a merge-ordered
-     `seq`/lineage the single-user path ignores — D40's own caveat, made a reservation before issued files exist).
-   - **Ⓓ D61 — family-definition data-format seam** (families as data, not code; touches type/registry).
-   - **Ⓔ D64 — reopen gate ⑧'s "reserve nothing":** **owner DELEGATED the call to Zayd** — read
+   - **Ⓒ D60 — co-authoring concurrency/merge seam. ✅ DONE + GREEN (Entry 49, `P5_step5C_coauthoring_merge_
+     seam_design.md`).** Owner ruled Q1–Q4 (all recommended): `(origin,id)` global key with `edit.id` unchanged;
+     a Lamport scalar; a revision `frontier`; a manifest `documentLineage`. Reserved four optional absent-defaulted
+     fields — `UndoableEdit.origin?`/`lamport?`, `ModelRevision.frontier?`, `Manifest`/`SaveOptions.documentLineage?`
+     — proven additive by a pure commutative `mergeOrdered()` (`tests/coauthoring-merge-seam.test.ts`, 9). The §1b
+     method found 3 foreclosures: `edit.id` is `seq`-derived not a ULID; `issued_at_seq` is a scalar cut; an
+     un-issued `.bnn` has no doc identity. **No `scene.json` touch, no `SCENE_SCHEMA_VERSION` bump, no verb, no
+     backend (D37 intact).** Revert-verified. 337 green.
+   - **Ⓓ D61 — family-definition data-format seam. ✅ DONE + GREEN (Entry 50, `P5_step5D_family_seam_design.md`).**
+     Owner ruled Q1–Q3 (Q1 embedded in `scene.json`; **Q2 = a FULLY-SHAPED grammar now**, not the recommended opaque
+     envelope; Q3 prefixed ULID). Reserved `Scene.families?` (the `views`/documentation precedent — one optional
+     absent-defaulted collection, no schema bump) + a fully-shaped, discriminated-union `FamilyDefinition` grammar
+     (`families.ts`: params + `box`/`extrude`/`revolve` primitives + `chamfer`/`fillet` modifiers + `FamilyChildPlacement`
+     nesting + `FamilyHosting` — a data door; every scalar a `FamilyValue`, a `formatVersion` for evolution). **The §1b
+     finding, PROVEN not assumed: a data family needs NO new `BimObjectType` field** — it is a `BimObjectType` a loader
+     produces by closing over the def. `tests/family-seam.test.ts` (4 — a fully-shaped def, built FROM the round-tripped
+     `.bnn`, drives a real OCCT element with exact quantities; the whole grammar round-trips). No frozen byte moved, no
+     `SCENE_SCHEMA_VERSION` bump, no verb, no backend. Revert-verified. 341 green.
+   - **⏭⏭ Ⓔ D64 — reopen gate ⑧'s "reserve nothing" (START HERE):** **owner DELEGATED the call to Zayd** — read
      `Miqdar_v1.0.0_spec.md` §3.4, then rule *with evidence* whether an on-element analytical-anchor is
      needed for real structural/energy analysis or the PEI-bound side-graph suffices, and record the reasoning.
    - **Ⓕ D62/63/65 — cheap reservations:** MEP sweep-op + system/connector; DWG codec seam; Design-Options +
@@ -1205,3 +1220,97 @@ tests, +9**; typecheck incl. apps/web, lint, format, reseed). ⚠ **No commit �
 Ⓔ (D64 — read `Miqdar_v1.0.0_spec.md` §3.4, rule the analytical-anchor with evidence) → Ⓕ (D62/63/65
 reservations) → D66 (heap-eviction hook) → owner-gated FREEZE (step 6). ⚠ Box: installed nothing; no containers
 touched, no ports bound; `du -sh /tmp` clear.
+
+### Entry 49 — 2026-07-22 — Zayd — **REOPENED ROW Ⓒ DONE: THE CO-AUTHORING CONCURRENCY / MERGE SEAM (D60) — RESERVED ON THE JOURNAL + `.bnn`, PROVEN ADDITIVE WITH A DETERMINISTIC MERGE, NO SCHEMA BUMP.**
+**Task (owner):** resume the reopened pre-freeze work in order; Ⓒ is next (reserve, design-doc-first). Owner ruled the
+framing questions; build/reserve + revert-verify. `pnpm verify` fully green (**337 tests, +9**; typecheck incl.
+apps/web, lint, format, reseed-skip). ⚠ **No commit — owner-gated.**
+
+- **DESIGNED FIRST (`P5_step5C_coauthoring_merge_seam_design.md`), then OWNER RULED Q1–Q4 (all as recommended):**
+  **Q1 = `(origin, id)` global key, `edit.id` UNCHANGED** (document-scoped + human-readable; `reverses` stays
+  replica-local — you undo your own edits; rejected the D44-symmetric "ULID-ify `edit.id` now" as a needless
+  mint-behaviour change to a freezing field). **Q2 = a Lamport scalar `lamport?`** (order by `(lamport, origin)`;
+  a version vector stays additive; rejected wall-clock `at` — clock skew makes a merge non-deterministic). **Q3 =
+  reserve `ModelRevision.frontier?`** (a per-origin cut so "since revision N" survives merge). **Q4 = reserve
+  `manifest.documentLineage?`** (a ULID doc id so two UN-issued `.bnn`s are recognizably the same document).
+- **THE §1b METHOD FOUND THREE FORECLOSURES by reserving against the REAL code, not the prose.** `undo.ts`'s own
+  header reassured co-editing "isn't foreclosed — the PEIs are ULIDs (D44)". True of *element* PEIs, **incomplete**
+  for the journal: (1) **the EDIT's own `id` is `edit-${seq}-${command}`, NOT a ULID** (`document.ts:498`) — two
+  replicas both mint `edit-42-…` and `reverses` matches by exact-string `id` equality, so the global key must be
+  `(origin, id)`. (2) **`issued_at_seq` is a scalar cut point** — ambiguous across replicas; needs a `frontier`.
+  (3) **an un-issued `.bnn` has NO document identity** (`lineage` only exists post-`issueRevision`, defaulting to
+  `bnn-${Date.now()}`). Each is one optional field; each is a three-product amendment if the freeze lands without it.
+- **THE RESERVED SURFACE — four optional, absent-defaulted fields, additive at every point:** `UndoableEdit.origin?`
+  + `UndoableEdit.lamport?` (`undo.ts`); `ModelRevision.frontier?` (`revision.ts`); `Manifest.documentLineage?` +
+  `SaveOptions.documentLineage?` with an additive `saveBnn` round-trip (`bnn.ts`). **The `Journal`/`UndoStack`
+  classes get NO reservation** — a class is not a wire contract; its serialized form is the `UndoableEdit[]` array,
+  and a `MergeJournal` ordering by `(lamport, origin)` is an additive subtype the transport phase adds.
+- **⚠⚠ NOTHING TOUCHES `scene.json` — NO `SCENE_SCHEMA_VERSION` BUMP.** Merge metadata is journal + manifest, not
+  scene; the parametric truth is identical whether authored by one peer or ten. No frozen field changed shape; every
+  existing consumer (`since`, `issued_at_seq`, `restore`, `reverses`) is byte-identical when the fields are absent —
+  which they always are in v1.0.0. **No verb owed** (a co-editing transport is new commands = additive registry
+  entries, D19 — distinct from ⓣ). **No backend/allocator** (`origin`/`documentLineage` are ULIDs — D37 intact).
+- **THE PROOF (`tests/coauthoring-merge-seam.test.ts`, 9, pure — no kernel):** a pure `mergeOrdered()` over the
+  reserved fields is **commutative** (`merge(A,B) ≡ merge(B,A)` — the CRDT property), **causality-respecting** (a
+  higher Lamport never sorts before what it followed), **degenerates to today's exact `seq` order for one origin**,
+  and `(origin, id)` **disambiguates the `edit-42` collision** (keying by `id` alone visibly loses one edit — the
+  foreclosure, demonstrated in-test). The `frontier` delta equals the scalar `issued_at_seq` delta for one origin and
+  returns exactly the causally-later edits across a merged journal. `mergeOrdered` lives in the TEST only — the
+  executable proof the frozen shapes are SUFFICIENT, not a shipped feature (no transport exists to feed it).
+  **REVERT-VERIFIED:** neuter the `saveBnn` `documentLineage` line → 2 codec tests fail (the id vanishes on
+  round-trip); restored + re-green.
+
+**NEXT (Zayd):** row **Ⓓ (D61 family-definition data-format seam)** — families as DATA not code; touches type/registry.
+Then Ⓔ (D64 — read `Miqdar_v1.0.0_spec.md` §3.4, rule the analytical-anchor with evidence) → Ⓕ (D62/63/65
+reservations) → D66 (heap-eviction hook) → owner-gated FREEZE (step 6). ⚠ Box: installed nothing (pnpm via corepack
+only); no containers touched, no ports bound; `/tmp` 102M (own scratchpads).
+
+### Entry 50 — 2026-07-22 — Zayd — **REOPENED ROW Ⓓ DONE: THE FAMILY-DEFINITION DATA-FORMAT SEAM (D61) — A FULLY-SHAPED GRAMMAR EMBEDDED IN `scene.json`, PROVEN TO DRIVE A REAL ELEMENT vs OCCT WITH NO NEW `BimObjectType` FIELD, NO SCHEMA BUMP.**
+**Task (owner):** resume the reopened pre-freeze work in order; Ⓓ is next (reserve, design-doc-first). Owner ruled Q1–Q3;
+build/reserve + revert-verify. `pnpm verify` fully green (**341 tests, +4**; typecheck incl. apps/web, lint, format, reseed-skip).
+⚠ **No commit — owner-gated.** (Ⓒ/Entry 49 is also still uncommitted in the working tree — both await the owner.)
+
+- **DESIGNED FIRST (`P5_step5D_family_seam_design.md`), then OWNER RULED Q1–Q3:** **Q1 = embedded in `scene.json`**
+  (recommended — self-contained per rule 15, the materials/sections dual: library = palette, the doc embeds copies it
+  uses). **Q2 = a FULLY-SHAPED grammar now** (⚠ NOT the recommended opaque envelope — the owner chose to reserve the
+  real recipe structure). **Q3 = prefixed ULID** (recommended — `FamilyId = mintPei('family')`, collision-impossible
+  across the MANY authors who mint families, the D60 Q1 reasoning; a `TypeId` is namespaced because ONE vendor mints it).
+- **THE §1b METHOD (reserve against the CODE, not the prose) FOUND THE REAL FORECLOSURES.** The registries header
+  reassures "types are additive registrations." Incomplete for a DATA family: (F1) `Registry.register`
+  (`registries.ts:44`) is process-global + throws on a duplicate id — but embedded families are PER-DOCUMENT, so two
+  `.bnn`s sharing a family id can't both register; document-scoped resolution is an additive ENGINE change (Parity-D)
+  *provided the definitions have a home in the frozen `scene.json`* — they didn't. (F2) rule 15: a `.bnn` with a
+  family-typed element MUST carry the definition or the element can't build (worse than a lost density). (F3) — the
+  finding I PROVED not assumed: **a data family needs NO new `BimObjectType` field** — it is a `BimObjectType` a loader
+  CLOSES OVER the definition to produce; `buildGeometry(ctx)` reads `ctx.params` + the closed-over `def` and emits
+  ordinary `BuiltPart`s. (F4) the grammar shape is genuinely unknown and nothing reads it in v1.0.0 — the Q2 fork.
+- **THE RESERVED SURFACE — ONE frozen-contract touch + a fully-shaped grammar, all optional/additive:** `Scene.families?`
+  (`scene.ts`) — a FIFTH optional absent-defaulted collection on the **`views`/documentation precedent** (NOT in
+  `emptyScene()`/`SceneCollection`/the hostile-`.bnn` guard/the dependency graph — nothing authors/reads/invalidates/undoes
+  a family in v1.0.0; promotable to a full `SceneCollection` additively when Parity-D's CRUD lands). The grammar
+  (`families.ts`, new): `FamilyDefinition` = `parameterSchema` + `defaultClassification`/`defaultDiscipline` + `parts?`
+  (each a discriminated `FamilyPrimitive` base — `box`/`extrude`/`revolve` — + ordered `FamilyModifier[]` — `chamfer`/
+  `fillet`, edges by a SEMANTIC `FamilyEdgeSelector` never an index, D1) + `children?` (`FamilyChildPlacement`, D59) +
+  `hosting?` (`FamilyHosting` — `voidPrimitive`+`leafParts`, a data-authored door). Every scalar is a `FamilyValue`
+  (literal or param-ref → parametric; formula-driven via ⓜ). **Every recipe node is a discriminated union + a
+  `formatVersion`** ⇒ the uncovered tail (loft/sweep, richer selectors) is an additive MEMBER, and wholesale grammar
+  evolution migrates forward — a fully-shaped grammar that still can't foreclose.
+- **⚠⚠ NO `BimObjectType` FIELD, NO `Registries` CHANGE, NO `scene.json` SCHEMA BUMP, NO VERB, NO BACKEND.** The only
+  frozen-contract touch is the one optional `Scene.families?` key, which rides `{ ...emptyScene(), ...parsed }`
+  (`bnn.ts:161`) verbatim — no `SCENE_SCHEMA_VERSION` bump (folds into frozen v2, the 0g/Ⓐ/Ⓒ precedent). The loader
+  (`makeFamilyType`), the document-scoped resolver, the CRUD, the library are all Parity-D, additive over what freezes here.
+- **THE PROOF (`tests/family-seam.test.ts`, 4 — 2 real OCCT, 2 pure):** ⭐ a fully-shaped `FamilyDefinition` (two box
+  parts, every dim a param-ref) → embedded in a scene → **saved + reloaded** → a minimal in-test `makeFamilyType(def)`
+  interpreter (closes over the RELOADED def) → an authored element builds a **real solid with EXACT `BRepGProp`
+  quantities** (body/cap volume + mass per material, `basis:'exact'`) — proving R1 (the def travels) and F3 (it drives
+  OCCT with zero frozen field) **in one shot**; a data family is ASSOCIATIVE (a `setParams` height edit re-derives the
+  volume); the FULLY-SHAPED grammar (sketch+polygon profiles, revolve, a modifier, a nested child, the hosted half)
+  round-trips byte-identical; absent ⇒ `families === undefined`, no schema bump. **REVERT-VERIFIED:** a probe that drops
+  `families` in `loadBnn` fails BOTH the round-trip and the OCCT-build tests (the reloaded def vanishes → the interpreter
+  throws); restored + re-green. The interpreter lives in the TEST only — the executable proof the frozen shapes suffice.
+
+**NEXT (Zayd):** row **Ⓔ (D64)** — read `Miqdar_v1.0.0_spec.md` §3.4 and rule *with evidence* whether one optional
+analytical field belongs on the frozen type/part for real structural/energy analysis or the PEI-bound side-graph
+suffices (owner DELEGATED the call to Zayd). Then Ⓕ (D62/63/65 reservations) → D66 (heap-eviction hook) → owner-gated
+FREEZE (step 6). ⚠ Box: installed nothing (pnpm via corepack only); no containers touched, no ports bound; `/tmp` 102M
+(own scratchpads).
