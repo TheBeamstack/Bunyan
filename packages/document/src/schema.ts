@@ -49,8 +49,20 @@ export interface ParamField {
   readonly max?: number;
   /** For `enum`. */
   readonly options?: readonly string[];
-  /** For `ref`: which registry/collection the id must exist in. Validated, not assumed. */
-  readonly refTo?: 'element' | 'material' | 'section' | 'style' | 'container' | 'grid';
+  /**
+   * For `ref`: which registry/collection the id must exist in. Validated, not assumed.
+   *
+   * ⚠ A STRING UNION THAT GROWS BY ADDING A MEMBER, never by editing one (the D53 discipline). It is
+   * declarative metadata — it drives a future UI picker and the generated agent tool-list; **no body
+   * switches on it today**, so a new member breaks nothing.
+   *
+   * ⚠ `'system'`/`'designOption'` were added by ROW Ⓕ (2026-07-24, D62/D65) *pre-freeze and deliberately*:
+   * `createElement` reserves `systemId`/`designOptionId` args, and typing them as bare strings would have
+   * forced whoever builds MEP/Design-Options to widen this union later — i.e. amend a frozen contract, which
+   * is the exact ⓣ trap 0g.2 hit. Free now; an amendment after step 6.
+   */
+  readonly refTo?:
+    'element' | 'material' | 'section' | 'style' | 'container' | 'grid' | 'system' | 'designOption';
   /** For `array`: the shape of each item. For `object`: the shape of its fields. */
   readonly items?: ParamField;
   readonly fields?: ParamSchema;

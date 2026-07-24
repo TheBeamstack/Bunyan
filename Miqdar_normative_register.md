@@ -1,5 +1,9 @@
 # Miqdar — Normative Register (the code corpus, per jurisdiction)
 
+> ⚠⚠ **SUPERSEDED — 2026-07-23. THE LIVE REGISTER IS `~/projects/Miqdar/Miqdar_normative_register.md`**
+> (owner ruling M22; three headline editions now ruled — Morocco BAEL 91-99 core, Algeria RPA 2024, France
+> 1st-gen). Retained here, not deleted, only so Bunyan's freeze gate resolves. Do not edit as truth.
+
 **What this is.** The authoritative list of *which normative document, in which edition* each Miqdar code
 module implements. It resolves **O-M4** and is the data behind the spec's §5.2 matrix — the spec table
 now **points here** rather than restating editions, so there is exactly one place to correct.

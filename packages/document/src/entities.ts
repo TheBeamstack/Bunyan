@@ -19,6 +19,8 @@
  */
 
 import type { RigidMotion, ShapeHandle } from '@bunyan/protocol';
+import type { Connector, SystemId } from './systems.js';
+import type { DesignOptionId } from './designoptions.js';
 
 /**
  * An element's id is its **PEI** — its Persistent Element Identity (domain rule 13, D34).
@@ -66,6 +68,27 @@ export interface Material {
   readonly density: number;
   /** Physical properties an analysis engine reads. Open-ended by design: codes differ by material. */
   readonly structural?: Readonly<Record<string, number>>;
+  /**
+   * ⚠ RESERVED (D64/M18, owner-ruled 2026-07-23 — `../Miqdar/Miqdar_v1.0.0_spec.md` §4.6). The THERMAL
+   * physical properties an energy analysis reads — `lambda` (conductivity, W/m·K), `specificHeat`
+   * (J/kg·K), … Open-ended, exactly like `structural?`, because codes and analyses differ.
+   *
+   * ⚠⚠ WHY IT IS HERE, AND WHY IT IS A SIBLING OF `structural?` RATHER THAN A KEY INSIDE IT. `core_logic.md`
+   * §3.11 prose promised *"thermal conductivity"* and §9 names *structural/**energy** analysis* a north-star
+   * (domain rule 8 forbids foreclosing one) — but no thermal property was in the frozen `Material`, and
+   * `Material` freezes at P5. The Miqdar real-frame walk (D64) found the gap. Thermal is NOT structural, so
+   * folding λ into `structural?` would mislabel it at zero saving. Optional and absent-defaulted ⇒ every
+   * existing material and every saved `.bnn` is untouched; no `SCENE_SCHEMA_VERSION` bump. NO body reads it
+   * in v1.0.0 (Miqdar v1.0.0 is structural-only, M18) — this reserves the SHAPE so energy is never a
+   * three-product amendment.
+   *
+   * ⚠ It is a MATERIAL property — single-valued per material, genuinely physical — NOT an on-element
+   * analytical anchor. D64's analytical-anchor question is answered *"reserve nothing on the type/part"*
+   * (the idealization is many-valued per element ⇒ it lives in Miqdar's side-graph, spec §4.4/§4.5). This
+   * field does not weaken that ruling; it confirms the two-graph split (the material is physical; the
+   * idealization is Miqdar's).
+   */
+  readonly thermal?: Readonly<Record<string, number>>;
   /** Display only. Never load-bearing — the geometry is truth, this is a projection of it. */
   readonly appearance?: { readonly color?: string; readonly opacity?: number };
 }
@@ -597,6 +620,37 @@ export interface Element {
    * from `name` (a description). Absent ⇒ untagged.
    */
   readonly mark?: string;
+  /* ----------------------------------------------------------------------------------------------
+   * ROW Ⓕ RESERVATIONS (2026-07-24, owner-ruled — `P5_step5F_reservations_design.md`). Optional and
+   * absent-defaulted like every reservation above; no body reads them in v1.0.0.
+   * -------------------------------------------------------------------------------------------- */
+  /**
+   * ⚠ RESERVED (D62, row Ⓕ). The MEP network this element belongs to (`systems.ts`). Absent ⇒ not part of
+   * a system (every element today). A per-port override lives on `Connector.systemId` — a valve or heat
+   * exchanger genuinely bridges two networks.
+   */
+  readonly systemId?: SystemId;
+  /**
+   * ⚠ RESERVED (D62, row Ⓕ). The PORTS where other MEP components join this one (`systems.ts`). Absent ⇒
+   * no connectors (every element today).
+   *
+   * ⚠ Each `Connector.at`/`.direction` is in the element's OWN BUILD FRAME, never world space — the D25
+   * lesson (`transform` mints no identities), so moving or rotating a duct cannot invalidate its ports.
+   * `Connector.name` is unique within the element, exactly as `Part.name` is (D30).
+   */
+  readonly connectors?: readonly Connector[];
+  /**
+   * ⚠⚠ RESERVED (D65, row Ⓕ). The design ALTERNATIVE this element belongs to (`designoptions.ts`).
+   * Absent ⇒ **main model** — shared by every option, always counted (v1.0.0's only case).
+   *
+   * ⚠⚠⚠ READ `designoptions.ts` BEFORE ANY BODY READS THIS FIELD. When present, this element may be
+   * MUTUALLY EXCLUSIVE with another element in the same option set ⇒ **`quantities()`, the project-wide
+   * roll-up, the Clean Delta exporter and every schedule MUST exclude elements whose option is not the
+   * active one** (`isElementActive`). Ignoring it double-counts and publishes work packages for a scheme
+   * nobody is building — domain rule 15's failure mode, reached by a new road. The invariant is part of
+   * the frozen contract, not an implementation note (the `Grid.geometry`/ⓥ precedent).
+   */
+  readonly designOptionId?: DesignOptionId;
 }
 
 /* ================================================================================================

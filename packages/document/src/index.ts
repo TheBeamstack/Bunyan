@@ -12,6 +12,8 @@ export * from './entities.js';
 export * from './schema.js';
 export * from './documentation.js';
 export * from './families.js';
+export * from './systems.js';
+export * from './designoptions.js';
 export * from './scene.js';
 export * from './geometry.js';
 export * from './sketch.js';

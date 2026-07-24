@@ -522,6 +522,32 @@ export const createElementCommand: Command = {
       label: 'Classifications',
       description: 'Classification-system codes — system → code, e.g. Uniclass2015 → EF_25_10 (ⓠ)',
     },
+    // ⚠⚠ ROW Ⓕ RESERVED ARGS (2026-07-24, owner-ruled Q1 "full reserve" — `P5_step5F_reservations_
+    // design.md`). The SAME ⓣ lesson 0g.2 learned the hard way: `Element.systemId`/`connectors`/
+    // `designOptionId` are reserved element fields, and `argsSchema` freezes at the SAME step 6 — so a
+    // reserved noun WITHOUT an authoring slot forces a later body to amend a frozen contract *and* the
+    // generated agent tool-list. Reserved here so Parity-C/F are a BUILD, not an amendment. No body reads
+    // them in v1.0.0; an element can be BORN with them in one atomic edit.
+    systemId: {
+      kind: 'ref',
+      refTo: 'system',
+      label: 'MEP system',
+      description: 'The network this element belongs to — SA-1, CWS (D62, reserved)',
+    },
+    connectors: {
+      kind: 'array',
+      label: 'Connectors',
+      description:
+        "MEP ports where other components join — position/direction in the element's OWN BUILD FRAME (D62, reserved)",
+      items: { kind: 'object', label: 'Connector' },
+    },
+    designOptionId: {
+      kind: 'ref',
+      refTo: 'designOption',
+      label: 'Design option',
+      description:
+        'The design alternative this element belongs to; absent ⇒ main model (D65, reserved). ⚠ Consumers must exclude non-active options',
+    },
   },
   execute(ctx, rawArgs) {
     const args = checkArgs(createElementCommand, rawArgs);
@@ -611,6 +637,21 @@ export const createElementCommand: Command = {
       ...(args['classifications'] === undefined
         ? {}
         : { classifications: args['classifications'] as NonNullable<Element['classifications']> }),
+      // ⚠ ROW Ⓕ (D62/D65) — the reserved MEP/design-option state, born WITH the element in this one edit.
+      // Shape-validated only: v1.0.0 has no `scene.systems`/`designOptions` CRUD to check an id against, and
+      // inventing referential validation against collections nothing can author yet would refuse every
+      // legitimate call. The integrity check lands WITH those bodies (Parity-C/F), like `parentElementId`'s.
+      ...(args['systemId'] === undefined ? {} : { systemId: text(args['systemId']) }),
+      // ⚠ Cast via `unknown`: a `Connector`'s `at`/`direction` are fixed-length TUPLES, which do not
+      // structurally overlap `ParamValue`'s open array — unlike `placement`, whose motions are plain
+      // objects. The arg is shape-checked by `checkArgs` as an array; the per-item schema lands with
+      // Parity-C's body (there is no `scene.systems` CRUD to validate against yet).
+      ...(args['connectors'] === undefined
+        ? {}
+        : { connectors: args['connectors'] as unknown as NonNullable<Element['connectors']> }),
+      ...(args['designOptionId'] === undefined
+        ? {}
+        : { designOptionId: text(args['designOptionId']) }),
     };
 
     return ctx.edit(

@@ -392,10 +392,10 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | **D59** | **2026-07-21 — An element may own child ELEMENTS, not only Parts (rule 18): curtain walls, stairs, groups. Nesting is mandatory for parity. ✅ DESIGNED + BUILT (Entry 48, Model A = children DERIVED, never stored): `BimObjectType.buildChildren?` + `ElementGeometry.children?` (a tree) + `Element.childOverrides?`; `parentElementId` re-pinned to groups. The real `core.curtainwall` (depth-2) validates it; anti-fuse held; 328 green.** |
 | **D60** | **2026-07-21 — Multi-user co-authoring is Bunyan's (ecosystem apps are downstream consumers, not co-authors). ✅ SEAM RESERVED (Entry 49, row Ⓒ): four optional additive fields — `UndoableEdit.origin?`/`lamport?`, `ModelRevision.frontier?`, `Manifest.documentLineage?` — proven mergeable by a pure commutative `mergeOrdered()`; no `scene.json`/schema/verb/backend change (D37 stands). Found 3 foreclosures the D44-ULID prose missed (the edit id is `seq`-derived; the anchor is scalar; un-issued files have no doc identity).** |
 | **D61** | **2026-07-21 — Data-driven family authoring (Revit Family Editor moat): families as DATA, not code. ⚠ PRE-FREEZE: reserve a family-definition data-format seam (row Ⓓ). Code-types stay for complex behaviour.** |
-| **D62** | **2026-07-21 — MEP systems & connectors reserved (networks + connectors + routing; needs sweep-along-path/loft ops, additive per D13). System/connector type contracts reserved (row Ⓕ).** |
-| **D63** | **2026-07-21 — Reserve a DWG codec seam (2D-CAD interop); IFC export stays v1.0.x (D3); point-cloud/RVT recorded absent (row Ⓕ).** |
-| **D64** | **2026-07-21 — RE-OPEN gate ⑧'s "reserve nothing": confirm whether an on-element analytical-anchor is needed for real Miqdar structural/energy analysis, or the PEI-bound side-graph suffices (row Ⓔ). ⚠ PRE-FREEZE.** |
-| **D65** | **2026-07-21 — Reserve Design Options + phase filters/overrides + area schemes (gross-net; room solver gives net only) (row Ⓕ).** |
+| **D62** | **2026-07-21 → ✅ DONE (Entry 53). MEP systems & connectors RESERVED** — `scene.systems?` (`systems.ts`) + `Element.systemId?`/`connectors?` + their `createElement` args. ⚠ **A connector is AUTHORED placement in the element's OWN BUILD FRAME (D25), never a `SubShapeRef`** ⇒ the naming path is untouched and a placed duct's ports survive the move. ⚠ **The sweep-along-path/loft OP needed NO reservation** — the protocol froze at P3 and `faceFrame` was added *after* it under D13 ⇒ additive, precedented. |
+| **D63** | **2026-07-21 → ✅ DONE (Entry 53) — NOTHING WAS OWED.** The DWG seam **already exists**: `FormatCodec` + `registries.codecs`, and domain rule 5 makes a new format an **additive registration** (asserted in the test, not just written down). A DWG *underlay* is post-v1.0.0 documentation apparatus (recorded out of scope, owner-ruled). IFC export stays v1.0.x (D3); point-cloud/RVT recorded absent. |
+| **D64** | **2026-07-21 → ✅ RULED 2026-07-23 (Entry 52). RE-OPEN gate ⑧'s "reserve nothing": on-element analytical-anchor for real Miqdar structural/energy analysis, or PEI-bound side-graph? (row Ⓔ).** **ANSWER, EARNED from the proper Miqdar spec's real-frame walk (`~/projects/Miqdar/Miqdar_v1.0.0_spec.md` §4, M19): the SIDE-GRAPH SUFFICES — reserve NOTHING analytical on the type/part** (idealization is many-valued per element — cracked stiffness is gross + 0.35EI at once ⇒ not an element property). **ONE exception, NOT an analytical anchor: `Material.thermal?` reserved for the energy north-star (M18, owner-ruled), `entities.ts`, revert-verified.** |
+| **D65** | **2026-07-21 → ✅ DONE (Entry 53). Design Options RESERVED** — `scene.designOptions?` (`designoptions.ts`) + `Element.designOptionId?` + `ViewCommon.designOptionIds?` + the `createElement` arg. ⚠⚠ **AND THE INVARIANT IS IN THE FROZEN CONTRACT, NOT JUST THE STORAGE (owner-ruled):** a document with options deliberately holds **mutually-exclusive elements**, so `quantities()`/the roll-up/the Clean Delta/schedules — and Planitor/Miqdar — **MUST exclude non-active options** (`isElementActive`), or a schedule double-counts and work packages are published for a scheme nobody builds (rule 15's failure mode by a new road). The `Grid.geometry`/ⓥ precedent: the consumer-facing rule is written in **at reserve time.** ⚠ **Phase filters + area schemes needed NOTHING** — a phase filter is a view property over datums that already exist and an override is display (derived, never stored); an area was never *stored*, so gross/rentable are additional **derivations**, not fields. |
 | **D66** | **2026-07-21 — The 4-axis scale measurement (edit latency · cold load · draw calls · heap) is a BINDING PRE-FREEZE deliverable, not settled. Only heap was measured; the other 3 extrapolate the wrong way. Resolve the heap-eviction contract hook pre-freeze; a failed single-thread target reopens D8.** |
 
 **⚠ D40–D46 are ALL BUILT (Entry 21), each with a test that fails if the fix is reverted. D50 STEP 0 IS
@@ -421,12 +421,15 @@ snapshots** (drift). *(Toolchain: `cadquery-ocp`, not `pythonocc-core`; needs `l
   install); MCP is v1.0.x. ⚠ **TWO LAYERS, ONE IS THE AGENT'S:** kernel ops (`makeBox`) froze at P3,
   callable by `DocumentContext` alone; document commands (`createElement`) freeze at P5, callable by
   everyone. *The kernel is not an API surface; it is an implementation of one.*
-- **4g — MIQDAR, a second product (M1–M13).** Bunyan models; Miqdar analyses & designs; **starts only
-  after Bunyan v1.0.0 ships. M13: Miqdar is CLOSED SOURCE.** ⚠ **THE P5 FREEZE HAS A MIQDAR GATE** (plan
-  P5 step 6a): before freezing, clear `Miqdar_v1.0.0_spec.md` §3.4 (does `BimObjectType`'s
-  version+migration suffice for later optional analytical-hint fields? expected yes ⇒ reserve nothing).
-  ⚠ Miqdar may never require of Bunyan: analysis code inside it, a second API, or coupled release
-  schedules.
+- **4g — MIQDAR, a second product (M1–M22).** Bunyan models; Miqdar analyses & designs; **starts only
+  after Bunyan v1.0.0 ships. M13: Miqdar is CLOSED SOURCE.** ⚠⚠ **THE LIVE MIQDAR SPEC NOW LIVES IN
+  `~/projects/Miqdar/`** (spec + register + current_state + decisions, M22, 2026-07-23) — the Bunyan copies
+  are **retained + `SUPERSEDED`-headed** (not deleted; the freeze gate references them). **THE P5 FREEZE
+  HAS A MIQDAR GATE** (plan P5 step 6a): its rows are `~/projects/Miqdar/Miqdar_v1.0.0_spec.md` §3.5 (was
+  §3.4). ✅ **The gate's hard row — the analytical-anchor D64/row Ⓔ — is RULED (Entry 52): the PEI-bound
+  side-graph suffices; reserve nothing analytical on the type/part; one `Material.thermal?` reserved for
+  the energy north-star (M18).** ⚠ Miqdar may never require of Bunyan: analysis code inside it, a second
+  API, or coupled release schedules.
 - **4h — THE MODELLING LAYER (D30–D33).** An element owns ordered PARTS (a wall is
   blockwork+insulation+plaster; "how much plaster?" was unanswerable at any price). ElementStyle = the
   shared named param set (change one type → update 400 walls). LinearMember (Beam+Column are ONE concept)
@@ -570,13 +573,26 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
      produces by closing over the def. `tests/family-seam.test.ts` (4 — a fully-shaped def, built FROM the round-tripped
      `.bnn`, drives a real OCCT element with exact quantities; the whole grammar round-trips). No frozen byte moved, no
      `SCENE_SCHEMA_VERSION` bump, no verb, no backend. Revert-verified. 341 green.
-   - **⏭⏭ Ⓔ D64 — reopen gate ⑧'s "reserve nothing" (START HERE) — ⚠ NOW GATED ON A PROPER MIQDAR SPEC (owner redirect
-     2026-07-23, Entry 51).** **owner DELEGATED the call to Zayd** — but ruled it may NOT be made from the thin existing
-     draft. ⇒ first build a proper Miqdar v1.0.0 spec (**`~/projects/Miqdar/START_HERE.md`** — the build prompt), then
-     rule *with evidence* whether an on-element analytical-anchor is needed for real structural/energy analysis or the
-     PEI-bound side-graph suffices, record the reasoning here, and repoint this gate at the new spec.
-   - **Ⓕ D62/63/65 — cheap reservations:** MEP sweep-op + system/connector; DWG codec seam; Design-Options +
-     phase filters/overrides + area schemes. Record as reserved/additive.
+   - **✅ Ⓔ D64 — DONE (Entry 52): RULED FROM EVIDENCE — the PEI-bound side-graph suffices; reserve NOTHING analytical
+     on the type/part.** The proper Miqdar spec was built first (**`~/projects/Miqdar/`** — spec + register + current_state
+     + decisions, Miqdar Entry 1); its **real-frame walk (§4)** earned the answer: every idealization datum is either
+     already-readable from the frozen contract or **many-valued per physical element** (cracked stiffness is gross +
+     0.35EI *at once* ⇒ not an element property, even in principle). The anchor is `physicalBinding` on **Miqdar's**
+     entities, pointing in. **The ONE exception is NOT an analytical anchor: `Material.thermal?` (D64/M18, owner-ruled) —
+     a physical material property reserved for the energy north-star**, landed in `entities.ts`, revert-verified
+     (`tests/analytical-anchor-d64.test.ts`, 345 green). Gate repointed at the new spec (§4g); Bunyan copies retained +
+     `SUPERSEDED`-headed (M22).
+   - **✅ Ⓕ D62/63/65 — DONE (Entry 53, `P5_step5F_reservations_design.md`).** Owner ruled Q1/Q3/Q4/Q5.
+     **RESERVED (owed):** `scene.systems?` + `Element.systemId?`/`connectors?` (D62, `systems.ts`);
+     `scene.designOptions?` + `Element.designOptionId?` + `ViewCommon.designOptionIds?` (D65,
+     `designoptions.ts`); the three `createElement` args + `refTo` widened to `'system'`/`'designOption'`
+     (the **ⓣ lesson applied before it bit again**). **NOTHING OWED (the findings):** the MEP sweep op
+     (additive under D13 — `faceFrame` already landed post-freeze); the **DWG seam ALREADY EXISTS**
+     (`FormatCodec` + `registries.codecs`, domain rule 5); phase filters (a view property over existing
+     datums); area schemes (a *derived-query* extension — an area was never stored). ⚠⚠ **The one thing
+     HARDER than billed: the design-option EXCLUSION INVARIANT** — mutually-exclusive elements mean
+     `quantities()`/Clean Delta/schedules **must exclude non-active options** or double-count; owner ruled
+     it into the frozen contract (`isElementActive`, the ⓥ precedent). No schema bump; revert-verified.
    - **D66 — the 4-axis scale measurement** (pre-freeze): partly Amer's (renderer), but the **heap-eviction
      contract hook is Zayd's and is pre-freeze** — "must be known before P5 freezes." A failed single-thread
      target reopens D8.
@@ -1345,3 +1361,130 @@ Miqdar spec as evidence.
 **NEXT (Zayd):** execute `~/projects/Miqdar/START_HERE.md` — Phase 1 (build the proper Miqdar spec) → Phase 2 (rule
 Bunyan D64 with that evidence, record it, repoint the gate) → Bunyan Ⓕ → D66 → owner-gated FREEZE. ⚠ Box: created the
 `Miqdar` folder + `git init` only; installed nothing; no containers touched, no ports bound.
+
+### Entry 52 — 2026-07-23 — Zayd — **ROW Ⓔ / D64 RULED FROM EVIDENCE: THE PEI-BOUND SIDE-GRAPH SUFFICES — RESERVE NOTHING ANALYTICAL ON THE TYPE/PART. THE PROPER MIQDAR SPEC WAS BUILT FIRST (`~/projects/Miqdar`); ONE MATERIAL SLOT (`Material.thermal?`) RESERVED FOR THE ENERGY NORTH-STAR.**
+**Task (owner, via `~/projects/Miqdar/START_HERE.md`).** Two phases. **Phase 1:** build a proper, sourced Miqdar v1.0.0
+spec in its own project, meeting Bunyan's spec discipline, whose ecosystem-contract section is rigorous enough to be
+**evidence** for D64 (the reopened freeze gate the owner refused to let be ruled from the thin sketch — the §0a trap).
+**Phase 2:** rule Bunyan D64 from that evidence, record it, repoint the gate; then continue Ⓕ → D66 → freeze.
+`pnpm verify` fully green (**345 tests, +4**; typecheck incl. apps/web, lint, format, reseed). ⚠ **No commit — owner-gated.**
+
+- **PHASE 1 — THE PROPER MIQDAR SPEC EXISTS (`~/projects/Miqdar/`):** `Miqdar_v1.0.0_spec.md` (elevated from the sketch,
+  restructured, sourced), `Miqdar_normative_register.md` (graded, three headline editions ruled), `current_state.md`
+  (Miqdar Entry 1), `decisions.md` (M-series + O-M index), `README.md`. **Four owner rulings** via an AskUserQuestion
+  round: **energy = structural-only + reserve the thermal slot (M18)**; **editions = Morocco RC BAEL 91-99 core / Algeria
+  RPA 2024 / France 1st-gen + planned 2nd-gen (M20)**; **owner is sole tier-4 corpus signer, corpora shrink to fit,
+  Morocco is the anchor (M21)**; **spec home = `~/projects/Miqdar`, Bunyan copies retained + repointed (M22)**.
+- **⚠⚠ THE D64 RULING — EARNED, NOT ASSERTED (the whole point of the sequencing).** The spec's spine is a **real-frame
+  walk (§4)**: a 5-storey RC frame-and-shear-wall building carried `.bnn` → idealization → code checks → *note de
+  calcul* → write-back, walked against the **ACTUAL frozen Bunyan code contracts** (`entities.ts`/`room.ts`/`document.ts`/
+  `revision.ts`), not the prose. The walk asks of every idealization datum: *could this be a single-valued property of
+  the physical element?* **Answer: NO — every datum is either (a) already-readable from the frozen contract** (the
+  `LinearMember` axis, `Section`/`Material` props, `loadBearing` (a READ, not a guess), the spatial tree, grids, opening
+  positions via `SubShapeRef`, exact `quantities()` — each verified against code in §3.4) **or (b) many-valued per
+  physical element.** The clean killer: **effective (cracked) stiffness — the SAME column carries gross EI (service) and
+  0.35·EI (seismic drift) AT ONCE, in one project** ⇒ a function of (member, code, limit state, run), **not a property of
+  the element, even in principle.** A one-to-many map (a wall → N shells) has the same shape. ⇒ **the analytical anchor
+  is `physicalBinding` on MIQDAR's entities, pointing IN; nothing points from Bunyan out to Miqdar. THE SIDE-GRAPH
+  SUFFICES; BUNYAN RESERVES NOTHING ANALYTICAL ON THE TYPE/PART.**
+- **The two honest counter-probes resolve onto ALREADY-RESERVED lanes (no new field):** an analytical node needs no
+  physical binding (derived from connectivity; and `SubShapeRef kind:'vertex'` is already reserved, D54a); a design
+  verdict visible in Bunyan uses the reserved `Element.properties?` pset or a documentation Tag (Entry 47); physical
+  rebar is Bunyan-native D59 nesting. **This is the §0a trap avoided — the sketch *asserted* "reserve nothing"; the walk
+  *demonstrates* it.**
+- **⚠ THE ONE EXCEPTION, AND IT IS NOT AN ANALYTICAL ANCHOR (M18, owner-ruled).** The *energy* half of D64 surfaced a
+  single **material-property** gap: `core_logic.md` §3.11 prose promised *"thermal conductivity"* and §9 names energy a
+  north-star (domain rule 8 forbids foreclosing one), but frozen `Material` had `density` + a `structural?` bag and **no
+  thermal property.** ⇒ **RESERVED `Material.thermal?: Readonly<Record<string, number>>`** (`entities.ts`), sibling to
+  `structural?`, optional/absent-defaulted, **no `SCENE_SCHEMA_VERSION` bump, no migration.** It is a PHYSICAL property
+  single-valued per material (unlike cracked stiffness), so it lives cleanly on the physical graph — it *confirms* the
+  two-graph split, it does not violate it. ⚠ **Deliberately NOT folded into `structural?`** (thermal is not structural; a
+  sibling is the same cost and does not mislabel). `tests/analytical-anchor-d64.test.ts` (4): optional/additive
+  (compile-time) + round-trips the real `.bnn` codec; **revert-verified — deleting the field breaks the root typecheck
+  (TS2339 in the test), so the reservation is genuinely load-bearing.** 341 → **345 green.**
+- **DOCS UPDATED (Bunyan):** FREEZE GATE row Ⓔ flipped ✅ + gate ⑧ re-examined-and-confirmed (`v1.0.0_imp_plan.md`); P5
+  step 6a repointed at `~/projects/Miqdar/Miqdar_v1.0.0_spec.md` §3.5/§4; §4a D64 line + §4g gate + §5 close-order Ⓔ
+  updated; the retained Bunyan `Miqdar_*.md` copies got a `SUPERSEDED → see ~/projects/Miqdar` header (M22 — **NOT
+  deleted**, they are referenced by the freeze gate; migrating them out fully is a later owner call the header records).
+- **⚠⚠ NON-COUPLING HELD.** The ruling adds **no** analysis code to Bunyan, no second API, no coupled schedule. The one
+  reserved field is a material property justified by **Bunyan's own** energy north-star (domain rule 8) + owner ruling —
+  not "on Miqdar's account." The binding stays PEI + Clean Delta.
+- **⚠ NO COMMIT — owner-gated.** Box: pure spec/doc + one optional TS field; no containers touched, no ports bound,
+  nothing installed; `du -sh /tmp` clear; live sites untouched. Miqdar is a separate location with no remote — the Bunyan
+  push does not include it.
+
+**NEXT (Zayd):** **Ⓕ (D62/63/65)** — the cheap reservations: MEP sweep-op + system/connector type contracts (D62), a DWG
+codec seam (D63), Design-Options + phase filters/overrides + area schemes (D65). Design-first where contract-shaping
+(the Ⓐ–Ⓓ rhythm — a design doc + owner framing questions before building). Then **D66** — the 4-axis scale measurement
+(the heap-eviction contract hook is Zayd's, pre-freeze). Then the **owner-gated FREEZE (step 6)**. ⚠ **Owner-gated: the
+Entry-52 work (Miqdar spec + the `Material.thermal?` reservation) is uncommitted; the owner authorizes the commit.**
+
+### Entry 53 — 2026-07-24 — Zayd — **ROW Ⓕ DONE (D62/63/65): THREE OF THE SIX ITEMS NEEDED NO RESERVATION AT ALL, AND THE ONE NOBODY BILLED — THE DESIGN-OPTION EXCLUSION INVARIANT — IS THE ROW'S REAL CONTENT. Ⓐ–Ⓕ ARE NOW ALL CLOSED.**
+**Task (owner):** continue Phase 2 — land the remaining reopened pre-freeze work. Row Ⓕ is contract-shaping, so the
+Ⓐ–Ⓓ rhythm: design doc → owner framing questions → build + revert-verify. `pnpm verify` fully green (**364 tests,
++19**; typecheck incl. apps/web, lint, format, reseed; `EXIT=0`). ⚠ **No commit — owner-gated.**
+
+- **DESIGNED FIRST (`P5_step5F_reservations_design.md`), then OWNER RULED Q1/Q3/Q4/Q5 (all as recommended).** The doc
+  applied a **reservation test** rather than assuming the plan's "cheap reservations (mostly additive)" framing:
+  a shape earns a reservation only if it (1) touches a P5-frozen contract, (2) could not be added additively later,
+  and (3) is knowable now. ⚠ **Stated once and worth keeping: a reservation that isn't owed is NOT free — it is a
+  frozen field nobody reads, and the freeze is the moment we stop being able to delete it.**
+- **⚠⚠ THE HEADLINE: THREE OF THE SIX ITEMS THE PLAN LISTED NEEDED NOTHING RESERVED — found by walking, not reading.**
+  - **The MEP sweep-along-path/loft OP (D62).** The plan said "kernel ops that do not exist and are reserved as
+    additive." But **the protocol froze at the end of P3 and `faceFrame` was added AFTER it** (Entry 30) under **D13**
+    (*"adding an op is additive and permitted"*). ⇒ a sweep op in v1.0.x is the **precedented path, not an amendment**.
+    Row Ⓕ writes no C++ and touches no op envelope.
+  - **The DWG codec seam (D63) — IT ALREADY EXISTS.** `FormatCodec` + `registries.codecs` (`registries.ts:82`) *is*
+    the interchange contract, and **domain rule 5** makes a new format an **additive registration**. Nothing to
+    reserve. **Asserted in the test** (a DWG codec is registered against the existing contract) so the finding cannot
+    quietly rot into a re-opened question. The homeless part is a 2D **underlay** — documentation apparatus, which is
+    post-v1.0.0 — **recorded out of scope (owner Q3)**.
+  - **Phase filters/overrides + area schemes (D65).** A phase filter is a **view property** over datums that already
+    exist (`phaseCreated`/`phaseDemolished`, D54b/D56) and a graphic override is **display** — derived, never stored
+    (rule 1/17). And an area was **never stored** (`roomMetrics` derives it, D55), so gross/rentable are **additional
+    derivations, not additional fields**: `footprintOf()` already has the centreline and both face-lines in scope, so
+    a future `boundaryRule` on the query is purely additive. **Both recorded, nothing reserved (owner Q4).**
+- **⚠⚠ THE THING NOBODY BILLED, AND IT IS THE ROW'S REAL CONTENT: THE DESIGN-OPTION EXCLUSION INVARIANT (D65).**
+  Design Options' *storage* is cheap (a collection + an element field). But options mean **a document deliberately
+  contains MUTUALLY-EXCLUSIVE elements** — Option A's wall and Option B's wall both sit in `scene.elements` and
+  **exactly one is real.** Today `quantities()` and the Clean Delta enumerate elements with **no notion that some are
+  hypothetical** ⇒ ship it naively and **a schedule silently double-counts** and **Planitor receives work packages for
+  a scheme nobody is building.** That is **domain rule 15's failure mode** (a wrong number wearing the `exact` badge)
+  reached by a new road, and **rule 16's** "one physical thing is one element" quietly broken. **Owner ruled the
+  invariant be written INTO the frozen contract** — the **`Grid.geometry`/ⓥ precedent** (where a reserved field changes
+  how an existing one must be read, the consumer-facing rule is written at reserve time, not found in the field). It
+  ships as **tested behaviour** (`isElementActive`), not prose, so the three consumers implement one rule, not three.
+- **RESERVED (the owed shapes), all optional + absent-defaulted, NO `SCENE_SCHEMA_VERSION` BUMP:**
+  `scene.systems?` + `SystemDefinition` (`systems.ts`, D62) · `Element.systemId?`/`connectors?` · `scene.designOptions?`
+  + `DesignOption`/`ActiveOptions`/`isElementActive` (`designoptions.ts`, D65) · `Element.designOptionId?` ·
+  `ViewCommon.designOptionIds?` (additive twice over — it lands on a shape that is itself a row-Ⓐ reservation).
+- **⚠ A CONNECTOR IS AUTHORED PLACEMENT, NOT A `SubShapeRef` — and its frame is load-bearing.** `Connector.at`/
+  `.direction` are in the element's **OWN BUILD FRAME** (owner-confirmed): an element is authored in its own frame and
+  *then* placed, and **`transform` mints no identities** (D25) ⇒ **moving or rotating a duct cannot invalidate its
+  ports.** World coordinates would have re-introduced exactly the positional fragility the naming system exists to
+  refuse. And because a connector is authored (not derived), **it never enters the naming path at all** — the identity
+  system costs nothing. `Connector.name` is unique within its element, the `Part.name`/`StyleLayer.name` discipline.
+- **⚠ THE ⓣ LESSON APPLIED *BEFORE* IT COULD BITE AGAIN (owner Q1 = full reserve).** 0g reserved NOUNS without ARGS and
+  had to come back for `argsSchema` (0g.2). `Command.argsSchema` freezes at the **same** step 6 as `Element`, so row Ⓕ
+  reserved both in ONE step: `createElement` gains `systemId`/`connectors`/`designOptionId`, and an element can be
+  **born** with them. ⚠ **One level deeper, and it would have bitten a third time:** `ParamField.refTo` is a **closed
+  string union** with no `'system'`/`'designOption'` member — typing the args as bare strings would have forced whoever
+  builds MEP/Design-Options to widen a **frozen** union later. **Widened pre-freeze**; verified **no body switches on
+  `refTo`** (it is declarative metadata driving a future picker + the generated tool-list), so the widening broke nothing.
+- **`tests/step5F-reservations.test.ts` (19, pure).** Compile-time optional/additive · the exclusion invariant as
+  behaviour (incl. *"exactly one variant of a set is ever active"* and *"an element naming an undefined option is
+  EXCLUDED, not included"* — a broken ref must not double-count) · the two recorded-only findings asserted · real-`.bnn`
+  round-trip · the verb half. **REVERT-VERIFIED:** stripping `connectors?`/`designOptionId?` breaks the root typecheck
+  (11 errors). 345 → **364 green.**
+- **⚠ PROCESS NOTE, RECORDED HONESTLY:** the first `verify` run **FAILED** at `format:check` (3 files) — I had read a
+  piped `tail`'s exit code, which is the *pipeline's*, not pnpm's. Fixed with `prettier --write` and re-run capturing
+  the real exit code (`EXIT=0`). **Check the step that actually failed, not the last line of a pipe.**
+- **⚠ NO COMMIT — owner-gated.** Box: pure TS data shapes + docs; no containers touched, no ports bound, nothing
+  installed; live sites untouched.
+
+**NEXT (Zayd):** **D66 — the 4-axis scale measurement** (edit latency · cold load · draw calls · heap), the **last
+pre-freeze item**. ⚠ Partly Amer's (the renderer half), but the **heap-eviction contract hook is Zayd's and is
+pre-freeze** ("must be known before P5 freezes"); a failed single-threaded target **reopens D8** (multithreading). ⚠ And
+`review_P5.md` #3 stands: **re-run the D29 5-storey measurement WITH the O(N²) join resolver in the path** — the headline
+numbers predate joins. Then the **owner-gated FREEZE (step 6)**, which also tags the Ⓐ–Ⓕ reservations frozen.
+⚠ **Uncommitted and owner-gated: Entries 52 + 53 + the Miqdar project.**

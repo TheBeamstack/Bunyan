@@ -44,6 +44,8 @@ import type {
   ViewId,
 } from './documentation.js';
 import type { FamilyDefinition, FamilyId } from './families.js';
+import type { SystemDefinition, SystemId } from './systems.js';
+import type { DesignOption, DesignOptionId } from './designoptions.js';
 
 /**
  * Bumped when `scene.json`'s own shape changes (not a type's — that is `element.typeVersion`).
@@ -146,6 +148,32 @@ export interface Scene {
    * `SCENE_SCHEMA_VERSION` bump (it folds into frozen v2, exactly as 0g's / Ⓐ's reservations).
    * -------------------------------------------------------------------------------------------- */
   readonly families?: Readonly<Record<FamilyId, FamilyDefinition>>;
+  /* ----------------------------------------------------------------------------------------------
+   * ROW Ⓕ — THE LAST PRE-FREEZE RESERVATIONS (2026-07-24, owner-ruled; `P5_step5F_reservations_design.md`).
+   * Both follow the `families`/`views` precedent EXACTLY: one optional, absent-defaulted, TOP-LEVEL
+   * collection each — NOT in `emptyScene()`, NOT in `SceneCollection`, NOT in the hostile-`.bnn` guard, NOT
+   * in the dependency graph, because no body authors/reads/invalidates/undoes one in v1.0.0. Promotable to a
+   * full `SceneCollection` additively when their bodies land. **No `SCENE_SCHEMA_VERSION` bump.**
+   * -------------------------------------------------------------------------------------------- */
+  /**
+   * MEP NETWORKS — RESERVED (D62, Parity-C; `systems.ts`). The named systems (`SA-1`, `CWS`) elements are
+   * grouped into. A shared DEFINITION rather than a string per element, for the D33 reason: a value that
+   * must be grouped, scheduled and read downstream cannot be a copy. Absent ⇒ no systems (today's case).
+   * ⚠ The GEOMETRY half needs nothing reserved — `sweepAlongPath`/`loft` are additive ops under D13, proven
+   * by `faceFrame` landing after the protocol froze.
+   */
+  readonly systems?: Readonly<Record<SystemId, SystemDefinition>>;
+  /**
+   * DESIGN OPTIONS — RESERVED (D65, Parity-F; `designoptions.ts`). Parallel design alternatives held in one
+   * document. Absent ⇒ no options (today's case).
+   *
+   * ⚠⚠⚠ THIS COLLECTION CHANGES HOW `elements` MUST BE READ — see `designoptions.ts`. With options present,
+   * the document deliberately contains MUTUALLY-EXCLUSIVE elements, so every aggregating/publishing consumer
+   * (`quantities()`, the roll-up, the Clean Delta exporter, schedules — and downstream, Planitor and Miqdar)
+   * MUST exclude elements whose option is not active (`isElementActive`). That invariant is part of the
+   * frozen contract, written in at reserve time — the `Grid.geometry`/ⓥ discipline.
+   */
+  readonly designOptions?: Readonly<Record<DesignOptionId, DesignOption>>;
 }
 
 export function emptyScene(): Scene {

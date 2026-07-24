@@ -16,6 +16,7 @@
  */
 
 import type { ContainerId, ElementId, TypeId } from './entities.js';
+import type { DesignOptionId } from './designoptions.js';
 
 export type ViewId = string;
 export type AnnotationId = string;
@@ -183,6 +184,20 @@ export interface ViewCommon {
   readonly scale: number;
   /** World-mm axis-aligned clip box `[min, max]`; absent ⇒ the whole model. */
   readonly clip?: readonly [readonly [number, number, number], readonly [number, number, number]];
+  /**
+   * ⚠ RESERVED (D65, row Ⓕ, 2026-07-24 — `designoptions.ts`). WHICH design alternatives this view shows.
+   * Absent ⇒ each option set's PRIMARY option (plus the main model), which is v1.0.0's only case since no
+   * element carries a `designOptionId` yet.
+   *
+   * ⚠ A view is a PROJECTION (rule 17), so choosing options here is a *question asked of* the model, never
+   * a change to it — the same discipline as `clip`. It does not license a view to show two exclusive
+   * options at once as if both were built: an aggregating consumer still resolves ONE active option per set
+   * (`isElementActive`). This field is a display selection; the exclusion invariant is a correctness rule.
+   *
+   * ⚠ It lands on `ViewCommon` — i.e. on a shape that is ITSELF an optional reservation (row Ⓐ) that no body
+   * reads yet — so it is additive twice over and cost the freeze nothing.
+   */
+  readonly designOptionIds?: readonly DesignOptionId[];
 }
 
 /** A horizontal cut at a Level, looking down — the classic floor plan. */

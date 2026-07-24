@@ -1,5 +1,12 @@
 # Miqdar — Agent-Native Structural Analysis & Design Platform — v1.0.0 Technical Specification (FIRST DRAFT)
 
+> ⚠⚠ **SUPERSEDED — 2026-07-23. THE LIVE, ELEVATED SPEC IS `~/projects/Miqdar/Miqdar_v1.0.0_spec.md`**
+> (owner ruling M22). This copy is **retained, not deleted**, only so Bunyan's contract-freeze gate
+> (`v1.0.0_imp_plan.md` P5 row Ⓔ / §4g) still resolves — do **not** edit it as truth and do **not** delete
+> it (deleting it is a Bunyan freeze-gate change and an owner call). The proper first draft — restructured,
+> sourced, with the **real-frame walk** that earned Bunyan **D64** — lives in `~/projects/Miqdar`. See
+> `current_state.md` Entry 52 + §4g. *(Everything below is the 2026-07-13 sketch, kept for history.)*
+
 **Status:** Second draft — owner-scoped, not yet frozen. Expect revision.
 **Version:** **Miqdar v1.0.0** (independent of Bunyan's versioning — see the naming rule below)
 **Revision:** 2026-07-13 — review pass. **Four owner rulings applied** (M13 → *closed source*; M11 → authored utilization cap; M8/O-M4 → normative register; Bunyan-side enforcement anchors). Initial draft: 2026-07-12.
