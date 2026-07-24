@@ -396,7 +396,7 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | **D63** | **2026-07-21 → ✅ DONE (Entry 53) — NOTHING WAS OWED.** The DWG seam **already exists**: `FormatCodec` + `registries.codecs`, and domain rule 5 makes a new format an **additive registration** (asserted in the test, not just written down). A DWG *underlay* is post-v1.0.0 documentation apparatus (recorded out of scope, owner-ruled). IFC export stays v1.0.x (D3); point-cloud/RVT recorded absent. |
 | **D64** | **2026-07-21 → ✅ RULED 2026-07-23 (Entry 52). RE-OPEN gate ⑧'s "reserve nothing": on-element analytical-anchor for real Miqdar structural/energy analysis, or PEI-bound side-graph? (row Ⓔ).** **ANSWER, EARNED from the proper Miqdar spec's real-frame walk (`~/projects/Miqdar/Miqdar_v1.0.0_spec.md` §4, M19): the SIDE-GRAPH SUFFICES — reserve NOTHING analytical on the type/part** (idealization is many-valued per element — cracked stiffness is gross + 0.35EI at once ⇒ not an element property). **ONE exception, NOT an analytical anchor: `Material.thermal?` reserved for the energy north-star (M18, owner-ruled), `entities.ts`, revert-verified.** |
 | **D65** | **2026-07-21 → ✅ DONE (Entry 53). Design Options RESERVED** — `scene.designOptions?` (`designoptions.ts`) + `Element.designOptionId?` + `ViewCommon.designOptionIds?` + the `createElement` arg. ⚠⚠ **AND THE INVARIANT IS IN THE FROZEN CONTRACT, NOT JUST THE STORAGE (owner-ruled):** a document with options deliberately holds **mutually-exclusive elements**, so `quantities()`/the roll-up/the Clean Delta/schedules — and Planitor/Miqdar — **MUST exclude non-active options** (`isElementActive`), or a schedule double-counts and work packages are published for a scheme nobody builds (rule 15's failure mode by a new road). The `Grid.geometry`/ⓥ precedent: the consumer-facing rule is written in **at reserve time.** ⚠ **Phase filters + area schemes needed NOTHING** — a phase filter is a view property over datums that already exist and an override is display (derived, never stored); an area was never *stored*, so gross/rentable are additional **derivations**, not fields. |
-| **D66** | **2026-07-21 — The 4-axis scale measurement (edit latency · cold load · draw calls · heap) is a BINDING PRE-FREEZE deliverable, not settled. Only heap was measured; the other 3 extrapolate the wrong way. Resolve the heap-eviction contract hook pre-freeze; a failed single-thread target reopens D8.** |
+| **D66** | **2026-07-21 → ✅ CONTRACT HALF DONE (Entry 54). The 4-axis scale measurement.** ⚠ **The ONLY freeze-gating part was the heap-eviction CONTRACT hook, and it is RULED: reserve NOTHING — additive by construction.** Recipe-is-truth makes every solid disposable-and-rebuildable (proven by the D29 cold-load rebuild), the evicted state (`ElementState.stale`) and the release mechanism (`releaseShape`, kernel-client fires it) are ALREADY FROZEN, and the keep-live policy is runtime state never persisted. Measured fresh (2026-07-24): **heap 0.31 GB at 10k — FITS** (16.2 KB/solid); **cold load ~6.35 min single-thread/no-cache** (levers — D29 cache RULED SHIP, `instantiate` RESERVED, MT/D8 — all additive, none foreclose). ⚠ **Draw calls + edit latency are Amer's (browser-side, unmeasurable headless); the D8 single-thread verdict needs them and is additive either way** ⇒ **NOT contract-gating.** `P5_step9_D66_scale_design.md`. |
 
 **⚠ D40–D46 are ALL BUILT (Entry 21), each with a test that fails if the fix is reverted. D50 STEP 0 IS
 NOW FULLY BUILT — 0a/0b/0e/0f/0g (Entries 33–38), 0d (Entry 40), room-bounding (Entry 41), 0c (Entry 42).**
@@ -503,12 +503,22 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 > Design-Option reservations (D62/63/65) · **plus D66** the 4-axis scale measurement (pre-freeze). **THEN the owner-gated
 > freeze (step 6).** See Entry 46 + `v1.0.0_imp_plan.md` "🟠 REOPENED" + "Road to Revit parity."
 >
+> ## ✅✅ ALL REOPENED PRE-FREEZE WORK IS NOW DONE (Ⓐ–Ⓕ + D66's contract half) — AND THE FREEZE IS HELD ON AMER (owner, 2026-07-24).
+> **Ⓐ** docs anchors (D58, E47) · **Ⓑ** nesting (D59, E48) · **Ⓒ** merge seam (D60, E49) · **Ⓓ** family seam (D61, E50) ·
+> **Ⓔ** analytical anchor ruled from the Miqdar spec (D64, E52 — side-graph suffices, `Material.thermal?` reserved) ·
+> **Ⓕ** MEP/systems + Design-Options reservations (D62/63/65, E53) · **D66** the scale measurement (E54 — the
+> heap-eviction CONTRACT hook needs nothing, additive by construction; heap FITS at 0.31 GB; cold load ~6.35 min).
+> ⚠⚠ **THE OWNER RULED HOLD ON THE FREEZE (E54): it does NOT proceed until ALL FOUR scale axes have a number + the D8
+> single-thread verdict is made. The two missing axes (draw calls, edit latency) are AMER'S browser scale page** — so for
+> the first time **the last pre-freeze blocker is Amer's, not Zayd's.** The contracts are safe to freeze on scale grounds;
+> the owner is holding the *act* until the *measurement* is complete. **⇒ NEXT is AMER's browser measurement, THEN the
+> freeze.** See Entry 54 + `P5_step9_D66_scale_design.md` §5.
+>
 > ## ✅✅ STEP 0 IS CLOSED — BOTH SOLVERS + 0c JOINS ARE BUILT + GREEN (0d E40, room-bounding E41, 0c E42).
 > All of D50 step 0 is done: **0a–0g**, **0d (real planegcs, D26 revert-verified)**, the **room-bounding
 > solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
 > the real D52 Wall pulled forward into `@bunyan/types`).** ⚠⚠ THE ANTI-FUSE RULE HELD (a join reshapes only
 > the cap; side faces keep their tokens, D26). The types (steps 4–5) + MVP gates are also DONE (Entries 44–45).
-> **NEXT is NOT the freeze — it is the REOPENED pre-freeze work Ⓐ–Ⓕ + D66 (Entry 46, §0a, §5 step 5).**
 
 **For Zayd (kernel / document / headless) — the close-order:**
 
@@ -612,8 +622,15 @@ broken-ref state + cascade delete (Entry 18) · all six P3 defects + D40–D46 (
 the **room-bounding solver (Entry 41)** · **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate
 green, real Wall in `@bunyan/types`). ⇒ ALL OF D50 STEP 0 IS CLOSED.**
 
-**For Amer (browser hot path):** P4 steps done through Entry 27 (the gate now sees `apps/web`; incremental
-redraw; sub-shape picking; the failure-state panels; the D19 equivalence test). ⚠ Build against
+**For Amer (browser hot path):** ⚠⚠ **YOU ARE NOW THE PRE-FREEZE BLOCKER (owner ruling, Entry 54, 2026-07-24).**
+The owner held the freeze until **all four D66 scale axes have a number**. Zayd measured the two that are
+headless (heap FITS at 0.31 GB; cold load ~6.35 min single-thread/no-cache). **The two the freeze now waits
+on are yours and can only be produced in a real browser: (b) DRAW CALLS and (d) EDIT LATENCY at ~10,000
+elements** — build the **browser scale page** (`v1.0.0_imp_plan.md` P4 step 9b) and report each number with a
+written recommendation. Then the **D8 single-thread verdict** (renderer wall vs kernel wall) can be made, and
+the freeze unblocks. Full brief: `P5_step9_D66_scale_design.md` §4–§5. — P4 steps done through Entry 27 (the
+gate now sees `apps/web`; incremental redraw; sub-shape picking; the failure-state panels; the D19
+equivalence test). ⚠ Build against
 `@bunyan/document`, never the kernel (D19 — enforced by `d19-boundary.test.ts` + the package boundary;
 the one allowed `KernelClient` holder is `apps/web/src/bootstrap.ts`). **An element is its PARTS (D30) —
 tessellate each.** Remaining: **P4.5** (the interaction model — the tool state machine, snapping, preview,
@@ -1488,3 +1505,56 @@ pre-freeze** ("must be known before P5 freezes"); a failed single-threaded targe
 `review_P5.md` #3 stands: **re-run the D29 5-storey measurement WITH the O(N²) join resolver in the path** — the headline
 numbers predate joins. Then the **owner-gated FREEZE (step 6)**, which also tags the Ⓐ–Ⓕ reservations frozen.
 ⚠ **Uncommitted and owner-gated: Entries 52 + 53 + the Miqdar project.**
+
+### Entry 54 — 2026-07-24 — Zayd — **D66 CONTRACT HALF DONE: THE HEAP-EVICTION HOOK NEEDS NOTHING RESERVED (additive by construction) — SO THE CONTRACT IS SAFE TO FREEZE ON SCALE GROUNDS. THE REMAINING SCALE WORK IS AMER'S AND BELOW THE FREEZE LINE.**
+**Task (owner):** "commit then start D66." Committed Entries 52+53 (`origin/main` @ `e737aa9`) + Miqdar Entry 1 (local
+`26b442c`, no remote), then started D66 — the last pre-freeze item. `P5_step9_D66_scale_design.md`. **No code change**
+(an evidence-based contract ruling, like D64); the two headless scale harnesses re-run green as part of the suite.
+
+- **⚠⚠ THE ONLY FREEZE-GATING PART OF D66 IS THE HEAP-EVICTION CONTRACT HOOK — and it is RULED: reserve NOTHING,
+  ADDITIVE BY CONSTRUCTION.** The imp_plan feared heap-eviction/lazy-build might be a v1.0.0 requirement that *touches
+  contracts*. Two findings retire it: **(i)** the heap FITS (below), so eviction is not required; **(ii)** even as a
+  v1.0.x option, eviction FORECLOSES NOTHING — the same recipe-is-truth logic that earned D64. Verified against code:
+  - *"any built solid may be dropped and rebuilt from the recipe"* = **the core invariant** (rule 1), and the D29
+    cold-load test **proves it** (a fresh `DocumentContext` rebuilds every solid from `scene.json` alone, byte-identical,
+    `brokenRefs()==0`; if the WHOLE model rebuilds, any SUBSET does — that IS lazy-build/eviction).
+  - the evicted state already exists: **`ElementState.stale`** = recipe present, solid not built.
+  - the release mechanism is **ALREADY FROZEN**: **`releaseShape`** is in the frozen protocol (P3), and the kernel-client
+    **already fires it** for dropped handles (`kernel-client/src/client.ts:9`).
+  - the keep-live POLICY (which solids to hold, by camera/selection/viewport) is **RUNTIME state, never `scene.json`**
+    (persisting it would violate recipe-is-truth exactly as storing a mesh would) ⇒ **no frozen-type field.**
+  - the build/evict-on-demand API is an **additive DocumentContext method** (D19/rule 5), not an edit to a frozen shape.
+  ⇒ **The freeze does not — and could not — foreclose eviction, because eviction is recipe-is-truth exercised on a
+  subset.** D64's finding in a second guise: a runtime concern binds to the recipe; nothing new on the frozen data shapes.
+- **MEASURED FRESH (2026-07-24, this box, box healthy — 854 MB free / 2.28 GB avail; the heap harness is capped at ~310
+  solids and extrapolates via a slope, never building 16k solids on a 3.7 GB box):**
+  - **(a) HEAP: 16.2 KB/live-solid + 64 MB floor → 0.31 GB at 10,000 elements. FITS** (1.5 GB tab budget; 4 GB WASM32
+    cap). Confirms Entry 29 on the current kernel. The harness's own verdict: eviction stays a v1.0.x option.
+  - **(c) COLD LOAD: 38.1 ms/element → ~6.35 min at 10k, single-thread, NO cache.** Too slow for a good first-load UX —
+    but every lever is already-ruled and **additive**: the D29 BREP cache (RULED SHIP; its ops reserved), `instantiate`
+    (RESERVED), multithreading (D8, v1.0.x — deploy config, not a `scene.json` contract). **None touches a frozen shape.**
+  - **(b) DRAW CALLS + (d) EDIT LATENCY: Amer's — browser-side, unmeasurable headless.**
+- **⚠ THE O(N²) JOIN RESOLVER IS NOT IN THESE NUMBERS, AND THAT IS CORRECT.** The scale fixture's wall is
+  `{length,height}`-parameterised, so `baselineOf` returns undefined and `resolveJoins` early-returns — the scan never
+  fires. review_P5 #3 already measured it in isolation (~4.2 s at ~2,000 walls) and **ruled it a v1.0.x perf item, NOT a
+  freeze item** (fixable with an endpoint spatial hash, no contract change). Re-deriving it is not the freeze-gating work.
+- **⇒ THE CONTRACT IS SAFE TO FREEZE ON SCALE GROUNDS.** The only scale question that could foreclose a contract — the
+  heap-eviction hook — is resolved (reserve nothing). Every remaining lever (cache, instantiate, MT, renderer batching)
+  is additive.
+- **⚠⚠ OWNER RULED THE FREEZE-READINESS QUESTION: HOLD (2026-07-24).** I put FREEZE NOW (recommended — contract safe,
+  remaining perf additive) vs HOLD (wait for Amer's numbers). **The owner chose HOLD:** the freeze does NOT proceed until
+  **all four scale axes have a number** and the **D8 single-thread verdict** is made. ⇒ **THE LAST PRE-FREEZE BLOCKER IS
+  NOW AMER'S, NOT ZAYD'S** — the two missing axes (draw calls, edit latency) are the browser scale page (imp_plan P4 step
+  9b), which a headless box cannot run. Nothing about the contracts changes; the owner is holding the *act* until the
+  *measurement* is complete (a higher bar than "the contract is safe," and his to set).
+- **⚠ Entry 54 = docs only; owner ruled COMMIT + PUSH.** Committed + pushed with this entry (see below). Box: read +
+  measure only; nothing installed, no containers touched, no ports bound; the scale harnesses stayed within box limits.
+
+**NEXT — ⚠ THE FREEZE IS BLOCKED ON AMER, FOR THE FIRST TIME:**
+- **Amer (browser, THE pre-freeze blocker):** build the scale page (imp_plan P4 step 9b), produce **draw calls** +
+  **edit latency** at ~10,000 elements with a written recommendation each — the two numbers the freeze now waits on.
+  Then the **D8 single-thread verdict** (renderer wall vs kernel wall) can be made.
+- **Zayd (headless):** the D66 contract half is done; nothing further owed until the freeze is called. Heap + cold-load
+  stand (Entry 54 §1); the join O(N²) is a v1.0.x perf item (review_P5 #3).
+- **The FREEZE (step 6)** unblocks only once those two axes exist + the D8 call is made — then the Architect signs off and
+  the contracts freeze (tagging the Ⓐ–Ⓕ reservations + `Material.thermal?`). ⚠ **Committed + pushed: Entries 52+53+54.**
