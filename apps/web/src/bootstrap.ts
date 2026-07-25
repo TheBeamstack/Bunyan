@@ -20,7 +20,7 @@ import {
   createAgentSurface,
   createRegistries,
 } from '@bunyan/document';
-import type { AgentSurface } from '@bunyan/document';
+import type { AgentSurface, ModelRevision, Scene, UndoableEdit } from '@bunyan/document';
 
 import { SCAFFOLD_TYPES } from './scaffold/types';
 import { createRenderGateway } from './render/RenderGateway';
@@ -30,6 +30,17 @@ export interface KernelMeta {
   readonly name: string;
   readonly kernelVersion: string;
   readonly buildId: string;
+}
+
+/**
+ * A document to boot FROM — a scene loaded from a stored `.bnn` (persistence, plan P4 step 5). Absent ⇒
+ * the app boots empty and the shell seeds its demo scene. Present ⇒ the doc is constructed over this
+ * scene and every solid is rebuilt from the recipe (the D29 cold-load path) before the app is handed back.
+ */
+export interface InitialDocument {
+  readonly scene: Scene;
+  readonly journal?: readonly UndoableEdit[] | undefined;
+  readonly revision?: ModelRevision | undefined;
 }
 
 export interface BunyanApp {
@@ -42,7 +53,7 @@ export interface BunyanApp {
   dispose(): void;
 }
 
-export async function bootstrap(): Promise<BunyanApp> {
+export async function bootstrap(initial?: InitialDocument): Promise<BunyanApp> {
   // The real OCCT kernel. Swapping it for the mock is this one URL (the transport-agnostic promise).
   const worker = new Worker(new URL('@bunyan/kernel-occt/worker', import.meta.url), {
     type: 'module',
@@ -57,7 +68,17 @@ export async function bootstrap(): Promise<BunyanApp> {
   for (const command of CORE_COMMANDS) registries.commands.register(command);
   for (const type of SCAFFOLD_TYPES) registries.types.register(type);
 
-  const doc = new DocumentContext({ registries, geometry: client });
+  const doc = new DocumentContext({
+    registries,
+    geometry: client,
+    ...(initial === undefined
+      ? {}
+      : { scene: initial.scene, journal: initial.journal, revision: initial.revision }),
+  });
+
+  // Opening a saved file: rebuild every solid from the recipe (scene.json alone — the D29 cold-load
+  // path). A demo boot has no scene here, so there is nothing to rebuild.
+  if (initial !== undefined) await doc.rebuildAll();
 
   // ⚠ The agent surface is CREATED here but NOT wired to `window` here. Under React StrictMode the boot
   // effect mounts twice, and the first (discarded) app is disposed before it is ever seeded — so wiring

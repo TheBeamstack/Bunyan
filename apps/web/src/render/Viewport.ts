@@ -54,8 +54,33 @@ interface DrawnPart extends CachedPart {
   readonly buffers: MeshBuffers;
 }
 
-/** Edge colour — near-black, so edges read as CAD linework over the shaded faces. */
-const EDGE_COLOR = 0x11141a;
+/**
+ * Edge colour — near-black, so edges read as CAD linework over the shaded faces.
+ *
+ * ⚠ Exported for the SCALE HARNESS (`src/scale/harness.ts`, P4 step 9b) so it draws filler parts with
+ * the exact same edge appearance the shipped viewport does — a faithful draw-call/frame-time number
+ * depends on measuring the real per-part geometry (one face `Mesh` + one edge `LineSegments`), not a
+ * lookalike.
+ */
+export const EDGE_COLOR = 0x11141a;
+
+/**
+ * The face material for one part (P4 step 2c). Extracted so the scale harness (step 9b) paints filler
+ * meshes with the identical `MeshStandardMaterial` — same shading cost per fragment, same polygon-offset
+ * that lifts the edge lines clear — as the real viewport, or its frame-time measurement would be a
+ * measurement of a different material.
+ */
+export function createPartMaterial(color: number): THREE.MeshStandardMaterial {
+  return new THREE.MeshStandardMaterial({
+    color,
+    roughness: 0.85,
+    metalness: 0.0,
+    // Push faces back a hair so the edge lines sit cleanly on top without z-fighting.
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
+  });
+}
 
 export class Viewport {
   readonly #render: RenderGateway;
@@ -180,15 +205,7 @@ export class Viewport {
     this.#removePart(part.nodeId); // a rebuilt part replaces its old mesh + edges
 
     const geometry = toBufferGeometry(buffers);
-    const material = new THREE.MeshStandardMaterial({
-      color: part.color,
-      roughness: 0.85,
-      metalness: 0.0,
-      // Push faces back a hair so the edge lines sit cleanly on top without z-fighting.
-      polygonOffset: true,
-      polygonOffsetFactor: 1,
-      polygonOffsetUnits: 1,
-    });
+    const material = createPartMaterial(part.color);
     const mesh = new THREE.Mesh(geometry, material);
     // Carry identity onto the object so a raycast hit (step 4) maps back to element + part.
     mesh.userData['nodeId'] = part.nodeId;
@@ -295,7 +312,7 @@ function disposeMesh(child: THREE.Object3D): void {
  * bounding volume directly — tighter than three's mesh-AABB and floating-point-stable across machines,
  * which keeps frustum culling and fit-to-view honest.
  */
-function toBufferGeometry(mesh: MeshBuffers): THREE.BufferGeometry {
+export function toBufferGeometry(mesh: MeshBuffers): THREE.BufferGeometry {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(mesh.positions, 3));
   geometry.setAttribute('normal', new THREE.BufferAttribute(mesh.normals, 3));
@@ -319,7 +336,7 @@ function toBufferGeometry(mesh: MeshBuffers): THREE.BufferGeometry {
  * ⚠ ONE `LineSegments` PER PART is fine at the foundation; batching edges by material is a step-9 (scale
  * harness) decision, alongside the same call for the face meshes — do not privately optimise it here.
  */
-function buildEdgeSegments(mesh: MeshBuffers): THREE.LineSegments | null {
+export function buildEdgeSegments(mesh: MeshBuffers): THREE.LineSegments | null {
   const { edgePositions, provenance } = mesh;
   if (edgePositions.length === 0 || provenance.edges.length === 0) return null;
 

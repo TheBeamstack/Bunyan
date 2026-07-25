@@ -330,8 +330,11 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
   — it is an IDENTITY task, not a serializer task). Deprioritised behind step-0 work.
 - **0d the sketch constraint solver — ✅ BUILT + GREEN (Entry 40).** **The room-bounding solver** (D55) —
   **designed/ruled, NOT built** (§5). v1.0.0, its own design doc next.
-- **No browser storage** (FSA/OPFS/IndexedDB behind `StorageAdapter`, a `MemoryStore` keeps the seam
-  tested) — **Amer's** (cannot be verified headless). ⚠ `list()` MUST return keys already in the store.
+- ~~**No browser storage**~~ — ✅ **BUILT + BROWSER-VERIFIED (Entry 56):** `IndexedDbStore` (a real IndexedDB
+  `StorageAdapter`) + Save/Open/Delete/Autosave/Recover wired into the app; opening `rebuildAll`s from the recipe. Verified
+  by `storage-check.html` (8/8, incl. the cross-session Autosave gotcha) + an app save→open round-trip. No frozen contract
+  touched. ⚠ `list()` MUST return keys already in the store (it does — `getAllKeys()`). A File System Access adapter (real
+  files the user picks) is an additive second `StorageAdapter`, v1.0.x.
 - No sweep-along-path, no loft (out of scope). **No 2D views, no IFC import** (P6; both ops reserved).
 - No Clean Delta exporter / **no Clean Delta JSON Schema yet** (⑥). ⚠ **NOT blocked (D57):** Bunyan
   designs it on its own terms for **Planitor + Miqdar** (on-box consumers); BIMsync is unbuilt and adapts.
@@ -396,7 +399,7 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | **D63** | **2026-07-21 → ✅ DONE (Entry 53) — NOTHING WAS OWED.** The DWG seam **already exists**: `FormatCodec` + `registries.codecs`, and domain rule 5 makes a new format an **additive registration** (asserted in the test, not just written down). A DWG *underlay* is post-v1.0.0 documentation apparatus (recorded out of scope, owner-ruled). IFC export stays v1.0.x (D3); point-cloud/RVT recorded absent. |
 | **D64** | **2026-07-21 → ✅ RULED 2026-07-23 (Entry 52). RE-OPEN gate ⑧'s "reserve nothing": on-element analytical-anchor for real Miqdar structural/energy analysis, or PEI-bound side-graph? (row Ⓔ).** **ANSWER, EARNED from the proper Miqdar spec's real-frame walk (`~/projects/Miqdar/Miqdar_v1.0.0_spec.md` §4, M19): the SIDE-GRAPH SUFFICES — reserve NOTHING analytical on the type/part** (idealization is many-valued per element — cracked stiffness is gross + 0.35EI at once ⇒ not an element property). **ONE exception, NOT an analytical anchor: `Material.thermal?` reserved for the energy north-star (M18, owner-ruled), `entities.ts`, revert-verified.** |
 | **D65** | **2026-07-21 → ✅ DONE (Entry 53). Design Options RESERVED** — `scene.designOptions?` (`designoptions.ts`) + `Element.designOptionId?` + `ViewCommon.designOptionIds?` + the `createElement` arg. ⚠⚠ **AND THE INVARIANT IS IN THE FROZEN CONTRACT, NOT JUST THE STORAGE (owner-ruled):** a document with options deliberately holds **mutually-exclusive elements**, so `quantities()`/the roll-up/the Clean Delta/schedules — and Planitor/Miqdar — **MUST exclude non-active options** (`isElementActive`), or a schedule double-counts and work packages are published for a scheme nobody builds (rule 15's failure mode by a new road). The `Grid.geometry`/ⓥ precedent: the consumer-facing rule is written in **at reserve time.** ⚠ **Phase filters + area schemes needed NOTHING** — a phase filter is a view property over datums that already exist and an override is display (derived, never stored); an area was never *stored*, so gross/rentable are additional **derivations**, not fields. |
-| **D66** | **2026-07-21 → ✅ CONTRACT HALF DONE (Entry 54). The 4-axis scale measurement.** ⚠ **The ONLY freeze-gating part was the heap-eviction CONTRACT hook, and it is RULED: reserve NOTHING — additive by construction.** Recipe-is-truth makes every solid disposable-and-rebuildable (proven by the D29 cold-load rebuild), the evicted state (`ElementState.stale`) and the release mechanism (`releaseShape`, kernel-client fires it) are ALREADY FROZEN, and the keep-live policy is runtime state never persisted. Measured fresh (2026-07-24): **heap 0.31 GB at 10k — FITS** (16.2 KB/solid); **cold load ~6.35 min single-thread/no-cache** (levers — D29 cache RULED SHIP, `instantiate` RESERVED, MT/D8 — all additive, none foreclose). ⚠ **Draw calls + edit latency are Amer's (browser-side, unmeasurable headless); the D8 single-thread verdict needs them and is additive either way** ⇒ **NOT contract-gating.** `P5_step9_D66_scale_design.md`. |
+| **D66** | **2026-07-21 → ✅ CONTRACT HALF DONE (Entry 54). The 4-axis scale measurement.** ⚠ **The ONLY freeze-gating part was the heap-eviction CONTRACT hook, and it is RULED: reserve NOTHING — additive by construction.** Recipe-is-truth makes every solid disposable-and-rebuildable (proven by the D29 cold-load rebuild), the evicted state (`ElementState.stale`) and the release mechanism (`releaseShape`, kernel-client fires it) are ALREADY FROZEN, and the keep-live policy is runtime state never persisted. Measured fresh (2026-07-24): **heap 0.31 GB at 10k — FITS** (16.2 KB/solid); **cold load ~6.35 min single-thread/no-cache** (levers — D29 cache RULED SHIP, `instantiate` RESERVED, MT/D8 — all additive, none foreclose). ⚠ **Draw calls + edit latency are Amer's (browser-side, unmeasurable headless); the D8 single-thread verdict needs them and is additive either way** ⇒ **NOT contract-gating.** `P5_step9_D66_scale_design.md`. ✅ **AMER'S TWO AXES MEASURED (Entry 55, real browser, Intel UHD): draw calls ~30,700 / ~606 ms/frame (1.6 fps) at target; incremental edit ~23 ms compute (FLAT — 2b works) + ~570 ms post-edit render. BOTH collapse to the one-mesh-per-part redraw wall; the fix is renderer BATCHING/instancing (additive, no contract). D8 verdict: the interactive axes do NOT need multithreading (it attacks the kernel, not the redraw) ⇒ recommend MT stays v1.0.x — RAISED with the owner, additive either way. All four axes now have a number.** |
 
 **⚠ D40–D46 are ALL BUILT (Entry 21), each with a test that fails if the fix is reverted. D50 STEP 0 IS
 NOW FULLY BUILT — 0a/0b/0e/0f/0g (Entries 33–38), 0d (Entry 40), room-bounding (Entry 41), 0c (Entry 42).**
@@ -514,6 +517,16 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 > the owner is holding the *act* until the *measurement* is complete. **⇒ NEXT is AMER's browser measurement, THEN the
 > freeze.** See Entry 54 + `P5_step9_D66_scale_design.md` §5.
 >
+> ## ✅✅ AMER'S TWO AXES ARE NOW MEASURED (Entry 55, 2026-07-25) — THE HOLD CONDITION IS MET. THE FREEZE IS AN OWNER ACT.
+> The browser scale page (`apps/web/src/scale/`, imp_plan P4 step 9b) ran on the real kernel + real three.js + a real GPU:
+> **(b) ~30,700 draw calls / ~606 ms per frame (1.6 fps)** at the 10k-element target; **(d) incremental edit ~23 ms compute
+> (FLAT vs scale — 2b works, only the 3 changed parts re-tessellate) + ~570 ms post-edit render.** BOTH axes collapse to the
+> ONE-MESH-PER-PART redraw wall (~30k draw calls), which **multithreading (D8) does not touch** — the fix is renderer
+> BATCHING/instancing (Amer's, additive, no contract change; `instantiate` already reserved). **D8 recommendation (RAISED,
+> not decided): keep MT v1.0.x — the interactive axes don't need it; cold load is its only candidate and has additive levers.**
+> **⇒ all four scale axes have a number + the D8 verdict is surfaced ⇒ the Entry-54 HOLD condition is satisfied; whether to
+> FREEZE (step 6) is now the owner's act.** Nothing measured forecloses a contract. See Entry 55.
+>
 > ## ✅✅ STEP 0 IS CLOSED — BOTH SOLVERS + 0c JOINS ARE BUILT + GREEN (0d E40, room-bounding E41, 0c E42).
 > All of D50 step 0 is done: **0a–0g**, **0d (real planegcs, D26 revert-verified)**, the **room-bounding
 > solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
@@ -622,13 +635,15 @@ broken-ref state + cascade delete (Entry 18) · all six P3 defects + D40–D46 (
 the **room-bounding solver (Entry 41)** · **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate
 green, real Wall in `@bunyan/types`). ⇒ ALL OF D50 STEP 0 IS CLOSED.**
 
-**For Amer (browser hot path):** ⚠⚠ **YOU ARE NOW THE PRE-FREEZE BLOCKER (owner ruling, Entry 54, 2026-07-24).**
-The owner held the freeze until **all four D66 scale axes have a number**. Zayd measured the two that are
-headless (heap FITS at 0.31 GB; cold load ~6.35 min single-thread/no-cache). **The two the freeze now waits
-on are yours and can only be produced in a real browser: (b) DRAW CALLS and (d) EDIT LATENCY at ~10,000
-elements** — build the **browser scale page** (`v1.0.0_imp_plan.md` P4 step 9b) and report each number with a
-written recommendation. Then the **D8 single-thread verdict** (renderer wall vs kernel wall) can be made, and
-the freeze unblocks. Full brief: `P5_step9_D66_scale_design.md` §4–§5. — P4 steps done through Entry 27 (the
+**For Amer (browser hot path):** ✅✅ **THE PRE-FREEZE BLOCKER IS DISCHARGED (Entry 55, 2026-07-25).** The owner held the
+freeze until **all four D66 scale axes have a number + the D8 verdict is made**; the two headless axes were Zayd's (heap
+FITS at 0.31 GB; cold load ~6.35 min) and **the two browser axes are now measured on a real GPU: (b) ~30,700 draw calls /
+~606 ms per frame (1.6 fps) at target; (d) incremental edit ~23 ms compute (FLAT vs scale — 2b works) + ~570 ms post-edit
+render.** Both collapse to the ONE-MESH-PER-PART redraw wall; the fix is renderer BATCHING/instancing (additive, no
+contract). D8 verdict RAISED (not decided): the interactive axes don't need multithreading ⇒ recommend MT stays v1.0.x.
+**⇒ the HOLD condition is met; the FREEZE (step 6) is now an owner act.** The scale page is `apps/web/src/scale/` +
+`scale.html` (P4 step 9b, gated). ⚠ **The renderer batching/instancing rewrite is the next big Amer item, but it is
+POST-FREEZE / parallel — additive, below every frozen contract, not a blocker.** — P4 steps done through Entry 27 (the
 gate now sees `apps/web`; incremental redraw; sub-shape picking; the failure-state panels; the D19
 equivalence test). ⚠ Build against
 `@bunyan/document`, never the kernel (D19 — enforced by `d19-boundary.test.ts` + the package boundary;
@@ -1558,3 +1573,177 @@ numbers predate joins. Then the **owner-gated FREEZE (step 6)**, which also tags
   stand (Entry 54 §1); the join O(N²) is a v1.0.x perf item (review_P5 #3).
 - **The FREEZE (step 6)** unblocks only once those two axes exist + the D8 call is made — then the Architect signs off and
   the contracts freeze (tagging the Ⓐ–Ⓕ reservations + `Material.thermal?`). ⚠ **Committed + pushed: Entries 52+53+54.**
+
+### Entry 55 — 2026-07-25 — Amer — **D66 AXES (b) + (d) MEASURED IN A REAL BROWSER: THE LAST TWO SCALE NUMBERS EXIST. BOTH COLLAPSE TO ONE WALL — THE ~30k-DRAW-CALL ONE-MESH-PER-PART REDRAW — WHICH MULTITHREADING (D8) DOES NOT TOUCH. THE FIX IS RENDERER BATCHING, ADDITIVE, NO CONTRACT CHANGE.**
+**Task (owner, via the Entry-54 hold):** build the browser scale page (imp_plan P4 step 9b), load a ~10k-element model,
+and produce a real number for **(b) draw calls / frame time** and **(d) edit latency** at ~10,000 elements, each with a
+one-paragraph recommendation; **raise D8 (pull multithreading into v1.0.0?) with the owner — do not decide it.** Built the
+page, ran it on the real OCCT kernel + real three.js on this box's real GPU. `pnpm verify` fully green (**370 tests, +6**;
+typecheck incl. apps/web, lint, format, reseed). ⚠ **No commit — owner-gated.**
+
+- **WHAT I BUILT (`apps/web/src/scale/` + `scale.html`, plan P4 step 9b — the browser half the headless box cannot run).**
+  A dedicated scale page that boots the REAL kernel + document through `bootstrap()` (**D19 — the app never holds a
+  `KernelClient`; it authors through `DocumentContext` and draws through `RenderGateway`**), builds a small REAL reference
+  set of composite walls through the command layer (D30 — an element is its PARTS; each layer tessellated), then fills ONE
+  three.js scene — mirroring the shipped `Viewport` byte-for-byte (I EXPORTED `toBufferGeometry`/`buildEdgeSegments`/
+  `createPartMaterial`/`EDGE_COLOR` so the harness builds meshes with the *identical* code path, not a lookalike) — to the
+  ~16,000-part target and measures. ⚠ **NO BATCHING (plan step 9b is explicit): measure the as-built one-mesh-per-part
+  architecture FIRST; batching is the decision the number informs, not a thing to sneak in — "a rewrite, not an
+  optimisation".**
+- **⚠ METHOD — the same discipline the headless harnesses use, and box-safe (§6a: 3.7 GB RAM, live public sites).** The
+  renderer axes are a function of what is IN the scene (draw calls + triangles), not of how the geometry was produced — a
+  box the kernel built and a box cloned from it render identically. Building 16k real OCCT solids in a tab is ~10 min and
+  strains the box (the heap harness caps at ~310 solids and EXTRAPOLATES for the same reason). So filler meshes SHARE a pool
+  of ~36 real composite-wall layer geometries (one draw call each — three.js does not auto-instance a shared geometry),
+  grid-spread with a fit camera (nearly all in-frustum — the honest worst case a CAD user hits zoomed-to-fit). **Draw calls
+  = mesh count EXACTLY; frame time is draw-call-bound and faithful; memory stays a few pooled buffers.** The (d) edit runs
+  the REAL kernel + document on a REAL wall (`core.setParams`) — only the filler is cloned.
+- **⚠ THE HARDWARE, DISCLOSED (it is what makes the absolute number legible).** Real GPU, not a software rasterizer:
+  **ANGLE / Intel UHD Graphics (Direct3D11)** — a genuine low-end INTEGRATED GPU, the most common class in laptops.
+  Canvas 795×684, `devicePixelRatio` 1. The draw-call COUNT is hardware-independent; the frame TIME scales with the GPU, so
+  **a discrete GPU would be materially faster** — Intel UHD is a fair "modest laptop" floor, not the best case.
+
+**⚠⚠ (b) DRAW CALLS + FRAME TIME — measured, this box, Intel UHD:**
+```
+   parts   draw calls   tris    ms/frame   p95      fps
+    1,000     2,036      12k       36.9     75.1    27.1
+    2,000     4,016      24k       69.8    162.5    14.3
+    4,000     7,948      48k      139.2    211.9     7.2
+    8,000    15,762      95k      363.8    548.3     2.7
+   12,000    23,398     140k      525.1   1009.4     1.9
+►  16,000    30,746     184k      606.3    834.2     1.6   ← the 10,000-element target (~1.6 solids/el)
+```
+**At the target: ~30,700 draw calls, ~606 ms/frame (1.6 fps).** ~1.9 draw calls per part — because the Viewport draws a
+face `Mesh` AND an edge `LineSegments` per part (2× the part count, as designed). Frame time is linear-to-slightly-
+superlinear in parts (the slight super-linearity is `scene.updateMatrixWorld` over a growing graph — real, and part of the
+honest cost). **~0.02 ms per draw call on this GPU.** This is the plan's own extrapolation (§1a: "~16k draw calls, 10–20×
+a 60 fps budget"), now a MEASURED number and worse than the extrapolation because edges double the calls: **~30k calls is
+~20× over a 16 ms frame budget.**
+
+**⚠⚠ (d) EDIT LATENCY — one incremental edit (`setParams` on one wall), at rising resident scale:**
+```
+   resident   changed   total ms   rebuild   retess   install   next-frame
+        0        3        46.6       29.4     16.7      0.4        0.9      ← cold JIT
+    8,000        3        21.4        7.0     13.8      0.5      194.1
+   16,000        3        23.4        5.0     18.1      0.3      568.5      ← the target
+```
+**THE INCREMENTAL EDIT COMPUTE IS ~23 ms AND FLAT vs SCALE — step 2b works.** Only **3 of 16,000 parts** re-tessellate
+(the changed wall's 3 layers); the kernel rebuilds ONE element (~5 ms), the 3 parts tessellate (~18 ms), the mesh swap is
+~0.3 ms. **The kernel is NOT the wall at edit time** (the redraw-not-kernel finding of §1a, now confirmed from the browser
+side). **BUT the frame the user waits to SEE the edit is ~568 ms** — the (b) render cost, because after the swap the whole
+30k-draw-call scene must render once. **⇒ end-to-end perceived edit latency at target ≈ 23 ms compute + ~570 ms render ≈
+~590 ms.** The compute half is solved; the render half is the wall.
+
+- **⚠⚠ THE FINDING: BOTH AXES COLLAPSE TO ONE WALL — the one-`THREE.Mesh`-per-part redraw at ~30k draw calls.** (b) IS that
+  wall; (d)'s perceived latency is that wall plus a flat ~23 ms of kernel+tessellation. The incremental redraw (2b, Entry 26)
+  already did its job — it made the edit COMPUTE flat and cheap, exactly as designed — so what remains is purely the
+  per-frame *render* of 30k independent draw calls. **The fix is renderer BATCHING-BY-MATERIAL / GPU INSTANCING** (a real
+  building has few DISTINCT part geometries per type; instancing collapses N identical meshes to ~1 draw call). It is
+  Amer's browser-side work, **additive, below every frozen contract**, and its kernel partner `instantiate` is **already
+  RESERVED in the frozen protocol** (§4j-3). The plan calls it "a rewrite not an optimisation" — a RENDERER rewrite, **not a
+  contract change.**
+
+- **⚠ RECOMMENDATION (b) — reachable single-threaded; multithreading is the wrong lever.** ~30k draw calls at ~606 ms is a
+  renderer-ARCHITECTURE problem (too many draw calls), not a compute-throughput problem. **D8 / multithreading attacks the
+  KERNEL rebuild (§1a — "not one of the three kernel levers touches the redraw"), so it would NOT move this number.** The
+  unlock is batching/instancing on the three.js side, single-threaded: merge parts sharing a geometry+material into one
+  instanced draw, batch edges, add frustum-culling/LOD. That drops ~30k calls toward the low hundreds and the frame back
+  under budget — **no thread, no contract, no kernel change.**
+- **⚠ RECOMMENDATION (d) — the kernel is already fast enough; this is the SAME renderer-batching fix.** The edit compute is
+  ~23 ms and flat (2b + one-element rebuild) — the kernel does not need multithreading to make an EDIT interactive. The
+  ~570 ms a user waits is the post-edit frame, i.e. (b). Once (b)'s batching lands, the post-edit frame is interactive and
+  (d) becomes ~23 ms compute + one cheap frame. **⇒ neither interactive axis needs D8.**
+
+- **⚠⚠ D8 (multithreading into v1.0.0?) — RAISED WITH THE OWNER, NOT DECIDED (as instructed; imp_plan step 9c: "raise it,
+  do not re-decide it").** The evidence says the two INTERACTIVE axes (b)+(d) do **not** need multithreading — they are a
+  single-threaded renderer-batching fix. The axis where D8 would actually help is **COLD LOAD** (Entry 54: ~6.35 min
+  single-thread), which is Zayd's kernel wall and already has additive levers (D29 cache RULED SHIP, `instantiate`
+  RESERVED). **My recommendation: do NOT pull D8 into v1.0.0 on the strength of the renderer axes — they don't need it; the
+  renderer batching (additive) is the real unlock, and cold-load's own levers are additive too.** But **D8 is the owner's
+  call and it is additive either way** (MT is COOP/COEP + `SharedArrayBuffer` deploy config, not a `scene.json` contract —
+  Entry 54 §4), **so it does not gate the freeze.**
+- **⇒ ALL FOUR SCALE AXES NOW HAVE A NUMBER** (heap 0.31 GB FITS · cold load ~6.35 min · **draw calls ~30k / ~606 ms · edit
+  ~23 ms compute + ~570 ms render**), and the D8 verdict is made and surfaced. The Entry-54 owner HOLD condition ("all four
+  axes + the D8 verdict") is **satisfied.** Nothing measured forecloses a frozen contract (confirms Entry 54 §2/§3): every
+  remaining lever — renderer batching, `instantiate`, the D29 cache, MT — is additive. **On the evidence the contracts are
+  safe to freeze on scale grounds; whether to FREEZE now is the owner's act (P5 step 6).**
+- **VERIFICATION + fidelity notes.** `pnpm verify` green (**370 tests**; the pure `percentile` helper is unit-tested —
+  `apps/web/src/scale/stats.test.ts`, 6 — the rest is a WebGL measurement, exercised only in a real browser). The page is
+  gated: `scale.html` is a second vite build input, and apps/web's typecheck/lint/format cover the new files (the P4-step-0
+  gate). ⚠ **Filler geometry is cloned from real composite-wall LAYER solids (rectangular prisms — the simplest real part),
+  so per-part TRIANGLES are a conservative lower bound; the DRAW-CALL count — the axis's binding cost — is exact.** ⚠ A
+  weak-GPU caveat is honest: the ~606 ms is Intel-UHD-integrated; a discrete GPU is faster, but the ~30k-draw-call COUNT and
+  the "20× over budget" shape are hardware-independent and are the real finding.
+- **⚠ NO COMMIT — owner-gated.** Box: dev server on :5173 during the run then STOPPED; the kernel WASM + up to ~30k meshes
+  lived in the browser tab (peaked well within the tab, box stayed healthy); no containers touched, the two live public
+  sites untouched, nothing installed beyond the existing workspace (`pnpm install` linked the two packages Zayd added —
+  `@bunyan/types`, `@bunyan/sketch-solver`).
+
+**NEXT:**
+- **Owner:** the freeze's Entry-54 HOLD condition is met (four axes + D8 verdict). **The FREEZE (step 6) is now an owner
+  act** — sign off and tag `SubShapeRef`/`BimObjectType`/`Command`/`scene.json`/`ParamSchema`/`UndoableEdit` frozen (with
+  the Ⓐ–Ⓕ reservations + `Material.thermal?`). And the D8 call: my recommendation is to keep multithreading v1.0.x (the
+  interactive axes don't need it); confirm or overrule.
+- **Amer (post-freeze / parallel, NOT a freeze blocker):** the renderer-batching / instancing rewrite (the (b)+(d) unlock)
+  · P4.5 interaction model · browser storage · WebGPU + fallback · service worker/PWA. All additive, all below the freeze.
+- **Zayd:** nothing owed on scale; the join O(N²) endpoint index stays a v1.0.x perf item (review_P5 #3).
+
+### Entry 56 — 2026-07-25 — Amer — **BROWSER STORAGE SHIPS: a real IndexedDB `StorageAdapter` + Autosave + Save/Open/Recover, wired into the app and verified in a real browser. The §3 "No browser storage" gap is closed. NO frozen contract touched.**
+**Task (owner):** after the scale-page blocker was discharged (Entry 55, kept UNCOMMITTED — owner-gated), the owner chose
+"another Amer track." Picked **browser storage** — the one entirely-missing foundation piece (§3 NOT-built: "No browser
+storage — FSA/OPFS/IndexedDB behind `StorageAdapter` … **Amer's** (cannot be verified headless)"). It pairs with the
+`.bnn` codec + `Autosave` Zayd already built, touches no frozen contract, and is fully verifiable in a real browser.
+`pnpm verify` fully green (**375 tests, +5**; typecheck incl. apps/web, lint, format, reseed). ⚠ **No commit — owner-gated.**
+
+- **WHAT I BUILT (`apps/web/src/storage/`).** The document layer defines the `StorageAdapter` SEAM (`read`/`write`/`remove`/
+  `list` over `Uint8Array`) + `Autosave` + the `.bnn` codec, and keeps a `MemoryStore` so the round-trip is tested
+  headlessly — but ships NO browser implementation on purpose ("code I cannot exercise is code I must not claim to have
+  verified", `bnn.ts`). This is that implementation:
+  - **`IndexedDbStore`** (`indexeddb.ts`) — a promisified IndexedDB `StorageAdapter`: one object store, string keys →
+    `Uint8Array`, lazy shared connection, `write` COPIES the bytes (`.slice()`) so a subarray view never persists its whole
+    backing buffer, `read` normalises back to `Uint8Array`. ⚠⚠ **`list()` returns EVERY key via `getAllKeys()` with no
+    caching** — the property `Autosave`'s counter-seed depends on (the "saved 9999, recovered 1300" data-loss bug).
+  - **The reload-based OPEN + Save/Delete/Autosave/Recover UI, wired into `App.tsx`.** A "Files" panel: name → **Save**
+    (`saveBnn` → `store.write('doc/<name>.bnn')`), a list with **Open**/**Delete**, and a **Recover** banner on boot when a
+    newer autosave exists. **Autosave** snapshots the whole `.bnn` into the ring 1.5 s after each edit. `bootstrap()` gained
+    an optional `InitialDocument` — opening a file constructs the doc over the loaded scene and `rebuildAll()`s every solid
+    from the recipe (the D29 cold-load path, now in the browser).
+  - ⚠⚠ **THE MOAT RULE HONOURED: Save persists `doc.changeFeed()` (the journal) + `doc.revision`, NEVER `doc.history()`**
+    (the capped undo stack — the moat-losing bug, plan step 10). Both the explicit Save and Autosave use `changeFeed()`.
+  - **OPEN is reload-based (`documentStorage.ts`):** the shell is built around ONE `DocumentContext` from `bootstrap()`;
+    swapping a loaded doc in place would thread a new doc + agent surface + reset all state. Instead Open parks the store key
+    in `sessionStorage` and reloads — the boot path loads that file instead of seeding the demo. Robust, and a document
+    switch IS a clean boot over the chosen scene.
+- **⚠⚠ THE STRICTMODE BUG I HIT AND FIXED — the exact class Entry 23 already warned about.** First cut of the open path
+  booted the DEMO, not the file: `takeOpenRequest()` read-and-CLEARED `sessionStorage`, and under StrictMode the effect
+  double-mounts — the DISCARDED first mount consumed+cleared the key, so the SURVIVING mount saw `null`. **Fix: memoise the
+  taken key at MODULE scope** (`takenOpenKey`), so both mounts of one page load read the SAME value, while a real reload
+  (fresh page load, module re-evaluated) still returns to the demo. Same lesson as the `window.bunyan` StrictMode race:
+  a consume-once action must survive the double-mount. **Verified fixed** (below).
+- **VERIFIED IN A REAL BROWSER (the only place browser storage can be, the scale-harness precedent):**
+  - **`storage-check.html`** — an asserting self-check (`storageCheck.ts`) that runs the adapter + `Autosave` contract
+    against REAL IndexedDB (fresh throwaway DB, deleted after). **8/8 PASS**, including the two that matter: ⚠⚠ **a fresh
+    `Autosave` over a store with 3 snapshots writes `autosave-4`, NOT `autosave-1`** (cross-session ring continuation — the
+    data-loss gotcha, the case a same-instance test cannot see), and the ring prunes to depth keeping the newest. This is the
+    browser-side "test" for browser-only code.
+  - **The app, end to end:** saved a scene → `doc/house-b.bnn` landed in IndexedDB (1.6 KB, ZIP magic `PK\x03\x04`); edited
+    the wall to a DISTINCT `length: 7000` (via `window.bunyan.execute` — the agent path, D19) and saved; **opened it via
+    reload → booted "Open: house-b" with `length: 7000` (not the demo's 4000), state `valid`, geometry rebuilt, zero console
+    errors** — proving Save → `loadBnn` → `rebuildAll` round-trips the real scene. The Autosave + Recover banner appeared on a
+    fresh boot.
+- **⚠ NO FROZEN CONTRACT TOUCHED, and it is not a freeze item.** `StorageAdapter`/`Autosave`/`saveBnn`/`loadBnn` all
+  pre-exist; `IndexedDbStore` is an app-layer IMPLEMENTATION of the seam (D19-clean — no `KernelClient`, it only moves
+  bytes); the `bootstrap()` `InitialDocument` param and the App UI are app-local. No `scene.json`/`SCENE_SCHEMA_VERSION`/
+  verb/protocol change. Storage was always "Amer's, below the freeze" (§3) — this closes it without moving a frozen byte.
+- **GATING.** `storage-check.html` is a third vite build input (built + gated). apps/web typecheck/lint/format cover the new
+  files (the P4-step-0 gate). The pure helpers (`docKey`/`docName`/**`latestAutosaveKey`** — the recover-key selection, which
+  must pick the highest counter NUMERICALLY not lexically, the `autosave-10 > autosave-2` trap) are unit-tested in Node
+  (`documentStorage.test.ts`, 5) — the IndexedDB adapter itself is browser-verified. **375 green.**
+- **⚠ NO COMMIT — owner-gated.** ⚠ **Still uncommitted and owner-gated: Entry 55 (the scale page) AND Entry 56 (storage).**
+  Box: dev server on :5173 during verification then STOPPED; the app wrote a couple of throwaway docs into the local `bunyan`
+  IndexedDB (dev-machine data, harmless); no containers touched, live public sites untouched, nothing installed.
+
+**NEXT (Amer, all post-freeze / parallel — none blocks the freeze):** the renderer-batching / instancing rewrite (the (b)+(d)
+unlock, Entry 55) · P4.5 interaction model (gated on the baseline-Wall) · a File System Access adapter behind the same seam
+(save to real files the user picks — an additive second `StorageAdapter`) · WebGPU + WebGL2 fallback · service worker/PWA ·
+Cloudflare deploy. **The freeze (step 6) remains the owner's act** (Entry 55: four axes + D8 verdict done).

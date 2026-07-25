@@ -1,5 +1,9 @@
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+
+const here = fileURLToPath(new URL('.', import.meta.url));
 
 // The kernel worker is an ES module (`new Worker(url, { type: 'module' })`), and the OCCT glue locates
 // its 14 MB `.wasm` via `new URL('bunyan-kernel.wasm', import.meta.url)` — a pattern Vite's asset
@@ -17,5 +21,14 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
+    rollupOptions: {
+      // The app, plus the scale-harness page (plan P4 step 9b) — a second HTML entry so it is built and
+      // gated, not only dev-served.
+      input: {
+        main: resolve(here, 'index.html'),
+        scale: resolve(here, 'scale.html'),
+        storageCheck: resolve(here, 'storage-check.html'),
+      },
+    },
   },
 });

@@ -17,11 +17,22 @@
  * and WebGPU (step 6) build on this spine without reshaping it.
  */
 
-import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 
 import { bootstrap } from './bootstrap';
-import type { BunyanApp } from './bootstrap';
+import type { BunyanApp, InitialDocument } from './bootstrap';
 import { seedDemoScene } from './scaffold/seed';
+import {
+  createStore,
+  docKey,
+  docName,
+  latestAutosaveKey,
+  listDocKeys,
+  readInitial,
+  requestOpen,
+  takeOpenRequest,
+} from './storage/documentStorage';
+import type { IndexedDbStore } from './storage/indexeddb';
 import { ViewportCanvas } from './render/ViewportCanvas';
 import type { RenderPart, PickResult } from './render/Viewport';
 import { encodeSubShapeRef } from '@bunyan/protocol';
@@ -31,7 +42,9 @@ import { formatError, isSuperseded } from './edit/runner';
 import type { Dispatch } from './edit/runner';
 import { withUiRefresh } from './edit/agentRefresh';
 import {
+  Autosave,
   describeCommands,
+  saveBnn,
   type BrokenReference,
   type CommandDescriptor,
   type Element,
@@ -63,13 +76,38 @@ export function App() {
   // Bumped after every committed edit — the signal that the document changed under React's feet.
   const [version, bump] = useReducer((n: number) => n + 1, 0);
 
+  // ---- Persistence (browser storage, plan P4 step 5). The store + autosave live in a ref (plain
+  //      objects, not React state); the file list / current name / recover offer are state. ----------
+  const storageRef = useRef<{ store: IndexedDbStore; autosave: Autosave } | null>(null);
+  const [savedDocs, setSavedDocs] = useState<readonly string[]>([]);
+  /** The store key of the document currently open (a `doc/…bnn`), or null for the unsaved demo/scratch. */
+  const [currentDoc, setCurrentDoc] = useState<string | null>(null);
+  const [saveName, setSaveName] = useState('');
+  /** A newer autosave than this session was offered on boot — its store key, to recover on demand. */
+  const [recoverKey, setRecoverKey] = useState<string | null>(null);
+  const [autosavedAt, setAutosavedAt] = useState<string | null>(null);
+
   useEffect(() => {
     let live = true;
     let started: BunyanApp | null = null;
 
     void (async () => {
       try {
-        const bunyan = await bootstrap();
+        // Persistence boot (plan P4 step 5). If a file was chosen (reload-based open), load it; else
+        // boot empty and seed the demo. A stored file that fails to parse falls back to the demo rather
+        // than bricking the app — a `.bnn` is a file a user can be sent (D43 spirit).
+        const store = createStore();
+        const openKey = takeOpenRequest();
+        let initial: InitialDocument | undefined;
+        if (openKey !== null) {
+          try {
+            initial = await readInitial(store, openKey);
+          } catch {
+            initial = undefined;
+          }
+        }
+
+        const bunyan = await bootstrap(initial);
         started = bunyan;
         // Unmounted while the ~14 MB kernel was booting (StrictMode double-mount): dispose it now,
         // because the cleanup below ran before `started` was set.
@@ -78,8 +116,26 @@ export function App() {
           return;
         }
 
-        const wallId = await seedDemoScene(bunyan.doc);
+        let selectId: ElementId | null;
+        if (initial === undefined) {
+          selectId = await seedDemoScene(bunyan.doc);
+        } else {
+          // An opened file: select its first element so the panel has something to show.
+          selectId = Object.keys(bunyan.doc.scene.elements)[0] ?? null;
+        }
         if (!live) return;
+
+        storageRef.current = { store, autosave: new Autosave(store) };
+        setCurrentDoc(openKey !== null && openKey.startsWith('doc/') ? openKey : null);
+        setSavedDocs(await listDocKeys(store));
+        if (!live) return;
+        // Offer recovery only on a fresh (non-open) boot: a newer autosave than any file means the last
+        // session ended with unsaved work.
+        if (openKey === null) {
+          const latest = latestAutosaveKey(await store.list());
+          if (!live) return;
+          if (latest !== undefined) setRecoverKey(latest);
+        }
 
         // ⚠ Wire the agent surface (D22) HERE, on the surviving app only — never inside `bootstrap()`,
         // or StrictMode's discarded first mount races its dead, unseeded document onto the global.
@@ -88,7 +144,7 @@ export function App() {
         window.bunyan = withUiRefresh(bunyan.agent, bump);
 
         setApp(bunyan);
-        setSelectedId(wallId);
+        setSelectedId(selectId);
         setStatus({ kind: 'ready' });
       } catch (error) {
         if (!live) return;
@@ -100,6 +156,71 @@ export function App() {
       live = false;
       started?.dispose();
     };
+  }, []);
+
+  // ---- Autosave (plan P4 step 5). After a real edit, debounce, then snapshot the whole `.bnn` into the
+  //      ring. ⚠ The journal is `changeFeed()`, NEVER `history()` (the moat-losing bug). Recovery is an
+  //      ordinary load of the snapshot, so it goes through the exact path a normal open does. ----------
+  useEffect(() => {
+    if (app === null || version === 0) return; // nothing to save on the pristine boot
+    const storage = storageRef.current;
+    if (storage === null) return;
+    const handle = setTimeout(() => {
+      void (async () => {
+        try {
+          const bytes = saveBnn(app.doc.scene, {
+            kernelBuildId: app.kernel.buildId,
+            journal: app.doc.changeFeed(),
+            revision: app.doc.revision,
+          });
+          const key = await storage.autosave.snapshot(bytes);
+          setAutosavedAt(key);
+        } catch {
+          // An autosave failure must never surface as a user error; the next edit tries again.
+        }
+      })();
+    }, 1500);
+    return () => {
+      clearTimeout(handle);
+    };
+  }, [app, version]);
+
+  /** Save the current scene under a name (persist to IndexedDB). Uses the journal, not the undo stack. */
+  const saveDoc = useCallback(
+    async (name: string): Promise<void> => {
+      const storage = storageRef.current;
+      if (app === null || storage === null) return;
+      const trimmed = name.trim();
+      if (trimmed === '') return;
+      try {
+        const bytes = saveBnn(app.doc.scene, {
+          kernelBuildId: app.kernel.buildId,
+          journal: app.doc.changeFeed(),
+          revision: app.doc.revision,
+        });
+        const key = docKey(trimmed);
+        await storage.store.write(key, bytes);
+        setCurrentDoc(key);
+        setSavedDocs(await listDocKeys(storage.store));
+        setBanner(`Saved “${trimmed}”`);
+      } catch (error) {
+        setBanner(formatError(error));
+      }
+    },
+    [app],
+  );
+
+  /** Open a stored document by reloading into it (see `documentStorage.ts` — reload-based open). */
+  const openDoc = useCallback((key: string): void => {
+    requestOpen(key);
+    window.location.reload();
+  }, []);
+
+  const deleteDoc = useCallback(async (key: string): Promise<void> => {
+    const storage = storageRef.current;
+    if (storage === null) return;
+    await storage.store.remove(key);
+    setSavedDocs(await listDocKeys(storage.store));
   }, []);
 
   /**
@@ -263,6 +384,30 @@ export function App() {
             </button>
           </span>
         )}
+        {recoverKey !== null && (
+          <span className="banner" role="alert">
+            An autosaved session was found.
+            <button
+              type="button"
+              className="banner-dismiss"
+              title="Reload into the recovered session"
+              onClick={() => {
+                openDoc(recoverKey);
+              }}
+            >
+              Recover
+            </button>
+            <button
+              type="button"
+              className="banner-dismiss"
+              onClick={() => {
+                setRecoverKey(null);
+              }}
+            >
+              ✕
+            </button>
+          </span>
+        )}
       </header>
 
       {app !== null && (
@@ -282,6 +427,18 @@ export function App() {
         {status.kind === 'error' && <div className="overlay error">{status.message}</div>}
 
         <aside className="panel">
+          {app !== null && (
+            <FilesPanel
+              savedDocs={savedDocs}
+              currentDoc={currentDoc}
+              saveName={saveName}
+              autosavedAt={autosavedAt}
+              onSaveNameChange={setSaveName}
+              onSave={saveDoc}
+              onOpen={openDoc}
+              onDelete={deleteDoc}
+            />
+          )}
           <ProblemsPanel
             unbuildable={problems.unbuildable}
             broken={problems.broken}
@@ -352,6 +509,95 @@ export function App() {
         </aside>
       </main>
     </div>
+  );
+}
+
+/**
+ * The persistence panel (plan P4 step 5): save the current scene under a name into browser storage, and
+ * open/delete saved documents. Opening reloads into the chosen file (see `documentStorage.ts`). Autosave
+ * runs on its own in `App`; this shows its last snapshot.
+ */
+function FilesPanel({
+  savedDocs,
+  currentDoc,
+  saveName,
+  autosavedAt,
+  onSaveNameChange,
+  onSave,
+  onOpen,
+  onDelete,
+}: {
+  readonly savedDocs: readonly string[];
+  readonly currentDoc: string | null;
+  readonly saveName: string;
+  readonly autosavedAt: string | null;
+  readonly onSaveNameChange: (name: string) => void;
+  readonly onSave: (name: string) => void | Promise<void>;
+  readonly onOpen: (key: string) => void;
+  readonly onDelete: (key: string) => void | Promise<void>;
+}) {
+  const current = currentDoc === null ? null : docName(currentDoc);
+  // Default the save name to the open document's name, so re-saving overwrites it in place.
+  const nameToSave = saveName.trim() === '' ? (current ?? '') : saveName;
+  return (
+    <section className="panel-section">
+      <h2>Files</h2>
+      <p className="hint">
+        {current === null ? 'Unsaved scratch document.' : `Open: ${current}.`}
+        {autosavedAt !== null && ' Autosaved.'}
+      </p>
+      <div className="field">
+        <span className="field-control" style={{ display: 'flex', gap: 6 }}>
+          <input
+            type="text"
+            aria-label="Document name"
+            placeholder={current ?? 'document name'}
+            value={saveName}
+            onChange={(e) => {
+              onSaveNameChange(e.target.value);
+            }}
+          />
+          <button
+            type="button"
+            disabled={nameToSave.trim() === ''}
+            onClick={() => {
+              void onSave(nameToSave);
+            }}
+          >
+            Save
+          </button>
+        </span>
+      </div>
+      {savedDocs.length > 0 && (
+        <ul className="problem-list">
+          {savedDocs.map((key) => (
+            <li key={key} className="problem">
+              <button
+                type="button"
+                className="problem-link"
+                title="Open (reloads into this document)"
+                onClick={() => {
+                  onOpen(key);
+                }}
+              >
+                {docName(key)}
+                {key === currentDoc ? ' ●' : ''}
+              </button>
+              <button
+                type="button"
+                className="banner-dismiss"
+                title="Delete this document"
+                onClick={() => {
+                  void onDelete(key);
+                }}
+              >
+                ✕
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
