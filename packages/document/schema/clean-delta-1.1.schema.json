@@ -1,0 +1,207 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://bunyan.build/schema/clean-delta-1.1.schema.json",
+  "title": "Clean Delta Package",
+  "description": "The contract that carries money (Bunyan Freeze-Gate 6 / D36b / D57). Canonical shape shared by Bunyan (source: bunyan, identity by construction) and BIMsync (source: bimsync, identity recovered by matching). Planitor v2.2 section 4 is the consumer. Per Planitor D11 this schema — not prose in three repos — IS the contract; each repo validates its producer/consumer against it in CI.",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "source",
+    "model_revision",
+    "units",
+    "spatial",
+    "elements",
+    "summary"
+  ],
+  "properties": {
+    "contract_version": { "const": "1.1" },
+    "source": { "enum": ["bunyan", "bimsync"] },
+    "units": { "const": "metric" },
+    "model_revision": {
+      "type": "object",
+      "required": ["snapshot_number", "lineage", "promoted_at", "promoted_by"],
+      "properties": {
+        "snapshot_number": { "type": "number" },
+        "previous_snapshot_number": { "type": ["number", "null"] },
+        "lineage": { "type": "string" },
+        "promoted_at": { "type": "string" },
+        "promoted_by": { "type": "string" }
+      }
+    },
+    "spatial": {
+      "type": "object",
+      "required": ["zones", "floors"],
+      "properties": {
+        "zones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["code", "name", "order"],
+            "properties": {
+              "code": { "type": "string" },
+              "name": { "type": "string" },
+              "order": { "type": "number" }
+            }
+          }
+        },
+        "floors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["code", "zone_code", "label", "order"],
+            "properties": {
+              "code": { "type": "string" },
+              "zone_code": { "type": "string" },
+              "label": { "type": "string" },
+              "order": { "type": "number" },
+              "elevation": { "type": ["number", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "pei",
+          "change_type",
+          "spatial_container_code",
+          "classification",
+          "prior",
+          "links"
+        ],
+        "properties": {
+          "pei": {
+            "type": "string",
+            "description": "For a Bunyan model this IS element.id, a prefixed ULID (D44). Never minted, never re-derived."
+          },
+          "ifc_guid": { "type": ["string", "null"] },
+          "fingerprint": {
+            "type": ["string", "null"],
+            "description": "Always null from Bunyan: nothing was lost, so nothing must be guessed back."
+          },
+          "change_type": {
+            "enum": [
+              "added",
+              "modified_qty",
+              "modified_move",
+              "modified_type",
+              "deleted",
+              "unchanged",
+              "reidentified",
+              "split",
+              "merge"
+            ],
+            "description": "From Bunyan this is READ off the append-only journal, never inferred by diffing two models. 'reidentified' cannot occur (D1 + D44)."
+          },
+          "spatial_container_code": { "type": "string" },
+          "classification": {
+            "type": "object",
+            "required": ["ifc_class", "type_name", "out_of_scope"],
+            "properties": {
+              "ifc_class": { "type": "string" },
+              "predefined_type": { "type": ["string", "null"] },
+              "material": { "type": ["string", "null"] },
+              "type_name": { "type": "string" },
+              "out_of_scope": { "type": "boolean" }
+            }
+          },
+          "quantity": {
+            "type": "object",
+            "description": "Absent for a deleted element — it has no current geometry to measure.",
+            "required": ["value", "unit", "basis", "canonical", "parts"],
+            "properties": {
+              "value": { "type": "number" },
+              "unit": { "const": "m3" },
+              "basis": {
+                "enum": ["declared", "geometry", "exact"],
+                "description": "Always 'exact' from Bunyan — measured on the B-Rep. MUST NOT be downgraded or re-derived by the consumer (Planitor D10)."
+              },
+              "canonical": {
+                "type": "object",
+                "required": ["volume", "area", "length", "count"],
+                "properties": {
+                  "volume": { "type": ["number", "null"] },
+                  "area": { "type": ["number", "null"] },
+                  "length": {
+                    "type": ["number", "null"],
+                    "description": "The element's SEMANTIC axis length (a wall's baseline, a member's length) — never the sum of a solid's edges, which is meaningless as a schedule quantity (Freeze-Gate h)."
+                  },
+                  "count": { "type": "number" }
+                }
+              },
+              "parts": {
+                "type": "array",
+                "description": "THE PER-PART BREAKDOWN, and the point of the whole exercise: a real wall is blockwork + insulation + plaster, each a distinct material with a distinct trade. When present, parts[] IS the quantity and value is a convenience.",
+                "items": {
+                  "type": "object",
+                  "required": ["name", "material", "volume", "area", "unit"],
+                  "properties": {
+                    "name": { "type": "string" },
+                    "material": { "type": "string" },
+                    "volume": { "type": "number" },
+                    "area": { "type": "number" },
+                    "mass": {
+                      "type": "number",
+                      "description": "kg. ABSENT, never 0, when the material's density does not resolve: a missing density is an unknown, not a nought (Bunyan D45, domain rule 15)."
+                    },
+                    "unit": { "type": "string" },
+                    "discipline": {
+                      "type": "string",
+                      "description": "Whose trade builds it (Bunyan D45) — the field downstream work-package routing runs on."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "prior": {
+            "type": "object",
+            "required": ["quantity_value", "spatial_container_code"],
+            "properties": {
+              "quantity_value": { "type": ["number", "null"] },
+              "spatial_container_code": { "type": ["string", "null"] }
+            }
+          },
+          "links": {
+            "type": "object",
+            "required": ["split_from_pei", "merge_into_pei"],
+            "properties": {
+              "split_from_pei": { "type": ["string", "null"] },
+              "merge_into_pei": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["added", "modified_qty", "modified_move", "deleted", "unchanged"],
+      "properties": {
+        "added": { "type": "number" },
+        "modified_qty": { "type": "number" },
+        "modified_move": { "type": "number" },
+        "modified_type": { "type": "number" },
+        "deleted": { "type": "number" },
+        "unchanged": { "type": "number" },
+        "reidentified": { "type": "number" },
+        "split": { "type": "number" },
+        "merge": { "type": "number" }
+      }
+    },
+    "unmeasured": {
+      "type": "array",
+      "description": "BUNYAN EXTENSION, additive and optional (owner-ruled 2026-07-25). Every real element in the delta that could not be MEASURED, and why. Domain rule 15 forbids reporting it as 0; silently omitting it from a package that carries money is the same wrongness one level up. A consumer that does not know the field ignores it; a consumer that does can refuse to bill a package that admits it is incomplete.",
+      "items": {
+        "type": "object",
+        "required": ["pei", "reason"],
+        "properties": {
+          "pei": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -30,6 +30,14 @@
  */
 
 import type { BrokenReference, ElementId, Part } from './entities.js';
+import { containerCode, modelElements } from './enumerate.js';
+import type {
+  EnumerateOptions,
+  ModelElement,
+  ProjectQuantities,
+  ProjectQuantityRow,
+  UnmeasuredElement,
+} from './enumerate.js';
 import type { GeometryGateway } from './geometry.js';
 import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly } from './build.js';
@@ -299,7 +307,8 @@ export class DocumentContext {
 
     // 2. We STAGE the whole rebuild against a scene that only exists locally, so far.
     const next = applyChanges(this.#scene, edit.changes);
-    const staged = await this.#stage(next, this.#affected(edit), options);
+    const affected = this.#affected(edit);
+    const staged = await this.#stage(next, affected, options);
 
     if (staged.failure !== undefined) {
       // ⚠ REJECT + KEEP LAST-GOOD (domain rule 4), and it means BOTH halves: the staged solids are
@@ -315,11 +324,32 @@ export class DocumentContext {
       );
     }
 
+    // ⚠⚠ RECORD THE CASCADE THAT ACTUALLY HAPPENED, NOT THE ONE THE COMMAND DECLARED — and this is a
+    // MOAT-BEARING line, found by building the Clean Delta exporter against it (`P5_step6A_enumeration_
+    // design.md`). `UndoableEdit.rebuilt` is the field the Clean Delta reads the ASSOCIATIVE CASCADE from:
+    // *"a Level moved and 400 walls' quantities changed though nothing touched them directly"*
+    // (`P5_step6_clean_delta_design.md` §3, `modified_qty`) — the one case the design says *"a naive
+    // two-model diff gets right only by luck; Bunyan reads it off `rebuilt`."*
+    //
+    // ⚠ IT DID NOT. Thirteen commands — `updateContainer`, `updateGrid`, `updateMaterial`,
+    // `updateSection` among them — declare `rebuilt: []`, because the command layer legitimately does not
+    // KNOW what a container/grid/material edit reaches; the TYPED DEPENDENCY GRAPH does (`dependency.ts`,
+    // D50 step 0a), and `#affected` has resolved it two lines above to do the rebuild. So the geometry was
+    // always correct and **the journal simply did not say so**: moving a Level rebuilt every wall on it
+    // and recorded `rebuilt: []`, and a Clean Delta consumer would have been told that a storey full of
+    // re-quantified walls was `unchanged`. A wrong schedule, from a green suite. *(§1c-7's disease again:
+    // the claim was written in a design doc and never read against the code.)*
+    //
+    // The command's declaration and the graph's answer are now ONE answer, exactly as `#affected` itself
+    // exists to make them (see its own comment). Additive: the field is frozen and unchanged; only its
+    // content is now complete.
+    const journalled: UndoableEdit = { ...edit, rebuilt: affected };
+
     // 3. A DRY RUN stops here: full fidelity, real kernel, and then we throw it all away.
     if (options.dryRun === true) {
       await this.#release(staged.intermediates);
       await this.#release(handlesOf(staged.geometry));
-      return edit;
+      return journalled;
     }
 
     // 4. COMMIT. Now — and only now — the live state moves.
@@ -329,9 +359,9 @@ export class DocumentContext {
     // have already handed downstream, and an "undo" of one would be a lie in the single log three
     // products compute schedules and payments from. It changes no scene state either — so putting it on
     // the undo stack would offer the user a menu item that does nothing.
-    if (edit.revision === undefined) this.#undo.push(edit);
-    this.#record(edit);
-    return edit;
+    if (journalled.revision === undefined) this.#undo.push(journalled);
+    this.#record(journalled);
+    return journalled;
   }
 
   async undo(): Promise<UndoableEdit | undefined> {
@@ -414,6 +444,49 @@ export class DocumentContext {
     await this.#commit(staged);
   }
 
+  /**
+   * Build (or rebuild) ONLY the named elements — the bounded counterpart of `rebuildAll`.
+   *
+   * ⚠ WHY IT EXISTS (owner ruling 2026-07-25, `P5_step6A_enumeration_design.md` §4 Q2): the Clean Delta's
+   * `prior` values need the model **as it stood at the last issued revision**, and the ruling was to
+   * rewind the journal and **rebuild only what the delta names** — so the cost scales with the size of
+   * the CHANGE, not the size of the model. `rebuildAll` on a 10k-element building to price a 38-element
+   * delta is the difference between an export and a coffee break (§1a: cold load is ~6.35 min at target).
+   *
+   * ⚠ Like `rebuildAll` it does NOT throw on a failed element (D43) — one unregistered type must not
+   * brick an export any more than it bricks a file. It builds whole ASSEMBLIES: naming a hosted window
+   * builds its wall, because a hole is not a thing you can build on its own.
+   */
+  async rebuildOnly(ids: Iterable<ElementId>): Promise<void> {
+    const roots = affectedAssemblies(this.#scene, ids);
+    if (roots.length === 0) return;
+    const staged = await this.#stage(this.#scene, roots, {}, false);
+    await this.#commit(staged);
+  }
+
+  /**
+   * Free every OCCT solid this document holds, and forget them.
+   *
+   * ⚠⚠ THE HEAP DISCIPLINE, FOR A DOCUMENT THAT IS ITSELF DISPOSABLE (spec §6.2). OCCT solids live on
+   * the Emscripten heap and are **not** garbage-collected, so a *throwaway* document — the Clean Delta
+   * exporter builds one to price the model at the previous revision — leaks its entire geometry the
+   * moment the reference is dropped, silently, into the same tab the user is still modelling in. This is
+   * the Entry-21 leak class one level up: there the leak was per-rebuild, here it is per-export.
+   *
+   * ⚠ Idempotent, and the document is unusable afterwards by design (its handles are gone). It is for a
+   * document you built to answer one question.
+   */
+  async dispose(): Promise<void> {
+    const handles: string[] = [];
+    for (const geometry of this.#geometryByElement.values()) {
+      for (const part of geometry.parts) handles.push(part.handle);
+    }
+    this.#geometryByElement.clear();
+    // ⚠ Cleared FIRST: `#release` skips any handle the document still points at, so releasing before
+    // clearing would free nothing at all.
+    await this.#release(handles);
+  }
+
   /* ============================================================================================
    * QUERIES — they read the RECIPE (no kernel op), and they return SEMANTICS, never triangles (D23).
    * ========================================================================================= */
@@ -448,6 +521,68 @@ export class DocumentContext {
       });
     }
     return { elementId: id, parts, basis: 'exact' };
+  }
+
+  /* --------------------------------------------------------------------------------------------
+   * ⚠⚠ THE PROJECT-WIDE PATH (`P5_step6A_enumeration_design.md`). Entry 57's second finding was that
+   * `scene.elements` is the AUTHORED ROWS, not the model: it misses generated children (measured: a
+   * 3×2 curtain wall is 1 row and 17 real elements), includes non-active design options, and includes
+   * elements with no own parts — on which the naive project-wide loop THROWS. One query serves the
+   * roll-up, the schedules (D58) and the Clean Delta alike, which is the plan's own instruction:
+   * *"make it a command/query, not a loop every consumer rewrites."*
+   * ----------------------------------------------------------------------------------------------- */
+
+  /** Every REAL element of the model — authored rows AND generated children, options resolved. */
+  modelElements(options: EnumerateOptions = {}): readonly ModelElement[] {
+    return modelElements(this.#scene, (id) => this.#geometryByElement.get(id), options);
+  }
+
+  /** The LBS address of a container — `Site/Tower A/Level 1` (spec §7a). `''` when unplaced. */
+  containerCodeOf(id: ContainerId | undefined): string {
+    return containerCode(this.#scene, id);
+  }
+
+  /**
+   * ⚠⚠ *"HOW MUCH C25/30 IS IN THIS BUILDING?"* — the P5 exit criterion whose naive implementation has
+   * crashed since it was first measured on 2026-07-14. Per part, per material, per discipline, per
+   * container, over every real element.
+   *
+   * ⚠ **Voids and pure composites contribute nothing BY CONSTRUCTION, not by catching an exception** —
+   * an element with no own parts simply yields no rows. ⚠⚠ And an element that cannot be MEASURED is
+   * reported in `unmeasured`, never zeroed and never silently dropped (owner-ruled 2026-07-25): a
+   * project total that is plausible and short is domain rule 15's failure mode as an aggregate.
+   */
+  async projectQuantities(options: EnumerateOptions = {}): Promise<ProjectQuantities> {
+    const rows: ProjectQuantityRow[] = [];
+    const unmeasured: UnmeasuredElement[] = [];
+
+    for (const element of this.modelElements(options)) {
+      if (element.state !== 'valid') {
+        unmeasured.push({
+          elementId: element.id,
+          reason:
+            this.#geometryByElement.get(element.id)?.error ?? element.failure ?? element.state,
+        });
+        continue;
+      }
+      // A pure void (a plain opening) or a pure composite (a curtain wall, its columns) has no own
+      // parts. It is a real element with a PEI a tag may bind to — it just has nothing to measure.
+      if (!element.hasParts) continue;
+
+      const breakdown = await this.quantities(element.id);
+      for (const part of breakdown.parts) {
+        rows.push({
+          elementId: element.id,
+          rootId: element.rootId,
+          typeId: element.typeId,
+          containerPath: element.containerPath,
+          containerCode: element.containerCode,
+          part,
+        });
+      }
+    }
+
+    return { rows, unmeasured, basis: 'exact' };
   }
 
   /** The area of ONE named face — paint, formwork, cladding. This is what `measure(ref)` bought. */

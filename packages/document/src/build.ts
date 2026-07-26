@@ -83,6 +83,23 @@ export interface ElementGeometry {
    * walk it; `DocumentContext` also registers every descendant FLAT by its PEI for heap + per-child queries.
    */
   readonly children?: readonly ElementGeometry[];
+  /**
+   * ⚠ THE SYNTHETIC `Element` A GENERATED CHILD WAS BUILT FROM (D59 Model A) — **absent on an authored
+   * row**, whose `Element` is `scene.elements[elementId]`.
+   *
+   * ⚠⚠ FOUND BY BUILDING THE ENUMERATION QUERY (`P5_step6A_enumeration_design.md`), and it was a real
+   * hole: a generated child's **Type, style, classification and name were not recoverable from the built
+   * tree at all.** The engine constructs a full `Element` for every child (it must — `buildGeometry` takes
+   * one) and then **threw it away**, keeping only the geometry. So a curtain-panel schedule — *"completely
+   * standard in Revit"* (Entry 57) — could not say what type its rows were, and the Clean Delta's
+   * `classification.ifc_class` / `type_name` were unproducible for 16 of the measured 19 real elements.
+   *
+   * Carrying it is **additive and costs nothing**: `ElementGeometry` is a build-output projection, never
+   * stored, never in `scene.json`, not a frozen shape — and the object already existed in the engine's
+   * hand. It also makes a derived child and an authored row the **same shape** to a consumer, which is
+   * why the enumeration has one code path instead of two.
+   */
+  readonly element?: Element;
 }
 
 export interface BuildResult {
@@ -596,6 +613,24 @@ async function buildChildrenTree(
         state: 'failed',
         error: `child type "${child.typeId}" is not registered in this app`,
         failure: 'unbuildable',
+        // ⚠ Carried even here — ESPECIALLY here. This is the element the roll-up will report as
+        // unmeasurable, and *"a child of unknown type"* is a useless thing to hand a human. The type is
+        // exactly what is known about it (it is why it failed), and `typeVersion` is not (D43).
+        element: {
+          id: childId,
+          typeId: child.typeId,
+          typeVersion: 0,
+          params: child.params,
+          parentElementId: parentElement.id,
+          // ⚠ The Type is unregistered, so its `defaultClassification` is unreadable — the proxy class is
+          // IFC's own answer for an element whose kind is not known, which is exactly this element's state.
+          classification: child.classification ?? {
+            ifcClass: 'IfcBuildingElementProxy',
+            loadBearing: false,
+          },
+          ...(child.styleId === undefined ? {} : { styleId: child.styleId }),
+          ...(child.name === undefined ? {} : { name: child.name }),
+        },
       };
       tree.push(g);
       flat.push(g);
@@ -666,6 +701,7 @@ async function buildChildrenTree(
       })),
       state: 'valid',
       ...(grand.length === 0 ? {} : { children: grand }),
+      element: childElement,
     };
     tree.push(g);
     flat.push(g);
@@ -712,6 +748,10 @@ async function placeTree(
       ...(node.error === undefined ? {} : { error: node.error }),
       ...(node.failure === undefined ? {} : { failure: node.failure }),
       ...(sub.tree.length === 0 ? {} : { children: sub.tree }),
+      // ⚠ Placement moves solids, never identity (D25: `transform` mints no identities) — so the child's
+      // Element rides through unchanged. Dropping it here would lose it on every PLACED composite, which
+      // is every real one.
+      ...(node.element === undefined ? {} : { element: node.element }),
     };
     placedTree.push(placedNode);
     flat.push(placedNode, ...sub.flat);

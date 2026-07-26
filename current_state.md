@@ -262,6 +262,12 @@ packages/
                     revision.ts  ★ ModelRevision + issued_at_seq. Minted ONLY by the command.
                     commands.ts    the Command layer — THE agent API (D19). core commands + issueRevision + CRUD + guard
                     dependency.ts  ★ 0a — the TYPED dependency graph (exhaustive over SceneCollection; container edge closed)
+                    enumerate.ts ★ 6A — THE MODEL ENUMERATION QUERY (Entry 58). The ONE walk three consumers share:
+                                     children tree (D59) + option cascade (D67) + no-own-parts + unmeasured.
+                                     `modelElements` / `projectQuantities` / totalsBy{Material,Discipline,Container,Type}
+                    cleandelta.ts ★ ⑥ THE CLEAN DELTA EXPORTER (Entry 58) — journal + revN -> CleanDeltaPackage.
+                                     `change_type` READ off the journal; `sceneAt` rewinds; prior priced on a
+                                     throwaway doc. Schema: `schema/clean-delta-1.1.schema.json` (Planitor D11)
                     build.ts       ★ base parts -> resolve hostRef -> cut EVERY layer -> PLACE LAST. Broken refs. UNBUILDABLE (D43)
                     document.ts    ★ DocumentContext — THE ONLY DOOR (D19). scene + heap + undo + JOURNAL + revision.
                                      STAGED, all-or-nothing rebuild + universal dryRun (D42)
@@ -276,7 +282,7 @@ packages/
                                      BuildContext.joins (cap-lines). The bidirectional wall↔wall dependency edge lives here.
 apps/web/        ★ Amer's Vite/React shell — bootstrap (the one KernelClient holder), WebGL2 three.js viewport,
                     generated ribbon + property panel, incremental redraw, sub-shape picking, failure-state panels
-tests/            268 tests (all document tests run against the REAL OCCT kernel, never the mock) + goldens + harness
+tests/            417 tests (all document tests run against the REAL OCCT kernel, never the mock) + goldens + harness
 tools/kernel-build/ the OCCT->WASM recipe + src/probe.cpp (THE NAMING PROBE, ~60 s)
 tools/oracle/     Python (uv): offline golden seeding — analytic + native-OCCT cross-check (also a MEASURING instrument)
 ```
@@ -400,6 +406,9 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | **D64** | **2026-07-21 → ✅ RULED 2026-07-23 (Entry 52). RE-OPEN gate ⑧'s "reserve nothing": on-element analytical-anchor for real Miqdar structural/energy analysis, or PEI-bound side-graph? (row Ⓔ).** **ANSWER, EARNED from the proper Miqdar spec's real-frame walk (`~/projects/Miqdar/Miqdar_v1.0.0_spec.md` §4, M19): the SIDE-GRAPH SUFFICES — reserve NOTHING analytical on the type/part** (idealization is many-valued per element — cracked stiffness is gross + 0.35EI at once ⇒ not an element property). **ONE exception, NOT an analytical anchor: `Material.thermal?` reserved for the energy north-star (M18, owner-ruled), `entities.ts`, revert-verified.** |
 | **D65** | **2026-07-21 → ✅ DONE (Entry 53). Design Options RESERVED** — `scene.designOptions?` (`designoptions.ts`) + `Element.designOptionId?` + `ViewCommon.designOptionIds?` + the `createElement` arg. ⚠⚠ **AND THE INVARIANT IS IN THE FROZEN CONTRACT, NOT JUST THE STORAGE (owner-ruled):** a document with options deliberately holds **mutually-exclusive elements**, so `quantities()`/the roll-up/the Clean Delta/schedules — and Planitor/Miqdar — **MUST exclude non-active options** (`isElementActive`), or a schedule double-counts and work packages are published for a scheme nobody builds (rule 15's failure mode by a new road). The `Grid.geometry`/ⓥ precedent: the consumer-facing rule is written in **at reserve time.** ⚠ **Phase filters + area schemes needed NOTHING** — a phase filter is a view property over datums that already exist and an override is display (derived, never stored); an area was never *stored*, so gross/rentable are additional **derivations**, not fields. |
 | **D66** | **2026-07-21 → ✅ CONTRACT HALF DONE (Entry 54). The 4-axis scale measurement.** ⚠ **The ONLY freeze-gating part was the heap-eviction CONTRACT hook, and it is RULED: reserve NOTHING — additive by construction.** Recipe-is-truth makes every solid disposable-and-rebuildable (proven by the D29 cold-load rebuild), the evicted state (`ElementState.stale`) and the release mechanism (`releaseShape`, kernel-client fires it) are ALREADY FROZEN, and the keep-live policy is runtime state never persisted. Measured fresh (2026-07-24): **heap 0.31 GB at 10k — FITS** (16.2 KB/solid); **cold load ~6.35 min single-thread/no-cache** (levers — D29 cache RULED SHIP, `instantiate` RESERVED, MT/D8 — all additive, none foreclose). ⚠ **Draw calls + edit latency are Amer's (browser-side, unmeasurable headless); the D8 single-thread verdict needs them and is additive either way** ⇒ **NOT contract-gating.** `P5_step9_D66_scale_design.md`. ✅ **AMER'S TWO AXES MEASURED (Entry 55, real browser, Intel UHD): draw calls ~30,700 / ~606 ms/frame (1.6 fps) at target; incremental edit ~23 ms compute (FLAT — 2b works) + ~570 ms post-edit render. BOTH collapse to the one-mesh-per-part redraw wall; the fix is renderer BATCHING/instancing (additive, no contract). D8 verdict: the interactive axes do NOT need multithreading (it attacks the kernel, not the redraw) ⇒ recommend MT stays v1.0.x — RAISED with the owner, additive either way. All four axes now have a number.** |
+
+| **D67** | **2026-07-25 → ✅ RULED + BUILT (Entry 57, row Ⓖ, `P5_step5G_option_cascade_design.md`). THE DESIGN-OPTION EXCLUSION INVARIANT CASCADES OVER EVERY "BELONGS-TO" EDGE.** Found by the owner-authorised pre-freeze adversarial sweep. D65 put the invariant *inside the frozen contract* so three products would implement ONE rule — but it read only an element's **own** tag and its signature handed it **no model**, so it could not ask what the element hangs off. **Measured: a consumer counted 4 windows where 1 was correct, 3 of them hosted on the wall the same rule had just excluded** — D65's own failure mode by the hosting road. **Fix (owner-ruled): `isElementActive(element, scope, active?)` resolves against the MODEL and TRAVERSES `hostId` + `parentElementId`** (a traversal, not a chain walk — an element may hang off both). Missing ancestor ⇒ excluded (broken-ref precedent); cycle ⇒ excluded and terminates (cycle-guard precedent). ⚠ **Generated children (D59 Model A) needed nothing — not scene rows, excluded WITH their parent by construction.** No schema bump, no field, no verb. Revert-verified (`expected 4 to be 1`). |
+| **D8** | **2026-07-25 → ✅ DECIDED (Entry 57): MULTITHREADING STAYS v1.0.x.** Raised by Amer (Entry 55) and confirmed by the owner. The two INTERACTIVE axes are a renderer-batching problem MT does not touch; cold load is MT's only real candidate and has additive levers of its own (D29 cache RULED SHIP, `instantiate` RESERVED). Additive either way (COOP/COEP + `SharedArrayBuffer` deploy config, not a `scene.json` contract) ⇒ never gated the freeze. |
 
 **⚠ D40–D46 are ALL BUILT (Entry 21), each with a test that fails if the fix is reverted. D50 STEP 0 IS
 NOW FULLY BUILT — 0a/0b/0e/0f/0g (Entries 33–38), 0d (Entry 40), room-bounding (Entry 41), 0c (Entry 42).**
@@ -527,6 +536,30 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 > **⇒ all four scale axes have a number + the D8 verdict is surfaced ⇒ the Entry-54 HOLD condition is satisfied; whether to
 > FREEZE (step 6) is now the owner's act.** Nothing measured forecloses a contract. See Entry 55.
 >
+> ## ⚠⚠ THE SWEEP WAS TAKEN INSTEAD OF THE FREEZE — AND IT FOUND ONE (Entry 57, 2026-07-25). D67 FIXED; THE FREEZE IS AGAIN THE OWNER'S ACT.
+> Offered FREEZE NOW vs one more adversarial sweep, **the owner chose the sweep** (*"fix it, and keep sweeping"*) and **decided
+> D8 — multithreading STAYS v1.0.x.** The sweep found **D67**: D65's exclusion invariant — which D65 had deliberately placed
+> *inside the frozen contract* so Bunyan, Planitor and Miqdar would share ONE rule — **read only an element's own option tag and
+> was handed no model**, so a consumer counted **4 windows where 1 was correct**, three of them hosted on the wall the same rule
+> had just excluded. Pre-freeze because the defect is in the **signature** of a helper three products will call. **Fixed +
+> revert-verified** (`expected 4 to be 1`); 387 green. ⚠ **The sweep's second finding is NOT freeze-blocking but is the moat's
+> critical path: THE MODEL CANNOT BE ENUMERATED** — `scene.elements` misses generated children (**1 row, 17 real elements**),
+> includes non-active options, and includes voids (`quantities()` still throws on the first Opening, as measured 2026-07-14 —
+> **§1c-7's disease, third occurrence**). One query serves the roll-up, schedules and the Clean Delta alike. **⇒ no contract
+> foreclosure beyond D67; the contracts are safe to freeze, and the freeze is the owner's act.**
+>
+> ## ✅✅ THE ENUMERATION QUERY + THE CLEAN DELTA EXPORTER ARE BUILT (Entry 58, 2026-07-25) — 412 green. THE FREEZE IS STILL THE OWNER'S ACT.
+> Entry 57's second finding is discharged: `modelElements()` / `projectQuantities()` walk the D59 children tree, apply the
+> D67 option cascade, skip no-own-parts elements **by construction**, and report the unmeasurable rather than zeroing or
+> dropping it (owner Q1). The 42-day-old crashing exit criterion answers — *"how much C25/30 is in this building?"* = **3.18 m³**.
+> The **Clean Delta exporter** ships on top (`contract_version 1.1`, `source bunyan`, Planitor v2.2 §4 field-for-field) with
+> the journal rewind + bounded prior rebuild (owner Q2) and a **published JSON Schema** (Planitor D11).
+> ⚠⚠ **Building it found TWO real defects, and the second is on the moat's load-bearing sentence:** a generated child's Type
+> was unrecoverable from the built tree (so a curtain-panel schedule had nothing to group by); and **the journal was not
+> recording the associative cascade at all** — 13 commands declare `rebuilt: []`, so *"a Level moved and 400 walls
+> re-quantified"* reached a consumer as **`unchanged`**. Both fixed + revert-verified. ⚠ **Nothing frozen moved.**
+> **⇒ §1c-7's disease, FOURTH occurrence** — a design doc named a field and nobody read it against the code. See Entry 58.
+>
 > ## ✅✅ STEP 0 IS CLOSED — BOTH SOLVERS + 0c JOINS ARE BUILT + GREEN (0d E40, room-bounding E41, 0c E42).
 > All of D50 step 0 is done: **0a–0g**, **0d (real planegcs, D26 revert-verified)**, the **room-bounding
 > solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
@@ -620,6 +653,16 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
      contract hook is Zayd's and is pre-freeze** — "must be known before P5 freezes." A failed single-thread
      target reopens D8.
    - **THEN the owner-gated FREEZE (step 6)** — now also tagging the Ⓐ–Ⓕ reservations frozen.
+5b. **✅ DONE — THE ENUMERATION QUERY + THE CLEAN DELTA EXPORTER (Entry 58, `P5_step6A_enumeration_design.md`).**
+   Owner ruled Q1 (`unmeasured[]` beside the totals) / Q2 (rewind the journal + rebuild only the delta) / Q3 (both units
+   in one build). `enumerate.ts` = the ONE walk three consumers share; `cleandelta.ts` = `journal + revN →
+   CleanDeltaPackage` (Planitor v2.2 §4, contract 1.1) + `schema/clean-delta-1.1.schema.json` (Planitor D11).
+   ⚠⚠ **Two defects found by building it:** a generated child's Type was unrecoverable from the built tree; and **the
+   journal recorded `rebuilt: []` for 13 commands, so the ASSOCIATIVE CASCADE — the moat's own example — reached a
+   consumer as `unchanged`.** ⚠⚠ **A POST-BUILD ADVERSARIAL SWEEP OF THE EXPORTER THEN FOUND THREE MORE** — a non-active
+   design option emitted as a GHOST ROW; an edit-then-undo reported as a spatial move that never happened; a generated
+   child whose slot vanished silently absent from the package. All five fixed, **each revert-verified**, no frozen shape
+   touched. **417 green.**
 6. **Still owed, lower priority (post-freeze / v1.0.x):** the D29 cache bodies (§4j-2 — read first) · the
    join O(N²) endpoint index (`review_P5.md` #3 — no contract change) · housekeeping (`LICENSE` AGPL-3.0,
    the CLA, the OCCT + planegcs attribution notices — none blocks work, all block going public) · then the
@@ -1747,3 +1790,185 @@ storage — FSA/OPFS/IndexedDB behind `StorageAdapter` … **Amer's** (cannot be
 unlock, Entry 55) · P4.5 interaction model (gated on the baseline-Wall) · a File System Access adapter behind the same seam
 (save to real files the user picks — an additive second `StorageAdapter`) · WebGPU + WebGL2 fallback · service worker/PWA ·
 Cloudflare deploy. **The freeze (step 6) remains the owner's act** (Entry 55: four axes + D8 verdict done).
+
+### Entry 57 — 2026-07-25 — Zayd — **THE PRE-FREEZE ADVERSARIAL SWEEP (owner-authorised in place of freezing): IT FOUND A DEFECT IN A RULE D65 HAD ALREADY PUT INSIDE THE FROZEN CONTRACT — THE DESIGN-OPTION EXCLUSION DID NOT CASCADE OVER THE HOSTING EDGE, AND A CONSUMER COUNTED 4 WINDOWS WHERE 1 WAS CORRECT. FIXED (D67) + REVERT-VERIFIED. THE SWEEP'S SECOND FINDING IS THAT THE MODEL STILL CANNOT BE ENUMERATED.**
+**Task (owner):** all pre-freeze rows Ⓐ–Ⓕ + D66's four axes were closed and the freeze was an owner act. Offered FREEZE NOW
+(recommended) vs one more adversarial sweep; **the owner chose the sweep** — *"fix it, and keep sweeping"* — and separately
+**DECIDED D8: multithreading STAYS v1.0.x** (Amer's Entry-55 recommendation confirmed; it was "raised, not decided" until now).
+`pnpm verify` **387/387 green** (375 → +12), real exit code captured.
+
+- **⚠⚠ THE FINDING (D67, new row Ⓖ — `P5_step5G_option_cascade_design.md`). D65 ruled the exclusion invariant INTO the frozen
+  contract** — not merely into storage — *"so the three consumers implement the SAME rule instead of three slightly different
+  ones."* It shipped as `isElementActive`, tested, revert-verified, 19 assertions. **It read only the element's OWN
+  `designOptionId`, and its signature `(element, options, active)` handed it NO MODEL — so it was structurally incapable of
+  asking what the element hangs off.** Measured against the real kernel, two real facade schemes, `brokenRefs()==0`:
+  ```
+  Scheme A (chosen):     1 wall, 1 window        Scheme B (not built):  1 wall, 3 windows
+    active WALLS   = 1   ✓        active WINDOWS = 4   ✗ (correct: 1)
+    ⇒ all 3 spurious windows are hosted on the wall THE SAME RULE JUST EXCLUDED — each a window with no wall
+  ```
+  **This is verbatim D65's own stated failure mode** (*"a schedule double-counts and publishes work packages for a scheme
+  nobody is building"*), reached by the one road D65 did not walk: **the hosting edge.** The author tags the WALL — the natural
+  authoring act, and the only one Revit asks for — and the windows follow it in the model but not in the rule.
+  ⚠ **Why pre-freeze and not an ordinary bug: the defect is in the SIGNATURE, not the body.** Correcting it later changes a
+  helper D65 deliberately froze **for three products to call** — the exact cross-product amendment the freeze exists to prevent.
+- **THE EDGE INVENTORY (the §1b method turned on the rule itself — *which edges make one element's reality depend on another's?*):**
+  **hosting (`hostId`) — BROKEN, measured.** **Generated children (D59 Model A) — ✅ SAFE BY CONSTRUCTION:** they are not
+  `scene.elements` rows, so a consumer never enumerates them separately and they are excluded WITH their parent. **D59's
+  derived-children ruling pays off a second time.** **Manual groups (`parentElementId`, reserved) — the same hole, dormant**;
+  the rule is now written for that edge too, so v1.0.x groups land additively.
+- **THE FIX (owner-ruled shape: "widen the rule to see the model").** `isElementActive(element, scope, active?)` where `scope`
+  is the document (`Scene` satisfies it structurally). An element counts iff **its own option is active AND every element it
+  hangs off is active.** ⚠ It is a **TRAVERSAL, not a chain walk** — an element may hang off `hostId` AND `parentElementId` at
+  once, and following only one would silently ignore the other, which is the shape of the very defect being corrected. Edge
+  semantics each match an existing precedent: **a missing ancestor ⇒ excluded** (the broken-reference precedent — counting it
+  bills a window into thin air); **a cycle ⇒ excluded and it TERMINATES** (the `buildChildrenTree` cycle-guard precedent —
+  a hostile `.bnn` must break predictably, never hang). New exported types `OptionedElement`/`OptionScope`.
+  **No `SCENE_SCHEMA_VERSION` bump, no new field, no verb, no stored byte** — a correction to a frozen RULE.
+- **⚠ REVERT-VERIFIED:** neuter the ancestor walk ⇒ **8 tests fail, the headline one reproducing the original defect exactly —
+  `expected 4 to be 1`, `{ walls: 1, windows: 4 }`.** `tests/option-cascade-d67.test.ts` (12, real OCCT — the two-scheme
+  building is real geometry, not hand-made objects; the §1b method is what found this). `tests/step5F-reservations.test.ts`
+  updated to the new signature (19, still green).
+- **⚠⚠ THE SWEEP'S SECOND FINDING — THE MODEL CANNOT BE ENUMERATED, AND THREE SEPARATE CONSUMERS ALL NEED THAT ONE QUERY.**
+  Not freeze-blocking (a query is additive, D19/rule 5) — but it is on the moat's critical path and it is the design input for
+  the Clean Delta exporter. `scene.elements` is the AUTHORED ROWS, which is **not** the set of real elements:
+  - **it MISSES generated children** — a 3×2 curtain wall is **1 scene row and 17 real elements**; a schedule over
+    `scene.elements` misses **16**. A curtain-panel schedule is completely standard in Revit.
+  - **it INCLUDES non-active design options** — that is D67 above; the rule now exists but nothing applies it.
+  - **it INCLUDES voids** — and `quantities()` on an Opening still **throws** (*"has no built geometry"*), so the naive
+    project-wide loop still dies on the first window, exactly as `review_P4.md` measured on **2026-07-14**. Still zero code
+    **42 days and 13 entries later**, while P5 was declared closed twice — **§1c-7's disease, third occurrence.**
+  - **there is no LBS/ancestry API** (`DocumentContext` has no container-path method) and **`QuantityBreakdown` carries no
+    container address** — so the per-container roll-up the plan demands (spec §7a, Planitor's Location Breakdown Structure)
+    has nowhere to land. ⚠ Two towers themselves are fine — `Site → Tower A/B → Levels` builds correctly (probed).
+  ⇒ **ONE missing query serves all of it:** enumerate every real element (walking generated children), excluding non-active
+  options, skipping voids by construction. **This is the plan's own instruction** — *"MAKE IT A COMMAND/QUERY, NOT A LOOP EVERY
+  CONSUMER REWRITES"* — and *"a producer that cannot enumerate the model's quantities cannot produce a Clean Delta."*
+- **RECORDED, NOT DEFECTS:** hosting an opening on a generated child is **refused cleanly** (*"no element …/panel.r0c0 in this
+  document"*) — a capability gap vs Revit, but predictable breakage beat silent wrongness and `hostId` can express it, so it is
+  additive. The journal for a composite edit names only the **parent** row (`rebuilt: [curtainwall-…]`, before/after params) —
+  **correct** under Model A (children re-derive from the recipe), but a panel-level delta requires the same enumeration query.
+- **⇒ THE SWEEP FOUND NO CONTRACT FORECLOSURE BEYOND D67.** Every other gap is an additive query. **On the evidence the
+  contracts are now safe to freeze** — and one real defect was caught in a rule that had already been declared frozen-contract,
+  which is precisely what the sweep was authorised to find.
+- **Box:** read/measure/build only; `pnpm verify` ×5; nothing installed, no containers touched, no ports bound; `/tmp` 10 MB;
+  both live public sites up throughout. ⚠ **UNCOMMITTED — owner-gated.**
+
+**NEXT:**
+- **Owner:** **the FREEZE (step 6) is again the owner's act** — the sweep is discharged and D67 is fixed. Sign off and tag
+  `SubShapeRef`/`BimObjectType`/`Command`(+`argsSchema`)/`scene.json`/`ParamSchema`/`UndoableEdit` frozen, carrying the Ⓐ–Ⓖ
+  reservations + `Material.thermal?`. ⚠ Also owner-gated: **committing Entry 57.**
+- **Zayd (next build, owner-chosen):** **the Clean Delta exporter** — and it opens with the enumeration query above, which is
+  its stated prerequisite. The join O(N²) endpoint index stays a v1.0.x perf item (`review_P5.md` #3).
+- **Amer:** unchanged and all post-freeze/parallel — renderer batching/instancing (the Entry-55 unlock), P4.5, FSA adapter,
+  WebGPU, service worker/PWA, Cloudflare deploy.
+
+### Entry 58 — 2026-07-25 — Zayd — **THE ENUMERATION QUERY + THE CLEAN DELTA EXPORTER SHIP (owner ruled "both in one unit"). THE 42-DAY-OLD CRASHING EXIT CRITERION IS CLOSED — AND FIVE REAL DEFECTS WERE FOUND: TWO BY BUILDING IT (ONE ON THE MOAT'S LOAD-BEARING SENTENCE — THE JOURNAL WAS NOT RECORDING THE ASSOCIATIVE CASCADE AT ALL) AND THREE MORE BY THEN SWEEPING MY OWN NEW CODE ADVERSARIALLY.**
+**Task (owner):** Entry 57's chosen next build — the Clean Delta exporter, opening with the enumeration query it is gated on.
+Design-doc-first (`P5_step6A_enumeration_design.md`), then an AskUserQuestion round: **Q1 unmeasurable ⇒ a separate
+`unmeasured[]` list · Q2 `prior` ⇒ rewind the journal + rebuild ONLY the delta · Q3 scope ⇒ BOTH units in one build**
+(the owner overrode the recommendation to split them). `pnpm verify` **417/417 green** (387 → +30), real exit code captured.
+
+- **⚠ THE GAP, RE-MEASURED ON REAL GEOMETRY RATHER THAN QUOTED** (§1b). A Site → Tower A → Level 1 with one `core.wall`,
+  one `core.opening` Door and one 3×2 `core.curtainwall`, against the real OCCT kernel:
+  ```
+    scene.elements (AUTHORED rows)      3        real elements    19    ⇒ 16 invisible to `scene.elements`
+    with own parts                     15        with none         4    the curtain-wall parent + its 3 columns
+    NAIVE LOOP  for (id of Object.keys(scene.elements)) await doc.quantities(id)
+       ⇒ counted 2, then THREW: `element "curtainwall-01KYD7CYZ…" has no built geometry`
+  ```
+  **⚠⚠ AND THE THIRD FINDING IS NEW — "SKIP VOIDS" IS THE WRONG RULE.** `review_P4.md` (2026-07-14) and Entry 57 both named
+  **the Opening** as what kills the loop (*"a void has no parts"*). On the SHIPPED types it dies on the **CURTAIN WALL** — a
+  **pure composite**, which has no own parts *by design*. **A rule written to skip voids specifically would have shipped
+  green and still crashed on the very element D59 was built to prove.** The honest rule is *"an element with no OWN parts
+  yields no quantity rows"*, and it has **two** populations. *(The ⓙ door is in neither — leaf + frame, and it is measured.)*
+- **BUILT — the enumeration query** (`enumerate.ts`, additive, nothing frozen moved): `modelElements()` (sync, kernel-free)
+  applies the four filters **in one place so three products cannot each get them slightly wrong** — the D59 children TREE
+  (not one level: a column is itself composite), the D65/D67 option cascade, no-own-parts, and the build state.
+  `projectQuantities()` returns **flat per-part rows carrying the LBS address** + `totalsBy{Material,Discipline,Container,Type}`;
+  `containerCodeOf()` exposes the LBS path Entry 57 found missing. **The exit criterion answers: *"how much C25/30 is in this
+  building?"* = 3.18 m³**, one call, no throw.
+- **⚠⚠ DEFECT 1, FOUND BY THE TYPECHECKER WHILE WIRING IT: A GENERATED CHILD'S TYPE WAS NOT RECOVERABLE FROM THE BUILT TREE.**
+  The engine constructs a full `Element` for every D59 child (it must — `buildGeometry` takes one) and then **threw it away**,
+  keeping only geometry. So a **curtain-panel schedule** — *"completely standard in Revit"*, Entry 57's own example — could not
+  say what type its rows were, and the Clean Delta's `classification.ifc_class` / `type_name` were unproducible for **16 of the
+  19** real elements. Fixed by carrying it (`ElementGeometry.element?`) — a build-output projection, never stored, not a frozen
+  shape; the object already existed in the engine's hand. It also makes a derived child and an authored row the **same shape**,
+  which is why the enumeration has one code path instead of two.
+- **⚠⚠⚠ DEFECT 2 — AND IT IS ON THE MOAT'S LOAD-BEARING SENTENCE. THE JOURNAL WAS NOT RECORDING THE ASSOCIATIVE CASCADE.**
+  `P5_step6_clean_delta_design.md` §3 rests `modified_qty` on *"whether the element's own params changed **OR it appears in
+  some edit's `rebuilt`**"*, and calls it *"the case a naive two-model diff gets right only by luck; Bunyan reads it off
+  `rebuilt`."* **It did not.** **Thirteen commands** — `updateContainer`, `updateGrid`, `updateMaterial`, `updateSection`
+  among them — declare `rebuilt: []`, because the command layer legitimately does not KNOW what a container/grid/material edit
+  reaches; the **typed dependency graph** does, and `#affected` had already resolved it to *do* the rebuild. **So the geometry
+  was always right and the journal simply did not say so: moving a Level rebuilt every wall on it and recorded `rebuilt: []`** —
+  and a Clean Delta consumer would have been told a storey of re-quantified walls was `unchanged`. **A wrong schedule, from a
+  green suite.** Fixed at the one place both answers meet (`execute` now journals the RESOLVED set — the field is frozen and
+  unchanged, only its content is now complete). **⚠ §1c-7's disease, FOURTH occurrence: the claim was written in a design doc
+  and never read against the code.**
+- **BUILT — the Clean Delta exporter** (`cleandelta.ts`): `journal + revN → CleanDeltaPackage`, `contract_version "1.1"`,
+  `source "bunyan"`, mapped field-for-field onto the real on-box `../Planitor/v2.2_spec.md` §4. `change_type` derived from the
+  journal slice; `sceneAt()` **rewinds** by inverting `SceneChange.before/after` (exact — the journal is append-only and an
+  undo is a REVERSAL, D40); `prior` priced on a **throwaway document rebuilt over only the delta's elements** (owner Q2) via
+  the new bounded `rebuildOnly()`. `reidentified` is declared and **never emitted**. The LBS zones/floors fall straight out of
+  `scene.containers` — nothing minted, nothing mapped. **No frozen change, exactly as the ⑥ design proved pre-freeze.**
+- **⚠ AND A HEAP CONSEQUENCE THE RULING CREATED: a throwaway document holds real OCCT solids.** Added `DocumentContext.dispose()`
+  — without it every export would bleed the whole prior model into the tab the user is still modelling in (spec §6.2, the
+  Entry-21 leak class one level up). Pinned by a `wasmLiveHandles()` before/after assertion.
+- **BUILT — the JSON Schema** (`packages/document/schema/clean-delta-1.1.schema.json`), the artifact **Planitor D11** makes the
+  contract itself (*"a contract maintained by remembering to edit N files WILL drift, and this one carries money"*). A real
+  export is validated against it, and **the validator is itself revert-verified** against 8 deliberate mutations (a wrong
+  `const`, a downgraded `basis`, an out-of-enum `change_type`, a nested bad part…) — a conformance test whose checker cannot
+  fail is theatre. A third test asserts the schema uses **only** the draft-07 keywords the validator implements, so the subset
+  cannot silently fall behind. ⚠ `ajv` is in the tree only as an eslint transitive (not importable under pnpm) — **nothing was
+  installed**; cross-repo CI validation (Planitor D11's other half) is not this repo's to land.
+- **⚠ REVERT-VERIFIED, all three:** remove the no-own-parts guard ⇒ the roll-up **throws on the curtain wall**; remove the
+  children walk ⇒ the glass and aluminium totals **silently vanish** while the run stays green (*the* failure mode — a
+  plausible, short number wearing `basis: 'exact'`); revert the journalled cascade ⇒ `expected [] to include 'wall-…'`.
+  `tests/model-enumeration.test.ts` (12), `tests/clean-delta-export.test.ts` (9), `tests/clean-delta-schema.test.ts` (4) —
+  all on real OCCT, real `@bunyan/types`, real buildings.
+- **Box:** read/measure/build only; `pnpm verify` ×4 + targeted vitest runs; **nothing installed, no containers touched, no
+  ports bound**; `/tmp` 11 MB; available RAM never below ~2.2 GB; **both live public sites up throughout**.
+  ⚠ **UNCOMMITTED — owner-gated** (Entries 57 + 58 now both sit in the tree).
+
+- **⚠⚠⚠ AND THEN THE SAME METHOD WAS TURNED ON THIS SESSION'S OWN CODE — A POST-BUILD ADVERSARIAL SWEEP OF THE EXPORTER,
+  WHICH FOUND THREE MORE. Every one of them is a row Planitor would have ACTED on.**
+  - **(a) A NON-ACTIVE DESIGN OPTION WAS EMITTED AS A GHOST ROW — D65's failure mode by a THIRD road.** `modelElements`
+    applies the exclusion rule, but **the journal names element ids directly**, so an element in a non-active option
+    arrived through `histories` with no match in the enumeration and was emitted as `modified_qty`, no quantity, empty
+    `spatial_container_code`, `IfcBuildingElementProxy` — **a work-package row for a facade nobody will build.** D65's
+    own stated failure mode, reached neither by the option tag (D65) nor by hosting (D67) but by the **exporter's
+    journal path.** ⇒ not-active is neither a change nor a deletion: those elements are omitted entirely.
+  - **(b) AN EDIT THAT WAS UNDONE WAS REPORTED AS A SPATIAL MOVE THAT NEVER HAPPENED.** The derivation read the **last
+    change in the slice** — and an undo is a first-class journal entry (D40), so the last change is the REVERSAL, a
+    `before → after` differing in `end`. Net effect since the baseline: nothing. Reported: `modified_move`. ⇒ rewritten
+    to compare **the two ENDPOINTS** (state at revision N vs state now). ⚠ **This is still not "diffing two models":
+    the journal decides WHICH elements are asked about — including the cascade nothing names — and only those elements'
+    endpoints are read.** The moat is the SET, not the comparison.
+  - **(c) A GENERATED CHILD WHOSE SLOT VANISHED FELL OUT OF THE PACKAGE SILENTLY.** Shrink a curtain wall from 3 columns
+    to 2 and the dropped column is in no scene row and no current enumeration — so under Planitor's *"absence-from-
+    `elements` ⇒ unchanged"* rule **it would have been billed forever.** ⇒ the prior model's enumeration is now walked
+    too, and the authored root is derived **structurally from the PEI** (`${parentId}:${slot}`) rather than looked up —
+    the lookup returned nothing for exactly the element that needed it most.
+  - **✅ CHECKED AND CLEAN (don't re-probe):** the ⓣ reserved metadata args (`mark`/`phaseCreated`/`properties`/
+    `classifications`) thread through `createElement` **and** survive a `.bnn` round-trip; and **the Clean Delta is
+    computable from a reloaded `.bnn`** — save → load → export gives the exact prior (3.6 m³) and current (5.4 m³). That
+    is the D40 headline end-to-end, and it is now a permanent test rather than a claim.
+  - **⚠ THE PATTERN, AND IT IS THE SESSION'S REAL LESSON: five defects, and NOT ONE was on a happy path.** Each needed a
+    question the build itself never asks — *what if the option is excluded? what if it was undone? what if the child is
+    gone?* The sweep cost ~30 minutes and found three defects in code that was already green and already revert-verified.
+
+**NEXT:**
+- **Owner:** **the FREEZE (step 6) is still the owner's act** and is unblocked — nothing in this entry touched a frozen shape.
+  ⚠ Also owner-gated: **committing Entries 57 + 58** (`origin/main` is still at `6ec5139`).
+- **⚠⚠ A JUDGEMENT CALL, AND THIS SESSION STRENGTHENED IT RATHER THAN CLOSING IT.** Defect 2 means **every claim in a design
+  doc that names a field should be read against the code before the freeze tags it** — four occurrences now. And the
+  post-build sweep then found **three defects in code that was already green and already revert-verified**, in ~30 minutes,
+  none of them on a happy path. ⇒ **the adversarial sweep is not a one-off pre-freeze ritual; it is the only method that has
+  ever found anything** (§1b), and it should run against each new surface *after* it goes green, not instead of. A standing
+  sweep of *"which asserted behaviours have no test that would fail without them?"* is cheap now; after the freeze a missing
+  one is a three-product amendment.
+- **Zayd:** the schedules body (D58 row Ⓐ — the enumeration query is now their input too) · the join O(N²) endpoint index
+  (`review_P5.md` #3, v1.0.x perf, no contract change) · the D29 cache bodies.
+- **Amer:** unchanged and all post-freeze/parallel — renderer batching/instancing (the Entry-55 unlock), P4.5, FSA adapter,
+  WebGPU, service worker/PWA, Cloudflare deploy.

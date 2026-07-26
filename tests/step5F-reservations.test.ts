@@ -44,6 +44,7 @@ import type {
   Connector,
   DesignOption,
   Element,
+  OptionScope,
   PlanView,
   Scene,
   SystemDefinition,
@@ -189,32 +190,40 @@ const mainWall = { id: 'wall-main' };
 const wallA = { id: 'wall-a', designOptionId: 'option-A' };
 const wallB = { id: 'wall-b', designOptionId: 'option-B' };
 
+// ⚠ D67 (row Ⓖ, `P5_step5G_option_cascade_design.md`): the rule is resolved against the MODEL, not a bare
+// options record, so it can walk the belongs-to edges. These three hang off nothing, so the cascade is a
+// no-op here — this file pins the OWN-TAG half; `option-cascade-d67.test.ts` pins the cascade.
+const SCOPE: OptionScope = {
+  elements: { 'wall-main': mainWall, 'wall-a': wallA, 'wall-b': wallB },
+  designOptions: OPTIONS,
+};
+
 describe('Ⓕ/D65 — the exclusion invariant (the reason this row is not just "add a collection")', () => {
   it('MAIN-MODEL elements always count — under every selection', () => {
-    expect(isElementActive(mainWall, OPTIONS)).toBe(true);
-    expect(isElementActive(mainWall, OPTIONS, { 'Lobby scheme': 'option-B' })).toBe(true);
+    expect(isElementActive(mainWall, SCOPE)).toBe(true);
+    expect(isElementActive(mainWall, SCOPE, { 'Lobby scheme': 'option-B' })).toBe(true);
   });
 
   it('with NO selection, the PRIMARY option counts and its siblings do NOT', () => {
-    expect(isElementActive(wallA, OPTIONS)).toBe(true);
-    expect(isElementActive(wallB, OPTIONS)).toBe(false);
+    expect(isElementActive(wallA, SCOPE)).toBe(true);
+    expect(isElementActive(wallB, SCOPE)).toBe(false);
   });
 
   it('choosing option B flips exactly one — never both, which is the double-count being prevented', () => {
     const active: ActiveOptions = { 'Lobby scheme': 'option-B' };
-    expect(isElementActive(wallA, OPTIONS, active)).toBe(false);
-    expect(isElementActive(wallB, OPTIONS, active)).toBe(true);
+    expect(isElementActive(wallA, SCOPE, active)).toBe(false);
+    expect(isElementActive(wallB, SCOPE, active)).toBe(true);
   });
 
   it('⚠ EXACTLY ONE variant of a set is ever active — the property a schedule/Clean Delta depends on', () => {
     for (const active of [{}, { 'Lobby scheme': 'option-A' }, { 'Lobby scheme': 'option-B' }]) {
-      const counted = [wallA, wallB].filter((e) => isElementActive(e, OPTIONS, active));
+      const counted = [wallA, wallB].filter((e) => isElementActive(e, SCOPE, active));
       expect(counted).toHaveLength(1);
     }
   });
 
   it('an element naming an UNDEFINED option is EXCLUDED, not included (a broken ref must not double-count)', () => {
-    expect(isElementActive({ id: 'x', designOptionId: 'option-ghost' }, OPTIONS)).toBe(false);
+    expect(isElementActive({ id: 'x', designOptionId: 'option-ghost' }, SCOPE)).toBe(false);
     // …and with no options collection at all, an optioned element is still excluded.
     expect(isElementActive(wallA, undefined)).toBe(false);
   });
@@ -222,7 +231,7 @@ describe('Ⓕ/D65 — the exclusion invariant (the reason this row is not just "
   it('a document with NO options behaves exactly as v1.0.0 does — every element counts', () => {
     const scene = emptyScene();
     expect(scene.designOptions).toBeUndefined();
-    expect(isElementActive(mainWall, scene.designOptions)).toBe(true);
+    expect(isElementActive(mainWall, scene)).toBe(true);
   });
 });
 

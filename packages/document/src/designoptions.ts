@@ -75,18 +75,33 @@ export interface DesignOption {
 export type ActiveOptions = Readonly<Record<string, DesignOptionId>>;
 
 /**
- * ⚠ RESERVED HELPER — the invariant, expressed once, as code rather than as prose a consumer may not read.
- * Nothing calls it in v1.0.0; it exists so the three consumers implement the SAME rule instead of three
- * slightly different ones (the "one description, never two" discipline, domain rule 10).
- *
- * `true` ⇒ this element counts toward quantities / the Clean Delta / a schedule under `active`.
- * Main-model elements (no `designOptionId`) always count. An optioned element counts only when its option
- * is the one chosen for its set — or, when the set is unlisted, only when it is that set's primary.
+ * The subset of an element this rule reads. A structural subset, not `Element` itself, so a consumer may
+ * apply the rule to anything element-shaped (a Clean Delta row, a schedule row) without holding the whole
+ * entity — while the ancestor edges stay part of the rule's input, which is the correction D67 makes.
  */
-export function isElementActive(
-  element: { readonly id: ElementId; readonly designOptionId?: DesignOptionId },
+export interface OptionedElement {
+  readonly id: ElementId;
+  readonly designOptionId?: DesignOptionId;
+  /** The element it is hosted BY (a window in a wall). The edge that carried the D67 defect. */
+  readonly hostId?: ElementId;
+  /** The manual group/assembly it is a member of (reserved; groups are v1.0.x). The same edge, dormant. */
+  readonly parentElementId?: ElementId;
+}
+
+/**
+ * The model the rule is resolved against — the document, narrowed to what the rule reads.
+ * `Scene` satisfies it structurally, so callers pass `doc.scene`.
+ */
+export interface OptionScope {
+  readonly elements: Readonly<Record<ElementId, OptionedElement>>;
+  readonly designOptions?: Readonly<Record<DesignOptionId, DesignOption>>;
+}
+
+/** The own-tag half of the rule: does THIS element's own `designOptionId` name an active option? */
+function ownTagActive(
+  element: OptionedElement,
   options: Readonly<Record<DesignOptionId, DesignOption>> | undefined,
-  active: ActiveOptions = {},
+  active: ActiveOptions,
 ): boolean {
   const optionId = element.designOptionId;
   if (optionId === undefined) return true; // main model — shared by every option
@@ -96,4 +111,65 @@ export function isElementActive(
   if (option === undefined) return false;
   const chosen = active[option.setName];
   return chosen === undefined ? option.isPrimary : chosen === optionId;
+}
+
+/**
+ * ⚠ RESERVED HELPER — the invariant, expressed once, as code rather than as prose a consumer may not read.
+ * Nothing calls it in v1.0.0; it exists so the three consumers implement the SAME rule instead of three
+ * slightly different ones (the "one description, never two" discipline, domain rule 10).
+ *
+ * `true` ⇒ this element counts toward quantities / the Clean Delta / a schedule under `active`.
+ * Main-model elements (no `designOptionId`) always count. An optioned element counts only when its option
+ * is the one chosen for its set — or, when the set is unlisted, only when it is that set's primary.
+ *
+ * ⚠⚠ **AND IT CASCADES OVER EVERY "BELONGS-TO" EDGE — D67, owner-ruled 2026-07-25, and this is the half that
+ * was missing.** An element counts only if **its own option is active AND every element it hangs off is
+ * active.** The rule walks `hostId` (a window in a wall) and `parentElementId` (a member of a group) upward.
+ *
+ * *Why:* the first version read only the element's own tag, and was handed no model, so it could not ask.
+ * **Measured** (`P5_step5G_option_cascade_design.md` §1): two schemes, the author tags the WALLS — the
+ * natural authoring act, and the only one Revit asks for — and a consumer counted **4 windows where 1 was
+ * correct**, three of them hosted on the wall the same rule had just excluded. Each was **a window with no
+ * wall**, billed into a facade nobody builds: D65's own stated failure mode, reached by the hosting edge.
+ *
+ * ⚠ Generated children (a curtain wall's panels, D59 Model A) need no rule: they are **not** `scene.elements`
+ * rows, so they are never enumerated separately and are excluded WITH their parent, by construction.
+ *
+ * Edge semantics, each matching an existing precedent:
+ * - **a missing ancestor ⇒ excluded** (the broken-reference precedent above — an opening whose host is gone
+ *   has nothing to be cut into; counting it bills a window into thin air);
+ * - **a cycle ⇒ excluded, and it TERMINATES** (a hostile `.bnn` defect; the `buildChildrenTree` cycle-guard
+ *   precedent — predictable breakage, never a hang).
+ */
+export function isElementActive(
+  element: OptionedElement,
+  scope: OptionScope | undefined,
+  active: ActiveOptions = {},
+): boolean {
+  const options = scope?.designOptions;
+  const seen = new Set<ElementId>();
+  // ⚠ An element may hang off BOTH edges at once — a window in a wall that is also a member of a group —
+  // and ALL of its ancestors must be active. So this is a traversal, not a single chain walk: following
+  // only one edge would silently ignore the other, which is the shape of the very defect D67 corrects.
+  const pending: OptionedElement[] = [element];
+
+  while (pending.length > 0) {
+    const current = pending.pop()!;
+    // A cycle in the host/parent edges is an authoring defect, not a question with an answer. Refuse it
+    // the way every other hostile-document path refuses: predictably, and without spinning.
+    if (seen.has(current.id)) continue;
+    seen.add(current.id);
+
+    if (!ownTagActive(current, options, active)) return false;
+
+    for (const ancestorId of [current.hostId, current.parentElementId]) {
+      if (ancestorId === undefined) continue;
+      if (seen.has(ancestorId)) return false; // the edge closes a cycle — refuse, never spin
+      const ancestor = scope?.elements[ancestorId];
+      // ⚠ The ancestor is NAMED but ABSENT — a broken reference. Excluded, never counted (see above).
+      if (ancestor === undefined) return false;
+      pending.push(ancestor);
+    }
+  }
+  return true; // every element in the belongs-to closure passed its own-tag test
 }
