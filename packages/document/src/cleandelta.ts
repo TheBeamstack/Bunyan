@@ -27,8 +27,7 @@ import type { Scene, SceneChange } from './scene.js';
 import { revertChanges } from './scene.js';
 import type { UndoableEdit } from './undo.js';
 import type { EnumerateOptions, ModelElement } from './enumerate.js';
-import { isElementActive } from './designoptions.js';
-import type { OptionScope } from './designoptions.js';
+import { isElementActive, optionScopeOf } from './designoptions.js';
 import type { Registries } from './registries.js';
 import type { GeometryGateway } from './geometry.js';
 
@@ -463,14 +462,7 @@ export async function exportCleanDelta(
   // published**, so they are omitted entirely. (v1.0.x, when options become authorable: an element that
   // was active at revision N and is now in a dropped option is a scope REMOVAL, and Planitor's
   // approval-gated soft-delete is where it belongs — additive, and it needs this rule to exist first.)
-  const scope: OptionScope = {
-    elements: doc.scene.elements,
-    ...(options.designOptions === undefined
-      ? doc.scene.designOptions === undefined
-        ? {}
-        : { designOptions: doc.scene.designOptions }
-      : { designOptions: options.designOptions }),
-  };
+  const scope = optionScopeOf(doc.scene, options.designOptions);
   const activeOptions = options.active ?? {};
 
   for (const id of touched) {

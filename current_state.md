@@ -185,7 +185,7 @@ revert every fix and watch its test fail.
 persisted name→shape index — the "token map" D1 forbids. The perf question was an afternoon; the identity
 question it hid could have repealed D1.
 
-### §1c — SEVEN THINGS A FRESH AGENT MUST NOT REDISCOVER THE HARD WAY
+### §1c — EIGHT THINGS A FRESH AGENT MUST NOT REDISCOVER THE HARD WAY
 
 1. **`opencascade.js` CANNOT be linked on this box — and we do not use it.** Its `-flto` whole-program
    link OOMs at a 2 GB cap even for a 6-symbol build (Entry 3). Do not retry it. We build **upstream OCCT
@@ -208,6 +208,16 @@ question it hid could have repealed D1.
 7. **⚠⚠ A PHASE'S EXIT CRITERIA ARE A SPECIFICATION, NOT A SUMMARY OF WHAT GOT DONE.** `extrude`/`chamfer`
    sat unbuilt in P2's step list while P2 was declared "complete" twice, because every test built walls
    out of boxes. **Read a phase's own step list against the code before declaring it done.**
+8. **⚠⚠ A NEW RULE BINDS THE NEXT CONSUMER AND NOTHING ELSE — SWEEP IT *BACKWARD* (Entry 59, D68).** The
+   inverse of trap 7, and it cost two real defects. D65 wrote the design-option exclusion invariant *into
+   the frozen contract* and D67 corrected its signature — both of which guarantee that code written
+   **after** them obeys the rule, and do **nothing whatever** about code written before. The room solver
+   and the join resolver both shipped 07-18; the rule landed 07-23; the sweep that fixed the other
+   consumers (Entry 58) touched only the two that existed when the rule was written. **⇒ When you add a
+   correctness rule to a mature codebase, enumerate every existing site that could violate it and check
+   each one.** The mechanical form that worked: grep every iteration over the collection the rule governs,
+   then ask of each *"does this aggregate or publish?"* — 14 sites, 12 correct, 2 silently wrong for eight
+   days. **No rule in this project had ever been given that sweep.**
 
 ---
 
@@ -277,12 +287,15 @@ packages/
                     geometry.ts    ★ GeometryGateway — the narrow seam that makes D19 STRUCTURAL (excludes `tessellate`)
                     sketch.ts    ★ 0d — the SketchSolver SEAM + solver-neutral IR + MockSketchSolver + readSketch +
                                      solveSketch (the D26 guard). @bunyan/document stays pure (no planegcs dep).
+                    designoptions.ts ★ D65/D67/D68 — the exclusion INVARIANT as code: `isElementActive` (the rule, with
+                                     the D67 host/parent traversal) + `optionScopeOf` (the SCOPE the rule is evaluated
+                                     against — shared, after Entry 59 found it copy-pasted). FOUR consumers call both.
                     joins.ts     ★ 0c — the WALL-JOIN resolver (Entry 42): auto-miter on proximity + butt near-face,
                                      all plane geometry from the {start,end} params (recipe = truth, D1-safe). Feeds
                                      BuildContext.joins (cap-lines). The bidirectional wall↔wall dependency edge lives here.
 apps/web/        ★ Amer's Vite/React shell — bootstrap (the one KernelClient holder), WebGL2 three.js viewport,
                     generated ribbon + property panel, incremental redraw, sub-shape picking, failure-state panels
-tests/            417 tests (all document tests run against the REAL OCCT kernel, never the mock) + goldens + harness
+tests/            428 tests (all document tests run against the REAL OCCT kernel, never the mock) + goldens + harness
 tools/kernel-build/ the OCCT->WASM recipe + src/probe.cpp (THE NAMING PROBE, ~60 s)
 tools/oracle/     Python (uv): offline golden seeding — analytic + native-OCCT cross-check (also a MEASURING instrument)
 ```
@@ -408,6 +421,7 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | **D66** | **2026-07-21 → ✅ CONTRACT HALF DONE (Entry 54). The 4-axis scale measurement.** ⚠ **The ONLY freeze-gating part was the heap-eviction CONTRACT hook, and it is RULED: reserve NOTHING — additive by construction.** Recipe-is-truth makes every solid disposable-and-rebuildable (proven by the D29 cold-load rebuild), the evicted state (`ElementState.stale`) and the release mechanism (`releaseShape`, kernel-client fires it) are ALREADY FROZEN, and the keep-live policy is runtime state never persisted. Measured fresh (2026-07-24): **heap 0.31 GB at 10k — FITS** (16.2 KB/solid); **cold load ~6.35 min single-thread/no-cache** (levers — D29 cache RULED SHIP, `instantiate` RESERVED, MT/D8 — all additive, none foreclose). ⚠ **Draw calls + edit latency are Amer's (browser-side, unmeasurable headless); the D8 single-thread verdict needs them and is additive either way** ⇒ **NOT contract-gating.** `P5_step9_D66_scale_design.md`. ✅ **AMER'S TWO AXES MEASURED (Entry 55, real browser, Intel UHD): draw calls ~30,700 / ~606 ms/frame (1.6 fps) at target; incremental edit ~23 ms compute (FLAT — 2b works) + ~570 ms post-edit render. BOTH collapse to the one-mesh-per-part redraw wall; the fix is renderer BATCHING/instancing (additive, no contract). D8 verdict: the interactive axes do NOT need multithreading (it attacks the kernel, not the redraw) ⇒ recommend MT stays v1.0.x — RAISED with the owner, additive either way. All four axes now have a number.** |
 
 | **D67** | **2026-07-25 → ✅ RULED + BUILT (Entry 57, row Ⓖ, `P5_step5G_option_cascade_design.md`). THE DESIGN-OPTION EXCLUSION INVARIANT CASCADES OVER EVERY "BELONGS-TO" EDGE.** Found by the owner-authorised pre-freeze adversarial sweep. D65 put the invariant *inside the frozen contract* so three products would implement ONE rule — but it read only an element's **own** tag and its signature handed it **no model**, so it could not ask what the element hangs off. **Measured: a consumer counted 4 windows where 1 was correct, 3 of them hosted on the wall the same rule had just excluded** — D65's own failure mode by the hosting road. **Fix (owner-ruled): `isElementActive(element, scope, active?)` resolves against the MODEL and TRAVERSES `hostId` + `parentElementId`** (a traversal, not a chain walk — an element may hang off both). Missing ancestor ⇒ excluded (broken-ref precedent); cycle ⇒ excluded and terminates (cycle-guard precedent). ⚠ **Generated children (D59 Model A) needed nothing — not scene rows, excluded WITH their parent by construction.** No schema bump, no field, no verb. Revert-verified (`expected 4 to be 1`). |
+| **D68** | **2026-07-26 → ✅ RULED + BUILT (Entry 59, row Ⓗ). THE EXCLUSION INVARIANT REACHES THE ROOM SOLVER AND THE JOIN RESOLVER TOO — FOUND BY SWEEPING THE RULE *BACKWARD* OVER CODE THAT PREDATES IT.** D65 wrote the rule into the frozen contract and D67 made it cascade; both guaranteed the *next* consumer would obey it and did nothing about the two that were already written (**both shipped Entry 41/42 on 07-18; the rule landed 07-23**). **`assembleRoomInput` measured a 4800×3800 room at 10,640,000 mm² where 18,240,000 is correct** — a 42% under-report on a room that is **entirely main-model**, caused by one partition in a scheme nobody will build. **`partnersAt` was worse: it corrupts the BUILT B-Rep**, via *miter-against-a-ghost* and — the vicious one — **the AMBIGUITY FLIP**, where adding a facade variant that reaches an existing corner pushes the partner count 1→2, the crowd reads as ambiguous, and **a correctly-mitered main-model corner silently loses its miter**. **FIX: an optional `RoomOptionSelection`/`JoinOptionSelection` on `roomMetrics`/`assembleRoomInput`/`resolveJoins`, defaulting to each set's primary** ⇒ behaviour unchanged for every existing document; plus **`optionScopeOf()`** extracted so the SCOPE is shared, not just the RULE (it had been copy-pasted into two consumers and was about to become four). ⚠ **`wallsJoinedTo` deliberately NOT filtered** — it is the invalidator, and over-naming costs a rebuild while under-naming leaves a stale solid. No schema bump, no field, no verb, no frozen byte. Revert-verified test-first (`expected 10640000 to be close to 18240000`; `expected [] to deeply equal [{end:'end',…}]`). **428 green.** |
 | **D8** | **2026-07-25 → ✅ DECIDED (Entry 57): MULTITHREADING STAYS v1.0.x.** Raised by Amer (Entry 55) and confirmed by the owner. The two INTERACTIVE axes are a renderer-batching problem MT does not touch; cold load is MT's only real candidate and has additive levers of its own (D29 cache RULED SHIP, `instantiate` RESERVED). Additive either way (COOP/COEP + `SharedArrayBuffer` deploy config, not a `scene.json` contract) ⇒ never gated the freeze. |
 
 **⚠ D40–D46 are ALL BUILT (Entry 21), each with a test that fails if the fix is reverted. D50 STEP 0 IS
@@ -560,6 +574,20 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 > re-quantified"* reached a consumer as **`unchanged`**. Both fixed + revert-verified. ⚠ **Nothing frozen moved.**
 > **⇒ §1c-7's disease, FOURTH occurrence** — a design doc named a field and nobody read it against the code. See Entry 58.
 >
+> ## ✅✅ THE ASSERTED-BEHAVIOUR SWEEP RAN (Entry 59, 2026-07-26) — AND IT FOUND TWO MORE. D68. 428 GREEN. THE FREEZE IS STILL THE OWNER'S ACT.
+> The owner took Entry 58's raised judgement call over the freeze, and authorised the push (`origin/main` `6ec5139 → 2dd2215`,
+> Entries 57+58 — **Amer had been two entries behind**). The sweep asked *"which asserted behaviours have no test that would
+> fail without them?"* and answered it **mechanically**: enumerate every site that iterates `scene.elements` (14), ask of each
+> *"does this aggregate or publish?"*. **Two consumers had never obeyed the D65 exclusion invariant.** The **room solver**
+> reported **10,640,000 mm² where 18,240,000 is correct** (a 42% under-report on a room that is *entirely main-model*); the
+> **join resolver** was sharper still because it corrupts the **built B-Rep** — *miter-against-a-ghost*, and the **AMBIGUITY
+> FLIP**, where adding a facade variant that reaches an existing corner **silently un-miters a main-model corner nobody
+> edited**. ⚠⚠ **THE LESSON GENERALISES PAST OPTIONS: D65 put the rule in the frozen contract and D67 fixed its signature —
+> both bind the NEXT consumer and do nothing about the ones already written** (both of these shipped 07-18; the rule landed
+> 07-23). **A correctness rule added to a mature codebase must be swept BACKWARD. No rule here had ever had that sweep.**
+> Fix is additive (optional selection args defaulting to each set's primary + `optionScopeOf()` so the SCOPE is shared too);
+> nothing frozen moved. **⇒ the freeze remains unblocked and is the owner's act.** See Entry 59 + D68.
+>
 > ## ✅✅ STEP 0 IS CLOSED — BOTH SOLVERS + 0c JOINS ARE BUILT + GREEN (0d E40, room-bounding E41, 0c E42).
 > All of D50 step 0 is done: **0a–0g**, **0d (real planegcs, D26 revert-verified)**, the **room-bounding
 > solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
@@ -673,7 +701,10 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 `measure(ref)` + derived `capabilities` + `INVALID_RESULT` · the positional key (D28) · the protocol
 freeze (D13) · CI (all five steps pass here) · the document model + agent surface + `.bnn` + undo +
 broken-ref state + cascade delete (Entry 18) · all six P3 defects + D40–D46 (Entry 21, revert-verified) ·
-`-O3`/LTO (MEASURED — no speed; do not re-run) · the heap ceiling (Entry 29 — it fits) · D50 step
+`-O3`/LTO (MEASURED — no speed; do not re-run) · the heap ceiling (Entry 29 — it fits) · **domain rule 6 / the
+canonical re-sort (Entry 59 — MEASURED by deleting it and rebuilding: 2 naming tests fail, and they fail as a
+`UNRESOLVED_SUBSHAPE_REF` REFUSAL, never a wrong name; no comparator reads a traversal index; `rowLess`/`sameDerivation`
+agree on all 7 fields so `std::sort` is not misused ⇒ the D8/MT unlock carries no hidden identity risk)** · D50 step
 0a/0b/0e/0f/0g (Entries 33–38) · **0d the sketch constraint solver (Entry 40 — real planegcs, green)** ·
 the **room-bounding solver (Entry 41)** · **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate
 green, real Wall in `@bunyan/types`). ⇒ ALL OF D50 STEP 0 IS CLOSED.**
@@ -1972,3 +2003,104 @@ Design-doc-first (`P5_step6A_enumeration_design.md`), then an AskUserQuestion ro
   (`review_P5.md` #3, v1.0.x perf, no contract change) · the D29 cache bodies.
 - **Amer:** unchanged and all post-freeze/parallel — renderer batching/instancing (the Entry-55 unlock), P4.5, FSA adapter,
   WebGPU, service worker/PWA, Cloudflare deploy.
+
+### Entry 59 — 2026-07-26 — Zayd — **THE ASSERTED-BEHAVIOUR SWEEP (the judgement call Entry 58 raised; owner chose it over the freeze). IT FOUND TWO MORE CONSUMERS OF THE D65 EXCLUSION INVARIANT THAT NEVER OBEYED IT — AND THE SECOND CORRUPTS THE BUILT B-REP OF A WALL NOBODY EDITED. D68. 428 GREEN.**
+**Task (owner):** the standing sweep Entry 58 asked for — *"which asserted behaviours have NO test that would fail without
+them?"* — chosen in place of calling the freeze. Also owner-authorised: **push Entries 57+58**, done (`origin/main`
+`6ec5139 → 2dd2215`; Amer had been two entries behind). `pnpm verify` **428/428**, real exit code captured (417 → +11).
+
+- **⚠⚠ THE METHOD THAT WORKED, AND IT IS MECHANICAL — worth reusing verbatim.** Rather than re-reading prose, I took the
+  rule D65 put *inside the frozen contract* (*"every consumer that AGGREGATES or PUBLISHES elements MUST exclude
+  non-active options"*) and enumerated **every place in the codebase that iterates `scene.elements`** — 14 sites. Then I
+  asked of each: *does this aggregate or publish?* Twelve correctly see everything (save/load per D43, the delete guards,
+  the invalidator, `instancesOf`/`hostedBy`). **Two did not, and neither had ever been swept.**
+- **⚠⚠ FINDING 1 — THE ROOM SOLVER (`assembleRoomInput`).** A Space's floor area is derived from its bounding walls, and
+  the scan walked every element on the Level with no option filter. **Measured on a 4800×3800 room: 10,640,000 mm²
+  reported where 18,240,000 is correct — a 42% under-report**, because one partition belonging to a scheme nobody will
+  build crossed it. ⚠ **And the failure is worse in KIND than the double-count D65 predicted:** the corrupted number
+  belongs to a room that is **entirely main-model**, and it is *smaller* than the truth — the direction nobody audits.
+  D55's own words for this number: *"architecture's most-scheduled quantity"* (paint, ceilings, screed).
+- **⚠⚠⚠ FINDING 2 — THE WALL-JOIN RESOLVER (`partnersAt`), AND IT IS THE SHARPER ONE: IT CORRUPTS THE BUILT B-REP, SO THE
+  WRONG NUMBER ARRIVES WEARING `basis: 'exact'`.** The auto-join rule is *"exactly one coincident neighbour ⇒ miter; zero
+  or a crowd of 2+ ⇒ the default cap"*, and an unfiltered scan turns that into **two** wrong answers:
+  **(1) miter against a ghost** — a main-model wall miters itself against an option wall that will never be built;
+  **(2) ⚠ THE AMBIGUITY FLIP, and it is vicious** — two main-model walls meet and correctly miter; the author adds a
+  facade variant that happens to reach the same corner; each wall now counts **2** partners, the crowd reads as ambiguous,
+  and **the miter is silently dropped.** ⇒ ***Adding a design option changes the geometry of a main-model corner
+  elsewhere in the building that nobody touched.*** Measured: `expected [] to deeply equal [{end:'end', capLine…}]`.
+  Mode 2 is **D67's shape exactly** — a rule that cannot see what an element hangs off gives a confidently wrong answer
+  about an innocent third party.
+- **⚠⚠ AND THE PATTERN IS A NEW ONE, NOT THE OLD DISEASE — THIS IS THE ENTRY'S REAL FINDING.** §1c-7's four prior
+  occurrences were all *a claim written down and never implemented*. **These two are the opposite: the rule WAS
+  implemented, correctly, and only in the consumers that existed the day it was written.** The chronology is the whole
+  story — the room solver shipped **Entry 41 (07-18)**, the join resolver **Entry 42 (07-18)**; the invariant landed
+  **Entry 53 (07-23)** and cascaded in **Entry 57 (07-25)**; Entry 58's sweep then fixed `enumerate.ts` and
+  `cleandelta.ts` — **the two consumers that existed when the rule was written.** ⇒ **A CORRECTNESS RULE ADDED TO A
+  MATURE CODEBASE MUST BE SWEPT BACKWARD OVER THE CODE THAT ALREADY EXISTS, NOT MERELY APPLIED FORWARD.** Writing the
+  rule into the frozen contract (D65's whole point) guarantees the *next* consumer obeys it; it does nothing whatever
+  about the ones already written. **Nobody had ever run that backward sweep, for any rule.**
+- **⚠ A THIRD, SMALLER FINDING — THE SCOPE WAS SHARED BY COPY-PASTE.** The three-line block that resolves the option
+  catalogue was **duplicated in `enumerate.ts` and `cleandelta.ts`**, and my fix was about to make it a third and fourth
+  copy. That is the drift `isElementActive` was extracted to prevent, reappearing one level up: **the RULE was shared
+  while the SCOPE THE RULE IS EVALUATED AGAINST was not** — and a consumer that assembles the scope slightly differently
+  gets a slightly different answer from an identical rule (domain rule 10). ⇒ extracted **`optionScopeOf(scene, override)`**
+  into `designoptions.ts` beside the rule it serves; all four consumers now call it.
+- **FIXED (D68), all additive — no frozen byte moved, no `SCENE_SCHEMA_VERSION` bump, no field, no verb.**
+  `assembleRoomInput` / `DocumentContext.roomMetrics` take an optional `RoomOptionSelection`; `resolveJoins` takes an
+  optional `JoinOptionSelection`; both default to every set's primary, which is the whole of v1.0.0 (nothing authors an
+  option yet) ⇒ **behaviour is unchanged for every existing document.** The join override path is filtered too (an
+  override naming a non-active wall cannot force a join). ⚠ **`wallsJoinedTo` is DELIBERATELY left unfiltered and now
+  says so in the code** — it is the INVALIDATOR, whose error directions are not symmetric: naming too many walls costs a
+  rebuild that produces identical geometry, naming too few leaves a stale solid (0a's original `#touched` hole). *An
+  undocumented asymmetry invites a wrong "fix" later.*
+- **⚠ REVERT-VERIFIED, in the stronger order:** both tests were written and **measured failing against the unfixed code
+  first** — room `expected 10640000 to be close to 18240000` (2 failures), joins 4 failures incl. mode 2's vanished
+  miter — and only then fixed. `tests/room-option-cascade.test.ts` (5) + `tests/join-option-cascade.test.ts` (6), both
+  pure (neither path reaches the kernel), plus the 8 real-OCCT `wall-joins` tests still green ⇒ the anti-fuse gate held.
+- **➕ SAME SESSION — THE SECOND BACKWARD SWEEP: DOMAIN RULE 6 (THE CANONICAL RE-SORT / D8). ✅ RESULT: CLEAN, AND
+  MEASURED RATHER THAN REASONED. DO NOT RE-AUDIT.** This was the rule I flagged as *"no test would fail if it were
+  removed"* — the one whose whole purpose is to let v1.0.x multithreading turn on **without invalidating every saved
+  file in the field**, and whose falsity is invisible on a single-threaded build. Two halves, both now answered:
+  - **(a) THE CODE READS NO TRAVERSAL INDEX — verified by walking the chain, not by trusting the comment.** Faces sort
+    on derivation → a structural signature built from the neighbours' **derivations** (strings, explicitly *not* their
+    canonical indices, to avoid a circularity) → the D28 centroid. `canonOfFace` then falls out of that canonical order;
+    `vertexSig` is built from **canonical** face indices; edges sort on derivation → an endpoint signature of those
+    canonical indices → the centroid. **No comparator term anywhere reads an OCCT map index.** ⚠ I also checked the
+    thing that would be undefined behaviour rather than a wrong answer: `rowLess` and `sameDerivation` compare **exactly
+    the same seven fields**, so the comparator is a valid strict weak ordering and `std::sort` is not being misused.
+  - **(b) ⚠⚠ AND THE SUITE *DOES* CATCH ITS REMOVAL — I MEASURED IT BY DELETING IT.** Neutered the face re-sort,
+    rebuilt the kernel (~60 s, §1c-3), and ran the naming suite: **2 tests fail** — `naming-hard-topology`'s *"a GROOVE
+    splits a face and both halves keep their identity through a resize"* and `naming-transform`'s *"refs the BOOLEAN
+    itself owns — a split face, occurrence and all — survive a rotation"*. **Both are split-face cases, which is
+    exactly right:** they are the shapes where several sub-shapes share a derivation and the sort is the only thing
+    separating them. ⚠⚠ **AND THE FAILURE MODE IS THE ONE THE DESIGN PROMISES: `UNRESOLVED_SUBSHAPE_REF` — a
+    REFUSAL, not a wrong name** (*"two sub-shapes resolved to the SAME identity — refusing rather than hand out a ref
+    that names two things"*). Losing the normalisation does not silently misname anything; it makes the kernel decline.
+    That is core_logic §5's *"fails loudly rather than inventing a name"* holding under a deliberate injury.
+  - ⇒ **My Entry-59 claim that "no test would fail if the re-sort were removed" was WRONG, and measuring is what
+    corrected it.** Rule 6 has real coverage and a safe failure mode; **the D8 multithreading unlock is not carrying a
+    hidden identity risk.** Kernel source restored from backup and the committed `.wasm` restored byte-identical
+    (`git checkout`, md5 `238a38e0…`); `pnpm verify` re-run green afterwards.
+- **⚠ NOTED, NOT FIXED (deliberate, and neither is pre-freeze):** `agent.query()` has **no way to express the option
+  question** — an agent asking *"how many load-bearing walls on level 2"* would count both schemes. It is a browse API
+  rather than an aggregator, and **`agentApi` is versioned separately (D22) and does NOT inherit the P5 freeze**, so it
+  is additive whenever the bodies land. And **`RoomSeparator` carries no `designOptionId`** — a separator cannot belong
+  to an option; additive if ever wanted.
+- **Box:** read/measure/build only; `pnpm verify` ×3 + targeted vitest; **nothing installed, no containers touched, no
+  ports bound**; `/tmp` 10 MB; available RAM never below ~2.3 GB; **both live public sites up throughout**.
+  ⚠ **The `format:check` trap bit again and was caught by capturing the real exit code** — a background job's reported
+  status was the *wrapper's* 0, while pnpm had exited 1 on two unformatted files, **before the tests ever ran**.
+
+**NEXT:**
+- **Owner:** **the FREEZE (step 6) remains the owner's act and is unblocked** — D68 is additive and touched no frozen
+  shape. ⚠ Entries 57+58 are now **pushed**; Entry 59 is owner-gated for commit/push as usual.
+- **⚠⚠ THE JUDGEMENT CALL IS NOW ANSWERED WITH EVIDENCE, AND THE BACKWARD SWEEP SHOULD BE RUN ONCE PER LOAD-BEARING
+  RULE, NOT ONCE PER SESSION.** Two rules were swept this session and they came back differently, which is the point:
+  **the design-option invariant was broken in two places** (D68, above), and **domain rule 6 was clean and is now
+  measured clean** (above — and measuring overturned my own written claim about it). ⚠ **A clean sweep is worth as much
+  as a dirty one:** rule 6 is the D8/MT unlock, and it is now recorded as verified rather than assumed, so nobody
+  re-audits it. **Still unswept: rule 12** (shared-on-style/unique-on-instance) · **rule 16's "a quantity can never
+  double-count"** · **rule 5** (new views/formats/commands are additive registrations — the *views* half is untested).
+  Each is cheap now and a three-product amendment after the freeze.
+- **Zayd:** the schedules body (D58 row Ⓐ) · the join O(N²) endpoint index · the D29 cache bodies.
+- **Amer:** unchanged — renderer batching/instancing, P4.5, FSA adapter, WebGPU, service worker/PWA, Cloudflare deploy.

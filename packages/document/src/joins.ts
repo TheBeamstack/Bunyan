@@ -14,10 +14,24 @@
  * none = Disallow Join). Absent ⇒ auto-mitre.
  */
 
+import { isElementActive, optionScopeOf } from './designoptions.js';
+import type { ActiveOptions, DesignOption, DesignOptionId, OptionScope } from './designoptions.js';
 import type { Element, ElementId, JoinConstraint } from './entities.js';
 import { isJoinConstraint } from './entities.js';
 import type { Scene } from './scene.js';
 import type { CapLine, ResolvedJoin } from './types.js';
+
+/**
+ * Which design options a join resolution is asked under — the same shape `EnumerateOptions` and
+ * `RoomOptionSelection` use, because it is the same question (`designoptions.ts`). Absent ⇒ every set's
+ * primary option, i.e. the main model, which is the whole of v1.0.0 (nothing authors an option yet).
+ */
+export interface JoinOptionSelection {
+  /** The active option per set. Absent/unlisted set ⇒ that set's primary option. */
+  readonly active?: ActiveOptions;
+  /** The option catalogue, when the caller holds one; absent ⇒ `scene.designOptions`. */
+  readonly designOptions?: Readonly<Record<DesignOptionId, DesignOption>>;
+}
 
 /** Endpoints within this many mm are "the same corner" (authored/snapped ends coincide exactly). */
 const JOIN_TOL = 1e-3;
@@ -129,11 +143,35 @@ export function joinOverridesOf(scene: Scene, elementId: ElementId): readonly Jo
   );
 }
 
-/** Every OTHER wall with a baseline endpoint coincident with `P` — the auto-join partners at that corner. */
-function partnersAt(scene: Scene, P: V, selfId: ElementId): readonly { id: ElementId; body: V }[] {
+/**
+ * Every OTHER wall with a baseline endpoint coincident with `P` — the auto-join partners at that corner.
+ *
+ * ⚠⚠ **A WALL IN A NON-ACTIVE OPTION IS NOT A PARTNER (D65/D67).** This scan walked every element in the
+ * scene, and the join rule *"exactly one coincident neighbour ⇒ miter; zero or a crowd of 2+ ⇒ the default
+ * cap"* turns that into two distinct wrong answers, **both of which corrupt the BUILT B-Rep** — so unlike
+ * the room solver's derived area, the wrong number here arrives wearing `basis: 'exact'`:
+ *
+ *   1. **Miter against a ghost** — the only wall reaching a corner belongs to a scheme nobody will build,
+ *      so a main-model wall miters itself against it.
+ *   2. **⚠ The ambiguity flip, and it is the vicious one** — two main-model walls meet and correctly miter;
+ *      the author adds a facade variant that reaches the same corner; each now counts **2** partners, the
+ *      crowd reads as ambiguous, and **the miter is silently dropped.** Adding a design option changes the
+ *      geometry of a main-model corner elsewhere in the building that nobody edited.
+ *
+ * Measured in `tests/join-option-cascade.test.ts`. Mode 2 is D67's shape exactly: a rule that cannot see
+ * what an element hangs off gives a confidently wrong answer about an innocent third party.
+ */
+function partnersAt(
+  scene: Scene,
+  P: V,
+  selfId: ElementId,
+  scope: OptionScope,
+  active: ActiveOptions,
+): readonly { id: ElementId; body: V }[] {
   const out: { id: ElementId; body: V }[] = [];
   for (const el of Object.values(scene.elements)) {
     if (el.id === selfId) continue;
+    if (!isElementActive(el, scope, active)) continue;
     const b = baselineOf(el);
     if (b === undefined) continue;
     // Which end (if any) of this neighbour meets P — and the direction from P into its body.
@@ -155,7 +193,11 @@ function partnersAt(scene: Scene, P: V, selfId: ElementId): readonly { id: Eleme
  * Precedence at each end: an OVERRIDE that names this wall AND meets this end wins; otherwise the auto-join
  * (exactly one coincident neighbour ⇒ miter; zero or an ambiguous crowd of 2+ ⇒ the default cap).
  */
-export function resolveJoins(scene: Scene, elementId: ElementId): readonly ResolvedJoin[] {
+export function resolveJoins(
+  scene: Scene,
+  elementId: ElementId,
+  selection: JoinOptionSelection = {},
+): readonly ResolvedJoin[] {
   const self = scene.elements[elementId];
   if (self === undefined) return [];
   const base = baselineOf(self);
@@ -163,6 +205,8 @@ export function resolveJoins(scene: Scene, elementId: ElementId): readonly Resol
   const wallDir = unit(sub(base.end, base.start));
   if (wallDir === undefined) return [];
 
+  const scope = optionScopeOf(scene, selection.designOptions);
+  const active = selection.active ?? {};
   const overrides = joinOverridesOf(scene, elementId);
   const ends: { name: 'start' | 'end'; P: V; body: V }[] = [
     { name: 'start', P: base.start, body: wallDir },
@@ -171,7 +215,7 @@ export function resolveJoins(scene: Scene, elementId: ElementId): readonly Resol
 
   const result: ResolvedJoin[] = [];
   for (const e of ends) {
-    const capLine = resolveEnd(scene, elementId, e.P, e.body, wallDir, overrides);
+    const capLine = resolveEnd(scene, elementId, e.P, e.body, wallDir, overrides, scope, active);
     if (capLine !== undefined) result.push({ end: e.name, capLine });
   }
   return result;
@@ -184,11 +228,16 @@ function resolveEnd(
   body: V,
   wallDir: V,
   overrides: readonly JoinConstraint[],
+  scope: OptionScope,
+  active: ActiveOptions,
 ): CapLine | undefined {
   // --- 1. An override that meets THIS end wins (it may force butt/none against the auto-miter). ---------
   for (const o of overrides) {
     const otherId = o.element === selfId ? o.other : o.element;
     const other = scene.elements[otherId];
+    // ⚠ An override naming a wall in a non-active option is an override against something that is not
+    // there. It cannot force a join (the same rule as the auto-scan below).
+    if (other !== undefined && !isElementActive(other, scope, active)) continue;
     const otherBase = other === undefined ? undefined : baselineOf(other);
     if (otherBase === undefined) continue;
     if (!near(otherBase.start, P) && !near(otherBase.end, P)) continue; // this override is at a different corner
@@ -206,7 +255,7 @@ function resolveEnd(
   }
 
   // --- 2. Auto-join: exactly one coincident neighbour ⇒ miter. Zero or 2+ ⇒ the default cap. -----------
-  const partners = partnersAt(scene, P, selfId);
+  const partners = partnersAt(scene, P, selfId, scope, active);
   if (partners.length !== 1) return undefined;
   return miterLine(P, body, partners[0]!.body, wallDir);
 }
@@ -226,6 +275,13 @@ function partnerBody(other: Baseline, P: V): V {
  * new baseline ends — auto-join neighbours), plus any wall named in an override with it. Used by the
  * invalidator so "move a wall, its neighbour's miter follows" is true (the bidirectional element↔element
  * edge, `P5_step0c_design.md` §4).
+ *
+ * ⚠ **DELIBERATELY NOT OPTION-FILTERED, unlike `resolveJoins` — do not "fix" this asymmetry.** This is the
+ * INVALIDATOR, and its two error directions are not symmetric: naming too many walls costs a rebuild that
+ * produces identical geometry, while naming too few leaves a stale solid in the document — the silent class
+ * (0a's original `#touched` container hole, Entry 33). It is also the conservative choice under a selection
+ * this function is not given: an element that is not active under one selection is active under another, and
+ * switching options must re-stage the corners on both sides of the switch.
  */
 export function wallsJoinedTo(
   scene: Scene,

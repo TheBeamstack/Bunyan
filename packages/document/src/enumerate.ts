@@ -38,8 +38,8 @@ import type {
 import type { ElementGeometry } from './build.js';
 import type { Scene } from './scene.js';
 import { containerPath } from './scene.js';
-import { isElementActive } from './designoptions.js';
-import type { ActiveOptions, DesignOption, DesignOptionId, OptionScope } from './designoptions.js';
+import { isElementActive, optionScopeOf } from './designoptions.js';
+import type { ActiveOptions, DesignOption, DesignOptionId } from './designoptions.js';
 import type { PartQuantity } from './document.js';
 
 /** The separator between container names in an LBS address — `Site/Tower A/Level 1`. */
@@ -157,14 +157,7 @@ export function modelElements(
   geometryOf: (id: ElementId) => ElementGeometry | undefined,
   options: EnumerateOptions = {},
 ): readonly ModelElement[] {
-  const scope: OptionScope = {
-    elements: scene.elements,
-    ...(options.designOptions === undefined
-      ? scene.designOptions === undefined
-        ? {}
-        : { designOptions: scene.designOptions }
-      : { designOptions: options.designOptions }),
-  };
+  const scope = optionScopeOf(scene, options.designOptions);
   const active = options.active ?? {};
   const out: ModelElement[] = [];
 

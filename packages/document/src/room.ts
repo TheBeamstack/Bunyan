@@ -22,9 +22,22 @@
  * So there is nothing to invalidate: read the scene, solve, report. Move a wall and re-query → the area follows.
  */
 
+import { isElementActive, optionScopeOf } from './designoptions.js';
+import type { ActiveOptions, DesignOption, DesignOptionId } from './designoptions.js';
 import type { Element, SpatialContainer } from './entities.js';
 import { elevationOf } from './scene.js';
 import type { Scene } from './scene.js';
+
+/**
+ * Which design options a room query is asked under — the same shape `EnumerateOptions` uses, because it is
+ * the same question (`designoptions.ts`). Absent ⇒ every set's primary option, i.e. the main model.
+ */
+export interface RoomOptionSelection {
+  /** The active option per set. Absent/unlisted set ⇒ that set's primary option. */
+  readonly active?: ActiveOptions;
+  /** The option catalogue, when the caller holds one; absent ⇒ `scene.designOptions`. */
+  readonly designOptions?: Readonly<Record<DesignOptionId, DesignOption>>;
+}
 
 /* ================================================================================================
  * 1. THE SEAM — the room analogue of `GeometryGateway` / `SketchSolver` (D19 precedent). Solver-neutral:
@@ -364,17 +377,40 @@ export function footprintOf(element: Element, scene: Scene): readonly BoundarySe
  *
  * ⚠ "On the Level" = the Space's own Level (`parentId`). A wall's Level is its `containerId`; a separator's
  * is its `levelId`. v1.0.0 reads walls whose `containerId` IS that Level — the flat, common case.
+ *
+ * ⚠⚠ **AND IT OBEYS THE DESIGN-OPTION EXCLUSION INVARIANT (D65/D67).** A room's floor area is an aggregate
+ * published downstream — D55 calls it *"architecture's most-scheduled quantity"* (paint, ceilings, screed) —
+ * so it is squarely inside the rule `designoptions.ts` puts in the frozen contract. It did not obey it: this
+ * loop walked every element on the Level, so **a wall belonging to a scheme nobody will build re-bounded the
+ * room.** ⚠ And the failure is worse in KIND than the double-count D65 predicted: the corrupted number
+ * belongs to a room that is entirely MAIN-MODEL, and it is *smaller* than the truth — the direction nobody
+ * audits. Measured (`tests/room-option-cascade.test.ts`): a 4800×3800 room reported **10,640,000 mm² where
+ * 18,240,000 is correct**, a 42% under-report, because one non-active partition crossed it.
+ *
+ * *(Chronology, and it is the lesson — §1c-7's disease, FIFTH occurrence: this solver was built Entry 41
+ * (2026-07-18); the invariant landed Entry 53 (07-23) and cascaded in Entry 57 (07-25). The rule arrived
+ * AFTER the code, and Entry 58's sweep fixed the two consumers that existed when the rule was written.
+ * Nobody read it back against the one that already did.)*
  */
-export function assembleRoomInput(scene: Scene, spaceId: string): RoomBoundingInput | undefined {
+export function assembleRoomInput(
+  scene: Scene,
+  spaceId: string,
+  selection: RoomOptionSelection = {},
+): RoomBoundingInput | undefined {
   const space = scene.containers[spaceId];
   if (space === undefined || space.kind !== 'space' || space.location === undefined)
     return undefined;
   const levelId = space.parentId;
   if (levelId === undefined) return undefined;
 
+  const scope = optionScopeOf(scene, selection.designOptions);
+  const active = selection.active ?? {};
+
   const segments: BoundarySegment[] = [];
   for (const element of Object.values(scene.elements)) {
     if (element.containerId !== levelId) continue;
+    // ⚠ A wall in a non-active option is not a wall. It bounds nothing (see above).
+    if (!isElementActive(element, scope, active)) continue;
     segments.push(...footprintOf(element, scene));
   }
   for (const sep of Object.values(scene.roomSeparators)) {

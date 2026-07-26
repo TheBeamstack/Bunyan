@@ -173,3 +173,36 @@ export function isElementActive(
   }
   return true; // every element in the belongs-to closure passed its own-tag test
 }
+
+/**
+ * The scene, narrowed to what `isElementActive` reads. `Scene` satisfies it structurally.
+ */
+export interface OptionScopeSource {
+  readonly elements: Readonly<Record<ElementId, OptionedElement>>;
+  readonly designOptions?: Readonly<Record<DesignOptionId, DesignOption>>;
+}
+
+/**
+ * ⚠ BUILD THE SCOPE HERE, ONCE — the companion to `isElementActive`, and it exists for the same reason.
+ *
+ * Resolving the catalogue is three lines of ternary (`caller-supplied ?? scene.designOptions ?? absent`),
+ * and by the time the pre-freeze sweep reached this file those three lines had been **copy-pasted into
+ * `enumerate.ts` and `cleandelta.ts`**, with a third copy about to land in `room.ts` for the room-solver
+ * fix. That is exactly the drift `isElementActive` was extracted to prevent, reappearing one level up: the
+ * RULE was shared while the SCOPE THE RULE IS EVALUATED AGAINST was not, and a consumer that assembles the
+ * scope slightly differently gets a slightly different answer from an identical rule (domain rule 10 —
+ * "one description, never two"; §4f's "three products, one rule").
+ *
+ * `override` is the caller-supplied catalogue: `scene.designOptions` is RESERVED with no authoring verb in
+ * v1.0.0, so a consumer that holds one (Planitor, Miqdar, a future view resolver) supplies it here.
+ */
+export function optionScopeOf(
+  scene: OptionScopeSource,
+  override?: Readonly<Record<DesignOptionId, DesignOption>>,
+): OptionScope {
+  const catalogue = override ?? scene.designOptions;
+  return {
+    elements: scene.elements,
+    ...(catalogue === undefined ? {} : { designOptions: catalogue }),
+  };
+}

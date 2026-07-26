@@ -57,7 +57,7 @@ import {
   signedArea,
   verticalExtentOf,
 } from './room.js';
-import type { RoomSolver, Vec2 } from './room.js';
+import type { RoomOptionSelection, RoomSolver, Vec2 } from './room.js';
 import type { ContainerId, Params } from './entities.js';
 import type { ModelRevision } from './revision.js';
 import { Journal, UndoStack, reversalOf } from './undo.js';
@@ -604,8 +604,8 @@ export class DocumentContext {
    * *"How much floor area is this room?"* — architecture's most-scheduled quantity (paint, ceilings, screed).
    * Synchronous: room bounding is pure 2D document-layer work (Q2), it never reaches the kernel.
    */
-  roomMetrics(spaceId: ContainerId): RoomMetrics {
-    const input = assembleRoomInput(this.#scene, spaceId);
+  roomMetrics(spaceId: ContainerId, selection: RoomOptionSelection = {}): RoomMetrics {
+    const input = assembleRoomInput(this.#scene, spaceId, selection);
     if (input === undefined) return { enclosed: false };
     const result = this.#roomSolver.solve(input);
     if (!result.enclosed) return { enclosed: false };
