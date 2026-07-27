@@ -121,7 +121,7 @@ export interface FamilyPart {
 
 /**
  * A NESTED CHILD ELEMENT placed by the family (D59 composition — Model A, DERIVED never stored). Mirrors
- * `BuiltChild` as DATA: a `slot` (the derived-PEI suffix `${parentId}/${slot}`), a child `typeId` (which may
+ * `BuiltChild` as DATA: a `slot` (the derived-PEI suffix `${parentId}:${slot}`), a child `typeId` (which may
  * itself be a family), and the child's params, each a `FamilyValue` the parent computes from its own params.
  * The interpreter turns this list into `BuiltChild[]` and the engine builds each recursively (the frozen
  * `buildChildren` path). The anti-fuse rule binds: a child is its own solid beside its siblings, never fused.

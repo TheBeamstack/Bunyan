@@ -80,6 +80,23 @@ export function childElementId(parentId: string, slot: string): string {
   return `${parentId}:${slot}`;
 }
 
+/**
+ * ⚠ THE SEPARATOR IS `:`, AND SEVEN DOC SITES SAID `/` UNTIL ENTRY 60's RULE-13 SWEEP.
+ *
+ * The code here was always right; `build.ts`, `entities.ts`, `types.ts`, `families.ts` and
+ * `curtainwall.ts` all described the derived PEI as `${parentId}/${slot}`. That is not a cosmetic slip:
+ * **`/` is a `SubShapeRef` separator** — `commands.ts` refuses it in a part name for exactly that reason
+ * — and a child PEI is embedded in its parts' nodeIds, so a `/`-joined child id would be ambiguous the
+ * moment it entered a ref. The docs described a format that could not work, beside code that does.
+ *
+ * ⚠ It is exported so the fact has ONE home (domain rule 10). Rule 13 makes identity the ecosystem's
+ * contract, and a wrong doc about an identity format is how a downstream consumer gets written wrong.
+ * ⚠⚠ Ids are OPAQUE (D44) — this exists to keep the *documentation* honest and to let a test assert the
+ * grammar. **It is not an invitation to parse a PEI**; recovering meaning by splitting an id is the
+ * "identify after the fact" the whole naming design refuses.
+ */
+export const DERIVED_PEI_SEPARATOR = ':';
+
 /** True for a DERIVED child PEI (D59). Authored PEIs never contain `:`; a generated child always does. */
 export function isDerivedChildId(id: string): boolean {
   return id.includes(':');

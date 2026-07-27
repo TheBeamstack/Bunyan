@@ -77,7 +77,7 @@ export interface ElementGeometry {
   /**
    * ⚠ GENERATED CHILD ELEMENTS (D59 composition, Model A — owner-ruled 2026-07-22 Q3: a TREE). A composite
    * parent (a curtain wall) owns child elements (panels/mullions), each a full `ElementGeometry` with its own
-   * DERIVED PEI (`${parentId}/${slot}`) and its own parts — regenerated each rebuild, never a stored scene row
+   * DERIVED PEI (`${parentId}:${slot}`) and its own parts — regenerated each rebuild, never a stored scene row
    * (recipe-is-truth, D30). A child may itself be composite (its own `children`), so this is a TREE and hosting
    * is NOT one level deep (rule 18). Absent ⇒ a flat element (today's only case). `quantities`/tags/schedules
    * walk it; `DocumentContext` also registers every descendant FLAT by its PEI for heap + per-child queries.
@@ -559,7 +559,7 @@ function voidContextFor(
 /**
  * D59 — GENERATE A COMPOSITE PARENT'S CHILD ELEMENTS (owner-ruled 2026-07-22, Model A). A curtain wall's
  * panels/mullions; a stair's treads. Each is a first-class element (rule 18) — its own DERIVED PEI
- * (`${parentId}/${slot}`), its own parts, its own material — but generated from the parent's recipe and never
+ * (`${parentId}:${slot}`), its own parts, its own material — but generated from the parent's recipe and never
  * stored (recipe-is-truth, D30). Returns the DIRECT-children tree, UNPLACED (in the parent's local frame); the
  * root's placement rides the whole subtree last (`placeTree`). Every descendant is also pushed to `flat` so a
  * failure can free its handles and the document can register it in the geometry map.

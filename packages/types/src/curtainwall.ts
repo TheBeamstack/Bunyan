@@ -5,7 +5,7 @@
  * ⚠⚠ A CURTAIN WALL IS ELEMENTS-OF-ELEMENTS (rule 18), NOT ONE ELEMENT WITH MANY PARTS. Its panels and
  * mullions are first-class elements — each its own PEI, its own material, its own quantity — but GENERATED
  * from the parent's grid recipe, never stored `scene.elements` rows (Model A: recipe-is-truth, D30). The
- * engine builds them via `buildChildren` and gives each the DERIVED PEI `${parentId}/${slot}`.
+ * engine builds them via `buildChildren` and gives each the DERIVED PEI `${parentId}:${slot}`.
  *
  * ⚠ IT IS GENUINELY TWO LEVELS DEEP — "hosting deeper than one level" (rule 18):
  *

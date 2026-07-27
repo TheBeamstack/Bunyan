@@ -183,7 +183,7 @@ export interface BuiltVoid {
  * nesting_design.md`). A curtain wall's panel or mullion; a stair's tread. What a composite parent's
  * `buildChildren` RETURNS — a first-class element (its own PEI, its own Type, its own parts and material),
  * but DERIVED from the parent's recipe, not stored (recipe-is-truth, D30). The engine builds each child
- * recursively via its `typeId` and gives it the DERIVED PEI `${parentId}/${slot}` (`childElementId`).
+ * recursively via its `typeId` and gives it the DERIVED PEI `${parentId}:${slot}` (`childElementId`).
  *
  * ⚠ IT CARRIES A `typeId` + `params`, NOT PRE-BUILT SOLIDS — because a child IS an element (rule 18), so
  * it is built by its own Type in the parent's local frame (the parent computes each child's positioning
@@ -349,7 +349,7 @@ export interface BimObjectType {
    * element with its own PEI (rule 18) — but DERIVED from this parent's recipe, not a stored `scene.elements`
    * row (Model A: recipe-is-truth, the identity discipline of `partNodeId`/`lateral.k` promoted one level).
    * This method GENERATES them: it returns `BuiltChild` descriptors (each a `typeId` + `params`), and the
-   * engine builds each recursively in this parent's local frame, gives it the derived PEI `${parentId}/${slot}`,
+   * engine builds each recursively in this parent's local frame, gives it the derived PEI `${parentId}:${slot}`,
    * and rides the whole subtree on the parent's placement last. A child may itself be composite (depth > 1).
    *
    * ⚠ A composite parent may have `buildGeometry` (its own frame parts) OR `buildChildren` OR BOTH. Absent ⇒

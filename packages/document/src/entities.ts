@@ -584,7 +584,7 @@ export interface Element {
    * ⚠⚠ RE-PINNED (D59, owner-ruled 2026-07-22, Model A — `P5_step5B_composition_nesting_design.md` §5).
    * This is NOT the carrier for a curtain wall's panels/mullions. Those are GENERATED children: DERIVED
    * from the parent's recipe (Model A), never stored `scene.elements` rows, so nothing points UP at the
-   * parent — the child's own DERIVED PEI (`${parentId}/${slot}`, `childElementId`) carries the edge, and
+   * parent — the child's own DERIVED PEI (`${parentId}:${slot}`, `childElementId`) carries the edge, and
    * the parent's `buildChildren` regenerates them each rebuild (recipe-is-truth, D30). This field is for
    * the OTHER relationship rule 18 names — a MANUAL group of independently-authored elements — whose flat
    * `groups` scene collection is a separate, purely-additive v1.0.x collection (proven additive, not built).
