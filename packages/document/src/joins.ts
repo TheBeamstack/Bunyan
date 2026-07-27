@@ -120,6 +120,123 @@ export function totalWallThickness(element: Element, scene: Scene): number {
 }
 
 /* ------------------------------------------------------------------------------------------------
+ * ⚠⚠ THE SPATIAL INDEX (Entry 61, `review_P5.md` #3) — what turns the join scan from O(N²) into O(N).
+ * ---------------------------------------------------------------------------------------------- */
+
+/**
+ * **The problem, measured.** `partnersAt`, `throughWallsAt` and `wallsJoinedTo` each walked
+ * `Object.values(scene.elements)` in full, and `resolveJoins` runs **per element** in the build — so a
+ * cold load of N walls did N full scans. Measured on a room grid (pure TS, no kernel):
+ *
+ * ```
+ *   walls    resolveJoins(all)   per-wall    wallsJoinedTo(all)
+ *      60             8.6 ms      143 µs               12.7 ms
+ *     544           344.9 ms      634 µs              281.7 ms
+ *    1984          4757.7 ms     2398 µs             3645.1 ms
+ * ```
+ *
+ * ⇒ ~**3.5 minutes of pure join scanning** extrapolated to the 10,000-element target D48 makes BINDING,
+ * before the kernel does any geometry at all. (Entry 60 made it worse: `throughWallsAt` added a second
+ * full scan per wall end. Fixing it is therefore partly this project's debt to itself.)
+ *
+ * **The fix, and why it needs no new plumbing.** A uniform grid over the walls' endpoints and segments,
+ * cached **against the `Scene` object itself** in a `WeakMap`. `Scene` is replaced immutably on every
+ * change (`applyChanges` folds into a new object), so a stale index is not merely unlikely — it is
+ * unreachable: a changed scene is a different key, and the old entry is collected with the old scene.
+ * No invalidation logic exists to get wrong, and **no function signature changes.**
+ *
+ * ⚠ The index stores EVERY wall, unfiltered. Design-option filtering (D65/D67/D68) stays at QUERY time
+ * on the handful of candidates — because the same scene is legitimately queried under different option
+ * selections, and an index that baked one selection in would answer the wrong question for the next.
+ */
+const CELL = 500; // mm. Walls are metres; this keeps buckets small without exploding the cell count.
+const HALF_CELL = CELL / 2;
+
+interface IndexEntry {
+  readonly id: ElementId;
+  readonly base: Baseline;
+}
+
+interface JoinIndex {
+  /** cell → walls having an ENDPOINT in it. */
+  readonly endpoints: Map<string, IndexEntry[]>;
+  /** cell → walls whose SEGMENT passes through it. */
+  readonly segments: Map<string, IndexEntry[]>;
+}
+
+const INDEX_CACHE = new WeakMap<Scene, JoinIndex>();
+
+const cellKey = (x: number, y: number): string => `${Math.floor(x / CELL)}:${Math.floor(y / CELL)}`;
+
+function pushAt(map: Map<string, IndexEntry[]>, key: string, entry: IndexEntry): void {
+  const bucket = map.get(key);
+  if (bucket === undefined) map.set(key, [entry]);
+  else bucket.push(entry);
+}
+
+/**
+ * Sample a segment into cells. Stepping by half a cell guarantees every point of the segment lies
+ * within `CELL/4` of some sample, so a 3×3 neighbourhood query around any point on the segment is
+ * certain to reach a cell the segment was recorded in — including the case where it merely clips a
+ * corner and no sample lands inside that cell.
+ */
+function eachSegmentCell(base: Baseline, visit: (key: string) => void): void {
+  const d = sub(base.end, base.start);
+  const l = len(d);
+  const steps = Math.max(1, Math.ceil(l / HALF_CELL));
+  const seen = new Set<string>();
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const key = cellKey(base.start[0] + d[0] * t, base.start[1] + d[1] * t);
+    if (!seen.has(key)) {
+      seen.add(key);
+      visit(key);
+    }
+  }
+}
+
+function indexOf(scene: Scene): JoinIndex {
+  const cached = INDEX_CACHE.get(scene);
+  if (cached !== undefined) return cached;
+
+  const endpoints = new Map<string, IndexEntry[]>();
+  const segments = new Map<string, IndexEntry[]>();
+  for (const el of Object.values(scene.elements)) {
+    const base = baselineOf(el);
+    if (base === undefined) continue;
+    const entry: IndexEntry = { id: el.id, base };
+    pushAt(endpoints, cellKey(base.start[0], base.start[1]), entry);
+    pushAt(endpoints, cellKey(base.end[0], base.end[1]), entry);
+    eachSegmentCell(base, (key) => {
+      pushAt(segments, key, entry);
+    });
+  }
+  const index: JoinIndex = { endpoints, segments };
+  INDEX_CACHE.set(scene, index);
+  return index;
+}
+
+/** Every distinct entry in the 3×3 cell neighbourhood of `P`, from one of the two maps. */
+function near9(map: Map<string, IndexEntry[]>, P: V): readonly IndexEntry[] {
+  const cx = Math.floor(P[0] / CELL);
+  const cy = Math.floor(P[1] / CELL);
+  const out: IndexEntry[] = [];
+  const seen = new Set<ElementId>();
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dy = -1; dy <= 1; dy++) {
+      const bucket = map.get(`${cx + dx}:${cy + dy}`);
+      if (bucket === undefined) continue;
+      for (const e of bucket) {
+        if (seen.has(e.id)) continue;
+        seen.add(e.id);
+        out.push(e);
+      }
+    }
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------------------------------------
  * THE CORNER GEOMETRY — a miter bisector, or a butt face-line. Both return a single cap LINE.
  * ---------------------------------------------------------------------------------------------- */
 
@@ -196,11 +313,14 @@ function partnersAt(
   active: ActiveOptions,
 ): readonly { id: ElementId; body: V }[] {
   const out: { id: ElementId; body: V }[] = [];
-  for (const el of Object.values(scene.elements)) {
-    if (el.id === selfId) continue;
+  // ⚠ The 3×3 neighbourhood of P, not the whole scene (Entry 61). The exact `near()` test below is
+  // unchanged and still decides — the index only narrows WHO is asked, never WHAT is asked.
+  for (const candidate of near9(indexOf(scene).endpoints, P)) {
+    if (candidate.id === selfId) continue;
+    const el = scene.elements[candidate.id];
+    if (el === undefined) continue;
     if (!isElementActive(el, scope, active)) continue;
-    const b = baselineOf(el);
-    if (b === undefined) continue;
+    const b = candidate.base;
     // Which end (if any) of this neighbour meets P — and the direction from P into its body.
     if (near(b.start, P)) {
       const body = unit(sub(b.end, b.start));
@@ -229,13 +349,15 @@ function throughWallsAt(
   active: ActiveOptions,
 ): readonly { id: ElementId; base: Baseline; thickness: number }[] {
   const out: { id: ElementId; base: Baseline; thickness: number }[] = [];
-  for (const el of Object.values(scene.elements)) {
-    if (el.id === selfId) continue;
+  // ⚠ Segment cells, 3×3 around P (Entry 61). `pointOnSegment` still decides; thickness is resolved
+  // only for the few candidates that survive it, so the expensive style lookup stays off the hot path.
+  for (const candidate of near9(indexOf(scene).segments, P)) {
+    if (candidate.id === selfId) continue;
+    const el = scene.elements[candidate.id];
+    if (el === undefined) continue;
     if (!isElementActive(el, scope, active)) continue;
-    const b = baselineOf(el);
-    if (b === undefined) continue;
-    if (pointOnSegment(P, b))
-      out.push({ id: el.id, base: b, thickness: totalWallThickness(el, scene) });
+    if (pointOnSegment(P, candidate.base))
+      out.push({ id: el.id, base: candidate.base, thickness: totalWallThickness(el, scene) });
   }
   return out;
 }
@@ -420,11 +542,28 @@ export function wallsJoinedTo(
   segments: readonly Baseline[] = [],
 ): readonly ElementId[] {
   const ids = new Set<ElementId>();
-  for (const el of Object.values(scene.elements)) {
-    if (el.id === selfId) continue;
-    const b = baselineOf(el);
-    if (b === undefined) continue;
-    if (points.some((p) => near(b.start, p) || near(b.end, p))) ids.add(el.id);
+  const index = indexOf(scene);
+  // ⚠ Driven from the QUERY POINTS now, not from every element (Entry 61) — a wall is a candidate only
+  // if one of its endpoints shares a cell neighbourhood with one of ours. Same predicate, same answers.
+  const candidates = new Map<ElementId, IndexEntry>();
+  for (const p of points) for (const e of near9(index.endpoints, p)) candidates.set(e.id, e);
+  // ⚠ AND the mid-span edge, reversed: walls whose ENDPOINT lies on one of our segments. Rasterise our
+  // own segment and collect the endpoints recorded in those cells.
+  for (const seg of segments) {
+    eachSegmentCell(seg, (key) => {
+      for (const e of index.endpoints.get(key) ?? []) candidates.set(e.id, e);
+      // A cell the segment merely clips: its neighbours may hold the endpoint that lies on us.
+      const [cx, cy] = key.split(':').map(Number) as [number, number];
+      for (let dx = -1; dx <= 1; dx++)
+        for (let dy = -1; dy <= 1; dy++)
+          for (const e of index.endpoints.get(`${cx + dx}:${cy + dy}`) ?? [])
+            candidates.set(e.id, e);
+    });
+  }
+  for (const candidate of candidates.values()) {
+    if (candidate.id === selfId) continue;
+    const b = candidate.base;
+    if (points.some((p) => near(b.start, p) || near(b.end, p))) ids.add(candidate.id);
     // ⚠⚠ THE MID-SPAN EDGE (Entry 60). A wall that BUTTS INTO this one rests its cap on this wall's FACE,
     // so it depends on this wall's baseline AND its thickness — thicken the through wall and every
     // partition landing on it must re-stage. Without this the partition keeps a stale solid, which is
@@ -432,7 +571,7 @@ export function wallsJoinedTo(
     // ⚠ Note the asymmetry is intentional and matches the geometry: the BUTTING wall depends on the
     // through wall, never the reverse — a butt moves only the wall that stops.
     else if (segments.some((s) => pointOnSegment(b.start, s) || pointOnSegment(b.end, s))) {
-      ids.add(el.id);
+      ids.add(candidate.id);
     }
   }
   for (const o of joinOverridesOf(scene, selfId)) {

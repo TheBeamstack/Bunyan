@@ -130,6 +130,19 @@ resolution. That is the expensive-forever finding. Lead with it (Finding 1).
   v1.0.x perf list beside multithreading. And re-run the D29 5-storey measurement **with joins in the
   path** so the headline scale number isn't from a pre-joins build.
 
+- **✅ RESOLVED 2026-07-27 (Entry 61, D73) — MEASURED ON BOTH SIDES.** The finding was correct and, by the time it was
+  fixed, understated: Entry 60's mid-span scan (`throughWallsAt`) had added a _second_ full scan per wall end, so the
+  re-measured baseline was **4757.7 ms at 1984 walls** with per-wall cost **rising** with N (143 µs → 2398 µs) — i.e.
+  ~**3.5 minutes** of pure join scanning at the 10k target, not ~100 s. **After: 169 ms at 9940 walls, per-wall FLAT at
+  14–17 µs from 1k to 10k** (~540×). The mechanism is a uniform 500 mm grid over endpoints and segments, cached in a
+  **`WeakMap` keyed on the `Scene` object** — since `Scene` is replaced immutably on every change, a stale index is
+  _unreachable_ rather than merely unlikely, so there is no invalidation logic to get wrong. **This item's own
+  assessment held exactly: not a freeze item, no contract change, fixable anytime.**
+  ⚠ **The one thing it did not anticipate is the risk the FIX creates**: an index buys speed by changing _who is
+  asked_, and all 32 existing join tests passed the moment it landed — while being structurally unable to catch a
+  coincident corner straddling a cell boundary, whose symptom is a silently un-mitered but perfectly valid wall.
+  `tests/join-spatial-index.test.ts` covers exactly that, revert-verified by neutering the lookup.
+
 ### [4] Mid-span / T-junction wall joins cannot be expressed — an "beats-Revit" ambition gap
 
 - **WHAT IS CLAIMED** — D50/0c: wall joins are in scope; the product "intends to beat Revit/ArchiCAD."

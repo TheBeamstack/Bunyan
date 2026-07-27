@@ -134,6 +134,10 @@ three axes (draw calls, cold load, edit latency) are **all in the renderer — A
 > of the four scale axes (WASM heap) was measured; the other three — edit latency (~45 s/edit extrapolated),
 > cold load (~6.3 min), draw calls (~16k, 10–20× a 60 fps budget) — extrapolate the WRONG way at target, and the
 > O(N²) join scan below adds ~100 s on the REBUILD side. "It's all in the renderer / scale is settled" is false.**
+> **✅ THE JOIN HALF IS RETIRED (Entry 61, D73, 2026-07-27), measured on both sides:** the scan is now an O(N) spatial
+> index — **4757.7 ms → 27.2 ms at 1984 walls**, and at the 10k target **169 ms with per-wall cost FLAT at 14–17 µs**.
+> The ~100 s (in fact ~3.5 min once Entry 60's mid-span scan joined it) is gone. ⚠ The other three axes are unaffected:
+> this was always a REBUILD-side cost, and Entry 55's renderer-batching wall still stands.**
 > **The 4-axis measurement is now a BINDING PRE-FREEZE deliverable (D66)** because heap-eviction "touches contracts,
 > must be known before P5 freezes" and a failed single-threaded target reopens D8 (multithreading). ⚠ Renderer
 > batching + heap eviction are, by the plan's own words, "a rewrite not an optimisation" if found late.
@@ -446,6 +450,7 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | **D70** | **2026-07-27 → ✅ RULED + BUILT (Entry 60). THE CLEAN DELTA IDENTIFIES A MATERIAL BY ITS SHARED-ENTITY ID — `contract_version` 1.1 → 1.2.** Found by sweeping **domain rule 12** backward: *"Materials and Sections are shared entities, never strings — a value that must be grouped, scheduled, or read by an analysis engine cannot be a copy."* `partToWire` emitted **`material: part.materialName`** — a display label — and dropped `materialId`; the published `clean-delta-1.1.schema.json` **required** `material` as a plain string and carried no id at all. Three silent failures: a **rename** re-keys every downstream work package (rule 13 defeated for materials); **two materials sharing a display name merge** into one group (`Material.name` has no uniqueness constraint); and an **unresolvable material emits its raw id AS the name** (`materialName: name ?? materialId`), so one material arrives under two keys. ⚠ **The tell it was a backward-sweep miss, not a design choice: `enumerate.ts`'s `totalsByMaterial` has always grouped by `part.materialId`** — the rule was obeyed internally and broken on the contract three products bind to. **FIX: `parts[].materialId` REQUIRED, schema renamed to 1.2** (owner ruled required-over-optional: an optional identity field leaves the defect reachable). Cheapest possible moment — 1.1 was published 07-25 and no consumer had implemented it. ⚠ **Cross-project: `../Planitor/v2.2_spec.md` §4 defines this shape and must be updated to match.** Revert-verified (`expected undefined to be 'concrete'`) + a schema mutation test that refuses a package missing `materialId`. |
 | **D71** | **2026-07-27 → ✅ RULED + BUILT (Entry 60). THE FORMAT-CODEC SEAM GAINS BEHAVIOUR; THE VIEWS REGISTRY IS RECORDED AS A RESERVATION.** Found by sweeping **domain rule 5** (*"types, commands, formats, views are additive registrations, never core edits"*) backward and simply **counting what is registered: 51 types · 39 commands · 1 codec (inside the test asserting the seam exists) · 0 views.** `FormatCodec` and `ViewDefinition` carried **no behaviour** — no read/write, no projection member — and **nothing consulted `registries.codecs` or `registries.views`**; `saveBnn`/`loadBnn` are called by name. Of the four kinds rule 5 names, **two worked.** ⚠⚠ **It lands on D63**, which discharged freeze-gate row Ⓕ with *"the DWG seam ALREADY EXISTS… asserted in the test, not just written down"* — that test registered a descriptor and asserted `size` went 0→1, i.e. it exercised the generic `Registry` class and would have passed had `FormatCodec` been `{id}`. **D63's CONCLUSION survives (nothing was owed pre-freeze — `FormatCodec` is not frozen and gained its behaviour additively); its EVIDENCE did not.** **FIX: `read?`/`write?` on `FormatCodec`, a `codecFor(registries, filename, need)` dispatcher (longest extension wins), and `BNN_CODEC` registering the format Bunyan itself ships** ⇒ the seam is exercised by the primary path, not only by a test for a format that does not exist. ⚠ **Views deliberately left a reservation and now SAY SO in the code + a test** — the P6 bodies (D58) are what change it. ⚠ **`apps/web` still calls `saveBnn`/`loadBnn` by name — wiring the app's open/save through `codecFor` is Amer's, additive, not owed by this fix.** |
 | **D72** | **2026-07-27 → ✅ RULED + BUILT (Entry 60 cont.). RULE 15's TWO ROADS: `length` WAS RECONSTRUCTED AND `area` WAS THE WRONG NUMBER ENTIRELY. ⚠ THIS ONE RESERVED A FIELD ON A SHAPE THAT FREEZES AT P5 — the only contract change of the session.** Found by sweeping **domain rule 15** (*"a quantity is MEASURED, never reconstructed… it must never emit a WRONG one wearing the `exact` badge"*) backward. **(a) `canonical.length` was join-blind:** it read the `{start,end}` param while `volume` beside it was measured, so a butted partition reported **2.00 m for a solid that ran 1.9 m** — the two disagreeing about the same wall **inside one `basis: 'exact'` block**, which a consumer can catch unaided. ⚠ **This session's own D69 widened the exposure** (before it, butts needed an explicit `setJoin`; after it, every T-junction butts) — *a surface going green is when the sweep should START*. FIX: `builtAxisLength()` clips the baseline at the cap lines `resolveJoins` already produces — recipe-derived, kernel-free, D1-safe, and identical to the baseline when nothing is joined. ⚠ Freeze-Gate ⓗ's *"length must not be `measure.edgeLength`"* is **not overturned** — "not edgeLength" simply never implied "the raw baseline"; the built AXIS is the third option. **(b) `area` was the solid's TOTAL ENCLOSING SURFACE: a 5 × 3 m three-layer wall measured 94.80 m² against a 15 m² paintable face (6.3×)**, counting buried inter-layer faces, edges and both caps — every number exactly measured and the total meaningless, rule 15's failure by the road nobody checks. **FIX (owner-ruled: exposed faces only; net of openings, reveals excluded): `BuiltPart.exposedRefs?` RESERVED** — optional, absent-defaulted (absent ⇒ the old whole-solid number, so no existing Type or saved file moves) — because *"exposed" is not derivable generically* (it depends on a wall layer's position in the stack, a panel's framing, a column's nothing) so **only the Type can say**, and without it the product has no way to answer *"what area do I bill?"*. `core.wall` populates it from D26's already-documented segment order (a-side `lateral.1` / b-side `lateral.3`, filtered by stack position); `quantities()` then MEASURES each declared face via `measure(ref)` — the machinery Entry 13 built for exactly this and that nothing ever consumed (§1c-7 again). ⚠ **Openings fall out for free and that is why it is measured per FACE rather than computed:** a door's hole shrinks the face it cuts while its reveals are *different* faces, so 30 m² → **26 m²**, no opening-aware arithmetic anywhere. ⚠ **`exposedRefs: []` (a buried middle layer) MUST NOT be conflated with absent** — that bug was caught in my own code before it shipped and would have re-reported the 31.28 m² it exists to remove. Revert-verified test-first. **451 green.** |
+| **D73** | **2026-07-27 → ✅ BUILT (Entry 61). THE JOIN RESOLVER'S O(N²) SCAN IS AN O(N) SPATIAL INDEX — `review_P5.md` #3 RETIRED, MEASURED BOTH SIDES.** `partnersAt`, `throughWallsAt` and `wallsJoinedTo` each walked `Object.values(scene.elements)` in full while `resolveJoins` runs **per element** in the build ⇒ N full scans per cold load. **Measured before (pure TS, no kernel, room grid): 4757.7 ms at 1984 walls, per-wall cost RISING with N (143 µs → 2398 µs)** ⇒ ~**3.5 min of pure join scanning** at the 10k target D48 makes BINDING, before the kernel does any geometry. ⚠ Entry 60's `throughWallsAt` had made it worse — a second full scan per wall end — so this was partly the project's debt to itself. **FIX: a uniform grid (CELL 500 mm) over endpoints AND segments, cached in a `WeakMap` KEYED ON THE `Scene` OBJECT.** `Scene` is replaced immutably on every change, so a stale index is not unlikely but *unreachable* — a changed scene is a different key. **No signature changed, no contract touched, no invalidation logic to get wrong.** Option filtering (D65/D67/D68) deliberately stays at QUERY time on the few candidates, because the same scene is legitimately queried under different selections. **Measured after: 169 ms at 9940 walls, per-wall FLAT at 14–17 µs from 1k to 10k** ⇒ ~**540× at the binding target**; the invalidator 3645 ms → 220 ms. ⚠⚠ **AND THE RISK THE SPEED CREATED IS THE POINT: an index buys speed by changing WHO IS ASKED.** All 32 existing join/dependency tests passed unchanged — *and they could not have caught the new failure mode*, because every one places its walls at round coordinates. The real risk is a **coincident corner straddling a cell boundary** (two endpoints within `JOIN_TOL` in different buckets ⇒ the miter silently never found, and the output is a perfectly valid wall with a plain cap — D68's shape by a new road). `tests/join-spatial-index.test.ts` (7) is hostile to the GRID rather than to the geometry, and was **revert-verified by neutering the 3×3 lookup to a single cell: exactly one test fired, and all 21 existing join tests still passed.** |
 | **D8** | **2026-07-25 → ✅ DECIDED (Entry 57): MULTITHREADING STAYS v1.0.x.** Raised by Amer (Entry 55) and confirmed by the owner. The two INTERACTIVE axes are a renderer-batching problem MT does not touch; cold load is MT's only real candidate and has additive levers of its own (D29 cache RULED SHIP, `instantiate` RESERVED). Additive either way (COOP/COEP + `SharedArrayBuffer` deploy config, not a `scene.json` contract) ⇒ never gated the freeze. |
 
 **⚠ D40–D46 are ALL BUILT (Entry 21), each with a test that fails if the fix is reverted. D50 STEP 0 IS
@@ -2188,7 +2193,7 @@ them?"* — chosen in place of calling the freeze. Also owner-authorised: **push
 - **Owner:** **the FREEZE (step 6) remains the owner's act and is still unblocked** — D69/D70/D71 moved no frozen byte, bumped no `SCENE_SCHEMA_VERSION`, added no field or verb to a frozen shape. Entry 60 is owner-gated for commit/push as usual.
 - **✅ CROSS-PROJECT HALF CLOSED (D70), same session: `../Planitor/v2.2_spec.md` §4 updated to `contract_version 1.2`** — `parts[].materialId` added to the payload example and made REQUIRED, a consumer rule added (*"group and bind on `materialId`, never on `material`"*, with the three silent failure modes spelled out for a Planitor reader), and **D10 amended** to record the 1.1 → 1.2 change. ⚠ **UNCOMMITTED in Planitor and owner-gated** — that repo is on branch `v2.1` and already carried unrelated uncommitted work (`General_description.md`, `v2.2_spec.md`) which I did not touch or commit. The two halves of the contract now agree in writing; committing Planitor is yours.
 - **⚠⚠ THE SWEEP LEDGER IS NOW COMPLETE FOR EVERY RULE ANYONE HAS NAMED — and the score is 4 swept, 3 dirty.** Rules 5, 12, 16 (this entry) + the design-option invariant (D68) came back dirty; **only rule 6 came back clean, and it is the only one that was tested by DELETING it.** ⇒ **The remaining rules have never been swept at all** (1–4, 7–11, 13–15, 17, 18). Rules **13** (*an element's id IS its PEI, and it survives every rebuild, resize and re-issue* — now with D59 derived children whose ids encode a slot) and **15** (*a quantity is MEASURED, never reconstructed; what cannot be measured is OMITTED*) are the two with the most consumers and the most to lose.
-- **Zayd:** the schedules body (D58 row Ⓐ) · the join O(N²) endpoint index (⚠ **now more valuable — `throughWallsAt` adds a second O(N) scan per wall end**) · the D29 cache bodies (§4j-2 first — it is an identity task).
+- **Zayd:** the schedules body (D58 row Ⓐ) · ~~the join O(N²) endpoint index~~ **✅ DONE (Entry 61, D73 — 4757.7 ms → 27.2 ms at 1984 walls; 169 ms at 9940, per-wall flat)** · the D29 cache bodies (§4j-2 first — it is an identity task).
 - **Amer:** unchanged, plus the optional additive follow-up of routing open/save through `codecFor` (D71).
 
 **➕ SAME SESSION, CONTINUED — RULES 13 AND 15 SWEPT (D72). 451 GREEN.**
@@ -2239,3 +2244,65 @@ them?"* — chosen in place of calling the freeze. Also owner-authorised: **push
   `exposedRefs` declaration** (`core.opening`'s leaf/frame, `core.curtainwall`'s panels/mullions/columns). Until each
   does, those parts report the old whole-solid area. The mechanism is in and proven; the per-type AEC judgement is not
   mine to invent type by type.
+
+### Entry 61 — 2026-07-27 — Zayd — **THE JOIN RESOLVER'S O(N²) SCAN IS GONE (D73). `review_P5.md` #3 RETIRED, MEASURED ON BOTH SIDES — AND THE OPTIMISATION'S OWN RISK IS WHAT GOT TESTED. 458 GREEN.**
+**Task (owner): "go for next work."** Taken from Entry 60's own NEXT list. Chosen over the schedules body because it needs
+no ruling to proceed (a schedules build opens with a design doc + a ruling round), it is bounded and measurable, and
+**Entry 60 had made it worse** — `throughWallsAt` added a second full scan per wall end, so this is partly debt I created.
+
+- **⚠⚠ MEASURED FIRST, WHICH IS THE ONLY REASON THE NUMBER IS TRUSTWORTHY.** A pure-TS probe (no kernel) over a room
+  grid, reproducing `review_P5.md` #3's method:
+  ```
+    walls    resolveJoins(all)   per-wall    wallsJoinedTo(all)
+       60             8.6 ms      143 µs               12.7 ms
+      544           344.9 ms      634 µs              281.7 ms
+     1984          4757.7 ms     2398 µs             3645.1 ms
+  ```
+  **The per-wall cost RISES with N** — that is the quadratic, seen directly rather than inferred. `review_P5` measured
+  4193 ms at 1984 walls; the 4757.7 ms here is the same shape plus Entry 60's mid-span scan. Extrapolated to the 10,000
+  element target **D48 makes BINDING**: ~**3.5 minutes of pure join scanning before the kernel computes any geometry.**
+- **THE FIX, AND THE PART WORTH REUSING: A `WeakMap` KEYED ON THE `Scene` OBJECT.** A uniform grid (CELL 500 mm) over
+  every wall's endpoints and its segment, built once and cached against the scene it describes. **`Scene` is replaced
+  immutably on every change** (`applyChanges` folds into a new object) ⇒ **a stale index is not merely unlikely, it is
+  unreachable**: a changed scene is a different key and the old entry is collected with the old scene. **There is no
+  invalidation logic, therefore none to get wrong** — which matters because a stale spatial index is exactly the class
+  of bug that produces confidently wrong geometry. **No function signature changed. No contract touched.**
+- **⚠ OPTION FILTERING DELIBERATELY STAYS AT QUERY TIME** (D65/D67/D68), on the handful of candidates a cell returns.
+  Baking a selection into the index would be faster and wrong: the same scene is legitimately queried under different
+  option selections, and an index that had chosen one would answer the wrong question for the next.
+- **MEASURED AFTER, at the real target rather than extrapolated:**
+  ```
+    walls    resolveJoins(all)   per-wall    wallsJoinedTo(all)
+     1984            32.1 ms       16 µs                51.9 ms
+     5100            75.0 ms       15 µs               108.7 ms
+     9940           169.2 ms       17 µs               219.7 ms
+  ```
+  **Per-wall cost is FLAT from 1k to 10k** — the quadratic term is gone, not merely reduced. ~**540× at the binding
+  target**; 3.5 minutes of join scanning becomes **under half a second**.
+- **⚠⚠⚠ THE REAL LESSON OF THIS ENTRY IS ABOUT THE TEST, NOT THE SPEED. AN INDEX BUYS SPEED BY CHANGING *WHO IS
+  ASKED*, AND THAT IS PRECISELY HOW IT FAILS SILENTLY.** All **32** existing join/dependency tests passed unchanged
+  the moment the index landed — and **that proves less than it appears to**, because every one of them places its
+  walls at comfortable round coordinates. The failure this optimisation actually risks is a **coincident corner that
+  straddles a cell boundary**: two endpoints within `JOIN_TOL` of each other but in different buckets, so the miter is
+  **silently never found** — and what comes out is *a perfectly valid wall with a plain cap*, which nothing flags.
+  **That is D68's failure shape (a join silently not happening) reached by an entirely new road.**
+  ⇒ `tests/join-spatial-index.test.ts` (7) is written **hostile to the GRID rather than to the geometry**: corners on
+  a cell boundary, corners either side of one (999.9999 vs 1000.0001), a mid-span T on a boundary, a 60 m wall queried
+  from the middle of its span, walls far apart that must NOT join, and the scene-identity cache test.
+- **⚠ REVERT-VERIFIED BY NEUTERING THE MECHANISM, not by deleting the fix:** the 3×3 neighbourhood lookup was narrowed
+  to a single cell and the suite re-run — **exactly one test fired (the cell-boundary corner), and all 21 existing
+  join tests still passed.** That is the whole argument for the new file in one measurement: *the existing suite could
+  not have caught it.*
+- **Box:** read/measure/build only; `pnpm verify` ×3 + targeted vitest + one pure-TS probe (deleted after); **nothing
+  installed, no containers touched, no ports bound, no kernel rebuild** (pure TS); `/tmp` 11 MB; available RAM never
+  below ~2.3 GB; **both live public sites up throughout**.
+
+**NEXT:**
+- **Owner:** **the FREEZE (step 6) is still the owner's act and still unblocked** — D73 touched no contract at all.
+- **Zayd:** the schedules body (D58 row Ⓐ) — now the largest remaining v1.0.0 item, and it wants a design doc + a
+  ruling round · the D29 cache bodies (§4j-2 FIRST — it is an identity task, not a serializer task) · **the OWED
+  `exposedRefs` declarations** for `core.opening` and `core.curtainwall` (D72, Entry 60).
+- **⚠ STILL UNSWEPT (§1c-8's ledger): rules 1–4, 7–11, 14, 17, 18.** Six swept, four dirty; the two clean ones were
+  the two that were EXERCISED rather than read.
+- **Amer:** unchanged — renderer batching/instancing (Entry 55's wall, now the only remaining scale item), P4.5, FSA
+  adapter, WebGPU, service worker/PWA, Cloudflare deploy; plus the optional `codecFor` wiring (D71).
