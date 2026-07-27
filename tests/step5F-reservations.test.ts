@@ -33,6 +33,7 @@ import {
   emptyScene,
   loadBnn,
   saveBnn,
+  codecFor,
   createRegistries,
   isElementActive,
   CORE_COMMANDS,
@@ -240,19 +241,37 @@ describe('Ⓕ/D65 — the exclusion invariant (the reason this row is not just "
  * ============================================================================================= */
 
 describe('Ⓕ — what needed NO reservation, asserted rather than merely written down', () => {
-  it('D63: the DWG seam ALREADY EXISTS — a format is an additive registration (domain rule 5)', () => {
+  it('D63: the DWG seam is a real registration — a codec is REACHED and INVOKED (domain rule 5)', () => {
+    // ⚠⚠ THIS TEST USED TO PROVE NOTHING (corrected Entry 60, the rule-5 backward sweep). It registered
+    // a metadata-only descriptor and asserted `codecs.size` went 0 → 1 — i.e. it exercised the generic
+    // `Registry` class, which 51 type and 39 command registrations already prove. It would have passed
+    // verbatim if `FormatCodec` were `{ id }`, and at the time NOTHING in the repo consulted
+    // `registries.codecs` at all: `saveBnn`/`loadBnn` were called by name. **D63's conclusion (nothing
+    // was owed pre-freeze) still holds — `FormatCodec` is not a frozen shape and gained its behaviour
+    // additively. Its EVIDENCE did not.** The seam is now exercised properly in
+    // `tests/format-codec-seam.test.ts`; this keeps row Ⓕ's own claim honest where it was recorded.
     const registries = createRegistries();
     expect(registries.codecs.size).toBe(0);
-    // A DWG codec is a REGISTRATION against the existing contract — no new shape, no frozen byte moved.
+
+    let invoked = false;
     registries.codecs.register({
       id: 'dwg',
       label: 'AutoCAD DWG',
       extensions: ['.dwg'],
       canRead: true,
       canWrite: false,
+      read: () => {
+        invoked = true;
+        return { scene: emptyScene() };
+      },
     });
+
+    // The claim is DISPATCH, not storage: a caller holding a filename reaches the new format.
+    const codec = codecFor(registries, 'site-survey.dwg');
+    expect(codec?.id).toBe('dwg');
+    codec!.read!(new Uint8Array());
+    expect(invoked).toBe(true);
     expect(registries.codecs.get('dwg')?.canWrite).toBe(false);
-    expect(registries.codecs.size).toBe(1);
   });
 
   it('phase filters need nothing: the datums already exist and a filter is a VIEW property', () => {

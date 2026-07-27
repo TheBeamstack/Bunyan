@@ -28,6 +28,7 @@
  */
 
 import type { Material, Section, TypeId } from './entities.js';
+import type { Scene } from './scene.js';
 import type { BimObjectType } from './types.js';
 import type { Command } from './commands.js';
 
@@ -76,15 +77,82 @@ export class Registry<T extends { readonly id: string }> {
 }
 
 /**
- * A file-format codec (spec §4.3) — `.bnn` is one, IFC import is one (P6), the Clean Delta exporter
- * is one (D34/D36).
+ * A file-format codec (spec §4.3) — `.bnn` is one, IFC import is one (P6), a DWG reader would be one.
+ *
+ * ⚠⚠ **`read`/`write` ARE THE POINT, AND THEY WERE MISSING UNTIL ENTRY 60.** This interface used to be
+ * `{id, label, extensions, canRead, canWrite}` — pure metadata, no behaviour — and **nothing anywhere
+ * consulted `registries.codecs`.** `saveBnn`/`loadBnn` were called by name. So registering a codec
+ * accomplished exactly nothing, and *"a new format is an additive registration"* (`core_logic.md` rule 5)
+ * was decorative for formats while being genuinely true for types and commands.
+ *
+ * **How the rule-5 backward sweep found it, mechanically:** count what is actually registered across the
+ * repo — **51 types, 39 commands, 1 codec (inside the test asserting the seam exists), 0 views.** Of the
+ * four kinds rule 5 names, two worked.
+ *
+ * ⚠ It also lands on **D63**, which discharged freeze-gate row Ⓕ with *"the DWG seam ALREADY EXISTS…
+ * asserted in the test, not just written down."* That test registered a descriptor and asserted `size`
+ * went 0→1 — it exercised the generic `Registry` class, and would have passed had `FormatCodec` been
+ * `{id}`. The seam it certified could not read a byte. **D63's conclusion survives; its evidence did not.**
  */
 export interface FormatCodec {
   readonly id: string;
   readonly label: string;
+  /** Lower-case, dot-led — `['.bnn']`. Matched against a filename by `codecFor`. */
   readonly extensions: readonly string[];
   readonly canRead: boolean;
   readonly canWrite: boolean;
+  /** Decode bytes into a scene (+ whatever else the format carries). Present iff `canRead`. */
+  readonly read?: (bytes: Uint8Array) => CodecReadResult;
+  /** Encode a scene into bytes. Present iff `canWrite`. */
+  readonly write?: (input: CodecWriteInput) => Uint8Array;
+}
+
+/**
+ * What reading a file yields. `scene` is the only required member — every other format-specific payload
+ * (a `.bnn`'s manifest and journal) rides along optionally, so a codec for a format that carries less
+ * (a DWG underlay, an IFC import) is not forced to invent fields it has no source for.
+ */
+export interface CodecReadResult {
+  readonly scene: Scene;
+  readonly manifest?: unknown;
+  readonly journal?: unknown;
+  readonly thumbnail?: Uint8Array;
+}
+
+/** What writing a file is given. `options` is format-specific and passed through untouched. */
+export interface CodecWriteInput {
+  readonly scene: Scene;
+  readonly options?: unknown;
+}
+
+/**
+ * ⚠ THE DISPATCHER — the thing that makes rule 5 true for formats rather than aspirational. Pick the
+ * codec that handles `filename` by its extension, without the caller naming a format. **This is what a
+ * new format registration has to reach in order to be additive**: register a `.dwg` codec and every
+ * caller of `codecFor` can open a `.dwg` with zero other edits, which is precisely the property rule 5
+ * asserts and the property the old metadata-only registry could not deliver.
+ *
+ * ⚠ Longest extension wins, so a `.tar.gz`-style compound never loses to a shorter prefix.
+ */
+export function codecFor(
+  registries: Registries,
+  filename: string,
+  need: 'read' | 'write' = 'read',
+): FormatCodec | undefined {
+  const lower = filename.toLowerCase();
+  let best: FormatCodec | undefined;
+  let bestLen = -1;
+  for (const codec of registries.codecs.list()) {
+    if (need === 'read' && !codec.canRead) continue;
+    if (need === 'write' && !codec.canWrite) continue;
+    for (const ext of codec.extensions) {
+      if (lower.endsWith(ext.toLowerCase()) && ext.length > bestLen) {
+        best = codec;
+        bestLen = ext.length;
+      }
+    }
+  }
+  return best;
 }
 
 /**
@@ -95,6 +163,17 @@ export interface FormatCodec {
  * Queries return SEMANTICS — ids, types, params, quantities, relationships — **never triangles.** A
  * `Float32Array` is unreadable to an agent, and an agent handed one has been given a picture and
  * asked to think.
+ *
+ * ⚠⚠ **AND IT IS A RESERVED SHAPE, NOT A WORKING SEAM — SAID PLAINLY (Entry 60).** Nothing registers a
+ * `ViewDefinition` and nothing reads `registries.views`; there is no projection member here to call. The
+ * view BODIES are P6 (one plan, one section, one schedule — D58), and the shape a view is actually
+ * described by is `documentation.ts`'s `ViewDescriptor`, which is a separate, deliberately additive union.
+ *
+ * This is recorded rather than quietly left because the codec registry beside it had exactly the same
+ * shape — metadata with no behaviour and no dispatcher — and a decision (D63) was discharged on the
+ * assumption that it worked. **A reservation is fine; a reservation mistaken for a mechanism is not.**
+ * When the P6 bodies land, this grows a projection member and a dispatcher, exactly as `FormatCodec`
+ * just did.
  */
 export interface ViewDefinition {
   readonly id: string;

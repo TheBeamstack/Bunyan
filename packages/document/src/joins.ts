@@ -56,6 +56,33 @@ function unit(a: V): V | undefined {
   return l < EPS ? undefined : [a[0] / l, a[1] / l];
 }
 
+/**
+ * ⚠⚠ THE MID-SPAN TEST (Entry 60, the rule-16 backward sweep). Does `P` lie ON `seg`, STRICTLY between its
+ * endpoints? That last word is the whole distinction: a point at an endpoint is a CORNER (miter territory,
+ * `partnersAt`), a point in the middle is a T-junction (butt territory).
+ *
+ * **Why it had to exist.** Without it a partition whose end lands mid-span found no partner at all, kept its
+ * plain perpendicular cap, and drove its last half-thickness INSIDE the through wall — so that sliver of
+ * blockwork lived in both B-Reps and was counted twice by `projectQuantities`, wearing `basis: 'exact'`
+ * (measured: 2.8800 m³ where 2.8320 m³ is the truth). `core_logic.md` rule 16: *"a quantity can never
+ * double-count."* A T is the commonest interior condition in a building, and it was the one shape the join
+ * resolver could not see.
+ *
+ * ⚠ Read from the `{start,end}` PARAMS like every other join decision — the recipe, never a built solid
+ * (D1-safe, §0a). `JOIN_TOL` is the same "these are the same point" tolerance a corner uses.
+ */
+function pointOnSegment(P: V, seg: Baseline): boolean {
+  const d = sub(seg.end, seg.start);
+  const l = len(d);
+  if (l < EPS) return false;
+  const u: V = [d[0] / l, d[1] / l];
+  const w = sub(P, seg.start);
+  const along = dot(w, u);
+  // Strictly inside: an endpoint hit is a corner, and the corner rule owns it.
+  if (along <= JOIN_TOL || along >= l - JOIN_TOL) return false;
+  return Math.abs(cross(u, w)) <= JOIN_TOL;
+}
+
 /* ------------------------------------------------------------------------------------------------
  * READING A WALL FROM THE RECIPE — the only place that knows a wall is `{start,end}` params (D52).
  * ---------------------------------------------------------------------------------------------- */
@@ -187,6 +214,33 @@ function partnersAt(
 }
 
 /**
+ * ⚠⚠ Every OTHER wall this point lands on MID-SPAN — the T-junction partners (Entry 60).
+ *
+ * The sibling of `partnersAt`, and the two are deliberately disjoint: `partnersAt` matches an endpoint (a
+ * corner ⇒ miter), this matches the interior of a segment (a T ⇒ butt). Same option filter, for the same
+ * D65/D67 reason — a partition must not butt onto a wall belonging to a scheme nobody will build, and it
+ * must not be pushed into ambiguity by one either.
+ */
+function throughWallsAt(
+  scene: Scene,
+  P: V,
+  selfId: ElementId,
+  scope: OptionScope,
+  active: ActiveOptions,
+): readonly { id: ElementId; base: Baseline; thickness: number }[] {
+  const out: { id: ElementId; base: Baseline; thickness: number }[] = [];
+  for (const el of Object.values(scene.elements)) {
+    if (el.id === selfId) continue;
+    if (!isElementActive(el, scope, active)) continue;
+    const b = baselineOf(el);
+    if (b === undefined) continue;
+    if (pointOnSegment(P, b))
+      out.push({ id: el.id, base: b, thickness: totalWallThickness(el, scene) });
+  }
+  return out;
+}
+
+/**
  * The cap lines for a wall's two ends — the NON-DEFAULT ones only (an unjoined or `none` end is omitted,
  * and the Wall draws its plain perpendicular cap there). This is what `BuildContext.joins` carries.
  *
@@ -240,12 +294,18 @@ function resolveEnd(
     if (other !== undefined && !isElementActive(other, scope, active)) continue;
     const otherBase = other === undefined ? undefined : baselineOf(other);
     if (otherBase === undefined) continue;
-    if (!near(otherBase.start, P) && !near(otherBase.end, P)) continue; // this override is at a different corner
+    const atCorner = near(otherBase.start, P) || near(otherBase.end, P);
+    // ⚠ An override may now name a MID-SPAN pair too (Entry 60) — that is how an author disables the
+    // auto-butt on a T, which `core.setJoin` refused to express until the T could be joined at all.
+    const atMidSpan = pointOnSegment(P, otherBase);
+    if (!atCorner && !atMidSpan) continue; // this override is at a different junction
     switch (o.resolution) {
       case 'none':
         return undefined; // Disallow Join — the walls stay separate boxes.
       case 'mitre':
-        return miterLine(P, body, partnerBody(otherBase, P), wallDir);
+        // ⚠ A mid-span T has no corner to bisect: the two walls do not both END here, so there is no
+        // angle between their bodies. Refuse to invent one — fall back to the plain cap.
+        return atCorner ? miterLine(P, body, partnerBody(otherBase, P), wallDir) : undefined;
       case 'butt':
         // Directional: only the BUTTING wall (`element`) moves; the through wall (`other`) is untouched.
         return o.element === selfId
@@ -256,8 +316,21 @@ function resolveEnd(
 
   // --- 2. Auto-join: exactly one coincident neighbour ⇒ miter. Zero or 2+ ⇒ the default cap. -----------
   const partners = partnersAt(scene, P, selfId, scope, active);
-  if (partners.length !== 1) return undefined;
-  return miterLine(P, body, partners[0]!.body, wallDir);
+  if (partners.length === 1) return miterLine(P, body, partners[0]!.body, wallDir);
+  if (partners.length > 1) return undefined; // an ambiguous crowd of corners — the default cap
+
+  // --- 3. ⚠⚠ Auto-BUTT on a mid-span T (Entry 60, domain rule 16). -----------------------------------
+  // Reached only when no wall ENDS here, so a corner cannot be what this is. Exactly one wall running
+  // through the point ⇒ this wall butts onto its near face. The same ambiguity discipline as a corner:
+  // a crowd of 2+ through walls has no single face to stop on, so it falls back to the default cap.
+  //
+  // ⚠ DIRECTIONAL, and that is what makes it double-count-free: only the BUTTING wall's cap moves; the
+  // through wall runs on untouched. The two solids then abut on a face instead of overlapping in a
+  // sliver, which is the whole point — `t_partition × t_through/2 × height` of blockwork stops existing
+  // twice. (`buttLine` is the same geometry a `resolution:'butt'` override has always produced.)
+  const through = throughWallsAt(scene, P, selfId, scope, active);
+  if (through.length !== 1) return undefined;
+  return buttLine(P, body, through[0]!.base, through[0]!.thickness);
 }
 
 /** The direction from corner `P` into the neighbour's body (whichever of its ends meets `P`). */
@@ -287,6 +360,7 @@ export function wallsJoinedTo(
   scene: Scene,
   selfId: ElementId,
   points: readonly V[],
+  segments: readonly Baseline[] = [],
 ): readonly ElementId[] {
   const ids = new Set<ElementId>();
   for (const el of Object.values(scene.elements)) {
@@ -294,6 +368,15 @@ export function wallsJoinedTo(
     const b = baselineOf(el);
     if (b === undefined) continue;
     if (points.some((p) => near(b.start, p) || near(b.end, p))) ids.add(el.id);
+    // ⚠⚠ THE MID-SPAN EDGE (Entry 60). A wall that BUTTS INTO this one rests its cap on this wall's FACE,
+    // so it depends on this wall's baseline AND its thickness — thicken the through wall and every
+    // partition landing on it must re-stage. Without this the partition keeps a stale solid, which is
+    // precisely the silent direction this function's own header warns about (0a's `#touched` hole).
+    // ⚠ Note the asymmetry is intentional and matches the geometry: the BUTTING wall depends on the
+    // through wall, never the reverse — a butt moves only the wall that stops.
+    else if (segments.some((s) => pointOnSegment(b.start, s) || pointOnSegment(b.end, s))) {
+      ids.add(el.id);
+    }
   }
   for (const o of joinOverridesOf(scene, selfId)) {
     ids.add(o.element === selfId ? o.other : o.element);
@@ -318,4 +401,27 @@ export function wallsShareCorner(a: Element, b: Element): boolean {
   const pa = endpointsOf(a);
   const pb = endpointsOf(b);
   return pa.some((x) => pb.some((y) => near(x, y)));
+}
+
+/**
+ * ⚠ Do two walls MEET AT ALL — at a corner, or with one's end on the other's mid-span (Entry 60)?
+ *
+ * The widened `core.setJoin` precondition. It has to widen in step with the auto-join: once a T joins
+ * automatically, an author needs a way to say *don't* (`resolution:'none'`), and the verb that expresses
+ * every other join override is the one that should express this one. **The record itself is unchanged** —
+ * `{element, other, resolution}` already keys the junction uniquely, because two straight baselines meet
+ * at at most one point, and WHERE they meet is derived from the baselines (recipe-is-truth). No new
+ * frozen field; the precondition relaxed, the contract did not move.
+ */
+export function wallsMeet(a: Element, b: Element): boolean {
+  if (wallsShareCorner(a, b)) return true;
+  const ba = baselineOf(a);
+  const bb = baselineOf(b);
+  if (ba === undefined || bb === undefined) return false;
+  return (
+    pointOnSegment(ba.start, bb) ||
+    pointOnSegment(ba.end, bb) ||
+    pointOnSegment(bb.start, ba) ||
+    pointOnSegment(bb.end, ba)
+  );
 }

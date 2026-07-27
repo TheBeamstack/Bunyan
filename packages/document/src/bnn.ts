@@ -27,7 +27,7 @@ import type { Scene } from './scene.js';
 import { SCENE_SCHEMA_VERSION, emptyScene } from './scene.js';
 import type { UndoableEdit } from './undo.js';
 import type { ModelRevision } from './revision.js';
-import type { Registries } from './registries.js';
+import type { CodecReadResult, CodecWriteInput, FormatCodec, Registries } from './registries.js';
 import type { Element, Params } from './entities.js';
 
 export const APP_VERSION = '0.0.0';
@@ -359,3 +359,38 @@ function counterOf(key: string): number {
 function byCounter(a: string, b: string): number {
   return counterOf(a) - counterOf(b);
 }
+
+/* ================================================================================================
+ * THE `.bnn` FORMAT AS A REGISTERED CODEC (domain rule 5, Entry 60).
+ * ============================================================================================= */
+
+/**
+ * ⚠⚠ `.bnn` AS A REGISTRATION RATHER THAN A HARD-CODED CALL.
+ *
+ * Until Entry 60 the codec registry held no behaviour and nothing dispatched through it, so *"a new
+ * format is an additive registration"* (`core_logic.md` rule 5) was true of types and commands and
+ * decorative for formats. Registering the format Bunyan itself ships is what makes the seam load-bearing:
+ * it is now exercised by the primary path, not only by a test for a format that does not exist yet.
+ *
+ * ⚠ `saveBnn`/`loadBnn` remain exported and unchanged — this wraps them, it does not replace them. The
+ * direct calls are still the right thing where the caller genuinely knows it wants a `.bnn` (autosave);
+ * the registry is for the caller that has a FILENAME and should not have to know the format at all.
+ */
+export const BNN_CODEC: FormatCodec = {
+  id: 'bnn',
+  label: 'Bunyan document',
+  extensions: ['.bnn'],
+  canRead: true,
+  canWrite: true,
+  read: (bytes: Uint8Array): CodecReadResult => {
+    const pkg = loadBnn(bytes);
+    return {
+      scene: pkg.scene,
+      manifest: pkg.manifest,
+      ...(pkg.journal === undefined ? {} : { journal: pkg.journal }),
+      ...(pkg.thumbnail === undefined ? {} : { thumbnail: pkg.thumbnail }),
+    };
+  },
+  write: (input: CodecWriteInput): Uint8Array =>
+    saveBnn(input.scene, (input.options ?? { kernelBuildId: 'unknown' }) as SaveOptions),
+};

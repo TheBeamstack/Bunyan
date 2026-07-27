@@ -3,7 +3,7 @@
  *
  * Design: `P5_step6_clean_delta_design.md` (the payload map, proven pre-freeze to need no frozen change)
  * + `P5_step6A_enumeration_design.md` §4 Q2 (the owner's 2026-07-25 ruling on `prior`).
- * Target: `../Planitor/v2.2_spec.md` §4 — `contract_version: "1.1"`, `source: "bunyan"`.
+ * Target: `../Planitor/v2.2_spec.md` §4 — `contract_version: "1.2"`, `source: "bunyan"`.
  *
  * ⚠⚠ THE PROPERTY UNDER TEST IS THE MOAT, AND §3 IS WHERE IT IS WON: `change_type` is **READ off the
  * journal, never inferred by diffing two models.** The decisive case is the ASSOCIATIVE CASCADE — move a
@@ -135,7 +135,7 @@ describe('the Clean Delta exporter — change_type is READ, never inferred', () 
    * §1 — THE PACKAGE. Every field of Planitor v2.2 §4, from frozen shapes.
    * ========================================================================================= */
 
-  it('⚠⚠ emits the Planitor v2.2 §4 package — contract 1.1, source bunyan, basis exact, per-part', async () => {
+  it('⚠⚠ emits the Planitor v2.2 §4 package — contract 1.2, source bunyan, basis exact, per-part', async () => {
     const doc = newDoc();
     await groundwork(doc);
     const w = await wall(doc, 'l1', 6000);
@@ -149,7 +149,7 @@ describe('the Clean Delta exporter — change_type is READ, never inferred', () 
     const pkg = await exportCleanDelta(doc, { since: rev1, priorContext: priorContext() });
 
     expect(pkg.contract_version).toBe(CLEAN_DELTA_CONTRACT_VERSION);
-    expect(pkg.contract_version).toBe('1.1');
+    expect(pkg.contract_version).toBe('1.2');
     expect(pkg.source).toBe('bunyan');
     expect(pkg.units).toBe('metric');
     expect(pkg.model_revision.snapshot_number).toBe(2);
@@ -179,6 +179,13 @@ describe('the Clean Delta exporter — change_type is READ, never inferred', () 
     // a percentage of a wall. This is what retires Planitor's hardcoded `density: 7850`.
     expect(row.quantity!.parts).toHaveLength(1);
     expect(row.quantity!.parts[0]!.material).toBe('C25/30');
+    // ⚠⚠ RULE 12 (Entry 60): the wire carries the material's shared-entity ID, not only its display
+    // NAME. `material` above is a mutable, non-unique label — rename C25/30 and every downstream work
+    // package re-keys; two materials sharing a display name merge into one schedule group; and an
+    // unresolvable material falls back to emitting the raw id AS the name, so one material arrives
+    // under two different keys. *"Materials and Sections are shared entities, never strings — a value
+    // that must be grouped, scheduled, or read by an analysis engine cannot be a copy."*
+    expect(row.quantity!.parts[0]!.materialId).toBe('concrete');
     expect(row.quantity!.parts[0]!.discipline).toBe('structural');
     expect(row.quantity!.parts[0]!.mass).toBeCloseTo(((8000 * 200 * 3000) / 1e9) * 2400, 6);
 

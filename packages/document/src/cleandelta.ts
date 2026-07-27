@@ -3,7 +3,7 @@
  *
  * **Design:** `P5_step6_clean_delta_design.md` (the payload mapping, field for field, proven to need no
  * frozen change) + `P5_step6A_enumeration_design.md` (the enumeration query it opens with, and the
- * owner's 2026-07-25 rulings). **Target:** `../Planitor/v2.2_spec.md` §4, `contract_version: "1.1"`,
+ * owner's 2026-07-25 rulings). **Target:** `../Planitor/v2.2_spec.md` §4, `contract_version: "1.2"`,
  * `source: "bunyan"` — a real, on-box consumer contract, not a guess (D57: BIMsync is unbuilt and will
  * adapt to Bunyan, so Bunyan owns this payload and designs it for Planitor + Miqdar).
  *
@@ -31,8 +31,16 @@ import { isElementActive, optionScopeOf } from './designoptions.js';
 import type { Registries } from './registries.js';
 import type { GeometryGateway } from './geometry.js';
 
-/** The contract version this exporter emits — Planitor v2.2 §4 / BIMsync v1.1. */
-export const CLEAN_DELTA_CONTRACT_VERSION = '1.1';
+/**
+ * The contract version this exporter emits — Planitor v2.2 §4.
+ *
+ * ⚠ 1.1 → 1.2 (Entry 60): `parts[].materialId` is REQUIRED. 1.1 identified a material by its display
+ * NAME alone, which is `core_logic.md` rule 12's exact failure ("a value that must be grouped,
+ * scheduled, or read by an analysis engine cannot be a copy"). Bumped rather than added optionally
+ * because an OPTIONAL identity field leaves the defect reachable — a consumer could still key by name.
+ * Cheapest possible moment to bump: 1.1 was published 2026-07-25 and no consumer has implemented it.
+ */
+export const CLEAN_DELTA_CONTRACT_VERSION = '1.2';
 
 /**
  * Planitor's `change_type` enum, in full.
@@ -58,6 +66,29 @@ const MM2_TO_M2 = 1e6;
 
 export interface CleanDeltaPart {
   readonly name: string;
+  /**
+   * ⚠⚠ THE MATERIAL'S SHARED-ENTITY ID (contract 1.2, Entry 60 — the rule-12 backward sweep).
+   *
+   * **This is the grouping key. `material` below is a LABEL for humans, and nothing else.** Contract 1.1
+   * shipped only the label, which broke `core_logic.md` rule 12 on the one surface the rule names:
+   * *"Materials and Sections are shared entities, never strings — a value that must be grouped,
+   * scheduled, or read by an analysis engine cannot be a copy."* A Clean Delta package is exactly that
+   * value, and it was keyed on a mutable, non-unique display name. Three ways that goes wrong, all silent:
+   *
+   *   1. **Rename** `C25/30` → `C25/30 (pump)` and every downstream work package re-keys — rule 13's
+   *      "identity survives every rebuild and re-issue" defeated for materials.
+   *   2. **Two distinct materials sharing a display name** merge into one schedule group. `Material.name`
+   *      carries no uniqueness constraint and nothing refuses a duplicate.
+   *   3. **An unresolvable material** emits its raw id as the name (`materialName: name ?? materialId`,
+   *      `document.ts`), so the SAME material arrives under two different keys depending on whether it
+   *      resolved — one material, two groups.
+   *
+   * ⚠ The tell that this was a backward-sweep miss rather than a design choice: `enumerate.ts`'s
+   * `totalsByMaterial` has always grouped by `part.materialId`. The rule was obeyed INTERNALLY and broken
+   * on the contract three products bind to.
+   */
+  readonly materialId: string;
+  /** The human-facing label — for display only. ⚠ NEVER group by this; group by `materialId`. */
   readonly material: string;
   /** m³ */
   readonly volume: number;
@@ -333,6 +364,7 @@ export function changeTypeOf(
 function partToWire(part: PartQuantity): CleanDeltaPart {
   return {
     name: part.name,
+    materialId: part.materialId,
     material: part.materialName,
     volume: part.volume / MM3_TO_M3,
     area: part.area / MM2_TO_M2,

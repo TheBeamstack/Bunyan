@@ -35,7 +35,7 @@ import {
   elementsConstrainedToLevel,
   elementsUsingSection,
 } from './scene.js';
-import { endpointsOf, wallsJoinedTo } from './joins.js';
+import { baselineOf, endpointsOf, wallsJoinedTo } from './joins.js';
 
 /**
  * The element ids whose BUILT GEOMETRY depends on the entity this change touched — i.e. the ones that
@@ -67,7 +67,13 @@ export function dependents(scene: Scene, change: SceneChange): readonly ElementI
         ...endpointsOf(change.before as Element | undefined),
         ...endpointsOf(change.after as Element | undefined),
       ];
-      if (points.length > 0) ids.push(...wallsJoinedTo(scene, element.id, points));
+      // ⚠ AND THE SEGMENTS, not only the endpoints (Entry 60). A wall that BUTTS INTO this one mid-span
+      // rests its cap on this wall's face, so it re-stages when this wall moves OR thickens — a change
+      // that leaves both endpoints exactly where they were. Endpoints alone cannot see that dependency.
+      const segments = [change.before, change.after]
+        .map((e) => (e === undefined ? undefined : baselineOf(e as Element)))
+        .filter((s): s is NonNullable<typeof s> => s !== undefined);
+      if (points.length > 0) ids.push(...wallsJoinedTo(scene, element.id, points, segments));
       return ids;
     }
     case 'styles':

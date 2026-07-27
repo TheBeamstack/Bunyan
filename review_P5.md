@@ -148,6 +148,21 @@ resolution. That is the expensive-forever finding. Lead with it (Finding 1).
 - **RECOMMENDATION** — Before step 6, model a small floor plan with interior partitions against the real
   Wall and confirm the `JoinConstraint` shape survives adding mid-span joins later. Record the result
   either way (a reservation, or a proof it's additive).
+- **✅ RESOLVED 2026-07-27 (Entry 60, D69) — AND IT WAS WORSE THAN THIS ITEM PREDICTED.** The additivity
+  question was answered first (Entry 44, `wall-join-midspan.test.ts`): purely additive, no new frozen
+  field, `{element, other, resolution:'butt'}` already keys the junction because two straight baselines
+  meet at at most one point. That answer was correct and still stands. **But this item priced the gap as
+  a _visible modelling limit_, and the 2026-07-27 backward sweep of domain rule 16 measured it as a
+  _silent quantity defect_:** an unjoined partition's last half-thickness sits INSIDE the through wall, so
+  that sliver of blockwork exists in **both** B-Reps and `projectQuantities` sums it twice — **2.8800 m³
+  reported where 2.8320 m³ is the truth**, with `unmeasured: []` and `basis: 'exact'`. The over-report is
+  **fixed per junction** (`t_partition × t_through/2 × height`), so it scales with the **number** of
+  partitions rather than their size. ⚠ **The Entry-44 test pinned this exact fixture and stayed green for a
+  week**, because it asserted the geometry and the contract-additivity and never asked what the limit did
+  to a quantity (§1b's second method). **Mid-span T-junctions now auto-butt in v1.0.0** — directional, with
+  a corner's ambiguity discipline, the invalidator's segment edge, and `setJoin` widened so `none` can
+  disable it. _A "visible limit" and a "silent wrong number" are not the same severity, and this item chose
+  the wrong one._
 
 ---
 

@@ -33,7 +33,7 @@ import type { Registries, Scene } from '@bunyan/document';
 import { openingType, wallType } from '@bunyan/types';
 
 const SCHEMA_PATH = fileURLToPath(
-  new URL('../packages/document/schema/clean-delta-1.1.schema.json', import.meta.url),
+  new URL('../packages/document/schema/clean-delta-1.2.schema.json', import.meta.url),
 );
 const schema = JSON.parse(readFileSync(SCHEMA_PATH, 'utf8')) as Record<string, unknown>;
 
@@ -198,7 +198,7 @@ describe('the Clean Delta JSON Schema — the contract as an artifact (Planitor 
     const wire = JSON.parse(JSON.stringify(pkg)) as unknown;
 
     expect(validate(wire, schema)).toEqual([]);
-    expect((wire as Record<string, unknown>)['contract_version']).toBe('1.1');
+    expect((wire as Record<string, unknown>)['contract_version']).toBe('1.2');
     expect((wire as Record<string, unknown>)['source']).toBe('bunyan');
   }, 180000);
 
@@ -207,7 +207,7 @@ describe('the Clean Delta JSON Schema — the contract as an artifact (Planitor 
     expect((schema['properties'] as Record<string, Json>)['contract_version']!['const']).toBe(
       pkg.contract_version,
     );
-    expect(schema['$id']).toContain('clean-delta-1.1');
+    expect(schema['$id']).toContain('clean-delta-1.2');
   }, 180000);
 
   /* ============================================================================================
@@ -231,6 +231,17 @@ describe('the Clean Delta JSON Schema — the contract as an artifact (Planitor 
         delete ((d['elements'] as Json[])[0]!['quantity'] as Json)['parts'];
       })[0],
     ).toMatch(/missing required property "parts"/);
+    // ⚠⚠ RULE 12 (contract 1.2, Entry 60) — a producer that emits the material's display NAME but not
+    // its shared-entity ID. This is the mutation that makes the 1.1→1.2 bump load-bearing rather than a
+    // number: without it the schema would accept exactly the package 1.1 accepted, and a consumer would
+    // go on grouping work packages by a mutable, non-unique label.
+    expect(
+      mutate((d) => {
+        delete (((d['elements'] as Json[])[0]!['quantity'] as Json)['parts'] as Json[])[0]![
+          'materialId'
+        ];
+      })[0],
+    ).toMatch(/missing required property "materialId"/);
     // ⚠ a downgraded basis — the one thing Planitor D10 forbids
     expect(
       mutate((d) => {

@@ -40,7 +40,7 @@ import type {
   SpatialContainer,
 } from './entities.js';
 import { isDatumConstraint, isJoinConstraint } from './entities.js';
-import { joinOverridesOf, wallsShareCorner } from './joins.js';
+import { joinOverridesOf, wallsMeet } from './joins.js';
 import { readSketch } from './sketch.js';
 import type { Registries } from './registries.js';
 import type { Scene, SceneChange } from './scene.js';
@@ -1418,10 +1418,10 @@ export const setJoinCommand: Command = {
     if (element.id === other.id) {
       throw new CommandFailure('INVALID_ARGS', 'a wall cannot be joined to itself');
     }
-    if (!wallsShareCorner(element, other)) {
+    if (!wallsMeet(element, other)) {
       throw new CommandFailure(
         'REFUSED',
-        `"${element.id}" and "${other.id}" do not meet at a corner — nothing to join`,
+        `"${element.id}" and "${other.id}" do not meet — nothing to join`,
       );
     }
     const resolution = text(args['resolution']) as JoinConstraint['resolution'];

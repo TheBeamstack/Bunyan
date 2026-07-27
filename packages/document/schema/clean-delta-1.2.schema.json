@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://bunyan.build/schema/clean-delta-1.1.schema.json",
+  "$id": "https://bunyan.build/schema/clean-delta-1.2.schema.json",
   "title": "Clean Delta Package",
   "description": "The contract that carries money (Bunyan Freeze-Gate 6 / D36b / D57). Canonical shape shared by Bunyan (source: bunyan, identity by construction) and BIMsync (source: bimsync, identity recovered by matching). Planitor v2.2 section 4 is the consumer. Per Planitor D11 this schema — not prose in three repos — IS the contract; each repo validates its producer/consumer against it in CI.",
   "type": "object",
@@ -14,7 +14,7 @@
     "summary"
   ],
   "properties": {
-    "contract_version": { "const": "1.1" },
+    "contract_version": { "const": "1.2" },
     "source": { "enum": ["bunyan", "bimsync"] },
     "units": { "const": "metric" },
     "model_revision": {
@@ -137,10 +137,17 @@
                 "description": "THE PER-PART BREAKDOWN, and the point of the whole exercise: a real wall is blockwork + insulation + plaster, each a distinct material with a distinct trade. When present, parts[] IS the quantity and value is a convenience.",
                 "items": {
                   "type": "object",
-                  "required": ["name", "material", "volume", "area", "unit"],
+                  "required": ["name", "materialId", "material", "volume", "area", "unit"],
                   "properties": {
                     "name": { "type": "string" },
-                    "material": { "type": "string" },
+                    "materialId": {
+                      "type": "string",
+                      "description": "THE GROUPING KEY: the id of the shared Material entity (Bunyan domain rule 12 / D33 — materials are shared entities, never strings). Added REQUIRED in contract 1.2. Group, schedule and analyse by THIS; `material` below is a display label only. A display name is mutable and carries no uniqueness constraint, so keying on it silently re-keys every work package on a rename and merges two distinct materials that happen to share a name."
+                    },
+                    "material": {
+                      "type": "string",
+                      "description": "Human-facing label for display. NEVER a grouping key — see materialId."
+                    },
                     "volume": { "type": "number" },
                     "area": { "type": "number" },
                     "mass": {
