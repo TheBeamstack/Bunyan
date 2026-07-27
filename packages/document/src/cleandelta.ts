@@ -28,6 +28,8 @@ import { revertChanges } from './scene.js';
 import type { UndoableEdit } from './undo.js';
 import type { EnumerateOptions, ModelElement } from './enumerate.js';
 import { isElementActive, optionScopeOf } from './designoptions.js';
+import { builtAxisLength } from './joins.js';
+import type { JoinOptionSelection } from './joins.js';
 import type { Registries } from './registries.js';
 import type { GeometryGateway } from './geometry.js';
 
@@ -380,15 +382,24 @@ function partToWire(part: PartQuantity): CleanDeltaPart {
  * ⚠ It is a PARAM, never `measure.edgeLength` — the sum of every edge of a solid is meaningless as a
  * schedule quantity. *"120 m of IPE300"* is the member's axis, and a wall's is its baseline.
  */
-function semanticLength(params: Readonly<Record<string, unknown>>): number | null {
-  const start = params['start'];
-  const end = params['end'];
-  if (Array.isArray(start) && Array.isArray(end) && start.length >= 2 && end.length >= 2) {
-    const dx = Number(end[0]) - Number(start[0]);
-    const dy = Number(end[1]) - Number(start[1]);
-    return Math.sqrt(dx * dx + dy * dy) / 1000;
-  }
-  const length = params['length'];
+function semanticLength(
+  scene: Scene,
+  elementId: ElementId | undefined,
+  selection: JoinOptionSelection,
+): number | null {
+  const element = elementId === undefined ? undefined : scene.elements[elementId];
+  if (element === undefined) return null;
+
+  // ⚠⚠ THE BUILT AXIS, NOT THE AUTHORED BASELINE (Entry 60, domain rule 15). A join CLIPS a wall's end
+  // cap, so a butted partition's solid is shorter than the baseline it was drawn on. Emitting the
+  // baseline here put a reconstructed number beside a measured `volume` under one `basis: 'exact'` — and
+  // the two disagreed about the same wall, which a consumer can detect from the package alone.
+  // `builtAxisLength` returns the baseline exactly when nothing is joined.
+  const axis = builtAxisLength(scene, element.id, selection);
+  if (axis !== undefined) return axis / 1000;
+
+  // Not a baseline wall — fall back to a declared `length` param (a LinearMember's axis).
+  const length = element.params['length'];
   if (typeof length === 'number') return length / 1000;
   return null;
 }
@@ -522,7 +533,12 @@ export async function exportCleanDelta(
         canonical: {
           volume,
           area,
-          length: semanticLength(doc.scene.elements[element.rootId]?.params ?? {}),
+          length: semanticLength(doc.scene, element.rootId, {
+            ...(options.active === undefined ? {} : { active: options.active }),
+            ...(options.designOptions === undefined
+              ? {}
+              : { designOptions: options.designOptions }),
+          }),
           count: 1,
         },
         parts,

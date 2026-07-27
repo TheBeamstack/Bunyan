@@ -680,6 +680,13 @@ export interface Part {
   readonly handle: ShapeHandle;
   /** Every sub-shape identity this part's solid carries, canonically ordered. */
   readonly refs: readonly string[];
+  /**
+   * ⚠ The subset of `refs` a trade BILLS — declared by the Type (`BuiltPart.exposedRefs`, D72). Absent
+   * ⇒ `quantities()` falls back to the solid's total enclosing surface, which is what every Type
+   * reported before Entry 60. See `types.ts` `BuiltPart.exposedRefs` for why the Type must be the one
+   * to say, and for the 94.80-vs-15 m² measurement that forced it.
+   */
+  readonly exposedRefs?: readonly string[];
 }
 
 /** `core_logic.md` §7 — the geometry lifecycle of an element. */

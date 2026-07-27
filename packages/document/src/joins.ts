@@ -333,6 +333,63 @@ function resolveEnd(
   return buttLine(P, body, through[0]!.base, through[0]!.thickness);
 }
 
+/**
+ * ⚠⚠ THE BUILT AXIS LENGTH of a wall, in mm — its baseline CLIPPED BY ITS JOINS (Entry 60, domain rule
+ * 15). `undefined` when the element is not a baseline wall.
+ *
+ * **Why it exists.** The Clean Delta's `canonical.length` reconstructed the length from the `{start,end}`
+ * param while `volume` beside it was measured on the B-Rep — so a butted partition reported **2.00 m of a
+ * wall whose solid ran 1.9 m**, and both numbers sat under one `basis: 'exact'`. Rule 15: *"a quantity is
+ * MEASURED, never reconstructed… it must never emit a WRONG one wearing the `exact` badge."* The package
+ * contradicted itself, which is the one form of wrongness a consumer can detect unaided — and it is worth
+ * fixing precisely because most consumers will not look.
+ *
+ * ⚠ **This is not `measure.edgeLength`, and Freeze-Gate ⓗ's reasoning is not overturned.** Summing every
+ * edge of a solid is still meaningless as a schedule quantity. "Not edgeLength" merely never implied "the
+ * raw authored baseline": the built AXIS is the third option, it is what a QS bills, and it is derived
+ * from the recipe (the cap lines `resolveJoins` already produces) rather than read off a solid — so it
+ * stays D1-safe and kernel-free.
+ *
+ * ⚠ With nothing joined it returns the baseline exactly, so every existing jointless document is
+ * unchanged.
+ */
+export function builtAxisLength(
+  scene: Scene,
+  elementId: ElementId,
+  selection: JoinOptionSelection = {},
+): number | undefined {
+  const self = scene.elements[elementId];
+  if (self === undefined) return undefined;
+  const base = baselineOf(self);
+  if (base === undefined) return undefined;
+  const span = sub(base.end, base.start);
+  const total = len(span);
+  const u = unit(span);
+  if (u === undefined) return undefined;
+
+  // Parameters along the baseline, in mm from `start`. A join moves the end it caps; an unjoined end
+  // keeps its authored position.
+  let tStart = 0;
+  let tEnd = total;
+  for (const join of resolveJoins(scene, elementId, selection)) {
+    const t = intersectAlong(base.start, u, join.capLine);
+    if (t === undefined) continue; // cap parallel to the baseline — nothing to clip
+    if (join.end === 'start') tStart = t;
+    else tEnd = t;
+  }
+  // ⚠ Never negative: a pathological cap (a wall shorter than the wall it butts into is half as thick)
+  // must not produce a negative length wearing `exact`. Rule 15's own discipline — refuse the absurd
+  // number rather than publish it.
+  return Math.max(0, tEnd - tStart);
+}
+
+/** Where the baseline `start + t·u` meets `cap`, as `t` in mm. `undefined` when they are parallel. */
+function intersectAlong(start: V, u: V, cap: CapLine): number | undefined {
+  const denom = cross(u, cap.dir);
+  if (Math.abs(denom) < EPS) return undefined;
+  return cross(sub(cap.point, start), cap.dir) / denom;
+}
+
 /** The direction from corner `P` into the neighbour's body (whichever of its ends meets `P`). */
 function partnerBody(other: Baseline, P: V): V {
   if (near(other.start, P)) return unit(sub(other.end, other.start)) ?? [1, 0];

@@ -506,13 +506,38 @@ export class DocumentContext {
     for (const part of geometry.parts) {
       const measured = await this.#geometry.request('measure', { handle: part.handle });
       const material = this.#scene.materials[part.materialId];
+      // ⚠⚠ THE BILLABLE AREA (D72, domain rule 15). When the Type declares which faces are EXPOSED, the
+      // area is the sum of those faces, each MEASURED on the B-Rep via `measure(ref)` — never the
+      // solid's total enclosing surface, which for a 5 × 3 m three-layer wall came to 94.80 m² against a
+      // 15 m² paintable face because it counted every buried face, every edge and both caps.
+      //
+      // ⚠ Openings fall out correctly for free, which is why this is measured per FACE rather than
+      // computed: a door's hole shrinks the face it cuts, and the reveals it creates are DIFFERENT faces
+      // that are not in `exposedRefs` — exactly the owner-ruled QS convention (net of openings, reveals
+      // excluded). No opening-aware arithmetic exists anywhere, and none should.
+      //
+      // ⚠ A Type that declares nothing keeps the old whole-solid number. That is a deliberate
+      // transitional fallback, not a second definition: `core.wall` declares, and every remaining
+      // shipped Type owes the same declaration (recorded in Entry 60).
+      // ⚠ ABSENT and EMPTY are DIFFERENT, and conflating them is a real defect: a wall's MIDDLE layer
+      // declares an empty list because it genuinely has no exposed face, and treating that as "said
+      // nothing" would fall back to its 31.28 m² total surface — re-introducing the exact over-report
+      // this member exists to remove, on the one layer whose right answer is zero.
+      let area = measured.area;
+      if (part.exposedRefs !== undefined) {
+        area = 0;
+        for (const ref of part.exposedRefs) {
+          const face = await this.#geometry.request('measure', { handle: part.handle, ref });
+          area += face.area;
+        }
+      }
       parts.push({
         name: part.name,
         materialId: part.materialId,
         materialName: material?.name ?? part.materialId,
         discipline: part.discipline,
         volume: measured.volume,
-        area: measured.area,
+        area,
         // ⚠ mm³ → m³ → kg, from the Material's OWN density (D33) — never a hardcoded 7850. And when
         // there is no density to read, `mass` is **ABSENT** (D45): the volume and area are still exact,
         // and a missing density is an unknown rather than a nought. `0 kg, basis: 'exact'` was a wrong

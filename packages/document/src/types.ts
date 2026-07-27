@@ -163,6 +163,33 @@ export interface BuiltPart {
   readonly nodeId: string;
   readonly handle: ShapeHandle;
   readonly refs: readonly string[];
+  /**
+   * ⚠⚠ WHICH OF THIS PART'S FACES ARE *EXPOSED* — the ones a trade actually bills (Entry 60, D72,
+   * domain rule 15). A subset of `refs`. **Optional and absent-defaulted**: a Type that says nothing
+   * gets the old whole-solid surface area, so every existing Type and every saved document is untouched.
+   *
+   * **Why it had to exist, measured.** `quantities()` reported `area` as the solid's TOTAL ENCLOSING
+   * SURFACE: a 5 × 3 m three-layer wall came out at **94.80 m² against a 15 m² paintable face** — 6.3× —
+   * because the sum includes every layer's hidden faces, its edges, and the internal faces where layers
+   * touch, which are not surfaces at all in the assembled wall. Each number was exactly measured and the
+   * total was meaningless, which is rule 15's *"never emit a WRONG one wearing the `exact` badge"* by the
+   * one road nobody checks: a number that is arithmetically impeccable and answers a question no one asked.
+   *
+   * ⚠ **WHY IT IS THE TYPE THAT DECLARES IT, and why this had to be reserved BEFORE the freeze.**
+   * "Exposed" is not derivable generically — a wall layer's exposure depends on its position in the
+   * stack, a curtain-wall panel's on its framing, a column's on nothing. Only the Type knows. So the
+   * roll-up cannot compute it and had nowhere to read it: without this member the product has no way to
+   * answer *"what area do I bill?"*, and that is not a question a BIM tool can decline. Owner-ruled
+   * (2026-07-27) to reserve it now — after the freeze it is an amendment across `.bnn`, Miqdar and
+   * Planitor.
+   *
+   * ⚠ It names REFS, not areas — the area is then MEASURED per face via `measure(ref)` (the machinery
+   * Entry 13 built for exactly this and that nothing ever consumed). Storing an area here would be the
+   * reconstruction rule 15 forbids. It also makes openings fall out correctly for free: a door's hole
+   * shrinks the face it cuts, while the reveals are *different* faces and are therefore excluded —
+   * which is the QS convention the owner ruled (net of openings, reveals excluded).
+   */
+  readonly exposedRefs?: readonly string[];
 }
 
 /**

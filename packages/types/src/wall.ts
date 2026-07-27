@@ -91,7 +91,7 @@ export const wallType: BimObjectType = {
 
     const parts: BuiltPart[] = [];
     let offset = -total / 2; // stack layers across the thickness, centred on the baseline
-    for (const layer of layers) {
+    for (const [index, layer] of layers.entries()) {
       const a = offset; // this layer's near side-line offset (along n)
       const b = offset + layer.thickness; // its far side-line offset
       offset = b;
@@ -119,11 +119,50 @@ export const wallType: BimObjectType = {
         nodeId,
         handle: solid.handle,
         refs: solid.refs,
+        // ⚠⚠ WHICH FACES A TRADE BILLS (D72, domain rule 15). The layer stack runs from -total/2 along
+        // the normal, and the authored segment order above is the contract (D26): the A-SIDE is
+        // `lateral.1` and the B-SIDE is `lateral.3`. So the wall's two real outer surfaces are the FIRST
+        // layer's a-side and the LAST layer's b-side; every other large face is buried against a
+        // neighbouring layer and is not a surface at all in the assembled wall.
+        //
+        // ⚠ Caps (`lateral.0`/`lateral.2`) and the top/bottom faces are deliberately NOT billed: nobody
+        // paints the end of a wall, and counting them is how the old whole-solid number reached 94.80 m²
+        // on a 15 m² face. A single-layer wall gets BOTH sides, which is the common case and the one
+        // that must stay obviously right.
+        exposedRefs: exposedSides(solid.refs, {
+          aSide: index === 0,
+          bSide: index === layers.length - 1,
+        }),
       });
     }
     return parts;
   },
 };
+
+/**
+ * The billable face refs of one layer solid — its a-side and/or b-side, per D26's authored segment
+ * order (`lateral.1` / `lateral.3`). Returns only the faces that exist, so a degenerate profile can
+ * never fabricate a ref.
+ *
+ * ⚠ Substring-matched on the ROLE, never on a position in `refs`: the array is canonically ordered by
+ * the kernel and its ORDER is not a contract — the role name is (D26). Reading `refs[1]` here would be
+ * the positional-index identity the whole naming design refuses.
+ */
+function exposedSides(
+  refs: readonly string[],
+  want: { aSide: boolean; bSide: boolean },
+): readonly string[] {
+  const out: string[] = [];
+  if (want.aSide) {
+    const a = refs.find((r) => r.includes('/face/lateral.1'));
+    if (a !== undefined) out.push(a);
+  }
+  if (want.bSide) {
+    const b = refs.find((r) => r.includes('/face/lateral.3'));
+    if (b !== undefined) out.push(b);
+  }
+  return out;
+}
 
 /* ------------------------------------------------------------------------------------------------
  * Helpers — plane geometry + reading the recipe. Kept local: a Type is a pure function of its context.

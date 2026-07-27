@@ -431,6 +431,10 @@ export async function buildAssembly(
         nodeId: built.nodeId,
         handle,
         refs,
+        // ⚠ Carried through the placement transform unchanged, and that is SOUND rather than lucky:
+        // `transform` is pure INHERIT and mints no identities (Entry 11, measured — a rotated wall is
+        // the same wall, refs token-for-token), so an exposed ref stays valid across a placement.
+        ...(built.exposedRefs === undefined ? {} : { exposedRefs: built.exposedRefs }),
       });
     }
   } catch (error) {
@@ -698,6 +702,7 @@ async function buildChildrenTree(
         nodeId: p.nodeId,
         handle: p.handle,
         refs: p.refs,
+        ...(p.exposedRefs === undefined ? {} : { exposedRefs: p.exposedRefs }),
       })),
       state: 'valid',
       ...(grand.length === 0 ? {} : { children: grand }),
