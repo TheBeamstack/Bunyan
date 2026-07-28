@@ -64,12 +64,12 @@ holder**.
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  origin/main = a175d61 (Entry 63, Amer — renderer batching: ~30,700 draw calls → 2).
-        ⚠ Entries 64 (Zayd — the 18-rule backward sweep, D76/D77) and 65 (Zayd — the schedules
-        body, D78) are BOTH in Zayd's working tree, uncommitted and owner-gated. If they have
-        been pushed, replace this line with the new hash and read both before starting — Entry 64
-        changes two things you call (see NEW).
-        If HEAD differs from the above, read every Entry after 63 before starting, and re-check
+FRESH:  origin/main = 7b456db (Entries 64 + 65, Zayd — the completed 18-rule backward sweep
+        D76/D77, and the schedules body D78). Owner-authorised and PUSHED 2026-07-28
+        (a175d61 -> 7b456db).
+        ⚠⚠ YOU ARE TWO ENTRIES BEHIND — `git pull` FIRST, and read Entries 64 and 65 before
+        starting. Entry 64 changes two things you call (see NEW).
+        If HEAD differs from the above, read every Entry after 65 before starting, and re-check
         that TASK is still the right thing to do.
 
 TASK:   Pick the next browser track from Entry 63's NEXT list and CONFIRM IT WITH THE OWNER before

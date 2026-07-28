@@ -55,11 +55,10 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  origin/main = a175d61 (Entry 63, Amer — renderer batching).
-        ⚠ Entries 64 (18-rule backward sweep, D76/D77) and 65 (the schedules body, D78) are BOTH
-        IN THE WORKING TREE, uncommitted and owner-gated. If they have been pushed, replace this
-        line with the new hash.
-        If HEAD differs from the above, the other agent has pushed: read every Entry after 63
+FRESH:  origin/main = 7b456db (Entries 64 + 65, Zayd — the completed 18-rule backward sweep
+        D76/D77, and the schedules body D78). Owner-authorised and PUSHED 2026-07-28
+        (a175d61 -> 7b456db). Working tree CLEAN — nothing is owner-gated in it.
+        If HEAD differs from the above, the other agent has pushed: read every Entry after 65
         before starting, and re-check that TASK is still the right thing to do.
 
 TASK:   The SCHEDULE CRUD — owner Q4's deliberately-separated second unit (Entry 65 NEXT).
