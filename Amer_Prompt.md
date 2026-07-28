@@ -39,6 +39,9 @@ holder**.
 5. **Hand off:** append an Entry to `current_state.md` (_what changed · how verified · on which
    engine/environment · what is owed next_) and **rewrite §2 of both `Amer_Prompt.md` and
    `Zayd_Prompt.md`.** A session that does not leave the next one ready is unfinished.
+   ⚠ **When you rewrite `FRESH`, name the ENTRY NUMBER you just wrote — never a commit hash.** A hash
+   here can only name an earlier commit than the one carrying it (see `FRESH` itself), so pinning one
+   re-creates a check that cannot pass. This has been fixed once; do not undo it.
 
 **Standing constraints — do not re-derive, do not renegotiate:**
 
@@ -79,16 +82,24 @@ holder**.
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  origin/main = 7b456db (Entries 64 + 65, Zayd — the completed 18-rule backward sweep
-        D76/D77, and the schedules body D78) + aff7855 on top of it, which only records the
-        push. Owner-authorised and PUSHED 2026-07-28 (a175d61 -> 7b456db -> aff7855).
-        ⚠⚠ YOU ARE TWO ENTRIES BEHIND — `git pull` FIRST, and read Entries 64 and 65 before
-        starting. Entry 64 changes two things you call (see NEW).
-        ⚠ CHECK THE ENTRY, NOT THE HASH: a "record the push" commit always lands AFTER the
-        hash any session can write here, so a bare hash match is a check that cannot pass.
-        The real test is that **Entry 65 is the newest Entry in `current_state.md`**. If a
-        LATER Entry exists, read every Entry after 65 before starting, and re-check that
-        TASK is still the right thing to do.
+FRESH:  Newest Entry in `current_state.md` = **ENTRY 65** (Zayd — the schedules body, D78).
+        Entries 64 + 65 are COMMITTED AND PUSHED to origin/main (owner-authorised 2026-07-28).
+
+        ⚠⚠ YOUR OWN LAST WORK IS **ENTRY 63** (the renderer batching) — SO ENTRIES 64 AND 65 ARE
+        NEW TO YOU. `git pull` first and READ BOTH before starting; Entry 64 changes two things
+        you call (see NEW).
+
+        ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
+        content, so any hash written in this file can only ever name an EARLIER commit than the
+        one carrying it — and doc-sync / "record the push" commits land on top afterwards. A
+        hash match is therefore a check that CANNOT PASS. **The Entry number is the check**: it
+        is written by hand, it moves only when real work lands, and it is the thing you actually
+        need to know. (Git already answers "what is the tip?" — `git log -1`. This file answers
+        "am I behind?", which git cannot.)
+
+        ⇒ After `git pull`: newest Entry = 65 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 65 ⇒ Zayd has pushed again: read every Entry after 65 before
+          starting, and re-check that TASK is still the right thing to do.
 
 TASK:   **P4.5 — THE INTERACTION MODEL. DESIGN-FIRST.** (Owner-chosen 2026-07-28. This is the
         decision; do not re-open it or ask which track to take.)
