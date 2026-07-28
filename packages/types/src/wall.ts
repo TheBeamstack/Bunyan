@@ -19,6 +19,7 @@
 
 import type { BimObjectType, BuildContext, BuiltPart, CapLine, Discipline } from '@bunyan/document';
 import type { Profile, Vec2 } from '@bunyan/protocol';
+import { facesWithRoles } from './exposed.js';
 
 /** A layer to build: from the style stack (D30), or a single synthetic layer from a `thickness` param. */
 interface LayerSpec {
@@ -144,24 +145,19 @@ export const wallType: BimObjectType = {
  * order (`lateral.1` / `lateral.3`). Returns only the faces that exist, so a degenerate profile can
  * never fabricate a ref.
  *
- * ⚠ Substring-matched on the ROLE, never on a position in `refs`: the array is canonically ordered by
- * the kernel and its ORDER is not a contract — the role name is (D26). Reading `refs[1]` here would be
- * the positional-index identity the whole naming design refuses.
+ * ⚠ The role→ref matching itself lives in `exposed.ts`, shared with the Opening and the Curtain Wall
+ * (2026-07-27). What stays HERE is the only part that is a wall's own knowledge: *which* sides of
+ * *which* layer are surfaces of the assembled wall. That split is the point of D72 — the judgement is
+ * per Type because nothing else can make it; the lookup never was.
  */
 function exposedSides(
   refs: readonly string[],
   want: { aSide: boolean; bSide: boolean },
 ): readonly string[] {
-  const out: string[] = [];
-  if (want.aSide) {
-    const a = refs.find((r) => r.includes('/face/lateral.1'));
-    if (a !== undefined) out.push(a);
-  }
-  if (want.bSide) {
-    const b = refs.find((r) => r.includes('/face/lateral.3'));
-    if (b !== undefined) out.push(b);
-  }
-  return out;
+  const roles: string[] = [];
+  if (want.aSide) roles.push('lateral.1');
+  if (want.bSide) roles.push('lateral.3');
+  return facesWithRoles(refs, roles);
 }
 
 /* ------------------------------------------------------------------------------------------------

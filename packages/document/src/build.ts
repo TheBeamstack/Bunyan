@@ -280,6 +280,12 @@ export async function buildAssembly(
     nodes.add(part.nodeId);
   }
 
+  const exposedProblem = badExposedRef(base);
+  if (exposedProblem !== undefined) {
+    for (const built of base) intermediates.push(built.handle);
+    return failed(exposedProblem);
+  }
+
   // ---- 2. THE HOSTED VOIDS. Each is resolved against the base parts' OWN identities. --------------
   const openings = hostedBy(scene, rootId);
   const voidResults: ElementGeometry[] = [];
@@ -679,6 +685,13 @@ async function buildChildrenTree(
       nodes.add(part.nodeId);
     }
 
+    // Same rule as a base part: a child may not declare a billable face it does not have.
+    const childExposedProblem = badExposedRef(childParts);
+    if (childExposedProblem !== undefined) {
+      for (const built of childParts) discard(built.handle);
+      throw new Error(`child "${childId}" ${childExposedProblem}`);
+    }
+
     // ⚠ RECURSE — a child may itself be composite (rule 18: hosting is NOT one level deep). A door-panel that
     // generates its own leaf/frame is depth 2; the cycle guard grows by this child's type.
     const grand = await buildChildrenTree(
@@ -801,6 +814,14 @@ async function buildLeafParts(
     nodes.add(leaf.nodeId);
   }
 
+  // Same rule as a base part: a leaf may not declare a billable face it does not have. Checked BEFORE
+  // the placement loop, while every handle is still a plain intermediate to hand back.
+  const leafExposedProblem = badExposedRef(leaves);
+  if (leafExposedProblem !== undefined) {
+    for (const built of leaves) intermediates.push(built.handle);
+    throw new Error(`opening "${ctx.element.id}" ${leafExposedProblem}`);
+  }
+
   const placed: Part[] = [];
   try {
     for (const leaf of leaves) {
@@ -823,6 +844,21 @@ async function buildLeafParts(
         nodeId: leaf.nodeId,
         handle,
         refs,
+        // ⚠⚠ D72's `exposedRefs` REACHED THREE OF THE FOUR `BuiltPart → Part` SITES AND NOT THIS ONE
+        // (found 2026-07-27 by declaring it on `core.opening` and watching the field arrive `undefined`).
+        // A door leaf could not have carried a billable area even when its Type declared one — the
+        // declaration was dropped one layer below the Type, so no Type author could have found it either.
+        //
+        // ⚠ The reason it is exactly this site: the other three are the base-part loop, the child-tree
+        // loop and `placeTree`. `placeTree` rebuilds a part with `{...part}` and therefore inherited the
+        // new member for free; the two that ENUMERATE fields had to be edited by hand, and D72 edited the
+        // two that were in front of it. **§1c-8 inside one commit: a new field binds the sites its author
+        // was looking at.** ⇒ when a member is added to `Part`, grep for its construction sites and count
+        // them — there are four, and only the spread one maintains itself.
+        //
+        // Sound across the transform above for the same reason as the base parts: `transform` mints no
+        // identities (D25), so an exposed ref survives the host's placement token-for-token.
+        ...(leaf.exposedRefs === undefined ? {} : { exposedRefs: leaf.exposedRefs }),
       });
     }
   } catch (error) {
@@ -833,6 +869,49 @@ async function buildLeafParts(
     throw error;
   }
   return placed;
+}
+
+/**
+ * ⚠⚠ A DECLARED EXPOSED FACE MUST BE ONE OF THE PART'S OWN REFS (D72, domain rule 4 — Entry 62 cont.).
+ *
+ * `BuiltPart.exposedRefs` is the Type's statement of *which faces a trade bills*, and `quantities()`
+ * MEASURES each one via `measure(ref)`. Nothing checked that the declared refs were a subset of the
+ * part's actual `refs` — so a Type naming a face it does not have produced an element that built
+ * **`valid`**, looked perfect, and refused only when somebody priced the building. Measured: it then
+ * threw out of `projectQuantities` and took the whole take-off with it.
+ *
+ * ⚠ **REFUSING IS THE RIGHT DIRECTION, and the alternative is worse than it sounds.** Silently skipping
+ * an unresolvable declaration would UNDER-REPORT an area while still wearing `basis: 'exact'` — domain
+ * rule 15's own failure mode, arrived at by a new road. `core_logic.md` §5: an identity that cannot be
+ * derived structurally is a REFUSAL, never an invention. This is the same check, and the same idiom, as
+ * the duplicate-DAG-node rule directly above its call sites.
+ *
+ * ⚠ **AND IT IS WHY THE ELEMENT IS `failed` RATHER THAN THE COMMAND REJECTED**: D43 — one bad Type must
+ * not brick a document. The element is visible, named, carried and saved verbatim; the building around
+ * it opens and edits.
+ *
+ * ⚠ `exposedRefs: []` is legal and means *"this part's billable area is zero"* (a wall's buried middle
+ * layer). It is `undefined` that means "not declared". Neither is a problem here — only a NAMED face
+ * that does not exist is.
+ *
+ * @returns the failure message, or `undefined` when every declaration checks out.
+ */
+function badExposedRef(parts: readonly BuiltPart[]): string | undefined {
+  for (const part of parts) {
+    if (part.exposedRefs === undefined) continue;
+    const own = new Set(part.refs);
+    for (const ref of part.exposedRefs) {
+      if (!own.has(ref)) {
+        return (
+          `part "${part.name}" declares the exposed face "${ref}", which is not one of its own ` +
+          `sub-shape references. A billable area is MEASURED on the faces the part actually has ` +
+          `(BuiltPart.exposedRefs, D72) — naming one it does not have would either refuse at ` +
+          `measure time or silently under-report an area wearing "basis: exact".`
+        );
+      }
+    }
+  }
+  return undefined;
 }
 
 function messageOf(error: unknown): string {

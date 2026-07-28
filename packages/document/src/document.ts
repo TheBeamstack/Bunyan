@@ -594,7 +594,32 @@ export class DocumentContext {
       // parts. It is a real element with a PEI a tag may bind to — it just has nothing to measure.
       if (!element.hasParts) continue;
 
-      const breakdown = await this.quantities(element.id);
+      // ⚠⚠ A MEASUREMENT THAT REFUSES COSTS ITS ELEMENT, NEVER THE BUILDING (domain rule 4, swept
+      // 2026-07-27). This call was unguarded, so ONE `measure` refusal anywhere threw out of the loop
+      // and the whole take-off returned nothing — no rows, no totals, not even the `unmeasured` list
+      // that exists for exactly this. **The owner had already ruled the opposite** (Entry 58, Q1: an
+      // element that cannot be measured is reported, never zeroed and never silently dropped);
+      // aborting was a third behaviour nobody sanctioned. It is D43's shape one level up — *one
+      // unregistered type must not brick a file* becomes *one unmeasurable element must not brick an
+      // export* — and at the 10k-element target D48 makes binding, that is a building lost to a box.
+      //
+      // ⚠ D72 WIDENED THE SURFACE THIS SITS ON: `quantities()` now issues a `measure(ref)` per declared
+      // exposed face, so a take-off makes many times the kernel calls it used to, each of which can
+      // refuse. `build.ts` pre-empts the reachable cause (a Type declaring a face it does not have is
+      // refused at build time); this is the backstop for every other way a measurement can fail.
+      //
+      // ⚠ A DIRECT `quantities(id)` STILL THROWS, deliberately. The rule is about which last-good state
+      // is preserved: for one element that is nothing, for an aggregate it is every other element.
+      let breakdown;
+      try {
+        breakdown = await this.quantities(element.id);
+      } catch (error) {
+        unmeasured.push({
+          elementId: element.id,
+          reason: error instanceof Error ? error.message : String(error),
+        });
+        continue;
+      }
       for (const part of breakdown.parts) {
         rows.push({
           elementId: element.id,
@@ -749,8 +774,32 @@ export class DocumentContext {
     const superseded: ElementId[] = [];
 
     // Broken refs of assemblies we are NOT rebuilding survive untouched; the rest are re-derived.
+    //
+    // ⚠⚠ AND AN ENTRY WHOSE ELEMENT IS GONE IS DROPPED — domain rules 1 and 3, swept backward 2026-07-27.
+    // `affectedAssemblies` deliberately skips any id that is no longer in the scene, so **a deleted
+    // element is never a rebuild root** and its entry sailed through the filter above untouched, forever.
+    // Measured both roads: deleting an orphaned opening, and deleting the host whose D39 cascade took it.
+    //
+    // ⚠ Rule 3 says a broken ref is a first-class visible state **awaiting manual retargeting**. That one
+    // awaited nothing — `core.retargetReference` cannot act on an element that does not exist — and
+    // `scene.brokenRefs` is PERSISTED on purpose, so it was permanent: the document stayed unfixably
+    // dirty, `brokenRefs()` never emptied, and a consumer asking *"is this model clean?"* read dirty for
+    // the life of the file. *A refusal nobody can act on has stopped being a refusal.*
+    //
+    // ⚠ Rule 1 is the deeper half: `brokenRefs` is a RESULT, re-derived on every rebuild. This entry
+    // outlived its subject and survived even `rebuildAll` — the primary load path — because the element
+    // it names is not among the elements there are to rebuild. A derived value that outlives what it
+    // describes is no longer derived, it is stored.
+    //
+    // ⚠ SAFE BECAUSE THERE IS EXACTLY ONE PRODUCER AND IT READS `scene.elements`: `buildAssembly` pushes
+    // one entry per hosted opening it could not resolve, and `hostedBy` filters the scene's own rows. So
+    // no entry can legitimately name something absent from `scene.elements` — in particular a D59
+    // GENERATED CHILD is not a scene row, and cannot be the subject of one (it is not a hosted void).
+    // If that ever changes, this line is where it bites, and the test naming §5 is the additivity gate.
     const broken: BrokenReference[] = scene.brokenRefs.filter(
-      (b) => !roots.includes(assemblyRoot(scene, b.elementId)),
+      (b) =>
+        scene.elements[b.elementId] !== undefined &&
+        !roots.includes(assemblyRoot(scene, b.elementId)),
     );
 
     for (const root of roots) {

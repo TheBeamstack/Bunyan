@@ -24,6 +24,7 @@
 
 import type { BimObjectType, BuiltPart, BuiltVoid, VoidBuildContext } from '@bunyan/document';
 import type { Profile, Vec2 } from '@bunyan/protocol';
+import { facesWithRoles } from './exposed.js';
 
 type Vec3 = readonly [number, number, number];
 
@@ -132,6 +133,12 @@ export const openingType: BimObjectType = {
         nodeId: leafNode,
         handle: leaf.handle,
         refs: leaf.refs,
+        // ⚠⚠ WHICH FACES A TRADE BILLS (D72, domain rule 15; the owed declaration, 2026-07-27). The leaf
+        // is a thin panel extruded ALONG the wall's inward normal, so its two door-sized faces are the
+        // extrude's CAPS — the pair a painter rolls. Its four `lateral.k` edges sit inside the frame's
+        // reveal with a leaf-to-lining gap, are a surface of nothing, and are not billed. Measured: the
+        // undeclared whole solid reported 3.4240 m² against 3.2000 m² of door.
+        exposedRefs: facesWithRoles(leaf.refs, ['cap-start', 'cap-end']),
       },
       {
         name: 'frame',
@@ -140,6 +147,18 @@ export const openingType: BimObjectType = {
         nodeId: frameNode,
         handle: frame.handle,
         refs: frame.refs,
+        // ⚠⚠ THE LINING YOU CAN SEE, AND IT NEEDS THE `node` QUALIFIER TO SAY SO. A frame is
+        // `outer − inner`, so it owns `lateral.k` twice: the OUTER set is buried in the wall's opening
+        // (the hole's reveal presses against it) and the INNER set is the visible lining beside the
+        // leaf. Matching the role alone would return whichever the canonical order put first and bill
+        // 1.20 m² of buried surface. The two `cap-*` faces are the flat rings showing on each side of
+        // the wall — the architrave face. Measured: 2.9000 m² undeclared against 1.7000 m² visible.
+        exposedRefs: [
+          ...facesWithRoles(frame.refs, ['lateral.0', 'lateral.1', 'lateral.2', 'lateral.3'], {
+            node: `${ctx.element.id}.frame:inner`,
+          }),
+          ...facesWithRoles(frame.refs, ['cap-start', 'cap-end']),
+        ],
       },
     ];
   },

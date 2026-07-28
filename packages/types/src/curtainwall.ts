@@ -27,6 +27,7 @@
  */
 
 import type { BimObjectType, BuildContext, BuiltChild, BuiltPart } from '@bunyan/document';
+import { FACADE_FACE_ROLES, facesWithRoles } from './exposed.js';
 
 type Vec3 = readonly [number, number, number];
 
@@ -297,6 +298,20 @@ async function buildBox(ctx: BuildContext, partName: string): Promise<readonly B
       nodeId,
       handle: solid.handle,
       refs: solid.refs,
+      // ⚠⚠ WHICH FACES A TRADE BILLS (D72, domain rule 15; the owed declaration, 2026-07-27). Every bar
+      // and every pane is authored in ONE local frame — X along the façade, Y its depth, Z up — so
+      // "the faces you see, from outside and from inside" is the `y` pair for all of them: a glazed
+      // panel, a vertical mullion and a horizontal transom alike. One declaration, both orientations.
+      //
+      // ⚠ The other four are buried and are a surface of nothing: a mullion's `x` faces hold the glazing
+      // on either side and its `z` faces butt the bars it crosses; a panel's four edges sit inside the
+      // mullions that clamp it. Measured undeclared: a panel 5.8182 m² against 5.6550 (2.06× vs the
+      // single pane a supplier prices), a mullion 0.9100 against 0.3000 — **3.03×**, the worst of the
+      // shipped types, because a long thin bar is nearly all edge.
+      //
+      // ⚠ Owner-ruled 2026-07-27: BOTH pane faces, not one — the same assembly rule `core.wall` follows,
+      // so there is one sentence for every type and glazing supply stays derivable as half of it.
+      exposedRefs: facesWithRoles(solid.refs, FACADE_FACE_ROLES),
     },
   ];
 }

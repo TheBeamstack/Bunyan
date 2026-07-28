@@ -8,6 +8,7 @@
  * the rest of the MVP set land here as the type phase proceeds.
  */
 
+export { FACADE_FACE_ROLES, facesWithRoles } from './exposed.js';
 export { wallType } from './wall.js';
 export { openingType } from './opening.js';
 export {
