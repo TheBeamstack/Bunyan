@@ -1,7 +1,11 @@
 # `Zayd_Prompt.md` — the standing session-entry prompt for Zayd
 
-**How it is used.** The owner opens a session with _"Follow `Zayd_Prompt.md`."_ **§1 never changes. §2 is
-rewritten at the end of every session by the agent that finished it** (see the Loop, step 5).
+**How it is used.** The owner opens a session with one line — _"pull latest code then read/follow
+`Zayd_Prompt.md`"_ — **and that line is the whole briefing.** Everything needed to work accurately is here
+or reachable from here; if you find yourself needing to ask the owner what to do, this file has failed and
+you should say so in your handoff. **§2 is rewritten at the end of every session by the agent that finished
+it** (see the Loop, step 5). **§1 is standing** — change it only when a standing fact has actually drifted
+(as on 2026-07-28: the `format:check` count, package ownership), never as session bookkeeping.
 
 **What it is not.** It is a **router, not a briefing**. Nothing is explained here that a doc already
 explains — if you find yourself adding context to this file, it belongs in `current_state.md` instead.
@@ -19,7 +23,9 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 
 **Loop:**
 
-1. **`git pull`**, then confirm HEAD matches §2 `FRESH`.
+1. **`git pull`**, then confirm the state matches §2 `FRESH` — **by the newest Entry in
+   `current_state.md`, not by the commit hash.** (A hash written here can only ever name an EARLIER
+   commit than the one carrying it, so a literal hash match is a check that cannot pass.)
 2. **Read `current_state.md` in full and obey it.** It is the handoff log and carries everything else:
    reading order (§0), the method that has found every gap (§1b) + the traps not to rediscover (§1c),
    contract status (§2), what exists and how it was verified (§3), decisions (§4), priorities (§5),
@@ -35,6 +41,11 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 **Standing constraints — do not re-derive, do not renegotiate:**
 
 - **Owner-gated: commits, pushes, contract changes, and the P5 freeze.** Propose and surface; never perform.
+  ⚠ This is a FINISH state, not a wait: verify, write the Entry, rewrite both §2s, leave the tree
+  uncommitted, and **say so in your closing summary**. Do not idle asking permission to commit.
+- **Do not stall on the owner.** `TASK` is always one definite thing you can start alone. When it is
+  design-first, the DESIGN DOC IS THE DELIVERABLE — write it, put its open questions to the owner, and
+  stop there. Never open a session by asking which task to take; §2 has already chosen.
 - **Additive only until the owner freezes:** no frozen byte, no `SCENE_SCHEMA_VERSION` bump, no field or
   verb on a frozen shape. If the right fix needs one, **stop and escalate with the measurement**.
 - **A fix without a test that fails in its absence is an assertion.** Test-first, then revert-verify.
@@ -56,10 +67,14 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 
 ```
 FRESH:  origin/main = 7b456db (Entries 64 + 65, Zayd — the completed 18-rule backward sweep
-        D76/D77, and the schedules body D78). Owner-authorised and PUSHED 2026-07-28
-        (a175d61 -> 7b456db). Working tree CLEAN — nothing is owner-gated in it.
-        If HEAD differs from the above, the other agent has pushed: read every Entry after 65
-        before starting, and re-check that TASK is still the right thing to do.
+        D76/D77, and the schedules body D78) + aff7855 on top of it, which only records the
+        push. Owner-authorised and PUSHED 2026-07-28 (a175d61 -> 7b456db -> aff7855).
+        Working tree CLEAN — nothing is owner-gated in it.
+        ⚠ CHECK THE ENTRY, NOT THE HASH: a "record the push" commit always lands AFTER the
+        hash any session can write here, so a bare hash match is a check that cannot pass.
+        The real test is that **Entry 65 is the newest Entry in `current_state.md`**. If a
+        LATER Entry exists, the other agent has pushed: read every Entry after 65 before
+        starting, and re-check that TASK is still the right thing to do.
 
 TASK:   The SCHEDULE CRUD — owner Q4's deliberately-separated second unit (Entry 65 NEXT).
         The read path shipped in Entry 65; `scene.schedules` still has no authoring verb, so
