@@ -28,6 +28,7 @@ import type { OcctKernel } from '@bunyan/kernel-occt';
 import {
   CORE_COMMANDS,
   DocumentContext,
+  columnKeyOf,
   createRegistries,
   emptyScene,
   loadBnn,
@@ -152,26 +153,30 @@ describe('Ⓐ documentation anchoring — the anchor survives an edit (real OCCT
       ],
     };
 
-    // Evaluate the schedule against the LIVE doc — this is what the v1.0.x renderer will do; the KEYS are all
-    // that is stored, every value derives. (A schedule is a query with a layout.)
+    // Evaluate the schedule against the LIVE doc — the KEYS are all that is stored, every value derives.
+    // (A schedule is a query with a layout.)
+    //
+    // ⚠⚠ THIS NOW CALLS THE REAL BODY (`doc.evaluateSchedule`, D58 row Ⓐ, Entry 65). It used to be a
+    // hand-rolled loop over `Object.values(doc.scene.elements)` — correct for THIS fixture (two plain
+    // walls) and wrong on the model in three measured ways: a curtain-panel schedule returned 0 rows
+    // where 6 is correct, a no-filter schedule THREW on a pure composite, and one non-active design
+    // option produced a 2.0000× over-report. It was the most likely thing a body author would lift, so
+    // it is retired rather than left in the repo as a worked example of the wrong loop
+    // (`P5_step6B_schedules_design.md` §1.4, §5.4). What this test asserts is UNCHANGED — and it now
+    // asserts it against the shipped body instead of a stand-in.
     const evaluate = async (def: ScheduleDefinition) => {
-      const rows = Object.values(doc.scene.elements).filter(
-        (e) => def.filter.typeId === undefined || e.typeId === def.filter.typeId,
-      );
-      return Promise.all(
-        rows.map(async (e) => {
-          const cells: Record<string, unknown> = {};
-          for (const col of def.columns) {
-            if (col.source === 'field' && col.key === 'mark') cells['mark'] = e.mark;
-            else if (col.source === 'param') cells[col.key] = e.params[col.key];
-            else if (col.source === 'quantity' && col.key === 'volume') {
-              const q = await doc.quantities(e.id);
-              cells['volume'] = q.parts.reduce((s, p) => s + p.volume, 0);
-            } else if (col.source === 'count') cells['count'] = rows.length;
-          }
-          return cells;
-        }),
-      );
+      const result = await doc.evaluateSchedule(def);
+      return result.rows.map((row) => {
+        const cells: Record<string, unknown> = {};
+        for (const col of def.columns) {
+          const value = row.cells.find((c) => c.columnKey === columnKeyOf(col))?.value;
+          if (col.source === 'field') cells[col.key] = value;
+          else if (col.source === 'param') cells[col.key] = value;
+          else if (col.source === 'quantity') cells[col.key] = value;
+          else cells['count'] = value;
+        }
+        return cells;
+      });
     };
 
     const before = await evaluate(schedule);

@@ -41,14 +41,14 @@ export const wallType: BimObjectType = {
       label: 'Start',
       required: true,
       description: '[x, y] baseline start in the Level plane, mm.',
-      items: { kind: 'number', label: 'mm' },
+      items: { kind: 'number', label: 'mm', unit: 'mm' },
     },
     end: {
       kind: 'array',
       label: 'End',
       required: true,
       description: '[x, y] baseline end in the Level plane, mm.',
-      items: { kind: 'number', label: 'mm' },
+      items: { kind: 'number', label: 'mm', unit: 'mm' },
     },
     // Fallback ONLY: used when the wall has no top constraint (an un-constrained wall). A constrained wall
     // derives its height from base/top Levels (D52) and never reads this.

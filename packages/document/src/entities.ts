@@ -514,6 +514,21 @@ export interface ChildOverride {
   readonly styleId?: StyleId;
   /** Merge over the recipe-generated child params (a partial patch, not a replacement). */
   readonly params?: Params;
+  /**
+   * ⚠ RESERVED (owner-ruled 2026-07-28, Q3 — `P5_step6B_schedules_design.md` §6.3). The AUTHORED short
+   * label a schedule's identity column reads, for a GENERATED child (Revit's editable curtain-panel Mark).
+   *
+   * ⚠⚠ WHY IT NEEDS A HOME AT ALL: `Element.mark?` (ⓡ) is authored through `createElement`/
+   * `core.setElementMetadata`, and a D59 Model-A child **is not a scene row**, so it is authored through
+   * neither. Without this slot a curtain-panel schedule's Mark column is permanently blank for 16 of a
+   * curtain wall's 17 rows — and `BuiltChild` (the recipe half) cannot carry it either, because a mark is
+   * authored, not derived. This shape is exactly *"authored deviation from a generated child."*
+   *
+   * ⚠ A PURE RESERVATION: nothing reads `childOverrides` in v1.0.0, so a generated child's mark is absent
+   * today and its identity column is the Type-supplied `BuiltChild.name`. The field exists so the body
+   * that lands later is additive rather than an amendment across three products.
+   */
+  readonly mark?: string;
 }
 
 /**

@@ -133,6 +133,48 @@ export function affectedAssemblies(
 }
 
 /** Every element wearing a style — what "edit the style, 400 walls rebuild" actually costs (D31). */
+/**
+ * ⚠⚠ THE STYLES WORN BY GENERATED CHILD ELEMENTS — `styleId → the AUTHORED roots that generate them`
+ * (domain rule 18, swept 2026-07-28).
+ *
+ * **Why it has to exist.** `BuiltChild.styleId` is a real member (D31 one level down: *"a panel style
+ * shared across every panel"*), and `contextFor` resolves it into a child's `BuildContext` exactly as it
+ * does for an authored row — so **the build READS a child's style.** The invalidator did not know that
+ * edge: `elementsUsingStyle`/`instancesOfStyle` answer *"every element wearing this style"* out of
+ * `Object.values(scene.elements)`, and a D59 child is **not a scene row** (Model A — derived, never
+ * stored). Measured: `updateStyle` on a style worn only by children reported `rebuilt: []` and left the
+ * panels' solids **3× wrong** until an unrelated `rebuildAll` happened to cure it.
+ *
+ * ⚠ IT READS THE BUILT TREE, NOT THE SCENE, AND THAT IS THE ONLY HONEST SOURCE. Which children exist is
+ * the answer a Type's `buildChildren` gave — code, not data — so no pure function of `scene.json` can
+ * know it. The tree the last rebuild produced is exactly the set of children that are live right now.
+ *
+ * ⚠ It walks DOWN from each authored root rather than parsing PEIs: a derived id is opaque (D44/D59 —
+ * `geometry.ts` says so explicitly), and the tree already carries the parentage the id merely encodes.
+ */
+export function childStyleUsers(
+  built: ReadonlyMap<ElementId, ElementGeometry>,
+  authoredIds: Iterable<ElementId>,
+): ReadonlyMap<string, ReadonlySet<ElementId>> {
+  const users = new Map<string, Set<ElementId>>();
+  const visit = (node: ElementGeometry, root: ElementId): void => {
+    for (const child of node.children ?? []) {
+      const styleId = child.element?.styleId;
+      if (styleId !== undefined) {
+        const roots = users.get(styleId) ?? new Set<ElementId>();
+        roots.add(root);
+        users.set(styleId, roots);
+      }
+      visit(child, root); // a child may itself be composite — hosting is not one level deep (rule 18)
+    }
+  };
+  for (const id of authoredIds) {
+    const geometry = built.get(id);
+    if (geometry !== undefined) visit(geometry, id);
+  }
+  return users;
+}
+
 export function assembliesUsingStyle(scene: Scene, styleId: string): readonly ElementId[] {
   return affectedAssemblies(
     scene,

@@ -48,7 +48,7 @@ export const curtainWallType: BimObjectType = {
       required: true,
       description:
         '[x, y] min corner of the façade in the Level plane, mm. The wall runs +X, up +Z.',
-      items: { kind: 'number', label: 'mm' },
+      items: { kind: 'number', label: 'mm', unit: 'mm' },
     },
     width: { kind: 'number', label: 'Width', unit: 'mm', required: true, min: 1 },
     height: { kind: 'number', label: 'Height', unit: 'mm', required: true, min: 1 },
@@ -318,7 +318,7 @@ async function buildBox(ctx: BuildContext, partName: string): Promise<readonly B
 
 function boxSchema(materialLabel: string): BimObjectType['parameterSchema'] {
   return {
-    at: { kind: 'array', label: 'Min corner', items: { kind: 'number', label: 'mm' } },
+    at: { kind: 'array', label: 'Min corner', items: { kind: 'number', label: 'mm', unit: 'mm' } },
     dx: { kind: 'number', label: 'dx', unit: 'mm' },
     dy: { kind: 'number', label: 'dy', unit: 'mm' },
     dz: { kind: 'number', label: 'dz', unit: 'mm' },

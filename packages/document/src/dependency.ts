@@ -33,7 +33,8 @@ import {
   containerPath,
   elementsConstrainedToGrid,
   elementsConstrainedToLevel,
-  elementsUsingSection,
+  instancesOfStyle,
+  stylesUsingSection,
 } from './scene.js';
 import { baselineOf, endpointsOf, wallsJoinedTo } from './joins.js';
 
@@ -46,7 +47,11 @@ import { baselineOf, endpointsOf, wallsJoinedTo } from './joins.js';
  *   unchanged by an elevation/axis edit, so the pre- or post-edit scene gives the same answer; the caller
  *   passes the pre-edit scene, matching the style edge's long-standing behaviour.
  */
-export function dependents(scene: Scene, change: SceneChange): readonly ElementId[] {
+export function dependents(
+  scene: Scene,
+  change: SceneChange,
+  childStyles: ReadonlyMap<string, ReadonlySet<ElementId>> = new Map(),
+): readonly ElementId[] {
   const collection: SceneCollection = change.collection;
   switch (collection) {
     case 'elements': {
@@ -79,7 +84,16 @@ export function dependents(scene: Scene, change: SceneChange): readonly ElementI
     case 'styles':
       // EDGE: style→instance (D31). Mirrors `build.ts` reading the element's `ElementStyle` layer stack —
       // edit the shared style and every wall wearing it rebuilds. (The 400-walls edge.)
-      return elementsUsingStyle(scene, change.id);
+      //
+      // ⚠⚠ AND IT REACHES GENERATED CHILD ELEMENTS TOO (rule 18, D59 — swept 2026-07-28). "Every element
+      // wearing this style" was answered out of `scene.elements`, and a child is not a scene row: a style
+      // worn only by a curtain wall's panels invalidated NOTHING, leaving their solids stale (measured 3×
+      // wrong) until an unrelated full rebuild. The child cannot be re-staged on its own — it is derived —
+      // so the AUTHORED ROOT that generates it is what must rebuild, which regenerates the child.
+      return unique([
+        ...elementsUsingStyle(scene, change.id),
+        ...(childStyles.get(change.id) ?? []),
+      ]);
     case 'containers':
       // EDGE: container→element. ⚠ THE ONCE-MISSING EDGE, now with TWO paths (D50 step 0b). (1) elevation:
       // mirrors `build.ts` `elevationOf(scene, element.containerId)`, which walks the whole container path,
@@ -109,7 +123,16 @@ export function dependents(scene: Scene, change: SceneChange): readonly ElementI
       // is swept into a LinearMember's PROFILE, so a section change re-stages every element whose style
       // names it (section → styles-using-it → their instances). (0a's note here said exactly this: "when
       // `updateSection` lands, revisit this line.")
-      return elementsUsingSection(scene, change.id);
+      //
+      // ⚠ A section reaches geometry ONLY through a style, so the child gap above is inherited here
+      // verbatim: resolve the styles first, then take BOTH their scene-row instances and their child
+      // users. Composing the two edges rather than duplicating either is what keeps them one answer.
+      return unique(
+        stylesUsingSection(scene, change.id).flatMap((style) => [
+          ...instancesOfStyle(scene, style.id).map((e) => e.id),
+          ...(childStyles.get(style.id) ?? []),
+        ]),
+      );
     case 'materials':
       // NO GEOMETRY EDGE — a deliberate, declared "nothing". A part's SHAPE comes from the style layer's
       // THICKNESS; a material carries only density/structural properties read by `quantities()` and Miqdar,

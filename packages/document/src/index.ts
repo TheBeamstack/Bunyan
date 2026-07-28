@@ -27,6 +27,7 @@ export * from './commands.js';
 export * from './undo.js';
 export * from './build.js';
 export * from './enumerate.js';
+export * from './schedule.js';
 export * from './cleandelta.js';
 export * from './dependency.js';
 export * from './document.js';

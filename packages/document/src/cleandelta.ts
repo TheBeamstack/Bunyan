@@ -26,6 +26,7 @@ import type { ModelRevision } from './revision.js';
 import type { Scene, SceneChange } from './scene.js';
 import { revertChanges } from './scene.js';
 import type { UndoableEdit } from './undo.js';
+import { journalCoversRevision, missingAnchorMessage } from './undo.js';
 import type { EnumerateOptions, ModelElement } from './enumerate.js';
 import { isElementActive, optionScopeOf } from './designoptions.js';
 import { builtAxisLength } from './joins.js';
@@ -427,6 +428,16 @@ export async function exportCleanDelta(
     );
   }
   const since = options.since ?? revision;
+  // ⚠⚠ AND THE BASELINE MUST BE VISIBLE IN THE LOG, NOT MERELY NAMED BY THE MANIFEST (rule 14, swept
+  // 2026-07-28). Slicing a journal that cannot see `since` yields `[]`, and `[]` here does not read as
+  // "I cannot answer" — it reads as a complete package in which nothing changed. Measured before the
+  // guard: a wall that grew 6 m → 8 m after the baseline was published as zero elements, all-zero
+  // summary, `contract_version: 1.2`, `source: bunyan`. **The one wrong number this exporter can emit
+  // is the empty one**, because Planitor's consumer rule reads absence-from-`elements` as `unchanged`
+  // and keeps billing the model it already has.
+  if (!journalCoversRevision(doc.changeFeed(), since)) {
+    throw new Error(missingAnchorMessage(since));
+  }
   const slice = doc.changeFeed().filter((e) => e.seq > since.issued_at_seq);
   const histories = historiesIn(slice);
 

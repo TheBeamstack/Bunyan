@@ -215,6 +215,68 @@ export class Journal {
 }
 
 /**
+ * ⚠⚠ DOES THIS LOG ACTUALLY REACH THE BASELINE IT IS ABOUT TO BE READ AGAINST? (domain rule 14.)
+ *
+ * `issued_at_seq` names a **position in the journal**, and until this function existed **nothing ever
+ * checked that the journal handed to a consumer contained that position.** The mechanical halves of
+ * rule 14 were all sound and all tested — never trimmed, an undo appends a reversal, the delta is one
+ * filter — and the precondition underneath them was enforced by prose in three files.
+ *
+ * ⚠⚠ THE FAILURE IT CATCHES IS NOT A CRASH, IT IS A CONFIDENT *"NOTHING CHANGED"*: `since()` on a log
+ * that cannot see the baseline returns `[]`, which is indistinguishable from the true and ordinary
+ * answer *"nothing has happened since I issued it."* Measured on a wall that grew 6 m → 8 m after the
+ * baseline: a valid `contract_version: 1.2` package with **zero elements and an all-zero summary**, and
+ * Planitor reads absence-from-`elements` as *unchanged*. **The moat's own sentence — *"a tool that
+ * guesses what changed will eventually guess wrong"* — arrives here without any guessing at all.**
+ *
+ * ⚠ THE DETECTOR IS STRUCTURAL, AND D41 IS WHY IT WORKS: the revision-issuing edit is journalled but
+ * **never pushed onto the undo stack** (you cannot recall a revision you have handed downstream). So a
+ * "journal" that is really `doc.history()` — the 200-deep, undo-popped session convenience — **cannot**
+ * carry the anchor. The one mistake the docs have warned about in prose since D40 is now the one thing
+ * this predicate is guaranteed to see.
+ *
+ * ⚠⚠ AND IT DEFERS TO THE RESERVED MERGE FRONTIER RATHER THAN OUTLAWING IT (D60, row Ⓒ). Under
+ * co-editing the scalar cut is *ambiguous by design* — two replicas both have a `seq = 42` — so a
+ * merge-ordered journal's baseline is `frontier` (`origin → highest lamport included`), and the edit at
+ * `issued_at_seq` need not be an issuance at all. **v1.0.0 never mints a frontier**, so absence is the
+ * only case this product reaches; a present one means the scalar test does not apply and the check
+ * belongs on the frontier path that will compute the delta. *Writing the guard without this clause
+ * refused a legal reserved-seam file — caught by `coauthoring-merge-seam.test.ts`, which is exactly why
+ * D60 reserved with a working test rather than with prose.*
+ */
+export function journalCoversRevision(
+  journal: readonly UndoableEdit[],
+  revision: ModelRevision,
+): boolean {
+  // ⚠ A merge-ordered baseline (D60, reserved — absent in v1.0.0): not answerable by a scalar anchor,
+  // and not this function's to refuse. `sinceFrontier` is where the co-editing transport checks it.
+  if (revision.frontier !== undefined) return true;
+  const anchor = journal.find((edit) => edit.seq === revision.issued_at_seq);
+  // The entry at that position must BE the issuance — a `seq` is unique per edit, so this can only
+  // fail by the log being the wrong one, truncated, or from another document.
+  return anchor?.revision?.snapshot_number === revision.snapshot_number;
+}
+
+/**
+ * The ONE wording of that refusal, shared by all three sites that make it (`changesSince`, the Clean
+ * Delta exporter, `saveBnn`) — because a refusal three products will meet should not be three
+ * differently-worded guesses at the same cause (domain rule 10).
+ *
+ * ⚠ It names the anchor and the fix, per rule 3's lesson: a refusal nobody can act on has stopped being
+ * a refusal. The actionable cause is almost always one of two, and both are named.
+ */
+export function missingAnchorMessage(revision: ModelRevision): string {
+  return (
+    `the journal does not reach revision ${String(revision.snapshot_number)} ` +
+    `(issued_at_seq ${String(revision.issued_at_seq)}), so "what changed since it" cannot be READ — ` +
+    `and this product does not INFER a delta by diffing (D34/D40, domain rule 14). ` +
+    `Either the log persisted was \`doc.history()\` (the 200-deep undo stack, which by D41 can never ` +
+    `contain a revision's own edit) instead of \`doc.changeFeed()\`, or the file carries a revision ` +
+    `with no history.json at all.`
+  );
+}
+
+/**
  * The REVERSAL of an edit — what an undo appends to the journal (D40).
  *
  * ⚠ Its `changes` are the original's, **inverted** (`before` ↔ `after`), so a consumer that replays the

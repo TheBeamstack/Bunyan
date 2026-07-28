@@ -32,6 +32,7 @@ import type {
   Element,
   ElementId,
   MaterialId,
+  Params,
   StyleId,
   TypeId,
 } from './entities.js';
@@ -75,6 +76,25 @@ export interface ModelElement {
   readonly hostId?: ElementId;
   /** The human-facing name a schedule row or a tag renders (⚠ never the PEI — D44: ids are opaque). */
   readonly name?: string;
+  /**
+   * ⚠ THE INSTANCE PARAMS — carried so a `param` schedule column can be answered from THIS walk
+   * (`P5_step6B_schedules_design.md` §4.4). For an authored row these are `scene.elements[id].params`;
+   * for a **generated child** (D59) they are the child's own params, which live only on the synthetic
+   * `Element` the build carries — a consumer reaching into `scene.elements` could never have found them.
+   *
+   * ⚠⚠ It is here, and not re-derived at the consumer, for the D74 reason: when a consumer needs a
+   * field, add it where the ONE walk already produces it. The alternative was a second walk of the
+   * geometry tree inside the schedule body — precisely the duplication this module exists to prevent.
+   */
+  readonly params: Params;
+  /**
+   * ⚠ The AUTHORED short label a schedule's identity column reads (`Element.mark`, reserved ⓡ).
+   * ⚠⚠ Absent for a generated child, and that is structural rather than an oversight: a mark is
+   * authored, and a D59 child is not a scene row. `ChildOverride.mark?` is reserved (owner Q3,
+   * 2026-07-28) as the eventual home; nothing reads `childOverrides` in v1.0.0, so a child's mark is
+   * absent today and a child's identity column is its Type-supplied `name`.
+   */
+  readonly mark?: string;
   readonly classification?: Classification;
   /** The build outcome, carried through so a consumer never has to ask a second question. */
   readonly state: ElementGeometry['state'];
@@ -187,6 +207,8 @@ export function modelElements(
         ...(identity.styleId === undefined ? {} : { styleId: identity.styleId }),
         ...(identity.hostId === undefined ? {} : { hostId: identity.hostId }),
         ...(identity.name === undefined ? {} : { name: identity.name }),
+        params: identity.params,
+        ...(identity.mark === undefined ? {} : { mark: identity.mark }),
         ...(identity.classification === undefined
           ? {}
           : { classification: identity.classification }),

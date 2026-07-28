@@ -38,9 +38,12 @@ import type {
   ProjectQuantityRow,
   UnmeasuredElement,
 } from './enumerate.js';
+import { projectSchedule, selectRows } from './schedule.js';
+import type { ScheduleResult, ScheduleSources } from './schedule.js';
+import type { ScheduleDefinition } from './documentation.js';
 import type { GeometryGateway } from './geometry.js';
 import { isDerivedChildId } from './geometry.js';
-import { affectedAssemblies, assemblyRoot, buildAssembly } from './build.js';
+import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
 import { dependents } from './dependency.js';
 import type { ElementGeometry } from './build.js';
 import { CommandFailure } from './commands.js';
@@ -60,7 +63,13 @@ import {
 import type { RoomOptionSelection, RoomSolver, Vec2 } from './room.js';
 import type { ContainerId, Params } from './entities.js';
 import type { ModelRevision } from './revision.js';
-import { Journal, UndoStack, reversalOf } from './undo.js';
+import {
+  Journal,
+  UndoStack,
+  journalCoversRevision,
+  missingAnchorMessage,
+  reversalOf,
+} from './undo.js';
 import type { UndoableEdit } from './undo.js';
 import { mintPei } from './ulid.js';
 
@@ -242,6 +251,14 @@ export class DocumentContext {
    * to diff — the exact guessing BIMsync is an entire platform built to do for foreign models.
    */
   changesSince(revision: ModelRevision): readonly UndoableEdit[] {
+    // ⚠⚠ AND IT REFUSES RATHER THAN ANSWERING `[]` OUT OF A LOG THAT CANNOT SEE THE BASELINE (rule 14,
+    // swept 2026-07-28). An empty delta is a true and ordinary answer — *"nothing has happened since I
+    // issued it"* — and it is indistinguishable from *"I cannot see that revision at all"* unless
+    // somebody checks. Nobody did: a document reopened from a `.bnn` that carried its revision but not
+    // its journal reported every element unchanged, in a package that carries money.
+    if (!journalCoversRevision(this.#journal.entries(), revision)) {
+      throw new Error(missingAnchorMessage(revision));
+    }
     return this.#journal.since(revision.issued_at_seq);
   }
 
@@ -635,6 +652,83 @@ export class DocumentContext {
     return { rows, unmeasured, basis: 'exact' };
   }
 
+  /**
+   * ⚠⚠ THE SCHEDULE — `ScheduleDefinition` → rows (D58 row Ⓐ, `P5_step6B_schedules_design.md`). The third
+   * and last consumer of `modelElements()`, and the one D58 ships in v1.0.0's minimal 2D.
+   *
+   * ⚠⚠ IT HAS NO ENUMERATION LOOP OF ITS OWN, AND THAT IS ITS CORRECTNESS. Measured 2026-07-28 against
+   * the naive `Object.values(scene.elements)` loop the reservation's own test carried: a curtain-panel
+   * schedule returned **0 rows where 6 is correct** (1 authored row, 17 real elements), a no-filter
+   * schedule **THREW** on the pure composite, and one non-active design option produced a **2.0000×
+   * over-report** — D65's named failure mode on the consumer its own sentence names first.
+   *
+   * ⚠ A schedule with no `quantity` column makes ZERO kernel calls: selection and every `field`/`param`/
+   * `count` cell are pure functions of the scene and the built tree.
+   *
+   * ⚠ AND IT IS A QUERY, NOT AN EDIT (domain rule 17 — a schedule is a PROJECTION): it writes no
+   * `scene.json` byte, mints no `UndoableEdit`, and caches nothing. The `.bnn` carries the DEFINITION.
+   */
+  async evaluateSchedule(
+    definition: ScheduleDefinition,
+    options: EnumerateOptions = {},
+  ): Promise<ScheduleResult> {
+    // ⚠ THE STORED SELECTION IS THE ARTIFACT'S OWN (owner Q2, the `ViewCommon.designOptionIds` shape): a
+    // schedule saved as "the Option B door schedule" shows Option B when it is opened. It wins for the
+    // sets it names; the caller's `active` covers every other set. Absent ⇒ each set's primary, which is
+    // the rule everywhere else in the product.
+    const catalogue = options.designOptions ?? this.#scene.designOptions;
+    let active = options.active ?? {};
+    if (definition.designOptionIds !== undefined && catalogue !== undefined) {
+      const declared: Record<string, string> = { ...active };
+      for (const optionId of definition.designOptionIds) {
+        const option = catalogue[optionId];
+        if (option !== undefined) declared[option.setName] = optionId;
+      }
+      active = declared;
+    }
+
+    const elements = this.modelElements({ ...options, active });
+    const rows = selectRows(elements, definition.filter);
+
+    // Measure ONLY when a quantity column asks — and only for rows that have something to measure.
+    const wantsQuantity = definition.columns.some((column) => column.source === 'quantity');
+    const measured = new Map<ElementId, QuantityBreakdown>();
+    const unmeasured: UnmeasuredElement[] = [];
+    if (wantsQuantity) {
+      for (const element of rows) {
+        if (element.state !== 'valid') {
+          unmeasured.push({
+            elementId: element.id,
+            reason:
+              this.#geometryByElement.get(element.id)?.error ?? element.failure ?? element.state,
+          });
+          continue;
+        }
+        // A pure void or a pure composite has no own parts. It keeps its ROW — it is a real element with
+        // a PEI a tag may bind to — and simply has no quantity. It is not `unmeasured`: nothing failed.
+        if (!element.hasParts) continue;
+        // ⚠⚠ ONE REFUSAL COSTS ITS ROW, NEVER THE TABLE (domain rule 4 / D75, the `projectQuantities`
+        // discipline one artifact along). The element keeps its row with the value ABSENT and is reported
+        // here; dropping it would leave a schedule that is plausible and short, which nobody audits.
+        try {
+          measured.set(element.id, await this.quantities(element.id));
+        } catch (error) {
+          unmeasured.push({
+            elementId: element.id,
+            reason: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+    }
+
+    const sources: ScheduleSources = {
+      scene: this.#scene,
+      quantitiesOf: (id) => measured.get(id),
+      schemaOf: (typeId) => this.#registries.types.get(typeId)?.parameterSchema,
+    };
+    return projectSchedule(definition, rows, sources, unmeasured);
+  }
+
   /** The area of ONE named face — paint, formwork, cladding. This is what `measure(ref)` bought. */
   async faceArea(id: ElementId, ref: string): Promise<number> {
     const geometry = this.#geometryByElement.get(id);
@@ -744,8 +838,13 @@ export class DocumentContext {
    */
   #touched(changes: readonly SceneChange[]): readonly ElementId[] {
     const ids = new Set<ElementId>();
+    // ⚠ THE ONE THING THE GRAPH CANNOT DERIVE FROM THE SCENE (rule 18, D59): which generated children
+    // exist, and what style each wears. They are produced by a Type's `buildChildren` — code, not data —
+    // so the live tree is the only source, and it lives here. The graph still DECLARES the edge; this
+    // method still only feeds it (see the note above).
+    const childStyles = childStyleUsers(this.#geometryByElement, Object.keys(this.#scene.elements));
     for (const change of changes) {
-      for (const id of dependents(this.#scene, change)) ids.add(id);
+      for (const id of dependents(this.#scene, change, childStyles)) ids.add(id);
     }
     return [...ids];
   }

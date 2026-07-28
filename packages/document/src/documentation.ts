@@ -118,8 +118,38 @@ export interface ScheduleDefinition {
   readonly filter: ScheduleFilter;
   /** The columns, in order. Each is a stable key into the frozen model; the cell value derives. */
   readonly columns: readonly ScheduleColumn[];
-  /** Optional grouping by a column heading/key (Revit's "sort/group"). Additive; absent ⇒ a flat list. */
+  /**
+   * Optional grouping (Revit's "sort/group"). Additive; absent ⇒ a flat list.
+   *
+   * ⚠⚠ IT NAMES **STABLE COLUMN KEYS**, NEVER DISPLAY HEADINGS (owner-ruled 2026-07-28, Q1;
+   * `P5_step6B_schedules_design.md` §6.1). A key is `columnKeyOf(column)` — `field:mark`,
+   * `param:thickness`, `quantity:volume:structure`. A `heading` is display text: optional, human-facing
+   * and renameable, and grouping by it is **D70's defect verbatim** — the Clean Delta keyed materials by
+   * display NAME, so a rename re-keyed every downstream work package and two entities sharing a label
+   * merged into one. Here it would mean: rename a heading and every group silently re-keys; two columns
+   * given the same heading merge; a column with **no** heading could not be grouped by at all.
+   *
+   * *(This comment was the whole of the fix — the ambiguity was caught before the shape had a body,
+   * which is the cheapest moment this project has ever caught one of these.)*
+   */
   readonly groupBy?: readonly string[];
+  /**
+   * ⚠ RESERVED (owner-ruled 2026-07-28, Q2 — `P5_step6B_schedules_design.md` §6.2). WHICH design
+   * alternatives this schedule shows. The `ViewCommon.designOptionIds?` field (D65) for the TABULAR
+   * view: a schedule is placed on a sheet through the same `Viewport`, and it is the consumer D65's own
+   * sentence names FIRST (*"a schedule double-counts and work packages are published for a scheme
+   * nobody builds"*) — yet it was the one that got no field.
+   *
+   * Absent ⇒ each option set's PRIMARY option (plus the main model), which is v1.0.0's only case since
+   * no element carries a `designOptionId` yet.
+   *
+   * ⚠⚠ IT IS A DISPLAY SELECTION, NOT A LICENCE TO DOUBLE-COUNT. Choosing options here is a question
+   * *asked of* the model, never a change to it — the `clip` discipline. An aggregating consumer still
+   * resolves ONE active option per set (`isElementActive`); the exclusion invariant is a correctness
+   * rule that this field cannot switch off. *(Measured 2026-07-28 on the body that reads it: a wall
+   * schedule that ignores the invariant over-reports by 2.0000×.)*
+   */
+  readonly designOptionIds?: readonly DesignOptionId[];
 }
 
 /** The row selector — every field optional, AND-combined; each binds to a FROZEN, stable key. */

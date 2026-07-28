@@ -26,6 +26,7 @@ import { unzipSync, zipSync } from 'fflate';
 import type { Scene } from './scene.js';
 import { SCENE_SCHEMA_VERSION, emptyScene } from './scene.js';
 import type { UndoableEdit } from './undo.js';
+import { journalCoversRevision, missingAnchorMessage } from './undo.js';
 import type { ModelRevision } from './revision.js';
 import type { CodecReadResult, CodecWriteInput, FormatCodec, Registries } from './registries.js';
 import type { Element, Params } from './entities.js';
@@ -100,6 +101,28 @@ function typeVersionsOf(scene: Scene): Record<string, number> {
 }
 
 export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
+  // ⚠⚠ A FILE MAY NOT CLAIM A BASELINE ITS OWN LOG CONTRADICTS (domain rule 14, swept 2026-07-28).
+  //
+  // ⚠ Note precisely what is refused, and what is not. **Omitting the journal is legitimate** — a
+  // scene-only `.bnn` is a real document (the recipe is the truth, and twenty tests write one); it
+  // simply cannot answer *"what changed since revision N"*, and the exporter says so when asked.
+  // **Supplying a log that does not contain the revision's own edit is not legitimate**: the manifest
+  // and `history.json` of the same file are then in contradiction at the moment it is written, and the
+  // only caller who can hit it is the one making the mistake D40 exists to prevent — persisting
+  // `doc.history()`. By D41 the undo stack can never hold a revision's edit, so this check catches that
+  // mistake with certainty rather than by heuristic.
+  if (
+    options.revision !== undefined &&
+    options.journal !== undefined &&
+    !journalCoversRevision(options.journal, options.revision)
+  ) {
+    throw new Error(
+      `refusing to write a .bnn whose journal contradicts its manifest: ${missingAnchorMessage(
+        options.revision,
+      )}`,
+    );
+  }
+
   const manifest: Manifest = {
     app: 'bunyan',
     appVersion: APP_VERSION,
@@ -391,6 +414,22 @@ export const BNN_CODEC: FormatCodec = {
       ...(pkg.thumbnail === undefined ? {} : { thumbnail: pkg.thumbnail }),
     };
   },
-  write: (input: CodecWriteInput): Uint8Array =>
-    saveBnn(input.scene, (input.options ?? { kernelBuildId: 'unknown' }) as SaveOptions),
+  /**
+   * ⚠ IT USED TO DEFAULT TO `{ kernelBuildId: 'unknown' }`, AND THAT DEFAULT WROTE A LIE TWICE OVER
+   * (rule 14, swept 2026-07-28): it fabricated a kernel build id, and — because `SaveOptions.journal`
+   * and `.revision` are optional — it silently dropped **the change feed and the baseline** on the one
+   * seam D71 built so that the app's own open/save could go through the registry rather than by name.
+   * A format's write options belong to the caller; a codec that invents them is answering a question it
+   * was not asked.
+   */
+  write: (input: CodecWriteInput): Uint8Array => {
+    if (input.options === undefined) {
+      throw new Error(
+        'a .bnn write needs its SaveOptions — at minimum `kernelBuildId`, and for a document that has ' +
+          'been issued, `journal: doc.changeFeed()` + `revision: doc.revision` (D34/D40, domain rule ' +
+          '14). Writing without them produces a file that cannot say what changed since its own baseline.',
+      );
+    }
+    return saveBnn(input.scene, input.options as SaveOptions);
+  },
 };
