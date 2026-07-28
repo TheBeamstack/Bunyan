@@ -37,6 +37,7 @@ export function ScalePage() {
   const [phase, setPhase] = useState<Phase>({ kind: 'booting' });
   const [log, setLog] = useState<readonly string[]>([]);
   const [sweep, setSweep] = useState<readonly FrameStats[]>([]);
+  const [batched, setBatched] = useState<readonly FrameStats[]>([]);
   const [edits, setEdits] = useState<readonly EditLatency[]>([]);
   const [results, setResults] = useState<ScaleResults | null>(null);
   const [kernelLabel, setKernelLabel] = useState('—');
@@ -77,7 +78,33 @@ export function ScalePage() {
             `in ${reference.buildMs.toFixed(0)} ms`,
         );
 
-        // 2) (b) Draw calls + frame time, swept to the ~16k-part target.
+        // 2) (b) BATCHED first — the step-9(b) "after", drawn through the real `PartBatch`. Run BEFORE the
+        //    heavy unbatched re-confirmation (whose 16k point is what strains the tab) so the deliverable
+        //    "after" number is captured early and parked on `window` as it accrues.
+        const batchedPoints: FrameStats[] = [];
+        for (const n of SWEEP_SCALES) {
+          if (!live) return;
+          setPhase({ kind: 'sweeping', at: n });
+          harness.growBatchedFillerTo(n);
+          const stats = await harness.measureBatchedFrames();
+          if (!live) return;
+          batchedPoints.push(stats);
+          setBatched([...batchedPoints]);
+          (window as unknown as { __batchedSweep?: readonly FrameStats[] }).__batchedSweep = [
+            ...batchedPoints,
+          ];
+          note(
+            `batched ${String(n).padStart(6)} parts → ${String(stats.drawCalls).padStart(4)} draw calls, ` +
+              `${stats.medianFrameMs.toFixed(1)} ms/frame (${stats.fps.toFixed(1)} fps)`,
+          );
+          if (harness.contextLost) {
+            note('⚠ WEBGL CONTEXT LOST — the tab GPU gave out at this scale.');
+            break;
+          }
+        }
+        harness.growBatchedFillerTo(0);
+
+        // 2b) (b) UNBATCHED — re-confirm Entry 55's as-built one-mesh-per-part number for a side-by-side.
         const sweepPoints: FrameStats[] = [];
         for (const n of SWEEP_SCALES) {
           if (!live) return;
@@ -96,6 +123,7 @@ export function ScalePage() {
             break;
           }
         }
+        harness.growFillerTo(0);
 
         // 3) (d) Incremental edit latency at increasing resident scale (should be ~flat: step 2b).
         setPhase({ kind: 'editing' });
@@ -122,11 +150,17 @@ export function ScalePage() {
 
         const target =
           sweepPoints.find((p) => p.parts >= TARGET_PARTS) ?? sweepPoints[sweepPoints.length - 1]!;
+        const batchedTarget =
+          batchedPoints.find((p) => p.parts >= TARGET_PARTS) ??
+          batchedPoints[batchedPoints.length - 1] ??
+          null;
         const full: ScaleResults = {
           reference,
           canvas: harness.canvasInfo,
           sweep: sweepPoints,
           target,
+          batchedSweep: batchedPoints,
+          batchedTarget,
           edits: editPoints,
           drawCallsPerPart: target.parts > 0 ? target.drawCalls / target.parts : 2,
         };
@@ -198,6 +232,51 @@ export function ScalePage() {
                 <strong>{results.target.medianFrameMs.toFixed(1)} ms/frame</strong> (
                 {results.target.fps.toFixed(1)} fps). {results.drawCallsPerPart.toFixed(1)} draw
                 calls/part (face mesh + edge line).
+              </p>
+            )}
+          </Section>
+
+          <Section title='(b) BATCHED — the same scene through PartBatch (step 9(b) "after")'>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>parts</th>
+                  <th style={styles.th}>draw calls</th>
+                  <th style={styles.th}>tris</th>
+                  <th style={styles.th}>ms/frame</th>
+                  <th style={styles.th}>p95</th>
+                  <th style={styles.th}>fps</th>
+                </tr>
+              </thead>
+              <tbody>
+                {batched.map((s) => (
+                  <tr key={s.parts} style={s.parts >= TARGET_PARTS ? styles.targetRow : undefined}>
+                    <td style={styles.td}>{s.parts.toLocaleString()}</td>
+                    <td style={styles.td}>{s.drawCalls.toLocaleString()}</td>
+                    <td style={styles.td}>{compact(s.triangles)}</td>
+                    <td style={styles.td}>{s.medianFrameMs.toFixed(1)}</td>
+                    <td style={styles.td}>{s.p95FrameMs.toFixed(1)}</td>
+                    <td style={styles.td}>{s.fps.toFixed(1)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {results !== null && results.batchedTarget !== null && (
+              <p style={styles.dim} data-testid="batched-summary">
+                target ≈ {TARGET_PARTS.toLocaleString()} parts ⇒{' '}
+                <strong>{results.batchedTarget.drawCalls.toLocaleString()} draw calls</strong>,{' '}
+                <strong>{results.batchedTarget.medianFrameMs.toFixed(1)} ms/frame</strong> (
+                {results.batchedTarget.fps.toFixed(1)} fps) — vs{' '}
+                {results.target.drawCalls.toLocaleString()} calls /{' '}
+                {results.target.medianFrameMs.toFixed(1)} ms unbatched (
+                {(results.target.drawCalls / Math.max(1, results.batchedTarget.drawCalls)).toFixed(
+                  0,
+                )}
+                × fewer calls,{' '}
+                {(
+                  results.target.medianFrameMs / Math.max(0.01, results.batchedTarget.medianFrameMs)
+                ).toFixed(1)}
+                × faster).
               </p>
             )}
           </Section>

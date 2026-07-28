@@ -17,7 +17,7 @@ import {
   type SubShapeRef,
 } from '@bunyan/protocol';
 
-import { resolveFacePick, type PickablePart } from './pick';
+import { resolveFacePick, localFaceIndex, type PickablePart } from './pick';
 
 const yMin: SubShapeRef = {
   nodeId: 'wall-1.structure',
@@ -83,5 +83,30 @@ describe('sub-shape picking (step 4) — a triangle resolves to a face SubShapeR
     expect(resolveFacePick(corrupt, 0)).toBeNull();
     // …while the sound face beside it still resolves.
     expect(resolveFacePick(corrupt, 2)?.faceRef).toEqual(yMax);
+  });
+});
+
+describe('batch pick remap (step 9(b), design §5) — a global face index becomes the part-local one', () => {
+  const part = twoFacePart([encodeSubShapeRef(yMin), encodeSubShapeRef(yMax)]);
+
+  it('a part at the front of the merged buffer (range start 0) is the identity map', () => {
+    expect(localFaceIndex(0, 0)).toBe(0);
+    expect(localFaceIndex(3, 0)).toBe(3);
+  });
+
+  it('subtracts the geometry range start (in index units ÷ 3) to recover the local triangle', () => {
+    // The part sits after 10 earlier triangles ⇒ its geometry range starts at index 30 (30 index elements
+    // = 10 triangles). Its first triangle is GLOBAL face 10, so global face 12 is this part's LOCAL
+    // triangle 2 — `yMax`.
+    const rangeStart = 30;
+    const globalHit = 12;
+    const local = localFaceIndex(globalHit, rangeStart);
+    expect(local).toBe(2);
+    expect(resolveFacePick(part, local)?.faceRef).toEqual(yMax);
+  });
+
+  it('a garbage range yields a non-local index that resolveFacePick rejects (no WRONG ref)', () => {
+    // A range start past the hit gives a negative local index — out of range ⇒ null, never a wrong face.
+    expect(resolveFacePick(part, localFaceIndex(1, 30))).toBeNull();
   });
 });

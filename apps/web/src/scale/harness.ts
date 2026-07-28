@@ -30,11 +30,13 @@
  *      `RenderGateway` (step 2b — ONLY the dirty parts), and the harness swaps just those meshes. The
  *      measured latency is the real incremental cost under target-scale renderer load.
  *
- * ⚠ NO BATCHING HERE. The plan is explicit: measure the as-built one-mesh-per-part architecture FIRST;
- * batching-by-material / instancing is "a rewrite not an optimisation" and is a decision the number
- * informs, not a thing to sneak in before the number exists (plan step 9b). The Viewport draws a face
- * `Mesh` AND an edge `LineSegments` per part, so draw calls are ~2× the part count — the harness reports
- * both so the finding is legible.
+ * ⚠ BEFORE **AND** AFTER (updated for the step-9(b) build). The plan was explicit: measure the as-built
+ * one-mesh-per-part architecture FIRST (Entry 55 did — ~30k draw calls / ~606 ms), because batching is
+ * "a rewrite not an optimisation" and is a decision the number informs. That number now exists, the owner
+ * ruled the batching in, and it is BUILT (`PartBatch`) — so this harness now runs a SECOND sweep of the
+ * SAME resident scene through the real `PartBatch` (`measureBatchedFrames`), giving the "after" beside the
+ * "before". The unbatched sweep draws a face `Mesh` AND an edge `LineSegments` per part (~2× the part
+ * count in draw calls); the batched sweep draws ~2 total. The harness reports both so the win is legible.
  *
  * ⚠ FIDELITY CAVEAT, DISCLOSED. Filler parts are cloned from the real composite-wall LAYER solids
  * (rectangular prisms — the simplest real part). A wall pierced by a window carries more triangles, so the
@@ -54,6 +56,7 @@ import {
   createPartMaterial,
   EDGE_COLOR,
 } from '../render/Viewport';
+import { PartBatch } from '../render/PartBatch';
 import { percentile } from './stats';
 
 /** Steady-state render cost at one resident part count — the (b) axis at that scale. */
@@ -98,8 +101,12 @@ export interface ScaleResults {
   readonly reference: ReferenceInfo;
   readonly canvas: { readonly width: number; readonly height: number; readonly dpr: number };
   readonly sweep: readonly FrameStats[];
-  /** The row at (or nearest above) the ~16k-part target — the (b) answer. */
+  /** The row at (or nearest above) the ~16k-part target — the (b) answer (UNBATCHED, Entry 55). */
   readonly target: FrameStats;
+  /** The BATCHED sweep — the "after" (step 9(b)); same scales, drawn through the real `PartBatch`. */
+  readonly batchedSweep: readonly FrameStats[];
+  /** The batched row at/above the target — the (b) answer AFTER batching. */
+  readonly batchedTarget: FrameStats | null;
   readonly edits: readonly EditLatency[];
   readonly drawCallsPerPart: number;
 }
@@ -150,10 +157,17 @@ export class ScaleHarness {
   readonly #realParts = new Map<string, RealPart>();
   /** The pool of real geometries every filler mesh shares (so 16k meshes cost a few buffers, not 16k). */
   #pool: PooledPart[] = [];
+  /** The pool of real `MeshBuffers` the BATCHED filler clones+translates through the real `PartBatch`. */
+  readonly #bufferPool: MeshBuffers[] = [];
   /** Filler objects currently in the scene (face meshes + edge lines), so the sweep can grow/dispose. */
   readonly #filler: THREE.Object3D[] = [];
   /** How many filler PARTS (face meshes) are currently resident. */
   #fillerParts = 0;
+
+  /** The BATCHED scene (its own scene so it never disturbs the per-part sweep) + the real `PartBatch`. */
+  #batchScene: THREE.Scene | null = null;
+  #batch: PartBatch | null = null;
+  #batchedParts = 0;
 
   #wallStyleId = 'SCALE-EXT';
   #editableWallId: ElementId | null = null;
@@ -276,6 +290,8 @@ export class ScaleHarness {
         face: face.clone(),
         edges: edgeSeg === null ? null : edgeSeg.geometry.clone(),
       });
+      // Pool the raw buffers too, for the BATCHED filler (which needs `MeshBuffers`, not `BufferGeometry`).
+      this.#bufferPool.push(buffers);
     }
   }
 
@@ -365,8 +381,8 @@ export class ScaleHarness {
   readonly #frameCenter = new THREE.Vector3();
   #frameRadius = 10_000;
 
-  /** Render one frame, orbiting the camera a little around the model (so culling is exercised live). */
-  #renderOrbitFrame(angle: number): void {
+  /** Render one frame of `scene`, orbiting the camera a little around the model (culling exercised live). */
+  #renderOrbitFrame(angle: number, scene: THREE.Scene = this.#scene): void {
     const r = this.#frameRadius;
     this.#camera.position.set(
       this.#frameCenter.x + r * Math.cos(angle),
@@ -374,19 +390,19 @@ export class ScaleHarness {
       this.#frameCenter.z + r * 0.7,
     );
     this.#camera.lookAt(this.#frameCenter);
-    this.#renderer.render(this.#scene, this.#camera);
+    this.#renderer.render(scene, this.#camera);
   }
 
   /**
-   * Measure steady-state frame time at the current resident count. Renders `WARMUP_FRAMES` to warm up,
-   * then times `MEASURE_FRAMES`, returning median/p95/fps and the draw-call + triangle counts.
+   * Measure steady-state frame time of `scene` at the given resident part count. Renders `WARMUP_FRAMES`
+   * to warm up, then times `MEASURE_FRAMES`, returning median/p95/fps and the draw-call + triangle counts.
    */
-  async measureFrames(): Promise<FrameStats> {
+  async #sweepScene(scene: THREE.Scene, parts: number): Promise<FrameStats> {
     let angle = 0.6;
     const step = (Math.PI * 2) / (MEASURE_FRAMES * 2);
 
     for (let i = 0; i < WARMUP_FRAMES; i++) {
-      this.#renderOrbitFrame(angle);
+      this.#renderOrbitFrame(angle, scene);
       angle += step;
       await yieldToTask();
     }
@@ -396,7 +412,7 @@ export class ScaleHarness {
     let triangles = 0;
     for (let i = 0; i < MEASURE_FRAMES; i++) {
       const t0 = performance.now();
-      this.#renderOrbitFrame(angle);
+      this.#renderOrbitFrame(angle, scene);
       const dt = performance.now() - t0;
       times.push(dt);
       drawCalls = this.#renderer.info.render.calls;
@@ -407,13 +423,71 @@ export class ScaleHarness {
 
     const median = percentile(times, 50);
     return {
-      parts: this.#fillerParts,
+      parts,
       drawCalls,
       triangles,
       medianFrameMs: median,
       p95FrameMs: percentile(times, 95),
       fps: median > 0 ? 1000 / median : Infinity,
     };
+  }
+
+  /** (b) UNBATCHED — the as-built one-mesh-per-part scene (Entry 55's number). */
+  async measureFrames(): Promise<FrameStats> {
+    return this.#sweepScene(this.#scene, this.#fillerParts);
+  }
+
+  /** (b) BATCHED — the same resident scene drawn through the real `PartBatch` (the "after", step 9(b)). */
+  async measureBatchedFrames(): Promise<FrameStats> {
+    this.#ensureBatchScene();
+    return this.#sweepScene(this.#batchScene!, this.#batchedParts);
+  }
+
+  /**
+   * Grow/shrink the BATCHED filler to exactly `n` parts, grid-spread through the REAL `PartBatch` — the
+   * production code path, fed the pooled real `MeshBuffers` cloned and translated to each grid cell (so
+   * every part is a distinct geometry at a distinct place, the honest worst case, not a shared instance).
+   * Draw calls read off this are ~2 regardless of `n` — that IS the measurement.
+   */
+  growBatchedFillerTo(n: number): void {
+    this.#ensureBatchScene();
+    if (this.#bufferPool.length === 0)
+      throw new Error('scale harness: buildReference() must run first');
+    const batch = this.#batch!;
+
+    while (this.#batchedParts < n) {
+      const src = this.#bufferPool[this.#batchedParts % this.#bufferPool.length]!;
+      const pos = this.#gridPosition(this.#batchedParts);
+      const color = PART_COLORS[this.#batchedParts % PART_COLORS.length]!;
+      batch.set(`bf-${String(this.#batchedParts)}`, translateBuffers(src, pos), color);
+      this.#batchedParts++;
+    }
+    while (this.#batchedParts > n) {
+      this.#batchedParts--;
+      batch.remove(`bf-${String(this.#batchedParts)}`);
+    }
+    this.#frameGrid(Math.max(n, this.#realParts.size));
+  }
+
+  #ensureBatchScene(): void {
+    if (this.#batchScene !== null) return;
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1d21);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const key = new THREE.DirectionalLight(0xffffff, 1.2);
+    key.position.set(5000, 10000, 8000);
+    scene.add(key);
+    // Pre-size the batch for the target so the sweep does not measure buffer-growth churn.
+    const cap = TARGET_PARTS + 64;
+    this.#batch = new PartBatch({
+      instances: cap,
+      vertices: cap * 32,
+      indices: cap * 48,
+      edgeVertices: cap * 32,
+    });
+    scene.add(this.#batch.faceObject);
+    scene.add(this.#batch.edgeObject);
+    this.#batchScene = scene;
   }
 
   /**
@@ -514,6 +588,7 @@ export class ScaleHarness {
       pooled.edges?.dispose();
     }
     this.#pool = [];
+    this.#batch?.dispose();
     this.#renderer.dispose();
   }
 }
@@ -537,6 +612,38 @@ function yieldToTask(): Promise<void> {
     };
     channel.port2.postMessage(undefined);
   });
+}
+
+/**
+ * Clone a part's `MeshBuffers` translated by `offset` — the batched filler's way to spread a pooled real
+ * part across the grid without a per-instance transform. Positions and edge positions are copied and
+ * shifted; `normals`/`indices`/`provenance` are rigid under translation and shared; `bounds` shift.
+ */
+function translateBuffers(src: MeshBuffers, offset: THREE.Vector3): MeshBuffers {
+  const positions = src.positions.slice();
+  for (let i = 0; i < positions.length; i += 3) {
+    positions[i]! += offset.x;
+    positions[i + 1]! += offset.y;
+    positions[i + 2]! += offset.z;
+  }
+  const edgePositions = src.edgePositions.slice();
+  for (let i = 0; i < edgePositions.length; i += 3) {
+    edgePositions[i]! += offset.x;
+    edgePositions[i + 1]! += offset.y;
+    edgePositions[i + 2]! += offset.z;
+  }
+  const { min, max } = src.bounds;
+  return {
+    positions,
+    normals: src.normals,
+    indices: src.indices,
+    edgePositions,
+    provenance: src.provenance,
+    bounds: {
+      min: [min[0] + offset.x, min[1] + offset.y, min[2] + offset.z],
+      max: [max[0] + offset.x, max[1] + offset.y, max[2] + offset.z],
+    },
+  };
 }
 
 /** Dispose a wrapper object's material(s) only — never its (possibly pooled/shared) geometry. */

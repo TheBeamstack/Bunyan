@@ -1,24 +1,27 @@
 /**
- * The three.js scene manager — kernel meshes → `BufferGeometry`, orbit camera, grid, axes.
+ * The three.js scene manager — kernel meshes → a BATCHED scene, orbit camera, grid, axes.
  *
  * ⚠ SCOPE (P4). This is the WebGL2 renderer. P4 step 1 wants `WebGPURenderer` with a WebGL2 fallback
  * and P4 step 7 wants TSL shading; both are follow-ups. The seam that matters is already right: this
  * class receives a `RenderGateway` and never a `KernelClient`.
  *
- * ⚠ AN ELEMENT IS ITS PARTS (D30). Each part is its own mesh with its own material colour — a wall is
+ * ⚠ AN ELEMENT IS ITS PARTS (D30). Each part is a distinct instance with its own colour — a wall is
  * three solids, not one. Quantities never come from these triangles (`doc.quantities()` reads the
  * B-Rep); this mesh is a disposable projection for the eyes.
  *
- * ⚠ THE REDRAW IS INCREMENTAL (P4 step 2b). `setScene` keeps a mesh cache keyed by each part's STABLE
+ * ⚠ THE REDRAW IS INCREMENTAL (P4 step 2b). `setScene` keeps a cache keyed by each part's STABLE
  * `nodeId` and re-tessellates only the parts whose `handle` changed — an untouched element costs
  * nothing. See `reconcile.ts` for the plan and why the changed handle is a sufficient dirty signal.
  *
- * ⚠ THE PROVENANCE MAP IS RETAINED (P4 step 2c). `toBufferGeometry` used to read `positions`/`normals`/
- * `indices` and let `provenance`, `edgePositions` and `bounds` fall out of scope — so the model had NO
- * rendered edges (why it read as a 3D-viewer toy) and picking (step 4) had no substrate. Now each drawn
- * part keeps its `MeshProvenance` (triangle → face `SubShapeRef`) beside its mesh, renders its edge
- * polylines as `LineSegments`, and uses the kernel's tight `bounds` for the geometry's bounding volume.
- * The picking read that consumes the retained provenance is `pick()` (step 4).
+ * ⚠ THE PROVENANCE MAP IS RETAINED (P4 step 2c). Each drawn part keeps its `MeshProvenance` (triangle →
+ * face `SubShapeRef`) in `#drawn` beside the batch, so a pick (step 4) resolves without going back to the
+ * kernel, and uses the kernel's tight `bounds` for the geometry's bounding volume.
+ *
+ * ⚠ THE SCENE IS BATCHED (P4 step 9(b) — the Entry-55 scale unlock; `PartBatch`). Every opaque face part
+ * lives in ONE `THREE.BatchedMesh` (per-instance colour, one multi-draw call) and every edge in ONE
+ * `THREE.LineSegments` — ~2 draw calls for the whole model, down from the ~30k Entry 55 measured. The
+ * per-part identity that picking and the incremental redraw depend on is preserved by the batch, not the
+ * scene graph (design `P4_step9_renderer_batching_design.md`).
  */
 
 import * as THREE from 'three';
@@ -30,56 +33,30 @@ import type { RenderGateway } from './RenderGateway';
 import type { RenderPart } from './RenderPart';
 import { planRedraw, type CachedPart } from './reconcile';
 import { resolveFacePick, type PickResult } from './pick';
+import { PartBatch } from './PartBatch';
 
 export type { RenderPart } from './RenderPart';
 export type { PickResult } from './pick';
+// Re-exported for the scale harness (`src/scale/harness.ts`), which draws faithful filler parts through
+// the exact same helpers the viewport uses. They now live in `tessellation.ts` (to avoid an import cycle
+// with `PartBatch`); this keeps the harness's `from '../render/Viewport'` imports working unchanged.
+export {
+  EDGE_COLOR,
+  createPartMaterial,
+  toBufferGeometry,
+  buildEdgeSegments,
+} from './tessellation';
 
 /**
- * A part currently on screen: what it was built from (`CachedPart`), its live three.js objects, and the
- * provenance/bounds retained from tessellation so a pick can be resolved without going back to the kernel.
+ * A part currently on screen: the fields the incremental redraw compares (`CachedPart`), its identity,
+ * and the `MeshBuffers` retained from tessellation (step 2c) so a pick resolves through its provenance
+ * without the kernel. The part's GPU geometry lives in the `PartBatch`, keyed by the same `nodeId`.
  */
 interface DrawnPart extends CachedPart {
   readonly elementId: ElementId;
   readonly nodeId: string;
   readonly partName: string;
-  readonly mesh: THREE.Mesh;
-  /** The part's edge polylines, or `null` for a solid the kernel returned no edges for. */
-  readonly edges: THREE.LineSegments | null;
-  /**
-   * The `MeshBuffers` this part was drawn from — RETAINED (step 2c), where the foundation pass dropped
-   * it. It carries the `provenance` map that `pick()` (step 4) maps a triangle back to a `SubShapeRef`
-   * through. Its `positions`/`normals`/`indices` arrays are the very ones the `BufferGeometry` attributes
-   * already reference, so holding them here costs no extra memory.
-   */
   readonly buffers: MeshBuffers;
-}
-
-/**
- * Edge colour — near-black, so edges read as CAD linework over the shaded faces.
- *
- * ⚠ Exported for the SCALE HARNESS (`src/scale/harness.ts`, P4 step 9b) so it draws filler parts with
- * the exact same edge appearance the shipped viewport does — a faithful draw-call/frame-time number
- * depends on measuring the real per-part geometry (one face `Mesh` + one edge `LineSegments`), not a
- * lookalike.
- */
-export const EDGE_COLOR = 0x11141a;
-
-/**
- * The face material for one part (P4 step 2c). Extracted so the scale harness (step 9b) paints filler
- * meshes with the identical `MeshStandardMaterial` — same shading cost per fragment, same polygon-offset
- * that lifts the edge lines clear — as the real viewport, or its frame-time measurement would be a
- * measurement of a different material.
- */
-export function createPartMaterial(color: number): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({
-    color,
-    roughness: 0.85,
-    metalness: 0.0,
-    // Push faces back a hair so the edge lines sit cleanly on top without z-fighting.
-    polygonOffset: true,
-    polygonOffsetFactor: 1,
-    polygonOffsetUnits: 1,
-  });
 }
 
 export class Viewport {
@@ -88,9 +65,11 @@ export class Viewport {
   readonly #scene = new THREE.Scene();
   readonly #camera: THREE.PerspectiveCamera;
   readonly #controls: OrbitControls;
-  /** Everything currently drawn. */
+  /** Everything currently drawn — the two batch objects (faces + edges). */
   readonly #sceneGroup = new THREE.Group();
-  /** Mesh cache keyed by the STABLE part `nodeId` — the substrate of the incremental redraw (step 2b). */
+  /** The batch that turns per-part geometry into ~2 draw calls (P4 step 9(b)). */
+  readonly #batch = new PartBatch();
+  /** Per-part cache keyed by the STABLE `nodeId` — the incremental-redraw substrate + retained provenance. */
   readonly #drawn = new Map<string, DrawnPart>();
   readonly #raycaster = new THREE.Raycaster();
   #frame = 0;
@@ -123,6 +102,8 @@ export class Viewport {
     this.#scene.add(grid);
     this.#scene.add(new THREE.AxesHelper(2000));
 
+    this.#sceneGroup.add(this.#batch.faceObject);
+    this.#sceneGroup.add(this.#batch.edgeObject);
     this.#scene.add(this.#sceneGroup);
 
     this.#renderer.setAnimationLoop(this.#tick);
@@ -137,10 +118,10 @@ export class Viewport {
   }
 
   /**
-   * Draw `parts`, reusing every mesh whose geometry did not change (P4 step 2b). Only parts with a new
-   * or changed `handle` are tessellated; a part that merely changed colour swaps its material; a part
-   * that left the scene is disposed. This replaces the old `setElement`, which re-tessellated the whole
-   * model on every call — the dominant interactive cost the review measured (Entry 24).
+   * Draw `parts`, reusing every part whose geometry did not change (P4 step 2b). Only parts with a new
+   * or changed `handle` are tessellated; a part that merely changed colour swaps its instance colour; a
+   * part that left the scene is removed from the batch. This replaces the old `setElement`, which
+   * re-tessellated the whole model on every call — the dominant interactive cost the review measured.
    */
   async setScene(parts: readonly RenderPart[]): Promise<void> {
     // A newer setScene may supersede this one while we await the kernel; tag it and bail if so.
@@ -167,8 +148,8 @@ export class Viewport {
       }),
     );
 
-    // Superseded while awaiting, or a newer frame started: drop it. No GPU geometry was built yet (it
-    // happens in `#installPart` below), so there is nothing to dispose — the raw `MeshBuffers` are plain
+    // Superseded while awaiting, or a newer frame started: drop it. No GPU geometry was written yet (it
+    // happens in `#installPart` below), so there is nothing to undo — the raw `MeshBuffers` are plain
     // typed arrays, GC'd.
     if (this.#disposed || frame !== this.#frame) return;
 
@@ -177,24 +158,28 @@ export class Viewport {
     for (const result of built) {
       if (result !== null) this.#installPart(result.part, result.buffers);
     }
+    // A removal frees space in both batch buffers; reclaim it once per frame, not per part.
+    if (plan.remove.length > 0) this.#batch.maybeCompact();
   }
 
   /**
    * Resolve a canvas-relative pointer (NDC in [-1, 1]) to the face it is over (P4 step 4). Raycasts the
-   * drawn face meshes (never the edge lines or the helpers), takes the nearest hit, and maps its triangle
-   * back to a `SubShapeRef` through the provenance retained in step 2c. Returns `null` on empty space.
+   * ONE batched face mesh (never the edges or helpers), takes the nearest hit, and maps its (batch,
+   * triangle) back to a `SubShapeRef` through the provenance retained in step 2c. Returns `null` on empty
+   * space. (Design §5: the batch reports a global face index; `resolveHit` makes it local.)
    */
   pick(ndcX: number, ndcY: number): PickResult | null {
     if (this.#disposed) return null;
     this.#raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), this.#camera);
-    const meshes = [...this.#drawn.values()].map((d) => d.mesh);
-    const hits = this.#raycaster.intersectObjects(meshes, false);
+    const hits = this.#raycaster.intersectObject(this.#batch.faceObject, false);
     for (const hit of hits) {
-      const nodeId = hit.object.userData['nodeId'] as string | undefined;
-      if (nodeId === undefined || hit.faceIndex === undefined || hit.faceIndex === null) continue;
-      const drawn = this.#drawn.get(nodeId);
+      if (hit.batchId === undefined || hit.faceIndex === undefined || hit.faceIndex === null)
+        continue;
+      const resolved = this.#batch.resolveHit(hit.batchId, hit.faceIndex);
+      if (resolved === null) continue;
+      const drawn = this.#drawn.get(resolved.nodeId);
       if (drawn === undefined) continue;
-      const result = resolveFacePick(drawn, hit.faceIndex);
+      const result = resolveFacePick(drawn, resolved.localFaceIndex);
       if (result !== null) return result;
       // else: fall through to the next hit behind this triangle.
     }
@@ -202,27 +187,13 @@ export class Viewport {
   }
 
   #installPart(part: RenderPart, buffers: MeshBuffers): void {
-    this.#removePart(part.nodeId); // a rebuilt part replaces its old mesh + edges
-
-    const geometry = toBufferGeometry(buffers);
-    const material = createPartMaterial(part.color);
-    const mesh = new THREE.Mesh(geometry, material);
-    // Carry identity onto the object so a raycast hit (step 4) maps back to element + part.
-    mesh.userData['nodeId'] = part.nodeId;
-    mesh.userData['elementId'] = part.elementId;
-    this.#sceneGroup.add(mesh);
-
-    const edges = buildEdgeSegments(buffers);
-    if (edges !== null) this.#sceneGroup.add(edges);
-
+    this.#batch.set(part.nodeId, buffers, part.color);
     this.#drawn.set(part.nodeId, {
       handle: part.handle,
       color: part.color,
       elementId: part.elementId,
       nodeId: part.nodeId,
       partName: part.partName,
-      mesh,
-      edges,
       buffers,
     });
   }
@@ -230,33 +201,14 @@ export class Viewport {
   #recolorPart(part: RenderPart): void {
     const existing = this.#drawn.get(part.nodeId);
     if (existing === undefined) return;
-    const { material } = existing.mesh;
-    if (material instanceof THREE.MeshStandardMaterial) material.color.setHex(part.color);
+    this.#batch.recolor(part.nodeId, part.color);
     this.#drawn.set(part.nodeId, { ...existing, color: part.color });
   }
 
   #removePart(nodeId: string): void {
-    const existing = this.#drawn.get(nodeId);
-    if (existing === undefined) return;
-    this.#sceneGroup.remove(existing.mesh);
-    disposeMesh(existing.mesh);
-    if (existing.edges !== null) {
-      this.#sceneGroup.remove(existing.edges);
-      disposeMesh(existing.edges);
-    }
+    if (!this.#drawn.has(nodeId)) return;
+    this.#batch.remove(nodeId);
     this.#drawn.delete(nodeId);
-  }
-
-  #clearAll(): void {
-    for (const { mesh, edges } of this.#drawn.values()) {
-      this.#sceneGroup.remove(mesh);
-      disposeMesh(mesh);
-      if (edges !== null) {
-        this.#sceneGroup.remove(edges);
-        disposeMesh(edges);
-      }
-    }
-    this.#drawn.clear();
   }
 
   readonly #tick = (): void => {
@@ -267,7 +219,8 @@ export class Viewport {
   dispose(): void {
     this.#disposed = true;
     this.#renderer.setAnimationLoop(null);
-    this.#clearAll();
+    this.#batch.dispose();
+    this.#drawn.clear();
     this.#controls.dispose();
     this.#renderer.dispose();
   }
@@ -288,68 +241,4 @@ function isSupersededOrCancelled(error: unknown): boolean {
     isKernelFailureError(error) &&
     (error.failure.code === 'SUPERSEDED' || error.failure.code === 'CANCELLED')
   );
-}
-
-interface Disposable {
-  dispose(): void;
-}
-
-/**
- * Free a mesh's GPU resources. `instanceof THREE.Mesh` narrows to `Mesh<any, any, any>`, so we read the
- * two fields we know are there through a concrete structural type rather than touching `any`.
- */
-function disposeMesh(child: THREE.Object3D): void {
-  const { geometry, material } = child as unknown as {
-    geometry: Disposable;
-    material: Disposable | Disposable[];
-  };
-  geometry.dispose();
-  for (const one of Array.isArray(material) ? material : [material]) one.dispose();
-}
-
-/**
- * `MeshBuffers` → a three.js face `BufferGeometry`. The tight kernel `bounds` become the geometry's
- * bounding volume directly — tighter than three's mesh-AABB and floating-point-stable across machines,
- * which keeps frustum culling and fit-to-view honest.
- */
-export function toBufferGeometry(mesh: MeshBuffers): THREE.BufferGeometry {
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(mesh.positions, 3));
-  geometry.setAttribute('normal', new THREE.BufferAttribute(mesh.normals, 3));
-  geometry.setIndex(new THREE.BufferAttribute(mesh.indices, 1));
-
-  const { min, max } = mesh.bounds;
-  const box = new THREE.Box3(
-    new THREE.Vector3(min[0], min[1], min[2]),
-    new THREE.Vector3(max[0], max[1], max[2]),
-  );
-  geometry.boundingBox = box;
-  geometry.boundingSphere = box.getBoundingSphere(new THREE.Sphere());
-  return geometry;
-}
-
-/**
- * The part's edge polylines → one `LineSegments` (P4 step 2c). Each `EdgePolyline` is a contiguous run
- * of `count` vertices in `edgePositions`; we expand it into consecutive segment pairs and index into the
- * shared position buffer, so no vertex data is duplicated. Returns `null` when the kernel gave no edges.
- *
- * ⚠ ONE `LineSegments` PER PART is fine at the foundation; batching edges by material is a step-9 (scale
- * harness) decision, alongside the same call for the face meshes — do not privately optimise it here.
- */
-export function buildEdgeSegments(mesh: MeshBuffers): THREE.LineSegments | null {
-  const { edgePositions, provenance } = mesh;
-  if (edgePositions.length === 0 || provenance.edges.length === 0) return null;
-
-  const indices: number[] = [];
-  for (const edge of provenance.edges) {
-    for (let i = 0; i < edge.count - 1; i++) {
-      indices.push(edge.start + i, edge.start + i + 1);
-    }
-  }
-  if (indices.length === 0) return null;
-
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(edgePositions, 3));
-  geometry.setIndex(indices);
-  return new THREE.LineSegments(geometry, new THREE.LineBasicMaterial({ color: EDGE_COLOR }));
 }

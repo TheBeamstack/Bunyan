@@ -41,3 +41,19 @@ export function resolveFacePick(part: PickablePart, faceIndex: number): PickResu
   if (faceRef === undefined) return null;
   return { elementId: part.elementId, nodeId: part.nodeId, partName: part.partName, faceRef };
 }
+
+/**
+ * Convert a `BatchedMesh` raycast's GLOBAL face index into the part's LOCAL one (the batching rewrite,
+ * P4 step 9(b); design §5). `BatchedMesh.raycast` reports `faceIndex` against the MERGED index buffer, so
+ * the local triangle index the retained provenance is keyed by is the global one minus the part's geometry
+ * range start (`getGeometryRangeAt(...).start`, in index units ⇒ divide by 3 for triangles).
+ *
+ * ⚠ THIS IS THE LOAD-BEARING ARITHMETIC OF THE REWRITE — the plan warned batching AFTER picking is a
+ * rewrite (imp_plan:366), and this is the seam it named. Kept pure so it is asserted in Node, not only in
+ * the browser. `rangeStart` is always a multiple of 3 (a triangle boundary), so the division is exact;
+ * a caller that passes a garbage range gets a non-integer or negative index, which `resolveFacePick`
+ * rejects downstream (no ref, never a WRONG ref — the picking contract).
+ */
+export function localFaceIndex(globalFaceIndex: number, rangeStart: number): number {
+  return globalFaceIndex - rangeStart / 3;
+}
