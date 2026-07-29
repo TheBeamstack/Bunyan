@@ -72,8 +72,8 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 FRESH:  Newest Entry in `current_state.md` = **ENTRY 67** (Amer — the P4.5 non-gating half:
         `apps/web` selection + view filter + keyboard owner). Your own last work is Entry 65 (the
         schedules body, D78). Entries 64 + 65 were COMMITTED AND PUSHED (owner-authorised
-        2026-07-28); **Entries 66 + 67 are Amer-local and owner-gated — they may not be on origin
-        yet**, so confirm your position by the ENTRY NUMBER, not by the push state.
+        2026-07-28); **Entries 66 + 67 are now ALSO COMMITTED AND PUSHED** (`origin/main`
+        `525d6a7 → c8006d3`, one commit) — confirm your position by the ENTRY NUMBER regardless.
 
         ⚠ Entries 66 + 67 touch NOTHING you own: 66 added `P4.5_interaction_model_design.md`
         (no source); 67 is pure `apps/web` (a new `view/viewFilter.ts` + `App.tsx`/`App.css`),

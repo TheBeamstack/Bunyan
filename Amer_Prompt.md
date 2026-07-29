@@ -86,9 +86,10 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 67** (Amer — the P4.5 NON
         selection + view filter + the first keyboard owner). Entries 66 AND 67 are YOUR OWN work;
         Entry 65 (Zayd — schedules body) is the newest Zayd entry.
 
-        ⚠ Entries 66 + 67 are owner-gated and may not be on origin yet. Entry 66 added the P4.5
-        design doc (no source, stopped for rulings Q1–Q6); Entry 67 shipped `apps/web` selection/
-        filter (all 5 CI gates green, 524 tests) but is still UNCOMMITTED. `git pull` first.
+        ⚠ Entries 66 + 67 are COMMITTED AND PUSHED (owner-authorised 2026-07-28: `origin/main`
+        `525d6a7 → c8006d3`, one commit). Entry 66 added the P4.5 design doc (no source, stopped
+        for rulings Q1–Q6); Entry 67 shipped `apps/web` selection/filter (all 5 CI gates green,
+        524 tests). `git pull` first regardless.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
