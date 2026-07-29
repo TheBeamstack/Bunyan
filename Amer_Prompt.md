@@ -82,12 +82,13 @@ holder**.
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry in `current_state.md` = **ENTRY 65** (Zayd — the schedules body, D78).
-        Entries 64 + 65 are COMMITTED AND PUSHED to origin/main (owner-authorised 2026-07-28).
+FRESH:  Newest Entry in `current_state.md` = **ENTRY 67** (Amer — the P4.5 NON-GATING half:
+        selection + view filter + the first keyboard owner). Entries 66 AND 67 are YOUR OWN work;
+        Entry 65 (Zayd — schedules body) is the newest Zayd entry.
 
-        ⚠⚠ YOUR OWN LAST WORK IS **ENTRY 63** (the renderer batching) — SO ENTRIES 64 AND 65 ARE
-        NEW TO YOU. `git pull` first and READ BOTH before starting; Entry 64 changes two things
-        you call (see NEW).
+        ⚠ Entries 66 + 67 are owner-gated and may not be on origin yet. Entry 66 added the P4.5
+        design doc (no source, stopped for rulings Q1–Q6); Entry 67 shipped `apps/web` selection/
+        filter (all 5 CI gates green, 524 tests) but is still UNCOMMITTED. `git pull` first.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -97,61 +98,65 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 65** (Zayd — the schedule
         need to know. (Git already answers "what is the tip?" — `git log -1`. This file answers
         "am I behind?", which git cannot.)
 
-        ⇒ After `git pull`: newest Entry = 65 ⇒ you are current, start TASK.
-          Newest Entry HIGHER than 65 ⇒ Zayd has pushed again: read every Entry after 65 before
+        ⇒ After `git pull`: newest Entry = 67 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 67 ⇒ Zayd has pushed again: read every Entry after 67 before
           starting, and re-check that TASK is still the right thing to do.
 
-TASK:   **P4.5 — THE INTERACTION MODEL. DESIGN-FIRST.** (Owner-chosen 2026-07-28. This is the
-        decision; do not re-open it or ask which track to take.)
+TASK:   **P4.5 — THE INTERACTION MODEL. THE DESIGN DOC IS WRITTEN; THE BUILD IS GATED ON SIX
+        OWNER RULINGS.** (Owner-chosen 2026-07-28; do not re-open the choice or ask which track.)
 
-        WHY IT IS THE ONE: D47 — *"the tool/interaction layer is a first-class layer, and it was
-        missing."* The P4 review found NO interaction model in any contract document; the only
-        thing ever written down is "button/drag -> Command", which is how an action REACHES the
-        model, not how a human AUTHORS a building. `snap`/`inference`/`preview`/`hover`/`gizmo`/
-        `tool state` appear nowhere in the repo. ⚠ `argsSchema` is a machine-readable contract
-        for an AGENT and the app used it as a UI spec for a HUMAN — that is the whole bug.
-        It is the largest remaining browser item and the one `current_state.md` §5 keeps naming.
+        THE DESIGN-FIRST DELIVERABLE IS DONE (Entry 66): `P4.5_interaction_model_design.md` exists,
+        grounded against the real `apps/web` seams, with domain rule 17 proposed, the tool state
+        machine, the two-tier snap seam, preview-is-never-truth, numeric entry, and the two
+        pre-freeze rows ⓑ/ⓘ surfaced with proposed shapes. **Its §12 puts SIX questions (Q1–Q6)
+        to the owner. Do NOT build past them.**
 
-        FIRST DELIVERABLE = `P4.5_interaction_model_design.md`. Write it, put its open questions
-        to the owner, STOP for the rulings, then build. You need nothing from anyone to start.
-        Scope to design: the tool state machine · snapping + inference + alignment guides ·
-        preview/hover/gizmo · numeric entry · the spatial-query seam. Read `review_P4.md` (the
-        source of D47) and `v1.0.0_imp_plan.md` "P4.5" first — the phase already has a step list.
+        ⇒ FIRST THING THIS SESSION: check whether the owner has ruled Q1–Q6 (in chat or in the
+          doc). Two branches:
+          • RULED → apply each ruling INTO `P4.5_interaction_model_design.md` (this file is not
+            where decisions live), then build the spine: §2 tool state machine + §4 snap seam +
+            the wall/opening/move tools + §6 numeric entry + the ⓑ command-shape reservations.
+            ⚠ Do NOT start the wall tool before Q4 confirms the D52 baseline Wall's `setParams`
+            shape — the plan rules it. The build's own proof is §11 criterion 2: the SAME edit
+            through `window.bunyan` yields the same `UndoableEdit` (the P4 equivalence test on a
+            TOOL-authored edit — this is what proves no private path). `d19-boundary.test.ts`
+            must stay green (the snap seam is read-only, holds no `KernelClient`, mints no id).
+          • NOT RULED → the design-first spine is legitimately blocked. Selection + view-filter
+            (hide/isolate/type/discipline) + the keyboard owner ALREADY SHIPPED (Entry 67) — do
+            not rebuild them. The non-gating work that REMAINS and still needs no ruling: **hover
+            highlight** (design §5 — a per-frame recolour of the candidate under the cursor; it
+            wants the pointer-move plumbing, so it is small but real) and **multi-select** (Entry
+            67 is single-select; a selection SET is additive). Both ride the existing `renderParts`
+            recolour path exactly as Entry 67's selection does. Do NOT pre-build the snap seam or
+            tools — their shape is exactly what Q1–Q4 decide.
 
-        ⚠⚠ AND IT CARRIES A PRE-FREEZE OBLIGATION THAT IS CHEAP ONLY UNTIL THE OWNER FREEZES.
-        Freeze-gate rows ⓑ and ⓘ are ASSIGNED TO P4.5 and are still unrecorded:
-          ⓑ  There is NO command that moves an element — `core.move`/`setPlacement`/`rotate`/
-             `copy`/`array` do not exist (verified 2026-07-28). The plan's instruction is to
-             DRIVE THEIR ARG SHAPES WITH A REAL POINTING DEVICE before `Command.argsSchema`
-             freezes: *"do not design `move` in the same phase that freezes it."*
-          ⓘ  Confirm the COMPOUND EDIT is expressible — "drag the wall's end" must be ONE
-             undoable unit. `UndoableEdit.transactionId` is reserved but UNUSED.
-        ⚠ Entry 45 judged both freeze-SAFE (a move verb is additive under D19; `transactionId`
-          is reserved; D52 folds the drag into `setParams`) — so this does NOT block the freeze
-          and you must not claim it does. But the VALIDATION the plan asked for was never done,
-          and after the freeze it is worth nothing. Surface what the pointing device teaches you
-          about those arg shapes IN THE DESIGN DOC, and flag it to the owner.
+        ⚠⚠ THE TWO PRE-FREEZE ROWS (design §9/§10, Q4/Q5) ARE CHEAP ONLY UNTIL THE OWNER FREEZES:
+          ⓑ  No command moves an element (re-verified Entry 66 — the grep is still empty). Q4
+             rules the arg shapes for `core.setPlacement`/`move`/`rotate`/`copy`/`array` AND the
+             `setParams`-vs-`move` split (a D52 baseline wall moves by `setParams`, not placement).
+          ⓘ  D52 already made "drag the wall's end" ONE `setParams` edit. What remains is the
+             genuinely-compound multi-element case (a 3-wall corner) needing `UndoableEdit.
+             transactionId` (reserved, still UNUSED). Q5: exercise it now via the corner-drag.
+        ⚠ Entry 45's freeze-SAFE judgement STANDS — neither blocks the freeze and you must not
+          claim it does. They are worth nothing after the freeze; that is why they are recorded.
 
-        Not this session (recorded so nobody re-derives the list): material appearance +
-        transparency (a second `BatchedMesh` group, batching doc §2) · WebGPU + WebGL2 fallback
-        (P4 step 1) · a File System Access `StorageAdapter` (Entry 56) · TSL shading (step 7) ·
-        service worker/PWA + Cloudflare deploy · the optional `codecFor` open/save wiring (D71).
-        ⚠ A schedules UI is NOT yours to start yet — the schedule CRUD is Zayd's current task and
-        does not exist, so you would be rendering a schedule nobody can author.
+        Not this session (deferred, so nobody re-derives): material appearance + transparency ·
+        WebGPU + WebGL2 fallback · a File System Access `StorageAdapter` · TSL shading · service
+        worker/PWA + Cloudflare deploy · the optional `codecFor` open/save wiring (D71). ⚠ A
+        schedules UI is still NOT yours to start — the schedule CRUD is Zayd's task and does not
+        exist yet, so you would be rendering a schedule nobody can author.
 
-NEW:    Entry 64 (Zayd) changed two call sites you own, both deliberately loud rather than silent:
-        (1) `saveBnn` now THROWS if handed `doc.history()` as the journal alongside a revision.
-            The app already passes `changeFeed()`, so there is nothing to do — do not "fix" it back.
+NEW:    (Standing, from Entry 64 — two call sites you own, both deliberately loud, nothing to do
+        unless you touch open/save wiring:)
+        (1) `saveBnn` THROWS if handed `doc.history()` as the journal alongside a revision. The
+            app already passes `changeFeed()` — do not "fix" it back.
         (2) `BNN_CODEC.write` now requires its `SaveOptions` instead of inventing
-            `{kernelBuildId:'unknown'}` and silently dropping the journal + revision. Relevant when
-            you wire open/save through `codecFor` (the optional D71 item).
-        Entry 65 (Zayd) shipped the SCHEDULES BODY — `doc.evaluateSchedule(def, options?)` on
-            `DocumentContext`, returning rows/groups/totals/unmeasured. Nothing you own changes,
-            but when a schedule UI lands it is a `@bunyan/document` query, not app logic.
-            ⚠ Two API facts worth knowing before you render one: a cell's `value` is ABSENT rather
-            than 0 when there is nothing to measure or it could not be measured (`unknown: true`
-            distinguishes the two — render "N/A" vs "—", never "0"), and every numeric cell carries
-            its own `unit`, in the model's native mm/mm²/mm³/kg. Do NOT convert in two places.
+            `{kernelBuildId:'unknown'}`. Relevant only when you wire open/save through `codecFor`.
+        (From Entry 65 — for whenever a schedule UI eventually lands, still not now:)
+            `doc.evaluateSchedule(def, options?)` returns rows/groups/totals/unmeasured. A cell's
+            `value` is ABSENT (not 0) when unmeasurable; `unknown: true` distinguishes "could not
+            measure" from "nothing to measure" (render "N/A" vs "—", never "0"); every numeric
+            cell carries its own native `unit` (mm/mm²/mm³/kg) — do NOT convert in two places.
         If an owner ruling arrives in chat, apply it AND record it in the doc it belongs to — this
         file is not where decisions live.
 ```

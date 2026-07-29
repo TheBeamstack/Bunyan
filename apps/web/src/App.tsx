@@ -35,6 +35,14 @@ import {
 import type { IndexedDbStore } from './storage/indexeddb';
 import { ViewportCanvas } from './render/ViewportCanvas';
 import type { RenderPart, PickResult } from './render/Viewport';
+import {
+  EMPTY_FILTER,
+  isPartVisible,
+  isPristine,
+  toggleHidden,
+  toggleInSet,
+  type ViewFilter,
+} from './view/viewFilter';
 import { encodeSubShapeRef } from '@bunyan/protocol';
 import { Ribbon } from './ui/Ribbon';
 import { PropertyPanel } from './ui/PropertyPanel';
@@ -59,6 +67,10 @@ import './App.css';
 /** A stable per-part display palette (foundation-pass placeholder for real material appearance). */
 const PART_COLORS = [0x9aa0a6, 0xf4d35e, 0xe8e8e8, 0x7fb069, 0xc45b5b];
 
+/** The selected element's parts render in this colour — a display recolour (design §5/§8), not a mesh
+ *  change. It rides the batch's instance-colour swap, so selecting never re-tessellates. */
+const SELECTION_COLOR = 0x4aa3ff;
+
 type Status =
   | { readonly kind: 'booting' }
   | { readonly kind: 'ready' }
@@ -71,6 +83,9 @@ export function App() {
   // The last face the user clicked (P4 step 4) — carries its `SubShapeRef`. This is the substrate
   // P4.5 places a window on: a picked face resolves to a token no human ever types.
   const [picked, setPicked] = useState<PickResult | null>(null);
+  // View state (P4.5 design §7) — hide/isolate/type/discipline. App-layer, touches no contract: it
+  // decides what the viewport draws, never what the model is.
+  const [filter, setFilter] = useState<ViewFilter>(EMPTY_FILTER);
   const [quantities, setQuantities] = useState<readonly PartQuantity[]>([]);
   const [banner, setBanner] = useState<string | null>(null);
   // Bumped after every committed edit — the signal that the document changed under React's feet.
@@ -285,17 +300,40 @@ export function App() {
     for (const element of elements) {
       const parts = app.doc.partsOf(element.id);
       if (parts === undefined) continue;
-      parts.forEach((part, i) =>
+      const isSelected = element.id === selectedId;
+      parts.forEach((part, i) => {
+        // Hide/isolate/type/discipline (design §7): a filtered-out part is simply absent from the array,
+        // so the viewport's diff removes it — no separate "hidden" path in the renderer.
+        if (!isPartVisible(filter, element.id, element.typeId, part.discipline)) return;
         out.push({
           elementId: element.id,
           nodeId: part.nodeId,
           partName: part.name,
           handle: part.handle,
-          color: PART_COLORS[i % PART_COLORS.length]!,
-        }),
-      );
+          // Selection is a display recolour (design §5/§8): a changed colour for an unchanged handle is
+          // the batch's cheap recolour path, never a re-tessellation.
+          color: isSelected ? SELECTION_COLOR : PART_COLORS[i % PART_COLORS.length]!,
+        });
+      });
     }
     return out;
+  }, [app, elements, version, selectedId, filter]);
+
+  /** The types + disciplines actually present in the scene — the universe the View filter offers. */
+  const present = useMemo(() => {
+    if (app === null)
+      return { types: [] as { id: string; label: string }[], disciplines: [] as string[] };
+    const typeIds = new Set<string>();
+    const disciplines = new Set<string>();
+    for (const element of elements) {
+      typeIds.add(element.typeId);
+      app.doc.partsOf(element.id)?.forEach((p) => disciplines.add(p.discipline));
+    }
+    const types = [...typeIds].map((id) => ({
+      id,
+      label: app.doc.registries.types.get(id)?.label ?? id,
+    }));
+    return { types, disciplines: [...disciplines].sort() };
   }, [app, elements, version]);
 
   /**
@@ -358,8 +396,66 @@ export function App() {
   /** A face was clicked in the viewport (P4 step 4) — select its element and keep the picked face. */
   const onPick = useCallback((hit: PickResult | null) => {
     setPicked(hit);
-    if (hit !== null) setSelectedId(hit.elementId);
+    setSelectedId(hit === null ? null : hit.elementId);
   }, []);
+
+  // ---- View actions (design §7). All app-layer; none reaches the document. ----
+  const hideSelected = useCallback(() => {
+    if (selectedId !== null) setFilter((f) => toggleHidden(f, selectedId));
+  }, [selectedId]);
+  const isolateSelected = useCallback(() => {
+    if (selectedId === null) return;
+    setFilter((f) => ({ ...f, isolated: f.isolated === selectedId ? null : selectedId }));
+  }, [selectedId]);
+  const showAll = useCallback(() => {
+    setFilter(EMPTY_FILTER);
+  }, []);
+  const toggleType = useCallback(
+    (id: string) => {
+      setFilter((f) => ({
+        ...f,
+        types: toggleInSet(
+          f.types,
+          id,
+          present.types.map((t) => t.id),
+        ),
+      }));
+    },
+    [present.types],
+  );
+  const toggleDiscipline = useCallback(
+    (d: string) => {
+      setFilter((f) => ({ ...f, disciplines: toggleInSet(f.disciplines, d, present.disciplines) }));
+    },
+    [present.disciplines],
+  );
+
+  // ---- Keyboard (design §7) — the app's SINGLE keydown owner; there was not one before. Esc clears
+  //      selection; Ctrl/Cmd+Z / +Y (or +Shift+Z) drive undo/redo. A key typed into a form field is
+  //      never hijacked. ----
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent): void => {
+      const t = e.target as HTMLElement | null;
+      if (t !== null && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))
+        return;
+      const mod = e.ctrlKey || e.metaKey;
+      const key = e.key.toLowerCase();
+      if (e.key === 'Escape') {
+        setSelectedId(null);
+        setPicked(null);
+      } else if (mod && key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if (mod && (key === 'y' || (key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [undo, redo]);
 
   return (
     <div className="app">
@@ -437,6 +533,19 @@ export function App() {
               onSave={saveDoc}
               onOpen={openDoc}
               onDelete={deleteDoc}
+            />
+          )}
+          {app !== null && (
+            <ViewPanel
+              types={present.types}
+              disciplines={present.disciplines}
+              filter={filter}
+              hasSelection={selectedId !== null}
+              onHide={hideSelected}
+              onIsolate={isolateSelected}
+              onShowAll={showAll}
+              onToggleType={toggleType}
+              onToggleDiscipline={toggleDiscipline}
             />
           )}
           <ProblemsPanel
@@ -596,6 +705,94 @@ function FilesPanel({
             </li>
           ))}
         </ul>
+      )}
+    </section>
+  );
+}
+
+/**
+ * The View panel (P4.5 design §7): hide / isolate the selected element, and filter what the viewport
+ * draws by type (element level) and discipline (part level, D45). Every action is app-layer — it changes
+ * what is drawn, never the model. `null` in a filter set means "all shown"; a checkbox is checked when
+ * its value passes the filter.
+ */
+function ViewPanel({
+  types,
+  disciplines,
+  filter,
+  hasSelection,
+  onHide,
+  onIsolate,
+  onShowAll,
+  onToggleType,
+  onToggleDiscipline,
+}: {
+  readonly types: readonly { readonly id: string; readonly label: string }[];
+  readonly disciplines: readonly string[];
+  readonly filter: ViewFilter;
+  readonly hasSelection: boolean;
+  readonly onHide: () => void;
+  readonly onIsolate: () => void;
+  readonly onShowAll: () => void;
+  readonly onToggleType: (id: string) => void;
+  readonly onToggleDiscipline: (d: string) => void;
+}) {
+  const pristine = isPristine(filter);
+  const hiddenCount = filter.hidden.size;
+  return (
+    <section className="panel-section">
+      <h2>View</h2>
+      <p className="hint">
+        {pristine
+          ? 'Showing everything.'
+          : `${filter.isolated !== null ? 'Isolating one element. ' : ''}${
+              hiddenCount > 0 ? `${hiddenCount} hidden. ` : ''
+            }Filtered.`}
+      </p>
+      <div className="field" style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <button type="button" disabled={!hasSelection} onClick={onHide}>
+          Hide
+        </button>
+        <button type="button" disabled={!hasSelection} onClick={onIsolate}>
+          {filter.isolated !== null ? 'Un-isolate' : 'Isolate'}
+        </button>
+        <button type="button" disabled={pristine} onClick={onShowAll}>
+          Show all
+        </button>
+      </div>
+      {types.length > 1 && (
+        <fieldset className="view-filter">
+          <legend>Types</legend>
+          {types.map((t) => (
+            <label key={t.id} className="view-filter-row">
+              <input
+                type="checkbox"
+                checked={filter.types === null || filter.types.has(t.id)}
+                onChange={() => {
+                  onToggleType(t.id);
+                }}
+              />
+              {t.label}
+            </label>
+          ))}
+        </fieldset>
+      )}
+      {disciplines.length > 1 && (
+        <fieldset className="view-filter">
+          <legend>Disciplines</legend>
+          {disciplines.map((d) => (
+            <label key={d} className="view-filter-row">
+              <input
+                type="checkbox"
+                checked={filter.disciplines === null || filter.disciplines.has(d)}
+                onChange={() => {
+                  onToggleDiscipline(d);
+                }}
+              />
+              {d}
+            </label>
+          ))}
+        </fieldset>
       )}
     </section>
   );

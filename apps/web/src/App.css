@@ -416,3 +416,25 @@ body,
   gap: 8px;
   margin-top: 18px;
 }
+
+.view-filter {
+  border: 1px solid #2a2f36;
+  border-radius: 6px;
+  margin: 8px 0 0;
+  padding: 6px 10px 8px;
+}
+
+.view-filter legend {
+  font-size: 11px;
+  color: #7f868d;
+  padding: 0 4px;
+}
+
+.view-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #c8ccd0;
+  padding: 2px 0;
+}

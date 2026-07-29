@@ -69,9 +69,16 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry in `current_state.md` = **ENTRY 65** (Zayd — the schedules body, D78).
-        Entries 64 + 65 are COMMITTED AND PUSHED to origin/main (owner-authorised 2026-07-28);
-        the working tree is CLEAN and nothing owner-gated is sitting in it.
+FRESH:  Newest Entry in `current_state.md` = **ENTRY 67** (Amer — the P4.5 non-gating half:
+        `apps/web` selection + view filter + keyboard owner). Your own last work is Entry 65 (the
+        schedules body, D78). Entries 64 + 65 were COMMITTED AND PUSHED (owner-authorised
+        2026-07-28); **Entries 66 + 67 are Amer-local and owner-gated — they may not be on origin
+        yet**, so confirm your position by the ENTRY NUMBER, not by the push state.
+
+        ⚠ Entries 66 + 67 touch NOTHING you own: 66 added `P4.5_interaction_model_design.md`
+        (no source); 67 is pure `apps/web` (a new `view/viewFilter.ts` + `App.tsx`/`App.css`),
+        below every frozen contract, no kernel/document/protocol change. The P4.5 snap seam still
+        reuses the already-live `distance`/`classifyPoint`/`faceFrame` ops — nothing new of you.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -81,8 +88,8 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 65** (Zayd — the schedule
         need to know. (Git already answers "what is the tip?" — `git log -1`. This file answers
         "am I behind?", which git cannot.)
 
-        ⇒ After `git pull`: newest Entry = 65 ⇒ you are current, start TASK.
-          Newest Entry HIGHER than 65 ⇒ the other agent has pushed: read every Entry after 65
+        ⇒ After `git pull`: newest Entry = 67 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 67 ⇒ the other agent has pushed: read every Entry after 67
           before starting, and re-check that TASK is still the right thing to do.
 
 TASK:   The SCHEDULE CRUD — owner Q4's deliberately-separated second unit (Entry 65 NEXT).
