@@ -74,8 +74,9 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 ```
 FRESH:  Newest Entry in `current_state.md` = **ENTRY 68** (YOUR OWN — the schedule CRUD, D79:
         `core.createSchedule`/`updateSchedule`/`deleteSchedule` + `scene.schedules` promoted to a
-        full `SceneCollection`). **ENTRY 68 IS UNCOMMITTED** — it is owner-gated, like every entry;
-        the working tree carries it. Entries 66 + 67 (Amer) were pushed 2026-07-28.
+        full `SceneCollection`). **ENTRY 68 IS COMMITTED AND PUSHED** (owner-authorised 2026-07-30:
+        `origin/main` `b53a8bf → 892042a`) — confirm your position by the ENTRY NUMBER regardless.
+        Entries 66 + 67 (Amer) were pushed 2026-07-28.
 
         ⚠ Entry 68 is `packages/document` only — `commands.ts`, `schedule.ts`, `scene.ts`,
         `bnn.ts`, `dependency.ts`, `schema.ts` + `tests/schedule-crud.test.ts`. `pnpm verify`

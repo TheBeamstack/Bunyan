@@ -88,6 +88,9 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 68** (Zayd — the SCHEDULE
         last work is Entry 67 (the P4.5 non-gating half: selection + view filter + the first
         keyboard owner), pushed 2026-07-28 with Entry 66.
 
+        ⚠ Entry 68 is COMMITTED AND PUSHED (owner-authorised 2026-07-30: `origin/main`
+        `b53a8bf → 892042a`), so **you are ONE ENTRY BEHIND until you pull.**
+
         ⚠ Entry 68 touches NOTHING you own — it is `packages/document` only (the three new verbs
         `core.createSchedule`/`updateSchedule`/`deleteSchedule` + `scene.schedules` promoted to a
         real `SceneCollection`). **It changes your app in exactly one way, and it needs no work
