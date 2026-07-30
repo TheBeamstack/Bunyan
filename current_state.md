@@ -152,6 +152,13 @@ three axes (draw calls, cold load, edit latency) are **all in the renderer — A
 > index — **4757.7 ms → 27.2 ms at 1984 walls**, and at the 10k target **169 ms with per-wall cost FLAT at 14–17 µs**.
 > The ~100 s (in fact ~3.5 min once Entry 60's mid-span scan joined it) is gone. ⚠ The other three axes are unaffected:
 > this was always a REBUILD-side cost, and Entry 55's renderer-batching wall still stands.**
+> **⚠⚠ AND THE COLD-LOAD LEVER IS NOW MEASURED TOO, AND IT IS SMALLER THAN THE DOCS ASSUMED (Entry 71, D29):
+> the geometry cache buys 2.07× — 24.86 → 12.00 ms/solid — NOT the order of magnitude §4j-2's "7.3 s cold
+> load" framing implies. So cold load goes ~6.35 min → ~3 min at the 10k target: STILL UNUSABLE. The cache is
+> a 2× constant factor, not the answer.** The levers that could be are `instantiate` (RESERVED), lazy
+> build/eviction (D66 — additive, forecloses nothing) and MT (D8, ruled v1.0.x). ⚠ *Verification is most of a
+> cached load's cost — re-measuring every sub-shape to prove the tokens belong to the shape is the price of
+> shipping identity in a file — so no amount of serializer tuning changes this.*
 > **The 4-axis measurement is now a BINDING PRE-FREEZE deliverable (D66)** because heap-eviction "touches contracts,
 > must be known before P5 freezes" and a failed single-threaded target reopens D8 (multithreading). ⚠ Renderer
 > batching + heap eviction are, by the plan's own words, "a rewrite not an optimisation" if found late.
@@ -203,7 +210,7 @@ revert every fix and watch its test fail.
 persisted name→shape index — the "token map" D1 forbids. The perf question was an afternoon; the identity
 question it hid could have repealed D1.
 
-### §1c — EIGHT THINGS A FRESH AGENT MUST NOT REDISCOVER THE HARD WAY
+### §1c — NINE THINGS A FRESH AGENT MUST NOT REDISCOVER THE HARD WAY
 
 1. **`opencascade.js` CANNOT be linked on this box — and we do not use it.** Its `-flto` whole-program
    link OOMs at a 2 GB cap even for a 6-symbol build (Entry 3). Do not retry it. We build **upstream OCCT
@@ -236,6 +243,17 @@ question it hid could have repealed D1.
    each one.** The mechanical form that worked: grep every iteration over the collection the rule governs,
    then ask of each *"does this aggregate or publish?"* — 14 sites, 12 correct, 2 silently wrong for eight
    days. **No rule in this project had ever been given that sweep.**
+
+9. **⚠ MEASURE THE ARTIFACT, NOT THE MANUAL — it cost two wrong first drafts in one session (Entry 71).**
+   OCCT's `BRepTools::Write` doc comment says it writes *"an ASCII format TopTools_FormatVersion_VERSION_1"*
+   and its default argument is `VERSION_CURRENT`; the same convenient overload also writes **triangulation**
+   (20× bigger on a meshed round column — i.e. it puts the *disposable mesh* into a file whose only job is to
+   skip a rebuild). And its **file** overload writes a `DBRep_DrawableShape` header line while its **stream**
+   overload does not, so a validity guard written from the format's documentation **refused every file the
+   exporter beside it produces.** ⚠ Neither was a subtle bug; both were caught in minutes by printing the
+   actual bytes. *Before writing a check against an external format, dump what the code on the other side of
+   the check actually emits.* (Related but distinct from §1c-6, which is about the shapes YOU think to cut;
+   this one is about the bytes you think a library writes.)
 
    **⚠⚠⚠ THE LEDGER AFTER ENTRY 64 — THE SWEEP IS COMPLETE: ALL EIGHTEEN RULES SWEPT, NINE DIRTY. Dirty: 1, 3, 4, 5, 8, 12, 14, 15, 16, 18 (+ the D68 option invariant) — counting 8 as a SURFACED foreclosure rather than a fix. Clean: 2, 6, 7, 9, 10, 11, 13, 17.** Entry 64 swept the last five (7, 8, 14, 17, 18): **14 and 18 dirty (D76, D77), 8 dirty-by-foreclosure and SURFACED, 7 and 17 clean.** ⚠⚠ **THE FINAL BASE RATE IS 1-IN-2, AND THE TWO NEW LESSONS ARE ABOUT *WHEN* A RULE ROTS:** **(a) rule 14 was dirty in its PRECONDITION, not its mechanism** — every asserted half (never trimmed, an undo appends a reversal, the delta is one filter) was sound *and tested*, while nothing checked that the log a consumer holds actually reaches the baseline it is read against; the failure was therefore not a wrong answer but **silence that reads as "nothing changed"**, which a green suite cannot see. *Ask of every rule not only "is the mechanism right?" but "what must be TRUE for the mechanism to be asked a meaningful question?"* **(b) rule 18 was dirty against the INVALIDATOR while clean against every consumer** — the Entry-59 sweep form (grep everything that iterates the collection, ask "does this aggregate or publish?") would have missed it, because the invalidator neither aggregates nor publishes: it decides *what is even rebuilt*. ⇒ **when a rule adds a new KIND of thing, sweep what quantifies over "every one of them", which includes the machinery, not only the readers.** ⚠ **AND RULE 7 IS THE FIRST RULE FOUND CLEAN WITH NO MECHANISM PROTECTING IT** (rules 9/10 were clean because a violation could not be written silently; rule 7 was clean because everyone remembered) — so it was given one, `tests/units-rule7.test.ts`, which fails on any numeric field that ships without a unit. *A clean rule with no enforcement is a dirty rule that has not happened yet.*
 
@@ -270,7 +288,7 @@ is additive and permitted; *changing an existing op's envelope* needs Architect 
 
 | Contract | Status | Freezes |
 |---|---|---|
-| **Kernel message protocol** (`@bunyan/protocol`) | **✅ FROZEN, v1 (Entry 21)** — **19 live ops + 5 RESERVED** + `CACHE_STALE`. ⚠ `faceFrame` is the FIRST post-freeze op (Entry 30) — a face's frame from the B-Rep surface, explicitly permitted (D13). Reserved: `sectionCut` · `importIfc` (P6) · `instantiate` (the ~21 s style-edit answer, §4j) · `exportBrep`+`importBrep` (the D29 cache — RULED SHIP, §4j). | **✅ FROZEN.** |
+| **Kernel message protocol** (`@bunyan/protocol`) | **✅ FROZEN, v1 (Entry 21)** — **21 live ops + 3 RESERVED** + `CACHE_STALE`. ⚠ `faceFrame` is the FIRST post-freeze op (Entry 30) — a face's frame from the B-Rep surface, explicitly permitted (D13). Reserved: `sectionCut` · `importIfc` (P6) · `instantiate` (the ~21 s style-edit answer, §4j). ⚠⚠ **`exportBrep`+`importBrep` LEFT `RESERVED_OPS` ON 2026-07-30 — THE D29 CACHE BODIES ARE BUILT (Entry 71)**, so the real kernel advertises them because it *implements* them (`capabilities` is generated from the handler map — no other edit, and `quantities-and-contract.test.ts` had described that handshake in advance). ⚠ **The MOCK implements neither, and that is correct rather than incomplete:** it holds no B-Rep, and a mock that faked a cache would fake the very thing the cache exists to verify. **No payload shape moved; two false COMMENTS on the frozen shapes were corrected (Entry 71 Findings 1+2) and the wire contract is byte-identical.** | **✅ FROZEN.** |
 | **`SubShapeRef`** | RC — exercised by the real kernel + the document model (a window survives save→load→rebuild + a 30° rotation). ⚠ `kind:'vertex'` **reserved** (D54a, 0g). | **P5** |
 | **`BimObjectType`** | **⚠⚠ D72 (Entry 60, 2026-07-27) RESERVED `BuiltPart.exposedRefs?` — the session's ONE contract change, and the only pre-freeze item it created. Optional + absent-defaulted (absent ⇒ the pre-Entry-60 whole-solid area), so no existing Type or saved document moves. It exists because *which faces a trade BILLS* is not derivable generically — only the Type knows — and without it the product cannot answer "what area do I bill?", which is not a question a BIM tool may decline. ✅ **EVERY SHIPPED TYPE NOW DECLARES (Entry 62): `core.wall`, `core.opening` (leaf + frame) and `core.curtainwall`'s panel/mullion/transom — under the owner's ONE rule, *exposed = every face that is a surface of the assembled thing*. `core.curtainwall.column` is a pure composite and owes nothing. ⚠ Building it found that `exposedRefs` reached only 3 of the 4 `BuiltPart → Part` sites — a door leaf could never have carried one (D74/Entry 62); when a member is added to `Part`, COUNT its construction sites, because only the `{...part}` spread one maintains itself.** The absent-defaulted fallback stays for any FUTURE Type that has not declared yet.** **✅ WRITTEN (Entry 18), corrected (21), extended.** Carries `parameterSchema`, `styleSchema`, `defaultClassification`, `defaultDiscipline` (D45), `buildGeometry→Part[]` (D30), `buildVoid`, `migrate`, and (0g) `ifcMapping?`/`migrateStyle?`. ⚠⚠ `BuildContext.discard(handle)` — a Type running two ops per part MUST declare its intermediate or it leaks; **declare BEFORE the risky op.** ⚠⚠ `VoidBuildContext.hostFace.inward` (Entry 28) + `.frame` (Entry 30, from `faceFrame`) — a hosted void projects along the host's honest inward normal (correct for curved faces too). `BuildContext` gained `grid()`/base+top datums (0b). ✅ **ⓙ RESOLVED (Entry 44): a hosted type provides BOTH `buildVoid` AND the new additive `buildLeaf?(VoidBuildContext)` — a door builds a leaf+frame, not just a hole; the real `core.opening` ships it. PROVEN no new `VoidBuildContext`/`BuiltPart`/`hostFace` field (a `tsc` TS2322 proof); `buildLeaf`, not `buildGeometry`, because a door is a solid only when hosted.** ✅ **D59 COMPOSITION (Entry 48): gained the additive `buildChildren?(ctx)=>BuiltChild[]` (a parent owns child ELEMENTS, rule 18 — the real `core.curtainwall` ships it, Model A = children DERIVED by PEI `${parentId}:${slot}`, never stored). `Element` gained reserved `childOverrides?`/`ChildOverride`; `parentElementId` RE-PINNED to the group/manual-nest meaning.** | **P5** (freeze against the composite Wall + the real Opening + the composite Curtain Wall — all now exist) |
 | **`Command`** | **✅ WRITTEN (Entry 18)** — `argsSchema` + `execute` returns its `UndoableEdit`. **The agent API** (§4f). CRUD verbs carry the D51 refuse-or-retarget args (`acknowledge`/`retargetMap`, 0e/0f); `createElement` carries the six reserved-metadata args + `core.setElementMetadata` (0g.2). **0d BUILT `core.createSketchConstraint`/`core.deleteSketchConstraint`** (Entry 40; datum verbs and sketch verbs each refuse the other's ids). **0c BUILT `core.setJoin`/`core.clearJoin`** (Entry 42 — override verbs; joins are AUTOMATIC on proximity, these only deviate a corner to butt/mitre/none). | **P5** (with its `argsSchema`) |
@@ -284,13 +302,19 @@ is additive and permitted; *changing an existing op's envelope* needs Architect 
 
 ```
 packages/
-  protocol/       @bunyan/protocol      flat versioned message contract (zero deps). 19 ops + 5 reserved.
+  protocol/       @bunyan/protocol      flat versioned message contract (zero deps). 21 ops + 3 reserved.
   kernel-core/    @bunyan/kernel-core   KernelHost (dispatch + failure marshalling) + ShapeRegistry
   kernel-mock/    @bunyan/kernel-mock   protocol-conformant fake kernel + Worker entry (NO booleans — says so
                                           in `capabilities` rather than faking one; answers faceFrame in closed form)
   kernel-occt/    @bunyan/kernel-occt   ★ THE REAL KERNEL — OCCT 7.9.3 in WASM + Worker entry
                     src/kernel.ts         adapter: C++ STRUCTURE -> Bunyan IDENTITIES
                     src/naming.ts       ★ THE RESOLVER (D1/D24): 4 relations, no geometry, ever
+                    src/cache.ts      ★ D29 (Entry 71) — THE GEOMETRY CACHE'S VERIFICATION HALF. C++ measures;
+                                          this DIGESTS, COMPARES and REFUSES: the fingerprint (over the quantised
+                                          geometry sequence AND the token sequence), the tie refusal (D28 rule 4),
+                                          the unnamed-sub-shape refusal, the untrusted-input guard, SHA-256.
+                                          ⚠ ONE file on purpose — the only place a wrong answer produces a
+                                          PLAUSIBLE wrong building. Never matches geometry to recover a name.
                     wasm/bunyan-kernel.*  the COMMITTED artifact (14.59 MB / 4.19 MB gzip, -O3) + .d.ts
   kernel-client/  @bunyan/kernel-client KernelClient + WorkerTransport / InProcessTransport
   sketch-solver/  ★ @bunyan/sketch-solver  THE 2D SKETCH SOLVER (0d) — planegcs (FreeCAD GCS/WASM) behind the
@@ -350,7 +374,7 @@ packages/
                                      BuildContext.joins (cap-lines). The bidirectional wall↔wall dependency edge lives here.
 apps/web/        ★ Amer's Vite/React shell — bootstrap (the one KernelClient holder), WebGL2 three.js viewport,
                     generated ribbon + property panel, incremental redraw, sub-shape picking, failure-state panels
-tests/            428 tests (all document tests run against the REAL OCCT kernel, never the mock) + goldens + harness
+tests/            590 tests (all document tests run against the REAL OCCT kernel, never the mock) + goldens + harness
 tools/kernel-build/ the OCCT->WASM recipe + src/probe.cpp (THE NAMING PROBE, ~60 s)
 tools/oracle/     Python (uv): offline golden seeding — analytic + native-OCCT cross-check (also a MEASURING instrument)
 ```
@@ -400,8 +424,17 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 
 ### NOT verified / NOT built (do not assume otherwise)
 
-- **No `geometry-cache.brep`** — D29 RULED SHIP, ops reserved, **bodies NOT written** (§4j; read it first
-  — it is an IDENTITY task, not a serializer task). Deprioritised behind step-0 work.
+- **`geometry-cache.brep` — HALF BUILT, AND THE HALVES MUST NOT BE CONFLATED (Entry 71, 2026-07-30).**
+  ✅ **The OP BODIES ARE BUILT + GREEN** (`exportBrep`/`importBrep` + `kernel-occt/src/cache.ts`, 12 tests,
+  revert-verified 7 ways). ❌ **There is still NO `geometry-cache.brep` inside a `.bnn` and NO document loads
+  from one** — `bnn.ts`'s *"there is no geometry cache and nothing here assumes one"* is still true of the
+  format. ⚠ That second half is a separate, owner-gated unit with real design surface: **what INVALIDATES a
+  cache** (neither `kernelBuildId` nor `typeVersions` moves for a hand-edited `scene.json`, and the
+  fingerprint proves *"these bytes are the solid these tokens were assigned to"*, never *"this solid is what
+  the recipe would build"*), per-part granularity, and the fact that **a cache-loaded `Part.refs` is a
+  PERMUTATION of the rebuilt one's** while the golden DRIFT tier hashes an ORDERED identity map. ⚠⚠ **AND THE
+  MEASURED PAYOFF IS 2.07×, NOT AN ORDER OF MAGNITUDE** (+6.64 ms/solid on every save, ~61 MB at the 16k-solid
+  target) — see D29 + §4j-2. Recommendation on the owner's desk: **do not wire it for v1.0.0.**
 - **0d the sketch constraint solver — ✅ BUILT + GREEN (Entry 40).** **The room-bounding solver** (D55) —
   **designed/ruled, NOT built** (§5). v1.0.0, its own design doc next.
 - ~~**No browser storage**~~ — ✅ **BUILT + BROWSER-VERIFIED (Entry 56):** `IndexedDbStore` (a real IndexedDB
@@ -443,7 +476,7 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | D26 | `extrude`/`revolve` name `lateral.k` after the **authored** segment; **never permute the array** (re-targets every ref). |
 | D27 | `revolve` — GenericSolid's other half. |
 | D28 | **The bounded positional key** (§3). |
-| D29 | **✅ RULED: THE BREP CACHE SHIPS.** An IDENTITY task — bind by CANONICAL ORDER, VERIFY a fingerprint, refuse with `CACHE_STALE`. Ops reserved; bodies NOT written (§4j). |
+| D29 | **✅ RULED: THE BREP CACHE SHIPS** — an IDENTITY task: bind by canonical order, VERIFY a fingerprint, refuse with `CACHE_STALE`. **✅ THE OP BODIES ARE BUILT (Entry 71, 2026-07-30); the `.bnn` half is NOT and is an owner call.** ⚠⚠ **Building it found the ruled design wrong in two places.** (a) **Step 1 cannot be implemented as written:** the resolver's canonical re-sort orders DERIVATIONS, and a cached shape has none because the recipe never ran ⇒ bind by the READ SHAPE'S OWN sub-shape order (measured to survive a `BRepTools` round trip) **with the fingerprint pinning that order** — strictly stronger than re-deriving the order by SORTING on the geometry, since a sort re-normalises a permutation and could then only see that the geometry changed. (b) **Step 2's fingerprint left the TOKEN LIST unguarded:** over the geometry alone it authenticates the SHAPE, not the BINDING — swap two face tokens in `refs` and every ruled check passes while the op hands back a solid with two identities on the wrong faces (measured by reverting: *"promise RESOLVED instead of rejecting"*), reachable because `refs` travels in the same untrusted `.bnn` as the bytes ⇒ **the digest covers the token sequence too. D70's and D76's shape a third time.** (c) **Every refusal is `CACHE_STALE`**, never `INVALID_RESULT` — there is no hard failure on a path whose answer is always *rebuild instead*. ⚠ **THE PRIZE IS 2.07×** (24.86 → 12.00 ms/solid), export costs **6.64 ms/solid on every save**, the cache is **3,817 B/solid ⇒ ~61 MB at the 16k target**, and `BRepCheck` + 170 embind crossings — not reading the file (0.175 ms) — are the cost ⇒ **the cache HALVES cold load and does not solve it** (§4j-2, §1a). |
 | D30–D33 | **The modelling layer** (§4h): element owns ordered PARTS · ElementStyle · LinearMember+Grid · Material/Section are REGISTRIES. |
 | D34–D38 | **The ecosystem** (§4i): Bunyan is a third producer of the Clean Delta · spatial tree · loadBearing · no backend · `.bnn`. |
 | D39 | Cascade delete: deleting a wall deletes its windows in ONE undoable edit; warn-first is `dryRun`. |
@@ -567,6 +600,57 @@ the document is always free to abandon. The no-cache path stays PRIMARY forever 
 an OCCT kernel — it can't produce a cache even in principle). ⚠ **The hostile-BREP hardening test is a
 REQUIRED deliverable** (a `.bnn` is a file a user can be SENT; the `.brep` is the one part fed as binary
 to OCCT's deserializer).
+
+**✅ THE OP BODIES ARE BUILT (Entry 71, 2026-07-30) — AND TWO OF THE THREE RULED STEPS WERE WRONG AS
+WRITTEN. THE CORRECTIONS ARE PART OF THE RULING NOW; THE THIRD STEP HELD EXACTLY.**
+
+- **STEP 1 AS WRITTEN CANNOT BE IMPLEMENTED.** *"The same deterministic canonical re-sort the resolver
+  already applies"* (`rowLess`) orders **DERIVATIONS** — relation, role, ancestors — and **a shape read back
+  from a cache has no derivations, because the recipe never ran.** ⇒ **What ships:** bind by the **read
+  shape's own sub-shape order** (`TopExp::MapShapes`, MEASURED to survive a `BRepTools` round trip on box,
+  holed wall and round column) **and pin that order with step 2's fingerprint**, which digests each
+  sub-shape's quantised geometry *in sequence* — so a permuted file digests differently and is refused.
+  ⚠ **Strictly stronger than the obvious alternative** (re-derive the order by SORTING on the same
+  geometry): a sort *re-normalises* a permutation, so its digest could only see that the geometry changed,
+  never that the tokens landed on the wrong sub-shapes. The rule is still derived from the shape and the
+  file's order is still not trusted — it is **verified**. ⚠ Quantisation (the mm grid, `toGrid`, D28's own
+  rounding mode) is load-bearing, not cosmetic: **a round trip is NOT bit-exact on curves** (a round
+  column's volume came back `…4692444 → …4692448`), so a digest over raw doubles would refuse every
+  cylinder in the model forever, looking exactly like a corrupted cache.
+- **STEP 2 AS WRITTEN LEFT THE TOKEN LIST UNGUARDED — the hole the fingerprint exists to close.** Over the
+  geometry alone it authenticates the **shape** and says nothing about the **binding**: swap two FACE tokens
+  in `refs` and the digest still matches, the count matches, the kinds match, nothing is duplicated — **and
+  the op hands back a solid with two identities on the wrong faces** (measured by reverting the fix:
+  *"promise RESOLVED instead of rejecting"*). Reachable because **`refs` travels in the same untrusted
+  `.bnn` as the bytes**, so the cheapest attack is on a JSON array, not on OCCT's parser. ⇒ **the digest
+  covers the token sequence as well as the geometry.** ⚠ **D70's and D76's shape for the third time: the
+  identity-bearing half of a payload sat outside the check meant to authenticate it.**
+- **STEP 3 HELD, AND IT IS WHY THE OTHER TWO WERE CHEAP TO FIX:** *a refusal costs a rebuild, never a wrong
+  name.* One consequence is now enforced — **every refusal out of `importBrep` is `CACHE_STALE`, never
+  `INVALID_RESULT`**: there is no such thing as a hard failure on a path whose only correct answer is
+  *rebuild instead*, and a refusal a consumer must classify will eventually be classified wrongly.
+  (`INVALID_PAYLOAD` stays distinct — that is the CALLER being malformed, not the cache.)
+- **THE HARDENING, AND THE NUMBER THAT JUSTIFIES IT:** three guards run **before OCCT is entered** — a size
+  bound, **7-bit ASCII** (so *"the only binary in a `.bnn`"* is never handed to OCCT as binary), and
+  **declared table counts ≤ bytes/2**, a bound derived from the file itself. ⚠⚠ **MEASURED:
+  `Curve2ds 999999999` in a 93-BYTE file cost our WASM kernel 249,383 ms — 4 min 9 s — with that guard
+  removed** (native ~56 s), then returned an ordinary null shape. Refused now in **under 1 ms**, and the
+  whole TypeScript half costs **0.24 ms/solid, 2% of an import** — so hardening does not eat the prize.
+- **⚠⚠ THE PRIZE IS 2.07×, NOT THE ORDER OF MAGNITUDE THE 7.3 s FIGURE IMPLIES.** 60 solids (20 walls each
+  cut by a door): `rebuildAll` **1492 ms (24.86 ms/solid)** vs cached import **720 ms (12.00 ms/solid)**;
+  export adds **6.64 ms/solid to every save**; the cache is **3,817 B/solid ⇒ ~61 MB at the 16k-solid D48
+  target**. The cost is **not** reading the file (`BRepTools::Read` 0.175 ms) — it is `BRepCheck_Analyzer`
+  (1.143 ms, 68% of the OCCT work), the fingerprint's per-sub-shape `GProp` (0.370 ms) and **170 embind
+  boundary crossings per solid** (the file's own documented trap; the fix is a memory view, as `tessellate`
+  does). ⇒ ***a cache that must re-measure every sub-shape to verify itself cannot be much cheaper than
+  building the solid — verification is the price of shipping identity tokens in a file, and it is most of
+  the cost.*** **The cache HALVES cold load and does not solve it** (§1a).
+- **⇒ THE `.bnn` HALF IS AN OPEN OWNER CALL, not a scheduled task** (Entry 71's NEXT): decide it against
+  2.07× / 6.64 ms / ~61 MB, not against 7.3 s. Recommendation: **do not wire it for v1.0.0**; spend the
+  effort on `instantiate`, lazy build (D66) and MT (D8). ⚠ If it is wired, **what INVALIDATES a cache is
+  design-first**: neither `kernelBuildId` nor `typeVersions` moves for a hand-edited `scene.json`, and the
+  fingerprint proves *"these bytes are the solid these tokens were assigned to"*, never *"this solid is what
+  the recipe would build."*
 
 **(3) Performance — ✅ RULED.** `instantiate` RESERVED (collapses a 400-wall style edit from 400 booleans
 to 1 boolean + 400 cheap re-owns; the payload shape was the expensive thing to get wrong, so reserved
@@ -969,11 +1053,30 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
    **Q1 recommend `mode:'cut'` only for v1.0.0** (full identity + linear cost; HLR is ≈N^1.5). **Q2 recommend
    `SectionCurve.nodeId?`** over widening `SubShapeKind`. **Q3 is Entry 68's owed `refTo` ruling and it now BLOCKS this unit.**
    ⚠ The build reuses Entry 68's promotion verbatim **including its correction — no `emptyScene()` entry.**
-6. **Still owed, lower priority (post-freeze / v1.0.x):** the D29 cache bodies (§4j-2 — read first) · the
-   join O(N²) endpoint index (`review_P5.md` #3 — no contract change) · housekeeping (`LICENSE` AGPL-3.0,
-   the CLA, the OCCT + planegcs attribution notices — none blocks work, all block going public) · then the
-   **"Road to Revit parity"** phase map (imp_plan appendix) — the taxonomy, full documentation, MEP,
-   families, worksharing, DWG, scale. *That is the actual distance to beating Revit; v1.0.0 is its foundation.*
+5e. **⏭ THE FIVE OWNER-RULED MOVE VERBS + `transactionId` ATOMICITY (Entry 70's hand-off, owner-ruled
+   2026-07-30, P4.5 design §9/§10 Q4/Q5) — PRE-FREEZE, AND IT IS BLOCKING AMER.** `core.setPlacement`/`move`/
+   `rotate`/`copy`/`array` as ordinary additive registry entries, plus making ONE `Ctrl+Z` reverse a
+   multi-element gesture. ⚠ **The ruled split is counter-intuitive and is the part to get right:** an element
+   whose position lives in its PARAMS moves by `core.setParams` (a D52 baseline wall translates both
+   endpoints), and only a `placement`-positioned element moves by `move`/`setPlacement` — *so the commonest
+   "move" in the product never calls these verbs, and that is correct.* ⚠ `transactionId` has **zero readers**
+   (measured Entry 70), and Amer deliberately did not ship a gesture that LOOKS transactional and undoes in
+   three steps. ⚠ **His pointing device is built and waiting to validate the arg shapes with a real gesture —
+   which is exactly what row ⓑ asked for, and it is worth nothing after the freeze.** Rows ⓑ/ⓘ are
+   freeze-SAFE and do NOT block the freeze (Entry 45).
+
+6. **Still owed, lower priority (post-freeze / v1.0.x):** ✅ the D29 cache **op bodies** are BUILT (Entry 71)
+   — what remains of D29 is the **`.bnn` half, and it is an OWNER CALL at the measured 2.07×, not a task**
+   (§4j-2) · the **`shapeSignature` MEMORY VIEW** (an import pays **170 embind boundary crossings per
+   solid**; `tessellate`'s own fix applied to the same documented trap — no contract, pure win, and most of
+   what makes a cached import cost 12 ms) · the `schedule.ts` **"rule 17" comment rename** (Entry 70 — it now
+   collides with `core_logic.md` §8's numbered rule 17, and this project's method is grep) · housekeeping
+   (`LICENSE` AGPL-3.0, the CLA, the OCCT + planegcs attribution notices — none blocks work, all block going
+   public; ⚠ **its own commit**, per Entries 64+65's intermingling lesson) · then the **"Road to Revit
+   parity"** phase map (imp_plan appendix) — the taxonomy, full documentation, MEP, families, worksharing,
+   DWG, scale. *That is the actual distance to beating Revit; v1.0.0 is its foundation.*
+   ⚠ **RETIRED FROM THIS LIST:** the join O(N²) endpoint index — done in Entry 61 (D73), 4757.7 ms → 169 ms
+   at ~10k walls with per-wall cost FLAT. It had outlived its own fix here by ten entries.
 
 **✅ CLOSED, DO NOT REDO:** the op set (`transform`/`extrude`/`chamfer`/`revolve`/`faceFrame`) ·
 `measure(ref)` + derived `capabilities` + `INVALID_RESULT` · the positional key (D28) · the protocol
@@ -1004,7 +1107,12 @@ the real body; revert-verified five ways)** ·
 `scene.schedules` promoted to a full `SceneCollection` with undo and a declared "nothing" edge; the verbs carry the
 refusals the projection body deliberately will not — bad groupBy keys, out-of-grammar column keys, duplicate column
 keys, blank/zero-column schedules; `Referrer.redirect` made optional for a reference nothing can retarget yet;
-revert-verified ten ways)** · D50 step
+revert-verified ten ways)** ·
+**THE D29 GEOMETRY-CACHE OP BODIES (Entry 71 — `exportBrep`/`importBrep` + `kernel-occt/src/cache.ts`; the
+tokens are IN the fingerprint because over the geometry alone a permuted `refs` array mis-names two faces and
+verifies; every refusal is `CACHE_STALE` because the only correct answer on this path is *rebuild*; the
+hostile-BREP guard refuses a 93-byte, 4-minute file in under 1 ms; revert-verified 7 ways. ⚠ THE `.bnn` HALF
+IS NOT CLOSED and is an owner call — do not read this row as "the cache ships")** · D50 step
 0a/0b/0e/0f/0g (Entries 33–38) · **0d the sketch constraint solver (Entry 40 — real planegcs, green)** ·
 the **room-bounding solver (Entry 41)** · **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate
 green, real Wall in `@bunyan/types`). ⇒ ALL OF D50 STEP 0 IS CLOSED.**
@@ -2261,3 +2369,83 @@ TASK still stood. It did.
   called "rule 17" is a real cost. ⚠ Nothing in this entry touches the kernel, the document or any frozen
   contract; it is pure `apps/web` plus one line in `core_logic.md` §8 (domain rule 19).
 
+
+### Entry 71 — 2026-07-30 — Zayd — **THE D29 GEOMETRY-CACHE BODIES SHIP (`exportBrep` / `importBrep`) — RESERVED SINCE P3, RULED *SHIP* ON 2026-07-14, UNWRITTEN FOR 16 DAYS. AND THE RULED DESIGN WAS WRONG IN TWO PLACES: ONE STEP THAT CANNOT BE IMPLEMENTED, AND ONE HOLE THAT LETS A CACHE MIS-NAME A FACE. 590 GREEN, ALL FIVE GATES 0.**
+
+⚠ **WRITTEN OUTSIDE `current_state.md` AND MOVED IN AFTERWARDS, exactly as Entry 70 was and for the same
+reason** — the owner ran Amer and Zayd **in parallel** on 2026-07-30, and two agents appending to §7 in one
+window collide in the file whose whole job is to be the shared truth. It was parked in
+`entry_71_zayd_D29_cache.md` on branch `zayd/entry71-d29-brep-cache` with its own merge procedure, then moved
+here **verbatim** once Entry 70 landed, and that file deleted. **Nothing about the entry changed in the
+move.** ⚠ The branch **fast-forwarded** onto Entry 70 with no conflict and nothing replayed: Entry 70 is
+`apps/web` + `core_logic.md`, this one is `tools/kernel-build` + `packages/kernel-occt` + `packages/protocol`
++ `tests`, and the only file both sessions rewrote was `Zayd_Prompt.md` §2 (reconciled by hand, Amer's
+owner-ruled TASK kept).
+
+**Task (owner, `Zayd_Prompt.md` §2).** The TASK was *"build the plan + section (§8 of
+`P5_step6C_plan_section_design.md`) **once Q1–Q3 are ruled**"*, with an explicit instruction for the case
+they are not: **do not build, do not idle — surface them again and take the ruling-free work, the D29 CACHE
+BODIES first (§4j-2), which is an IDENTITY task, not a serializer task, and whose hostile-BREP hardening
+test is a REQUIRED deliverable.** Q1–Q3 were still unruled, so that is exactly what happened; the five
+questions are re-surfaced below. Pulled first: at `45109d5`, newest Entry **69** (my own), matching `FRESH`.
+Baseline `pnpm verify` **538/538, real exit code 0, all five gates**; final **550/550** on the branch and
+**590/590** after merging Entry 70's 40 (+12 mine). `prettier --write` before `verify`, per Entry 67 — ⚠ and
+`verify` still exited **1** twice, on a missing type export and then four lint errors. *A local gate whose
+exit code you do not read is not a gate*, third entry running. **Nothing committed: owner-gated.**
+
+- **⚠⚠ MEASURED BEFORE ANYTHING WAS WRITTEN (§1b) — twelve throwaway probes, all deleted (5 native-OCCT through the `tools/oracle` instrument §4b, 7 TS through the real WASM kernel):**
+  ```
+    BRepTools round trip, bit-exact?      plain box / holed wall: YES.  round column: NO
+                                            848230016.4692444 -> 848230016.4692448  (area too)
+    TopExp::MapShapes order preserved?    box, holed wall, round column: ALL PRESERVED
+    the DEFAULT Write overload            writes TRIANGULATION: meshed column 22,200 B vs 1,109 B (20x)
+    "the refs must already be derived     core.wall cut by a door:  18 of 34 are the wall's own
+     from nodeId" (frozen comment)         core.opening's frame:      8 of 34.        => FALSE
+    two sub-shapes sharing a quantised    16 real solids (wall+door, leaf, frame, 6 panels, 7 bars),
+     signature (D28 rule 4)?               18-34 sub-shapes each:   ZERO ties, ZERO unnamed
+    `Curve2ds 999999999` in 93 BYTES      native ~56 s of spin, then an ordinary NULL SHAPE;
+                                            linear in the declared count (~57 ns each), no allocation
+    BRepTools::Read on hostile bytes      does NOT throw, does NOT return a status: writes to cerr and
+                                            leaves the shape NULL. "nothing read" == "empty read"
+    real brep + trailing garbage          READS FINE, IsNull=false => the reader authenticates nothing
+    rebuild cost per solid, real OCCT     plain wall 2.36 ms · wall cut by a window 24.62 ms
+  ```
+- **⚠⚠ FINDING 1 — §4j-2's RULED STEP 1 IS NOT IMPLEMENTABLE, AND THE REASON IS STRUCTURAL.** The ruling says *"bind by CANONICAL ORDER … **the same deterministic canonical re-sort the resolver already applies before assigning identities** (D8)."* **That sort (`rowLess`) orders DERIVATIONS** — relation, role, ancestors — **and a shape read back from a cache has no derivations, because the recipe never ran.** So the rule the reader is told to apply is one the reader cannot compute; it is invisible from the shapes and only appears when something must *re-attach* a token. **What ships instead satisfies the ruling's intent rather than its wording:** bind by the **read shape's own sub-shape order** (`TopExp::MapShapes`, measured to survive a round trip on every shape class we build) **and pin that order with the fingerprint**, which digests each sub-shape's quantised geometry **in sequence**, so a permuted file digests differently and is refused. ⚠ **Strictly stronger than the obvious alternative** (re-derive the order by SORTING on the same geometry): a sort *re-normalises* a permutation, so its digest could only ever detect that the geometry changed, never that the tokens landed on the wrong sub-shapes. **Verification beats matching** — and matching is the thing D1 forbids. ⚠ The quantisation is not a detail either: a round trip is **not bit-exact on curves**, so a digest over raw doubles would have refused every cylinder in the model forever, looking exactly like a corrupted cache. The mm grid (`toGrid`, D28's own rounding mode, one home) is what makes the comparison integer-exact.
+- **⚠⚠⚠ FINDING 2 — THE RULED FINGERPRINT CANNOT DO THE ONE THING IT IS FOR: IT LEAVES THE TOKEN LIST UNGUARDED.** Found by writing the tamper test. §4j-2 defines the fingerprint as *"a digest over each named sub-shape's measured geometry"*, recomputed from the shape read, and the frozen field comment calls it *"what makes a mis-attached token impossible rather than merely unlikely."* Over the geometry alone it authenticates **the shape** and says nothing about **the binding**: **swap two FACE tokens in the `refs` array and every check the ruling describes still passes** — the digest matches (the shape is untouched), the count matches, both tokens name faces so a kind check is blind, nothing is duplicated — **and `importBrep` hands back a solid with two identities on the wrong faces.** ⚠ **Measured by removing the fix and re-running: `promise resolved "{ handle: 'occt:46' }" instead of rejecting`.** It is reachable because **`refs` travels in the same untrusted `.bnn` as the bytes** — the ruling hardened the binary half and left the metadata half open, so the cheapest attack is not on OCCT's parser at all, it is on a JSON array. ⇒ **the digest covers the token sequence as well as the geometry.** ⚠⚠ **This is D70's and D76's shape for the third time: the identity-bearing half of a payload sat outside the check that exists to authenticate it** (D70: the Clean Delta keyed materials by display name and dropped the id; D76: the delta's anchor was never checked to be inside the log it is read against). *When a check is described as "over the geometry" or "over the values", ask what IDENTITY travels beside them unchecked.*
+- **⚠ FINDING 3 — EVERY REFUSAL OUT OF `importBrep` MUST BE `CACHE_STALE`, AND THE FIRST DRAFT HAD TWO CODES.** Also found by the tamper test and **measured failing first**: editing one coordinate of a cached wall by a millimetre produces a solid OCCT's own checker rejects, so the shared `validResult` helper refused it as **`INVALID_RESULT`** — a code that reads as *"this operation broke."* But **there is no such thing as a hard failure on this path**: the recipe is the source of truth, so *stale*, *corrupted*, *hostile* and *invalid* all mean **rebuild instead**, and the protocol has a code that says exactly that. A cache path whose refusals a consumer must classify will eventually be classified wrongly, and the wrong classification costs a load. `importBrep` therefore does **not** call `validResult`; it makes the same check and answers `CACHE_STALE`. ⚠ `INVALID_PAYLOAD` stays distinct on purpose — that one is the **caller** being malformed, not the cache.
+- **⚠⚠ THE REQUIRED DELIVERABLE — THE HOSTILE-BREP HARDENING, AND THE NUMBER IT IS WORTH.** `geometry-cache.brep` is *"the one part of a `.bnn` fed as **binary** to OCCT's deserializer"* (§4j-2), and a `.bnn` is a file a user can be **sent**. Three guards run **before OCCT is entered at all** (`kernel-occt/src/cache.ts`): **(1) size** bounded at 8 MB/solid (real solids are 1–6 KB, so it is a bound on absurdity); **(2) 7-bit ASCII** — the BRep format is text, so *"the only binary in a `.bnn`"* is **never handed to OCCT as binary**, it is handed over as a validated text document (this also deletes the `TextDecoder` question: nothing can be silently rewritten to U+FFFD on the way in); **(3) declared table counts must be plausible for the file's own size.** ⚠⚠ **THE MEASUREMENT: `Curve2ds 999999999` in a 93-BYTE file cost our WASM kernel 249,383 ms — 4 MINUTES 9 SECONDS — with the guard removed** (native ~56 s; the gap is the documented ~3× WASM factor), and then returned an ordinary null shape. No record can be described in under two bytes, so `count ≤ bytes / 2` is a bound **derived from the file itself** rather than a magic number, and a real file is orders of magnitude inside it. **With the guard: refused in under 1 ms.** ⚠ **And the hardening is nearly free — the worry that it would eat the prize is retired by measurement: the entire TypeScript half (ASCII scan, header, counts, SHA-256) costs 0.24 ms/solid, 2% of an import.** ⚠ **What is NOT claimed:** this does not make OCCT's reader safe against everything; it makes the cheap refusals cheap and keeps the expensive ones bounded, and the last line of defence remains that **a refusal costs only a rebuild**. ⚠ A real digest, not a cheap hash, and **verified rather than trusted**: `sha256Hex` is ~40 lines of pure TS (`crypto.subtle` is async and a handler is synchronous by contract; `node:crypto` does not exist in a browser worker) checked against Node's `createHash('sha256')` on five inputs.
+- **⚠⚠ THE PRIZE, MEASURED — AND IT IS 2.07×, NOT THE ORDER OF MAGNITUDE §4j-2 ASSUMED. AN OWNER-FACING FINDING.** The ruling's justification is *"a 195-element building cold-loads in **7.3 s** with no cache … a 2,000-element project would be ~75 s, past what a splash screen can hide."* Apples to apples, 20 walls each cut by a door (60 solids, real OCCT WASM, this box):
+  ```
+    recipe rebuildAll         1492 ms    24.86 ms/solid
+    cached import (all)        720 ms    12.00 ms/solid      <-  SPEEDUP  2.07x
+    ... of which TypeScript     15 ms     0.24 ms/solid      (the whole guard + digest)
+    export (save-time cost)    398 ms     6.64 ms/solid      (a NEW cost on every save)
+    cache size                          3,817 B/solid  =>  ~61 MB at the 16k-solid D48 target, pre-zip
+  ```
+  **Where the 12 ms goes** (native breakdown ×3 for our WASM, plus plumbing): `BRepTools::Read` **0.175 ms** — reading the file is *not* the cost — `BRepCheck_Analyzer` **1.143 ms** (68% of the OCCT work), the fingerprint's 34 `GProp` measurements **0.370 ms**, and the rest is **170 embind boundary crossings per solid** to drain the signature vector (5 numbers × 34 sub-shapes), which is `kernel.cpp`'s own documented trap (*"reading an embind vector costs ONE crossing PER ELEMENT"*) and the obvious next lever — a memory view, as `tessellate` already does. ⇒ **THE HONEST STRATEGIC STATEMENT: THE CACHE HALVES COLD LOAD; IT DOES NOT SOLVE IT.** Entry 54 measured cold load at **~6.35 min at the 10k target**; 2× makes it ~3 min, still unusable. **The cache is a 2× constant factor, not the answer to cold load** — the levers that could be are `instantiate` (RESERVED), multithreading (D8, ruled v1.0.x) and lazy build/eviction (D66: additive, forecloses nothing). ⚠ *A cache that must re-measure every sub-shape to verify itself cannot be much cheaper than building the solid: verification is the price of shipping identity tokens in a file, and it is most of the cost.* **Nothing here changes D29's ruling — the bodies are cheap, safe and now built — but the DOCUMENT half should be decided against 2.07×, 6.64 ms/save/solid and ~61 MB, not against the ~20× the 7.3 s number implies.** That is the new owner question below.
+- **WHAT WAS BUILT.** `tools/kernel-build/src/kernel.cpp` (+208): `exportBrep` (VERSION_1, **no triangulation, no normals** — the disposable mesh has no business in a file whose only job is to skip a rebuild), `shapeSignature` (**the same function on both sides of the round trip**, so producer and consumer share ONE rule rather than two that agree today), `importBrep` (untrusted read → null check → validity → `CACHE_STALE`). ⚠ **A WASM rebuild: ~74 s single-file compile + link, capped at the source (`--memory=2g --cpus=2`), NOT the 2.5 h version bump** (§1c-3); artifact 14,599,888 → 14,612,519 B (+0.09%); done **twice** (Finding 3 needed the second). · **`packages/kernel-occt/src/cache.ts` (new)**: the verification half — signature parsing, the digest, the tie refusal, the unnamed-sub-shape refusal, the untrusted-input guard, SHA-256. **Everything that decides whether a cached solid may hand out identity tokens is in ONE file**, because it is the only place in Bunyan where a wrong answer produces a *plausible* wrong building. · **`kernel.ts` (+160)**: the two handlers; ⚠ every exit path after a successful read **releases the solid** — a refusal that leaked it would turn *"the cache was stale"* into a heap leak per load (asserted against `wasmLiveHandles()`, the WASM side's own count). · **`protocol/src/ops.ts`**: the pair **leaves `RESERVED_OPS`** (3 remain: `sectionCut`, `importIfc`, `instantiate`) — precisely the handshake `quantities-and-contract.test.ts` described in advance: the real kernel advertises them **because it implements them**, with no other edit, and a human took the list down deliberately. ⚠ **The MOCK implements neither, and that is correct rather than incomplete:** it holds no B-Rep, and a mock that faked a cache would fake the very thing the cache exists to verify.
+- **⚠ THE FIXTURE IS A WALL CUT BY A DOOR, AND ENTRY 69'S OWN WARNING IS WHY.** *"Every criterion has a way to pass while FALSE, and the top one is Entry 47's trap verbatim — a one-plain-wall fixture."* A plain box's identities are **all PRIMITIVE and all its own**, so it exercises neither `REL_INHERIT` nor a cut node — **a cache that silently dropped every foreign token would be green on a box.** The measurement that makes it concrete is the one that also falsified the frozen comment: **16 of a real wall's 34 identities belong to other nodes, and 26 of the door frame's 34 do.** ⚠ **One test earns its place beyond the round trip: a CACHED solid is a first-class OPERAND.** Import a cached wall, cut a notch out of it, and the restored tokens pass straight through the boolean (`REL_INHERIT`) while the notch's new faces belong to the cut. It works because an imported entry's `NameRow`s are left **BLANK** (relation −1, which no resolver knows) while its `faceOcct`/`edgeOcct` mapping is real: a later op reads only the mapping. ⚠ Filling those rows with plausible PRIMITIVE rows instead would leave every test green **and quietly re-identify the shape**; leaving the entry with no rows at all would make an accidental `getNaming` report *"this solid has no named sub-shapes"* instead of refusing. **The blank row is the loud choice, and it is the one case here with no test that can fail in its absence — recorded rather than claimed.**
+- **REVERT-VERIFIED SEVEN WAYS, each firing exactly what it should:**
+  ```
+    the fingerprint COMPARISON removed          the tamper test fails
+    the TOKENS removed from the digest          the tamper test fails — "promise RESOLVED instead of
+     (i.e. the ruled design, verbatim)            rejecting": the mis-bound solid is handed back
+    the DECLARED-COUNT guard removed            the hostile test fails at 249,383 ms (+ 1 more)
+    the 7-bit ASCII guard removed               the malformed test fails on the REASON, not the code
+                                                  (⚠ without that assertion this guard would have had
+                                                   NO test that fails in its absence — OCCT rejects
+                                                   those bytes too, so the code alone is identical)
+    the TIE refusal removed                     the D28-rule-4 test fails
+    the unnamed-sub-shape refusal removed       the D28-rule-4 test fails
+    validResult -> CACHE_STALE (C++)            measured failing FIRST, before the second WASM build
+  ```
+  ⚠ **Stated honestly rather than padded: the count / kind / duplicate checks in `importBrep` are DEFENCE IN DEPTH, not independently load-bearing** — now that the digest covers the token sequence, any tampering with `refs` is caught by the fingerprint first. They are kept because they cost nothing, they name the actual problem for a caller, and they still hold if the digest scheme is ever narrowed.
+- **⚠ TWO SMALLER FACTS WORTH KNOWING.** **(a)** OCCT's reader **prints to `cerr`** on a malformed file (*"File was not written with this version of the topology"*), so a refused cache leaves a line in a browser worker's console — cosmetic, not suppressible without swallowing OCCT's diagnostics, named so nobody hunts it. **(b)** **The first draft of the header guard refused every file the exporter beside it produces.** OCCT's **file** overload writes a `DBRep_DrawableShape` line; the **stream** overload (what `exportBrep` uses) does not — so a guard written from the format's documentation rejects the format the code actually writes. Both are accepted now. *Measure the artifact, not the manual — twice in one session (see §1c-9).*
+- **⚠ WHAT THIS ENTRY DOES NOT DO, NAMED SO IT IS NOT MISTAKEN FOR DONE: the cache is NOT wired into the `.bnn`, and no document loads from it.** The TASK named the *bodies*, and §4j-2 says *"ops reserved, **bodies** NOT written"* — that is the kernel pair, and it is complete and green. The **document half** is a separate unit with genuine design surface, which the measurements have now priced: `geometry-cache.brep` as a zip member (`bnn.ts` states in writing that nothing assumes one — that comment becomes false the moment it lands, and it names the security dividend now spent) · **what INVALIDATES it** — `kernelBuildId` covers the kernel and `typeVersions` a Type's code, but **a hand-edited `scene.json` changes the recipe with neither moving**, and the fingerprint does **not** cover this: it proves *"these bytes are the solid these tokens were assigned to"*, never *"this solid is what the recipe would build"* ⇒ **a cache keyed on nothing recipe-shaped can be right about itself and wrong about the building** · per-part granularity and what one `CACHE_STALE` does to the other 59 · ⚠ **a cache-loaded `Part.refs` is a PERMUTATION of the rebuilt one's** (the exporter emits in the shape's sub-shape order; the resolver's canonical order is a different permutation, and the frozen payload has no field to carry one) — every consumer is token-based so this is believed harmless, **but the golden harness's DRIFT tier hashes an ORDERED identity map**, which must be checked before any document loads from a cache.
+- **Box:** read/measure/build only; `pnpm verify` ×4 with the real exit code captured every time + targeted vitest ×~15 + a 7-way revert sweep; **twelve throwaway probes written and deleted**; **two WASM rebuilds, ~74 s each**; nothing installed, no containers touched, no ports bound; `/tmp` 6.6 MB, RAM ~2.4 GB available throughout; both live public sites up (`portfolio-caddy-1`, `beamstack-contact` untouched, as were Planitor's and Chantier's containers).
+
+**NEXT:**
+
+- **Owner:** **the FREEZE (step 6) is still yours and still unblocked** — this entry moved **no frozen byte, no `SCENE_SCHEMA_VERSION`, no field, no verb.** Two *comments* inside the frozen `ops.ts` were corrected where measurement showed them false (Findings 1 and 2) and `RESERVED_OPS` shrank 5 → 3 exactly as its own test instructed; the wire contract is byte-identical. ⚠⚠ **ONE NEW QUESTION, AND IT IS A SCHEDULING CALL RATHER THAN A CONTRACT ONE: is the D29 DOCUMENT half still worth wiring at the measured payoff?** 2.07× on cold load, +6.64 ms/solid on every save, ~61 MB in a 16k-solid file, against a cold load that stays ~3 min at the D48 target either way. **My recommendation: do NOT wire it for v1.0.0** — ship the ops (done: additive, they cost a saved file nothing, and Miqdar could never produce a cache even in principle) and spend the same effort on the levers that can actually close cold load (`instantiate`, lazy build, MT). ⚠ **If you want it wired anyway, the invalidation question above is design-first, not mechanical.** ⚠ Q1–Q3 (Entry 69) still block the plan/section unit; rule 8, rule 17 and the parked `undo`/`redo`-as-Commands are unchanged.
+- **Zayd:** Amer's Entry 70 handed over **the five owner-ruled move verbs + `transactionId` atomicity** (`packages/document`, pre-freeze, and his pointing device is built and waiting to validate them) — that is the TASK, ahead of the plan/section, which is still ruling-blocked. Then: the **`shapeSignature` MEMORY VIEW** (170 embind crossings per import, `tessellate`'s fix applied to the same trap — no contract, pure win, and most of what makes a cached import cost 12 ms) · the `schedule.ts` "rule 17" comment rename (Entry 70) · the housekeeping that blocks going public (`LICENSE` AGPL-3.0, the CLA, the OCCT + planegcs attribution notices — **its own commit**, Entries 64+65's lesson). ⚠ **Do NOT start the D29 document half unasked** — it is the owner question above.
+- **Amer:** **nothing is owed and nothing of his moved** — this entry is `tools/kernel-build` + `packages/kernel-occt` + `packages/protocol` + `tests`. ⚠ One thing to know with nothing to do: the real kernel now advertises two more capabilities (`exportBrep`, `importBrep`); `capabilities` is **generated**, so nothing in `apps/web` changes, and **the app must not start calling them** — the cache is a document-layer concern and D19 makes `DocumentContext` the only door. **The committed WASM artifact changed (+12,631 B), so `git pull` before any browser work.**

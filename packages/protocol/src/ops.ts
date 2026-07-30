@@ -517,6 +517,19 @@ export interface InstantiatePayload {
  *      **same deterministic canonical re-sort the resolver already applies before assigning identities**
  *      (D8). So a token is re-attached by a rule *derived from the shape itself* — not by trusting a
  *      position in a file.
+ *
+ *      ⚠⚠ **CORRECTED WHEN THE BODY WAS WRITTEN (2026-07-30) — THE RESOLVER'S SORT IS NOT AVAILABLE ON
+ *      THE IMPORT SIDE, AND CANNOT BE.** D8's re-sort (`rowLess`) orders **derivations** — relation,
+ *      role, ancestors — and a shape loaded from a cache **has no derivations, because the recipe never
+ *      ran.** So "the same sort the resolver uses" describes something the reader cannot compute. The
+ *      implementable form of this step, which is what ships: bind by **the read shape's own sub-shape
+ *      order** (`TopExp::MapShapes` — MEASURED to survive a `BRepTools` round trip on every shape class
+ *      we build) **and pin that order with the fingerprint of step 2**, which digests each sub-shape's
+ *      quantised geometry *in sequence* — so a permuted file digests differently and is refused. That is
+ *      strictly stronger than re-deriving the order by SORTING on the same geometry, because a sort
+ *      re-normalises a permutation and could then only see that the geometry changed, never that the
+ *      tokens landed on the wrong sub-shapes. The rule is still derived from the shape, and the position
+ *      in the file is still not trusted — it is *verified*. See `kernel-occt/src/cache.ts`.
  *   2. **VERIFY, THEN TRUST.** `exportBrep` also returns a `fingerprint`: a digest over each named
  *      sub-shape's measured geometry (area / centroid, mm-rounded — the D28 basis). `importBrep`
  *      recomputes it and **refuses with `CACHE_STALE` on any disagreement.**
@@ -550,12 +563,34 @@ export interface ExportBrepResult {
    * A digest over each named sub-shape's measured geometry, in the same canonical order. ⚠ **This is
    * what makes a mis-attached token impossible rather than merely unlikely** — `importBrep` recomputes
    * it from the shape it actually read, and refuses if it disagrees.
+   *
+   * ⚠⚠ **AND IT COVERS `refs` TOO — WIDENED 2026-07-30 WHEN THE BODY WAS WRITTEN, BECAUSE OVER THE
+   * GEOMETRY ALONE IT DOES NOT DO WHAT THE SENTENCE ABOVE CLAIMS.** Recomputed from the shape only, it
+   * authenticates the SHAPE and says nothing about the BINDING: swap two face tokens in `refs` and the
+   * digest still matches (the shape is untouched), the count matches, the kinds match, nothing is
+   * duplicated — and a solid comes back with two identities on the wrong faces, which is the exact
+   * outcome this op exists to prevent. `refs` arrives from the same untrusted `.bnn` as the bytes, so
+   * the metadata half needs the same guard as the binary half. The digest is therefore over the
+   * quantised geometry sequence **and** the token sequence. (Opaque either way — a caller only ever
+   * compares it to what `exportBrep` produced.)
    */
   readonly fingerprint: string;
 }
 
 export interface ImportBrepPayload {
-  /** The DAG node these identities belong to. The refs below must already be derived from it. */
+  /**
+   * The DAG node this SOLID belongs to — the part's own node (`wall-7.plaster`), carried so a later op
+   * that names something new against this shape attributes it to the node that owns the geometry.
+   *
+   * ⚠⚠ **CORRECTED 2026-07-30, WHEN THE BODY WAS WRITTEN. It used to read "the refs below must already
+   * be derived from it", and that is FALSE about real geometry — MEASURED on the shipped types:** a
+   * `core.wall` cut by a door carries **34 identities of which 18 are the wall's own and 16 belong to two
+   * other nodes**; the door's `frame` part carries **34 of which only 8 are its own.** That is not a
+   * defect — it is `REL_INHERIT` and the cut nodes working exactly as D1 intends (a reveal face belongs
+   * to the CUT, not to the wall) — but a body that had *validated* the old sentence would have refused to
+   * load two of every three real parts. **Nothing here checks the refs against this node**, and nothing
+   * should.
+   */
   readonly nodeId: string;
   /** ⚠ UNTRUSTED BYTES. Validate; never assume a well-formed BREP. */
   readonly brep: Uint8Array;
@@ -753,13 +788,17 @@ export const OP_NAMES = [
  * `UNKNOWN_OP` — which is the honest reply, and the same one the mock gives for a boolean it cannot
  * fake. ⚠ **Reserved is not the same as missing:** a missing op means P6 must amend a frozen contract;
  * a reserved one means P6 writes a body against a shape that was agreed while the protocol was soft.
+ *
+ * ⚠⚠ **`exportBrep` / `importBrep` LEFT THIS LIST ON 2026-07-30 — THE D29 CACHE BODIES ARE BUILT** (the
+ * real kernel implements both; `capabilities` picked them up with no other edit, which is the whole
+ * design of deriving the advertisement from the handler map). **The MOCK still does not implement them,
+ * and that is correct rather than incomplete:** it holds no B-Rep, so it cannot serialise one, and a
+ * mock that faked a cache would fake exactly the thing the cache exists to verify.
  */
 export const RESERVED_OPS = [
   'sectionCut',
   'importIfc',
   'instantiate',
-  'exportBrep',
-  'importBrep',
 ] as const satisfies readonly OpName[];
 
 export function isOpName(value: string): value is OpName {

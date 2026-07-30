@@ -228,6 +228,24 @@ export interface OcctModule {
    */
   measure(shapeId: number, kind: number, index: number): OcctMeasure;
   tessellate(shapeId: number, deflection: number): OcctMeshViews;
+
+  /**
+   * THE GEOMETRY CACHE (D29). ⚠ `shapeSignature` is called on BOTH sides of the round trip — that is
+   * what makes the producer's rule and the consumer's rule ONE rule. See `src/cache.ts`.
+   */
+  /** `BRepTools::Write`, VERSION_1, WITHOUT triangulation (the mesh is disposable). "" ⇒ see lastError. */
+  exportBrep(shapeId: number): string;
+  /**
+   * Every sub-shape's quantised geometry, in the SHAPE'S OWN sub-shape order — flat:
+   *   [ nFaces, nEdges, then per sub-shape: canonicalIndex, quantisedMeasure, cx, cy, cz ]
+   * `canonicalIndex` -1 ⇒ the sub-shape carries no name (refused upstream). Empty ⇒ see lastError.
+   */
+  shapeSignature(shapeId: number): OcctVectorDouble;
+  /**
+   * Read a cached shape. ⚠ UNTRUSTED TEXT — guard it first (`decodeBrepBytes`). Assigns NO identities:
+   * the caller supplies the tokens and verifies the fingerprint before the handle escapes. 0 ⇒ refused.
+   */
+  importBrep(brep: string): number;
   releaseShape(shapeId: number): boolean;
   /** Live shapes on the WASM heap. The leak canary (spec §6.2). */
   liveHandles(): number;

@@ -45,6 +45,9 @@
 #include <BRepBuilderAPI_MakeFace.hxx>
 #include <BRepBuilderAPI_Transform.hxx>
 #include <BRepCheck_Analyzer.hxx>
+#include <BRepTools.hxx>
+#include <BRep_Builder.hxx>
+#include <TopTools_FormatVersion.hxx>
 #include <GC_MakeArcOfCircle.hxx>
 #include <Geom_TrimmedCurve.hxx>
 #include <TopoDS_Wire.hxx>
@@ -2150,6 +2153,207 @@ emscripten::val tessellate(int handle, double deflection) {
   }
 }
 
+// =============================================================================================
+// THE GEOMETRY CACHE (D29, owner ruling 2026-07-14: SHIP) — `exportBrep` / `importBrep`.
+//
+// ⚠⚠ READ `ops.ts`'s block on ExportBrepPayload FIRST. The one thing this must not do is MIS-NAME A
+// FACE, and the reason it can be done at all is that the recipe is the source of truth: a cache that
+// does not verify is thrown away, at the cost of a rebuild.
+//
+// THE DIVISION OF LABOUR IS THE FILE'S USUAL ONE, and it is what keeps the ruling's step 2 honest:
+// C++ MEASURES (it says what each sub-shape's quantised geometry is, in a fixed order); TypeScript
+// DIGESTS, COMPARES and REFUSES (`kernel-occt/src/cache.ts`). One consequence is worth stating,
+// because it is the whole reason the fingerprint is trustworthy: **the same function computes the
+// signature on the way out and on the way back in** (`shapeSignature`), so a drift between the
+// producer's rule and the consumer's rule is not unlikely — it is unrepresentable.
+//
+// ⚠ THREE THINGS HERE WERE MEASURED, NOT ASSUMED (2026-07-30, native OCCT 7.9.3 through the oracle):
+//   1. `TopExp::MapShapes` order SURVIVES a Write -> Read round trip (box, holed wall, cylinder — all
+//      order-preserved). That is what lets a token be re-attached by the READ SHAPE'S OWN sub-shape
+//      order and then VERIFIED, rather than by a lookup table.
+//   2. A round trip is NOT bit-exact on curved geometry — a round column's volume came back
+//      848230016.4692444 -> 848230016.4692448. So the signature MUST be quantised (llround, the mm
+//      grid, D28's own rounding mode); an exact digest over doubles would refuse every cylinder.
+//   3. `BRepTools::Write`'s convenient overload writes TRIANGULATION — 20x bigger on a meshed round
+//      column (22,200 B vs 1,109 B) — i.e. it would write the DISPOSABLE MESH into the cache, against
+//      the project's one non-negotiable invariant. Hence the explicit no-triangles, no-normals call.
+// =============================================================================================
+
+// Serialise one live shape. Returns "" and sets lastError on failure.
+//
+// ⚠ VERSION_1 and no triangles/normals, deliberately: the mesh is a disposable projection of the
+// B-Rep (spec §1), so it has no business in a file whose only job is to skip a REBUILD, and the
+// oldest format version is the one most likely to be readable by a future build.
+std::string exportBrep(int handle) {
+  g_lastError.clear();
+  const ShapeEntry* entry = lookup(handle);
+  if (entry == nullptr) {
+    g_lastError = "HANDLE_NOT_FOUND";
+    return std::string();
+  }
+  try {
+    std::ostringstream out;
+    BRepTools::Write(entry->shape, out, Standard_False, Standard_False,
+                     TopTools_FormatVersion_VERSION_1);
+    return out.str();
+  } catch (const Standard_Failure& e) {
+    g_lastError = std::string("OCCT_STANDARD_FAILURE: ") + e.GetMessageString();
+    return std::string();
+  }
+}
+
+// The quantised geometric signature of every sub-shape, in the SHAPE'S OWN sub-shape order — the one
+// order a reader can re-derive without any history. Flat, so it costs one boundary crossing per
+// number and no new value_object:
+//
+//   [ nFaces, nEdges,  then per sub-shape (faces first, then edges):
+//       canonicalIndex, quantisedMeasure, cx, cy, cz ]
+//
+// `canonicalIndex` is this sub-shape's index into the entry's ref arrays, so TypeScript can emit the
+// tokens in THIS order; **-1 means the sub-shape carries no name**, which TypeScript refuses (a cache
+// that cannot restore every identity is not a cache, it is a shape).
+//
+// ⚠ The measure is a face's AREA and an edge's LENGTH — asking for the wrong one returns a plausible,
+// meaningless number (the trap `measure` and `centroidKey` both document). Everything is put on the mm
+// grid by `toGrid`, so the comparison downstream is integer-exact and (2) above cannot break it.
+std::vector<double> shapeSignature(int handle) {
+  g_lastError.clear();
+  std::vector<double> sig;
+  const ShapeEntry* entry = lookup(handle);
+  if (entry == nullptr) {
+    g_lastError = "HANDLE_NOT_FOUND";
+    return sig;
+  }
+  try {
+    TopTools_IndexedMapOfShape faceMap, edgeMap;
+    TopExp::MapShapes(entry->shape, TopAbs_FACE, faceMap);
+    TopExp::MapShapes(entry->shape, TopAbs_EDGE, edgeMap);
+
+    sig.push_back(static_cast<double>(faceMap.Extent()));
+    sig.push_back(static_cast<double>(edgeMap.Extent()));
+
+    const auto emit = [&](const TopTools_IndexedMapOfShape& shapes, const std::vector<int>& canonical,
+                          bool isFace) {
+      for (int occt = 1; occt <= shapes.Extent(); ++occt) {
+        // Invert canonical -> OCCT into OCCT -> canonical. Both are tiny (tens of entries), and doing
+        // it by search keeps the ONE mapping in the entry rather than storing a second copy of it.
+        int at = -1;
+        for (std::size_t c = 0; c < canonical.size(); ++c) {
+          if (canonical[c] == occt) {
+            at = static_cast<int>(c);
+            break;
+          }
+        }
+        const TopoDS_Shape& s = shapes(occt);
+        GProp_GProps props;
+        if (isFace) {
+          BRepGProp::SurfaceProperties(s, props);
+        } else {
+          BRepGProp::LinearProperties(s, props);
+        }
+        const gp_Pnt c = props.CentreOfMass();
+        sig.push_back(static_cast<double>(at));
+        sig.push_back(static_cast<double>(toGrid(props.Mass())));
+        sig.push_back(static_cast<double>(toGrid(c.X())));
+        sig.push_back(static_cast<double>(toGrid(c.Y())));
+        sig.push_back(static_cast<double>(toGrid(c.Z())));
+      }
+    };
+
+    emit(faceMap, entry->faceOcct, true);
+    emit(edgeMap, entry->edgeOcct, false);
+    return sig;
+  } catch (const Standard_Failure& e) {
+    g_lastError = std::string("OCCT_STANDARD_FAILURE: ") + e.GetMessageString();
+    return std::vector<double>();
+  }
+}
+
+// Deserialise a cached shape. Returns 0 and sets lastError on failure; **it assigns no identities at
+// all** — the caller supplies the tokens and verifies the fingerprint BEFORE the handle is handed out.
+//
+// ⚠⚠ THESE BYTES ARE UNTRUSTED. A `.bnn` is a file a user can be SENT, and this is the only place in
+// the product where its content reaches an OCCT parser. Two of the three guards are OUTSIDE this
+// function on purpose (`cache.ts`: an ASCII/header/declared-count plausibility check), because the
+// cheapest refusal is the one taken before OCCT is entered at all — MEASURED: `Curve2ds 999999999` in
+// a 93-BYTE file costs ~56 s of pure spin (linear in the declared count, ~57 ns each, no allocation),
+// and OCCT's reader reports it as a perfectly ordinary null shape. The guards here are the last two:
+//
+//   * a null result is a REFUSAL, not an empty shape. `BRepTools::Read` does not throw and does not
+//     return a status on this overload; it writes a message to cerr and leaves the shape null, so
+//     "nothing was read" and "an empty solid was read" are the same call and only this check separates
+//     them.
+//   * an OCCT exception is caught (`Standard_OutOfRange` is what a hostile TShape count produces).
+//
+// ⚠ The entry's NameRows are left blank ON PURPOSE — see the note in the body.
+int importBrep(const std::string& brep) {
+  g_lastError.clear();
+  TopoDS_Shape shape;
+  try {
+    std::istringstream in(brep);
+    BRep_Builder builder;
+    BRepTools::Read(shape, in, builder);
+  } catch (const Standard_Failure& e) {
+    g_lastError = std::string("CACHE_STALE: the cached B-Rep could not be read (") +
+                  e.GetMessageString() + ")";
+    return 0;
+  } catch (...) {
+    g_lastError = "CACHE_STALE: the cached B-Rep could not be read";
+    return 0;
+  }
+  if (shape.IsNull()) {
+    g_lastError = "CACHE_STALE: the cached B-Rep is not a readable shape";
+    return 0;
+  }
+
+  // ⚠⚠ EVERY REFUSAL OUT OF THIS OP IS `CACHE_STALE`, AND THAT IS WHY IT DOES NOT CALL `validResult` —
+  // FOUND BY THE TAMPER TEST. Editing one coordinate of a cached wall by a millimetre produces a solid
+  // OCCT's checker rejects, so `validResult` refused it as `INVALID_RESULT` — a code that reads as *"this
+  // operation broke"* and that a caller may reasonably treat as a hard failure. But **there is no such
+  // thing as a hard failure here**: the recipe is the source of truth, so every unusable cache — stale,
+  // corrupted, hostile, invalid — means exactly one thing, *rebuild instead*, and the protocol has a code
+  // that says so. A cache path whose refusals a consumer must classify is a cache path that will
+  // eventually be classified wrongly, and the wrong classification costs a load. (`INVALID_PAYLOAD`
+  // remains distinct on purpose: that one is the CALLER being malformed, not the cache.)
+  if (!BRepCheck_Analyzer(shape).IsValid()) {
+    g_lastError =
+        "CACHE_STALE: the cached B-Rep reads as a topologically invalid solid, so its measurements — and "
+        "therefore its identities — cannot be trusted. Rebuild from the recipe.";
+    return 0;
+  }
+
+  TopTools_IndexedMapOfShape faceMap, edgeMap;
+  TopExp::MapShapes(shape, TopAbs_FACE, faceMap);
+  TopExp::MapShapes(shape, TopAbs_EDGE, edgeMap);
+  if (faceMap.Extent() == 0) {
+    g_lastError = "CACHE_STALE: the cached B-Rep has no faces";
+    return 0;
+  }
+
+  ShapeEntry entry;
+  entry.shape = shape;
+  // ⚠ CANONICAL ORDER IS THE READ SHAPE'S OWN SUB-SHAPE ORDER, and that is the only order available:
+  // the resolver's re-sort (D8, `rowLess`) is a sort over DERIVATIONS, and a shape loaded from a cache
+  // has no derivations — the recipe never ran. So the identity permutation here is not laziness, it is
+  // the fact that makes the ruling's "bind by canonical order" implementable at all. It is verified,
+  // not trusted: `cache.ts` refuses unless the read shape's own quantised signature sequence digests to
+  // the fingerprint taken at write time, which pins the ORDER as well as the geometry.
+  for (int i = 1; i <= faceMap.Extent(); ++i) entry.faceOcct.push_back(i);
+  for (int i = 1; i <= edgeMap.Extent(); ++i) entry.edgeOcct.push_back(i);
+
+  // ⚠⚠ BLANK ROWS, DELIBERATELY — relation -1, which no resolver knows. A cached shape has no
+  // structural account of itself, and the honest consequence is that asking for one must be a LOUD
+  // refusal (`composeRefs` throws `UnnameableSubShape` -> UNRESOLVED_SUBSHAPE_REF) rather than an empty
+  // naming, which would read as "this solid has no named sub-shapes" and hand out a shape with no
+  // identities. Nothing in the build path asks: an operand's rows are never read (only `faceOcct` /
+  // `edgeOcct` are, by `claimAll`), so a cached solid can still be the operand of a later boolean and
+  // the boolean's own output is named normally, against the tokens the cache restored.
+  entry.faces.assign(static_cast<std::size_t>(faceMap.Extent()), blankRow());
+  entry.edges.assign(static_cast<std::size_t>(edgeMap.Extent()), blankRow());
+
+  return store(entry);
+}
+
 bool releaseShape(int handle) { return g_shapes.erase(handle) > 0; }
 int liveHandles() { return static_cast<int>(g_shapes.size()); }
 
@@ -2231,6 +2435,10 @@ EMSCRIPTEN_BINDINGS(bunyan_kernel) {
   function("classifyPoint", &classifyPoint);
   function("measure", &measure);
   function("tessellate", &tessellate);
+  // D29 — the geometry cache. `shapeSignature` is called on BOTH sides of the round trip.
+  function("exportBrep", &exportBrep);
+  function("shapeSignature", &shapeSignature);
+  function("importBrep", &importBrep);
   function("releaseShape", &releaseShape);
   function("liveHandles", &liveHandles);
   function("heapUsedBytes", &heapUsedBytes);

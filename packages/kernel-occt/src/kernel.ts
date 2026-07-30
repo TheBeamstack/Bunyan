@@ -37,9 +37,10 @@ import type {
 
 import { UnnameableSubShape, composeRefs, composeTransformRefs, drainNaming } from './naming.js';
 import type { OperandRefs } from './naming.js';
+import { decodeBrepBytes, fingerprintOf, parseSignature, refsInShapeOrder } from './cache.js';
 
 import initBunyanKernel from '../wasm/bunyan-kernel.js';
-import type { OcctBounds, OcctModule } from '../wasm/bunyan-kernel.js';
+import type { OcctBounds, OcctModule, OcctVectorDouble } from '../wasm/bunyan-kernel.js';
 
 /**
  * The kernel build id — OCCT version + emscripten version.
@@ -267,6 +268,21 @@ function requireNodeId(nodeId: unknown): string {
   }
   return nodeId;
 }
+
+/**
+ * Drain an embind `std::vector<double>` — one boundary crossing PER ELEMENT, so drain once and free.
+ * (The same rule `naming.ts` states for its int/row vectors; the cache's signature vector is tens of
+ * numbers, which is why a flat vector is cheaper than a new value_object.)
+ */
+const drainDoubles = (vector: OcctVectorDouble): number[] => {
+  try {
+    const out: number[] = [];
+    for (let i = 0; i < vector.size(); i++) out.push(vector.get(i) ?? 0);
+    return out;
+  } finally {
+    vector.delete();
+  }
+};
 
 const toBounds = (b: OcctBounds): Bounds => ({
   min: [b.xMin, b.yMin, b.zMin],
@@ -715,6 +731,148 @@ export async function createOcctKernel(
         bounds: toBounds(wasm.getBounds(shape.id)),
       };
       return mesh;
+    },
+
+    // ---- THE GEOMETRY CACHE (D29) — the ops whose whole job is to REFUSE convincingly -------------
+    //
+    // ⚠⚠ Read `./cache.ts` before either of these. The rule that keeps D1 intact is not "the cache
+    // stores tokens" (it does) — it is that the tokens are re-attached by an order the READER derives
+    // from the shape itself and then VERIFIES against a fingerprint, so the failure mode is a rebuild
+    // and never a mis-named face. Neither op mints an identity: `exportBrep` reads the ones the recipe
+    // already assigned, and `importBrep` is handed them.
+
+    exportBrep: (payload) => {
+      const shape = liveShape(payload.handle, 'exportBrep');
+      const brep = wasm.exportBrep(shape.id);
+      if (brep === '') throw failFromKernel(wasm, 'exportBrep');
+
+      const signature = parseSignature(drainDoubles(wasm.shapeSignature(shape.id)), 'exportBrep');
+      if (wasm.lastError() !== '') throw failFromKernel(wasm, 'exportBrep');
+
+      const refs = refsInShapeOrder(signature, shape.faceRefs, shape.edgeRefs, 'exportBrep');
+      return {
+        // ASCII by construction (VERSION_1 BRep is text), so this encode is 1:1 and the bytes satisfy
+        // `decodeBrepBytes` — asserted in the tests, because a producer that cannot pass its own
+        // consumer's guard is a cache nobody can read.
+        brep: new TextEncoder().encode(brep),
+        refs,
+        // ⚠ The tokens go INTO the digest, not just the geometry (see `cache.ts`): over the geometry
+        // alone, a permuted `refs` array verifies and mis-names two faces.
+        fingerprint: fingerprintOf(signature, refs, 'exportBrep'),
+      };
+    },
+
+    importBrep: (payload) => {
+      // ⚠ `nodeId` is bookkeeping, NOT a claim about the refs — see the corrected note in `ops.ts`.
+      const nodeId = requireNodeId(payload.nodeId);
+      if (!(payload.brep instanceof Uint8Array)) {
+        throw new KernelFailureError(
+          kernelFailure('INVALID_PAYLOAD', 'importBrep.brep must be bytes', { op: 'importBrep' }),
+        );
+      }
+      // ⚠ `unknown` first, then narrowed — the same discipline as `flattenMotions`: the static type
+      // describes a well-behaved caller, and this payload arrives off a `postMessage` wire.
+      const rawRefs: unknown = payload.refs;
+      if (!Array.isArray(rawRefs) || rawRefs.some((r) => typeof r !== 'string' || r === '')) {
+        throw new KernelFailureError(
+          kernelFailure('INVALID_PAYLOAD', 'importBrep.refs must be non-empty ref tokens', {
+            op: 'importBrep',
+          }),
+        );
+      }
+      const refs = rawRefs as string[];
+      if (typeof payload.fingerprint !== 'string' || payload.fingerprint === '') {
+        throw new KernelFailureError(
+          kernelFailure('INVALID_PAYLOAD', 'importBrep needs the fingerprint taken at write time', {
+            op: 'importBrep',
+          }),
+        );
+      }
+
+      // Guard the bytes BEFORE OCCT sees them (the measured 93-byte, 56-second case).
+      const text = decodeBrepBytes(payload.brep, 'importBrep');
+
+      const id = wasm.importBrep(text);
+      if (id === 0) throw failFromKernel(wasm, 'importBrep');
+
+      // ⚠ From here on, every exit path releases the solid. It exists on the WASM heap and nothing else
+      // holds it: a refusal that leaked it would turn "the cache was stale" into a heap leak per load.
+      try {
+        const signature = parseSignature(drainDoubles(wasm.shapeSignature(id)), 'importBrep');
+        if (wasm.lastError() !== '') throw failFromKernel(wasm, 'importBrep');
+
+        // ⚠⚠ THE VERIFICATION, AND IT IS THE WHOLE OP. It is computed from the shape actually read, by
+        // the same function that produced the fingerprint on the way out, so a disagreement means the
+        // bytes are not the solid whose tokens these are — whatever the reason.
+        const fingerprint = fingerprintOf(signature, refs, 'importBrep');
+        if (fingerprint !== payload.fingerprint) {
+          throw new KernelFailureError(
+            kernelFailure(
+              'CACHE_STALE',
+              `the cached B-Rep does not match its fingerprint (read ${fingerprint}, expected ` +
+                `${payload.fingerprint}) — refusing to attach identities to a shape that is not the one ` +
+                `they were assigned to. Rebuild from the recipe.`,
+              { op: 'importBrep' },
+            ),
+          );
+        }
+
+        const faces = signature.faces.length;
+        const edges = signature.edges.length;
+        if (refs.length !== faces + edges) {
+          throw new KernelFailureError(
+            kernelFailure(
+              'CACHE_STALE',
+              `the cache carries ${String(refs.length)} identities for a solid with ` +
+                `${String(faces)} faces and ${String(edges)} edges`,
+              { op: 'importBrep' },
+            ),
+          );
+        }
+        // The convention is faces first, then edges (as `exportBrep` emits and as `OcctShape` stores).
+        // A token whose own kind contradicts its position means the arrays were built by something that
+        // did not share the convention, and a face token addressing an edge resolves to nothing later.
+        refs.forEach((ref, at) => {
+          const expected = at < faces ? 'face' : 'edge';
+          const kind = decodeSubShapeRef(ref)?.kind;
+          if (kind !== expected) {
+            throw new KernelFailureError(
+              kernelFailure(
+                'CACHE_STALE',
+                `identity ${String(at)} of this cache is "${ref}", which names a ` +
+                  `${kind ?? 'nothing'} where a ${expected} belongs`,
+                { op: 'importBrep' },
+              ),
+            );
+          }
+        });
+        if (new Set(refs).size !== refs.length) {
+          throw new KernelFailureError(
+            kernelFailure(
+              'CACHE_STALE',
+              'the cache names two sub-shapes with the SAME identity — refusing rather than hand out a ' +
+                'ref that names two things',
+              { op: 'importBrep' },
+            ),
+          );
+        }
+
+        const restored: OcctShape = {
+          id,
+          nodeId,
+          faceRefs: refs.slice(0, faces),
+          edgeRefs: refs.slice(faces),
+          refs: [...refs],
+        };
+        return {
+          handle: shapes.add(restored),
+          bounds: toBounds(wasm.getBounds(id)),
+          refs: restored.refs,
+        };
+      } catch (error) {
+        wasm.releaseShape(id);
+        throw error;
+      }
     },
 
     releaseShape: (payload) => ({

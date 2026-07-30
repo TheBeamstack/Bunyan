@@ -84,21 +84,33 @@ holder**.
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry in `current_state.md` = **YOUR OWN ENTRY 70** (the P4.5 tool layer: the snap
-        seam, the tool state machine, numeric entry, hover, multi-select; domain rule 19 adopted;
-        578 green, all five gates 0). Zayd's Entry 69 (the plan/section design) precedes it.
-        **COMMITTED AND PUSHED** (owner-authorised 2026-07-30: `origin/main` `45109d5 → 57765b0`),
-        then the log normalisation on top. Confirm by the ENTRY NUMBER regardless.
+FRESH:  Newest Entry in `current_state.md` = **ENTRY 71** (Zayd — the D29 GEOMETRY-CACHE BODIES;
+        **590 green, all five gates 0**). **YOUR ENTRY 70** (the P4.5 tool layer: the snap seam, the
+        tool state machine, numeric entry, hover, multi-select; domain rule 19 adopted; 578 green)
+        is the one before it, **COMMITTED AND PUSHED** (owner-authorised 2026-07-30: `origin/main`
+        `45109d5 → 57765b0`), with the log normalisation on top. Confirm by the ENTRY NUMBER.
 
-        ⚠ Entry 70 was written in a standalone file and MOVED into §7 afterwards, because the
-        owner ran both agents in parallel that day. That file is now deleted and the log is back
-        to normal — if you were told to look for `amer_entry_70.md`, don't; it is in §7.
+        ⚠ **ENTRY 71 IS KERNEL-ONLY AND ASKS NOTHING OF YOU.** The D29 geometry-cache ops
+        (`exportBrep`/`importBrep`) now have bodies, so the real kernel advertises **two more
+        capabilities** — `capabilities` is GENERATED from the handler map, so nothing in `apps/web`
+        changes and nothing breaks. **Do not call them from the app:** the cache is a
+        document-layer concern and D19 makes `DocumentContext` the only door. ⚠ **The committed
+        WASM artifact changed (+12,631 B) — `git pull` before any browser work.** Nothing of yours
+        moved; his entry is `tools/kernel-build` + `packages/kernel-occt` + `packages/protocol` +
+        `tests`. ⚠ It may still be UNCOMMITTED when you open (commits are owner-gated) even though
+        it is already in the log — that is expected, not a mistake to fix.
 
-        ⇒ After `git pull`: newest Entry = 70 ⇒ you are current, start TASK.
-          Newest Entry HIGHER than 70 ⇒ Zayd has pushed: read every Entry after 70 before
+        ⚠ BOTH Entry 70 and Entry 71 were written in standalone files and MOVED into §7 afterwards,
+        because the owner ran both agents in parallel that day. Those files are now deleted and the
+        log is back to normal — if you were told to look for `amer_entry_70.md` or
+        `entry_71_zayd_D29_cache.md`, don't; both are in §7.
+
+        ⇒ After `git pull`: newest Entry = 71 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 71 ⇒ Zayd has pushed: read every Entry after 71 before
           starting, and re-check that TASK is still the right thing to do. ⚠ **Expect his next
-          entry to be the five MOVE VERBS + `transactionId`** — that is now his TASK, and it is
-          what unblocks the two P4.5 exit criteria you cannot reach alone.
+          entry to be the five MOVE VERBS + `transactionId`** — that is his TASK (Entry 71 took a
+          ruling-free unit first, because the plan/section is still blocked on his Q1–Q3), and it
+          is what unblocks the two P4.5 exit criteria you cannot reach alone.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
