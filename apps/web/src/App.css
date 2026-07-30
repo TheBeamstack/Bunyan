@@ -438,3 +438,94 @@ body,
   color: #c8ccd0;
   padding: 2px 0;
 }
+
+/* ---- P4.5 THE TOOL LAYER (design §2/§6) ---------------------------------------------------------
+   The toolbar ACTIVATES a tool; it never opens a form over `argsSchema` — that substitution is the
+   thing D47 found (the ribbon below is the generated form surface, and both reach the one door). */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-bottom: 1px solid #2a2f36;
+  background: #16191d;
+}
+
+.tool-button {
+  padding: 5px 14px;
+  border: 1px solid #2a2f36;
+  border-radius: 4px;
+  background: #1f2429;
+  color: #e6e8ea;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tool-button:hover {
+  border-color: #3d444d;
+}
+
+.tool-button[data-active='true'] {
+  background: #2d5c8a;
+  border-color: #4aa3ff;
+  color: #fff;
+}
+
+.tool-selection-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: #9aa0a6;
+}
+
+/* The status line over the canvas: the prompt for the input being collected, plus the numeric field.
+   Pointer-events off — it must never eat a click meant for the viewport it floats over. */
+.tool-status {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  border: 1px solid #2a2f36;
+  border-radius: 6px;
+  background: rgba(26, 29, 33, 0.94);
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.tool-numeric {
+  padding: 2px 8px;
+  border: 1px solid #4aa3ff;
+  border-radius: 3px;
+  background: #14171a;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #ffd166;
+}
+
+.tool-unit {
+  margin-left: 3px;
+  font-weight: 400;
+  font-size: 11px;
+  color: #9aa0a6;
+}
+
+.tool-hint {
+  font-size: 11px;
+  color: #9aa0a6;
+}
+
+.tool-hover {
+  margin-left: auto;
+  font-size: 12px;
+  color: #ffd166;
+}
+
+.tool-hover:empty + .tool-selection-count,
+.toolbar > .tool-hover:not(:empty) ~ .tool-selection-count {
+  margin-left: 14px;
+}

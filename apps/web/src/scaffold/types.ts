@@ -17,8 +17,12 @@ import type { BimObjectType, BuildContext, BuiltPart } from '@bunyan/document';
 export const scaffoldWallType: BimObjectType = {
   id: 'core.wall.v1',
   version: 1,
-  label: 'Wall',
-  description: 'SCAFFOLD (pre-P5): a layered wall. Each Style layer is a Part (D30).',
+  // ⚠ RELABELLED (Entry 70). The real `core.wall` from `@bunyan/types` is now registered beside this one
+  // (`bootstrap.ts`), and a bare "Wall" in two places is how someone authors the wrong one. This Type is
+  // retained ONLY so a document saved before Entry 70 still builds; nothing should create a new one.
+  label: 'Wall (legacy v1 scaffold)',
+  description:
+    'SCAFFOLD (pre-P5): a layered {length,height} wall. SUPERSEDED by the D52 baseline `core.wall` — retained only so pre-Entry-70 saved documents still build (D43 would otherwise mark them unbuildable).',
   parameterSchema: {
     // ⚠ min AND max are given so the property panel renders a DRAG SLIDER (see SchemaForm) — dragging it
     // is the live, kernel-coalesced edit path the panel exists to exercise. The bounds are ordinary wall

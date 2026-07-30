@@ -27,13 +27,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-import { isKernelFailureError, type MeshBuffers } from '@bunyan/protocol';
+import { isKernelFailureError, type MeshBuffers, type Vec3 } from '@bunyan/protocol';
 import type { ElementId } from '@bunyan/document';
 import type { RenderGateway } from './RenderGateway';
 import type { RenderPart } from './RenderPart';
 import { planRedraw, type CachedPart } from './reconcile';
 import { resolveFacePick, type PickResult } from './pick';
 import { PartBatch } from './PartBatch';
+import { SnapIndex, chooseSnap, edgeCandidates, gridCandidates, type SnapHit } from '../tool/snap';
 
 export type { RenderPart } from './RenderPart';
 export type { PickResult } from './pick';
@@ -75,6 +76,26 @@ export class Viewport {
   #frame = 0;
   #disposed = false;
 
+  /* ---- P4.5: the preview overlay + the Tier-1 snap index (design §4/§5). ---------------------- */
+
+  /**
+   * The PREVIEW LAYER (design §5) — a three.js group holding the rubber band and the snap marker.
+   *
+   * ⚠⚠ IT IS NOT IN `#sceneGroup` AND THAT IS THE POINT, NOT AN ORGANISATIONAL CHOICE. Picking raycasts
+   * `#batch.faceObject` alone and the snap index is built from `#drawn` alone, so overlay geometry is
+   * structurally excluded from both: **a preview can never be picked, and can never be snapped to.** A
+   * preview that was snappable would let a half-drawn wall attract the very cursor drawing it.
+   */
+  readonly #preview = new THREE.Group();
+  readonly #previewLine: THREE.Line;
+  readonly #snapMarker: THREE.Mesh;
+
+  /** Lazily-built Tier-1 index over `#drawn`; dropped whenever the drawn set changes. */
+  #snapIndex: SnapIndex | null = null;
+  /** Canvas CSS size, kept for the world→pixel projection the snap query needs. */
+  #widthPx = 1;
+  #heightPx = 1;
+
   constructor(canvas: HTMLCanvasElement, render: RenderGateway) {
     this.#render = render;
 
@@ -106,12 +127,35 @@ export class Viewport {
     this.#sceneGroup.add(this.#batch.edgeObject);
     this.#scene.add(this.#sceneGroup);
 
+    // The preview overlay (design §5). `depthTest: false` so the rubber band stays visible through the
+    // model — a guide line hidden inside the wall it is being drawn against is not a guide.
+    this.#previewLine = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]),
+      new THREE.LineBasicMaterial({ color: 0x4aa3ff, depthTest: false, transparent: true }),
+    );
+    this.#previewLine.renderOrder = 999;
+    this.#previewLine.visible = false;
+    this.#previewLine.frustumCulled = false;
+
+    this.#snapMarker = new THREE.Mesh(
+      new THREE.SphereGeometry(45, 12, 8),
+      new THREE.MeshBasicMaterial({ color: 0xffd166, depthTest: false, transparent: true }),
+    );
+    this.#snapMarker.renderOrder = 1000;
+    this.#snapMarker.visible = false;
+
+    this.#preview.add(this.#previewLine);
+    this.#preview.add(this.#snapMarker);
+    this.#scene.add(this.#preview);
+
     this.#renderer.setAnimationLoop(this.#tick);
   }
 
   /** Fit the canvas backing store to its CSS box. Call on mount and on resize. */
   resize(width: number, height: number): void {
     if (this.#disposed || width === 0 || height === 0) return;
+    this.#widthPx = width;
+    this.#heightPx = height;
     this.#renderer.setSize(width, height, false);
     this.#camera.aspect = width / height;
     this.#camera.updateProjectionMatrix();
@@ -160,6 +204,12 @@ export class Viewport {
     }
     // A removal frees space in both batch buffers; reclaim it once per frame, not per part.
     if (plan.remove.length > 0) this.#batch.maybeCompact();
+
+    // ⚠ Drop the Tier-1 snap index whenever the drawn set changes shape. A RECOLOUR alone cannot move a
+    // vertex (it is an instance-colour swap — selection, hover), so it does not invalidate; installing or
+    // removing a part does. Dropping rather than patching means a stale candidate is unreachable rather
+    // than merely unlikely — the same argument D73 used for keying its join index on the Scene object.
+    if (plan.remove.length > 0 || built.some((r) => r !== null)) this.#snapIndex = null;
   }
 
   /**
@@ -184,6 +234,102 @@ export class Viewport {
       // else: fall through to the next hit behind this triangle.
     }
     return null;
+  }
+
+  /* ================================================================================================
+   * P4.5 — the tool layer's view of the viewport. All READ-ONLY except the preview, which draws
+   * overlay geometry and never touches the model (design §4/§5, domain rule 19).
+   * ============================================================================================= */
+
+  /**
+   * World millimetres → canvas CSS pixels, or `null` when the point is behind the camera.
+   *
+   * This is the `Project` the pure snap module takes as an argument — the ONE piece of snapping that
+   * genuinely needs the camera, which is why everything else in `tool/snap.ts` is headless.
+   */
+  readonly project = (point: Vec3): readonly [number, number] | null => {
+    const v = new THREE.Vector3(point[0], point[1], point[2]).project(this.#camera);
+    // `project` returns NDC; z outside [-1, 1] is outside the frustum (behind the camera or past far).
+    if (v.z < -1 || v.z > 1) return null;
+    return [((v.x + 1) / 2) * this.#widthPx, ((1 - v.y) / 2) * this.#heightPx];
+  };
+
+  /**
+   * The best Tier-1 snap for a cursor position (canvas CSS pixels), or `null` if nothing is close.
+   *
+   * ⚠ The index is built lazily from the SAME retained `MeshBuffers` picking resolves through, and it is
+   * dropped whenever `setScene` changes what is drawn — so a snap can never point at a part that has been
+   * removed or rebuilt. It is rebuilt on the next query, not on the edit, so a burst of edits costs one
+   * rebuild rather than one per edit.
+   */
+  snapAt(cursorPx: readonly [number, number], tolerancePx = 12): SnapHit | null {
+    if (this.#disposed) return null;
+    const index = this.#ensureSnapIndex();
+    // Prune in world space first: unproject the cursor to the ground plane and take a generous sphere.
+    // A screen tolerance has no world radius, so this is deliberately loose — `chooseSnap` then applies
+    // the real pixel test to the survivors.
+    const around = this.groundPointAt(cursorPx) ?? [0, 0, 0];
+    const candidates = index.near(around, SNAP_SEARCH_RADIUS_MM);
+    return chooseSnap(candidates, this.project, cursorPx, tolerancePx);
+  }
+
+  /**
+   * Where a cursor ray meets the Z=0 ground plane — the FREE point, used when nothing snaps.
+   *
+   * ⚠ Without this a tool could only ever author on top of existing geometry: the very first wall in an
+   * empty document has nothing to snap to, and must still be drawable. Returns `null` when the ray is
+   * parallel to the plane or points away from it (the camera looking at the horizon).
+   */
+  groundPointAt(cursorPx: readonly [number, number], z = 0): Vec3 | null {
+    const ndcX = (cursorPx[0] / this.#widthPx) * 2 - 1;
+    const ndcY = -(cursorPx[1] / this.#heightPx) * 2 + 1;
+    this.#raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), this.#camera);
+    const target = new THREE.Vector3();
+    const hit = this.#raycaster.ray.intersectPlane(
+      new THREE.Plane(new THREE.Vector3(0, 0, 1), -z),
+      target,
+    );
+    return hit === null ? null : [target.x, target.y, target.z];
+  }
+
+  /** Draw the rubber band through these world points, or clear it with `null`. Overlay only. */
+  setPreviewLine(points: readonly Vec3[] | null): void {
+    if (this.#disposed) return;
+    if (points === null || points.length < 2) {
+      this.#previewLine.visible = false;
+      return;
+    }
+    this.#previewLine.geometry.setFromPoints(
+      points.map((p) => new THREE.Vector3(p[0], p[1], p[2])),
+    );
+    this.#previewLine.geometry.computeBoundingSphere();
+    this.#previewLine.visible = true;
+  }
+
+  /** Show the snap marker at a world point, or hide it with `null`. Overlay only. */
+  setSnapMarker(point: Vec3 | null): void {
+    if (this.#disposed) return;
+    if (point === null) {
+      this.#snapMarker.visible = false;
+      return;
+    }
+    this.#snapMarker.position.set(point[0], point[1], point[2]);
+    this.#snapMarker.visible = true;
+  }
+
+  #ensureSnapIndex(): SnapIndex {
+    if (this.#snapIndex !== null) return this.#snapIndex;
+    const index = new SnapIndex();
+    for (const drawn of this.#drawn.values()) {
+      index.addAll(
+        edgeCandidates(drawn.buffers, { elementId: drawn.elementId, nodeId: drawn.nodeId }),
+      );
+    }
+    // The world grid the `GridHelper` above draws: 20 m across, 20 divisions ⇒ 1 m spacing. Exact by
+    // construction (§4.4) — a point snapped here needs no Tier-2 confirmation.
+    index.addAll(gridCandidates({ spacingMm: 1000, extentMm: 10_000 }));
+    this.#snapIndex = index;
+    return index;
   }
 
   #installPart(part: RenderPart, buffers: MeshBuffers): void {
@@ -220,11 +366,24 @@ export class Viewport {
     this.#disposed = true;
     this.#renderer.setAnimationLoop(null);
     this.#batch.dispose();
+    this.#previewLine.geometry.dispose();
+    (this.#previewLine.material as THREE.Material).dispose();
+    this.#snapMarker.geometry.dispose();
+    (this.#snapMarker.material as THREE.Material).dispose();
+    this.#snapIndex = null;
     this.#drawn.clear();
     this.#controls.dispose();
     this.#renderer.dispose();
   }
 }
+
+/**
+ * World-space prune radius for a snap query (mm). Deliberately generous: a screen-pixel tolerance has no
+ * fixed world size (it grows as the camera pulls back), so the hash prunes loosely and `chooseSnap`
+ * applies the real pixel test. Too small and a zoomed-out snap silently stops finding anything — the
+ * failure mode is a snap that just "doesn't work sometimes", which is the hardest kind to report.
+ */
+const SNAP_SEARCH_RADIUS_MM = 3000;
 
 /** The per-node coalesce key for a tessellation (step 2d) — namespaced off the document's `rebuild:` key. */
 function renderKey(nodeId: string): string {

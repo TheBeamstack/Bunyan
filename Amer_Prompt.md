@@ -84,28 +84,22 @@ holder**.
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry in `current_state.md` = **ENTRY 69** (Zayd — the PLAN/SECTION DESIGN,
-        `P5_step6C_plan_section_design.md`; NO SOURCE TOUCHED, blocked on five owner rulings).
-        Your own last work is Entry 67 (the P4.5 non-gating half: selection + view filter + the
-        first keyboard owner), pushed 2026-07-28 with Entry 66.
+FRESH:  Newest Entry = **YOUR OWN ENTRY 70** (the P4.5 tool layer: the snap seam, the tool state
+        machine, numeric entry, hover, multi-select; domain rule 19 adopted; 578 green, all five
+        gates 0). Zayd's Entry 69 (the plan/section design) is the newest of HIS.
 
-        ⚠ BOTH are COMMITTED AND PUSHED (owner-authorised 2026-07-30): Entry 68 the schedule CRUD
-        (`origin/main` `b53a8bf → 892042a`), then Entry 69 the plan/section design
-        (`d596142 → 4bd7473`). **So you are TWO ENTRIES BEHIND until you pull.**
+        ⚠⚠ ENTRY 70 IS NOT IN `current_state.md` — IT IS IN **`amer_entry_70.md`**, ON PURPOSE.
+        The owner ran both agents IN PARALLEL on 2026-07-30 rather than taking turns, and two
+        agents appending to §7 in the same window conflict in the one file that exists to be the
+        shared truth. **The owner moves it into §7 (after Zayd's) once Zayd has pushed, and
+        deletes that file.** ⇒ **If `current_state.md`'s newest Entry is still 69, that is
+        EXPECTED, not a sign you are behind — check `amer_entry_70.md` first.** For the same
+        reason `Zayd_Prompt.md` §2 was NOT rewritten; the text for it is at the bottom of
+        `amer_entry_70.md`.
 
-        ⚠ NEITHER entry touches anything you own. Entry 68 is `packages/document` only (the three
-        new verbs `core.createSchedule`/`updateSchedule`/`deleteSchedule` + `scene.schedules`
-        promoted to a real `SceneCollection`). **It changes your app in exactly one way, and it
-        needs no work from you:** the three verbs appear in the GENERATED ribbon automatically
-        (D21), rendering `columns`/`filter`/`groupBy` through the existing `JsonControl` JSON
-        textarea and the schedule id as a text input. Functional, unlovely, nothing broken.
-        Entry 69 changed no source at all. 538 green, all 5 gates. `git pull` first regardless.
-
-        ⚠ ONE THING TO KNOW FROM ENTRY 69, WITH NOTHING OWED NOW: when the plan/section body
-        lands it will produce a `ViewResult` of **2D polylines that carry sub-shape identity** —
-        a new KIND of thing for `apps/web` to draw (today the viewport draws meshes + edges).
-        That is a later, additive browser-track item. It is named here only so it is not a
-        surprise; do not start it, and do not let it displace P4.5.
+        ⚠ Entry 70 is UNCOMMITTED on branch `amer/p4.5-interaction-model` (commits are
+        owner-gated) unless the owner has since landed it. `git pull` first regardless; if
+        Zayd has pushed again, read every Entry after 69 before starting.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -115,47 +109,38 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 69** (Zayd — the PLAN/SEC
         need to know. (Git already answers "what is the tip?" — `git log -1`. This file answers
         "am I behind?", which git cannot.)
 
-        ⇒ After `git pull`: newest Entry = 69 ⇒ you are current, start TASK.
-          Newest Entry HIGHER than 69 ⇒ Zayd has pushed again: read every Entry after 69 before
-          starting, and re-check that TASK is still the right thing to do.
+TASK:   **P4.5 CONTINUES — THE SPINE IS BUILT AND TWO EXIT CRITERIA ARE BLOCKED ON ZAYD.**
+        Q1–Q6 are ALL RULED (2026-07-30) and applied into `P4.5_interaction_model_design.md` §12.
+        Do not re-open them, and do not re-ask which track.
 
-TASK:   **P4.5 — THE INTERACTION MODEL. THE DESIGN DOC IS WRITTEN; THE BUILD IS GATED ON SIX
-        OWNER RULINGS.** (Owner-chosen 2026-07-28; do not re-open the choice or ask which track.)
+        ⇒ DO THIS, IN THIS ORDER — both need NO ruling and NO other agent:
+          1. **THE OPENING TOOL.** Exit criterion 3 (*a window is placed by CLICKING A FACE and no
+             human types a derivation token*) is ONE TOOL AWAY: `SnapHit.ref` already carries the
+             `SubShapeRef` and `SnapHit.hostElementId` the element, so the tool is a two-input
+             registry entry committing `core.createElement` with `{hostId, hostRef}`. Model it on
+             `WALL_TOOL` in `tool/tools.ts`; the face-snap candidate is the piece to add to
+             `tool/snap.ts` (today it yields edge endpoints/midpoints + grid, not face hits — the
+             pick path already resolves faces, so it is the same substrate again).
+          2. **ALIGNMENT GUIDES** (design §4.3) — dashed overlay when the cursor lines up with a
+             live reference point. Pure `PreviewLayer` geometry over Tier-1 candidates; no model
+             state, no contract.
 
-        THE DESIGN-FIRST DELIVERABLE IS DONE (Entry 66): `P4.5_interaction_model_design.md` exists,
-        grounded against the real `apps/web` seams, with domain rule 17 proposed, the tool state
-        machine, the two-tier snap seam, preview-is-never-truth, numeric entry, and the two
-        pre-freeze rows ⓑ/ⓘ surfaced with proposed shapes. **Its §12 puts SIX questions (Q1–Q6)
-        to the owner. Do NOT build past them.**
-
-        ⇒ FIRST THING THIS SESSION: check whether the owner has ruled Q1–Q6 (in chat or in the
-          doc). Two branches:
-          • RULED → apply each ruling INTO `P4.5_interaction_model_design.md` (this file is not
-            where decisions live), then build the spine: §2 tool state machine + §4 snap seam +
-            the wall/opening/move tools + §6 numeric entry + the ⓑ command-shape reservations.
-            ⚠ Do NOT start the wall tool before Q4 confirms the D52 baseline Wall's `setParams`
-            shape — the plan rules it. The build's own proof is §11 criterion 2: the SAME edit
-            through `window.bunyan` yields the same `UndoableEdit` (the P4 equivalence test on a
-            TOOL-authored edit — this is what proves no private path). `d19-boundary.test.ts`
-            must stay green (the snap seam is read-only, holds no `KernelClient`, mints no id).
-          • NOT RULED → the design-first spine is legitimately blocked. Selection + view-filter
-            (hide/isolate/type/discipline) + the keyboard owner ALREADY SHIPPED (Entry 67) — do
-            not rebuild them. The non-gating work that REMAINS and still needs no ruling: **hover
-            highlight** (design §5 — a per-frame recolour of the candidate under the cursor; it
-            wants the pointer-move plumbing, so it is small but real) and **multi-select** (Entry
-            67 is single-select; a selection SET is additive). Both ride the existing `renderParts`
-            recolour path exactly as Entry 67's selection does. Do NOT pre-build the snap seam or
-            tools — their shape is exactly what Q1–Q4 decide.
-
-        ⚠⚠ THE TWO PRE-FREEZE ROWS (design §9/§10, Q4/Q5) ARE CHEAP ONLY UNTIL THE OWNER FREEZES:
-          ⓑ  No command moves an element (re-verified Entry 66 — the grep is still empty). Q4
-             rules the arg shapes for `core.setPlacement`/`move`/`rotate`/`copy`/`array` AND the
-             `setParams`-vs-`move` split (a D52 baseline wall moves by `setParams`, not placement).
-          ⓘ  D52 already made "drag the wall's end" ONE `setParams` edit. What remains is the
-             genuinely-compound multi-element case (a 3-wall corner) needing `UndoableEdit.
-             transactionId` (reserved, still UNUSED). Q5: exercise it now via the corner-drag.
+        ⚠⚠ DO NOT START THESE TWO, AND DO NOT FAKE THEM — THEY ARE `packages/document`-GATED:
+          ⓑ  **the move tool + gizmo** need `core.setPlacement`/`move`/`rotate`/`copy`/`array`.
+             The SHAPES are owner-ruled (design §9's table) but the VERBS DO NOT EXIST, and a new
+             verb is a contract change you must escalate, never perform.
+          ⓘ  **the corner-drag** needs `UndoableEdit.transactionId` to have a READER. Measured in
+             Entry 70: it has ZERO (declared `undo.ts:109`, one comment `document.ts:802`), so
+             three `setParams` today = three undos however you label them. Entry 70 deliberately
+             did not ship a gesture that LOOKS transactional and undoes in three steps; do not
+             undo that judgement.
         ⚠ Entry 45's freeze-SAFE judgement STANDS — neither blocks the freeze and you must not
           claim it does. They are worth nothing after the freeze; that is why they are recorded.
+
+        ⚠ ONE THING TO KNOW FROM ZAYD'S ENTRY 69, WITH NOTHING OWED NOW: when the plan/section
+        body lands it produces a `ViewResult` of **2D polylines carrying sub-shape identity** — a
+        new KIND of thing for `apps/web` to draw (today the viewport draws meshes + edges). Later,
+        additive, browser-track. Named so it is not a surprise; do not let it displace P4.5.
 
         Not this session (deferred, so nobody re-derives): material appearance + transparency ·
         WebGPU + WebGL2 fallback · a File System Access `StorageAdapter` · TSL shading · service
@@ -166,7 +151,20 @@ TASK:   **P4.5 — THE INTERACTION MODEL. THE DESIGN DOC IS WRITTEN; THE BUILD I
         read path is `doc.evaluateSchedule` and the write path is the three verbs, both through
         the one door.
 
-NEW:    (Standing, from Entry 64 — two call sites you own, both deliberately loud, nothing to do
+NEW:    (From your own Entry 70 — three facts about the app that are now true and were not:)
+        (0a) **The app registers the REAL `@bunyan/types` now** (`core.wall` the D52 baseline,
+             `core.opening`, the curtain-wall four). The scaffold `core.wall.v1` is still
+             registered but relabelled "Wall (legacy v1 scaffold)" so pre-Entry-70 saved
+             documents still build (D43). Author new walls as `core.wall`.
+        (0b) **`apps/web/src/tool/` is the tool layer** — `snap.ts` (Tier 1, PURE, projection
+             injected) · `QueryGateway.ts` (Tier 2, read-only, four ops as explicit overloads =
+             the allowlist) · `toolMachine.ts` + `tools.ts` · `numeric.ts` · `useToolController.ts`.
+             Domain rule 19 governs it: a tool collects input, only a command changes the model.
+        (0c) ⚠ **React BATCHES, and a handler that closes over state WILL read a stale value** —
+             this cost a real bug (typing `5000` produced `0`). In `useToolController`, decisions
+             read a REF and writes go through `putSession`/`putNumeric`. Keep that discipline in
+             any new tool.
+        (Standing, from Entry 64 — two call sites you own, both deliberately loud, nothing to do
         unless you touch open/save wiring:)
         (1) `saveBnn` THROWS if handed `doc.history()` as the journal alongside a revision. The
             app already passes `changeFeed()` — do not "fix" it back.

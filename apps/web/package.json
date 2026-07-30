@@ -15,6 +15,7 @@
     "@bunyan/kernel-client": "workspace:*",
     "@bunyan/kernel-occt": "workspace:*",
     "@bunyan/protocol": "workspace:*",
+    "@bunyan/types": "workspace:*",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "three": "^0.171.0"

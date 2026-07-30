@@ -22,9 +22,44 @@ import {
 } from '@bunyan/document';
 import type { AgentSurface, ModelRevision, Scene, UndoableEdit } from '@bunyan/document';
 
+import {
+  curtainWallType,
+  curtainWallColumnType,
+  curtainWallMullionType,
+  curtainWallPanelType,
+  openingType,
+  wallType,
+} from '@bunyan/types';
+
 import { SCAFFOLD_TYPES } from './scaffold/types';
 import { createRenderGateway } from './render/RenderGateway';
 import type { RenderGateway } from './render/RenderGateway';
+import { createQueryGateway } from './tool/QueryGateway';
+import type { QueryGateway } from './tool/QueryGateway';
+
+/**
+ * ⚠⚠ THE REAL, SHIPPED TYPES (`@bunyan/types`) — REGISTERED HERE AS OF ENTRY 70, AND THE APP HAD NEVER
+ * LOADED THEM.
+ *
+ * P5 shipped the D52 baseline `core.wall` in Entry 42, and `scaffold/types.ts` has said *"when P5's types
+ * arrive, delete this file and register those instead"* since P4. Nobody did, so the app ran on
+ * `core.wall.v1` — a `{length, height}` box-layer wall with **no baseline at all**. That is not a cosmetic
+ * gap: the P4.5 wall tool collects a START POINT and an END POINT, and there is nowhere to put them on a
+ * wall parameterised by length. **The tool layer is what made the omission visible** (design §0).
+ *
+ * ⚠ The scaffold type is deliberately still registered, and NOT because it is still wanted. A document
+ * saved before this entry names `core.wall.v1`; dropping the Type would make those elements `unbuildable`
+ * (D43 — preserved verbatim, surfaced in the Problems panel, never dropped), which is *correct* behaviour
+ * and a pointless demotion of somebody's saved file. It is relabelled so no one authors a new one.
+ */
+const SHIPPED_TYPES = [
+  wallType,
+  openingType,
+  curtainWallType,
+  curtainWallColumnType,
+  curtainWallPanelType,
+  curtainWallMullionType,
+];
 
 export interface KernelMeta {
   readonly name: string;
@@ -47,6 +82,11 @@ export interface BunyanApp {
   readonly doc: DocumentContext;
   /** The read-only tessellation seam for the renderer. */
   readonly render: RenderGateway;
+  /**
+   * The read-only SPATIAL-QUERY seam for the tool layer (P4.5 §4, Tier 2). Same argument as
+   * `RenderGateway`: it answers questions and authors nothing. See `tool/QueryGateway.ts`.
+   */
+  readonly query: QueryGateway;
   /** What the kernel reported at handshake — build id feeds the service-worker cache key (D11). */
   readonly kernel: KernelMeta;
   readonly agent: AgentSurface;
@@ -66,6 +106,8 @@ export async function bootstrap(initial?: InitialDocument): Promise<BunyanApp> {
 
   const registries = createRegistries();
   for (const command of CORE_COMMANDS) registries.commands.register(command);
+  for (const type of SHIPPED_TYPES) registries.types.register(type);
+  // Legacy, for saved documents only — see SHIPPED_TYPES above.
   for (const type of SCAFFOLD_TYPES) registries.types.register(type);
 
   const doc = new DocumentContext({
@@ -87,10 +129,12 @@ export async function bootstrap(initial?: InitialDocument): Promise<BunyanApp> {
   const agent = createAgentSurface(doc);
 
   const render = createRenderGateway(client);
+  const query = createQueryGateway(client);
 
   return {
     doc,
     render,
+    query,
     kernel: {
       name: handshake.kernel.name,
       kernelVersion: handshake.kernel.kernelVersion,

@@ -34,7 +34,10 @@ import {
 } from './storage/documentStorage';
 import type { IndexedDbStore } from './storage/indexeddb';
 import { ViewportCanvas } from './render/ViewportCanvas';
+import type { PointerSample } from './render/ViewportCanvas';
 import type { RenderPart, PickResult } from './render/Viewport';
+import { useToolController } from './tool/useToolController';
+import { TOOLS } from './tool/tools';
 import {
   EMPTY_FILTER,
   isPartVisible,
@@ -71,6 +74,10 @@ const PART_COLORS = [0x9aa0a6, 0xf4d35e, 0xe8e8e8, 0x7fb069, 0xc45b5b];
  *  change. It rides the batch's instance-colour swap, so selecting never re-tessellates. */
 const SELECTION_COLOR = 0x4aa3ff;
 
+/** Hover (design §5, Q6). Same recolour path as selection — a per-frame instance-colour swap, never a
+ *  re-tessellation. Selection wins over hover when an element is both. */
+const HOVER_COLOR = 0x8fd0ff;
+
 type Status =
   | { readonly kind: 'booting' }
   | { readonly kind: 'ready' }
@@ -79,7 +86,14 @@ type Status =
 export function App() {
   const [app, setApp] = useState<BunyanApp | null>(null);
   const [status, setStatus] = useState<Status>({ kind: 'booting' });
-  const [selectedId, setSelectedId] = useState<ElementId | null>(null);
+  /**
+   * THE SELECTION SET (P4.5 §7, owner Q6 — Entry 67 was single-select).
+   * ⚠ Insertion-ordered, so "the primary selection" the panels show is simply the LAST one added — which
+   * is what every CAD tool means by it, and it keeps the property panel honest without a second state.
+   */
+  const [selection, setSelection] = useState<ReadonlySet<ElementId>>(() => new Set());
+  /** The element under the cursor — hover highlighting (design §5). Display only; never the model. */
+  const [hoveredId, setHoveredId] = useState<ElementId | null>(null);
   // The last face the user clicked (P4 step 4) — carries its `SubShapeRef`. This is the substrate
   // P4.5 places a window on: a picked face resolves to a token no human ever types.
   const [picked, setPicked] = useState<PickResult | null>(null);
@@ -90,6 +104,28 @@ export function App() {
   const [banner, setBanner] = useState<string | null>(null);
   // Bumped after every committed edit — the signal that the document changed under React's feet.
   const [version, bump] = useReducer((n: number) => n + 1, 0);
+
+  /** The primary selection — what the property panel and quantities show. Last one added (see above). */
+  const selectedId = useMemo<ElementId | null>(() => {
+    let last: ElementId | null = null;
+    for (const id of selection) last = id;
+    return last;
+  }, [selection]);
+
+  /** Replace the whole selection with one element (or clear it). */
+  const selectOnly = useCallback((id: ElementId | null): void => {
+    setSelection(id === null ? new Set() : new Set([id]));
+  }, []);
+
+  /** Add/remove one element from the selection — Ctrl/Cmd/Shift-click (Q6). */
+  const toggleSelected = useCallback((id: ElementId): void => {
+    setSelection((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
 
   // ---- Persistence (browser storage, plan P4 step 5). The store + autosave live in a ref (plain
   //      objects, not React state); the file list / current name / recover offer are state. ----------
@@ -159,7 +195,8 @@ export function App() {
         window.bunyan = withUiRefresh(bunyan.agent, bump);
 
         setApp(bunyan);
-        setSelectedId(selectId);
+        // `setSelection` is a setState (stable), so the boot effect keeps its empty dep list.
+        setSelection(selectId === null ? new Set() : new Set([selectId]));
         setStatus({ kind: 'ready' });
       } catch (error) {
         if (!live) return;
@@ -300,7 +337,11 @@ export function App() {
     for (const element of elements) {
       const parts = app.doc.partsOf(element.id);
       if (parts === undefined) continue;
-      const isSelected = element.id === selectedId;
+      // ⚠ Selection is a SET now (Q6), so this is a membership test, not an equality one. Hover is the
+      // same mechanism one step weaker, and SELECTION WINS when an element is both — otherwise moving the
+      // cursor over your own selection would appear to deselect it.
+      const isSelected = selection.has(element.id);
+      const isHovered = !isSelected && element.id === hoveredId;
       parts.forEach((part, i) => {
         // Hide/isolate/type/discipline (design §7): a filtered-out part is simply absent from the array,
         // so the viewport's diff removes it — no separate "hidden" path in the renderer.
@@ -310,14 +351,18 @@ export function App() {
           nodeId: part.nodeId,
           partName: part.name,
           handle: part.handle,
-          // Selection is a display recolour (design §5/§8): a changed colour for an unchanged handle is
-          // the batch's cheap recolour path, never a re-tessellation.
-          color: isSelected ? SELECTION_COLOR : PART_COLORS[i % PART_COLORS.length]!,
+          // Selection and hover are display recolours (design §5/§8): a changed colour for an unchanged
+          // handle is the batch's cheap instance-colour swap, never a re-tessellation.
+          color: isSelected
+            ? SELECTION_COLOR
+            : isHovered
+              ? HOVER_COLOR
+              : PART_COLORS[i % PART_COLORS.length]!,
         });
       });
     }
     return out;
-  }, [app, elements, version, selectedId, filter]);
+  }, [app, elements, version, selection, hoveredId, filter]);
 
   /** The types + disciplines actually present in the scene — the universe the View filter offers. */
   const present = useMemo(() => {
@@ -352,6 +397,13 @@ export function App() {
     () => new Set(problems.unbuildable.map((u) => u.elementId)),
     [problems],
   );
+
+  /** The hovered element's display name — never its id (D44: an id is opaque and is not a name). */
+  const hoveredName = useMemo<string | null>(() => {
+    if (hoveredId === null) return null;
+    const element = elements.find((e) => e.id === hoveredId);
+    return element?.name ?? null;
+  }, [elements, hoveredId]);
 
   const selected = useMemo(() => {
     if (app === null || selectedId === null) return null;
@@ -388,16 +440,50 @@ export function App() {
   }, [app]);
 
   /** A command finished — if it created an element, select it so its parts and params come up. */
-  const onCommandDone = useCallback((edit: UndoableEdit) => {
-    const created = edit.changes.find((c) => c.collection === 'elements' && c.after !== undefined);
-    if (created !== undefined) setSelectedId(created.id);
-  }, []);
+  const onCommandDone = useCallback(
+    (edit: UndoableEdit) => {
+      const created = edit.changes.find(
+        (c) => c.collection === 'elements' && c.after !== undefined,
+      );
+      if (created !== undefined) selectOnly(created.id);
+    },
+    [selectOnly],
+  );
 
-  /** A face was clicked in the viewport (P4 step 4) — select its element and keep the picked face. */
-  const onPick = useCallback((hit: PickResult | null) => {
-    setPicked(hit);
-    setSelectedId(hit === null ? null : hit.elementId);
-  }, []);
+  // ---- THE TOOL LAYER (P4.5 §2/§3). One active tool, the snap seam, numeric entry, one Command. ----
+  const tool = useToolController({ dispatch, onCommitted: onCommandDone });
+
+  /**
+   * A viewport click. ⚠ THE TOOL GETS FIRST REFUSAL: while a tool is collecting, a click is an ARGUMENT,
+   * not a selection — clicking to place a wall's end must not also select whatever is behind it.
+   * The Select tool declines every click, so ordinary picking is unchanged (design §8).
+   */
+  const onPick = useCallback(
+    (hit: PickResult | null, event: { readonly additive: boolean }) => {
+      if (tool.handleClick()) return;
+      setPicked(hit);
+      if (hit === null) {
+        if (!event.additive) setSelection(new Set());
+        return;
+      }
+      if (event.additive) toggleSelected(hit.elementId);
+      else selectOnly(hit.elementId);
+    },
+    [selectOnly, toggleSelected, tool],
+  );
+
+  /** The pointer moved: feed the tool layer, and drive hover highlighting. */
+  const onPointerSample = useCallback(
+    (sample: PointerSample) => {
+      tool.onPointerSample(sample);
+      // ⚠ Only set state when the hovered element actually CHANGES. A pointermove fires far faster than
+      // 60 Hz, and setting state per event would re-render (and re-diff every part) for no visible
+      // difference — the recolour is cheap, the render that schedules it is not.
+      const next = sample.pick?.elementId ?? null;
+      setHoveredId((prev) => (prev === next ? prev : next));
+    },
+    [tool],
+  );
 
   // ---- View actions (design §7). All app-layer; none reaches the document. ----
   const hideSelected = useCallback(() => {
@@ -438,10 +524,17 @@ export function App() {
       const t = e.target as HTMLElement | null;
       if (t !== null && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)))
         return;
+      // ⚠ THE TOOL LAYER GETS FIRST REFUSAL, and only that (design §7). It consumes Esc while a gesture
+      // is live, and the digits that open numeric entry; everything else falls through to the app's own
+      // owner below. A tool that swallowed keys wholesale would break undo/redo and every future shortcut.
       const mod = e.ctrlKey || e.metaKey;
+      if (!mod && tool.handleKey(e)) {
+        e.preventDefault();
+        return;
+      }
       const key = e.key.toLowerCase();
       if (e.key === 'Escape') {
-        setSelectedId(null);
+        setSelection(new Set());
         setPicked(null);
       } else if (mod && key === 'z' && !e.shiftKey) {
         e.preventDefault();
@@ -455,7 +548,7 @@ export function App() {
     return () => {
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [undo, redo]);
+  }, [undo, redo, tool]);
 
   return (
     <div className="app">
@@ -507,19 +600,50 @@ export function App() {
       </header>
 
       {app !== null && (
-        <Ribbon
-          commands={commands}
-          dispatch={dispatch}
-          onUndo={undo}
-          onRedo={redo}
-          canUndo={app.doc.canUndo}
-          canRedo={app.doc.canRedo}
-          onDone={onCommandDone}
-        />
+        <>
+          <ToolBar
+            activeToolId={tool.activeTool.id}
+            onActivate={tool.activate}
+            selectionCount={selection.size}
+            hoveredName={hoveredName}
+          />
+          <Ribbon
+            commands={commands}
+            dispatch={dispatch}
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={app.doc.canUndo}
+            canRedo={app.doc.canRedo}
+            onDone={onCommandDone}
+          />
+        </>
       )}
 
       <main className="app-body">
-        {app !== null && <ViewportCanvas render={app.render} parts={renderParts} onPick={onPick} />}
+        {app !== null && (
+          <ViewportCanvas
+            render={app.render}
+            parts={renderParts}
+            previewFrom={tool.previewFrom}
+            onPick={onPick}
+            onPointerSample={onPointerSample}
+          />
+        )}
+        {/* The tool status line (design §2/§6) — the prompt for the input being collected, and the
+            numeric field when it is open. It sits over the canvas because that is where the user is
+            looking; it is pure UI and reads nothing from the document. */}
+        {tool.prompt !== null && (
+          <div className="tool-status" role="status">
+            <strong>{tool.activeTool.label}</strong> · {tool.prompt}
+            {tool.numericText !== null && (
+              <span className="tool-numeric">
+                {tool.numericText}
+                <span className="tool-unit">mm</span>
+              </span>
+            )}
+            <span className="tool-hint">Esc to cancel</span>
+          </div>
+        )}
         {status.kind === 'error' && <div className="overlay error">{status.message}</div>}
 
         <aside className="panel">
@@ -552,7 +676,7 @@ export function App() {
             unbuildable={problems.unbuildable}
             broken={problems.broken}
             elements={elements}
-            onSelect={setSelectedId}
+            onSelect={selectOnly}
           />
           {selected !== null ? (
             <>
@@ -560,7 +684,7 @@ export function App() {
                 elements={elements}
                 selectedId={selectedId}
                 unbuildableIds={unbuildableIds}
-                onSelect={setSelectedId}
+                onSelect={selectOnly}
               />
 
               <section className="panel-section">
@@ -617,6 +741,52 @@ export function App() {
           )}
         </aside>
       </main>
+    </div>
+  );
+}
+
+/**
+ * THE TOOL BAR (P4.5 design §2) — and it is the visible answer to D47.
+ *
+ * ⚠⚠ THE POINT IS WHAT THESE BUTTONS DO *NOT* DO. The generated `Ribbon` below renders a `Command`'s
+ * `argsSchema` as a FORM: to draw a wall through it you type four numbers. D47's finding was that a
+ * ribbon button in a real BIM tool **activates a tool** which collects those arguments from the viewport
+ * — and that `argsSchema`, a machine-readable contract for an AGENT, had been silently substituted for a
+ * UI spec for a HUMAN. These buttons activate; they never open a form. Both surfaces reach the document
+ * through the same one door, which is the whole design (rule 19).
+ */
+function ToolBar({
+  activeToolId,
+  onActivate,
+  selectionCount,
+  hoveredName,
+}: {
+  readonly activeToolId: string;
+  readonly onActivate: (id: string) => void;
+  readonly selectionCount: number;
+  /** The element under the cursor — knowing what you are about to click is the point of hover. */
+  readonly hoveredName: string | null;
+}) {
+  return (
+    <div className="toolbar" role="toolbar" aria-label="Tools">
+      {TOOLS.map((t) => (
+        <button
+          key={t.id}
+          type="button"
+          className="tool-button"
+          aria-pressed={t.id === activeToolId}
+          data-active={t.id === activeToolId}
+          onClick={() => {
+            onActivate(t.id);
+          }}
+        >
+          {t.label}
+        </button>
+      ))}
+      <span className="tool-hover">{hoveredName === null ? '' : `Hover: ${hoveredName}`}</span>
+      <span className="tool-selection-count">
+        {selectionCount === 0 ? 'Nothing selected' : `${selectionCount} selected`}
+      </span>
     </div>
   );
 }
