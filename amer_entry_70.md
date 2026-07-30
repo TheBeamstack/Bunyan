@@ -20,11 +20,18 @@ no conflict.
 
 ### Entry 70 — 2026-07-30 — Amer — **P4.5's SIX RULINGS TAKEN, AND THE TOOL LAYER SHIPS: THE SNAP SEAM + THE TOOL STATE MACHINE + NUMERIC ENTRY + HOVER + MULTI-SELECT. A WALL IS NOW DRAWN WITH A POINTING DEVICE, AND ITS LENGTH IS EXACT. DOMAIN RULE 19 ADOPTED. 578 GREEN, ALL FIVE GATES 0.**
 
+**⚠ COMMITTED AND PUSHED (owner-authorised, 2026-07-30): `origin/main` `45109d5 → 57765b0`** — Entry 70
+alone, one commit, fast-forwarded from the branch `amer/p4.5-interaction-model` (`origin/main` had not
+moved, so no merge commit and nothing of Zayd's was rebased or replayed).
+⚠⚠ **ZAYD IS ONE ENTRY BEHIND AND THE ENTRY IS NOT WHERE HE WILL LOOK FOR IT.** `current_state.md`'s newest
+Entry is still **69** — Entry 70 is in **this file**, because the owner ran both agents in parallel (see the
+header). That is expected, not a sync failure. The code is `apps/web` only, plus three appended lines in
+`core_logic.md` §8 (domain rule 19); nothing he owns moved.
+
 **Task (owner, `Amer_Prompt.md` §2):** P4.5, the RULED branch. Pulled first: `b53a8bf → d596142`, then
 mid-session `d596142 → 45109d5` at the owner's instruction (_"pull Zayd's edits to merge now while you are
 still at the beginning"_) — newest Entry **69**, so I read 68 and 69 before continuing and re-checked that
-TASK still stood. It did. **Nothing committed: commits and pushes are owner-gated.** Branch:
-`amer/p4.5-interaction-model`.
+TASK still stood. It did.
 
 - **⚠⚠ THE SIX RULINGS WERE TAKEN FIRST, AND ONE OF THEM CORRECTED ME MID-ANSWER.** Q1–Q6 (design §12) were
   put to the owner with each ruling point explained before the question, per his instruction. All six ruled:

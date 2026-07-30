@@ -97,9 +97,9 @@ FRESH:  Newest Entry = **YOUR OWN ENTRY 70** (the P4.5 tool layer: the snap seam
         reason `Zayd_Prompt.md` §2 was NOT rewritten; the text for it is at the bottom of
         `amer_entry_70.md`.
 
-        ⚠ Entry 70 is UNCOMMITTED on branch `amer/p4.5-interaction-model` (commits are
-        owner-gated) unless the owner has since landed it. `git pull` first regardless; if
-        Zayd has pushed again, read every Entry after 69 before starting.
+        ⚠ Entry 70 is COMMITTED AND PUSHED (owner-authorised 2026-07-30): `origin/main`
+        `45109d5 → 57765b0`, fast-forwarded from `amer/p4.5-interaction-model`. `git pull`
+        first regardless; if Zayd has pushed since, read every Entry after 69 before starting.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
