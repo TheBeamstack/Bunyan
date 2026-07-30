@@ -84,22 +84,21 @@ holder**.
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry = **YOUR OWN ENTRY 70** (the P4.5 tool layer: the snap seam, the tool state
-        machine, numeric entry, hover, multi-select; domain rule 19 adopted; 578 green, all five
-        gates 0). Zayd's Entry 69 (the plan/section design) is the newest of HIS.
+FRESH:  Newest Entry in `current_state.md` = **YOUR OWN ENTRY 70** (the P4.5 tool layer: the snap
+        seam, the tool state machine, numeric entry, hover, multi-select; domain rule 19 adopted;
+        578 green, all five gates 0). Zayd's Entry 69 (the plan/section design) precedes it.
+        **COMMITTED AND PUSHED** (owner-authorised 2026-07-30: `origin/main` `45109d5 → 57765b0`),
+        then the log normalisation on top. Confirm by the ENTRY NUMBER regardless.
 
-        ⚠⚠ ENTRY 70 IS NOT IN `current_state.md` — IT IS IN **`amer_entry_70.md`**, ON PURPOSE.
-        The owner ran both agents IN PARALLEL on 2026-07-30 rather than taking turns, and two
-        agents appending to §7 in the same window conflict in the one file that exists to be the
-        shared truth. **The owner moves it into §7 (after Zayd's) once Zayd has pushed, and
-        deletes that file.** ⇒ **If `current_state.md`'s newest Entry is still 69, that is
-        EXPECTED, not a sign you are behind — check `amer_entry_70.md` first.** For the same
-        reason `Zayd_Prompt.md` §2 was NOT rewritten; the text for it is at the bottom of
-        `amer_entry_70.md`.
+        ⚠ Entry 70 was written in a standalone file and MOVED into §7 afterwards, because the
+        owner ran both agents in parallel that day. That file is now deleted and the log is back
+        to normal — if you were told to look for `amer_entry_70.md`, don't; it is in §7.
 
-        ⚠ Entry 70 is COMMITTED AND PUSHED (owner-authorised 2026-07-30): `origin/main`
-        `45109d5 → 57765b0`, fast-forwarded from `amer/p4.5-interaction-model`. `git pull`
-        first regardless; if Zayd has pushed since, read every Entry after 69 before starting.
+        ⇒ After `git pull`: newest Entry = 70 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 70 ⇒ Zayd has pushed: read every Entry after 70 before
+          starting, and re-check that TASK is still the right thing to do. ⚠ **Expect his next
+          entry to be the five MOVE VERBS + `transactionId`** — that is now his TASK, and it is
+          what unblocks the two P4.5 exit criteria you cannot reach alone.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the

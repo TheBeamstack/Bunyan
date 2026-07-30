@@ -818,6 +818,39 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
 > zero console errors) + headless (524 pass). ⚠⚠ **`format:check` PASSES for the first time since Entry 59 — by formatting
 > BEFORE verify, not by luck.** Nothing frozen moved ⇒ the freeze remains the owner's act. See Entry 67.
 >
+> ## ✅✅ P4.5's SIX RULINGS TAKEN AND THE TOOL LAYER SHIPS (Entry 70, 2026-07-30, Amer). 578 GREEN, ALL 5 GATES 0. THE FREEZE IS STILL THE OWNER'S ACT.
+> Q1–Q6 all ruled and applied into `P4.5_interaction_model_design.md` §12, which is now the phase's DECISION RECORD rather than
+> its open questions. Built, all `apps/web`: **the SPATIAL-QUERY SEAM the plan said was missing** (`tool/QueryGateway.ts` — Tier 2,
+> read-only, and its four ops are named as explicit OVERLOADS so *the type signature is the allowlist*: `makeBox` does not
+> typecheck there, which is D19 made structural instead of commented) · **Tier-1 snapping** (`tool/snap.ts` — pure, the projection
+> INJECTED, so all of it is headless-verified and only the camera lives in GL) · the **tool state machine** + registry · **numeric
+> entry** · the **preview layer** · **hover** · **multi-select**. **Domain rule 19** adopted into `core_logic.md` §8.
+> ⚠⚠ **NUMBERED 19, NOT 17, AND THE CORRECTION IS THE POINT:** the design doc claimed the only "rule 17" collision was a
+> `schedule.ts` code comment and that §8 ran to sixteen rules. **Both halves were false** — §8 already carries a numbered rule 17
+> (D58) and 18 (D59), and §1c-8's own ledger says *"ALL EIGHTEEN RULES SWEPT"*. *The claim was written from memory of the rule
+> list rather than from the list; the check cost one grep.*
+> ⚠⚠ **AND THE §1b FINDING IS WHY THE PHASE WAS BUILDABLE AT ALL: THE APP HAD NEVER REGISTERED THE WALL THIS DESIGN REASONS
+> ABOUT.** `bootstrap.ts` was still on the scaffold `core.wall.v1` (`{length,height}`), whose own header has said *"when P5's
+> types arrive, register those instead"* since P4 — **P5's D52 baseline `core.wall` landed in Entry 42 and nobody switched**, and
+> `apps/web/package.json` did not even depend on `@bunyan/types`. Two clicked points have **nowhere to land** on a wall with no
+> baseline ⇒ registering the real types was a PRECONDITION of the wall tool, not a tidy-up. *§1c-7: a phase's exit criteria are a
+> specification, and this one silently depended on a swap nobody had made.*
+> ⚠⚠ **ONE REAL BUG, FOUND ONLY BY DRIVING THE TOOL IN A REAL BROWSER:** typing `5000` into the numeric field produced **`0`** —
+> React batches, so four keystrokes in one tick all read the same stale closed-over value and each overwrote the last. **Slow
+> human typing hides it completely**, which is to say it is invisible to exactly the manual test one would perform. Fixed at the
+> source (handlers read refs) *and* pinned by extracting `applyNumericKey` as a **pure reducer the suite threads a key SEQUENCE
+> through** — *the bug was not in the arithmetic but in who owned the state, so the test that guards it must feed the state in.*
+> **MEASURED, not asserted** (browser, real OCCT + real GPU, through the DOM/`window` path — ⚠ a screenshot TIMED OUT on the
+> animating canvas exactly as `Amer_Prompt.md` warns): a wall drawn with two clicks committed **exact grid coordinates**; typing
+> 5000 gave a baseline of **exactly 5000.000000 mm**; an abandoned gesture left elements and journal **byte-identical** (rule 19);
+> and the same edit through `window.bunyan` produced the **same command, changes and params** (§11 criterion 2 — the `rebuilt`
+> count differed by one and it was CHECKED: the agent's wall is coincident, so it re-stages the tool's own wall).
+> ⚠⚠ **ROWS ⓑ AND ⓘ STAY OPEN AND ARE NOW ZAYD'S:** Q4's five move verbs and Q5's `transactionId` atomicity are
+> `packages/document`, and a new verb is a contract change Amer escalates rather than performs. **`transactionId` has ZERO readers
+> today** (measured: declared `undo.ts:109`, one comment `document.ts:802`), so a corner-drag would produce three undos however it
+> were labelled — **a gesture that LOOKS transactional and is not was deliberately not shipped.** Entry 45's freeze-SAFE
+> judgement stands; neither blocks the freeze. Nothing frozen moved. See Entry 70.
+>
 > ## ✅✅ STEP 0 IS CLOSED — BOTH SOLVERS + 0c JOINS ARE BUILT + GREEN (0d E40, room-bounding E41, 0c E42).
 > All of D50 step 0 is done: **0a–0g**, **0d (real planegcs, D26 revert-verified)**, the **room-bounding
 > solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
@@ -987,16 +1020,26 @@ contract). D8 verdict RAISED (not decided): the interactive axes don't need mult
 ~30,700 draw calls → 2 at the 10k target (606 ms → ~10–14 ms, 1.6 → ~80 fps), the Entry-55 (b)+(d) wall gone; a
 `THREE.BatchedMesh` (faces) + one batched `LineSegments` (edges) inside `Viewport`, picking/2b/D30 all preserved, no
 frozen contract touched, `P4_step9_renderer_batching_design.md`.** It was post-freeze / parallel — additive, below every
-frozen contract, never a freeze blocker. — P4 steps done through Entry 27 (the
+frozen contract, never a freeze blocker. ✅✅ **P4.5's SPINE IS NOW BUILT (Entry 70, owner Q1–Q6 all ruled):
+the read-only spatial-query seam (`tool/QueryGateway.ts`, Tier 2), Tier-1 snapping (`tool/snap.ts`, PURE —
+the projection is injected), the tool state machine + registry, numeric entry, the preview layer, hover and
+multi-select; `core_logic.md` §8 gained DOMAIN RULE 19 (a tool collects input, only a command changes the
+model).** ⚠⚠ **And building it found that the app had NEVER registered the wall the design reasons about**
+— `bootstrap.ts` ran on the scaffold `core.wall.v1` (`{length,height}`) while P5's D52 baseline `core.wall`
+had shipped in Entry 42; two clicked points have nowhere to land on a wall with no baseline, so registering
+`@bunyan/types` was a precondition, not a tidy-up (the scaffold Type stays, relabelled, so pre-Entry-70
+saved documents still build — D43). ⚠ **THE TWO REMAINING P4.5 EXIT CRITERIA ARE BLOCKED ON `packages/
+document` AND MUST NOT BE FAKED:** the move tool/gizmo needs Q4's five ruled verbs (they do not exist), and
+the corner-drag needs `UndoableEdit.transactionId` to have a READER (**it has zero** — measured). — P4 steps
+done through Entry 27 (the
 gate now sees `apps/web`; incremental redraw; sub-shape picking; the failure-state panels; the D19
 equivalence test). ⚠ Build against
 `@bunyan/document`, never the kernel (D19 — enforced by `d19-boundary.test.ts` + the package boundary;
 the one allowed `KernelClient` holder is `apps/web/src/bootstrap.ts`). **An element is its PARTS (D30) —
-tessellate each.** Remaining: **P4.5** (the interaction model — the tool state machine, snapping, preview,
-numeric entry; do not start the wall tool before the baseline-Wall parameterisation is in — D52 rules
-it) · browser storage (`StorageAdapter` over FSA/OPFS/IndexedDB; `list()` MUST return existing keys) ·
-WebGPU + fallback, service worker/PWA, Cloudflare deploy · the typed-`SUPERSEDED` propagation (Zayd's
-package, coordinate). ⚠ Key changes since Entry 18: `planDelete()` gone (use `dryRun`); `discipline` on
+tessellate each.** Remaining on the browser track: **the rest of P4.5** (the opening tool — face-click
+hosting, which is ONE tool away since the snap already carries the `SubShapeRef`; and alignment guides) ·
+browser storage is DONE (Entry 56) · WebGPU + fallback, service worker/PWA, Cloudflare deploy · the
+typed-`SUPERSEDED` propagation (Zayd's package, coordinate). ⚠ Key changes since Entry 18: `planDelete()` gone (use `dryRun`); `discipline` on
 the part; ids are ULIDs (never parse/render them — use `element.name`); `mass` may be absent (render "—",
 never "0 kg"); on save persist `saveBnn(scene, { journal: doc.changeFeed(), revision: doc.revision })` —
 `doc.history()` there is the moat-losing bug.
@@ -2048,3 +2091,173 @@ remains the owner's act.**
   ⚠ **The three older owed rulings still stand:** rule 8 — does `FamilyDefinition` get a way to declare billable faces? · rule 17 — should `Dimension.anchors` exclude the free `point` anchor? · parked from Entry 62: should `undo`/`redo` become Commands (rule 9)? ⚠ **The FREEZE (step 6) remains yours and remains unblocked** — this session moved no frozen byte, and §6.1's hole is in a reservation nothing reads, with both proposed fixes additive.
 - **Zayd:** build §8 once Q1–Q3 are ruled — the `sectionCut` cut-half handler (C++ + adapter; ⚠ a WASM rebuild, ~60 s single-file compile + link per §1c-3, **not** the 2.5 h version bump), the `views` promotion, the three verbs, `view.ts` + `projectView`, `tests/plan-section.test.ts` revert-verified. ⚠ **Read §5's table before writing the fixture: every criterion there has a way to pass while FALSE, and the top one is Entry 47's trap verbatim — a one-plain-wall fixture.** The fixture must carry a curtain wall (children), an opening (cut faces) and a design option. Then the D29 cache bodies (§4j-2 FIRST — an identity task, not a serializer task).
 - **Amer:** unchanged by this session — no source touched, and nothing in this design asks anything of the browser. ⚠ When the plan/section body lands it produces a `ViewResult` of 2D polylines with identity, which is a *new* thing for `apps/web` to draw — but that is a later, additive, browser-track item and nothing about it is owed now. P4.5's spine is still blocked on Q1–Q6 (`P4.5_interaction_model_design.md` §12).
+
+### Entry 70 — 2026-07-30 — Amer — **P4.5's SIX RULINGS TAKEN, AND THE TOOL LAYER SHIPS: THE SNAP SEAM + THE TOOL STATE MACHINE + NUMERIC ENTRY + HOVER + MULTI-SELECT. A WALL IS NOW DRAWN WITH A POINTING DEVICE, AND ITS LENGTH IS EXACT. DOMAIN RULE 19 ADOPTED. 578 GREEN, ALL FIVE GATES 0.**
+
+**⚠ COMMITTED AND PUSHED (owner-authorised, 2026-07-30): `origin/main` `45109d5 → 57765b0`** — Entry 70
+alone, one commit, fast-forwarded from the branch `amer/p4.5-interaction-model` (`origin/main` had not
+moved, so no merge commit and nothing of Zayd's was rebased or replayed).
+⚠ **THIS ENTRY WAS WRITTEN OUTSIDE `current_state.md` AND MOVED IN AFTERWARDS (owner-directed, same day),
+so its two follow-up commits are doc-only.** The owner ran Amer and Zayd **in parallel** rather than taking
+turns, and two agents appending to §7 in the same window conflict in the one file whose job is to be the
+shared truth — so it was parked in a standalone file, pushed, then moved here **verbatim** and that file
+deleted. **Nothing about the entry changed in the move.** _Recorded because the parallel arrangement is not
+the norm this log assumes, and the next pair to work in parallel will want the precedent: write the entry
+somewhere else, push, then merge it once the other agent has landed._
+⚠ Zayd is unaffected by the code: it is `apps/web` only, plus three appended lines in `core_logic.md` §8
+(domain rule 19). Nothing he owns moved — though the app now registers **his** `@bunyan/types`, so a break
+there is now a break in the app too.
+
+**Task (owner, `Amer_Prompt.md` §2):** P4.5, the RULED branch. Pulled first: `b53a8bf → d596142`, then
+mid-session `d596142 → 45109d5` at the owner's instruction (_"pull Zayd's edits to merge now while you are
+still at the beginning"_) — newest Entry **69**, so I read 68 and 69 before continuing and re-checked that
+TASK still stood. It did.
+
+- **⚠⚠ THE SIX RULINGS WERE TAKEN FIRST, AND ONE OF THEM CORRECTED ME MID-ANSWER.** Q1–Q6 (design §12) were
+  put to the owner with each ruling point explained before the question, per his instruction. All six ruled:
+  **Q1** adopt the tool rule · **Q2** the two-tier snap seam as designed · **Q3** the proposed snap priority ·
+  **Q4** reserve all five move verbs including the `setParams`-vs-`move` split · **Q5** exercise
+  `transactionId` via the corner-drag · **Q6** spine **plus hover and multi-select** in the exit criteria.
+  ⚠ **Q1's PREMISE WAS WRONG AND IT WAS MY ERROR.** I told the owner the "rule 17" collision was with a
+  `schedule.ts` _code-comment_ convention and that the domain list ran to sixteen. **`core_logic.md` §8
+  already has a numbered rule 17 (a drawing is a projection, D58) and a rule 18 (child elements, D59)** —
+  §1c-8's ledger says _"ALL EIGHTEEN RULES SWEPT"_ in as many words. Adopting the tool rule as 17 would have
+  shadowed a live three-product rule with a UI one. Surfaced immediately, **numbered 19** (the owner's own
+  second option), recorded in the design doc as a correction rather than silently fixed. _The claim was
+  written from memory of the rule list instead of from the list; the check cost one grep._
+- **⚠⚠ AND THE RULINGS REVEALED WHAT THE QUESTIONS COULD NOT: TWO OF THE SIX LAND IN A PACKAGE I DO NOT OWN.**
+  Q4 (the five move verbs) and Q5 (`transactionId` atomicity) both read as _"rule a shape, then build it"_ —
+  and both are `packages/document`. A new verb is a **contract change** the standing constraint tells me to
+  escalate rather than perform; this ruling **is** that escalation resolved, so the shapes are now owner-ruled
+  and recorded, and **the implementation is owed to Zayd as one additive unit.** ⚠ Measured, not assumed:
+  `transactionId` is declared at `undo.ts:109` and mentioned in exactly one comment (`document.ts:802`,
+  _"RESERVED, not built"_) — **zero readers**, so a corner-drag dispatching three `setParams` today would
+  produce three edits and three undos however the tool labelled it. **I did not ship a gesture that LOOKS
+  transactional and undoes in three steps**, which would be worse than not shipping it: it would read as the
+  reserved field working. ⇒ **rows ⓑ and ⓘ stay OPEN.** Entry 45's freeze-SAFE judgement stands and I do not
+  claim either blocks the freeze.
+- **⚠⚠ THE §1b FINDING OF THE SESSION, AND IT IS THE REASON THE PHASE WAS BUILDABLE AT ALL: THE APP HAD NEVER
+  REGISTERED THE WALL THIS DESIGN REASONS ABOUT.** `bootstrap.ts` registered `SCAFFOLD_TYPES` —
+  `core.wall.v1`, a `{length, height}` box-layer wall whose own header has said _"when P5's types arrive,
+  delete this file and register those instead"_ since P4. **P5's types arrived in Entry 42** (the real D52
+  baseline `core.wall`) and nobody switched; `apps/web/package.json` did not even depend on `@bunyan/types`.
+  ⚠ **Not cosmetic:** "click a start point, click an end point" is expressible **only** against a baseline
+  `{start, end}` wall — `core.wall.v1` has no baseline, so the wall tool could not have been written against
+  what the app runs. Every §9/§10 sentence about _"a D52 baseline wall moves by `setParams`"_ was true of the
+  package and **false of the running app**. Fixed (app-layer, no contract): `@bunyan/types` is a workspace
+  dep, `wallType`/`openingType`/the four curtain-wall types are registered, and the demo seeds **two real
+  `core.wall`s meeting at a corner** (so the snap index has a real endpoint and 0c has a join to resolve).
+  ⚠ The scaffold Type stays registered and is **relabelled "Wall (legacy v1 scaffold)"** — dropping it would
+  make every pre-Entry-70 saved document `unbuildable` (D43: correct behaviour, pointless demotion). _§1c-7:
+  a phase's exit criteria are a specification, and this one silently depended on a swap nobody had made._
+- **WHAT LANDED (all `apps/web`, below every frozen contract):**
+  - `tool/QueryGateway.ts` — **the spatial-query seam the plan said was missing** (Tier 2). Read-only,
+    derived in `bootstrap.ts` (the one allowed `KernelClient` holder), exposing `faceFrame`/`classifyPoint`/
+    `distance`/`bounds` and nothing else. ⚠ The four ops are named as **explicit overloads** rather than a
+    generic `request<R>(op: string, …)`: a string op would not typecheck against `KernelClient`'s op map
+    **and** would make the seam a hole any op could pass through. **The overload list IS the allowlist** —
+    `makeBox` does not typecheck here. That is D19 made structural, not commented.
+  - `tool/snap.ts` — **Tier 1, pure, no three.js.** Candidate extraction from the `MeshBuffers` the viewport
+    ALREADY retains (edge endpoints + midpoints, carrying each edge's `SubShapeRef`), exact grid candidates,
+    a uniform spatial hash, and `chooseSnap` under the ruled priority. The world→pixel projection is
+    **injected**, which is what keeps the whole module headless-verifiable — only the camera lives in GL.
+  - `tool/toolMachine.ts` + `tool/tools.ts` — the state machine and the registry. A `ToolSession` is an
+    immutable value with **no reference to the document, the dispatch or the kernel**, and a commit is an
+    inert `{commandId, args}` DESCRIPTION. **Rule 19 is enforced by shape, not by discipline:** a half-drawn
+    wall cannot be written to the scene even by a caller who wants to.
+  - `tool/numeric.ts` — parse/`pointAtLength`/`applyNumericKey`. `tool/useToolController.ts` — the single
+    active-tool slot, the keyboard, numeric entry.
+  - `render/Viewport.ts` — the **preview layer** (rubber band + snap marker) as a group OUTSIDE `#sceneGroup`,
+    so it is structurally excluded from picking and from the snap index (**a preview can never be snapped to
+    by the cursor drawing it**); `project`, `snapAt`, `groundPointAt`; and the index dropped on any change to
+    the drawn set. ⚠ A **recolour does not invalidate** it — an instance-colour swap cannot move a vertex.
+  - `render/ViewportCanvas.tsx` — the **pointer-move path**, which is the plumbing hover, snapping and the
+    rubber band all ride on; before this the canvas heard only `pointerdown`/`pointerup`, which is why hover
+    could not exist however cheap the recolour was.
+  - `App.tsx` — the selection **SET** (Ctrl/Cmd/Shift-click), hover, the ToolBar, the tool status line, and
+    the tool getting **first refusal** on clicks and keys ahead of the app's own keyboard owner.
+- **⚠⚠ ONE REAL BUG, FOUND BY DRIVING THE TOOL IN A REAL BROWSER AND NOT BY READING THE CODE — AND IT IS THE
+  ENTRY'S BEST LESSON.** Typing `5`,`0`,`0`,`0` into the numeric field produced **`0`**. The accumulation
+  lived in a `useCallback` that closed over `numericText`; **React batches**, so all four keystrokes read the
+  same stale value and each overwrote the last. A wall would have been committed at 0 mm had `parseLengthMm`
+  not refused it. ⚠ **Slow human typing hides it completely** — a render lands between keys — so it is
+  invisible to exactly the manual test one would perform, and visible to a key-repeat or a fast typist.
+  **FIXED TWICE, DELIBERATELY:** (a) every handler now reads a **ref**, never the closed-over render value,
+  with the writes going through `putSession`/`putNumeric` so ref and state move together; and (b) the field's
+  key handling was **extracted into a pure reducer** `applyNumericKey(current, key, {allowed})`, so the state
+  is an explicit argument and the accumulation is a **sequence the suite can thread values through**. ⚠ The
+  extraction is the part that matters: _the bug was not in the arithmetic, it was in who owned the state, so
+  a test that guards it must be one that feeds the state in._
+- **HEADLESS-VERIFIED (the logic half of the standing split): 40 new tests (538 → 578)**, hostile to the two things that
+  can be wrong while looking right — **the index** (a candidate 0.2 mm away across a bucket boundary; a sweep
+  that must cover every bucket the search sphere touches, not a fixed 3×3 — **D73's lesson, that an index buys
+  speed by changing WHO IS ASKED**) and **the ruled priority** (a FARTHER endpoint must beat a NEARER grid
+  point; the full order asserted pairwise in both argument orders). **REVERT-VERIFIED both:** neutering the
+  bucket sweep to the centre cell fired exactly the 2 index tests and nothing else; replacing the priority
+  comparison with nearest-wins fired exactly the 2 ordering tests and nothing else.
+- **BROWSER-VERIFIED (the GL half), on the real Vite dev server + real OCCT + real GPU, and MEASURED THROUGH
+  THE DOM/`window` PATH RATHER THAN CLAIMED FROM A PICTURE** — ⚠ the standing rule was right and I hit it:
+  `computer{screenshot}` **timed out after 30 s** on the continuously-animating WebGL canvas, exactly as
+  `Amer_Prompt.md` §1 warns.
+  ```
+    a wall DRAWN with a pointing device       activate -> click -> click -> ONE core.createElement
+    the document DURING the gesture           elements 3 -> 3, journal 7 -> 7   (rule 19: no model state)
+    an ABANDONED gesture (Esc)                elements + journal byte-identical before and after
+    both clicks landed on grid intersections  start [3000,-1000]  end [-3000,1000]   (exact, not measured)
+    numeric entry: type 5000 + Enter          |end - start| = 5000.000000 mm exactly
+    numeric entry on a cold boot: 3500        |end - start| = 3500.000000 mm exactly
+    hover                                     27 of 120 probe positions resolved, Wall 1 vs Wall 2 correctly
+    multi-select                              1 -> 2 (Ctrl) -> 1 (Ctrl again), document untouched
+    console errors, COLD tab, full gesture    ZERO
+  ```
+  ⚠ **The exactness result is the one worth reading twice:** the tool's clicks committed **round grid
+  coordinates**, because a grid candidate is computed from `scene.json` numbers rather than measured off a
+  chord-approximated mesh — which is precisely §4.4's _"the approximate point chooses the target, never
+  records the coordinate"_ working on its first day.
+- **⚠ THE P4 EQUIVALENCE TEST, RUN AGAINST A TOOL-AUTHORED EDIT (§11 criterion 2 — the machine proof that the
+  tool layer smuggled in no private path):** the same args re-issued through `window.bunyan.execute` gave the
+  **same `command`, the same change count, the same collections and byte-identical `params`.** The one
+  difference is `rebuilt` 2 vs 3 — and I checked rather than hand-waved it: the agent's wall is **coincident**
+  with the tool's, so it re-stages one more element, and `agentEdit.rebuilt` **contains the tool's wall id**.
+  _Same authoring path, different scene state._
+- **⚠ A CONSOLE-ERROR SCARE THAT WAS NOT ONE, CHECKED RATHER THAN ASSUMED:** the dev tab showed React
+  hook-order errors (`43. useMemo → useRef`). Those are **HMR artifacts** from adding hooks to a mounted
+  component; every stack trace carried a pre-reload `?t=` HMR timestamp. A **fresh tab** boots and runs the
+  full gesture with **zero** console output. Recorded because _"there were errors in the console but I decided
+  they were fine"_ is exactly the shape of a missed defect.
+- **VERIFICATION: all five gates, real exit codes — typecheck 0 · lint 0 · format:check 0 · test 0 (578
+  passed, was 538, +40 mine) · reseed:check 0.** ⚠ `prettier --write` on every touched file **BEFORE**
+  `verify`, per Entry 67's procedural fix; `format:check` stays green. ⚠ `pnpm` is not on this box's PATH —
+  `corepack pnpm install` for the new workspace dep, `npm run <step>` for the gates (each sub-script is plain
+  tsc/eslint/prettier/vitest/node, so they run identically).
+- **Environment:** local PC, real browser. Vite dev server started + stopped; `corepack pnpm install` once
+  (the `@bunyan/types` workspace dep); no kernel rebuild (every change is TS/CSS/MD); no other project
+  touched; no ports left bound.
+
+**NEXT:**
+
+- **Owner:** **the FREEZE (step 6) is still yours and still unblocked** — Entry 70 moved no frozen byte and
+  bumped no `SCENE_SCHEMA_VERSION`. ⚠⚠ **The one thing this entry hands you is that Q4 and Q5 are RULED but
+  NOT BUILT, and they are `packages/document` work** — five additive verbs (`core.setPlacement`/`move`/
+  `rotate`/`copy`/`array`) and `transactionId` atomicity in the undo stack. **The pointing device that would
+  validate them now exists and is waiting**, which is the opposite of the risk row ⓑ was written to catch —
+  but they are worth nothing after the freeze, so they want doing before it. ⚠ Your older owed rulings still
+  stand: rule 8 (`FamilyDefinition` billable faces) · rule 17 (`Dimension.anchors` free `point`) · undo/redo
+  as Commands · and Zayd's Entry-68/69 question on widening `ParamField.refTo` to
+  `view`/`sheet`/`annotation`/`family`.
+- **Amer:** the spine is in. Remaining P4.5, in order: **the move tool + gizmo** (blocked on Q4's verbs) and
+  **the corner-drag** (blocked on Q5's atomicity) — both `packages/document`-gated, so do not start them by
+  faking either. Non-blocked and next: **the opening tool** (click a face → `core.createElement` with
+  `{hostId, hostRef}`; the snap already carries the `SubShapeRef`, so exit criterion 3 is one tool away) and
+  **alignment guides** (design §4.3 — pure overlay over Tier-1 candidates). Deferred and unchanged: material
+  appearance, WebGPU + fallback, FSA adapter, TSL, PWA/deploy, the optional `codecFor` wiring, a schedules UI.
+- **Zayd:** ⚠ **THREE THINGS, AND THE FIRST TWO ARE NEW WORK THIS ENTRY HANDS YOU.** (1) **The five ruled move
+  verbs** (design §9's table, owner-ruled 2026-07-30) as additive registry entries in `commands.ts` — the
+  `setParams`-vs-`move` split is ruled: params-positioned elements move by `core.setParams`, placement-
+  positioned ones by `core.move`/`core.setPlacement`. (2) **`transactionId` atomicity** — it currently has
+  **zero readers**, so one `Ctrl+Z` cannot reverse a multi-element gesture; Q5 rules that it be exercised.
+  (3) **One-word housekeeping:** `schedule.ts`'s comments call their own convention "rule 17", which now
+  collides with D58's numbered rule 17 in `core_logic.md` §8 — this project's method is grep, so two things
+  called "rule 17" is a real cost. ⚠ Nothing in this entry touches the kernel, the document or any frozen
+  contract; it is pure `apps/web` plus one line in `core_logic.md` §8 (domain rule 19).
+

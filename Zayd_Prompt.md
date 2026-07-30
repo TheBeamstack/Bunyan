@@ -72,17 +72,25 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry in `current_state.md` = **ENTRY 69** (YOUR OWN — the plan/section DESIGN,
-        `P5_step6C_plan_section_design.md`. NO SOURCE TOUCHED; the doc is the deliverable and the
-        build is BLOCKED on five owner rulings). **ENTRY 69 IS COMMITTED AND PUSHED**
-        (owner-authorised 2026-07-30: `origin/main` `d596142 → 4bd7473`) — confirm your position by
-        the ENTRY NUMBER regardless. Entry 68 (the schedule CRUD, D79) was pushed the same day
-        (`b53a8bf → 892042a`); Entries 66 + 67 (Amer) on 2026-07-28.
+FRESH:  Newest Entry in `current_state.md` = **ENTRY 70** (Amer — P4.5's tool layer: the snap seam,
+        the tool state machine, numeric entry, hover, multi-select. **578 green, all five gates 0.**)
+        Your own last work is Entry 69 (the plan/section DESIGN — no source touched, still blocked
+        on your five owner rulings). Both are COMMITTED AND PUSHED (owner-authorised 2026-07-30):
+        `d596142 → 4bd7473` then `45109d5 → 57765b0`. Confirm by the ENTRY NUMBER regardless.
 
-        ⚠ Entry 69 ran `pnpm verify` as a BASELINE ONLY — **538/538, real exit code 0, all five
-        gates**, matching Entry 68 — and did not re-run it, because the session changed zero source
-        or test code. There is no code claim to stand behind and none was manufactured (Entry 66's
-        precedent). Nothing frozen moved.
+        ⚠ Entry 70 touches ALMOST nothing you own: it is `apps/web` only, PLUS three appended lines
+        in `core_logic.md` §8 — **DOMAIN RULE 19: a tool collects input; only a command changes the
+        model.** Read it; it is the invariant the tool layer is built on, and the reason Amer's
+        gestures commit exactly one Command through the one door you own.
+        ⚠ It also added `@bunyan/types` as a dependency of `apps/web` and registered the real
+        `core.wall`/`core.opening`/curtain-wall Types there. **Your packages are unchanged** — but
+        the app now exercises YOUR shipped Types instead of its old scaffold wall, so a break in
+        `@bunyan/types` is now a break in the app too.
+
+        ⚠⚠ ENTRY 70 WAS WRITTEN OUTSIDE `current_state.md` AND MOVED IN AFTERWARDS, because the
+        owner ran both agents IN PARALLEL that day rather than taking turns. It is now in §7,
+        verbatim, and the file it was parked in is deleted. Nothing about it changed in the move —
+        noted only so the entry's own opening paragraph makes sense when you read it.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -92,24 +100,50 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 69** (YOUR OWN — the plan
         need to know. (Git already answers "what is the tip?" — `git log -1`. This file answers
         "am I behind?", which git cannot.)
 
-        ⇒ After `git pull`: newest Entry = 69 ⇒ you are current, start TASK.
-          Newest Entry HIGHER than 69 ⇒ the other agent has pushed: read every Entry after 69
+        ⇒ After `git pull`: newest Entry = 70 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 70 ⇒ the other agent has pushed: read every Entry after 70
           before starting, and re-check that TASK is still the right thing to do.
 
-TASK:   **BUILD THE PLAN + SECTION — §8 of `P5_step6C_plan_section_design.md` — ONCE Q1–Q3 ARE
-        RULED.** Entry 69 delivered that design and stopped for the rulings, as design-first
-        requires. ⚠⚠ **IF Q1–Q3 ARE STILL UNRULED WHEN YOU OPEN, DO NOT BUILD AND DO NOT IDLE:**
-        surface them again in your opening message and take the ruling-free work instead —
-        Entry 67's branch, and the standing "do not stall on the owner" rule. The ruling-free
-        candidates, in order: **the D29 CACHE BODIES** (§4j-2 FIRST — it is an IDENTITY task, not
-        a serializer task, and the hostile-BREP hardening test is a REQUIRED deliverable), then
-        the housekeeping that blocks going public (`LICENSE` AGPL-3.0, the CLA, the OCCT +
-        planegcs attribution notices).
+TASK:   **THE FIVE MOVE VERBS + `transactionId` ATOMICITY — owner-RULED 2026-07-30 (P4.5 design
+        §9/§10, Q4/Q5). PRE-FREEZE, and it is now BLOCKING AMER.** This displaces the plan/section
+        build for one reason: **that unit is still blocked on YOUR Q1–Q3 and this one is not.** The
+        shapes are ruled; only the implementation is owed, and it is `packages/document` — which is
+        why Amer escalated instead of building it (a new verb is a contract change).
+
+        Build them as ordinary additive registry entries (D19, domain rule 5):
+
+          core.setPlacement { elementId, placement: Transform[] }  absolute; paste-in-place, gizmo
+          core.move         { elementId, by: Vec3 }                delta; composes under undo
+          core.rotate       { elementId, axis, angle, about }      `about` defaults to the elt frame
+          core.copy         { elementId, by: Vec3 } -> new id in its UndoableEdit
+          core.array        { elementId, mode:'linear'|'grid', count, step, step2? }
+                                                                   SHAPE ONLY — body is v1.0.x
+
+        ⚠⚠ THE RULED SPLIT IS THE PART TO GET RIGHT, AND IT IS COUNTER-INTUITIVE: an element whose
+          position lives in its PARAMS moves by `core.setParams` — a D52 baseline wall translates
+          BOTH endpoints, and dragging one end is `setParams` on that endpoint alone. Only an
+          element whose position lives in `placement` (an Opening's offset, a GenericSolid, a placed
+          family) moves by `move`/`setPlacement`. **So the commonest "move" in the product never
+          calls these verbs, and that is correct, not a gap.**
+        ⚠⚠ Q5 — `UndoableEdit.transactionId` HAS ZERO READERS (measured Entry 70: declared
+          `undo.ts:109`, one comment `document.ts:802`). A corner-drag dispatching three
+          `setParams` therefore produces three edits and **THREE UNDOS**. Amer deliberately did not
+          ship a gesture that LOOKS transactional and is not — do not undo that judgement by
+          shipping the field still unread. Make ONE `Ctrl+Z` reverse the unit.
+        ⚠ **Amer's pointing device is BUILT AND WAITING** — the wall tool already drives
+          `createElement` and `setParams` through the snap seam — so these verbs can be validated
+          with a REAL GESTURE the day they land. That is exactly what freeze-gate row ⓑ asked for
+          ("drive their arg shapes with a pointing device before `argsSchema` freezes"), and it is
+          worth nothing after the freeze. ⚠ Row ⓑ/ⓘ are freeze-SAFE and do NOT block the freeze;
+          do not claim they do (Entry 45).
+
+        THEN: **the plan + section** (§8 of `P5_step6C_plan_section_design.md`), once Q1–Q3 are
+        ruled. That design is delivered and unchanged.
         → Q1 decides the SHAPE of the unit (cut-only vs cut+projection), so building before it is
           ruled is building the wrong thing, not building early. Q3 (`refTo: 'view'`) is a one-line
           contract touch this unit cannot avoid.
-        ⚠ When you do build: read §5's test table BEFORE writing the fixture. Every criterion there
-          has a way to pass while FALSE, and the top one is Entry 47's trap verbatim — **a
+        ⚠ When you do build it: read §5's test table BEFORE writing the fixture. Every criterion
+          there has a way to pass while FALSE, and the top one is Entry 47's trap verbatim — **a
           one-plain-wall fixture.** It must carry a curtain wall (children), an opening (cut faces)
           and a design option.
         ⚠ The `views` promotion is Entry 68's verbatim INCLUDING ITS CORRECTION — union member +
@@ -119,8 +153,15 @@ TASK:   **BUILD THE PLAN + SECTION — §8 of `P5_step6C_plan_section_design.md`
         ⚠ A kernel change means a WASM rebuild: ~60 s single-file compile + link (§1c-3), NOT the
           2.5 h version bump. Constrain at the source (`--memory=2g --cpus=2`), §6a.
 
-NEW:    Owner rulings OWED. **Five are Entry 69's and three of them BLOCK the TASK above**
-        (`P5_step6C_plan_section_design.md` §7); all are cheap only until the freeze:
+        ⚠ ONE-WORD HOUSEKEEPING, YOURS BECAUSE IT IS YOUR FILE: `schedule.ts`'s comments call their
+          own convention "rule 17", which now collides with `core_logic.md` §8's numbered rule 17
+          (D58, a drawing is a projection). This project's method IS grep (§1c-8); two things
+          called "rule 17" is a real cost. Rename the comment convention.
+
+NEW:    Owner rulings OWED. **Five are Entry 69's; three of them block the plan/section unit — which
+        is why it is no longer the TASK above** (`P5_step6C_plan_section_design.md` §7). All are
+        cheap only until the freeze, so surface them in your opening message even though you are
+        not idle without them:
         (1) **Q1 — what does v1.0.0's plan/section SHOW?** Recommend `mode:'cut'` only: every curve
             then carries full sub-shape identity (measured 4/4, 1/1, 8/8, zero orphans) and the cost
             is linear, where HLR is ≈N^1.5 AND cannot attribute at all. Cost: no lines beyond the
@@ -129,9 +170,10 @@ NEW:    Owner rulings OWED. **Five are Entry 69's and three of them BLOCK the TA
             `SectionCurve.nodeId?` (an optional field on a reserved, unimplemented op result) over
             widening `SubShapeKind` with `'solid'`, which three products bind to. BLOCKS.
         (3) **Q3 — `ParamField.refTo` also gaining `'view'`/`'sheet'`/`'annotation'`/`'family'`?**
-            ⚠ This is ENTRY 68's owed question and it is now BLOCKING: `createView` takes a view id.
-            Recommendation unchanged: add all four (free now, an amendment later, nothing switches
-            on it).
+            ⚠ This is ENTRY 68's owed question and it blocks the plan/section unit: `createView`
+            takes a view id. Recommendation unchanged: add all four (free now, an amendment later,
+            nothing switches on it). ⚠ Note the TASK above does NOT need it — the five move verbs
+            take `elementId`, and `refTo: 'element'` already exists.
         (4) Q4 — does v1.0.0 owe a SHEET? Recommend no (composition, not projection). Non-blocking.
         (5) Q5 — the discretisation tolerance: mine, documented? Non-blocking.
         Older and still owed:
