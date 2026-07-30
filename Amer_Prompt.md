@@ -84,20 +84,29 @@ holder**.
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry in `current_state.md` = **ENTRY 68** (Zayd — the SCHEDULE CRUD, D79). Your own
-        last work is Entry 67 (the P4.5 non-gating half: selection + view filter + the first
-        keyboard owner), pushed 2026-07-28 with Entry 66.
+FRESH:  Newest Entry in `current_state.md` = **ENTRY 69** (Zayd — the PLAN/SECTION DESIGN,
+        `P5_step6C_plan_section_design.md`; NO SOURCE TOUCHED, blocked on five owner rulings).
+        Your own last work is Entry 67 (the P4.5 non-gating half: selection + view filter + the
+        first keyboard owner), pushed 2026-07-28 with Entry 66.
 
-        ⚠ Entry 68 is COMMITTED AND PUSHED (owner-authorised 2026-07-30: `origin/main`
-        `b53a8bf → 892042a`), so **you are ONE ENTRY BEHIND until you pull.**
+        ⚠ Entry 68 (the schedule CRUD, D79) is COMMITTED AND PUSHED (owner-authorised 2026-07-30:
+        `origin/main` `b53a8bf → 892042a`). **Entry 69 is UNCOMMITTED on the dev box** — a design
+        doc plus handoff edits, no code — so after pulling you may see 68 as the newest pushed
+        Entry while 69 is the newest written one. **You are at least one entry behind; pull.**
 
-        ⚠ Entry 68 touches NOTHING you own — it is `packages/document` only (the three new verbs
-        `core.createSchedule`/`updateSchedule`/`deleteSchedule` + `scene.schedules` promoted to a
-        real `SceneCollection`). **It changes your app in exactly one way, and it needs no work
-        from you:** the three verbs appear in the GENERATED ribbon automatically (D21), rendering
-        `columns`/`filter`/`groupBy` through the existing `JsonControl` JSON textarea and the
-        schedule id as a text input. Functional, unlovely, nothing broken. 538 green, all 5 gates.
-        `git pull` first regardless.
+        ⚠ NEITHER entry touches anything you own. Entry 68 is `packages/document` only (the three
+        new verbs `core.createSchedule`/`updateSchedule`/`deleteSchedule` + `scene.schedules`
+        promoted to a real `SceneCollection`). **It changes your app in exactly one way, and it
+        needs no work from you:** the three verbs appear in the GENERATED ribbon automatically
+        (D21), rendering `columns`/`filter`/`groupBy` through the existing `JsonControl` JSON
+        textarea and the schedule id as a text input. Functional, unlovely, nothing broken.
+        Entry 69 changed no source at all. 538 green, all 5 gates. `git pull` first regardless.
+
+        ⚠ ONE THING TO KNOW FROM ENTRY 69, WITH NOTHING OWED NOW: when the plan/section body
+        lands it will produce a `ViewResult` of **2D polylines that carry sub-shape identity** —
+        a new KIND of thing for `apps/web` to draw (today the viewport draws meshes + edges).
+        That is a later, additive browser-track item. It is named here only so it is not a
+        surprise; do not start it, and do not let it displace P4.5.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -107,8 +116,8 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 68** (Zayd — the SCHEDULE
         need to know. (Git already answers "what is the tip?" — `git log -1`. This file answers
         "am I behind?", which git cannot.)
 
-        ⇒ After `git pull`: newest Entry = 68 ⇒ you are current, start TASK.
-          Newest Entry HIGHER than 68 ⇒ Zayd has pushed again: read every Entry after 68 before
+        ⇒ After `git pull`: newest Entry = 69 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 69 ⇒ Zayd has pushed again: read every Entry after 69 before
           starting, and re-check that TASK is still the right thing to do.
 
 TASK:   **P4.5 — THE INTERACTION MODEL. THE DESIGN DOC IS WRITTEN; THE BUILD IS GATED ON SIX
