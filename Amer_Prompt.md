@@ -89,10 +89,9 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 69** (Zayd — the PLAN/SEC
         Your own last work is Entry 67 (the P4.5 non-gating half: selection + view filter + the
         first keyboard owner), pushed 2026-07-28 with Entry 66.
 
-        ⚠ Entry 68 (the schedule CRUD, D79) is COMMITTED AND PUSHED (owner-authorised 2026-07-30:
-        `origin/main` `b53a8bf → 892042a`). **Entry 69 is UNCOMMITTED on the dev box** — a design
-        doc plus handoff edits, no code — so after pulling you may see 68 as the newest pushed
-        Entry while 69 is the newest written one. **You are at least one entry behind; pull.**
+        ⚠ BOTH are COMMITTED AND PUSHED (owner-authorised 2026-07-30): Entry 68 the schedule CRUD
+        (`origin/main` `b53a8bf → 892042a`), then Entry 69 the plan/section design
+        (`d596142 → 4bd7473`). **So you are TWO ENTRIES BEHIND until you pull.**
 
         ⚠ NEITHER entry touches anything you own. Entry 68 is `packages/document` only (the three
         new verbs `core.createSchedule`/`updateSchedule`/`deleteSchedule` + `scene.schedules`

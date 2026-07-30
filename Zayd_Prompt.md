@@ -74,10 +74,10 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 ```
 FRESH:  Newest Entry in `current_state.md` = **ENTRY 69** (YOUR OWN — the plan/section DESIGN,
         `P5_step6C_plan_section_design.md`. NO SOURCE TOUCHED; the doc is the deliverable and the
-        build is BLOCKED on five owner rulings). **ENTRY 69 IS UNCOMMITTED** — the tree carries the
-        new design doc + the `current_state.md`/prompt handoff edits, left that way because commits
-        are owner-gated. Entry 68 (the schedule CRUD, D79) was pushed 2026-07-30 (`b53a8bf →
-        892042a`); Entries 66 + 67 (Amer) on 2026-07-28.
+        build is BLOCKED on five owner rulings). **ENTRY 69 IS COMMITTED AND PUSHED**
+        (owner-authorised 2026-07-30: `origin/main` `d596142 → 4bd7473`) — confirm your position by
+        the ENTRY NUMBER regardless. Entry 68 (the schedule CRUD, D79) was pushed the same day
+        (`b53a8bf → 892042a`); Entries 66 + 67 (Amer) on 2026-07-28.
 
         ⚠ Entry 69 ran `pnpm verify` as a BASELINE ONLY — **538/538, real exit code 0, all five
         gates**, matching Entry 68 — and did not re-run it, because the session changed zero source
