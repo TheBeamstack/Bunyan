@@ -2372,6 +2372,11 @@ TASK still stood. It did.
 
 ### Entry 71 — 2026-07-30 — Zayd — **THE D29 GEOMETRY-CACHE BODIES SHIP (`exportBrep` / `importBrep`) — RESERVED SINCE P3, RULED *SHIP* ON 2026-07-14, UNWRITTEN FOR 16 DAYS. AND THE RULED DESIGN WAS WRONG IN TWO PLACES: ONE STEP THAT CANNOT BE IMPLEMENTED, AND ONE HOLE THAT LETS A CACHE MIS-NAME A FACE. 590 GREEN, ALL FIVE GATES 0.**
 
+**⚠ COMMITTED AND PUSHED (owner-authorised, 2026-07-30): `origin/main` `6580053 → f08b7d6`** — Entry 71
+alone, one commit (nothing was left uncommitted by the previous session, so nothing intermingled — Entries
+68/69/70's situation, not Entries 64+65's). It carries the code, this entry, the §1–§5 edits it owed, the
+imp_plan, and both prompt §2s. **⚠ AMER IS ONE ENTRY BEHIND — `git pull` before any browser work**; nothing
+of his moved, but the committed WASM artifact changed (+12,631 B).
 ⚠ **WRITTEN OUTSIDE `current_state.md` AND MOVED IN AFTERWARDS, exactly as Entry 70 was and for the same
 reason** — the owner ran Amer and Zayd **in parallel** on 2026-07-30, and two agents appending to §7 in one
 window collide in the file whose whole job is to be the shared truth. It was parked in

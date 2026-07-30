@@ -78,14 +78,15 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 71** (YOUR OWN — the D29 
         state machine, numeric entry, hover, multi-select; 578 green) and it is ALREADY MERGED
         UNDERNEATH yours: `origin/main` `45109d5 → 57765b0` (+ two doc-only follow-ups).
 
-        ⚠ **ENTRY 71 IS UNCOMMITTED AND OWNER-GATED, AND IT IS ALREADY MERGED INTO THE LOG.** Both
+        ⚠ **ENTRY 71 IS COMMITTED AND PUSHED** (owner-authorised 2026-07-30: `origin/main`
+        `6580053 → f08b7d6`) — one commit carrying the code, the entry, the §1–§5 edits it owed,
+        the imp_plan and both prompt §2s. Confirm your position by the ENTRY NUMBER regardless. Both
         entries were written OUTSIDE `current_state.md` and moved in afterwards, because the owner
         ran both agents IN PARALLEL that day; the standalone files are deleted and nothing about
         either entry changed in the move. The branch `zayd/entry71-d29-brep-cache` fast-forwarded
         onto Entry 70 with **no conflict and nothing replayed** (Entry 70 is `apps/web` +
         `core_logic.md`; Entry 71 is `tools/kernel-build` + `packages/kernel-occt` +
-        `packages/protocol` + `tests`). ⇒ **if the tree is still dirty when you open, the owner has
-        not yet authorised the commit — surface it, do not idle, and do not re-do the work.**
+        `packages/protocol` + `tests`).
 
         ⚠ TWO THINGS OF AMER'S THAT REACH YOU, neither of them a break:
         • **DOMAIN RULE 19** (three appended lines in `core_logic.md` §8): *a tool collects input;

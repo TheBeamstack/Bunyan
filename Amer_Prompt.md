@@ -97,8 +97,8 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 71** (Zayd — the D29 GEOM
         document-layer concern and D19 makes `DocumentContext` the only door. ⚠ **The committed
         WASM artifact changed (+12,631 B) — `git pull` before any browser work.** Nothing of yours
         moved; his entry is `tools/kernel-build` + `packages/kernel-occt` + `packages/protocol` +
-        `tests`. ⚠ It may still be UNCOMMITTED when you open (commits are owner-gated) even though
-        it is already in the log — that is expected, not a mistake to fix.
+        `tests`. ⚠ It is COMMITTED AND PUSHED (owner-authorised 2026-07-30:
+        `origin/main` `6580053 → f08b7d6`), so a plain `git pull` brings you level.
 
         ⚠ BOTH Entry 70 and Entry 71 were written in standalone files and MOVED into §7 afterwards,
         because the owner ran both agents in parallel that day. Those files are now deleted and the
