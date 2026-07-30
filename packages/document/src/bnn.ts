@@ -204,6 +204,18 @@ export function loadBnn(bytes: Uint8Array): BnnPackage {
       throw new Error(`.bnn scene.json: "${key}" must be an object, and it is not`);
     }
   }
+  // ⚠⚠ THE OPTIONAL COLLECTIONS ARE GUARDED DIFFERENTLY, AND THE DIFFERENCE IS THE WHOLE POINT: absent is
+  // LEGAL (it means "this document has none"), present-and-not-an-object is a typed refusal. Guarding them
+  // like the required ones would reject every `.bnn` ever written, since none of them carries the key.
+  //
+  // ⚠ Only `schedules` is here, because Entry 68's CRUD made it the first documentation collection a body
+  // WRITES and READS — `null` would reach `applyOne`/`evaluateSchedule` as an object (`typeof null`, the
+  // trap above). `views`/`annotations`/`sheets` join it when their bodies land, per the row Ⓐ design.
+  for (const key of ['schedules'] as const) {
+    if (parsed[key] !== undefined && !isPlainObject(parsed[key])) {
+      throw new Error(`.bnn scene.json: "${key}" must be an object, and it is not`);
+    }
+  }
   if (!Array.isArray(scene.brokenRefs)) {
     throw new Error('.bnn scene.json: "brokenRefs" must be an array, and it is not');
   }

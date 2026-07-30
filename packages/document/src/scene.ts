@@ -121,12 +121,19 @@ export interface Scene {
    * the full apparatus is Parity-B. No body authors or reads these yet.
    *
    * ⚠ FOUR OPTIONAL COLLECTIONS, ABSENT-DEFAULTED (the `georeference` precedent, NOT `roomSeparators`):
-   * absent ⇒ no documentation (today's behaviour). NOT in `emptyScene()`, NOT in `SceneCollection`, NOT in
-   * the hostile-`.bnn` guard — because no body produces undo for them or reads them, so there is nothing to
-   * default, invalidate, or crash. TOP-LEVEL (not a nested `documentation?` bag) so each is promotable to a
-   * full `SceneCollection` ADDITIVELY when its CRUD lands (the flat-key undo machinery indexes `scene[key]`):
-   * P6 adds the `emptyScene` entry + the `isPlainObject` guard + the "nothing" dependency edge in the same
-   * additive step. No `SCENE_SCHEMA_VERSION` bump (they fold into the frozen v2, exactly as 0g's reservations).
+   * absent ⇒ no documentation (today's behaviour). TOP-LEVEL (not a nested `documentation?` bag) so each is
+   * promotable to a full `SceneCollection` ADDITIVELY when its CRUD lands (the flat-key undo machinery
+   * indexes `scene[key]`): its body adds the `emptyScene` entry + the `isPlainObject` guard + the dependency
+   * edge in the same additive step. No `SCENE_SCHEMA_VERSION` bump (they fold into the frozen v2, exactly as
+   * 0g's reservations).
+   *
+   * ⚠⚠ `schedules` IS NOW PROMOTED (Entry 68, D58 row Ⓐ's CRUD — `core.createSchedule`/`updateSchedule`/
+   * `deleteSchedule`): it is a `SceneCollection` member and a guarded key, so it participates in undo and
+   * the dependency graph like any other collection. ⚠ TWO of the three steps this comment predicted, not
+   * three: **no `emptyScene()` entry.** The collection materialises on first authoring (`applyOne`), so a
+   * document with no schedules is byte-identical to one written before this entry, and all four
+   * documentation collections keep ONE rule — absent ⇒ none of it. `views`/`annotations`/`sheets` remain
+   * pure reservations (no body authors or reads them yet).
    * -------------------------------------------------------------------------------------------- */
   readonly views?: Readonly<Record<ViewId, ViewDescriptor>>;
   readonly annotations?: Readonly<Record<AnnotationId, Annotation>>;
@@ -188,6 +195,12 @@ export function emptyScene(): Scene {
     constraints: {},
     brokenRefs: [],
     roomSeparators: {},
+    // ⚠⚠ NOTE WHAT IS NOT HERE: `schedules`, even though Entry 68 made it a full `SceneCollection`. The row
+    // Ⓐ design predicted an `emptyScene` entry would land with the CRUD, and building it showed that it
+    // should NOT: the collection MATERIALISES ON FIRST AUTHORING (`applyOne` creates it), so a document
+    // that has no schedules stays byte-identical to one written before this entry — no new key in every
+    // `.bnn`, and the four documentation collections keep ONE uniform rule (absent ⇒ none of it), which is
+    // exactly what `tests/documentation-anchoring.test.ts` asserts and what a reservation means.
   };
 }
 
@@ -200,7 +213,15 @@ export type SceneCollection =
   | 'containers'
   | 'grids'
   | 'constraints'
-  | 'roomSeparators';
+  | 'roomSeparators'
+  /**
+   * ⚠ PROMOTED FROM A RESERVATION (Entry 68 — D58 row Ⓐ's CRUD). A schedule is now AUTHORED, so its
+   * creation/rename/deletion is an ordinary undoable `SceneChange`, and adding this member forced its
+   * rebuild edge to be declared in `dependency.ts` (the exhaustive switch fails to compile until it is —
+   * the designed mechanism, Entry 33). `views`/`annotations`/`sheets` follow the same way when their
+   * bodies land.
+   */
+  | 'schedules';
 
 /**
  * One atomic change to the scene — and the unit undo is built from.
@@ -236,7 +257,14 @@ export function revertChanges(scene: Scene, changes: readonly SceneChange[]): Sc
 }
 
 function applyOne(scene: Scene, change: SceneChange): Scene {
-  const current = scene[change.collection] as Record<string, unknown>;
+  // ⚠⚠ `?? {}` — AND IT IS NOT DEFENSIVE PADDING. A `SceneCollection` may be an OPTIONAL field on `Scene`
+  // (`schedules`, Entry 68, and every documentation collection that follows it), so a scene that predates
+  // the collection — a `.bnn` written last week, a `Scene` a caller assembled by hand — simply has no such
+  // key. Measured before this line existed: the FIRST create into an absent collection died with a raw
+  // `TypeError: Cannot convert undefined or null to object` out of `Object.entries`, i.e. an untyped crash
+  // from the undo machinery where domain rule 4 promises a typed refusal or a clean edit. Creating INTO an
+  // absent collection is not an error state; it is the normal first create.
+  const current = (scene[change.collection] ?? {}) as Record<string, unknown>;
   const collection: Record<string, unknown> = {};
   // Rebuilt rather than mutated-and-deleted: a delta must never leave a `{ id: undefined }` hole,
   // because that key would survive `JSON.stringify` as nothing and come back on load as a phantom.

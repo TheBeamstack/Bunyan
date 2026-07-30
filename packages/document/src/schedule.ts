@@ -76,6 +76,117 @@ export function columnKeyOf(column: ScheduleColumn): string {
   }
 }
 
+/* ================================================================================================
+ * THE AUTHORING GRAMMAR — what a `ScheduleDefinition` must SATISFY to be worth storing (Entry 68).
+ *
+ * ⚠⚠ WHY THIS LIVES HERE AND NOT IN `commands.ts`. `columnKeyOf` above is "the ONE place the key
+ * grammar lives" (owner Q1). A validator that re-states the grammar somewhere else is a second copy of
+ * it, and the two drift — which is the whole defect Q1 was ruled to prevent. So the CRUD calls this;
+ * `commands.ts` only turns the issues into a typed `CommandFailure`.
+ *
+ * ⚠⚠ AND WHY THE REFUSAL BELONGS TO THE COMMAND, NOT TO THE EVALUATOR. A schedule is a PROJECTION
+ * (rule 17): `projectSchedule` must never refuse a builder his table because a stored definition has
+ * drifted — it degrades, deliberately (`groupRows` says so in its own comment). ⇒ the door where a
+ * bad definition can still be REFUSED instead of degraded is the authoring one, and there was no
+ * authoring door until this entry. Measured on the body before it existed (Entry 68 probes):
+ *
+ *   groupBy naming a column the schedule lacks   2 groups collapse to 1, key `[""]`  — every subtotal
+ *                                                becomes the grand total, silently
+ *   a `quantity` key outside the grammar         every cell NaN and the TOTAL NaN — and `JSON.stringify`
+ *                                                writes NaN as `null`, so it reaches a consumer as "no value"
+ *   an unknown column `source`                   a raw TypeError out of the evaluator
+ *   two columns sharing one key                  2 headers, ONE total entry — the second silently merges
+ *
+ * ⚠ The last one is `checkLayers`' rule one level up (*two layers with the same name mint byte-identical
+ * refs*): when a structure is addressed by a derived key, the key must be UNIQUE or the addressing is a
+ * lie. Here `row.cells.find(c => c.columnKey === key)` always finds the first, so the second column is
+ * unaddressable by construction — groupable, totalable and reachable only as its twin.
+ * ============================================================================================= */
+
+/** The column sources the frozen grammar admits — the `ScheduleColumn` union's discriminants. */
+const SOURCES: readonly string[] = ['field', 'param', 'quantity', 'count'];
+/** The `field` column keys the frozen grammar admits (`documentation.ts` `ScheduleColumn`). */
+const FIELD_KEYS: readonly string[] = ['mark', 'name', 'id', 'type', 'level'];
+/** The `quantity` axes the frozen grammar admits — the `QuantityBreakdown` axes (D45). */
+const QUANTITY_KEYS: readonly string[] = ['volume', 'area', 'mass'];
+
+/**
+ * Everything wrong with a definition, as human/agent-readable sentences. Empty ⇒ it is storable.
+ *
+ * ⚠ It validates the WHOLE definition, never the args of one edit — an update that replaces `columns`
+ * can strand a `groupBy` it never mentions, and the stranded pair is only visible in the merged result.
+ */
+export function scheduleDefinitionIssues(definition: ScheduleDefinition): readonly string[] {
+  const issues: string[] = [];
+
+  if (definition.name.trim() === '') issues.push('a schedule needs a name');
+
+  // ⚠ A ZERO-COLUMN SCHEDULE IS A BLANK TABLE, and it renders without complaining — the same failure
+  // mode as the empty curtain-panel table D78 measured (an artifact that looks authored and says
+  // nothing). It is refused at the door rather than shipped and wondered about.
+  if (definition.columns.length === 0) issues.push('a schedule needs at least one column');
+
+  const seen = new Set<string>();
+  for (const column of definition.columns) {
+    // ⚠ CHECKED BEFORE THE SWITCH, AND NOT INSIDE IT AS A `default`. The union makes an unknown `source`
+    // impossible to TypeScript and entirely possible at runtime — a definition arrives from an agent's
+    // args or a hand-edited `.bnn`, neither of which the compiler saw. (Measured: an unknown source
+    // reaches `columnKeyOf` and comes back `undefined`, then dies as a raw TypeError inside the projector.)
+    if (!SOURCES.includes(column.source)) {
+      issues.push(`column source "${column.source}" is not one of ${SOURCES.join(', ')}`);
+      continue;
+    }
+    switch (column.source) {
+      case 'field':
+        if (!FIELD_KEYS.includes(column.key)) {
+          issues.push(
+            `column "field:${column.key}" — a field column must be one of ${FIELD_KEYS.join(', ')}`,
+          );
+        }
+        break;
+      case 'quantity':
+        if (!QUANTITY_KEYS.includes(column.key)) {
+          issues.push(
+            `column "quantity:${column.key}" — a quantity column must be one of ${QUANTITY_KEYS.join(', ')}`,
+          );
+        }
+        break;
+      case 'param':
+        // ⚠ DELIBERATELY UNCHECKED AGAINST ANY TYPE'S SCHEMA. A `param` key names a `ParamSchema` field
+        // of whatever types the filter admits, and a schedule may legitimately be authored BEFORE the
+        // elements it schedules exist (that is what a template is). An empty param cell is a legible
+        // "this element has no such parameter"; an unknown QUANTITY axis is not, because it produces a
+        // NUMBER (NaN) rather than a blank. The line is drawn where silence stops being legible.
+        if (column.key.trim() === '') issues.push('a param column needs a parameter key');
+        break;
+      case 'count':
+        break;
+    }
+    const key = columnKeyOf(column);
+    if (seen.has(key)) {
+      issues.push(
+        `two columns share the key "${key}" — a column is ADDRESSED by its key (groupBy, totals, ` +
+          `every cell lookup), so the second would be unreachable and their totals would merge`,
+      );
+    }
+    seen.add(key);
+  }
+
+  // ⚠ THE Q1 RULING, ENFORCED AT THE ONLY DOOR THAT CAN: `groupBy` names STABLE COLUMN KEYS. A key that
+  // names no column of THIS schedule is not a grouping — it silently buckets every row together under
+  // the empty string, and every subtotal becomes the grand total (measured: 2 groups → 1).
+  for (const key of definition.groupBy ?? []) {
+    if (!seen.has(key)) {
+      issues.push(
+        `groupBy "${key}" names no column of this schedule — groupBy names stable COLUMN KEYS ` +
+          `(${[...seen].join(', ') || 'none'}), never headings`,
+      );
+    }
+  }
+
+  return issues;
+}
+
 /** The default display heading when a column declares none — the key's own last segment, humanised. */
 function defaultHeading(column: ScheduleColumn): string {
   switch (column.source) {
@@ -454,7 +565,7 @@ function groupRows(
       const cell = row.cells.find((c) => c.columnKey === columnKey);
       return cell?.value === undefined ? '' : String(cell.value);
     });
-    const id = key.join(' ');
+    const id = key.join('\u0000');
     const bucket = buckets.get(id);
     if (bucket === undefined) buckets.set(id, { key, rows: [row] });
     else bucket.rows.push(row);

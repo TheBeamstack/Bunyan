@@ -32,8 +32,11 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
    environment + commands (§6). Also read box-local **`../cross_projects_policy.md`** and
    **`../last_session_work.md`** — binding, not in git, do not skip.
 3. Do §2 **`TASK`**.
-4. **`pnpm verify` — and read the REAL exit code.** `format:check` runs before the tests and has failed
-   silently **six sessions running** (Entries 60–65). A local gate whose exit code you do not read is not a gate.
+4. **`pnpm verify` — and read the REAL exit code.** `format:check` runs before the tests and failed
+   silently **six sessions running** (Entries 60–65); it has been GREEN since Entry 67, and the reason is
+   procedural, not luck: **run `prettier --write` on every file you touched BEFORE `verify`**, not after
+   you are surprised. ⚠ Keep reading the real exit code anyway — Entry 68 was formatted first and `verify`
+   still exited **1**, on four LINT errors. _A local gate whose exit code you do not read is not a gate._
 5. **Hand off:** append an Entry to `current_state.md` (_what changed · how verified · on which
    engine/environment · what is owed next_), update `../last_session_work.md`, and **rewrite §2 of both
    `Zayd_Prompt.md` and `Amer_Prompt.md`.** A session that does not leave the next one ready is unfinished.
@@ -69,16 +72,15 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry in `current_state.md` = **ENTRY 67** (Amer — the P4.5 non-gating half:
-        `apps/web` selection + view filter + keyboard owner). Your own last work is Entry 65 (the
-        schedules body, D78). Entries 64 + 65 were COMMITTED AND PUSHED (owner-authorised
-        2026-07-28); **Entries 66 + 67 are now ALSO COMMITTED AND PUSHED** (`origin/main`
-        `525d6a7 → c8006d3`, one commit) — confirm your position by the ENTRY NUMBER regardless.
+FRESH:  Newest Entry in `current_state.md` = **ENTRY 68** (YOUR OWN — the schedule CRUD, D79:
+        `core.createSchedule`/`updateSchedule`/`deleteSchedule` + `scene.schedules` promoted to a
+        full `SceneCollection`). **ENTRY 68 IS UNCOMMITTED** — it is owner-gated, like every entry;
+        the working tree carries it. Entries 66 + 67 (Amer) were pushed 2026-07-28.
 
-        ⚠ Entries 66 + 67 touch NOTHING you own: 66 added `P4.5_interaction_model_design.md`
-        (no source); 67 is pure `apps/web` (a new `view/viewFilter.ts` + `App.tsx`/`App.css`),
-        below every frozen contract, no kernel/document/protocol change. The P4.5 snap seam still
-        reuses the already-live `distance`/`classifyPoint`/`faceFrame` ops — nothing new of you.
+        ⚠ Entry 68 is `packages/document` only — `commands.ts`, `schedule.ts`, `scene.ts`,
+        `bnn.ts`, `dependency.ts`, `schema.ts` + `tests/schedule-crud.test.ts`. `pnpm verify`
+        **538/538, real exit code 0, all five gates** (Entry 67's `format:check` fix holds —
+        format BEFORE verify, not after you are surprised). Nothing frozen moved.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -88,34 +90,43 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 67** (Amer — the P4.5 non
         need to know. (Git already answers "what is the tip?" — `git log -1`. This file answers
         "am I behind?", which git cannot.)
 
-        ⇒ After `git pull`: newest Entry = 67 ⇒ you are current, start TASK.
-          Newest Entry HIGHER than 67 ⇒ the other agent has pushed: read every Entry after 67
+        ⇒ After `git pull`: newest Entry = 68 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 68 ⇒ the other agent has pushed: read every Entry after 68
           before starting, and re-check that TASK is still the right thing to do.
 
-TASK:   The SCHEDULE CRUD — owner Q4's deliberately-separated second unit (Entry 65 NEXT).
-        The read path shipped in Entry 65; `scene.schedules` still has no authoring verb, so
-        v1.0.0's "one schedule" (D58) cannot yet be created, renamed or deleted.
-        → `core.createSchedule`/`updateSchedule`/`deleteSchedule`, which promotes `scene.schedules`
-          from an optional absent-defaulted collection to a full `SceneCollection` — undo + a
-          declared dependency edge. Entry 47 §5-6 already designed that promotion as ADDITIVE
-          (top-level, flat-keyed, so the undo machinery indexes it and `dependency.ts`'s exhaustive
-          switch fails to compile until the edge is declared — the designed mechanism, Entry 33).
-        ⚠ NOT freeze-sensitive (Entry 47 §7: documentation entities are not elements, so a new
-          command is an ordinary additive registry entry) — so build → verify → Entry, not
-          design-first. The SceneCollection promotion is the part with real design surface.
-        ⚠⚠ Then the remaining D58 minimal-2D bodies (one plan + one section — `sectionCut` is
-          already reserved in the frozen protocol). Before starting those, read Entry 65's closing
-          note: reserving a shape and building its body are two different verifications, and only
-          the second meets the model.
+TASK:   The REMAINING D58 MINIMAL-2D BODIES — **ONE PLAN + ONE SECTION** (Entry 68 NEXT; D58's
+        v1.0.0 scope is one plan + one section + one schedule, and the schedule half is now DONE
+        end to end — body in Entry 65, CRUD in Entry 68).
+        → The op is already there: `sectionCut` is RESERVED in the frozen kernel protocol, and an
+          op added after a freeze is precedented (`faceFrame`, D13) ⇒ additive, not an amendment.
+        → `views` promotes to a `SceneCollection` exactly as `schedules` just did — union member
+          (the exhaustive switch in `dependency.ts` fails to compile until the edge is declared,
+          Entry 33's mechanism) + the optional-collection `.bnn` guard. ⚠ NOT an `emptyScene()`
+          entry: Entry 68 found that the row-Ⓐ design predicted that third step wrongly — adding it
+          falsifies two GREEN Entry-47 reservation assertions, and the collection should
+          MATERIALISE ON FIRST AUTHORING instead (`applyOne` already does it).
+        ⚠⚠ THIS ONE IS CONTRACT-SHAPING ENOUGH TO BE DESIGN-FIRST: a projected 2D view is a new
+          KIND of derived artifact (what does `sectionCut` return, in what frame, with what
+          identities?), and D58 froze only its ANCHORING shape. Write the `*_design.md`, put its
+          open questions to the owner, and stop there — that is the deliverable.
+        ⚠ Before starting, read Entry 65's AND Entry 68's closing notes together: **reserving a
+          shape and building its body are two different verifications.** Entry 65 found three
+          defects in the first hour of driving a seven-day-green reservation; Entry 68 found the
+          design doc's own prediction of an additive promotion was wrong in one of its three steps.
+          A `ViewDescriptor` has been green and unexercised since Entry 47.
 
-NEW:    Two owner rulings are STILL OWED and are cheap only until the freeze (Entry 64):
-        (1) rule 8 — does `FamilyDefinition` get a way to declare billable faces? Without one, every
+NEW:    Owner rulings OWED, all cheap only until the freeze:
+        (1) NEW (Entry 68) — should `ParamField.refTo` also gain `'view'`, `'sheet'`, `'annotation'`
+            and `'family'`? Their CRUD is post-freeze; without it that CRUD must amend a frozen
+            contract to say what its own id args name (the ⓣ trap — and exactly why row Ⓕ
+            pre-widened for `'system'`/`'designOption'`). Entry 68 added ONLY `'schedule'`, which it
+            needed. Recommendation: add all four. ⚠ If you are about to start the plan/section work
+            and this is still unruled, RAISE IT — `'view'` is the one your own task will want.
+        (2) rule 8 — does `FamilyDefinition` get a way to declare billable faces? Without one, every
             D61 data-authored family reports the whole-solid area D72 measured 1.07×–3.03× wrong.
-        (2) rule 17 — should `Dimension.anchors` exclude the free `point` anchor?
+        (3) rule 17 — should `Dimension.anchors` exclude the free `point` anchor?
         Also still parked (Entry 62): should `undo`/`redo` become Commands (rule 9)?
-        ⚠ Entry 65 took three rulings of its own (D78) — `groupBy` keys by stable column key;
-          `ScheduleDefinition.designOptionIds?` and `ChildOverride.mark?` reserved. Already applied
-          and recorded; do not re-open them.
+        ⚠ Entry 65's three rulings (D78) are applied and recorded — do not re-open them.
         If a ruling arrives in chat, apply it AND record it in the doc it belongs to — this file is
         not where decisions live.
 ```

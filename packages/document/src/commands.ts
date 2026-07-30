@@ -40,12 +40,14 @@ import type {
   SpatialContainer,
 } from './entities.js';
 import { isDatumConstraint, isJoinConstraint } from './entities.js';
+import type { ScheduleColumn, ScheduleDefinition, ScheduleFilter } from './documentation.js';
 import { joinOverridesOf, wallsMeet } from './joins.js';
+import { scheduleDefinitionIssues } from './schedule.js';
 import { readSketch } from './sketch.js';
 import type { Registries } from './registries.js';
 import type { Scene, SceneChange } from './scene.js';
 import { hostedBy, instancesOfStyle, stylesUsingMaterial, stylesUsingSection } from './scene.js';
-import type { ParamSchema } from './schema.js';
+import type { ParamField, ParamSchema } from './schema.js';
 import { validateParams, withDefaults } from './schema.js';
 import type { UndoableEdit } from './undo.js';
 import type { ModelRevision } from './revision.js';
@@ -229,8 +231,17 @@ interface Referrer {
   readonly describe: string;
   /** The `retargetMap` key that resolves this referrer — the OLD id/token being removed or renamed. */
   readonly retargetKey: string;
-  /** The change that repoints this referrer to `to` (used when `retargetMap` supplies a replacement). */
-  readonly redirect: (to: string) => SceneChange;
+  /**
+   * The change that repoints this referrer to `to` (used when `retargetMap` supplies a replacement).
+   *
+   * ⚠ OPTIONAL, because D51's ladder (RESTRICT | SET | acknowledged CASCADE) has a rung that is not always
+   * available: a reference living in a collection **no command can write yet** can be refused or broken,
+   * but it cannot be SET. Entry 68 found the first one — a `Sheet.viewports` entry placing a schedule,
+   * where `sheets` is still a pure reservation with no CRUD. Absent ⇒ `retargetMap` REFUSES with the
+   * reason instead of pretending; the alternative was a redirect that emits a `SceneChange` on a
+   * collection the invalidator would reject at runtime, i.e. a guard that lies.
+   */
+  readonly redirect?: (to: string) => SceneChange;
 }
 
 /** The two args every guarded command carries. ⚠ THIS SHAPE FREEZES at P5 (row ⓓ). */
@@ -264,8 +275,17 @@ function guardReferences(
   const blocked: string[] = [];
   for (const r of referrers) {
     const to = map[r.retargetKey];
-    if (to !== undefined) extra.push(r.redirect(to));
-    else if (!acknowledge) blocked.push(r.describe);
+    if (to !== undefined) {
+      if (r.redirect === undefined) {
+        throw new CommandFailure(
+          'REFUSED',
+          `${r.describe} — this reference cannot be retargeted (no command authors that collection ` +
+            `yet), so it can only be kept or broken. Drop it from retargetMap and pass acknowledge:true ` +
+            `to proceed and let it break.`,
+        );
+      }
+      extra.push(r.redirect(to));
+    } else if (!acknowledge) blocked.push(r.describe);
   }
   if (blocked.length > 0) {
     throw new CommandFailure(
@@ -1949,6 +1969,256 @@ export const deleteGridCommand: Command = {
 };
 
 /* ================================================================================================
+ * THE SCHEDULE CRUD (Entry 68 — D58 row Ⓐ's second unit, owner Q4's deliberate separation)
+ *
+ * ⚠⚠ WHY IT IS A UNIT OF ITS OWN AND WHY IT IS NOT FREEZE-SENSITIVE. Entry 65 shipped the schedules
+ * BODY — `ScheduleDefinition` → rows — and `scene.schedules` still had no authoring verb, so v1.0.0's
+ * "one schedule" (D58) could be evaluated but never CREATED, renamed or deleted: **the reserved shape had
+ * a reader and no writer.** Row Ⓐ's design settled the freeze question in advance (§7): documentation
+ * entities are NOT elements, so their CRUD is *new commands*, and a new command is an ordinary additive
+ * registry entry (D19, domain rule 5) — no `argsSchema` slot is owed on any frozen shape.
+ *
+ * ⚠⚠ THE PART WITH REAL DESIGN SURFACE IS THE PROMOTION, NOT THE VERBS. Authoring makes `scene.schedules`
+ * a full `SceneCollection` (undo + a declared dependency edge), which Entry 47 §5-6 had already designed
+ * as additive and which the exhaustive switch in `dependency.ts` enforces — see `scene.ts`.
+ *
+ * ⚠⚠ AND THE VERBS CARRY THE ONE THING THE BODY DELIBERATELY WILL NOT: A REFUSAL. `projectSchedule`
+ * degrades rather than refuses, because a projection must never deny a builder his table (rule 17). That
+ * makes the authoring door the ONLY place a malformed definition can be stopped, and until this entry
+ * there was no authoring door — so every defect `scheduleDefinitionIssues` names was, measured, reachable
+ * and silent (`schedule.ts`, and the numbers are in Entry 68).
+ * ============================================================================================= */
+
+/** The `filter` arg, declared so `validateParams` refuses an unknown filter key rather than ignoring it. */
+const SCHEDULE_FILTER_ARG: ParamField = {
+  kind: 'object',
+  label: 'Filter',
+  description: 'Which elements are rows — AND-combined. Absent ⇒ every element in the model.',
+  fields: {
+    typeId: { kind: 'string', label: 'Type', description: 'e.g. core.wall' },
+    ifcClass: { kind: 'string', label: 'IFC class', description: 'e.g. IfcDoor' },
+    loadBearing: { kind: 'boolean', label: 'Load-bearing' },
+    containerId: { kind: 'ref', refTo: 'container', label: 'Within container' },
+  },
+};
+
+/**
+ * The `columns` arg. ⚠ `source` is an ENUM, so an unknown source is refused by the schema itself — the
+ * probe measured an unknown source reaching the evaluator as a raw `TypeError`, and a generated agent
+ * tool-list (D21) now shows the four legal sources without anyone maintaining a second list.
+ */
+const SCHEDULE_COLUMNS_ARG: ParamField = {
+  kind: 'array',
+  label: 'Columns',
+  required: true,
+  description: 'In order. Each is a stable KEY into the frozen model; the cell value derives.',
+  items: {
+    kind: 'object',
+    label: 'Column',
+    fields: {
+      source: {
+        kind: 'enum',
+        label: 'Source',
+        required: true,
+        options: ['field', 'param', 'quantity', 'count'],
+      },
+      key: {
+        kind: 'string',
+        label: 'Key',
+        description:
+          'field: mark|name|id|type|level · param: a params key · quantity: volume|area|mass',
+      },
+      part: {
+        kind: 'string',
+        label: 'Part',
+        description: 'quantity only — scope to one part name',
+      },
+      heading: {
+        kind: 'string',
+        label: 'Heading',
+        description: 'Display only. NEVER an identity.',
+      },
+    },
+  },
+};
+
+const SCHEDULE_GROUP_BY_ARG: ParamField = {
+  kind: 'array',
+  label: 'Group by',
+  description:
+    'STABLE COLUMN KEYS (field:mark, quantity:volume:structure) — never headings (owner Q1).',
+  items: { kind: 'string', label: 'Column key' },
+};
+
+const SCHEDULE_OPTIONS_ARG: ParamField = {
+  kind: 'array',
+  label: 'Design options',
+  description: 'Which design alternatives this schedule shows. Absent ⇒ each set’s primary.',
+  items: { kind: 'ref', refTo: 'designOption', label: 'Design option' },
+};
+
+/** Narrow a validated `array` arg to strings — the same discipline as `text`/`num` (never coerce). */
+function stringList(value: ParamValue | undefined): readonly string[] | undefined {
+  return Array.isArray(value) ? (value as readonly ParamValue[]).map((v) => text(v)) : undefined;
+}
+
+/**
+ * Build the definition an edit would store, then refuse it as ONE typed failure naming every problem.
+ *
+ * ⚠ IT VALIDATES THE MERGED RESULT, NOT THE ARGS. `updateSchedule` that replaces `columns` and mentions
+ * no `groupBy` can strand the STORED grouping on columns that no longer exist — a defect visible only in
+ * the merged definition, and the exact shape of the silent re-key Q1 was ruled to prevent.
+ */
+function checkScheduleDefinition(definition: ScheduleDefinition): ScheduleDefinition {
+  const issues = scheduleDefinitionIssues(definition);
+  if (issues.length > 0) {
+    throw new CommandFailure(
+      'REFUSED',
+      `this schedule definition would not read correctly — refusing to store it`,
+      issues,
+    );
+  }
+  return definition;
+}
+
+/** Every design option named by a schedule must exist — a selection nobody can resolve is not a selection. */
+function checkDesignOptions(scene: Scene, ids: readonly string[] | undefined): void {
+  for (const id of ids ?? []) {
+    if (scene.designOptions?.[id] === undefined) {
+      throw new CommandFailure('NOT_FOUND', `unknown design option "${id}"`);
+    }
+  }
+}
+
+/**
+ * Sheets that PLACE this schedule. ⚠ A `Viewport.viewId` addresses a `views` OR a `schedules` entry
+ * (`documentation.ts` says so), so deleting a scheduled table out from under the sheet it is drawn on is
+ * an ordinary D51 broken reference — measured before the guard existed: **1 dangling viewport, and
+ * `scene.brokenRefs` stayed empty**, i.e. nothing in the document recorded that the sheet had lost its
+ * table, and the drawing set would simply print short.
+ *
+ * ⚠⚠ NO `redirect`, DELIBERATELY. Repointing the viewport means writing `scene.sheets`, and `sheets` is
+ * still a pure reservation — not a `SceneCollection`, no CRUD, no undo. A `sheets` change here would be an
+ * edit the dependency graph rejects at runtime, so the guard would crash exactly when a caller took its
+ * advice. This referrer is therefore RESTRICT-or-break: refused by default (naming the sheet), or
+ * `acknowledge:true` to let the viewport dangle. **The missing rung of D51's ladder is missing HONESTLY,
+ * in the type** — the sheet CRUD adds it by supplying a `redirect`, and nothing else changes.
+ */
+function scheduleReferrers(scene: Scene, scheduleId: string): readonly Referrer[] {
+  const out: Referrer[] = [];
+  for (const sheet of Object.values(scene.sheets ?? {})) {
+    if (!sheet.viewports.some((v) => v.viewId === scheduleId)) continue;
+    out.push({
+      describe: `sheet "${sheet.number}" places schedule "${scheduleId}"`,
+      retargetKey: scheduleId,
+    });
+  }
+  return out;
+}
+
+export const createScheduleCommand: Command = {
+  id: 'core.createSchedule',
+  label: 'Create schedule',
+  description:
+    'Create a schedule — a filter (which elements are rows) + columns (stable keys into the frozen model). The rows and every cell are DERIVED on evaluation; nothing tabular is stored (D58, rule 17).',
+  argsSchema: {
+    name: { kind: 'string', label: 'Name', required: true },
+    filter: SCHEDULE_FILTER_ARG,
+    columns: SCHEDULE_COLUMNS_ARG,
+    groupBy: SCHEDULE_GROUP_BY_ARG,
+    designOptionIds: SCHEDULE_OPTIONS_ARG,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createScheduleCommand, rawArgs);
+    // ⚠ MINTED, never caller-supplied (D44): a schedule has a NAME the user owns and no natural key, so
+    // an id is machine identity — and a caller-chosen one re-opens id reuse, which is what D44 abolished.
+    // (Materials/sections take explicit ids because `C25/30` and `IPE300` ARE the catalogue's own names.)
+    const id = ctx.mintId('schedule');
+    const designOptionIds = stringList(args['designOptionIds']);
+    checkDesignOptions(ctx.scene, designOptionIds);
+    const definition = checkScheduleDefinition({
+      id,
+      name: text(args['name']),
+      filter: (args['filter'] ?? {}) as ScheduleFilter,
+      columns: (args['columns'] ?? []) as readonly ScheduleColumn[],
+      ...(stringList(args['groupBy']) === undefined
+        ? {}
+        : { groupBy: stringList(args['groupBy'])! }),
+      ...(designOptionIds === undefined ? {} : { designOptionIds }),
+    });
+    return ctx.edit(
+      `Create schedule ${definition.name}`,
+      [{ collection: 'schedules', id, after: definition }],
+      // ⚠ NOTHING REBUILDS. A schedule reads the model; the model does not read the schedule
+      // (`dependency.ts` declares that edge as a deliberate "nothing").
+      [],
+    );
+  },
+};
+
+export const updateScheduleCommand: Command = {
+  id: 'core.updateSchedule',
+  label: 'Edit schedule',
+  description:
+    'Rename a schedule or change its filter/columns/grouping. Absent args are left unchanged. No geometry rebuild — a schedule is a projection.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'schedule', label: 'Schedule', required: true },
+    name: { kind: 'string', label: 'Name' },
+    filter: SCHEDULE_FILTER_ARG,
+    columns: { ...SCHEDULE_COLUMNS_ARG, required: false },
+    groupBy: SCHEDULE_GROUP_BY_ARG,
+    designOptionIds: SCHEDULE_OPTIONS_ARG,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(updateScheduleCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.schedules?.[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown schedule "${id}"`);
+    const designOptionIds = stringList(args['designOptionIds']);
+    checkDesignOptions(ctx.scene, designOptionIds);
+    const groupBy = stringList(args['groupBy']);
+    const after = checkScheduleDefinition({
+      ...before,
+      ...(args['name'] === undefined ? {} : { name: text(args['name']) }),
+      ...(args['filter'] === undefined ? {} : { filter: args['filter'] as ScheduleFilter }),
+      ...(args['columns'] === undefined
+        ? {}
+        : { columns: args['columns'] as readonly ScheduleColumn[] }),
+      ...(groupBy === undefined ? {} : { groupBy }),
+      ...(designOptionIds === undefined ? {} : { designOptionIds }),
+    });
+    return ctx.edit(
+      `Edit schedule ${after.name}`,
+      [{ collection: 'schedules', id, before, after }],
+      [],
+    );
+  },
+};
+
+export const deleteScheduleCommand: Command = {
+  id: 'core.deleteSchedule',
+  label: 'Delete schedule',
+  description:
+    'Delete a schedule. REFUSED if a sheet places it, unless retargetMap redirects the viewport or acknowledge:true.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'schedule', label: 'Schedule', required: true },
+    ...GUARD_ARGS,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteScheduleCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.schedules?.[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown schedule "${id}"`);
+    const extra = guardReferences(`schedule "${id}"`, scheduleReferrers(ctx.scene, id), args);
+    return ctx.edit(
+      `Delete schedule ${before.name}`,
+      [...extra, { collection: 'schedules', id, before }],
+      [],
+    );
+  },
+};
+
+/* ================================================================================================
  * ISSUING A REVISION — a COMMAND, not a file operation (decision D41)
  * ============================================================================================= */
 
@@ -2030,6 +2300,9 @@ export const CORE_COMMANDS: readonly Command[] = [
   deleteSectionCommand,
   deleteContainerCommand,
   deleteGridCommand,
+  createScheduleCommand,
+  updateScheduleCommand,
+  deleteScheduleCommand,
   issueRevisionCommand,
 ];
 

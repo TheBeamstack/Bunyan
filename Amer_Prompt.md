@@ -35,7 +35,9 @@ holder**.
    environment + commands (§6).
 3. Do §2 **`TASK`**.
 4. **`pnpm verify` — and read the REAL exit code** (it includes `apps/web`'s typecheck). `format:check`
-   runs before the tests and has failed silently **six sessions running** (Entries 60–65).
+   runs before the tests and failed silently **six sessions running** (Entries 60–65); it has been GREEN
+   since your own Entry 67, and the reason is procedural: **`prettier --write` every touched file BEFORE
+   `verify`.** ⚠ Read the real exit code anyway — Entry 68 was formatted first and still exited 1 on lint.
 5. **Hand off:** append an Entry to `current_state.md` (_what changed · how verified · on which
    engine/environment · what is owed next_) and **rewrite §2 of both `Amer_Prompt.md` and
    `Zayd_Prompt.md`.** A session that does not leave the next one ready is unfinished.
@@ -82,14 +84,17 @@ holder**.
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry in `current_state.md` = **ENTRY 67** (Amer — the P4.5 NON-GATING half:
-        selection + view filter + the first keyboard owner). Entries 66 AND 67 are YOUR OWN work;
-        Entry 65 (Zayd — schedules body) is the newest Zayd entry.
+FRESH:  Newest Entry in `current_state.md` = **ENTRY 68** (Zayd — the SCHEDULE CRUD, D79). Your own
+        last work is Entry 67 (the P4.5 non-gating half: selection + view filter + the first
+        keyboard owner), pushed 2026-07-28 with Entry 66.
 
-        ⚠ Entries 66 + 67 are COMMITTED AND PUSHED (owner-authorised 2026-07-28: `origin/main`
-        `525d6a7 → c8006d3`, one commit). Entry 66 added the P4.5 design doc (no source, stopped
-        for rulings Q1–Q6); Entry 67 shipped `apps/web` selection/filter (all 5 CI gates green,
-        524 tests). `git pull` first regardless.
+        ⚠ Entry 68 touches NOTHING you own — it is `packages/document` only (the three new verbs
+        `core.createSchedule`/`updateSchedule`/`deleteSchedule` + `scene.schedules` promoted to a
+        real `SceneCollection`). **It changes your app in exactly one way, and it needs no work
+        from you:** the three verbs appear in the GENERATED ribbon automatically (D21), rendering
+        `columns`/`filter`/`groupBy` through the existing `JsonControl` JSON textarea and the
+        schedule id as a text input. Functional, unlovely, nothing broken. 538 green, all 5 gates.
+        `git pull` first regardless.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -99,8 +104,8 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 67** (Amer — the P4.5 NON
         need to know. (Git already answers "what is the tip?" — `git log -1`. This file answers
         "am I behind?", which git cannot.)
 
-        ⇒ After `git pull`: newest Entry = 67 ⇒ you are current, start TASK.
-          Newest Entry HIGHER than 67 ⇒ Zayd has pushed again: read every Entry after 67 before
+        ⇒ After `git pull`: newest Entry = 68 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 68 ⇒ Zayd has pushed again: read every Entry after 68 before
           starting, and re-check that TASK is still the right thing to do.
 
 TASK:   **P4.5 — THE INTERACTION MODEL. THE DESIGN DOC IS WRITTEN; THE BUILD IS GATED ON SIX
@@ -144,8 +149,11 @@ TASK:   **P4.5 — THE INTERACTION MODEL. THE DESIGN DOC IS WRITTEN; THE BUILD I
         Not this session (deferred, so nobody re-derives): material appearance + transparency ·
         WebGPU + WebGL2 fallback · a File System Access `StorageAdapter` · TSL shading · service
         worker/PWA + Cloudflare deploy · the optional `codecFor` open/save wiring (D71). ⚠ A
-        schedules UI is still NOT yours to start — the schedule CRUD is Zayd's task and does not
-        exist yet, so you would be rendering a schedule nobody can author.
+        schedules UI is STILL not this session's work — but note the reason CHANGED in Entry 68:
+        it is no longer "nobody can author one" (the CRUD now exists and the generated ribbon
+        already exposes it). It is simply not your task while P4.5 is; when it is picked up, the
+        read path is `doc.evaluateSchedule` and the write path is the three verbs, both through
+        the one door.
 
 NEW:    (Standing, from Entry 64 — two call sites you own, both deliberately loud, nothing to do
         unless you touch open/save wiring:)

@@ -138,6 +138,18 @@ export function dependents(
       // THICKNESS; a material carries only density/structural properties read by `quantities()` and Miqdar,
       // and no solid's geometry depends on it. A density edit re-computes quantities lazily, rebuilds nothing.
       return [];
+    case 'schedules':
+      // NO ELEMENT-GEOMETRY EDGE — a declared "nothing", and here it is a STATEMENT OF WHAT A SCHEDULE IS
+      // (Entry 68, D58 row Ⓐ's CRUD). A schedule is a PROJECTION of the model (`core_logic.md` rule 17):
+      // the arrow points ONE way — the schedule reads elements, no element reads the schedule — so no
+      // solid changes shape when a schedule is created, renamed, re-columned or deleted.
+      //
+      // ⚠ THE EDGE THAT WOULD BE WRONG TO DECLARE HERE IS THE INVERSE ONE. "Editing a schedule re-stages
+      // the elements it lists" is superficially plausible and would be a real defect: a table with a
+      // filter matching 400 walls would rebuild 400 solids to change a column heading. The schedule's own
+      // freshness needs no invalidation at all, because its rows are re-derived on every `evaluateSchedule`
+      // and NOTHING is stored (D78 — the body caches nothing, exactly so this line can stay empty).
+      return [];
     case 'roomSeparators':
       // NO ELEMENT-GEOMETRY EDGE — a declared "nothing", like `materials` (P5 step 0g). A separator re-bounds
       // a SPACE (a query the room-bounding solver recomputes on demand), never an element's SOLID — no wall,

@@ -61,8 +61,25 @@ export interface ParamField {
    * forced whoever builds MEP/Design-Options to widen this union later — i.e. amend a frozen contract, which
    * is the exact ⓣ trap 0g.2 hit. Free now; an amendment after step 6.
    */
+  /*
+   * ⚠ `'schedule'` was added by the SCHEDULE CRUD (Entry 68) for the same reason and on the same terms:
+   * `core.updateSchedule`/`deleteSchedule` take a schedule id, and typing it as a bare `string` would
+   * leave the picker/tool-list unable to say what the id NAMES — then widening this union later, after
+   * `ParamSchema` freezes at P5, would be an amendment across three products. Free now, precedented by
+   * row Ⓕ, and no body switches on it. ⚠ The other documentation collections (`view`, `sheet`,
+   * `annotation`) and `family` have the SAME exposure and are deliberately NOT added here — their CRUD is
+   * post-freeze, and whether to pre-widen for them is an owner call, not a side effect of this unit.
+   */
   readonly refTo?:
-    'element' | 'material' | 'section' | 'style' | 'container' | 'grid' | 'system' | 'designOption';
+    | 'element'
+    | 'material'
+    | 'section'
+    | 'style'
+    | 'container'
+    | 'grid'
+    | 'system'
+    | 'designOption'
+    | 'schedule';
   /** For `array`: the shape of each item. For `object`: the shape of its fields. */
   readonly items?: ParamField;
   readonly fields?: ParamSchema;
