@@ -173,6 +173,26 @@ interface StagedRebuild {
 export interface ExecuteOptions {
   readonly coalesceKey?: string;
   /**
+   * ⚠⚠ **THE TRANSACTION (D23, P4.5 row ⓘ, owner-ruled Q5).** Label several `execute` calls with one id
+   * and they undo and redo as **a single all-or-nothing unit** — one `Ctrl+Z` reverses the whole gesture.
+   *
+   * The case it exists for is the corner-drag: three walls meeting at a point are dragged together, which
+   * is three `core.setParams` (a D52 wall moves by its params), and three undos is not what the user did.
+   * "Add a room" — four walls and a space — is the same shape one size up.
+   *
+   * ⚠ **It lives on the executor's options, exactly like `dryRun`**, never on the `Command` contract: a
+   * command proposes a delta and knows nothing of transactional state, so grouping cannot be something a
+   * command opts into or forgets. The caller that owns the GESTURE owns the id.
+   *
+   * ⚠ **Any id will do, and it is never parsed** — a ULID, a gesture counter, a string. It is compared for
+   * equality and nothing else (D44's discipline: an id is opaque).
+   *
+   * ⚠ Grouping applies to CONSECUTIVE edits (see `UndoStack.takeUndoGroup`): an undo restores state
+   * deltas, and a delta is only valid against the state that produced it, so interleaving two gestures
+   * reverses as far as the run reaches rather than reordering anything.
+   */
+  readonly transactionId?: string;
+  /**
    * ⚠⚠ **THE UNIVERSAL DRY RUN (D42).** Run the command for real — the real kernel, the real rebuild,
    * full fidelity — then **throw every result away** and return the `UndoableEdit` it *would* have
    * produced (or the typed failure **naming the element that refused**).
@@ -360,7 +380,15 @@ export class DocumentContext {
     // The command's declaration and the graph's answer are now ONE answer, exactly as `#affected` itself
     // exists to make them (see its own comment). Additive: the field is frozen and unchanged; only its
     // content is now complete.
-    const journalled: UndoableEdit = { ...edit, rebuilt: affected };
+    //
+    // ⚠ AND THE TRANSACTION IS STAMPED HERE FOR THE SAME REASON `rebuilt` IS CORRECTED HERE: it is the
+    // EXECUTOR's knowledge, not the command's. A command proposes a delta; whether that delta is one step
+    // of a larger gesture is something only the caller driving the gesture can know (D23, row ⓘ).
+    const journalled: UndoableEdit = {
+      ...edit,
+      rebuilt: affected,
+      ...(options.transactionId === undefined ? {} : { transactionId: options.transactionId }),
+    };
 
     // 3. A DRY RUN stops here: full fidelity, real kernel, and then we throw it all away.
     if (options.dryRun === true) {
@@ -381,22 +409,37 @@ export class DocumentContext {
     return journalled;
   }
 
+  /**
+   * Reverse the last edit — or, when it carries a `transactionId`, **the whole transaction, atomically**
+   * (D23, P4.5 row ⓘ, owner-ruled Q5). Returns the NEWEST edit of the unit reversed.
+   *
+   * ⚠⚠ ONE STAGE, ONE COMMIT, FOR THE WHOLE UNIT — the group is reverted against a candidate scene and
+   * the entire rebuild is staged once, so D42's all-or-nothing covers the transaction and not merely each
+   * edit inside it. Undoing three of four walls and refusing on the fourth would leave a room the user
+   * never drew, and *"must all apply or none"* is exactly what the row asked to be confirmed.
+   */
   async undo(): Promise<UndoableEdit | undefined> {
-    const edit = this.#undo.takeUndo();
-    if (edit === undefined) return undefined;
+    // ⚠ NEWEST FIRST, and reverted in that order: a delta is only valid against the state that produced
+    // it, so the last edit made is the first edit reversed.
+    const group = this.#undo.takeUndoGroup();
+    const newest = group[0];
+    if (newest === undefined) return undefined;
 
-    const next = revertChanges(this.#scene, edit.changes);
-    const staged = await this.#stage(next, this.#affected(edit), {});
+    let next = this.#scene;
+    for (const edit of group) next = revertChanges(next, edit.changes);
+    const affected = [...new Set(group.flatMap((edit) => [...this.#affected(edit)]))];
+    const staged = await this.#stage(next, affected, {});
     if (staged.failure !== undefined) {
       // ⚠ `undo()` and `redo()` had NO try/catch at all. An undo whose rebuild refuses now leaves the
       // document exactly where it was — and, because the undo did not happen, the edit goes back on the
-      // stack it was taken from.
+      // stack it was taken from. ⚠ The WHOLE group goes back, one `takeRedo` per edit taken: they are the
+      // top of the redo branch in the order they were popped, so this restores the stack exactly.
       await this.#release(staged.intermediates);
       await this.#release(handlesOf(staged.geometry));
-      this.#undo.takeRedo();
+      for (let i = 0; i < group.length; i++) this.#undo.takeRedo();
       throw new CommandFailure(
         'GEOMETRY_FAILED',
-        `undo of "${edit.command}" was rejected: element "${staged.failure.elementId}" — ${staged.failure.error}`,
+        `undo of "${newest.command}"${group.length > 1 ? ` (a transaction of ${String(group.length)} edits)` : ''} was rejected: element "${staged.failure.elementId}" — ${staged.failure.error}`,
         [staged.failure.elementId],
       );
     }
@@ -407,25 +450,34 @@ export class DocumentContext {
     // ⚠⚠ THE UNDO IS JOURNALLED AS A **REVERSAL**, NEVER AS AN ERASURE (D40). A consumer downstream may
     // already hold the state being reversed *from* — deleting the original entry would leave it holding
     // a state the model denies ever existed. An undo is a thing that HAPPENED, and the journal records
-    // what happened.
-    const reversal = reversalOf(edit, this.#journal.nextSeq, this.#editId(edit.command));
-    this.#record(reversal);
-    return edit;
+    // what happened. ⚠ One reversal PER EDIT, in the order they were reversed: the journal is a record of
+    // events, so a three-edit transaction undone is three reversals (each naming what it `reverses`),
+    // never one summary entry that no original edit corresponds to.
+    for (const edit of group) {
+      this.#record(reversalOf(edit, this.#journal.nextSeq, this.#editId(edit.command)));
+    }
+    return newest;
   }
 
+  /** Re-apply the last undone edit — or its whole transaction, atomically. Returns the newest edit. */
   async redo(): Promise<UndoableEdit | undefined> {
-    const edit = this.#undo.takeRedo();
-    if (edit === undefined) return undefined;
+    // ⚠ OLDEST FIRST — the order the edits were originally applied in, which is the only order their
+    // deltas compose in.
+    const group = this.#undo.takeRedoGroup();
+    const newest = group[group.length - 1];
+    if (newest === undefined) return undefined;
 
-    const next = applyChanges(this.#scene, edit.changes);
-    const staged = await this.#stage(next, this.#affected(edit), {});
+    let next = this.#scene;
+    for (const edit of group) next = applyChanges(next, edit.changes);
+    const affected = [...new Set(group.flatMap((edit) => [...this.#affected(edit)]))];
+    const staged = await this.#stage(next, affected, {});
     if (staged.failure !== undefined) {
       await this.#release(staged.intermediates);
       await this.#release(handlesOf(staged.geometry));
-      this.#undo.takeUndo();
+      for (let i = 0; i < group.length; i++) this.#undo.takeUndo();
       throw new CommandFailure(
         'GEOMETRY_FAILED',
-        `redo of "${edit.command}" was rejected: element "${staged.failure.elementId}" — ${staged.failure.error}`,
+        `redo of "${newest.command}"${group.length > 1 ? ` (a transaction of ${String(group.length)} edits)` : ''} was rejected: element "${staged.failure.elementId}" — ${staged.failure.error}`,
         [staged.failure.elementId],
       );
     }
@@ -433,14 +485,16 @@ export class DocumentContext {
     this.#scene = next;
     await this.#commit(staged);
     // A redo is a re-application: it is journalled as its own entry, with a fresh `seq`.
-    this.#record({
-      ...edit,
-      id: this.#editId(edit.command),
-      seq: this.#journal.nextSeq,
-      at: new Date().toISOString(),
-      label: `Redo: ${edit.label}`,
-    });
-    return edit;
+    for (const edit of group) {
+      this.#record({
+        ...edit,
+        id: this.#editId(edit.command),
+        seq: this.#journal.nextSeq,
+        at: new Date().toISOString(),
+        label: `Redo: ${edit.label}`,
+      });
+    }
+    return newest;
   }
 
   /**

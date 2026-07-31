@@ -19,6 +19,7 @@ export * from './geometry.js';
 export * from './sketch.js';
 export * from './room.js';
 export * from './joins.js';
+export * from './placement.js';
 export * from './types.js';
 export * from './registries.js';
 export * from './ulid.js';

@@ -98,13 +98,22 @@ export interface UndoableEdit {
    */
   readonly revision?: ModelRevision;
   /**
-   * ⚠ RESERVED, NOT BUILT (D23). Edits sharing a transaction id undo and redo as a single
-   * all-or-nothing unit.
+   * ⚠⚠ **BUILT AND READ** (D23; P4.5 row ⓘ, owner-ruled Q5, 2026-07-30). Edits sharing a transaction id
+   * undo and redo as a single all-or-nothing unit: **one `Ctrl+Z` reverses the whole gesture.**
    *
-   * **v1.0.0 emits exactly one edit per command and does NOT implement grouping.** The field exists
-   * because the undo contract FREEZES AT P5, retrofitting grouping into a frozen contract is invasive,
-   * and every composite verb the product grows toward ("add a room", "import and place") is a set of
-   * edits that must never be left half-applied.
+   * ⚠ It was RESERVED-AND-UNREAD for a phase, and the measurement that ended that is worth keeping: a
+   * corner-drag where three walls meet dispatches three `core.setParams`, and with nothing reading this
+   * field they were three edits and **three undos**, however the tool labelled them. Amer deliberately
+   * did not ship a gesture that LOOKS transactional and is not (Entry 70), which is why the reader landed
+   * here before the tool landed there.
+   *
+   * **Set by the EXECUTOR, from `ExecuteOptions.transactionId`** — never by a command, which stays passive
+   * and knows nothing of transactional state (the same rule that keeps `dryRun` out of the `Command`
+   * contract). Absent ⇒ a lone edit, which is every edit this product emitted before v1.0.0's tool layer.
+   *
+   * ⚠ A REVERSAL carries the transaction id of the edits it reverses (`reversalOf`), because an undo of a
+   * transaction is itself atomic — three reversals that must be read as one thing. `reverses` is what
+   * distinguishes the two directions in the journal; the id alone never was meant to.
    */
   readonly transactionId?: string;
   /** Elements whose geometry this edit invalidated — what the rebuild engine must redo. */
@@ -150,6 +159,59 @@ export class UndoStack {
     const edit = this.#undone.pop();
     if (edit !== undefined) this.#done.push(edit);
     return edit;
+  }
+
+  /**
+   * ⚠⚠ THE TRANSACTION UNIT (D23, P4.5 row ⓘ) — the top edit, plus every edit **immediately beneath it**
+   * sharing its `transactionId`. **NEWEST FIRST**, which is the order a caller must revert them in.
+   *
+   * An edit with no `transactionId` is a unit of one, so this is a strict generalisation of `takeUndo`:
+   * every document written before transactions existed behaves exactly as it did.
+   *
+   * ⚠ **CONSECUTIVE, NEVER "every edit with this id".** Undo restores state DELTAS, and a delta is only
+   * valid against the state that produced it — so a transaction interleaved with someone else's edit
+   * cannot be reversed by skipping over that edit, and pretending otherwise would corrupt the scene
+   * rather than refuse. Two interleaved gestures therefore reverse as far as the run reaches, which is
+   * the most that is sound.
+   *
+   * ⚠ The 200-deep cap can split a long transaction: `push` shifts the oldest edit off, so a gesture with
+   * more edits than the whole stack reverses only the part still on it. That is the bound the stack has
+   * always had (it is a session convenience, D40) — the JOURNAL still carries every edit, so nothing is
+   * lost from the model's record, only from the menu item.
+   */
+  takeUndoGroup(): readonly UndoableEdit[] {
+    const first = this.takeUndo();
+    if (first === undefined) return [];
+    const group = [first];
+    const transaction = first.transactionId;
+    // ⚠ THE EARLY RETURN IS LOAD-BEARING, NOT A FAST PATH — measured by removing it. An exhausted stack
+    // reports `undefined` for the edit beneath, so a loop entered with `transaction === undefined` matches
+    // it forever and pushes `undefined` until the process dies (it OOM'd a vitest worker in 14 s). An
+    // ungrouped edit is a unit of one BEFORE the loop, never by the loop's own test.
+    if (transaction === undefined) return group;
+    while (this.#done[this.#done.length - 1]?.transactionId === transaction) {
+      group.push(this.takeUndo()!);
+    }
+    return group;
+  }
+
+  /**
+   * The same unit, re-applied — **OLDEST FIRST**, which is the order it was originally applied in and
+   * therefore the only order its deltas compose in.
+   *
+   * ⚠ It falls out of the stack's own shape rather than needing a second rule: `takeUndoGroup` pushed the
+   * group onto the redo branch newest-first, so popping it back yields oldest-first.
+   */
+  takeRedoGroup(): readonly UndoableEdit[] {
+    const first = this.takeRedo();
+    if (first === undefined) return [];
+    const group = [first];
+    const transaction = first.transactionId;
+    if (transaction === undefined) return group;
+    while (this.#undone[this.#undone.length - 1]?.transactionId === transaction) {
+      group.push(this.takeRedo()!);
+    }
+    return group;
   }
 
   get canUndo(): boolean {
@@ -297,6 +359,10 @@ export function reversalOf(edit: UndoableEdit, seq: number, id: string): Undoabl
     seq,
     at: new Date().toISOString(),
     reverses: edit.id,
+    // ⚠ The reversal inherits the transaction (D23): undoing a three-`setParams` corner-drag is itself
+    // one atomic act, and a consumer that reads the journal should see it as one. `reverses` is what says
+    // which direction each entry runs in — the id never distinguished them and was never meant to.
+    ...(edit.transactionId === undefined ? {} : { transactionId: edit.transactionId }),
     rebuilt: edit.rebuilt,
   };
 }

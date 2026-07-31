@@ -83,8 +83,22 @@ export interface AgentSurface {
   listStyles: () => readonly { id: string; name: string; typeId: string }[];
   listMaterials: () => readonly { id: string; name: string; density: number }[];
   listSections: () => readonly { id: string; name: string; shape: string }[];
-  /** Act. Returns the state delta — which is also the verification (D23). */
-  execute: (command: string, args: Params) => Promise<UndoableEdit>;
+  /**
+   * Act. Returns the state delta — which is also the verification (D23).
+   *
+   * ⚠⚠ `transactionId` IS HERE BECAUSE OF D19, NOT BECAUSE AN AGENT ASKED FOR IT. Grouping several edits
+   * into one undoable unit is a real capability (P4.5 row ⓘ, owner-ruled Q5), and *"every capability
+   * reachable only through the UI is a capability an agent can never have"* is this file's whole reason to
+   * exist. A tool that can commit an atomic "add a room" while an agent can only commit four separate
+   * walls is exactly the second-API drift D19 forbids. Optional and absent-defaulted, so every existing
+   * caller is unchanged; `agentApi` does not move (D22 — the surface versions on its own clock, and this
+   * is additive).
+   */
+  execute: (
+    command: string,
+    args: Params,
+    options?: { readonly transactionId?: string },
+  ) => Promise<UndoableEdit>;
   /**
    * ⚠⚠ **LOOK BEFORE YOU LEAP — AND IT IS THE SAME VERB, NOT A SECOND ONE** (D42).
    *
@@ -155,7 +169,14 @@ export function createAgentSurface(doc: DocumentContext): AgentSurface {
 
     // ⚠ NO `coalesceKey` — agent commands opt OUT of edit-coalescing (D23). A `SUPERSEDED` failure is
     // meaningless to an agent that issued one deliberate command; coalescing belongs to a drag.
-    execute: (command, args) => doc.execute(command, args),
+    // ⚠ `transactionId` passes straight through — the executor owns the grouping, so the agent surface
+    // stays the thin shim it is meant to be (no second implementation of anything).
+    execute: (command, args, options) =>
+      doc.execute(
+        command,
+        args,
+        options?.transactionId === undefined ? {} : { transactionId: options.transactionId },
+      ),
     dryRun: (command, args) => doc.execute(command, args, { dryRun: true }),
 
     query: (filter = {}) =>

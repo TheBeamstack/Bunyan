@@ -291,7 +291,7 @@ is additive and permitted; *changing an existing op's envelope* needs Architect 
 | **Kernel message protocol** (`@bunyan/protocol`) | **✅ FROZEN, v1 (Entry 21)** — **21 live ops + 3 RESERVED** + `CACHE_STALE`. ⚠ `faceFrame` is the FIRST post-freeze op (Entry 30) — a face's frame from the B-Rep surface, explicitly permitted (D13). Reserved: `sectionCut` · `importIfc` (P6) · `instantiate` (the ~21 s style-edit answer, §4j). ⚠⚠ **`exportBrep`+`importBrep` LEFT `RESERVED_OPS` ON 2026-07-30 — THE D29 CACHE BODIES ARE BUILT (Entry 71)**, so the real kernel advertises them because it *implements* them (`capabilities` is generated from the handler map — no other edit, and `quantities-and-contract.test.ts` had described that handshake in advance). ⚠ **The MOCK implements neither, and that is correct rather than incomplete:** it holds no B-Rep, and a mock that faked a cache would fake the very thing the cache exists to verify. **No payload shape moved; two false COMMENTS on the frozen shapes were corrected (Entry 71 Findings 1+2) and the wire contract is byte-identical.** | **✅ FROZEN.** |
 | **`SubShapeRef`** | RC — exercised by the real kernel + the document model (a window survives save→load→rebuild + a 30° rotation). ⚠ `kind:'vertex'` **reserved** (D54a, 0g). | **P5** |
 | **`BimObjectType`** | **⚠⚠ D72 (Entry 60, 2026-07-27) RESERVED `BuiltPart.exposedRefs?` — the session's ONE contract change, and the only pre-freeze item it created. Optional + absent-defaulted (absent ⇒ the pre-Entry-60 whole-solid area), so no existing Type or saved document moves. It exists because *which faces a trade BILLS* is not derivable generically — only the Type knows — and without it the product cannot answer "what area do I bill?", which is not a question a BIM tool may decline. ✅ **EVERY SHIPPED TYPE NOW DECLARES (Entry 62): `core.wall`, `core.opening` (leaf + frame) and `core.curtainwall`'s panel/mullion/transom — under the owner's ONE rule, *exposed = every face that is a surface of the assembled thing*. `core.curtainwall.column` is a pure composite and owes nothing. ⚠ Building it found that `exposedRefs` reached only 3 of the 4 `BuiltPart → Part` sites — a door leaf could never have carried one (D74/Entry 62); when a member is added to `Part`, COUNT its construction sites, because only the `{...part}` spread one maintains itself.** The absent-defaulted fallback stays for any FUTURE Type that has not declared yet.** **✅ WRITTEN (Entry 18), corrected (21), extended.** Carries `parameterSchema`, `styleSchema`, `defaultClassification`, `defaultDiscipline` (D45), `buildGeometry→Part[]` (D30), `buildVoid`, `migrate`, and (0g) `ifcMapping?`/`migrateStyle?`. ⚠⚠ `BuildContext.discard(handle)` — a Type running two ops per part MUST declare its intermediate or it leaks; **declare BEFORE the risky op.** ⚠⚠ `VoidBuildContext.hostFace.inward` (Entry 28) + `.frame` (Entry 30, from `faceFrame`) — a hosted void projects along the host's honest inward normal (correct for curved faces too). `BuildContext` gained `grid()`/base+top datums (0b). ✅ **ⓙ RESOLVED (Entry 44): a hosted type provides BOTH `buildVoid` AND the new additive `buildLeaf?(VoidBuildContext)` — a door builds a leaf+frame, not just a hole; the real `core.opening` ships it. PROVEN no new `VoidBuildContext`/`BuiltPart`/`hostFace` field (a `tsc` TS2322 proof); `buildLeaf`, not `buildGeometry`, because a door is a solid only when hosted.** ✅ **D59 COMPOSITION (Entry 48): gained the additive `buildChildren?(ctx)=>BuiltChild[]` (a parent owns child ELEMENTS, rule 18 — the real `core.curtainwall` ships it, Model A = children DERIVED by PEI `${parentId}:${slot}`, never stored). `Element` gained reserved `childOverrides?`/`ChildOverride`; `parentElementId` RE-PINNED to the group/manual-nest meaning.** | **P5** (freeze against the composite Wall + the real Opening + the composite Curtain Wall — all now exist) |
-| **`Command`** | **✅ WRITTEN (Entry 18)** — `argsSchema` + `execute` returns its `UndoableEdit`. **The agent API** (§4f). CRUD verbs carry the D51 refuse-or-retarget args (`acknowledge`/`retargetMap`, 0e/0f); `createElement` carries the six reserved-metadata args + `core.setElementMetadata` (0g.2). **0d BUILT `core.createSketchConstraint`/`core.deleteSketchConstraint`** (Entry 40; datum verbs and sketch verbs each refuse the other's ids). **0c BUILT `core.setJoin`/`core.clearJoin`** (Entry 42 — override verbs; joins are AUTOMATIC on proximity, these only deviate a corner to butt/mitre/none). | **P5** (with its `argsSchema`) |
+| **`Command`** | **✅ WRITTEN (Entry 18)** — `argsSchema` + `execute` returns its `UndoableEdit`. **The agent API** (§4f). CRUD verbs carry the D51 refuse-or-retarget args (`acknowledge`/`retargetMap`, 0e/0f); `createElement` carries the six reserved-metadata args + `core.setElementMetadata` (0g.2). **0d BUILT `core.createSketchConstraint`/`core.deleteSketchConstraint`** (Entry 40; datum verbs and sketch verbs each refuse the other's ids). **0c BUILT `core.setJoin`/`core.clearJoin`** (Entry 42 — override verbs; joins are AUTOMATIC on proximity, these only deviate a corner to butt/mitre/none). ⚠⚠ **THE FIVE MOVE VERBS LANDED 2026-07-30 (Entry 72, D80, P4.5 row ⓑ owner-ruled Q4): `core.setPlacement`/`move`/`rotate`/`copy` are live and `core.array` is a REGISTERED SHAPE THAT REFUSES** (its `argsSchema` freezes with the contract; its body is v1.0.x, owner-ruled — a verb absent at the freeze has no reserved arg shape). Ordinary additive registry entries; no frozen byte moved. ⚠ **They are GUARDED, and the guard is the ruled split made enforceable:** a placement verb REFUSES an element whose position the recipe already derives — hosted (its own placement is never read), a D52 baseline wall (joins/rooms/billed length read the params), or datum-constrained (per-axis). **`core.createElement` carries the same refusal**, because it writes the same field. | **P5** (with its `argsSchema`) |
 | **`ElementStyle`/`Part`/`Material`/`Section`/spatial tree/`Constraint`/`scene.json`** | **✅ WRITTEN.** `scene.json` = `packages/document/src/scene.ts`. **0b:** `scene.constraints` (discriminated-union `Constraint`, `SCENE_SCHEMA_VERSION` 1→2). **0d (Entry 40):** `SketchConstraint` is the union's SECOND member; the `Sketch` data model lives in `element.params` (Q1=A — no schema bump). **0c (Entry 42):** `JoinConstraint` is the union's THIRD member (`{element, other, kind:'join', resolution:'butt'|'mitre'|'none'}`) — an OVERRIDE of the auto-miter default; no schema bump. **0g:** reserved fields on `Element` (`phaseCreated?`/`phaseDemolished?`/`parentElementId?`/`properties?`/`classifications?`/`mark?`), `SpatialContainer`/`Grid` (IFC bags + Space extent inputs + `Grid.geometry?`), `Scene.georeference?`/`roomSeparators`, `ParamField.relevantWhen?`/`formula?`. **Ⓐ (Entry 47):** `Scene.views?`/`annotations?`/`schedules?`/`sheets?` (documentation, `documentation.ts`) — optional absent-defaulted, no bump. **Ⓓ (Entry 50, D61):** `Scene.families?` (`families.ts`) — a data-family DEFINITION embedded (self-contained per rule 15); a fully-shaped discriminated-union grammar; optional absent-defaulted, no bump; PROVEN to need no `BimObjectType` field. **⚠ D78 (Entry 65) — the FIRST body over an Ⓐ reservation, and building it corrected the shape in three places, all optional/additive, no bump:** `ScheduleDefinition.groupBy` now says it names **STABLE COLUMN KEYS, never display headings** (the heading reading was **D70 verbatim** — a rename re-keys every group, two columns sharing a title merge, an unheaded column is ungroupable); `ScheduleDefinition.designOptionIds?` RESERVED (`ViewCommon` had D65's field, the tabular view did not, so *"the Option B door schedule"* was inexpressible — the comment carries the exclusion invariant, ⓥ); `ChildOverride.mark?` RESERVED (a D59 child is not a scene row, so neither `BuiltChild` nor `ChildOverride` could carry a builder's label — a curtain-panel Mark column blank for 16 of 17 rows). ⚠⚠ **The lesson for the REMAINING Ⓐ bodies (plan + section): reserving a shape and building its body are two different verifications, and only the second meets the model — these three were found in the first hour of driving a reservation that had been green for seven days.** ⚠⚠ **D79 (Entry 68) PROMOTED `scene.schedules` TO A FULL `SceneCollection`** — the first documentation collection with an authoring verb (`core.createSchedule`/`updateSchedule`/`deleteSchedule`), so it now participates in undo and the dependency graph (a declared "nothing" edge — a schedule reads the model, nothing reads the schedule). ⚠ **The FIELD is unchanged and still optional-absent: the collection materialises on first authoring**, so a document with no schedules is byte-identical to one written before, and `views`/`annotations`/`sheets` remain pure reservations. **No frozen byte moved, no bump.** The one contract-touching line is `ParamField.refTo` gaining `'schedule'` (additive, nothing switches on it, row Ⓕ's precedent). | **P5** |
 | **Agent surface** (`window.bunyan`) | **✅ WRITTEN** — `createAgentSurface`, versioned separately (`agentApi: 1`, D22); does **not** inherit the P5 freeze. | evolves on its own clock |
 | **`.bnn`** | **✅ WRITTEN + FINISHED (Entry 21).** Zip of `manifest.json` + `scene.json` + `history.json` (the JOURNAL — append-only `seq`; an undo appends a REVERSAL) + optional `thumbnail.png`. Ids are prefixed ULIDs (D44); unknown/future-typed elements round-trip VERBATIM (D43). `geometry-cache.brep` (D29) is purely additive — breaks no saved file when it lands. ✅ **D60 MERGE SEAM RESERVED (Entry 49): `manifest.documentLineage?` (a ULID doc id for un-issued files) + the journal's `UndoableEdit.origin?`/`lamport?` + `ModelRevision.frontier?` — all optional, absent in v1.0.0, round-trip additively; no `SCENE_SCHEMA_VERSION` bump.** | **P5** |
@@ -360,7 +360,13 @@ packages/
                     build.ts       ★ base parts -> resolve hostRef -> cut EVERY layer -> PLACE LAST. Broken refs. UNBUILDABLE (D43)
                     document.ts    ★ DocumentContext — THE ONLY DOOR (D19). scene + heap + undo + JOURNAL + revision.
                                      STAGED, all-or-nothing rebuild + universal dryRun (D42)
-                    undo.ts        UndoableEdit (STATE DELTAS, never replay) + THE JOURNAL (D40)
+                    undo.ts        UndoableEdit (STATE DELTAS, never replay) + THE JOURNAL (D40) +
+                                     (D80, Entry 72) the TRANSACTION unit — `takeUndoGroup`/`takeRedoGroup`
+                    placement.ts ★ D80 (Entry 72) — the rigid-motion ALGEBRA (translation merge, rotation,
+                                     `applyMotions` on a point, `frameOriginOf`) AND the ONE rule the five
+                                     move verbs turn on: WHERE THE RECIPE ALREADY DECIDES THE POSITION
+                                     (host / D52 baseline / datum, per-axis), with one shared refusal
+                                     wording. Pure — no scene, no kernel, no failure type.
                     agent.ts       createAgentSurface() — agentApi:1, thin shim, no browser
                     bnn.ts         the .bnn codec + migration + StorageAdapter + Autosave
                     geometry.ts    ★ GeometryGateway — the narrow seam that makes D19 STRUCTURAL (excludes `tessellate`)
@@ -374,7 +380,7 @@ packages/
                                      BuildContext.joins (cap-lines). The bidirectional wall↔wall dependency edge lives here.
 apps/web/        ★ Amer's Vite/React shell — bootstrap (the one KernelClient holder), WebGL2 three.js viewport,
                     generated ribbon + property panel, incremental redraw, sub-shape picking, failure-state panels
-tests/            590 tests (all document tests run against the REAL OCCT kernel, never the mock) + goldens + harness
+tests/            613 tests (all document tests run against the REAL OCCT kernel, never the mock) + goldens + harness
 tools/kernel-build/ the OCCT->WASM recipe + src/probe.cpp (THE NAMING PROBE, ~60 s)
 tools/oracle/     Python (uv): offline golden seeding — analytic + native-OCCT cross-check (also a MEASURING instrument)
 ```
@@ -521,6 +527,7 @@ revert-verified); an over-constrained sketch refuses at build time (D42), under-
 | **D77** | **2026-07-28 → ✅ RULED + BUILT (Entry 64). THE STYLE (AND SECTION) INVALIDATOR EDGES REACH GENERATED CHILD ELEMENTS — domain rule 18, swept backward.** `BuiltChild.styleId` is a real member (D31 one level down — *"a panel style shared across every panel"*) and `contextFor` resolves it into a child's `BuildContext` exactly as for an authored row, **so the build READS a child's style.** But `elementsUsingStyle`/`instancesOfStyle` answer *"every element wearing this style"* out of `Object.values(scene.elements)`, and **a D59 Model-A child is not a scene row.** Measured on real OCCT: `core.updateStyle` on a style worn only by children reported **`rebuilt: []`** — so the geometry stayed **3× stale** (20,000,000 mm³ where 60,000,000 is correct) *and* the Clean Delta was told the façade was `unchanged` — **until an unrelated `rebuildAll` silently cured it**, meaning the live session and the saved file disagreed and only the file was right. The `sections` edge inherited the defect verbatim (a Section reaches geometry only through a style). ⚠⚠ **IT BREAKS `dependency.ts`'s OWN STATED RULE — *an edge the build READS must be an edge the invalidator KNOWS*** — and it could not be fixed inside that file's purity, because **which children exist is produced by a Type's `buildChildren` (code, not data)**, so no pure function of `scene.json` can know it. **FIX: `childStyleUsers(builtTree, authoredIds)` walks DOWN from each authored root** (never parsing a PEI — D44/D59 say ids are opaque) and the graph takes it as an optional argument, so the EDGE stays declared in `dependency.ts` and `#touched` stays the seam that feeds it. The **authored root** is what re-stages, which regenerates the child. ⚠ **The dates are the sweep:** the style edge is D31 (07-13), composition landed 07-22 (D59) — §1c-8 for the fourth time. ⚠ **Dirty against the INVALIDATOR while clean against every consumer**, so Entry 59's sweep form (*"does this aggregate or publish?"*) could not have found it. No frozen byte, no schema bump, no field, no verb. Revert-verified test-first (2 of 3, the third being the additivity gate that an unworn style still invalidates nothing). |
 | **D78** | **2026-07-28 → ✅ RULED + BUILT (Entry 65). THE SCHEDULES BODY SHIPS, AND ITS CORRECTNESS IS THAT IT HAS NO ENUMERATION LOOP OF ITS OWN (D58 row Ⓐ, `P5_step6B_schedules_design.md`).** The anchoring contract froze green in Entry 47 **with a hand-rolled evaluator inside its own test** — `Object.values(doc.scene.elements)`, commented *"this is what the v1.0.x renderer will do."* It was correct for its fixture (two plain walls) and **wrong on the model in three measured ways**: a curtain-panel schedule returned **0 rows where 6 is correct** (a curtain wall is **1 authored row and 17 real elements**) — ⚠ *the failure mode is an EMPTY TABLE, not a crash*; a no-filter schedule **THREW** on the **pure composite** (not the void — `P5_step6A` §1 finding 3 confirmed from the schedule's side); and one non-active design option produced a **2.0000× over-report**, which is **D65's own named failure mode** (*"a schedule double-counts and work packages are published for a scheme nobody builds"*) on **the consumer its sentence names FIRST and the only one that never had a body to fix**. ⇒ **The body consumes `modelElements()` and all three defects are closed by that one decision**, before a line of column code. ⚠⚠ **AND THE REAL LESSON IS WHERE THE WRONG LOOP WAS LIVING: a reservation's own proof-of-concept is the most likely thing a body author lifts** — §1c-7's disease in a new form, since the artifact that misled was a **passing test**, not prose. It is retired onto the real body in the same commit, asserting exactly what it asserted before. **THREE OWNER RULINGS, all cheap only until step 6 and all found by walking the reserved shape against a real model for the first time: (Q1) `groupBy` names STABLE COLUMN KEYS, never display headings** — the heading reading is **D70's defect verbatim** (rename ⇒ every group re-keys; two columns sharing a title merge; an unheaded column is ungroupable), caught here **before the shape ever had a body**; **(Q2) `ScheduleDefinition.designOptionIds?` RESERVED** — `ViewCommon` got D65's field and the tabular view did not, so a drawing view could be saved as "the Option B plan" while the schedule beside it on the same sheet could not (the ⓥ precedent: the consumer-facing rule is written in **at reserve time**); **(Q3) `ChildOverride.mark?` RESERVED** — a D59 child is not a scene row, so neither the recipe half (`BuiltChild`) nor the authored half could carry the label a builder reads, leaving a curtain-panel Mark column blank for 16 of 17 rows. ⚠ **Two defects were found IN MY OWN CODE by the tests, and both are the same conflation one level down:** a total went **absent where 250,320,000 mm³ is right** because "no quantity BY CONSTRUCTION" (a pure composite) was read as "could not measure" — **D72's `exposedRefs: [] vs absent` by a new road** ⇒ `ScheduleCell.unknown` marks the real unknown, and totals mirror `QuantityTotal` exactly (volume/area sum what is there with `unmeasured` beside; **mass absent, never partial**); and a wholly-unknown column got **no total entry at all**, so `totals.get(key) === undefined` read as *"there is no such column"* rather than *"the answer is unknown"* — **rule 14's shape** ⇒ numeric-ness is the column's **declared source**, never what the rows happened to produce. ⚠ A schedule with no `quantity` column makes **zero kernel calls**. No frozen byte moved, no `SCENE_SCHEMA_VERSION` bump, no verb (the CRUD is a separate additive unit, owner Q4). Revert-verified five ways. **517 green.** |
 | **D79** | **2026-07-29 → ✅ BUILT (Entry 68). THE SCHEDULE CRUD, AND `scene.schedules` IS PROMOTED TO A FIRST-CLASS `SceneCollection` — D58 row Ⓐ's second unit (owner Q4).** The reserved shape had a READER (D78) and no WRITER: 0 of 29 commands could author a schedule, so v1.0.0's "one schedule" could be evaluated but never created, renamed or deleted. **`core.createSchedule`/`updateSchedule`/`deleteSchedule`** are ordinary additive registry entries (Entry 47 §7 settled that in advance — documentation entities are not elements), and the promotion carries undo + a declared dependency edge. ⚠⚠ **THE ARCHITECTURAL SENTENCE: the verbs carry the refusal the body deliberately will not.** `projectSchedule` DEGRADES rather than refuses because a projection must never deny a builder his table (rule 17) ⇒ the authoring door is the only place a malformed definition can be stopped, and there was none. Measured before it existed: a `groupBy` naming a column the schedule lacks **collapses 2 groups into 1 keyed `[""]`** (every subtotal becomes the grand total — **Q1's own failure mode arriving through the door Q1 did not cover**); a `quantity` key outside the grammar makes **every cell and the TOTAL NaN**, which `JSON.stringify` writes as **`null`**, i.e. reaches a consumer as *"no value"*; an unknown `source` is a **raw TypeError** out of the evaluator; **two columns sharing one key** yield 2 headers and **ONE total** (`checkLayers`' rule one level up — a structure addressed by a derived key must have unique keys, or the second column is unaddressable by construction). All refused at the door, in `schedule.ts` beside `columnKeyOf` so the grammar has ONE home (Q1). ⚠⚠ **THE PROMOTION LANDED IN TWO OF THE THREE STEPS ROW Ⓐ'S DESIGN PREDICTED, AND THE THIRD IS THE FINDING: an `emptyScene()` entry turned two GREEN Entry-47 reservation assertions RED** (*"a Scene with none of the documentation collections is valid"* / *"a `.bnn` carrying none defaults absent, not empty"*). Relaxing them was the tempting move and the wrong one — they are still true and they are the reservation's own proof. ⇒ **the collection MATERIALISES ON FIRST AUTHORING** (`applyOne` creates it), so a document with no schedules stays byte-identical, all four documentation collections keep ONE rule, and Entry 47's tests pass **unmodified**; the hostile-`.bnn` guard is correspondingly shaped for an OPTIONAL collection (absent legal, present-and-not-an-object refused). ⚠ **`Referrer.redirect` became OPTIONAL** — a `Sheet.viewports` entry may place a schedule, and repointing it means writing `scene.sheets`, which nothing authors yet, so D51's SET rung genuinely does not exist for it: refuse-or-break, with the gap in the TYPE rather than in the behaviour (the sheet CRUD restores it by supplying a `redirect`). ⚠ **One contract-touching line: `ParamField.refTo` gained `'schedule'`** — additive, nothing switches on it, and row Ⓕ's precedent verbatim (`'system'`/`'designOption'` pre-widened for the same reason); **`view`/`sheet`/`annotation`/`family` deliberately NOT added — an owner call, surfaced.** ⚠ Also fixed: `schedule.ts` carried a **raw NUL byte** in a string literal (Entry 65's group-key separator), which made the file **binary to `grep`** — on a project whose method is grep-based backward sweeps (§1c-8), a file no sweep can see. No frozen byte, no `SCENE_SCHEMA_VERSION` bump. Revert-verified ten ways (the absent-collection handling alone fires **11 of 14**). **538 green.** |
+| **D80** | **2026-07-30 → ✅ BUILT (Entry 72). THE FIVE MOVE VERBS + `transactionId` ATOMICITY — P4.5 rows ⓑ/ⓘ, owner-ruled Q4/Q5, AND BUILDING THEM MEASURED THE RULED SPLIT'S OWN EXAMPLE WRONG.** `core.setPlacement`/`move`/`rotate`/`copy` ship as additive registry entries; `core.array` is a REGISTERED SHAPE THAT REFUSES (owner-ruled body-in-v1.0.x — registered anyway because `argsSchema` freezes at step 6 and a verb absent then has no reserved shape). ⚠⚠ **THE RULING NAMES *"an Opening's offset"* AS THE PLACEMENT-POSITIONED CASE AND IT IS NOT: of the three shipped MVP Types, ALL THREE position themselves from PARAMS** (`core.wall` {start,end} · `core.opening` {offsetU,offsetV} · `core.curtainwall` {origin}) — so *"the commonest move never calls these verbs"* is truer than it states. ⚠⚠ **AND A HOSTED ELEMENT'S OWN `placement` IS NEVER READ BY THE ENGINE AT ALL** (`build.ts` cuts the void in the HOST's frame and rides the leaf on the HOST's placement): MEASURED — a door given a 1000 mm placement builds its leaf at **byte-identical bounds**, while `setParams offsetU+1000` moves it exactly 1000 mm ⇒ `core.move` on a door would have **succeeded, moved nothing, and journalled a move** to the Clean Delta. ⚠⚠ **A PLACED D52 WALL IS IN TWO PLACES AT ONCE:** its solid moves 5000.000000 mm while `baselineOf` is byte-identical and `builtAxisLength` returns the same number — the wall still mitred to a corner it has left, and the mitre still clipping the billed length (**D72's failure by a new road, both halves under `basis: 'exact'`**). ⇒ **THE VERBS ARE GUARDED, from ENGINE BEHAVIOUR rather than a Type list** (`placement.ts`): three rungs — `host` (the placement is ignored), `baseline` (joins/rooms/D72 read the params), `datum` (**per-axis**: a `grid` derives XY, `base`/`top` derives Z, so a Level-constrained element may still be slid sideways). ⚠ `containerId` is deliberately NOT a rung — *container + an explicit vertical placement* is the product's own idiom since P4 (the scale fixtures), so it is an ADDRESS (D35). ⚠ **A ROTATION IS REFUSED ON A DATUM ELEMENT RATHER THAN MEASURED:** the frame-origin displacement is provably the solid's for a pure translation and **worthless for a rotation** (a grid-placed member spins about an origin 6 m from where it builds itself), and only the Type knows the difference. ⚠ **The guard is on BOTH doors — `core.createElement` too** (*a guard on the safe path is not a guard*), and on the AUTHORING doors only, so a pre-guard `.bnn` still opens and builds (D43). ⚠ `core.rotate`'s `about` defaults to the element's own frame origin: the protocol's `RigidMotion` defaults to the WORLD origin, which makes an element placed 5 m out **orbit across the site**. ⚠ `core.copy` is EXACT OR REFUSED (it carries the datum constraints; a source anything points at — a hosted opening, a sketch constraint, a join override — refuses, because copying a door means rewriting a `hostRef` token that contains the host's id: a re-identification, D51, and an OWNER RULING now surfaced). ⚠⚠ **`UndoableEdit.transactionId` HAS ITS FIRST READER (row ⓘ, Q5): one `Ctrl+Z` reverses a gesture** — stamped by the EXECUTOR from `ExecuteOptions.transactionId` (a command stays passive, exactly like `dryRun`), grouped CONSECUTIVELY (a delta is only valid against the state that produced it, so reversing across a foreign edit would corrupt rather than refuse), with **ONE stage and ONE commit for the whole unit** so D42's all-or-nothing covers the transaction. The journal gets one reversal PER edit, each naming what it `reverses`. ⚠ **The agent surface gained the same option (D19)** — a capability reachable only through the UI is one an agent can never have. No frozen byte, no `SCENE_SCHEMA_VERSION`, no field. Revert-verified **fifteen ways**. **613 green.** |
 | **D8** | **2026-07-25 → ✅ DECIDED (Entry 57): MULTITHREADING STAYS v1.0.x.** Raised by Amer (Entry 55) and confirmed by the owner. The two INTERACTIVE axes are a renderer-batching problem MT does not touch; cold load is MT's only real candidate and has additive levers of its own (D29 cache RULED SHIP, `instantiate` RESERVED). Additive either way (COOP/COEP + `SharedArrayBuffer` deploy config, not a `scene.json` contract) ⇒ never gated the freeze. |
 
 **⚠ THE OWED `exposedRefs` DECLARATIONS ARE CLOSED (Entry 62): every shipped Type declares, under one
@@ -1053,8 +1060,16 @@ tool). Multithreading drags COOP/COEP + `SharedArrayBuffer` (v1.0.x).
    **Q1 recommend `mode:'cut'` only for v1.0.0** (full identity + linear cost; HLR is ≈N^1.5). **Q2 recommend
    `SectionCurve.nodeId?`** over widening `SubShapeKind`. **Q3 is Entry 68's owed `refTo` ruling and it now BLOCKS this unit.**
    ⚠ The build reuses Entry 68's promotion verbatim **including its correction — no `emptyScene()` entry.**
-5e. **⏭ THE FIVE OWNER-RULED MOVE VERBS + `transactionId` ATOMICITY (Entry 70's hand-off, owner-ruled
-   2026-07-30, P4.5 design §9/§10 Q4/Q5) — PRE-FREEZE, AND IT IS BLOCKING AMER.** `core.setPlacement`/`move`/
+5e. **✅ DONE — THE FIVE OWNER-RULED MOVE VERBS + `transactionId` ATOMICITY (Entry 72, D80).** Built,
+   guarded and revert-verified fifteen ways; **613 green.** ⚠ Building it measured the ruled split's own
+   example wrong — **all three shipped Types are params-positioned, and a hosted element's `placement` is
+   never read by the engine at all** — so the verbs ship WITH a refusal derived from engine behaviour
+   (host / baseline / datum, per-axis), on both authoring doors. ⚠⚠ **AMER IS UNBLOCKED: P4.5 exit
+   criteria 4 and 6 are now buildable** (the move tool + gizmo have their verbs; the corner-drag has its
+   atomicity via `execute(id, args, { transactionId })`). ⚠ Two owner questions came out of it — the
+   `core.copy`-of-a-host `hostRef` ruling, and whether the baseline refusal is the right strictness.
+   *(The original hand-off, kept for its reasoning:)* **THE FIVE OWNER-RULED MOVE VERBS + `transactionId`
+   ATOMICITY (Entry 70's hand-off, owner-ruled 2026-07-30, P4.5 design §9/§10 Q4/Q5) — PRE-FREEZE.** `core.setPlacement`/`move`/
    `rotate`/`copy`/`array` as ordinary additive registry entries, plus making ONE `Ctrl+Z` reverse a
    multi-element gesture. ⚠ **The ruled split is counter-intuitive and is the part to get right:** an element
    whose position lives in its PARAMS moves by `core.setParams` (a D52 baseline wall translates both
@@ -1108,6 +1123,11 @@ the real body; revert-verified five ways)** ·
 refusals the projection body deliberately will not — bad groupBy keys, out-of-grammar column keys, duplicate column
 keys, blank/zero-column schedules; `Referrer.redirect` made optional for a reference nothing can retarget yet;
 revert-verified ten ways)** ·
+**THE FIVE MOVE VERBS + `transactionId` ATOMICITY (Entry 72, D80 — P4.5 rows ⓑ/ⓘ: `core.setPlacement`/
+`move`/`rotate`/`copy` live, `core.array` a registered shape that refuses; one `Ctrl+Z` reverses a
+multi-element gesture, staged and committed as ONE unit. ⚠ The verbs are GUARDED by where the RECIPE
+derives the position — measured: a hosted element's placement is never read, and a placed D52 wall is in
+two places at once — and the same guard is on `core.createElement`. Revert-verified 15 ways)** ·
 **THE D29 GEOMETRY-CACHE OP BODIES (Entry 71 — `exportBrep`/`importBrep` + `kernel-occt/src/cache.ts`; the
 tokens are IN the fingerprint because over the geometry alone a permuted `refs` array mis-names two faces and
 verifies; every refusal is `CACHE_STALE` because the only correct answer on this path is *rebuild*; the
@@ -1136,9 +1156,13 @@ model).** ⚠⚠ **And building it found that the app had NEVER registered the w
 — `bootstrap.ts` ran on the scaffold `core.wall.v1` (`{length,height}`) while P5's D52 baseline `core.wall`
 had shipped in Entry 42; two clicked points have nowhere to land on a wall with no baseline, so registering
 `@bunyan/types` was a precondition, not a tidy-up (the scaffold Type stays, relabelled, so pre-Entry-70
-saved documents still build — D43). ⚠ **THE TWO REMAINING P4.5 EXIT CRITERIA ARE BLOCKED ON `packages/
-document` AND MUST NOT BE FAKED:** the move tool/gizmo needs Q4's five ruled verbs (they do not exist), and
-the corner-drag needs `UndoableEdit.transactionId` to have a READER (**it has zero** — measured). — P4 steps
+saved documents still build — D43). ✅✅ **THE TWO REMAINING P4.5 EXIT CRITERIA ARE UNBLOCKED (Entry 72, D80):**
+the move tool/gizmo has Q4's five verbs and the corner-drag has its atomicity (`doc.execute(id, args, {
+transactionId })` — one `Ctrl+Z` reverses the unit). ⚠⚠ **READ THE SPLIT BEFORE THE GIZMO — IT IS NOW
+ENFORCED, NOT MERELY DOCUMENTED: `core.move` REFUSES a wall (drag both endpoints with `core.setParams`)
+and REFUSES a door (`setParams` on `offsetU`), naming the road that works.** The move verbs are for
+GenericSolid-shaped elements; `core.array` refuses by design (reserved shape, v1.0.x body) — keep it out
+of the ribbon. — P4 steps
 done through Entry 27 (the
 gate now sees `apps/web`; incremental redraw; sub-shape picking; the failure-state panels; the D19
 equivalence test). ⚠ Build against
@@ -2454,3 +2478,200 @@ exit code you do not read is not a gate*, third entry running. **Nothing committ
 - **Owner:** **the FREEZE (step 6) is still yours and still unblocked** — this entry moved **no frozen byte, no `SCENE_SCHEMA_VERSION`, no field, no verb.** Two *comments* inside the frozen `ops.ts` were corrected where measurement showed them false (Findings 1 and 2) and `RESERVED_OPS` shrank 5 → 3 exactly as its own test instructed; the wire contract is byte-identical. ⚠⚠ **ONE NEW QUESTION, AND IT IS A SCHEDULING CALL RATHER THAN A CONTRACT ONE: is the D29 DOCUMENT half still worth wiring at the measured payoff?** 2.07× on cold load, +6.64 ms/solid on every save, ~61 MB in a 16k-solid file, against a cold load that stays ~3 min at the D48 target either way. **My recommendation: do NOT wire it for v1.0.0** — ship the ops (done: additive, they cost a saved file nothing, and Miqdar could never produce a cache even in principle) and spend the same effort on the levers that can actually close cold load (`instantiate`, lazy build, MT). ⚠ **If you want it wired anyway, the invalidation question above is design-first, not mechanical.** ⚠ Q1–Q3 (Entry 69) still block the plan/section unit; rule 8, rule 17 and the parked `undo`/`redo`-as-Commands are unchanged.
 - **Zayd:** Amer's Entry 70 handed over **the five owner-ruled move verbs + `transactionId` atomicity** (`packages/document`, pre-freeze, and his pointing device is built and waiting to validate them) — that is the TASK, ahead of the plan/section, which is still ruling-blocked. Then: the **`shapeSignature` MEMORY VIEW** (170 embind crossings per import, `tessellate`'s fix applied to the same trap — no contract, pure win, and most of what makes a cached import cost 12 ms) · the `schedule.ts` "rule 17" comment rename (Entry 70) · the housekeeping that blocks going public (`LICENSE` AGPL-3.0, the CLA, the OCCT + planegcs attribution notices — **its own commit**, Entries 64+65's lesson). ⚠ **Do NOT start the D29 document half unasked** — it is the owner question above.
 - **Amer:** **nothing is owed and nothing of his moved** — this entry is `tools/kernel-build` + `packages/kernel-occt` + `packages/protocol` + `tests`. ⚠ One thing to know with nothing to do: the real kernel now advertises two more capabilities (`exportBrep`, `importBrep`); `capabilities` is **generated**, so nothing in `apps/web` changes, and **the app must not start calling them** — the cache is a document-layer concern and D19 makes `DocumentContext` the only door. **The committed WASM artifact changed (+12,631 B), so `git pull` before any browser work.**
+
+
+### Entry 72 — 2026-07-30 — Zayd — **THE FIVE MOVE VERBS + `transactionId` ATOMICITY SHIP (P4.5 rows ⓑ/ⓘ, owner-ruled Q4/Q5) — AND BUILDING THEM MEASURED THE RULED SPLIT'S OWN EXAMPLE WRONG: ALL THREE SHIPPED TYPES ARE PARAMS-POSITIONED, AND A HOSTED ELEMENT'S `placement` IS NEVER READ AT ALL. 613 GREEN, ALL FIVE GATES 0.**
+
+**Task (owner, `Zayd_Prompt.md` §2).** Amer's Entry 70 hand-off: the five owner-ruled move verbs
+(`core.setPlacement`/`move`/`rotate`/`copy`/`array`) + making one `Ctrl+Z` reverse a multi-element
+gesture — `packages/document`, pre-freeze, and **blocking Amer's last two P4.5 exit criteria.** Pulled
+first: already at `af8fd48`, newest Entry **71** (my own), matching `FRESH`. Baseline `pnpm verify`
+**590/590, real exit code 0, all five gates**; final **613/613** (+23 mine). **Nothing committed:
+owner-gated.**
+
+- **⚠⚠ MEASURED BEFORE A LINE WAS WRITTEN (§1b), AND IT CHANGED THE UNIT.** The ruling says *"an element
+  whose position lives in its PARAMS moves by `core.setParams`; only an element whose position lives in
+  its `placement` moves by these"*, and names **an Opening's offset, a GenericSolid and a placed family**
+  as the placement half. Read against the shipped code:
+  ```
+    core.wall         {start,end}         the D52 baseline              PARAMS
+    core.opening      {offsetU,offsetV}   along the host face           PARAMS
+    core.curtainwall  {origin}            [x,y] min corner              PARAMS
+    ⇒ of the three MVP Types, ZERO are positioned by `placement`.
+  ```
+  **So the ruling's "the commonest move never calls these verbs" is truer than it states: in the shipped
+  MVP, NO shipped Type does.** (The genuinely placement-positioned elements are the GenericSolid-shaped
+  ones — the test fixtures, and the placed family that is v1.0.x.) That is not an argument against the
+  verbs, which are exactly right for what is coming; it is the reason the unit needed a guard.
+- **⚠⚠⚠ FINDING 1 — A HOSTED ELEMENT'S OWN `placement` IS NEVER READ BY THE ENGINE, SO `core.move` ON A
+  DOOR WOULD HAVE SUCCEEDED AND MOVED NOTHING.** `build.ts` cuts the void in the HOST's local frame and
+  rides the leaf out on **the host's** placement (*"it is the HOST's placement the leaf rides, never the
+  opening's"*). **Measured, not reasoned:** the same document, reopened with a 1000 mm placement written
+  onto the door, builds the leaf at **byte-identical bounds** — while `core.setParams` with `offsetU +
+  1000` moves it exactly 1000 mm. ⇒ the verb would have written a field nothing reads, **returned an
+  `UndoableEdit`, journalled a move, and told Planitor's Clean Delta the door moved.** A refusal costs a
+  user one message; this costs a wrong building that inspects clean. ⚠ *The ruling's example was the one
+  case in it that cannot work — which is exactly what "drive the arg shapes before they freeze" was for.*
+- **⚠⚠ FINDING 2 — A PLACED D52 BASELINE WALL IS IN TWO PLACES AT ONCE, AND BOTH WEAR `basis: 'exact'`.**
+  Two walls mitred at a corner; wall B given a 5 m placement:
+  ```
+    the BUILT SOLID           moved by exactly 5000.000000 mm   (the kernel applies the placement)
+    baselineOf(B)             byte-identical                    (joins/rooms read the PARAMS)
+    builtAxisLength(B)        the SAME number, to the mm        (D72's billed length, clipped by a
+                                                                 mitre against a corner B has left)
+  ```
+  So the model still miters B into A at a corner B's solid is now 5 m from, and bills a length clipped by
+  that phantom join. **D72's own failure mode by a new road** (*"the two disagreeing about the same wall
+  inside one `basis: 'exact'` block"*).
+- **⇒ WHAT SHIPS: THE VERBS, PLUS A REFUSAL DERIVED FROM ENGINE BEHAVIOUR RATHER THAN FROM A TYPE LIST**
+  (`packages/document/src/placement.ts`, new). Three rungs, each naming a place the *recipe* already
+  decides the position — and each naming the road that does work, because a refusal nobody can act on has
+  stopped being a refusal (rule 3):
+  ```
+    host       build.ts (the host's frame)      the verb is a NO-OP, which is worse than wrong
+    baseline   joins.ts / room.ts / D72         joins, room bounding, the billed axis length
+    datum      scene.ts's constraint resolver   the grid intersection (XY) / the Level span (Z)
+  ```
+  ⚠ **The `datum` rung is PER-AXIS, deliberately:** a Level-constrained member may still be slid sideways
+  and a grid-constrained one may still be raised. Refusing the whole element was simpler and would have
+  blocked ordinary correct gestures. ⚠ **`containerId` is deliberately NOT a rung** — the product's own
+  established idiom is *container + an explicit vertical placement* (that is how the 5-storey scale
+  fixtures put a column on storey N, and have since P4), so a container is an ADDRESS (D35), not a datum.
+  Named in the code so nobody re-derives it.
+- **⚠⚠ FINDING 3 — THE FRAME-ORIGIN TEST IS EXACT FOR A TRANSLATION AND WORTHLESS FOR A ROTATION, AND I
+  HAD TO BE SHOWN.** The guard measures where the element's own frame origin goes. For a pure translation
+  that is *provably* the displacement of every point of the solid — including when the edited translation
+  sits BEFORE a rotation, where both move by `R(Δ)`. **But a rotation about the frame origin displaces the
+  origin by zero while carrying the SOLID anywhere**: the grid-placed member builds itself centred on the
+  grid POINT, 6 m from the origin it would spin about, so it swings clean off its own grid line and the
+  frame-origin test says *nothing moved*. Only the Type knows where it builds its solid relative to its own
+  origin, so a reorientation of a datum-positioned element is **refused rather than measured** — the honest
+  answer, since the number that would justify it does not exist in this layer (`reorients`).
+- **⚠ FINDING 4 — THE GUARD BELONGS ON BOTH DOORS.** `core.createElement` has always been able to write
+  `placement`, on the same elements, with the same consequence. Guarding only the new verbs would be
+  **`checkNameSafe`'s own lesson repeated — *a guard on the safe path is not a guard*.** It is on the
+  AUTHORING doors only: `rebuildAll` does not pass through them, so a `.bnn` written before today still
+  opens and still builds (D43's discipline; D79's *"the verbs carry the refusal the body will not"*), and
+  the test that proves it is the same one that MEASURES Findings 1 and 2 — they can only be constructed
+  through the load path now.
+- **⚠ `core.rotate`'s `about` DEFAULTS TO THE ELEMENT'S OWN FRAME ORIGIN, AND THAT DEFAULT IS THE COMMAND.**
+  The protocol's `RigidMotion` defaults its origin to the WORLD origin, so the obvious implementation makes
+  an element placed 5 m out **orbit across the site** — a perfectly valid solid in a perfectly wrong place.
+  Measured on both sides: with the default it spins in place (centre stays `[5000, 0]`, section turns
+  400 × 1000 → 1000 × 400); with an explicit `about: [0,0,0]` it orbits to `[0, 5000]`, so the default is a
+  default and not a hardcode.
+- **⚠ CONSECUTIVE TRANSLATIONS MERGE** (`translate(a)` then `translate(b)` IS `translate(a+b)`, exactly).
+  Without it a gizmo committing per frame leaves a hundred motions in `scene.json`, saved into every `.bnn`
+  forever and re-applied on every rebuild. It is what makes `core.move` safe to dispatch as often as a
+  pointing device produces one.
+- **⚠ `core.copy` IS EXACT OR IT REFUSES.** It carries params, style, container, classification, the
+  reserved metadata **and the source's datum constraints** (a copy of a Level-spanning member that did not
+  span the Level would be a different kind of thing wearing the same recipe). A source that anything else
+  points at — **a hosted opening**, a sketch constraint, a join override — is REFUSED and named. ⚠ The
+  hosted case is a D1 question, not laziness: an opening's `hostRef` is a `SubShapeRef` **token containing
+  the host's element id**, so copying the door means rewriting an identity token, and *a command never
+  silently re-identifies* (D51). **Surfaced as an owner ruling, below.**
+- **⚠ `core.array` IS REGISTERED AND REFUSES.** Owner-ruled *"SHAPE ONLY — body is v1.0.x"*. It is in the
+  registry rather than merely written down because **`argsSchema` freezes at step 6**: a verb absent at the
+  freeze has no reserved arg shape, and adding one later is an amendment across three products plus the
+  generated agent tool-list (the ⓣ trap, row Ⓕ's precedent). Its args are still VALIDATED before the
+  refusal — *"your call was well-formed and the verb is not built"* and *"your arguments were wrong"* are
+  two different facts, and only one is worth waiting for v1.0.x over.
+- **⚠⚠ `transactionId` NOW HAS A READER — ONE `Ctrl+Z` REVERSES THE GESTURE (row ⓘ, Q5).** Measured before:
+  three `core.setParams` for a three-wall corner-drag produced **three edits and three undos**, which is
+  why Amer declined to ship a gesture that only looked transactional. Built: `ExecuteOptions.transactionId`
+  (the executor stamps it — a command stays passive and knows nothing of transactional state, exactly like
+  `dryRun`), `UndoStack.takeUndoGroup`/`takeRedoGroup`, and **ONE stage + ONE commit for the whole unit**,
+  so D42's all-or-nothing covers the transaction and not merely each edit in it (undoing three of four
+  walls and refusing on the fourth would leave a room nobody drew). ⚠ **The grouping is CONSECUTIVE, not
+  "every edit with this id"**: an undo restores state DELTAS, and a delta is only valid against the state
+  that produced it, so reversing across a foreign edit would corrupt the scene rather than refuse. ⚠ The
+  journal gets **one reversal per edit** (each naming what it `reverses`, all wearing the transaction id) —
+  the model records events, never a summary entry no original corresponds to.
+- **⚠ AND THE AGENT GETS TRANSACTIONS TOO, BECAUSE OF D19 AND NOT BECAUSE ANYONE ASKED.** Grouping is a
+  real capability, and *"every capability reachable only through the UI is a capability an agent can never
+  have"* is the command layer's whole reason to exist. `AgentSurface.execute` takes an optional
+  `{transactionId}` and passes it straight through (no second implementation of anything); `agentApi` does
+  not move — it is additive, and D22 versions that surface on its own clock.
+- **⚠ ONE THING THE REVERT SWEEP TAUGHT ABOUT MY OWN CODE:** `takeUndoGroup`'s early return for an
+  ungrouped edit is **load-bearing, not a fast path**. An exhausted stack reports `undefined` for the edit
+  beneath it, so a loop entered with `transaction === undefined` matches forever and pushes `undefined`
+  until the process dies — **it OOM'd a vitest worker in 14 s** when a mutation produced exactly that. An
+  ungrouped edit is a unit of one BEFORE the loop, never by the loop's own test. Commented in place.
+- **WHAT WAS BUILT.** `packages/document/src/placement.ts` (**new**, ~300 lines): the rigid-motion algebra
+  (translation merge, rotation, `applyMotions` on a point, `frameOriginOf`), the motion validator, and
+  **the positioning rule + its ONE refusal wording, shared by all four verbs** (rule 10's discipline — a
+  refusal three products will meet should not be four differently-worded guesses at one cause). ·
+  `commands.ts` (+~330): the five registry entries + the `createElement` guard. · `undo.ts`: the group
+  take/redo + `reversalOf` inheriting the transaction. · `document.ts`: `ExecuteOptions.transactionId`, the
+  stamp, and group-atomic `undo`/`redo`. · `agent.ts`: the D19 passthrough. ⚠ **No kernel change, no WASM
+  rebuild** — this unit is pure `packages/document`.
+- **⚠ ENTRY 64's RULE-7 ENFORCEMENT TEST CAUGHT MY OWN NEW SCHEMA, ON ITS FIRST OUTING.** `core.array`'s
+  `count`/`count2` shipped without a `unit` and `tests/units-rule7.test.ts` went red — *"a clean rule with
+  no enforcement is a dirty rule that has not happened yet"*, working as designed on the first numeric
+  fields added since it was written. They are genuine counts (its `step`/`step2` ARE mm and say so), so
+  they join the enumerated allow-list with the reason written beside them.
+- **REVERT-VERIFIED FIFTEEN WAYS, each firing exactly what it should and nothing else:**
+  ```
+    core.rotate's `about` default -> the world origin   "spins in place" fails (the element orbits)
+    the consecutive-translate merge removed             the merge test fails
+    the HOST rung removed                               the 4-verb hosted refusal fails
+    the BASELINE rung removed                           2 fail (the verb AND the createElement door)
+    the DATUM rung removed                              3 fail (grid, level, rotate)
+    the PER-AXIS test -> refuse the whole element       the "allows one straight up" half fails
+    `reorients` -> always false                         the datum-rotation refusal fails
+    the createElement guard removed                     the both-doors test fails
+    `motionIssues` -> accept anything                   the malformed-motion test fails
+    takeUndoGroup -> pop ONE edit (the pre-Q5 code)     4 fail, incl. the corner-drag
+    the transactionId stamp removed                     3 fail
+    the reversal's inherited transaction id removed     the journal test fails
+    core.copy's refusal removed                         the hosted-source test fails
+    core.copy's datum constraints removed               the copy test's span assertion fails
+    the agent's transactionId passthrough removed       the D19 test fails
+  ```
+  ⚠ **Stated honestly rather than padded: the group ROLLBACK on a refused undo has no end-to-end test** —
+  an undo whose rebuild refuses needs a state that was valid when built and invalid when reverted, which I
+  could not construct without inventing a Type that exists to fail. The *mechanism* is tested where it
+  lives (`UndoStack`: take a group, then one `takeRedo` per edit, and the stack comes back byte-identical),
+  and the gap is recorded rather than counted as coverage.
+- **VERIFICATION: all five gates, real exit codes — typecheck 0 · lint 0 · format:check 0 · test 0 (613
+  passed, was 590, +23 mine) · reseed:check 0.** ⚠ `prettier --write` on every touched file BEFORE
+  `verify`, per Entry 67 — **and `verify` still exited 1 twice anyway**: first on 19 lint errors, then on
+  the rule-7 test above. *A local gate whose exit code you do not read is not a gate* — fourth entry
+  running, and the second failure was a real finding rather than a formality.
+- **Box:** read/measure/build only; `pnpm verify` ×4 with the real exit code captured every time +
+  targeted vitest ×~10 + a 15-way revert sweep (each patch applied, run, restored); no kernel rebuild, no
+  containers touched, no ports bound, nothing installed; `/tmp` 6.8 MB, RAM ~2.5 GB available throughout;
+  both live public sites up (`portfolio-caddy-1`, `beamstack-contact` untouched, as were Planitor's and
+  Chantier's containers).
+
+**NEXT:**
+
+- **Owner:** **the FREEZE (step 6) is still yours and still unblocked** — this entry moved **no frozen
+  byte, no `SCENE_SCHEMA_VERSION`, no field.** It adds five `Command` registry entries and gives a
+  RESERVED field (`UndoableEdit.transactionId`) its first reader, which is what Q5 ruled. ⚠⚠ **TWO NEW
+  QUESTIONS, both cheap only until the freeze:** **(1) does `core.copy` deep-copy a host's openings?**
+  Today it REFUSES a source anything points at, because copying a door means rewriting a `hostRef` token
+  that contains the host's element id — a re-identification, which is a D1/D51 ruling and not a body
+  decision. My recommendation: **leave it refusing for v1.0.0** and add a ruled `retargetMap`-shaped answer
+  in v1.0.x. **(2) is the BASELINE refusal the right strictness?** A user who genuinely wants to slide a
+  D52 wall must `core.setParams` both endpoints; the alternative is for `core.move` to translate the
+  baseline params itself — which is Type knowledge in the command layer, and the ruled split says no.
+  Recommendation: **keep the refusal; revisit if the move tool finds it hostile in the hand.** ⚠ Q1–Q3
+  (Entry 69) still block the plan/section unit; Q6 (the D29 document half), rule 8, rule 17 and the parked
+  `undo`/`redo`-as-Commands are unchanged.
+- **Amer:** ⚠⚠ **YOU ARE UNBLOCKED — both remaining P4.5 exit criteria are now buildable.** Criterion 4
+  (the move tool + gizmo) has its verbs, and the corner-drag has its atomicity: dispatch each
+  `core.setParams` of the gesture with `doc.execute(id, args, { transactionId })` and one `Ctrl+Z` reverses
+  the unit. ⚠⚠ **READ THE SPLIT BEFORE BUILDING THE GIZMO, because it is the opposite of the intuition and
+  it is now ENFORCED, not merely documented:** dragging a wall is `core.setParams` on both endpoints,
+  dragging a door is `core.setParams` on `offsetU` — and `core.move` **REFUSES** both, with a message
+  naming the road that works. `core.move`/`setPlacement`/`rotate` are for GenericSolid-shaped elements.
+  ⚠ `core.array` refuses by design (reserved shape, v1.0.x body) — do not put it in the ribbon.
+- **Zayd:** the plan/section unit is still blocked on Q1–Q3. Ruling-free work, in order: the
+  **`shapeSignature` MEMORY VIEW** (170 embind crossings per cached import — `tessellate`'s own fix on the
+  same documented trap; no contract, pure win) · the `schedule.ts` **"rule 17" comment rename** (Entry 70's
+  hand-off — it collides with `core_logic.md` §8's numbered rule 17, and this project's method is grep) ·
+  the **housekeeping that blocks going public** (`LICENSE` AGPL-3.0, the CLA, the OCCT + planegcs
+  attribution notices — ⚠ **its own commit**, Entries 64+65's lesson). ⚠ **Do NOT start the D29 document
+  half unasked** (Entry 71's Q6).

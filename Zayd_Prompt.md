@@ -72,33 +72,28 @@ Browser-only code is Amer's; you never claim to have verified what you cannot ru
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry in `current_state.md` = **ENTRY 71** (YOUR OWN — the D29 GEOMETRY-CACHE BODIES:
-        `exportBrep`/`importBrep` + `kernel-occt/src/cache.ts`. **590 green, all five gates 0**,
-        revert-verified 7 ways). Entry 70 is Amer's (P4.5's tool layer — the snap seam, the tool
-        state machine, numeric entry, hover, multi-select; 578 green) and it is ALREADY MERGED
-        UNDERNEATH yours: `origin/main` `45109d5 → 57765b0` (+ two doc-only follow-ups).
+FRESH:  Newest Entry in `current_state.md` = **ENTRY 72** (YOUR OWN — THE FIVE MOVE VERBS +
+        `transactionId` ATOMICITY, P4.5 rows ⓑ/ⓘ, D80: `core.setPlacement`/`move`/`rotate`/`copy`
+        live, `core.array` a registered shape that refuses, and one `Ctrl+Z` now reverses a
+        multi-element gesture. **613 green, all five gates 0**, revert-verified 15 ways).
+        Entry 71 (yours) is the D29 cache bodies; Entry 70 (Amer's) is P4.5's tool layer.
 
-        ⚠ **ENTRY 71 IS COMMITTED AND PUSHED** (owner-authorised 2026-07-30: `origin/main`
-        `6580053 → f08b7d6`) — one commit carrying the code, the entry, the §1–§5 edits it owed,
-        the imp_plan and both prompt §2s. Confirm your position by the ENTRY NUMBER regardless. Both
-        entries were written OUTSIDE `current_state.md` and moved in afterwards, because the owner
-        ran both agents IN PARALLEL that day; the standalone files are deleted and nothing about
-        either entry changed in the move. The branch `zayd/entry71-d29-brep-cache` fast-forwarded
-        onto Entry 70 with **no conflict and nothing replayed** (Entry 70 is `apps/web` +
-        `core_logic.md`; Entry 71 is `tools/kernel-build` + `packages/kernel-occt` +
-        `packages/protocol` + `tests`).
+        ⚠⚠ **ENTRY 72 IS UNCOMMITTED — the tree is dirty and that is the FINISH state, not a
+        wait.** Owner-gated: verify ran, the Entry is written, both §2s are rewritten, nothing was
+        committed. Surface it and move on; do not idle asking permission.
 
-        ⚠ TWO THINGS OF AMER'S THAT REACH YOU, neither of them a break:
-        • **DOMAIN RULE 19** (three appended lines in `core_logic.md` §8): *a tool collects input;
-          only a command changes the model.* Read it — it is why his gestures commit exactly one
-          Command through the one door you own.
-        • `apps/web` now depends on **`@bunyan/types`** and registers the real `core.wall`/
-          `core.opening`/curtain-wall Types instead of its old scaffold wall. Your packages are
-          unchanged, **but a break in `@bunyan/types` is now a break in the app too.**
+        ⚠ WHAT ENTRY 72 CHANGED THAT REACHES YOU: `packages/document` only —
+        `src/placement.ts` (NEW: the rigid-motion algebra + the positioning rule), five registry
+        entries + a guard on `createElement` in `commands.ts`, the transaction unit in
+        `undo.ts`/`document.ts`, and one optional option on the agent surface. **No kernel, no WASM
+        rebuild, no frozen byte, no `SCENE_SCHEMA_VERSION`, no field.**
 
-        ⚠ ENTRY 71 rebuilt the committed WASM artifact (14,599,888 → 14,612,519 B) and shrank
-        `RESERVED_OPS` from 5 to 3, exactly as `quantities-and-contract.test.ts` instructed. No
-        frozen byte, no `SCENE_SCHEMA_VERSION`, no field, no verb.
+        ⚠⚠ THE FINDING TO CARRY FORWARD, because it will bite anything that touches placement:
+        **ALL THREE SHIPPED TYPES ARE PARAMS-POSITIONED** (`core.wall` {start,end} · `core.opening`
+        {offsetU,offsetV} · `core.curtainwall` {origin}), and **a HOSTED element's own `placement`
+        is never read by the engine at all** — measured, byte-identical bounds. So the move verbs
+        REFUSE where the recipe already decides the position (host / D52 baseline / datum,
+        per-axis), and `core.createElement` carries the same refusal.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -108,111 +103,79 @@ FRESH:  Newest Entry in `current_state.md` = **ENTRY 71** (YOUR OWN — the D29 
         need to know. (Git already answers "what is the tip?" — `git log -1`. This file answers
         "am I behind?", which git cannot.)
 
-        ⇒ After `git pull`: newest Entry = 71 ⇒ you are current, start TASK.
-          Newest Entry HIGHER than 71 ⇒ the other agent has pushed: read every Entry after 71
+        ⇒ After `git pull`: newest Entry = 72 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 72 ⇒ the other agent has pushed: read every Entry after 72
           before starting, and re-check that TASK is still the right thing to do.
 
-TASK:   **THE FIVE MOVE VERBS + `transactionId` ATOMICITY — owner-RULED 2026-07-30 (P4.5 design
-        §9/§10, Q4/Q5). PRE-FREEZE, and it is BLOCKING AMER.** Unchanged from what Entry 70 handed
-        over, and it still outranks the plan/section for one reason: **that unit is blocked on YOUR
-        Q1–Q3 and this one is not.** The shapes are ruled; only the implementation is owed, and it is
-        `packages/document` — which is why Amer escalated instead of building it (a new verb is a
-        contract change).
-
-        Build them as ordinary additive registry entries (D19, domain rule 5):
-
-          core.setPlacement { elementId, placement: Transform[] }  absolute; paste-in-place, gizmo
-          core.move         { elementId, by: Vec3 }                delta; composes under undo
-          core.rotate       { elementId, axis, angle, about }      `about` defaults to the elt frame
-          core.copy         { elementId, by: Vec3 } -> new id in its UndoableEdit
-          core.array        { elementId, mode:'linear'|'grid', count, step, step2? }
-                                                                   SHAPE ONLY — body is v1.0.x
-
-        ⚠⚠ THE RULED SPLIT IS THE PART TO GET RIGHT, AND IT IS COUNTER-INTUITIVE: an element whose
-          position lives in its PARAMS moves by `core.setParams` — a D52 baseline wall translates
-          BOTH endpoints, and dragging one end is `setParams` on that endpoint alone. Only an
-          element whose position lives in `placement` (an Opening's offset, a GenericSolid, a placed
-          family) moves by `move`/`setPlacement`. **So the commonest "move" in the product never
-          calls these verbs, and that is correct, not a gap.**
-        ⚠⚠ Q5 — `UndoableEdit.transactionId` HAS ZERO READERS (measured Entry 70: declared
-          `undo.ts:109`, one comment `document.ts:802`). A corner-drag dispatching three
-          `setParams` therefore produces three edits and **THREE UNDOS**. Amer deliberately did not
-          ship a gesture that LOOKS transactional and is not — do not undo that judgement by
-          shipping the field still unread. Make ONE `Ctrl+Z` reverse the unit.
-        ⚠ **Amer's pointing device is BUILT AND WAITING** — the wall tool already drives
-          `createElement` and `setParams` through the snap seam — so these verbs can be validated
-          with a REAL GESTURE the day they land. That is exactly what freeze-gate row ⓑ asked for,
-          and it is worth nothing after the freeze. ⚠ Rows ⓑ/ⓘ are freeze-SAFE and do NOT block the
-          freeze; do not claim they do (Entry 45).
+TASK:   **THE `shapeSignature` MEMORY VIEW — ruling-free, no contract, pure win, and it is most of
+        what makes a cached import cost 12 ms.** Measured in Entry 71: a cached import pays **170
+        embind boundary crossings per solid** (5 numbers × 34 sub-shapes) draining the signature
+        vector, which is `kernel.cpp`'s OWN documented trap (*"an embind vector costs ONE crossing
+        PER ELEMENT"*). `tessellate` already solves exactly this with a typed-array memory view;
+        this is the same fix applied to the same trap. ⚠ It is a kernel C++ change ⇒ a WASM rebuild:
+        **~74 s measured** single-file compile + link, NOT the 2.5 h version bump (§1c-3), capped at
+        the source (`--memory=2g --cpus=2`, §6a). ⚠ **Measure both sides** — the 12.00 ms/solid
+        import is the number to beat, and §1c-9 says measure the artifact, not the manual.
 
         THEN, in this order:
-        1. **The plan + section** (§8 of `P5_step6C_plan_section_design.md`) — the moment Q1–Q3 are
-           ruled. The design is delivered and unchanged. → Q1 decides the SHAPE of the unit
-           (cut-only vs cut+projection), so building before it is ruled is building the wrong thing,
-           not building early. Q3 (`refTo: 'view'`) is a one-line contract touch it cannot avoid.
+        1. **The plan + section** (§8 of `P5_step6C_plan_section_design.md`) — **the moment Q1–Q3
+           are ruled, and not before**: Q1 decides the SHAPE of the unit (cut-only vs
+           cut+projection), so building first is building the wrong thing, not building early.
            ⚠ Read §5's test table BEFORE writing the fixture. Every criterion has a way to pass
            while FALSE, and the top one is Entry 47's trap verbatim — **a one-plain-wall fixture.**
            It must carry a curtain wall (children), an opening (cut faces) and a design option.
-           ⚠ **Entry 71 hit that trap from the other side and it is now MEASURED: 16 of a real
-           wall's 34 identities belong to OTHER nodes, and 26 of a door frame's 34 do** — a plain
-           box exercises neither `REL_INHERIT` nor a cut node.
+           ⚠ Entry 71 measured that trap from the other side: **16 of a real wall's 34 identities
+           belong to OTHER nodes, and 26 of a door frame's 34 do** — a plain box exercises neither
+           `REL_INHERIT` nor a cut node.
            ⚠ The `views` promotion is Entry 68's verbatim INCLUDING ITS CORRECTION — union member +
-           dependency edge + optional-collection `.bnn` guard, and **NO `emptyScene()` entry** (the
-           collection MATERIALISES ON FIRST AUTHORING; `applyOne` already does it).
-        2. **The `shapeSignature` MEMORY VIEW** — measured in Entry 71: a cached import pays **170
-           embind boundary crossings per solid** (5 numbers × 34 sub-shapes), which is
-           `kernel.cpp`'s OWN documented trap (*"an embind vector costs ONE crossing PER ELEMENT"*).
-           `tessellate` already solves it with a typed-array view; this is the same fix. No
-           contract, pure win, and it is most of what makes a cached import cost 12 ms.
-        3. **`schedule.ts`'s "rule 17" comment rename** (Entry 70's hand-off) — its comments name
-           their own convention "rule 17", which now collides with `core_logic.md` §8's numbered
-           rule 17 (D58). This project's method IS grep (§1c-8); two things called "rule 17" is a
-           real cost.
-        4. **The housekeeping that blocks going public** — `LICENSE` AGPL-3.0, the CLA, the OCCT +
+           dependency edge + optional-collection `.bnn` guard, and **NO `emptyScene()` entry**.
+        2. **`schedule.ts`'s "rule 17" comment rename** (owed since Entry 70) — its comments name
+           their own convention "rule 17", which collides with `core_logic.md` §8's numbered rule 17
+           (D58). This project's method IS grep (§1c-8); two things called "rule 17" is a real cost.
+        3. **The housekeeping that blocks going public** — `LICENSE` AGPL-3.0, the CLA, the OCCT +
            planegcs attribution notices. ⚠ **Its own commit**; do not intermingle it with a code
            entry (Entries 64+65's lesson).
 
         ⚠⚠ **DO NOT START THE D29 DOCUMENT HALF (`geometry-cache.brep` in the `.bnn`) UNASKED.** It
-          is owner Q6 below, and the measurement is why: the cache buys **2.07×**, costs **6.64
-          ms/solid on every save** and **~61 MB at the 16k-solid target**, against a cold load that
-          stays ~3 min either way. My recommendation on the desk is **do not wire it for v1.0.0**.
-          It also hides a genuine design-first question — **what INVALIDATES a cache**, when neither
-          `kernelBuildId` nor `typeVersions` moves for a hand-edited recipe.
-        ⚠ A kernel change means a WASM rebuild: **~74 s measured** single-file compile + link
-          (§1c-3), NOT the 2.5 h version bump. Constrain at the source (`--memory=2g --cpus=2`),
-          §6a. ⚠ And §1c-9 is new and cost two wrong drafts in one session: **measure the artifact,
-          not the manual** — dump the bytes the other side actually emits before writing a check.
+          is owner Q6, and the measurement is why: the cache buys **2.07×**, costs **6.64 ms/solid
+          on every save** and **~61 MB at the 16k-solid target**, against a cold load that stays
+          ~3 min either way. My recommendation on the desk is **do not wire it for v1.0.0**.
+        ⚠ **Do not re-open the move verbs' guard without the owner** — it is Entry 72's Q7/Q8 below.
 
-NEW:    Owner rulings OWED — **SIX**, and three of them block the plan/section unit. Full text +
-        recommendations: `P5_step6C_plan_section_design.md` §7 (Q1–Q5) and Entry 71's NEXT (Q6). All
-        cheap only until the freeze, so surface them in your opening message even though the TASK
-        above means you are NOT idle without them.
+NEW:    Owner rulings OWED — **EIGHT**, and three of them still block the plan/section unit. Full
+        text: `P5_step6C_plan_section_design.md` §7 (Q1–Q5), Entry 71's NEXT (Q6), Entry 72's NEXT
+        (Q7–Q8). All cheap only until the freeze, so surface them in your opening message even
+        though the TASK above means you are NOT idle without them.
         (1) **Q1 — what does v1.0.0's plan/section SHOW?** Recommend `mode:'cut'` only: every curve
             then carries full sub-shape identity (measured 4/4, 1/1, 8/8, zero orphans) and the cost
-            is linear, where HLR is ≈N^1.5 AND cannot attribute at all. Cost: no lines beyond the
-            cut plane. BLOCKS the build — it decides the unit's shape.
+            is linear, where HLR is ≈N^1.5 AND cannot attribute at all. BLOCKS the build.
         (2) **Q2 — where does projected-curve provenance GO if it ever lands?** Recommend
-            `SectionCurve.nodeId?` (an optional field on a reserved, unimplemented op result) over
-            widening `SubShapeKind` with `'solid'`, which three products bind to. BLOCKS.
+            `SectionCurve.nodeId?` over widening `SubShapeKind` with `'solid'`. BLOCKS.
         (3) **Q3 — `ParamField.refTo` also gaining `'view'`/`'sheet'`/`'annotation'`/`'family'`?**
-            ⚠ ENTRY 68's owed question, and it blocks the plan/section unit (`createView` takes a
-            view id). Recommend all four (free now, an amendment later, nothing switches on it).
-            ⚠ The TASK above does NOT need it — the five move verbs take `elementId`, and
-            `refTo: 'element'` already exists.
+            ⚠ Entry 68's owed question; it blocks the plan/section unit (`createView` takes a view
+            id). Recommend all four (free now, an amendment later, nothing switches on it).
         (4) Q4 — does v1.0.0 owe a SHEET? Recommend no (composition, not projection). Non-blocking.
         (5) Q5 — the discretisation tolerance: mine, documented? Non-blocking.
-        (6) **Q6 — NEW (Entry 71): is the D29 DOCUMENT half worth wiring at the measured 2.07×?** A
-            SCHEDULING call, not a contract one — the ops are built, additive and safe either way,
-            and Miqdar could never produce a cache in principle. Recommend **no** for v1.0.0; spend
-            the effort on `instantiate` (reserved), lazy build (D66) and MT (D8) instead.
+        (6) **Q6 — is the D29 DOCUMENT half worth wiring at the measured 2.07×?** A SCHEDULING call,
+            not a contract one. Recommend **no** for v1.0.0; spend the effort on `instantiate`
+            (reserved), lazy build (D66) and MT (D8) instead.
+        (7) **Q7 — NEW (Entry 72): does `core.copy` deep-copy a host's openings?** Today it REFUSES
+            a source anything points at, because copying a door means rewriting a `hostRef` token
+            that CONTAINS the host's element id — a re-identification (D1/D51), which is a ruling
+            and not a body decision. Recommend **leave it refusing for v1.0.0**.
+        (8) **Q8 — NEW (Entry 72): is the BASELINE refusal the right strictness?** A user sliding a
+            D52 wall must `core.setParams` both endpoints; the alternative is `core.move`
+            translating the baseline params itself, which is Type knowledge in the command layer and
+            what the ruled split says no to. Recommend **keep the refusal**; revisit if Amer's move
+            tool finds it hostile in the hand.
         Older and still owed:
-        (7) rule 8 — does `FamilyDefinition` get a way to declare billable faces? Without one, every
+        (9) rule 8 — does `FamilyDefinition` get a way to declare billable faces? Without one, every
             D61 data-authored family reports the whole-solid area D72 measured 1.07×–3.03× wrong.
-        (8) rule 17 — should `Dimension.anchors` exclude the free `point` anchor?
+        (10) rule 17 — should `Dimension.anchors` exclude the free `point` anchor?
         Also still parked (Entry 62): should `undo`/`redo` become Commands (rule 9)?
         ⚠ Entry 65's three rulings (D78) are applied and recorded — do not re-open them.
-        ⚠ Entry 70's Q1–Q6 (P4.5) are RULED and recorded in the design doc — do not re-open them
-          either; what is left of them is the TASK above.
+        ⚠ Entry 70's Q1–Q6 (P4.5) are RULED, recorded AND NOW BUILT (Entry 72) — do not re-open
+          them either.
         If a ruling arrives in chat, apply it AND record it in the doc it belongs to — this file is
         not where decisions live.
 ```

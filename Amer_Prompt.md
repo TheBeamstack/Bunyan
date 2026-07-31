@@ -84,69 +84,76 @@ holder**.
 ## §2 — DYNAMIC (the only part that changes; rewritten each session)
 
 ```
-FRESH:  Newest Entry in `current_state.md` = **ENTRY 71** (Zayd — the D29 GEOMETRY-CACHE BODIES;
-        **590 green, all five gates 0**). **YOUR ENTRY 70** (the P4.5 tool layer: the snap seam, the
-        tool state machine, numeric entry, hover, multi-select; domain rule 19 adopted; 578 green)
-        is the one before it, **COMMITTED AND PUSHED** (owner-authorised 2026-07-30: `origin/main`
-        `45109d5 → 57765b0`), with the log normalisation on top. Confirm by the ENTRY NUMBER.
+FRESH:  Newest Entry in `current_state.md` = **ENTRY 72** (Zayd — THE FIVE MOVE VERBS +
+        `transactionId` ATOMICITY, P4.5 rows ⓑ/ⓘ, D80; **613 green, all five gates 0**). Entry 71
+        (Zayd) is the D29 geometry-cache bodies; **YOUR ENTRY 70** (the P4.5 tool layer) is the one
+        before that, committed and pushed.
 
-        ⚠ **ENTRY 71 IS KERNEL-ONLY AND ASKS NOTHING OF YOU.** The D29 geometry-cache ops
-        (`exportBrep`/`importBrep`) now have bodies, so the real kernel advertises **two more
-        capabilities** — `capabilities` is GENERATED from the handler map, so nothing in `apps/web`
-        changes and nothing breaks. **Do not call them from the app:** the cache is a
-        document-layer concern and D19 makes `DocumentContext` the only door. ⚠ **The committed
-        WASM artifact changed (+12,631 B) — `git pull` before any browser work.** Nothing of yours
-        moved; his entry is `tools/kernel-build` + `packages/kernel-occt` + `packages/protocol` +
-        `tests`. ⚠ It is COMMITTED AND PUSHED (owner-authorised 2026-07-30:
-        `origin/main` `6580053 → f08b7d6`), so a plain `git pull` brings you level.
+        ⚠⚠ **THIS IS THE ENTRY YOU HAVE BEEN WAITING FOR — BOTH OF YOUR BLOCKED EXIT CRITERIA ARE
+        OPEN.** The five ruled verbs exist (`core.setPlacement`/`move`/`rotate`/`copy` live;
+        `core.array` is a registered shape that REFUSES, body in v1.0.x) and
+        `UndoableEdit.transactionId` finally has a READER: pass
+        `doc.execute(id, args, { transactionId })` and **one `Ctrl+Z` reverses the whole gesture**,
+        staged and committed as ONE all-or-nothing unit.
 
-        ⚠ BOTH Entry 70 and Entry 71 were written in standalone files and MOVED into §7 afterwards,
-        because the owner ran both agents in parallel that day. Those files are now deleted and the
-        log is back to normal — if you were told to look for `amer_entry_70.md` or
-        `entry_71_zayd_D29_cache.md`, don't; both are in §7.
+        ⚠⚠⚠ **BUT READ THIS BEFORE YOU BUILD THE GIZMO, BECAUSE THE SPLIT IS NOW ENFORCED AND IT IS
+        THE OPPOSITE OF THE INTUITION.** Zayd measured that **all three shipped Types position
+        themselves from PARAMS** — `core.wall` `{start,end}`, `core.opening` `{offsetU,offsetV}`,
+        `core.curtainwall` `{origin}` — and that **a hosted element's own `placement` is never read
+        by the engine at all** (a door given a 1000 mm placement builds its leaf at byte-identical
+        bounds). So:
+          • dragging a WALL  = `core.setParams` with BOTH endpoints moved (one end = one endpoint)
+          • dragging a DOOR  = `core.setParams` on `offsetU`
+          • `core.move`/`setPlacement`/`rotate` REFUSE both, with a typed message naming the road
+            that works — they are for GenericSolid-shaped elements and placed families.
+        *That is not a gap and not a bug; it is the owner-ruled split, now enforced instead of
+        merely documented, because the unguarded version SUCCEEDS while moving nothing.*
 
-        ⇒ After `git pull`: newest Entry = 71 ⇒ you are current, start TASK.
-          Newest Entry HIGHER than 71 ⇒ Zayd has pushed: read every Entry after 71 before
-          starting, and re-check that TASK is still the right thing to do. ⚠ **Expect his next
-          entry to be the five MOVE VERBS + `transactionId`** — that is his TASK (Entry 71 took a
-          ruling-free unit first, because the plan/section is still blocked on his Q1–Q3), and it
-          is what unblocks the two P4.5 exit criteria you cannot reach alone.
+        ⚠ Zayd's Entry 72 is `packages/document` only — no kernel, no WASM rebuild, no frozen byte.
+        Entry 71 DID rebuild the committed WASM artifact (+12,631 B), so **`git pull` before any
+        browser work** if you have not since.
 
-        ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
-        content, so any hash written in this file can only ever name an EARLIER commit than the
-        one carrying it — and doc-sync / "record the push" commits land on top afterwards. A
-        hash match is therefore a check that CANNOT PASS. **The Entry number is the check**: it
-        is written by hand, it moves only when real work lands, and it is the thing you actually
-        need to know. (Git already answers "what is the tip?" — `git log -1`. This file answers
-        "am I behind?", which git cannot.)
+        ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT — a commit's SHA is a hash of its own
+        content, so any hash here can only name an EARLIER commit than the one carrying it, and a
+        hash match is a check that cannot pass. **The Entry number is the check.**
 
-TASK:   **P4.5 CONTINUES — THE SPINE IS BUILT AND TWO EXIT CRITERIA ARE BLOCKED ON ZAYD.**
-        Q1–Q6 are ALL RULED (2026-07-30) and applied into `P4.5_interaction_model_design.md` §12.
-        Do not re-open them, and do not re-ask which track.
+        ⇒ After `git pull`: newest Entry = 72 ⇒ you are current, start TASK.
+          Newest Entry HIGHER than 72 ⇒ read every Entry after 72 before starting.
 
-        ⇒ DO THIS, IN THIS ORDER — both need NO ruling and NO other agent:
-          1. **THE OPENING TOOL.** Exit criterion 3 (*a window is placed by CLICKING A FACE and no
+TASK:   **CLOSE P4.5 — THE MOVE TOOL + THE CORNER-DRAG, THEN THE OPENING TOOL.** Q1–Q6 are ALL
+        RULED (2026-07-30) and applied into `P4.5_interaction_model_design.md` §12. Do not re-open
+        them, and do not re-ask which track.
+
+        ⇒ DO THIS, IN THIS ORDER — nothing here needs a ruling or another agent:
+          1. **THE MOVE TOOL + GIZMO (exit criterion 4, row ⓑ).** The verbs exist as of Entry 72.
+             ⚠ **The empirical half of row ⓑ is YOURS and it is the reason the row exists:** the
+             plan asked for these arg shapes to be *driven with a real pointing device before they
+             freeze*, and that can now happen. Drive them, and **say in your entry whether the arg
+             shapes are what a pointing device actually needs** — if they are not, that is a
+             pre-freeze correction and it is cheap only now.
+             ⚠ The guard will REFUSE a wall and a door (see FRESH). Your gizmo therefore dispatches
+             `core.setParams` for those and `core.move`/`rotate` for placement-positioned elements —
+             and the refusal is typed (`REFUSED`) with an actionable message, so surface it rather
+             than swallowing it.
+          2. **THE CORNER-DRAG (exit criterion 4's other half, row ⓘ).** Three walls meeting at a
+             point drag as ONE gesture: dispatch each `core.setParams` with the SAME
+             `{ transactionId }` and one `Ctrl+Z` reverses all three. ⚠ Grouping is CONSECUTIVE —
+             do not interleave another command inside a gesture.
+          3. **THE OPENING TOOL.** Exit criterion 3 (*a window is placed by CLICKING A FACE and no
              human types a derivation token*) is ONE TOOL AWAY: `SnapHit.ref` already carries the
              `SubShapeRef` and `SnapHit.hostElementId` the element, so the tool is a two-input
              registry entry committing `core.createElement` with `{hostId, hostRef}`. Model it on
              `WALL_TOOL` in `tool/tools.ts`; the face-snap candidate is the piece to add to
              `tool/snap.ts` (today it yields edge endpoints/midpoints + grid, not face hits — the
              pick path already resolves faces, so it is the same substrate again).
-          2. **ALIGNMENT GUIDES** (design §4.3) — dashed overlay when the cursor lines up with a
+          4. **ALIGNMENT GUIDES** (design §4.3) — dashed overlay when the cursor lines up with a
              live reference point. Pure `PreviewLayer` geometry over Tier-1 candidates; no model
              state, no contract.
 
-        ⚠⚠ DO NOT START THESE TWO, AND DO NOT FAKE THEM — THEY ARE `packages/document`-GATED:
-          ⓑ  **the move tool + gizmo** need `core.setPlacement`/`move`/`rotate`/`copy`/`array`.
-             The SHAPES are owner-ruled (design §9's table) but the VERBS DO NOT EXIST, and a new
-             verb is a contract change you must escalate, never perform.
-          ⓘ  **the corner-drag** needs `UndoableEdit.transactionId` to have a READER. Measured in
-             Entry 70: it has ZERO (declared `undo.ts:109`, one comment `document.ts:802`), so
-             three `setParams` today = three undos however you label them. Entry 70 deliberately
-             did not ship a gesture that LOOKS transactional and undoes in three steps; do not
-             undo that judgement.
-        ⚠ Entry 45's freeze-SAFE judgement STANDS — neither blocks the freeze and you must not
-          claim it does. They are worth nothing after the freeze; that is why they are recorded.
+        ⚠ `core.array` REFUSES by design (a reserved shape whose body is v1.0.x, owner-ruled) — do
+          not put it in the ribbon and do not build an array tool on it.
+        ⚠ Entry 45's freeze-SAFE judgement STANDS — rows ⓑ/ⓘ never blocked the freeze and you must
+          not claim they did.
 
         ⚠ ONE THING TO KNOW FROM ZAYD'S ENTRY 69, WITH NOTHING OWED NOW: when the plan/section
         body lands it produces a `ViewResult` of **2D polylines carrying sub-shape identity** — a
@@ -162,7 +169,17 @@ TASK:   **P4.5 CONTINUES — THE SPINE IS BUILT AND TWO EXIT CRITERIA ARE BLOCKE
         read path is `doc.evaluateSchedule` and the write path is the three verbs, both through
         the one door.
 
-NEW:    (From your own Entry 70 — three facts about the app that are now true and were not:)
+NEW:    (From Zayd's Entry 72 — the two seams you now call, and one rule about them:)
+        (0z) **`doc.execute(commandId, args, { transactionId })`** groups consecutive edits into one
+             undo/redo unit. The id is opaque and never parsed — a gesture counter is fine. It lives
+             on the EXECUTOR's options beside `dryRun`, never on the command, so a tool opts in and
+             a command knows nothing about it. `window.bunyan.execute` takes the same option (D19 —
+             an agent gets every capability the UI has).
+        (0y) **The move verbs refuse where the recipe owns the position** — hosted, a D52 baseline
+             wall, or datum-constrained (per-axis: a Level-constrained element may still be slid
+             sideways, a grid-constrained one may still be raised). `CommandFailure.code` is
+             `REFUSED` and the message names the verb to use instead. **Show it; do not swallow it.**
+        (From your own Entry 70 — three facts about the app that are now true and were not:)
         (0a) **The app registers the REAL `@bunyan/types` now** (`core.wall` the D52 baseline,
              `core.opening`, the curtain-wall four). The scaffold `core.wall.v1` is still
              registered but relabelled "Wall (legacy v1 scaffold)" so pre-Entry-70 saved

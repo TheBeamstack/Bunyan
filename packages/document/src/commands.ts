@@ -42,15 +42,33 @@ import type {
 import { isDatumConstraint, isJoinConstraint } from './entities.js';
 import type { ScheduleColumn, ScheduleDefinition, ScheduleFilter } from './documentation.js';
 import { joinOverridesOf, wallsMeet } from './joins.js';
+import {
+  applyMotions,
+  frameOriginOf,
+  motionIssues,
+  positioningOf,
+  positioningRefusal,
+  reorients,
+  withRotation,
+  withTranslation,
+} from './placement.js';
 import { scheduleDefinitionIssues } from './schedule.js';
 import { readSketch } from './sketch.js';
 import type { Registries } from './registries.js';
 import type { Scene, SceneChange } from './scene.js';
-import { hostedBy, instancesOfStyle, stylesUsingMaterial, stylesUsingSection } from './scene.js';
+import {
+  constraintsOf,
+  hostedBy,
+  instancesOfStyle,
+  sketchConstraintsOf,
+  stylesUsingMaterial,
+  stylesUsingSection,
+} from './scene.js';
 import type { ParamField, ParamSchema } from './schema.js';
 import { validateParams, withDefaults } from './schema.js';
 import type { UndoableEdit } from './undo.js';
 import type { ModelRevision } from './revision.js';
+import type { RigidMotion, Vec3 } from '@bunyan/protocol';
 import { nextRevision } from './revision.js';
 
 /**
@@ -673,6 +691,38 @@ export const createElementCommand: Command = {
         ? {}
         : { designOptionId: text(args['designOptionId']) }),
     };
+
+    // ⚠⚠ THE PLACEMENT GUARD ON THE **OTHER** DOOR (P4.5 row ⓑ). `core.createElement` has always been able
+    // to write `placement`, and it is the same field, on the same elements, with the same consequence:
+    // a baseline wall born with a placement has its solid in one place and its joins, its room bounding
+    // and its billed axis length derived at another. Guarding only the move verbs would be
+    // `checkNameSafe`'s own lesson repeated — **a guard on one path is not a guard.**
+    //
+    // ⚠ AUTHORING ONLY, never the load path: `rebuildAll` does not come through here, so a `.bnn` written
+    // before this guard still opens and still builds (D43's discipline, and D79's *"the verbs carry the
+    // refusal the body deliberately will not"*).
+    //
+    // ⚠ The datum constraints are passed EXPLICITLY because they are minted in this very edit and are not
+    // in `ctx.scene` yet.
+    if (element.placement !== undefined) {
+      const motions = motionIssues(element.placement);
+      if (motions.length > 0) {
+        throw new CommandFailure('INVALID_ARGS', `invalid placement for "${id}"`, motions);
+      }
+      const to = frameOriginAfter(element.placement, id);
+      const refusal = positioningRefusal(
+        positioningOf(ctx.scene, element, constraints),
+        [0, 0, 0],
+        to,
+        reorients(undefined, element.placement),
+      );
+      if (refusal !== undefined) {
+        throw new CommandFailure(
+          'REFUSED',
+          `cannot create "${id}" with that placement: ${refusal}`,
+        );
+      }
+    }
 
     return ctx.edit(
       `Create ${type.label}`,
@@ -2219,6 +2269,353 @@ export const deleteScheduleCommand: Command = {
 };
 
 /* ================================================================================================
+ * THE FIVE MOVE VERBS (P4.5 row ⓑ, owner-ruled Q4 2026-07-30 — `P4.5_interaction_model_design.md` §9)
+ *
+ * ⚠⚠ THE RULED SPLIT IS THE WHOLE UNIT, AND IT IS COUNTER-INTUITIVE: **an element whose position lives in
+ * its PARAMS moves by `core.setParams`; only an element whose position lives in its `placement` moves by
+ * these.** So the commonest "move" in the product — dragging a wall — never calls them, and that is
+ * correct rather than a gap. `placement.ts` holds the algebra and the refusal that enforces it; read its
+ * header before changing anything here, because building this measured the ruling's own example wrong (an
+ * Opening is params-positioned, and its own `placement` is never read by the engine at all).
+ *
+ * ⚠ All four live verbs are ordinary additive registry entries (D19, domain rule 5). None of them touches
+ * a frozen shape: `Element.placement` has existed since Entry 18 and `createElement` has always been able
+ * to write it — what did not exist was any verb that could CHANGE it after creation.
+ * ============================================================================================= */
+
+/** A validated `point` arg, narrowed. The schema has already proven the shape (`checkArgs`). */
+function vec3(value: ParamValue | undefined): Vec3 | undefined {
+  if (!Array.isArray(value) || value.length !== 3) return undefined;
+  if (!value.every((n) => typeof n === 'number' && Number.isFinite(n))) return undefined;
+  return value as unknown as Vec3;
+}
+
+/**
+ * The element a placement verb is about to move, plus where its own frame origin is now.
+ *
+ * ⚠ A placement that is already degenerate (a zero-length rotation axis, which only a hand-edited
+ * `scene.json` or a pre-guard document can hold) is REFUSED here rather than treated as the identity: the
+ * verb cannot say where the element is, so it cannot say where the move would put it.
+ */
+function movableElement(ctx: CommandContext, elementId: unknown): { element: Element; from: Vec3 } {
+  const element = requireElement(ctx.scene, elementId);
+  const from = frameOriginOf(element);
+  if (from === undefined) {
+    throw new CommandFailure(
+      'REFUSED',
+      `element "${element.id}" already carries a degenerate placement (a zero-length rotation axis or ` +
+        `mirror normal), so this verb cannot say where it is, let alone where the move would put it. ` +
+        `Repair it with core.setPlacement.`,
+    );
+  }
+  return { element, from };
+}
+
+/**
+ * Refuse the move when the RECIPE — not the placement — is what decides where this element is.
+ *
+ * ⚠ `reorients` is passed rather than inferred: a pure translation's frame-origin delta IS the solid's
+ * displacement (provably), and a reorientation's is not (see `placement.ts`).
+ */
+function checkPositioning(
+  ctx: CommandContext,
+  element: Element,
+  from: Vec3,
+  placement: readonly RigidMotion[],
+): void {
+  const to = frameOriginAfter(placement, element.id);
+  const refusal = positioningRefusal(
+    positioningOf(ctx.scene, element),
+    from,
+    to,
+    reorients(element.placement, placement),
+  );
+  if (refusal !== undefined) {
+    throw new CommandFailure('REFUSED', `cannot move "${element.id}": ${refusal}`);
+  }
+}
+
+/** The new placement's own frame origin, or a typed refusal if a motion in it is degenerate. */
+function frameOriginAfter(placement: readonly RigidMotion[], elementId: ElementId): Vec3 {
+  const to = applyMotions([0, 0, 0], placement);
+  if (to === undefined) {
+    throw new CommandFailure(
+      'INVALID_ARGS',
+      `the resulting placement for "${elementId}" contains a degenerate motion`,
+    );
+  }
+  return to;
+}
+
+/**
+ * ⚠ WHAT REBUILDS WHEN AN ELEMENT MOVES, AND WHY IT IS NOT JUST THE ELEMENT: a hosted opening's leaf is
+ * built in the HOST's local frame and rides the HOST's placement out into the world (`build.ts`). Move the
+ * wall and the door must move with it — so the hosted set rebuilds too, exactly as `core.setParams` does.
+ */
+function movedWithHosted(ctx: CommandContext, element: Element): readonly ElementId[] {
+  return [element.id, ...hostedBy(ctx.scene, element.id).map((o) => o.id)];
+}
+
+function placementEdit(
+  ctx: CommandContext,
+  element: Element,
+  placement: readonly RigidMotion[],
+  label: string,
+): UndoableEdit {
+  const after: Element = { ...element, placement };
+  return ctx.edit(
+    label,
+    [{ collection: 'elements', id: element.id, before: element, after }],
+    movedWithHosted(ctx, element),
+  );
+}
+
+/**
+ * ⚠ ABSOLUTE. The gizmo's "set it exactly here" case and paste-in-place; idempotent by construction.
+ * The other three verbs are DELTAS over this one field.
+ */
+export const setPlacementCommand: Command = {
+  id: 'core.setPlacement',
+  label: 'Set placement',
+  description:
+    "Replace an element's placement outright — the rigid motions that put it in the world, applied after its openings are cut. Absolute; idempotent. ⚠ An element positioned by its params (a D52 baseline wall) or by a datum is moved with core.setParams / by moving the datum, and is REFUSED here (P4.5 §9).",
+  argsSchema: {
+    elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    placement: {
+      kind: 'array',
+      label: 'Placement',
+      required: true,
+      description:
+        'Rigid motions, applied IN ORDER. Empty ⇒ the element sits in its own build frame.',
+      items: { kind: 'object', label: 'Motion' },
+    },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(setPlacementCommand, rawArgs);
+    const { element, from } = movableElement(ctx, args['elementId']);
+    const raw = args['placement'];
+    const issues = motionIssues(raw);
+    if (issues.length > 0) {
+      throw new CommandFailure('INVALID_ARGS', `invalid placement for "${element.id}"`, issues);
+    }
+    const placement = raw as unknown as readonly RigidMotion[];
+    checkPositioning(ctx, element, from, placement);
+    return placementEdit(ctx, element, placement, 'Place');
+  },
+};
+
+/**
+ * ⚠ THE DRAG VERB. A `by` delta composes cleanly under undo and is what a gizmo produces frame to frame —
+ * and consecutive translations MERGE (`withTranslation`), so a hundred committed drag frames leave one
+ * motion in `scene.json` rather than a hundred.
+ */
+export const moveCommand: Command = {
+  id: 'core.move',
+  label: 'Move',
+  description:
+    'Translate an element by a delta, in mm. ⚠ Only for an element whose position lives in its PLACEMENT: a D52 baseline wall moves by core.setParams (both endpoints), a hosted opening by its own offset params, and both are REFUSED here (P4.5 §9, owner-ruled).',
+  argsSchema: {
+    elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    by: { kind: 'point', label: 'By', unit: 'mm', required: true, description: '[dx, dy, dz]' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(moveCommand, rawArgs);
+    const { element, from } = movableElement(ctx, args['elementId']);
+    const by = vec3(args['by'])!;
+    const placement = withTranslation(element.placement, by);
+    checkPositioning(ctx, element, from, placement);
+    return placementEdit(ctx, element, placement, 'Move');
+  },
+};
+
+/**
+ * ⚠⚠ `about` DEFAULTS TO THE ELEMENT'S OWN FRAME ORIGIN, AND THAT DEFAULT IS THE WHOLE COMMAND. Omit it
+ * and the element spins in place; get it wrong (i.e. let the motion default to the WORLD origin, which is
+ * what the protocol's `RigidMotion` does) and an element placed 5 m out **orbits across the site**. The
+ * test that pins it measures the frame origin before and after, because that failure produces a perfectly
+ * valid solid in a perfectly wrong place.
+ */
+export const rotateCommand: Command = {
+  id: 'core.rotate',
+  label: 'Rotate',
+  description:
+    "Rotate an element about an axis, in DEGREES. `about` defaults to the element's own frame origin — i.e. it spins in place. Same placement-vs-params rule as core.move.",
+  argsSchema: {
+    elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    axis: {
+      kind: 'point',
+      label: 'Axis',
+      required: true,
+      description:
+        'Direction of the rotation axis; need not be normalised, must not be zero-length',
+    },
+    angle: {
+      kind: 'number',
+      label: 'Angle',
+      unit: 'degrees',
+      required: true,
+      description: 'DEGREES — 90, 45, 30 are exact in degrees and irrational in radians',
+    },
+    about: {
+      kind: 'point',
+      label: 'About',
+      unit: 'mm',
+      description:
+        "A point on the axis. Defaults to the element's own frame origin (spin in place).",
+    },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(rotateCommand, rawArgs);
+    const { element, from } = movableElement(ctx, args['elementId']);
+    const axis = vec3(args['axis'])!;
+    const about = args['about'] === undefined ? from : vec3(args['about'])!;
+    const placement = withRotation(element.placement, axis, num(args['angle']), about);
+    const issues = motionIssues(placement);
+    if (issues.length > 0) {
+      throw new CommandFailure('INVALID_ARGS', `invalid rotation for "${element.id}"`, issues);
+    }
+    checkPositioning(ctx, element, from, placement);
+    return placementEdit(ctx, element, placement, 'Rotate');
+  },
+};
+
+/**
+ * ⚠⚠ A COPY IS EXACT OR IT IS REFUSED, and that rule is the command. The copy carries the source's params,
+ * style, container, classification and reserved metadata verbatim, **plus its datum constraints** (a copy
+ * of a Level-spanning column that did not span the Level would be a different kind of thing wearing the
+ * same recipe). Anything else in the scene that points AT the source — a hosted opening, a sketch
+ * constraint, a join override — makes the copy inexact, so it refuses and names what it found.
+ *
+ * ⚠ The hosted case is the one that matters and it is a D1 question, not a laziness: an opening's `hostRef`
+ * is a `SubShapeRef` **token containing the host's element id**, so copying the door means rewriting an
+ * identity token — the one thing the naming rules forbid doing quietly. It is an owner ruling, surfaced,
+ * not a body decision.
+ */
+export const copyCommand: Command = {
+  id: 'core.copy',
+  label: 'Copy',
+  description:
+    'Copy an element, offset by a delta in mm. The new element id is in the returned edit. Exact or refused: datum constraints come with it, and a source that anything else points at (a hosted opening, a sketch constraint, a join override) is REFUSED rather than half-copied.',
+  argsSchema: {
+    elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    by: {
+      kind: 'point',
+      label: 'By',
+      unit: 'mm',
+      required: true,
+      description: '[dx, dy, dz] — [0,0,0] is a copy in place',
+    },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(copyCommand, rawArgs);
+    const { element, from } = movableElement(ctx, args['elementId']);
+    const by = vec3(args['by'])!;
+    const placement = withTranslation(element.placement, by);
+    checkPositioning(ctx, element, from, placement);
+
+    // ⚠ EVERYTHING THAT POINTS AT THE SOURCE. A join override can only exist on a baseline wall, which
+    // `checkPositioning` has already refused — it is listed anyway because it costs nothing, it names the
+    // real problem for a caller, and it still holds if the baseline rung is ever relaxed (defence in
+    // depth, stated as such rather than counted as a second guard).
+    const pointing = [
+      ...hostedBy(ctx.scene, element.id).map((e) => `hosted element "${e.id}"`),
+      ...sketchConstraintsOf(ctx.scene, element.id).map((c) => `sketch constraint "${c.id}"`),
+      ...joinOverridesOf(ctx.scene, element.id).map((c) => `join override "${c.id}"`),
+    ];
+    if (pointing.length > 0) {
+      throw new CommandFailure(
+        'REFUSED',
+        `"${element.id}" cannot be copied exactly: ${pointing.join(', ')} ${pointing.length === 1 ? 'points' : 'point'} at it. ` +
+          `Copying a HOST would mean rewriting each opening's hostRef — a SubShapeRef token that contains ` +
+          `the host's element id — and a command never silently re-identifies (D51, D1). A copy that ` +
+          `silently dropped them would hand back a wall with no window in it.`,
+        pointing,
+      );
+    }
+
+    const type = ctx.registries.types.require(element.typeId);
+    const id = ctx.mintId(element.typeId.split('.')[1] ?? 'element');
+    const copy: Element = { ...element, id, placement };
+    // The datum constraints come WITH it — same kinds, same targets, same offsets, fresh ids.
+    const constraints = constraintsOf(ctx.scene, element.id).map((c): DatumConstraint => ({
+      ...c,
+      id: ctx.mintId('constraint'),
+      element: id,
+    }));
+
+    return ctx.edit(
+      `Copy ${type.label}`,
+      [
+        { collection: 'elements', id, after: copy },
+        ...constraints.map((c): SceneChange => ({ collection: 'constraints', id: c.id, after: c })),
+      ],
+      [id],
+    );
+  },
+};
+
+/**
+ * ⚠⚠ RESERVED SHAPE, NO BODY — owner-ruled (Q4): *"`core.array`: SHAPE ONLY — body is v1.0.x."*
+ *
+ * It is REGISTERED rather than merely written down because **`Command.argsSchema` freezes at P5 step 6**:
+ * an array verb that is not in the registry when the contract freezes has no reserved arg shape, and
+ * adding one afterwards is an amendment across three products plus the generated agent tool-list (the ⓣ
+ * trap, and row Ⓕ's precedent for pre-widening). So the shape freezes now and the body lands in v1.0.x.
+ *
+ * ⚠ It REFUSES loudly and says exactly that. The alternative — a plausible body written in the same hour
+ * as its shape — is what row ⓑ exists to prevent: *"do not design `move` in the same phase that freezes
+ * it."* A verb that refuses with a reason is honest; one that half-works is the thing this project keeps
+ * finding in its own history.
+ */
+export const arrayCommand: Command = {
+  id: 'core.array',
+  label: 'Array',
+  description:
+    '⚠ RESERVED SHAPE, NOT BUILT IN v1.0.0 — the arg shape freezes with the contract (P5 step 6) and the body ships in v1.0.x. Calling it REFUSES. Linear: count copies stepped by `step`. Grid: also `count2` rows stepped by `step2`.',
+  argsSchema: {
+    elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
+    mode: {
+      kind: 'enum',
+      label: 'Mode',
+      required: true,
+      options: ['linear', 'grid'],
+    },
+    count: {
+      kind: 'integer',
+      label: 'Count',
+      required: true,
+      min: 2,
+      description: 'Total instances INCLUDING the original',
+    },
+    step: { kind: 'point', label: 'Step', unit: 'mm', required: true },
+    count2: {
+      kind: 'integer',
+      label: 'Second count',
+      min: 2,
+      description: "For mode 'grid' — instances along the second direction",
+    },
+    step2: {
+      kind: 'point',
+      label: 'Second step',
+      unit: 'mm',
+      description: "For mode 'grid' — the second direction's step",
+    },
+  },
+  execute(_ctx, rawArgs) {
+    // ⚠ The args are still VALIDATED before the refusal, deliberately: an agent reading the generated tool
+    // list gets told its call was well-formed and the verb is not built, which is a different fact from
+    // "your arguments were wrong", and only one of them is worth waiting for v1.0.x over.
+    checkArgs(arrayCommand, rawArgs);
+    throw new CommandFailure(
+      'REFUSED',
+      'core.array is a RESERVED SHAPE with no body in v1.0.0 (owner-ruled, P4.5 §9 Q4): its argsSchema ' +
+        'freezes with the contract at P5 step 6 so that the body can land additively in v1.0.x. Until ' +
+        'then, dispatch core.copy once per instance — the same result, one undoable edit each.',
+    );
+  },
+};
+
+/* ================================================================================================
  * ISSUING A REVISION — a COMMAND, not a file operation (decision D41)
  * ============================================================================================= */
 
@@ -2303,6 +2700,13 @@ export const CORE_COMMANDS: readonly Command[] = [
   createScheduleCommand,
   updateScheduleCommand,
   deleteScheduleCommand,
+  // ⚠ P4.5 row ⓑ (owner-ruled Q4): the five move verbs. `core.array` is a RESERVED SHAPE that refuses —
+  // registered so its `argsSchema` freezes with the contract, not so it can be called (see its comment).
+  setPlacementCommand,
+  moveCommand,
+  rotateCommand,
+  copyCommand,
+  arrayCommand,
   issueRevisionCommand,
 ];
 

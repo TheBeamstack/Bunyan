@@ -49,6 +49,12 @@ const DIMENSIONLESS = new Set([
   'type core.curtainwall  rows', // a count of grid cells
   'type core.curtainwall  cols',
   'type core.curtainwall.column  rows',
+  // ⚠ `core.array`'s two counts (P4.5 row ⓑ, Entry 72) — instances, not millimetres. Its `step`/`step2`
+  // ARE measurements and declare `mm`, which is the distinction this list exists to keep visible. ⚠ The
+  // verb is a RESERVED SHAPE whose body is v1.0.x, and its schema is enumerated here anyway: the shape is
+  // what freezes, so it is the shape that must obey rule 7.
+  'cmd core.array  count',
+  'cmd core.array  count2',
 ]);
 
 interface Leaf {
