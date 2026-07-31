@@ -1,12 +1,24 @@
 # The spec/architecture/domain/plan documents are owner-authored prose — formatting them is noise
 # and makes review diffs unreadable. Prettier owns code, not the design record.
-V1.0.0_spec.md
-architecture.md
-core_logic.md
-v1.0.0_imp_plan.md
+#
+# ⚠ THESE ARE PATHS, AND THEY MOVED (2026-07-31, the handoff-system migration). A stale entry here
+# does not error — it silently stops exempting a file, and `format:check` is CI step 3, which runs
+# BEFORE the tests and has failed silently for six sessions once already (Entries 60–65). If you move
+# a prose document, move its line here in the same commit.
+docs/contracts/V1.0.0_spec.md
+docs/contracts/architecture.md
+docs/contracts/core_logic.md
+docs/contracts/v1.0.0_imp_plan.md
+docs/archive/Miqdar_v1.0.0_spec.md
+docs/archive/Miqdar_normative_register.md
+
+# The handoff record — same rationale. `current_state.md` is regenerated in part by `pnpm state`
+# (§8), and the entry bodies in `handoff/` are extracted verbatim from it, so reformatting either
+# would create diff noise against a machine-written block and against the permanent record.
 current_state.md
-Miqdar_v1.0.0_spec.md
-Miqdar_normative_register.md
+docs/decisions.md
+docs/history.md
+handoff/
 
 # generated / vendored
 pnpm-lock.yaml

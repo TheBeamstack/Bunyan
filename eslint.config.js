@@ -56,5 +56,23 @@ export default tseslint.config(
     languageOptions: {
       globals: { process: 'readonly', console: 'readonly' },
     },
+    rules: {
+      // ⚠ THESE ARE PLAIN JAVASCRIPT ON PURPOSE. `pnpm state`, the frozen-surface extractor and the
+      // re-seed gate must run as `node scripts/…` with no build step, on either machine, before
+      // anything is installed — a migration or a freeze check that needs a compiler to run is a
+      // check that will not be run.
+      //
+      // TypeScript therefore infers `any` for everything in them, so the type-aware `no-unsafe-*`
+      // rules fire on every line and report NOISE, not risk: they are not describing a weakened
+      // type, they are describing the absence of one. The real boundary is where these modules are
+      // CONSUMED — `scripts/*.d.mts` gives `tests/docs-budget.test.ts` and
+      // `tests/freeze-boundary.test.ts` genuine types, and those files are linted in full.
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/restrict-plus-operands': 'off',
+    },
   },
 );

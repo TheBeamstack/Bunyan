@@ -32,3 +32,8 @@ tools/kernel-build/dist/
 # Claude Code: launch.json (the shared dev-server config) IS committed; settings.local.json is
 # per-machine permissions and must not be.
 .claude/settings.local.json
+
+# `pnpm test` writes this so `pnpm state` can report the real suite count instead of a
+# hand-typed number. Build artifact, never committed.
+.vitest-summary.json
+.migration-manifest.json

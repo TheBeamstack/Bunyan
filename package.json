@@ -15,13 +15,15 @@
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json && tsc -p packages/kernel-mock/tsconfig.json && tsc -p packages/kernel-occt/tsconfig.json && tsc -p packages/document/tsconfig.json && tsc -p packages/sketch-solver/tsconfig.json && tsc -p packages/types/tsconfig.json && tsc -p apps/web/tsconfig.json",
-    "test": "vitest run",
+    "test": "vitest run --reporter=default --reporter=json --outputFile.json=.vitest-summary.json",
     "test:watch": "vitest",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "reseed:check": "node scripts/check-reseed.mjs",
-    "verify": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm reseed:check"
+    "state": "node scripts/state.mjs",
+    "docs:check": "vitest run tests/docs-budget.test.ts tests/freeze-boundary.test.ts",
+    "verify": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm reseed:check && pnpm docs:check"
   },
   "devDependencies": {
     "@bunyan/document": "workspace:*",

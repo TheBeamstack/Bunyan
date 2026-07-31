@@ -48,3 +48,19 @@ jobs:
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
           HEAD_REF: ${{ github.sha }}
+
+      # GATE 6 — the handoff docs (added 2026-07-31, `docs/design/handoff_system_design.md`).
+      #
+      # Two things, both of which used to be enforced by an agent remembering:
+      #   * the doc BUDGET + the eight-field entry-abstract schema + §8 freshness. The old rotation
+      #     rule was a COUNT while entry sizes doubled underneath it, and it failed measurably —
+      #     a compaction took current_state.md 377 KB -> 296 KB and it was back to 393 KB the SAME DAY.
+      #   * the FROZEN SURFACE. A diff against tests/frozen-surface.snapshot.json means the PR is
+      #     `RISK: contract-touching`, so the OWNER merges it rather than the reviewing agent — and
+      #     after the P5 freeze, re-baselining that file requires an owner ruling. That policy IS
+      #     the freeze, and this step is what holds it.
+      #
+      # ⚠ `pnpm verify` runs this too: a local gate that is a strict SUBSET of CI is a
+      #   false-negative generator, and this repo has been bitten by exactly that.
+      - name: Handoff docs + freeze boundary
+        run: pnpm docs:check
