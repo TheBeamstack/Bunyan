@@ -303,7 +303,7 @@ project._
 
 ---
 
-## §C — Entries 54–72 — the full bodies now live in `handoff/`
+## §C — Entries 54–73 — the full bodies now live in `handoff/`
 
 **⚠ CHANGED 2026-07-31 (the handoff-system migration).** These entries used to sit in
 `current_state.md` §7 in full. They are now **one file each** under `handoff/<agent>/`, and
@@ -335,6 +335,7 @@ compression safe — see this file's header).
 | 70  | 07-30 | Amer  | `handoff/amer/2026-07-30-p45-tool-layer.md`               | P4.5's six rulings taken and the **tool layer ships** — snap seam, tool state machine, numeric entry, hover, multi-select. **Domain rule 19** adopted. |
 | 71  | 07-30 | Zayd  | `handoff/zayd/2026-07-30-d29-cache-bodies.md`             | The **D29 geometry-cache bodies** ship — and the ruled design was wrong in two places. The prize is **2.07×**, not an order of magnitude. |
 | 72  | 07-30 | Zayd  | `handoff/zayd/2026-07-30-move-verbs-transactionid.md`     | The **five move verbs** + `transactionId` atomicity (**D80**) — and all three shipped Types turned out to be **params-positioned**. |
+| 73  | 08-01 | Zayd  | `handoff/zayd/2026-08-01-cached-import-attribution.md`    | The cached-import **attribution**: the "170 embind crossings" were a subtraction residue (**0.9%**, not the cost). The memory view is **cancelled**; the "rule 17" rename was a **phantom**. |
 
 ---
 

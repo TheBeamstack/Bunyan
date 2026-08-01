@@ -91,12 +91,12 @@ reservation protocol, and you do not need one.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 72**
-        (Zayd, 2026-07-30) — the five move verbs + `transactionId` atomicity (D80, P4.5 rows ⓑ/ⓘ)
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 73**
+        (Zayd, 2026-08-01) — the cached-import attribution — the `shapeSignature` memory view is CANCELLED
 
-        ⇒ After `git pull`: §8's "newest entry" == 72  ⇒ you are current, start TASK.
-          HIGHER than 72 ⇒ the other agent has merged: read every abstract after
-          72 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 73  ⇒ you are current, start TASK.
+          HIGHER than 73 ⇒ the other agent has merged: read every abstract after
+          73 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -104,21 +104,20 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 72**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `main` · `0086a27` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-01-shapesig-memview` · `458c362` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
 
 ```
-TASK:   **THE `shapeSignature` MEMORY VIEW — ruling-free, no contract, pure win, and it is most of
-        what makes a cached import cost 12 ms.** Measured in Entry 71: a cached import pays **170
-        embind boundary crossings per solid** (5 numbers × 34 sub-shapes) draining the signature
-        vector, which is `kernel.cpp`'s OWN documented trap (*"an embind vector costs ONE crossing
-        PER ELEMENT"*). `tessellate` already solves exactly this with a typed-array memory view;
-        this is the same fix applied to the same trap. ⚠ It is a kernel C++ change ⇒ a WASM rebuild:
-        **~74 s measured** single-file compile + link, NOT the 2.5 h version bump (§1c-3), capped at
-        the source (`--memory=2g --cpus=2`, §6a). ⚠ **Measure both sides** — the 12.00 ms/solid
-        import is the number to beat, and §1c-9 says measure the artifact, not the manual.
+TASK:   **THE GOING-PUBLIC HOUSEKEEPING — `LICENSE` (AGPL-3.0), the CLA, and the OCCT + planegcs
+        attribution notices.** D15 is the ruling (*"Bunyan is open source: AGPL-3.0 + commercial;
+        the CLA is a hard prerequisite before the first external PR"*). Nothing blocks it, it needs
+        no ruling, and §3 lists it under NOT BUILT as the one item that **blocks going public**.
+        ⚠⚠ **ITS OWN COMMIT AND ITS OWN PR — do not intermingle it with a code entry** (Entries
+        64+65's lesson). ⚠ `.prettierignore` LISTS PATHS: if you add a prose file that prettier
+        should not reformat, add its line in the SAME commit (§6's second warning — `format:check`
+        failed silently for six sessions once already).
 
         THEN, in this order:
         1. **The plan + section** (`docs/design/P5_step6C_plan_section_design.md` §8) — **the moment
@@ -132,12 +131,16 @@ TASK:   **THE `shapeSignature` MEMORY VIEW — ruling-free, no contract, pure wi
            `REL_INHERIT` nor a cut node.
            ⚠ The `views` promotion is Entry 68's verbatim INCLUDING ITS CORRECTION — union member +
            dependency edge + optional-collection `.bnn` guard, and **NO `emptyScene()` entry**.
-        2. **`schedule.ts`'s "rule 17" comment rename** — its comments name their own convention
-           "rule 17", which collides with `core_logic.md` §8's numbered rule 17 (D58). This
-           project's method IS grep (§1c-8); two things called "rule 17" is a real cost.
-        3. **The housekeeping that blocks going public** — `LICENSE` AGPL-3.0, the CLA, the OCCT +
-           planegcs attribution notices. ⚠ **Its own commit**; do not intermingle it with a code
-           entry (Entries 64+65's lesson).
+        ⚠⚠ **TWO ITEMS THAT STOOD HERE ARE GONE (Entry 73). DO NOT RE-ADD EITHER — both were
+          killed by reading them against the artifact, and both are now recorded in §5:**
+          • **the `shapeSignature` memory view — CANCELLED, MEASURED.** *"170 embind crossings …
+            most of what makes a cached import cost 12 ms"* was a SUBTRACTION RESIDUE, never timed.
+            A crossing costs **0.42–0.66 µs**; all 173 cost **0.073 ms = 0.9%** of the signature
+            call, against `shapeSignature`'s own **7.9 ms** of `GProp` work. `geometry-cache-d29`'s
+            **THE ATTRIBUTION** now holds that as a tripwire.
+          • **`schedule.ts`'s "rule 17" rename — A PHANTOM.** Both citations are correct uses of the
+            real domain rule 17 (D58), and `core_logic.md:376` already records that the collision
+            belief *"was wrong"*. Renaming would have INTRODUCED the error.
 
         ⚠⚠ **DO NOT START THE D29 DOCUMENT HALF (`geometry-cache.brep` in the `.bnn`) UNASKED.** It
           is `open_rulings.md` Q6, and the measurement is why: the cache buys **2.07×**, costs
@@ -145,28 +148,28 @@ TASK:   **THE `shapeSignature` MEMORY VIEW — ruling-free, no contract, pure wi
           that stays ~3 min either way. My recommendation on the desk is **do not wire it for v1.0.0.**
         ⚠ **Do not re-open the move verbs' guard without the owner** — `open_rulings.md` Q7/Q8.
 
-NEW:    **⚠⚠ THE HANDOFF SYSTEM CHANGED ON 2026-07-31. THIS IS THE FIRST SESSION UNDER IT.**
-        Read `docs/design/handoff_system_design.md` ONCE — you will not need it again.
-        What is different, in the order it will bite you:
-        (a) **The docs MOVED.** `core_logic.md`, `architecture.md`, `V1.0.0_spec.md` and
-            `v1.0.0_imp_plan.md` are now in `docs/contracts/`; every `*_design.md` is in
-            `docs/design/`; the reviews are in `docs/reviews/`. `current_state.md`, both prompts,
-            `REVIEW.md` and `open_rulings.md` stay at the root.
-        (b) **`current_state.md` is 54 KB, not 394 KB.** §4 is now a one-line INDEX — the full
-            rulings are `docs/decisions.md`. §5 is LIVE PRIORITIES ONLY — the chronological
-            narrative moved to `docs/history.md` §D. §7 is ten fixed-schema ABSTRACTS; the full
-            entry bodies are one file each in `handoff/<agent>/`. **Nothing was deleted.**
-        (c) **You work on a BRANCH and open a PR.** The other agent reviews it — or you do, if you
-            ran last. See the loop above. `gh` is installed at `~/bin/gh`; if `gh auth status` says
-            you are not logged in, tell the owner (it is a one-time interactive login).
-        (d) **`pnpm verify` has a SIXTH gate, `docs:check`** — the byte budget, the eight-field
-            abstract schema, and §8 freshness. **Run `pnpm state` before you commit** or it fails.
-        (e) **`tests/freeze-boundary.test.ts` is new and it decides `RISK`.** If it fails, you have
-            touched a frozen surface: that is either a mistake, or a deliberate contract change the
-            OWNER must merge. It is also the freeze mechanism itself, available early — freezing is
-            now the policy *"the baseline may no longer be updated without an owner ruling."*
-        (f) **`P3_correction_plan.md` was DELETED** (self-declared "fully executed, history not a
-            work order"). It is in git history if you ever want it.
+NEW:    **⚠⚠ THE LESSON OF ENTRY 73, AND IT IS ABOUT THIS FILE.** Two of that session's three TASK
+        items dissolved on contact with the artifact — one was a NUMBER nobody had timed, one was a
+        belief whose own refutation was already committed two files away. Both reached the session
+        the same way: **as a copy.** Entry 71 → `current_state.md` §5 → this file's `TASK` → the
+        brief. §1e of `handoff_system_design.md` counted exactly this (*"one session's outcome
+        written in ten places, by hand"*), and its verdict is the one to keep:
+        **A COPY IS A CLAIM NOBODY WILL RE-READ.**
+        ⇒ **Treat every number and every "X collides with Y" in this `TASK` as a HYPOTHESIS, and
+        spend the ten minutes to check it against the artifact BEFORE building.** That single line
+        in Entry 73's own TASK — *"measure both sides"* — is what caught it, and it saved a WASM
+        rebuild, a 14.6 MB artifact churn, and a lifetime-sensitive global buffer in the cache
+        verification path. **Keep a line like it in every TASK you write.**
+        ⚠ And the sharpest sub-lesson, because I made the same mistake first: **subtracting two
+        whole-call timings to isolate a small component returns NOISE, not a small number** — my
+        first probe reported a *negative* cost. Hold the big term OUT of the measurement instead.
+
+        (Standing, on the handoff system itself — the mechanics, now exercised once:)
+        `pnpm state` before every commit (gate six, `docs:check`) · it writes §8 and THIS file's
+        FRESH, never `Amer_Prompt.md` · §7 holds **ten** abstracts, so landing an entry means
+        ROTATING THE OLDEST OUT to `docs/history.md` §C (its body stays in `handoff/` forever, and
+        compaction gets no entry of its own) · `tests/freeze-boundary.test.ts` decides `RISK` ·
+        `gh` is authenticated on this box and works.
 
         (Standing, from Entry 72 — the finding that will bite anything touching placement:)
         **ALL THREE SHIPPED TYPES ARE PARAMS-POSITIONED** (`core.wall` {start,end} · `core.opening`
@@ -175,8 +178,9 @@ NEW:    **⚠⚠ THE HANDOFF SYSTEM CHANGED ON 2026-07-31. THIS IS THE FIRST SES
         REFUSE where the recipe already decides the position (host / D52 baseline / datum, per-axis),
         and `core.createElement` carries the same refusal.
 
-        ⚠ **EIGHT OWNER RULINGS ARE OWED AND THREE BLOCK THE PLAN/SECTION UNIT.** They are all in
-        `open_rulings.md` now, with recommendations — surface the blocking ones in your opening
+        ⚠ **EIGHT OWNER RULINGS ARE OWED AND THREE BLOCK THE PLAN/SECTION UNIT — Q1, Q2, Q3, which
+        have now blocked it across FIVE sessions (69 → 71 → 72 → 73 → you).** They are all in
+        `open_rulings.md`, with recommendations — surface the blocking ones in your opening
         message even though TASK above means you are NOT idle without them.
         If a ruling arrives in chat, apply it AND record it in the doc it belongs to, then strike the
         row in `open_rulings.md`. This file is not where decisions live.

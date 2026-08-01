@@ -140,6 +140,11 @@ All four axes now have a number. **Two are closed; two remain open and are named
 
 ⚠ *Verification is most of a cached load's cost — re-measuring every sub-shape to prove the tokens belong
 to the shape is the price of shipping identity in a file — so no amount of serializer tuning changes this.*
+⚠⚠ **NOW MEASURED RATHER THAN ASSERTED (Entry 73), and it closes off the tempting lever:** of a cached
+import, `shapeSignature`'s own `GProp` work is **7.9 ms** and **all 173 embind boundary crossings together
+are 0.073 ms (0.42–0.66 µs each, 0.9%)**. The boundary is not the cost and never was; the
+**verification** is. ⇒ **the remaining cold-load levers are still only `instantiate` (RESERVED), lazy
+build/eviction (D66) and MT (D8)** — there is no serializer or marshalling win hiding here.
 
 ### §1b — THE METHOD THAT HAS FOUND EVERY GAP — it is not reading; it is USING the API
 
@@ -388,22 +393,30 @@ ruling"* — with a machine holding the line afterwards.
 
 ### Zayd (kernel / document / headless)
 
-1. **THE `shapeSignature` MEMORY VIEW** — ruling-free, no contract, pure win. A cached import pays **170
-   embind boundary crossings per solid**, which is `kernel.cpp`'s OWN documented trap; `tessellate`
-   already solves exactly this with a typed-array memory view. ⚠ A kernel C++ change ⇒ a WASM rebuild
-   (**~74 s measured**, not the 2.5 h version bump — §1c-3), capped at the source. ⚠ **Measure both
-   sides** — 12.00 ms/solid is the number to beat.
-2. **The plan + section** (`docs/design/P5_step6C_plan_section_design.md` §8) — **the moment Q1–Q3 are
+1. **The plan + section** (`docs/design/P5_step6C_plan_section_design.md` §8) — **the moment Q1–Q3 are
    ruled, and not before**: Q1 decides the SHAPE of the unit, so building first is building the wrong
    thing. ⚠ Read §5's test table BEFORE writing the fixture — every criterion has a way to pass while
    FALSE, and the top one is a one-plain-wall fixture. It must carry a curtain wall, an opening and a
    design option. ⚠ The `views` promotion is Entry 68's verbatim **including its correction — no
    `emptyScene()` entry.**
-3. **`schedule.ts`'s "rule 17" comment rename** — its comments name their own convention "rule 17", which
-   collides with `core_logic.md` §8's numbered rule 17. This project's method IS grep; two things called
-   "rule 17" is a real cost.
-4. **Housekeeping that blocks going public** — `LICENSE` AGPL-3.0, the CLA, the OCCT + planegcs
+2. **Housekeeping that blocks going public** — `LICENSE` AGPL-3.0, the CLA, the OCCT + planegcs
    attribution notices. ⚠ **Its own commit.**
+
+⚠ **TWO ITEMS THAT STOOD HERE ARE GONE, BOTH KILLED BY READING THEM AGAINST THE ARTIFACT (Entry 73).
+DO NOT RE-ADD EITHER.**
+
+- **The `shapeSignature` memory view — CANCELLED, MEASURED NOT WORTH IT.** *"170 embind crossings per
+  solid … most of what makes a cached import cost 12 ms"* was a **subtraction residue**, never measured.
+  A crossing costs **0.42–0.66 µs**, so all 173 cost **0.073 ms — 0.9% of the signature call**, against
+  `shapeSignature`'s own **7.9 ms** of `GProp` work. A memory view removes 0.073 ms/solid and no more,
+  and would put a *"valid until the next call"* global buffer in the one file where a wrong answer
+  builds a plausible wrong building. `tessellate`'s payoff is ~1.8M crossings **per frame**; this is 170
+  **per solid, once**. Now a permanent tripwire: `geometry-cache-d29.test.ts` **THE ATTRIBUTION**.
+- **`schedule.ts`'s "rule 17" rename — A PHANTOM. There is no collision.** Both citations in
+  `schedule.ts` are correct uses of the real numbered domain rule 17 (*a drawing is a projection*, D58,
+  which names schedules explicitly). The collision was already resolved by numbering the interaction
+  rule **19**, and `core_logic.md:376` records that the *"`schedule.ts` code-comment convention"* belief
+  **was itself wrong.** Renaming would have INTRODUCED the error.
 
 ⚠⚠ **DO NOT START THE D29 DOCUMENT HALF UNASKED** — it is `open_rulings.md` Q6, and the measurement is
 why: 2.07×, **6.64 ms/solid on every save**, **~61 MB at the 16k-solid target**, against a cold load that
@@ -446,7 +459,8 @@ no speed; do not re-run**) · the heap ceiling · **all of D50 step 0** (0a–0g
 solver, 0c joins) · **all eighteen backward sweeps** (D67–D77) · the enumeration query + Clean Delta
 exporter · the schedules body (D78) + its CRUD (D79) · the renderer batching rewrite · P4.5's tool layer ·
 the D29 op bodies · **the five move verbs + `transactionId` (D80)** · browser storage · the join spatial
-index (D73).
+index (D73) · **the cached-import cost attribution — the embind crossings are 0.9%, the memory view is
+cancelled and the "rule 17" rename is a phantom (Entry 73).**
 
 ---
 
@@ -513,6 +527,28 @@ first, then the body. **Open a full body only when an abstract line touches your
 exceeds budget. When it does: move the oldest abstracts' summaries into `docs/history.md`, **after
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
+
+### 73 | 2026-08-01 | Zayd | the cached-import attribution — the `shapeSignature` memory view is CANCELLED
+
+- **CHANGED:** `tests/geometry-cache-d29.test.ts` (+`THE ATTRIBUTION`) and `current_state.md` §1a/§5 only.
+  **No kernel C++, no WASM rebuild, no artifact churn, no source package touched** — the TASK's own
+  *"measure both sides"* line cancelled its own unit. `schedule.ts` untouched (FOUND, below).
+- **VERIFIED:** 630 green · all six gates 0 (exit code read) · real OCCT · dev box headless ·
+  revert-verified 1 way — Entry 71's belief asserted goes RED at the measured value.
+- **FOUND:** ⚠⚠ **THE "170 EMBIND CROSSINGS" WERE NEVER MEASURED — a subtraction residue** (a native
+  breakdown ×3, *"and the rest is"*). Measured: a crossing costs **0.42–0.66 µs**, so all 173 cost
+  **0.073 ms = 0.9%** of the signature call, against `shapeSignature`'s own **7.9 ms** of `GProp` work
+  (**46%** of the kernel-side import). ⚠ My first probe repeated Entry 71's error — subtracting two
+  ~10 ms timings to find a 0.073 ms signal returned a **negative** cost; the compute must be held OUT.
+  ⚠⚠ **And TASK item 2 was a PHANTOM:** both `schedule.ts` "rule 17" citations are correct uses of the
+  real domain rule 17 (D58), and `core_logic.md:376` already records that the collision belief *"was
+  wrong"* — renaming would have INTRODUCED the error.
+- **OWES:** Owner: **Q1–Q3 still BLOCK plan/section — now across four sessions (69→71→72→73)**; the freeze
+  is still yours and still unblocked. Amer: nothing. Next Zayd: the going-public housekeeping (its own
+  commit), then plan/section the moment Q1–Q3 land.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-01-cached-import-attribution.md`
+- **REVIEW:** self-review (Zayd ran last) — the first PR under the new flow.
 
 ### 72 | 2026-07-30 | Zayd | the five move verbs + `transactionId` atomicity (D80, P4.5 rows ⓑ/ⓘ)
 
@@ -663,19 +699,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/zayd/2026-07-28-backward-sweep-complete-d76-d77.md`
 - **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
 
-### 63 | 2026-07-28 | Amer | the renderer batching rewrite — ~30,700 draw calls → 2
-
-- **CHANGED:** a `THREE.BatchedMesh` (faces) + one batched `LineSegments` (edges) inside `Viewport`.
-  Picking, incremental redraw and D30 all preserved. No frozen contract touched.
-- **VERIFIED:** browser-measured on a real GPU at the 10k-element target: **606 ms → ~10–14 ms per frame,
-  1.6 → ~80 fps.**
-- **FOUND:** the Entry-55 (b)+(d) scale wall is gone, and **one real bug was found by removing 16k parts**
-  — the teardown path had never been exercised at scale.
-- **OWES:** nothing.
-- **RISK:** additive
-- **FULL:** `handoff/amer/2026-07-28-renderer-batching.md`
-- **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
-
 ---
 
 ## §8 — Generated
@@ -684,17 +707,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **72 (Zayd, 2026-07-30)** |
-| branch · tip · tree | `main` · `0086a27` · dirty |
-| open PRs | ⚠ gh not authenticated — run `gh auth login` (one-time, interactive) |
-| suite | **629 green** · 78 files · 206 suites |
+| **newest entry** | **73 (Zayd, 2026-08-01)** |
+| branch · tip · tree | `zayd/2026-08-01-shapesig-memview` · `458c362` · dirty |
+| open PRs | none — main is the tip of the work |
+| suite | **630 green** · 78 files · 206 suites |
 | protocol | 21 live ops · 3 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 37 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 41 files changed, 2081 insertions(+), 3418 deletions(-) (41 files) |
-| docs budget | current_state 53.5/96.0 KB · §7 11.9/32.0 KB · abstracts 10/10 · bodies 19 |
+| diff vs origin/main | 4 files changed, 205 insertions(+), 77 deletions(-) (4 files) |
+| docs budget | current_state 55.8/96.0 KB · §7 12.9/32.0 KB · abstracts 10/10 · bodies 20 |
 
-_Generated 2026-07-31 by `pnpm state`._
+_Generated 2026-08-01 by `pnpm state`._
 
 <!-- END GENERATED -->
