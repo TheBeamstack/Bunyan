@@ -709,14 +709,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **73 (Zayd, 2026-08-01)** |
-| branch · tip · tree | `zayd/2026-08-01-shapesig-memview` · `7ec5317` · dirty |
+| branch · tip · tree | `zayd/2026-08-01-shapesig-memview` · `b061c9a` · dirty |
 | open PRs | #1 zayd/2026-08-01-shapesig-memview |
 | suite | **630 green** · 78 files · 206 suites |
 | protocol | 21 live ops · 3 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 37 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 6 files changed, 458 insertions(+), 81 deletions(-) (6 files) |
+| diff vs origin/main | 8 files changed, 479 insertions(+), 82 deletions(-) (8 files) |
 | docs budget | current_state 55.9/96.0 KB · §7 13.0/32.0 KB · abstracts 10/10 · bodies 20 |
 
 _Generated 2026-08-01 by `pnpm state`._
