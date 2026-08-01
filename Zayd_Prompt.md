@@ -31,6 +31,10 @@ never claim to have verified what you cannot run.**
 ```
  1. git pull --ff-only origin main
  2. Read REVIEW.md + current_state.md §1c        (the lenses — small, and you need them to review)
+      ⚠ AND, because you are on the dev box: box-local `../cross_projects_policy.md` +
+        `../last_session_work.md`. BINDING, not in git, and NO test in this repo can enforce them.
+        §6a is a SUMMARY — the live ports table, the standing-container list and the pause/restore
+        log exist ONLY there. Do not skip: an OOM here can take the owner's live public sites offline.
  3. OPEN PR?  (`gh pr list`)
       ├─ REVIEW IT against REVIEW.md — the other agent's, or YOUR OWN if you ran last.
       │     A self-review is a complete review; checklist item 1 is mandatory either way.
@@ -49,6 +53,10 @@ never claim to have verified what you cannot run.**
  9. Write the entry:  handoff/zayd/<date>-<slug>.md      the full body
                     + current_state.md §7 abstract        the eight fields, all mandatory
                     + THIS file's §2 TASK/NEW             never Amer_Prompt.md
+                    + ../last_session_work.md            BOX-LOCAL, not in git — infra changes,
+                                                          any pause/restore, what you installed.
+                                                          ⚠ Dropped by the migration too; the
+                                                          2026-07-31 session left no record at all.
 10. commit · push the branch · `gh pr create`
        title = the abstract headline · body = the abstract + REVIEW.md's checklist, unticked
 11. Closing summary: what landed · what the PR needs (Amer's merge? the owner's? a ruling?) · what is owed.
@@ -104,7 +112,7 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 73**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-01-shapesig-memview` · `b061c9a` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-01-shapesig-memview` · `f3eb846` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->

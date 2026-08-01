@@ -195,6 +195,74 @@ struck from §5 with the reason.
 
 ---
 
+## FINDING 5 — ⚠⚠ CI'S RE-SEED GATE HAS NEVER RUN ITS REAL PATH, IN 73 ENTRIES
+
+PR #1 — the first pull request this repository has ever had — went **RED**, on a step that has nothing
+to do with what it changes:
+
+```
+fatal: Invalid symmetric difference expression 458c362...7fbcea7
+re-seed gate: could not diff 458c362...7fbcea7
+##[error]Process completed with exit code 1.
+```
+
+`actions/checkout` defaults to a **shallow clone (depth 1)**. The base SHA is therefore not in the
+local history, and `git diff <base>...<head>` cannot resolve the symmetric difference. Fixed with
+`fetch-depth: 0`.
+
+**Why it stayed invisible is the interesting half.** The gate only takes its real path on a
+`pull_request` event; on a `push` it reads no `BASE_REF` and prints *"not a pull request — skipping"*.
+Until today this repository had **no branches and no PRs** (`git log --merges` was empty — the handoff
+design's §3 says so in those words), so **"skipping" is the only path this gate had ever taken.**
+
+⚠ Its own comment reads: *"Scaffolded here so it is impossible to add geometry later and quietly skip the
+gate."* **The gate that exists to make skipping impossible had itself never executed once.** That is
+§1c-7 — *a phase's exit criteria are a specification, not a summary of what got done* — in its recorded
+worst form, where the misleading artifact is not prose but a **green CI badge**. Fifth occurrence.
+
+⚠ **SURFACED, NOT FIXED, because it is a policy change rather than a bug:** `tools/kernel-build/`
+(i.e. `src/kernel.cpp`) is **not** in `GEOMETRY_PATHS`, though it is the source the committed
+`packages/kernel-occt/wasm/` artifact is built from. In practice a C++ change always ships with the
+rebuilt artifact, which **is** listed, so the gate fires anyway — but that is a convention holding the
+line, not the file. Widening it makes CI refuse more than it does today, so it wants the reviewer's or
+the owner's assent. Recorded in the script itself, beside the list.
+
+*(Also corrected there: `packages/kernel-occt/` was annotated "does not exist yet". It landed in P2.)*
+
+---
+
+## FINDING 6 — ⚠ THE MIGRATION SILENTLY DROPPED TWO BOX-LOCAL STEPS, AND THE COST IS ALREADY MEASURABLE
+
+`Zayd_Prompt.md` §1 is **standing** — *"change it only when a standing fact has actually drifted."*
+The 2026-07-31 migration (`458c362`) changed it without a fact having drifted, in two places:
+
+| dropped | replaced by | why the replacement is weaker |
+| --- | --- | --- |
+| step 2's *"Also read box-local `../cross_projects_policy.md` and `../last_session_work.md` — **binding, not in git, do not skip**"* | a standing-constraint pointer to `current_state.md` §6a | **§6a is a SUMMARY.** The live ports table, the standing-container list and the pause/restore log exist **only** in the box-local files, and **no test in this repo can enforce them** — an OOM here takes the owner's live public sites offline. |
+| step 5's *"update `../last_session_work.md`"* | nothing | the write-back vanished entirely |
+
+**The cost is not hypothetical — it landed within one session.** The 2026-07-31 migration session
+itself left **no record on the box at all**: no note that it installed `gh`, no note of its two pushes,
+no note that it deleted a remote branch, and no confirmation that it had touched no containers. The
+box-local file's `Bunyan` row still read `ee241df` / Entry 15 / `139/139` / `~/.npm-global/bin` — four
+generations stale — and its `gh` state was unrecorded.
+
+**Both steps are restored** (with the original wording recovered from `458c362^`, not reinvented), and
+the missing 2026-07-31 record is reconstructed box-locally, marked as a reconstruction.
+
+⚠ **One correction made while writing it, and it is this entry's own lesson again:** Bunyan's docs and
+`handoff_system_design.md` §15 both still say `gh` needs *"a one-time interactive `gh auth login`, which
+must be run by the owner."* **It is already authenticated** — `gh auth status` reports
+`Davidian-Abdo`, SSH, token present, verified at session start, and PR #1 was opened from this box with
+it. The box-local note records the true state so the owner is not asked for something already done.
+
+⚠ **Recorded for the owner, because the migration could not do it for itself:** **`458c362` is
+UNREVIEWED.** It went straight to `main` — there was no prior PR to review it against, which is the very
+gap it was written to close. `REVIEW.md` over `458c362` is a clean unit of work if you want it checked,
+and it is a single commit if it ever needs undoing.
+
+---
+
 ## The session's transferable lesson
 
 **Two of three TASK items dissolved on contact with the artifact, and the third is untouched work.** Both
@@ -234,6 +302,10 @@ artifact churn, and a lifetime-sensitive global buffer in the cache verification
   be started under an assumption. **Q6 is answered by this entry's neighbours and unchanged: do not wire
   the D29 `.bnn` half for v1.0.0.** Q7–Q10 unchanged.
 - **Owner — the FREEZE (P5 step 6) is still yours and still unblocked.** This entry moved no frozen byte.
+- **Owner — two small calls raised by Findings 5 and 6, neither blocking:** (a) should
+  `tools/kernel-build/` join the re-seed gate's `GEOMETRY_PATHS`? It makes CI refuse more than it does
+  today, so I did not do it unilaterally. (b) **`458c362` (the handoff migration) is unreviewed** and
+  reached `main` without a PR; say if you want `REVIEW.md` run over it as a unit.
 - **Amer — nothing.** No `apps/web` surface is touched.
 - **Next Zayd:** the going-public housekeeping (`LICENSE` AGPL-3.0, the CLA, the OCCT + planegcs
   attribution notices) — **its own commit**, Entries 64+65's lesson. Then the plan/section unit **the

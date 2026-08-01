@@ -530,7 +530,9 @@ is maintenance and does NOT get an entry of its own.**
 
 ### 73 | 2026-08-01 | Zayd | the cached-import attribution — the `shapeSignature` memory view is CANCELLED
 
-- **CHANGED:** `tests/geometry-cache-d29.test.ts` (+`THE ATTRIBUTION`) and `current_state.md` §1a/§5 only.
+- **CHANGED:** `tests/geometry-cache-d29.test.ts` (+`THE ATTRIBUTION`) · `.github/workflows/ci.yml`
+  (`fetch-depth: 0`) + `scripts/check-reseed.mjs` · `current_state.md` §1a/§5 + `docs/decisions.md` D29
+  and §4j-2 (the false number, four sites) · `Zayd_Prompt.md` §1 (the box-local read/write restored).
   **No kernel C++, no WASM rebuild, no artifact churn, no source package touched** — the TASK's own
   *"measure both sides"* line cancelled its own unit. `schedule.ts` untouched (FOUND, below).
 - **VERIFIED:** 630 green · all six gates 0 (exit code read) · real OCCT · dev box headless ·
@@ -543,6 +545,17 @@ is maintenance and does NOT get an entry of its own.**
   ⚠⚠ **And TASK item 2 was a PHANTOM:** both `schedule.ts` "rule 17" citations are correct uses of the
   real domain rule 17 (D58), and `core_logic.md:376` already records that the collision belief *"was
   wrong"* — renaming would have INTRODUCED the error.
+  ⚠⚠ **AND CI'S RE-SEED GATE HAD NEVER RUN ITS REAL PATH ONCE IN 73 ENTRIES.** `actions/checkout`
+  defaults to a SHALLOW clone, so `git diff <base>...<head>` died with *"Invalid symmetric difference
+  expression"* and PR #1 went RED for a reason unrelated to its diff. Invisible because the repo had
+  never had a PR: on a `push` the gate reads no `BASE_REF` and prints *"skipping"* — the only path it
+  had ever taken. **The gate whose own comment says it exists so the check is "impossible to quietly
+  skip" had itself never executed.** Fixed (`fetch-depth: 0`). §1c-7, fifth occurrence.
+  ⚠ **The 2026-07-31 migration also silently DROPPED two box-local steps from Zayd's loop** — the
+  binding read of `../cross_projects_policy.md` + `../last_session_work.md`, and the write-back at
+  hand-off. Not deliberate (§1 changes only when a standing fact has drifted). **Consequence, measured:
+  the 2026-07-31 session left NO record on the box at all.** Both restored; the missing record
+  reconstructed box-locally.
 - **OWES:** Owner: **Q1–Q3 still BLOCK plan/section — now across four sessions (69→71→72→73)**; the freeze
   is still yours and still unblocked. Amer: nothing. Next Zayd: the going-public housekeeping (its own
   commit), then plan/section the moment Q1–Q3 land.
@@ -709,15 +722,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **73 (Zayd, 2026-08-01)** |
-| branch · tip · tree | `zayd/2026-08-01-shapesig-memview` · `b061c9a` · dirty |
+| branch · tip · tree | `zayd/2026-08-01-shapesig-memview` · `f3eb846` · dirty |
 | open PRs | #1 zayd/2026-08-01-shapesig-memview |
 | suite | **630 green** · 78 files · 206 suites |
 | protocol | 21 live ops · 3 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 37 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 479 insertions(+), 82 deletions(-) (8 files) |
-| docs budget | current_state 55.9/96.0 KB · §7 13.0/32.0 KB · abstracts 10/10 · bodies 20 |
+| diff vs origin/main | 8 files changed, 572 insertions(+), 82 deletions(-) (8 files) |
+| docs budget | current_state 57.1/96.0 KB · §7 14.2/32.0 KB · abstracts 10/10 · bodies 20 |
 
 _Generated 2026-08-01 by `pnpm state`._
 
