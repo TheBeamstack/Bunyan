@@ -581,7 +581,8 @@ is maintenance and does NOT get an entry of its own.**
   permuted `refs` array mis-names two faces and still verifies. **THE PRIZE IS 2.07×, NOT AN ORDER OF
   MAGNITUDE** (24.86 → 12.00 ms/solid; export costs 6.64 ms/solid on every save; ~61 MB at 16k solids).
 - **OWES:** Owner: Q6 — is the `.bnn` half worth wiring at 2.07×? Recommendation on the desk: **no** for
-  v1.0.0. Next: the `shapeSignature` memory view (170 embind crossings/solid).
+  v1.0.0. Next: the `shapeSignature` memory view (170 embind crossings/solid). ⚠⚠ **THAT "NEXT" IS
+  CANCELLED — Entry 73 measured the crossings at 0.9%, and the claim was never measured here.**
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-07-30-d29-cache-bodies.md`
 - **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
@@ -708,15 +709,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **73 (Zayd, 2026-08-01)** |
-| branch · tip · tree | `zayd/2026-08-01-shapesig-memview` · `458c362` · dirty |
-| open PRs | none — main is the tip of the work |
+| branch · tip · tree | `zayd/2026-08-01-shapesig-memview` · `7ec5317` · dirty |
+| open PRs | #1 zayd/2026-08-01-shapesig-memview |
 | suite | **630 green** · 78 files · 206 suites |
 | protocol | 21 live ops · 3 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 37 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 4 files changed, 205 insertions(+), 77 deletions(-) (4 files) |
-| docs budget | current_state 55.8/96.0 KB · §7 12.9/32.0 KB · abstracts 10/10 · bodies 20 |
+| diff vs origin/main | 6 files changed, 458 insertions(+), 81 deletions(-) (6 files) |
+| docs budget | current_state 55.9/96.0 KB · §7 13.0/32.0 KB · abstracts 10/10 · bodies 20 |
 
 _Generated 2026-08-01 by `pnpm state`._
 
