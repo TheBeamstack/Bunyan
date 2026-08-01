@@ -296,7 +296,8 @@ touches the reader's task.
 Identical for both agents. The owner's prompt remains one line: _"read and follow `<agent>_Prompt.md`."_
 
 ```
- 1. git pull --ff-only origin main
+ 1. git checkout main && git pull --ff-only origin main
+      ⚠ CHECK OUT MAIN FIRST — left on a previous entry's branch the pull is a SILENT NO-OP.
 
  2. Read REVIEW.md + current_state §1c            (small — you need the lenses, not the whole file)
 
@@ -324,13 +325,22 @@ Identical for both agents. The owner's prompt remains one line: _"read and follo
                     + current_state.md §7 abstract          the eight fields
                     + YOUR OWN prompt's §2 TASK/NEW         never the other agent's
 
-10. commit · push the branch · open the PR
+10. TWO PUSHES:
+      (a) the agent's OWN PROMPT goes straight to main, alone — it is the only document read at
+          t=0, before step 3 can merge anything, so a prompt travelling in the PR briefs the next
+          session from a stale copy. Safe to merge early because it makes NO claim about code
+          state (§1 constraints, §2 a plan); everything that DESCRIBES the code stays in the PR.
+      (b) everything else · push the branch · open the PR
        title = the abstract headline
        body  = the abstract + REVIEW.md's checklist, unticked
 
 11. Closing summary to the owner: what landed · what the PR needs (reviewer merge? owner merge? a
     ruling?) · what is owed.
 ```
+
+⚠⚠ **The prompt therefore RUNS AHEAD OF THE REPO.** Between a hand-off and its merge, `FRESH` names
+an entry main's code does not yet contain. Step 4 turns that into a signal rather than a trap: a FRESH
+higher than §8 means _"merge the open PR first"_, never _"start work"_.
 
 **Step 3 precedes step 4 deliberately.** The reviewer works from the lenses and the diff — the PR carries
 its own abstract — then merges, then reads a `current_state.md` that is actually current. Reading it

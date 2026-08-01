@@ -9,6 +9,11 @@ handoff.
 **§2's `FRESH` block is written by `pnpm state`** — never by hand. **§2's `TASK` and `NEW` are written by
 YOU, at the end of your own session, for your own next session.**
 
+⚠⚠ **AND THIS FILE MERGES TO MAIN ON ITS OWN, AHEAD OF ITS PR (loop step 10a).** It is the only document
+read at t=0 — before step 3 can merge anything — so if it travelled in the PR the next session would be
+briefed by a stale copy. It is safe to merge early because it makes **no claim about code state**: §1 is
+constraints, §2 is a plan. Everything that describes the code stays in the PR.
+
 ⚠⚠ **YOU NEVER WRITE `Amer_Prompt.md`. ONE WRITER PER FILE.** Two parallel sessions used to overwrite each
 other's `FRESH` silently. What the other agent must know travels in your entry abstract's **`OWES:`** field
 in `current_state.md` §7 — which they read in full anyway — and in the PR they review.
@@ -29,7 +34,11 @@ never claim to have verified what you cannot run.**
 ### The loop
 
 ```
- 1. git pull --ff-only origin main
+ 1. git checkout main && git pull --ff-only origin main
+    ⚠ CHECK OUT MAIN FIRST. Left on a previous entry's branch, this pull is a SILENT NO-OP
+      (origin/main is already an ancestor of it), and step 5 then branches your new work off the
+      OLD entry, dragging its commits into your PR. Nothing errors; you just quietly build on
+      the wrong base.
  2. Read REVIEW.md + current_state.md §1c        (the lenses — small, and you need them to review)
       ⚠ AND, because you are on the dev box: box-local `../cross_projects_policy.md` +
         `../last_session_work.md`. BINDING, not in git, and NO test in this repo can enforce them.
@@ -45,7 +54,11 @@ never claim to have verified what you cannot run.**
       │      └─ does it BLOCK your task? → TELL THE OWNER TO RUN AMER NOW
       ├─ RISK: additive + approving + CI green  → MERGE it, then pull again
       └─ RISK: contract-touching                → approve; tell the owner it needs THEIR merge
- 4. Read current_state.md in full. Confirm §8's newest entry matches §2's FRESH.
+ 4. Read current_state.md in full, and compare §8's newest entry against §2's FRESH:
+      ├─ SAME            ⇒ main is current. Start TASK.
+      └─ FRESH is HIGHER ⇒ ⚠ A FINISHED ENTRY IS STILL SITTING IN AN OPEN PR. This prompt reached
+                            main ahead of its own entry (step 10). Go back to step 3, merge it,
+                            then re-read. Do NOT start TASK against a main that lacks it.
  5. git checkout -b zayd/<date>-<slug>
  6. Do §2 TASK.
  7. prettier --write every file you touched  →  pnpm verify  →  READ THE REAL EXIT CODE
@@ -57,8 +70,23 @@ never claim to have verified what you cannot run.**
                                                           any pause/restore, what you installed.
                                                           ⚠ Dropped by the migration too; the
                                                           2026-07-31 session left no record at all.
-10. commit · push the branch · `gh pr create`
-       title = the abstract headline · body = the abstract + REVIEW.md's checklist, unticked
+10. ⚠⚠ TWO PUSHES, AND THE SPLIT IS THE POINT:
+      (a) THIS PROMPT GOES STRAIGHT TO MAIN, on its own, now.
+              git checkout main && git checkout <your-branch> -- Zayd_Prompt.md
+              git commit -m "Zayd_Prompt: hand off to entry <n+1>" && git push origin main
+          WHY: this file is the ONLY document read at t=0, BEFORE step 3 can merge anything. If it
+          waits in the PR, the next session is briefed by a stale copy — and that is not
+          hypothetical: Entry 73 CANCELLED the task main's prompt was still handing out. Merging it
+          early is what makes the next session start correct.
+          ⚠ It is SAFE to merge early precisely because it makes NO claim about code state: §1 is
+          standing constraints and §2 is a plan. Everything that DESCRIBES the code —
+          `current_state.md`, `docs/decisions.md`, the handoff body — stays in the PR, because a
+          claim about code that is not on main yet is §1c-7 by policy instead of by accident.
+      (b) EVERYTHING ELSE goes to the branch: git push · `gh pr create`
+              title = the abstract headline · body = the abstract + REVIEW.md's checklist, unticked
+          The PR now contains only work that is worth reviewing.
+      ⚠ Push (a) BEFORE (b), and put the identical file on the branch too (it already is, if you
+        edited it there) — same content both sides means the PR merges without a conflict.
 11. Closing summary: what landed · what the PR needs (Amer's merge? the owner's? a ruling?) · what is owed.
 ```
 
@@ -68,6 +96,13 @@ own abstract — then merge, _then_ read a `current_state.md` that is actually c
 ⚠ **The entry number is claimed in step 9, inside the PR.** If two PRs both claim it, the second to merge
 gets an ordinary merge conflict on one §7 row. Loud, standard, thirty seconds. There is no registry and no
 reservation protocol, and you do not need one.
+
+⚠⚠ **THE ONE ASYMMETRY TO HOLD IN YOUR HEAD: THIS FILE RUNS AHEAD OF THE REPO.** Step 10(a) puts it on
+main while its entry is still in review, so between a hand-off and its merge, **`FRESH` names an entry
+that main's code does not yet contain.** That is deliberate, and step 4 turns it into a signal rather
+than a trap: a FRESH _higher_ than §8 means *"go merge the open PR first."_ It is never a reason to
+start work. ⚠ And do not run `pnpm state` on a main in that condition — it reads `current_state.md`,
+would find the older entry, and would quietly rewrite `FRESH` backwards.
 
 ### Standing constraints — do not re-derive, do not renegotiate
 
