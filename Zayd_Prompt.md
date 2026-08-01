@@ -147,7 +147,7 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 73**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-01-shapesig-memview` · `f3eb846` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-01-shapesig-memview` · `24e3678` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
@@ -178,7 +178,7 @@ TASK:   **THE GOING-PUBLIC HOUSEKEEPING — `LICENSE` (AGPL-3.0), the CLA, and t
           killed by reading them against the artifact, and both are now recorded in §5:**
           • **the `shapeSignature` memory view — CANCELLED, MEASURED.** *"170 embind crossings …
             most of what makes a cached import cost 12 ms"* was a SUBTRACTION RESIDUE, never timed.
-            A crossing costs **0.42–0.66 µs**; all 173 cost **0.073 ms = 0.9%** of the signature
+            A crossing costs **0.21–0.39 µs**; all **345** cost **0.073–0.133 ms = ~1%** of the signature
             call, against `shapeSignature`'s own **7.9 ms** of `GProp` work. `geometry-cache-d29`'s
             **THE ATTRIBUTION** now holds that as a tripwire.
           • **`schedule.ts`'s "rule 17" rename — A PHANTOM.** Both citations are correct uses of the

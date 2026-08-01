@@ -521,15 +521,19 @@ describe('D29 — the geometry cache: a cached solid keeps its identities, or it
    * never measured.** It is a SUBTRACTION RESIDUE: a native breakdown was scaled ×3 for WASM, and
    * whatever the scaled parts failed to explain was attributed to the crossings.
    *
-   * Measured here instead, on the real 34-sub-shape fixture: **a crossing costs ~0.2–0.9 µs**, so all
-   * 173 of them cost **~0.03–0.15 ms** — under 1% of a ~12 ms import, and below the run-to-run noise of
-   * the import itself. The residue is not the boundary; it is `shapeSignature`'s own C++ work, which is
+   * Measured here instead, on the real 34-sub-shape fixture: **a crossing costs ~0.1–0.5 µs**, so all
+   * **345** of them cost **~0.03–0.15 ms** — under 1% of a ~12 ms import, and below the run-to-run noise
+   * of the import itself. ⚠ **345, not 170:** the count is now OBSERVED below rather than assumed, and
+   * both Entry 71's figure and this test's own first draft undercounted it ~2× by forgetting that
+   * `drainDoubles` re-calls `size()` in the loop condition. It cuts the per-crossing cost in half and
+   * leaves the total — the number the decision rests on — untouched.
+   * The residue is not the boundary; it is `shapeSignature`'s own C++ work, which is
    * ~34 `GProp` integrations and is **the price of verification** — exactly what §1a already says
    * (*"re-measuring every sub-shape to prove the tokens belong to the shape is the price of shipping
    * identity in a file"*). A memory view would remove ~0.1 ms and add a global buffer with a
    * *"valid only until the next call"* lifetime to the one file where a wrong answer produces a
    * plausible wrong building. `tessellate`'s payoff is ~1.8 million crossings **per frame**; this one is
-   * 170 **per solid, once**. Four orders of magnitude apart, which is why the same fix does not follow.
+   * 345 **per solid, once**. Four orders of magnitude apart, which is why the same fix does not follow.
    *
    * ⚠ THE METHOD, because the first attempt at it was wrong too: subtracting two whole-call timings puts
    * a ~0.1 ms signal inside a ~10 ms measurement and returns noise (it returned a NEGATIVE drain cost).
@@ -577,10 +581,38 @@ describe('D29 — the geometry cache: a cached solid keeps its identities, or it
     };
     bench(drainOnce, 20);
     const drainMs = bench(drainOnce, 200);
+
+    // ⚠⚠ COUNT the crossings; do not reason about them. Entry 71 said "170 per solid" and the first
+    // draft of this test said `numbers + 1` — both counted only the reads and forgot that
+    // `drainDoubles` (kernel.ts:277) re-calls `size()` in the LOOP CONDITION, i.e. once per
+    // iteration plus once to terminate. The loop below is that production loop verbatim, run against
+    // a counting wrapper, so the number here is observed rather than derived.
+    const crossings = ((): number => {
+      let n = 0;
+      const spy = {
+        size: (): number => {
+          n++;
+          return vector.size();
+        },
+        get: (i: number): number | undefined => {
+          n++;
+          return vector.get(i);
+        },
+      };
+      const out: number[] = [];
+      for (let i = 0; i < spy.size(); i++) out.push(spy.get(i) ?? 0);
+      expect(out.length, 'the replicated drain must read the whole signature').toBe(numbers);
+      return n;
+    })();
     vector.delete();
     wasm.releaseShape(handle);
 
-    const crossings = numbers + 1; // one `size()` per element read, plus the call that returns it
+    expect(
+      crossings,
+      'a drain crosses the boundary 2N+1 times — N `get`s, and one `size` per iteration plus the ' +
+        'terminating one. If this ever becomes N+1, `drainDoubles` has been hoisted and the ' +
+        'per-crossing cost below doubles.',
+    ).toBe(2 * numbers + 1);
     const perCrossingUs = (drainMs / crossings) * 1000;
     const drainShare = drainMs / (computeMs + drainMs);
 

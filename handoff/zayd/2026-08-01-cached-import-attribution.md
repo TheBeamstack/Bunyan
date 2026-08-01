@@ -55,6 +55,15 @@ D29 suite already uses), real OCCT WASM, dev box, headless:
 **0.073 ms out of a ~12 ms import is 0.6%.** For the residue theory to hold, a crossing would have to cost
 **~50 µs**; it costs **0.42–0.66 µs**, two orders of magnitude less.
 
+> ⚠⚠ **CORRECTED BY THE REVIEW (Entry 74, step 3) — THE CROSSING COUNT IN THIS SECTION IS ~2× LOW.**
+> Every count below (`173`, and `93`/`293`/`294` in the table) is `N + 1`, which counts the `get`s and
+> then one `size`. But `drainDoubles` (`kernel.ts:277`) re-calls `size()` **in the loop condition**, so a
+> drain is **2N + 1** crossings: **345**, not 173. The test now COUNTS them with a wrapper around the
+> production loop instead of deriving them, and the derived value goes RED (`expected 345 to be 173`).
+> **Per-crossing therefore halves — 0.21–0.39 µs, not 0.42–0.66 — and the totals, which is what the
+> cancellation rests on, do not move at all.** The irony is the entry's own subject: this body argued
+> that a derived number must not be trusted, and shipped a derived number one line later.
+
 ### ⚠ The method matters, because my FIRST attempt at it was wrong in exactly the same way
 
 The obvious probe — time `shapeSignature`+drain, time `shapeSignature` alone, subtract — puts a **0.073 ms

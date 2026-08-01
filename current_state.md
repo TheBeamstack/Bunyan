@@ -141,8 +141,8 @@ All four axes now have a number. **Two are closed; two remain open and are named
 ⚠ *Verification is most of a cached load's cost — re-measuring every sub-shape to prove the tokens belong
 to the shape is the price of shipping identity in a file — so no amount of serializer tuning changes this.*
 ⚠⚠ **NOW MEASURED RATHER THAN ASSERTED (Entry 73), and it closes off the tempting lever:** of a cached
-import, `shapeSignature`'s own `GProp` work is **7.9 ms** and **all 173 embind boundary crossings together
-are 0.073 ms (0.42–0.66 µs each, 0.9%)**. The boundary is not the cost and never was; the
+import, `shapeSignature`'s own `GProp` work is **7.9 ms** and **all 345 embind boundary crossings together
+are 0.073–0.133 ms (0.21–0.39 µs each, ~1%)**. The boundary is not the cost and never was; the
 **verification** is. ⇒ **the remaining cold-load levers are still only `instantiate` (RESERVED), lazy
 build/eviction (D66) and MT (D8)** — there is no serializer or marshalling win hiding here.
 
@@ -407,11 +407,14 @@ DO NOT RE-ADD EITHER.**
 
 - **The `shapeSignature` memory view — CANCELLED, MEASURED NOT WORTH IT.** *"170 embind crossings per
   solid … most of what makes a cached import cost 12 ms"* was a **subtraction residue**, never measured.
-  A crossing costs **0.42–0.66 µs**, so all 173 cost **0.073 ms — 0.9% of the signature call**, against
-  `shapeSignature`'s own **7.9 ms** of `GProp` work. A memory view removes 0.073 ms/solid and no more,
-  and would put a *"valid until the next call"* global buffer in the one file where a wrong answer
-  builds a plausible wrong building. `tessellate`'s payoff is ~1.8M crossings **per frame**; this is 170
+  A crossing costs **0.21–0.39 µs**, so all **345** cost **0.073–0.133 ms — ~1% of the signature call**,
+  against `shapeSignature`'s own **7.9 ms** of `GProp` work. A memory view removes ~0.1 ms/solid and no
+  more, and would put a *"valid until the next call"* global buffer in the one file where a wrong answer
+  builds a plausible wrong building. `tessellate`'s payoff is ~1.8M crossings **per frame**; this is 345
   **per solid, once**. Now a permanent tripwire: `geometry-cache-d29.test.ts` **THE ATTRIBUTION**.
+  ⚠ **345, not the "170" Entry 71 quoted** — the self-review COUNTED it instead of deriving it, and a
+  drain is **2N+1** crossings (`drainDoubles` re-calls `size()` in the loop condition), not N+1. It
+  halves the per-crossing figure and leaves the total — the number the cancellation rests on — unmoved.
 - **`schedule.ts`'s "rule 17" rename — A PHANTOM. There is no collision.** Both citations in
   `schedule.ts` are correct uses of the real numbered domain rule 17 (*a drawing is a projection*, D58,
   which names schedules explicitly). The collision was already resolved by numbering the interaction
@@ -538,8 +541,8 @@ is maintenance and does NOT get an entry of its own.**
 - **VERIFIED:** 630 green · all six gates 0 (exit code read) · real OCCT · dev box headless ·
   revert-verified 1 way — Entry 71's belief asserted goes RED at the measured value.
 - **FOUND:** ⚠⚠ **THE "170 EMBIND CROSSINGS" WERE NEVER MEASURED — a subtraction residue** (a native
-  breakdown ×3, *"and the rest is"*). Measured: a crossing costs **0.42–0.66 µs**, so all 173 cost
-  **0.073 ms = 0.9%** of the signature call, against `shapeSignature`'s own **7.9 ms** of `GProp` work
+  breakdown ×3, *"and the rest is"*). Measured: a crossing costs **0.21–0.39 µs**, so all **345** cost
+  **0.073–0.133 ms = ~1%** of the signature call, against `shapeSignature`'s own **7.9 ms** of `GProp` work
   (**46%** of the kernel-side import). ⚠ My first probe repeated Entry 71's error — subtracting two
   ~10 ms timings to find a 0.073 ms signal returned a **negative** cost; the compute must be held OUT.
   ⚠⚠ **And TASK item 2 was a PHANTOM:** both `schedule.ts` "rule 17" citations are correct uses of the
@@ -561,7 +564,15 @@ is maintenance and does NOT get an entry of its own.**
   commit), then plan/section the moment Q1–Q3 land.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-01-cached-import-attribution.md`
-- **REVIEW:** self-review (Zayd ran last) — the first PR under the new flow.
+- **REVIEW:** self-review by the NEXT session (Entry 74's step 3), not by the author — a fresh session,
+  which is the point of the rule. Item 1 executed independently: the ATTRIBUTION reproduced at
+  **7.345 ms compute vs 0.121 ms drain (1.6%)**, then Entry 71's belief asserted (`drainShare > 0.5`)
+  went **RED at 0.0138**. ⚠ **ONE FINDING, PROVEN AND FIXED ON THE BRANCH: the crossing COUNT was
+  itself derived rather than counted, and was ~2× low** — a drain is **2N+1** crossings, not N+1
+  (`drainDoubles` re-calls `size()` in the loop condition), so **345, not 173**, at **0.21–0.39 µs**
+  each. The total, and therefore the cancellation, is unchanged; the count is now OBSERVED in the test
+  by a counting wrapper around the production loop. *An entry whose whole subject is "a number nobody
+  measured" shipped one more derived number — which is exactly the base rate §1c-8 predicts.*
 
 ### 72 | 2026-07-30 | Zayd | the five move verbs + `transactionId` atomicity (D80, P4.5 rows ⓑ/ⓘ)
 
@@ -722,15 +733,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **73 (Zayd, 2026-08-01)** |
-| branch · tip · tree | `zayd/2026-08-01-shapesig-memview` · `f3eb846` · dirty |
+| branch · tip · tree | `zayd/2026-08-01-shapesig-memview` · `24e3678` · dirty |
 | open PRs | #1 zayd/2026-08-01-shapesig-memview |
 | suite | **630 green** · 78 files · 206 suites |
 | protocol | 21 live ops · 3 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 37 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 572 insertions(+), 82 deletions(-) (8 files) |
-| docs budget | current_state 57.1/96.0 KB · §7 14.2/32.0 KB · abstracts 10/10 · bodies 20 |
+| diff vs origin/main | 10 files changed, 731 insertions(+), 100 deletions(-) (10 files) |
+| docs budget | current_state 58.3/96.0 KB · §7 15.0/32.0 KB · abstracts 10/10 · bodies 20 |
 
 _Generated 2026-08-01 by `pnpm state`._
 

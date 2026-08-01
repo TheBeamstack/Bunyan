@@ -269,16 +269,22 @@ What moves out, and where:
 Eight mandatory fields, enforced by `docs:check` (§10). Written **from the start** as the entry's own
 abstract; the full body is written below it and lives in `handoff/`.
 
+⚠ **The block below is a FORMAT SAMPLE — invented content, an entry number that is not real, and it is
+not a record of anything.** It is written that way on purpose: an earlier draft of this section used a
+plausible _"Entry 73 | shapeSignature memory view … the 170 embind crossings were 43% of a cached
+import"_, and the **real** Entry 73 then measured those crossings at **~1%** and cancelled that unit —
+leaving a committed doc that read like a record of work which had never happened and whose headline
+number was false. §1c-7's disease, contracted by an example. Keep sample content obviously synthetic.
+
 ```
-### 73 | 2026-07-31 | Zayd | shapeSignature memory view — cached import 12.00 → 6.8 ms/solid
-CHANGED:  kernel.cpp shapeSignature → typed-array memory view; WASM rebuilt (74 s).
-          packages/kernel-occt only. No contract, no schema bump, no field.
-VERIFIED: 621 green · 5 gates 0 · real OCCT · dev box headless · revert-verified 3 ways.
-FOUND:    the 170 embind crossings were 43% of a cached import — larger than §4j-2 assumed.
-OWES:     Amer: nothing. Owner: Q1–Q3 still block plan/section. Next: schedule.ts rule-17 rename.
+### N | YYYY-MM-DD | <agent> | <the headline — what changed, in one line>
+CHANGED:  <the packages and files, and what was deliberately NOT touched>
+VERIFIED: <n> green · <k> gates 0 · how it was run · revert-verified <n> ways
+FOUND:    <the finding that outlives the entry — or "nothing beyond the task">
+OWES:     <the other agent> · <the owner: which rulings> · <next Zayd/Amer>
 RISK:     additive                          ← written by `pnpm state`, never by hand
-FULL:     handoff/zayd/2026-07-31-shapesig-memview.md
-REVIEW:   PR #12 · reviewed by Amer 2026-08-01 · 1 finding fixed in-PR
+FULL:     handoff/<agent>/YYYY-MM-DD-<slug>.md
+REVIEW:   PR #<n> · reviewed by <agent> <date> · <n> findings fixed in-PR
 ```
 
 **`FOUND`, `OWES` and `REVIEW` do not exist today.** They are the three things a recent entry uniquely
