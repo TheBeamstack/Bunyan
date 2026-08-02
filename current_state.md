@@ -537,6 +537,72 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 76 | 2026-08-02 | Zayd | Entry 74 reviewed late — `NOTICE` said seven shipped dependencies were build-time only
+
+- **CHANGED:** `NOTICE` (§3 rewritten, §4 split out, §5 records the correction) · `licenses/` (+7 MIT
+  texts, copied from the installed packages) · `tests/notice-attribution.test.ts` (**the new gate**) ·
+  Entry 74's and Entry 75's `REVIEW:` lines · `open_rulings.md` (Q14; and Q11–Q13 turned into actual
+  table rows) · and, reviewing PR #3: `scripts/docs-state.mjs` + `.d.mts` (`fieldsFull`) +
+  `tests/docs-budget.test.ts`.
+- **VERIFIED:** **644 green**, all six gates, **real exit code 0**. **Revert-verified 3 ways on the new
+  gate** — drop
+  `three`'s citation → RED naming it; delete its licence text → RED twice, independently; add `vitest`
+  as a runtime dep → RED naming `vitest@2.1.9`. Reviewing PR #3, item 1 re-run independently on two of
+  its three claims. The runtime closure the test walks (**8 packages**) agrees exactly with
+  `pnpm licenses list --prod`.
+- **FOUND:** ⚠⚠ **`NOTICE` CLAIMED THE REMAINING DEPENDENCIES WERE "BUILD- AND TEST-TIME ONLY … NOT
+  REDISTRIBUTED AS PART OF BUNYAN". FALSE — seven MIT packages ship in the browser bundle** (`react`,
+  `react-dom`, `scheduler`, `three`, `fflate`, `js-tokens`, `loose-envify`) **and none was attributed**,
+  though MIT requires its notice to travel with every copy. The sweep had been reasoned from the two
+  deps already in the author's head; the lockfile settles it in half a second. ⚠ Second: the recipe
+  does **not** carry "the pinned toolchain version" — `README.md` says `emscripten/emsdk:latest` and
+  the build id is a hand-maintained constant asserted only against itself (⇒ Q14). ⚠ And in PR #3:
+  **the new `AWAITING REVIEW` guard read only each field's FIRST PHYSICAL LINE**, so a marker that
+  wrapped onto line 2 left `docs:check` green — measured. *(⚠ Entry 77: the wrap is HAND-placed, not
+  prettier's — `current_state.md` is in `.prettierignore`. Defect and fix stand; the cause named here
+  did not.)*
+- **OWES:** Owner: **Q14 (NEW)** — pin the emsdk image by digest. **Q1–Q3 still BLOCK plan/section, a
+  SEVENTH session.** Q11/Q12/Q13 stand. Amer: the "open source licences" screen now has a real list to
+  render (`NOTICE` §3); before, it would have shown two entries and been wrong.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-02-entry74-late-review.md`
+- **REVIEW:** Reviewed and merged by **Entry 77** (Zayd, a later session — the protocol holding for a
+  second consecutive entry). Item 1 executed independently on the author's own cheapest claim: deleting
+  the `` `licenses/three-LICENSE.txt` `` citation from `NOTICE` §3 took the gate **RED naming
+  `three@0.171.0`**, and note that the bare word "three" still occurs twice in `NOTICE` at that point —
+  so the citation check really is stronger than a name match, as its comment claims. **CHECKED AND
+  SOUND:** the `OCCT_BUILD_ID` constant is at `kernel.ts:52` exactly as `NOTICE` §1 states,
+  `README.md` does invoke the mutable `emscripten/emsdk:latest` at five sites, no third-party source is
+  vendored anywhere under `packages/` or `apps/`, and **all eight** members of the closure declare **zero**
+  `optionalDependencies` (the one peer, `react`, is already inside it) — counted, not recalled, so there
+  is no second arrival path today.
+  ⚠⚠ **ONE DEFECT FOUND AND FIXED ON THE BRANCH, AND IT IS THIS ENTRY'S OWN LESSON TURNED ON ITSELF:
+  THE GATE ENUMERATED ITS INPUT SET FROM MEMORY.** `MANIFESTS` was a hand-written array of ten paths
+  while `pnpm-workspace.yaml` defines the set by glob (`packages/*`, `apps/*`), so a package added
+  later was invisible to all five assertions — and `.filter(existsSync)` made a renamed one drop out
+  silently too. **Demonstrated, not argued:** a probe package under `packages/` declaring
+  `typescript@5.9.3` as a runtime dependency, laid out exactly as pnpm lays one out, left the gate
+  **fully GREEN**; against the fix it goes **RED naming `typescript@5.9.3` twice** (unattributed, and
+  no licence text). ⚠ It was load-bearing rather than cosmetic: `runtimeClosure()` deliberately does
+  not recurse into `workspace:` siblings, relying on each sibling appearing in that list on its own —
+  two hand-maintained facts holding each other up. Fixed by deriving the list from the workspace globs,
+  plus a sixth test asserting the discovered set equals what is on disk, so the input set can no longer
+  go stale in silence.
+  ⚠ **SECOND FINDING, SMALLER BUT IN THE LESSON TEXT ITSELF, WHICH IS WHERE IT DOES THE MOST DAMAGE:
+  THE CAUSE THIS ENTRY GAVE FOR THE `fieldsFull` DEFECT IS FALSE.** It wrote — in `scripts/docs-state.mjs`,
+  in this entry's `FOUND`, in Entry 75's `REVIEW:` line and in the prompt's `NEW:` — that *"these
+  documents are prettier-formatted at `printWidth: 100`, so the line break is placed by sentence
+  length, not by the author"*, and that the stale marker *"passed `prettier --check`"*. **`current_state.md`
+  is in `.prettierignore`** (line 18), which is the only file `parseAbstracts` ever opens, so prettier
+  never touches it; measured with `--ignore-path /dev/null` it does **not** conform and **288 lines
+  would change** if prettier owned it. Passing `prettier --check` was therefore vacuous, not evidence.
+  The defect and the `fieldsFull` fix are untouched — but the wrapping is HAND-placed, so **no
+  formatter maintains those breaks and no gate is watching them**, which makes the rule stricter than
+  the entry argued. Corrected at all three in-repo sites. *Note the shape: an entry whose own headline
+  lesson is "a claim that quantifies over a set must be counted" shipped an unmeasured claim about a
+  tool's behaviour — Entry 74's mistake exactly, three entries later.*
+  `pnpm verify` **645 green, real exit code 0, six gates**; `freeze-boundary` green ⇒ additive confirmed.
+
 ### 75 | 2026-08-02 | Zayd | the review protocol had a hole — Entry 74 merged itself, and the ruling was never in the prompt
 
 - **CHANGED:** `Zayd_Prompt.md` (step 3 scoped, step 10(b) TERMINATED, step 11 reworded) · `REVIEW.md`
@@ -574,11 +640,13 @@ is maintenance and does NOT get an entry of its own.**
   so nothing else in `tools/kernel-build/` reaches the shipped `.wasm`. The exemption was verified NOT
   too broad: it matches exactly entries 66–72, the genuinely pre-PR-flow ones. **⚠ ONE DEFECT FOUND
   AND FIXED ON THE BRANCH — the guard read only each field's FIRST PHYSICAL LINE.** `parseAbstracts`
-  dropped continuation lines, and these docs are prettier-wrapped at `printWidth: 100`, so **the break
-  is placed by sentence length, not by the author.** Measured: the same stale marker phrased with a
-  lead-in wrapped onto line 2, passed `prettier --check`, and left `docs:check` fully GREEN — the new
-  guard blind on its first real test. Fixed with `fieldsFull` + a regression test; the identical
-  corruption now fails. Also fixed a rendering defect inherited from Entry 74: **Q11/Q12/Q13 sat
+  dropped continuation lines, so the same stale marker phrased with a lead-in wrapped onto line 2 and
+  left `docs:check` fully GREEN — the new guard blind on its first real test. Fixed with `fieldsFull`
+  + a regression test; the identical corruption now fails. ⚠ **Entry 77 corrected the CAUSE this entry
+  gave for it:** `current_state.md` is NOT "prettier-wrapped at `printWidth: 100`" — it is in
+  `.prettierignore`, prettier never opens it, and measured with `--ignore-path /dev/null` **288 lines
+  would change** if it did. The wrapping is placed BY HAND, which makes `fieldsFull` more necessary,
+  not less. Also fixed a rendering defect inherited from Entry 74: **Q11/Q12/Q13 sat
   behind a blank line and were not table rows at all** — three open rulings rendering as literal
   pipe-text in the file the owner reads to rule. `pnpm verify` **639 green, real exit code 0, six
   gates**; `freeze-boundary` green ⇒ additive confirmed.
@@ -628,14 +696,27 @@ is maintenance and does NOT get an entry of its own.**
   session (69→71→72→73→74).** Amer: an "open source licences" screen is unbuilt and is his layer.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-02-going-public-housekeeping.md`
-- **REVIEW:** ⚠⚠ **NEVER INDEPENDENTLY REVIEWED — THE AUTHOR MERGED IT (PR #2, `8422ae0`), WHICH THE
-  PROTOCOL FORBIDS.** This line originally said *"this is the open PR, next session reviews it at
-  step 3"*, and then the same session merged it anyway. Owner-ruled decision 5 is that the
-  **reviewing** agent merges an additive PR, and the reviewer is by construction a later session.
-  Diagnosed and fixed in **Entry 75**, which also adds the machine check that makes this line's
-  successor impossible to leave stale. ⚠ **The content of Entry 74 was never re-run by a second
-  party** — if anything in it is wrong, no one has looked. It is `RISK: additive` and revertible as
-  two clean commits (`93ec2a0` prose, `9c066d3` the gate fix) if the owner wants it re-done properly.
+- **REVIEW:** **REVIEWED LATE BY ENTRY 76** (Zayd), against the two commits directly — it was merged
+  by its own author (PR #2, `8422ae0`), which the protocol forbids, so it reached `main` unread;
+  Entry 75 diagnosed that and this is the review that was owed. ⚠⚠ **ONE REAL DEFECT, IN THE HALF
+  THAT WAS FLAGGED FOR A CHECKER WHO NEVER CAME: `NOTICE` §3 CLAIMED THE REMAINING DEPENDENCIES WERE
+  "BUILD- AND TEST-TIME ONLY … NOT REDISTRIBUTED AS PART OF BUNYAN." FALSE.** `pnpm licenses list
+  --prod` — the authoritative instrument Entry 74's own text named and nobody ran — reports **eight**
+  production packages, not two: **seven MIT packages ship in the browser bundle** (`react`,
+  `react-dom`, `scheduler`, `three`, `fflate`, `js-tokens`, `loose-envify`) and **none was
+  attributed**, though MIT requires its notice to travel with every copy. Fixed: their licence texts
+  copied from the installed packages into `licenses/`, `NOTICE` §3/§4 rewritten, correction recorded
+  in a new §5, and **`tests/notice-attribution.test.ts` now walks the real runtime closure so the
+  claim cannot rot again** (revert-verified 3 ways, incl. adding a runtime dep → RED naming it).
+  ⚠ SECOND, SMALLER: `NOTICE` said the recipe carries "the pinned toolchain version" and that the
+  build id "pins the exact combination". It does not — `README.md` invokes `emscripten/emsdk:latest`
+  (mutable) and `OCCT_BUILD_ID` is a hand-maintained constant in `kernel.ts:52`, not read back from
+  the artifact. Prose corrected to match; the digest pin is now **Q14**. ⚠ Also fixed, inherited
+  from this entry: **Q11/Q12 were not table rows** (blank-line-separated), rendering as literal
+  pipe-text in the owner's ruling document. **CHECKED AND SOUND:** the OCCT static-link and
+  prominent-notice claims read true against `link.sh` and `licenses/`; planegcs is correctly
+  described, including the honest note that it declares LGPL-2.0-or-later while shipping the 2.1
+  text. The re-seed-gate half was already re-verified by Entry 75.
 
 ### 73 | 2026-08-01 | Zayd | the cached-import attribution — the `shapeSignature` memory view is CANCELLED
 
@@ -782,20 +863,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/amer/2026-07-28-p45-selection-view-filter.md`
 - **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
 
-### 66 | 2026-07-28 | Amer | P4.5 the interaction model, design-first
-
-- **CHANGED:** nothing — the deliverable is `docs/design/P4.5_interaction_model_design.md`, grounded
-  against the real `apps/web` seams by file name.
-- **VERIFIED:** re-verified against the code that no move verb exists (row ⓑ) and that the kernel has the
-  exact spatial ops but **no seam lets the UI reach them**.
-- **FOUND:** the read-only two-tier snap seam is the phase's real work; the renderer already retains the
-  `MeshBuffers` a snap needs.
-- **OWES:** Owner: Q1–Q6 — **all six ruled 2026-07-30** and applied into §12, which is now the phase's
-  decision record rather than its open questions.
-- **RISK:** additive (no source touched)
-- **FULL:** `handoff/amer/2026-07-28-p45-interaction-model-design.md`
-- **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
-
 ---
 
 ## §8 — Generated
@@ -804,16 +871,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **75 (Zayd, 2026-08-02)** |
-| branch · tip · tree | `zayd/2026-08-02-review-protocol-hole` · `8422ae0` · dirty |
+| **newest entry** | **76 (Zayd, 2026-08-02)** |
+| branch · tip · tree | `zayd/2026-08-02-entry74-late-review` · `a7238b3` · dirty |
 | open PRs | none — main is the tip of the work |
-| suite | **638 green** · 79 files · 208 suites |
+| suite | **644 green** · 80 files · 210 suites |
 | protocol | 21 live ops · 3 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 37 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 9 files changed, 245 insertions(+), 66 deletions(-) (9 files) |
-| docs budget | current_state 64.1/96.0 KB · §7 20.1/32.0 KB · abstracts 10/10 · bodies 22 |
+| diff vs origin/main | 4 files changed, 146 insertions(+), 56 deletions(-) (4 files) |
+| docs budget | current_state 68.4/96.0 KB · §7 24.3/32.0 KB · abstracts 10/10 · bodies 23 |
 
 _Generated 2026-08-02 by `pnpm state`._
 

@@ -52,12 +52,19 @@ export function section7(src) {
  *                          `RISK` starts with a known word, `FULL` is a path) all live on line one.
  *   * `fieldsFull[NAME]` — the whole bullet, indented continuation lines joined back on.
  *
- * ⚠⚠ ANY CHECK THAT SEARCHES A FIELD FOR A MARKER MUST USE `fieldsFull`. These documents are
- * prettier-formatted at `printWidth: 100`, so **the line break is placed by sentence length, not by
- * the author** — a marker written after any lead-in silently lands on line 2. The `AWAITING REVIEW`
- * guard in `tests/docs-budget.test.ts` read `fields` and was measurably blind to exactly that: a
- * stale marker wrapped onto a continuation line passed `prettier --check` and left `docs:check`
- * green (found reviewing Entry 75, fixed in Entry 76).
+ * ⚠⚠ ANY CHECK THAT SEARCHES A FIELD FOR A MARKER MUST USE `fieldsFull`. A marker written after any
+ * lead-in lands on line 2, and `fields` cannot see it. The `AWAITING REVIEW` guard in
+ * `tests/docs-budget.test.ts` read `fields` and was measurably blind to exactly that (found
+ * reviewing Entry 75, fixed in Entry 76).
+ *
+ * ⚠ AND THE REASON IS NOT THE ONE THIS COMMENT USED TO GIVE. It said these documents are
+ * "prettier-formatted at `printWidth: 100`, so the line break is placed by sentence length, not by
+ * the author". **False about the only file this parser ever opens:** `current_state.md` is listed in
+ * `.prettierignore`, so prettier never touches it — measured with `--ignore-path /dev/null`, it does
+ * not conform, and **288 lines would change** if it did. Its wrapping is placed BY HAND. That makes
+ * `fieldsFull` MORE necessary, not less: no formatter maintains those breaks, nothing keeps them
+ * stable across an edit, and `format:check` is not even looking. The old note also credited the miss
+ * to a marker that "passed `prettier --check`" — vacuously true, since prettier skips the file.
  */
 export function parseAbstracts(src) {
   const sec = section7(src);
