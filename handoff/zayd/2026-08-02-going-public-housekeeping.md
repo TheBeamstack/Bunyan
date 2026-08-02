@@ -132,3 +132,84 @@ one arriving before the agreement does.
   without a test that fails in its absence is an assertion* — it governs fixes. There is no behaviour
   here to revert. The one empirical claim I did make (Finding 3) was measured with the ignore disabled,
   which is the same move in the same spirit.
+
+---
+
+# ADDENDUM — the re-seed gate's first real execution refused this very PR
+
+**This was not planned work.** CI went red on the housekeeping commit, and the cause turned out to be a
+defect in the gate rather than in the diff. It is written up here rather than deferred because it
+*blocked* the entry, and it is in its **own commit** on the branch so it can be reviewed — or reverted —
+independently of the prose.
+
+## What happened
+
+Entry 73 fixed `actions/checkout`'s shallow clone (`fetch-depth: 0`), which is what finally let the
+re-seed gate run its real path — for the first time in 73 entries. **Entry 74 was therefore the first
+change ever measured by it, and it failed:**
+
+```
+re-seed gate FAILED — geometry changed but no goldens were re-seeded.
+
+Changed geometry:
+  packages/kernel-occt/package.json
+  packages/types/package.json
+```
+
+Both edits are `+  "license": "AGPL-3.0-only",`. Neither can move a vertex.
+
+## The cause, and why it is a real defect
+
+The gate matched with `file.startsWith('packages/kernel-occt/')`. **A directory prefix is a statement
+about location, not about geometry** — it catches `package.json`, `tsconfig.json`, `README.md` and every
+file the package will ever gain.
+
+⚠ **The failure mode is worse than a red build, which is why this is a fix and not a nitpick.** The
+message the gate prints is *"Re-seed on the pinned environment, then commit `tests/goldens/`."* An agent
+who trips this on a licence field and dutifully complies has **re-baselined every golden in the
+repository** — and any genuine geometry drift present at that moment is silently blessed, with *"the
+gate told me to"* as its justification. A guard that cries wolf does not fail safe. It teaches the next
+person to route around it, and this project's whole thesis is that guards are what stop claims rotting.
+
+## The fix
+
+`GEOMETRY_PATHS` now names source locations:
+
+```
+  packages/kernel-mock/src/box.ts      (unchanged — file-exact already)
+  packages/kernel-occt/src/            (was: packages/kernel-occt/)
+  packages/kernel-occt/wasm/           (new — the committed artifact, previously covered by the root)
+  packages/types/src/                  (was: packages/types/)
+```
+
+The list and matcher moved to `scripts/reseed-paths.mjs` **so that a test can reach them** — they were
+inline constants, which is precisely why nothing had ever caught this.
+
+## Verification
+
+- **`tests/reseed-gate.test.ts`, 5 tests.** Two halves on purpose: the false positives must stop, **and
+  the gate must still bite** — narrowing a guard is only correct if it still refuses what it was built
+  to refuse, so `src/kernel.ts`, `wasm/bunyan-kernel.wasm`, `types/src/wall.ts` and `box.ts` are all
+  asserted to still fire.
+- **Revert-verified 1 way.** Restoring either package-root path turns 2 of the 5 RED:
+  `AssertionError: "packages/kernel-occt/" is a package ROOT. It will match package.json,
+  tsconfig.json and every doc in the package.` — i.e. the CI failure, reproduced locally.
+- **A structural test**, so the next person to extend the list cannot reintroduce the shape: any entry
+  matching `^packages/[^/]+/$` fails with an explanatory message.
+- **The gate run exactly as CI runs it**, against this branch: `re-seed gate: no geometry touched — OK.`
+- `pnpm verify`: six gates, exit 0, **635 green**.
+
+## ⚠ What is deliberately still open
+
+`tools/kernel-build/` — the C++ source the committed `wasm/` artifact is built from — is **still not
+listed**, and I did not add it here even though I was in the file. The two changes point in opposite
+directions and deserve separate consent:
+
+| | narrowing (done here) | adding `tools/kernel-build/` (not done) |
+| --- | --- | --- |
+| effect on CI | refuses **less** | refuses **more** |
+| can it break anyone? | no | yes — it can newly fail a PR that used to pass |
+| needs assent? | no, it is a bug fix | yes, and Entry 74's review gave it |
+
+It is queued as the next session's task, with its own revert-verification. Meanwhile the convention that
+has always held the line still holds: a C++ change ships with the rebuilt artifact, which *is* listed.

@@ -544,8 +544,13 @@ is maintenance and does NOT get an entry of its own.**
   actually build and install, never from a web page) · `CLA.md` · `.prettierignore` · and
   **`"license": "AGPL-3.0-only"` in all TEN workspace manifests, none of which declared one.**
   **No source package, no test, no contract byte.** Its own commit, its own PR (Entries 64+65's lesson).
-- **VERIFIED:** 630 green · all six gates 0 (exit code read) · `freeze-boundary` green. ⚠ No
-  revert-verification, correctly: §1b governs *fixes*, and there is no behaviour here to revert.
+  ⚠⚠ **PLUS A SECOND, SEPARATE COMMIT THAT THE FIRST ONE FORCED** — `scripts/reseed-paths.mjs` (NEW,
+  the matcher extracted so it can be tested) + `scripts/check-reseed.mjs` + `tests/reseed-gate.test.ts`
+  (NEW, 5 tests). See FOUND.
+- **VERIFIED:** **635 green** (630 + the 5 new) · all six gates 0 (exit code read) · `freeze-boundary`
+  green · **revert-verified 1 way** — restore either package-root path and 2 of the 5 go RED with the
+  CI failure verbatim. ⚠ The housekeeping half carries no revert-verification, correctly: §1b governs
+  *fixes*, and prose has no behaviour to revert.
 - **FOUND:** ⚠⚠ **THE TWO LICENCE OBLIGATIONS ARE NOT SYMMETRIC, and writing them as one job would have
   been wrong in both directions.** OCCT is **statically linked** and its binary **is committed**
   (`bunyan-kernel.wasm`) ⇒ the Open CASCADE exception's relief is *conditional on a prominent notice*,
@@ -558,6 +563,18 @@ is maintenance and does NOT get an entry of its own.**
   "would reflow" `CLA.md`, then measured with `--ignore-path /dev/null` and found **all four new lines
   are no-ops today** — `.txt`/extensionless files get no parser, and `CLA.md` already conforms. The
   comment now carries the command and says they are defensive, not load-bearing. Cost of checking: 90 s.
+  ⚠⚠ **AND THE RE-SEED GATE'S FIRST REAL EXECUTION IN 74 ENTRIES REFUSED A LICENCE FIELD.** Entry 73
+  fixed `fetch-depth` so the gate could finally run; this PR was the first change it ever measured, and
+  it FAILED on `packages/kernel-occt/package.json` + `packages/types/package.json` — two edits that add
+  `"license"` and cannot move a vertex. Cause: it matched `startsWith('packages/kernel-occt/')`, **a
+  directory prefix, which is a statement about LOCATION, not about geometry**, so it caught manifests,
+  tsconfigs and READMEs. Narrowed to `src/`+`wasm/`, matcher extracted, **5 tests added including a
+  structural one that refuses any future package-root entry.** ⚠ The reason this is a bug and not a
+  nitpick: the gate's own remedy is *"re-seed the goldens"*, so an agent who trips it on a licence field
+  and complies has **silently re-baselined every golden** with *"the gate told me to"* as cover. An
+  over-broad guard does not fail safe — it trains people to route around it. ⚠ `tools/kernel-build/` is
+  still NOT listed and is deliberately still open: narrowing makes CI refuse LESS and is safe;
+  **widening is a policy change and gets its own PR** (queued as the next session's task).
 - **OWES:** Owner: **Q11 + Q12, both inside `CLA.md` and both marked in the file** — `<LEGAL ENTITY>` is
   a placeholder only you can fill, and no lawyer has read it (it is the Apache ICLA shape, sound as a
   draft, and §2 grants what D15's dual-licensing model needs). Neither blocks anything until the first
@@ -751,14 +768,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **74 (Zayd, 2026-08-02)** |
-| branch · tip · tree | `zayd/2026-08-02-going-public-housekeeping` · `47d3035` · dirty |
-| open PRs | none — main is the tip of the work |
-| suite | **630 green** · 78 files · 206 suites |
+| branch · tip · tree | `zayd/2026-08-02-going-public-housekeeping` · `93ec2a0` · dirty |
+| open PRs | #2 zayd/2026-08-02-going-public-housekeeping |
+| suite | **635 green** · 79 files · 208 suites |
 | protocol | 21 live ops · 3 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 37 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 15 files changed, 139 insertions(+), 52 deletions(-) (15 files) |
+| diff vs origin/main | 23 files changed, 2208 insertions(+), 69 deletions(-) (23 files) |
 | docs budget | current_state 60.2/96.0 KB · §7 16.3/32.0 KB · abstracts 10/10 · bodies 21 |
 
 _Generated 2026-08-02 by `pnpm state`._
