@@ -28,6 +28,7 @@ import {
   entryBodies,
   generatedBlock,
   MARKERS,
+  type EntryAbstract,
 } from '../scripts/docs-state.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -36,6 +37,12 @@ const abstracts = parseAbstracts(src);
 const bodies = entryBodies(ROOT);
 const bytes = (p: string) => (existsSync(join(ROOT, p)) ? readFileSync(join(ROOT, p)).length : 0);
 const kb = (n: number) => `${(n / 1024).toFixed(1)} KB`;
+
+/**
+ * A field's COMPLETE text, continuation lines included. ⚠ Never read `fields.REVIEW` for a marker
+ * check — it is only the first physical line, and prettier decides where that line ends.
+ */
+const reviewText = (a: EntryAbstract) => a.fieldsFull?.REVIEW ?? a.fields.REVIEW ?? '';
 
 describe('the handoff docs stay within budget', () => {
   it('current_state.md is under its byte budget', () => {
@@ -104,6 +111,99 @@ describe('every §7 abstract is well formed', () => {
     const ns = abstracts.map((a) => a.n);
     expect(new Set(ns).size, `duplicate entry numbers: ${ns.join(', ')}`).toBe(ns.length);
     expect([...ns], 'abstracts must be newest-first').toEqual([...ns].sort((x, y) => y - x));
+  });
+
+  /* ============================================================================================
+   * ⚠⚠ THE AUTHOR MUST NOT MERGE THEIR OWN ENTRY — the hole Entry 74 fell through.
+   * ========================================================================================= */
+
+  /**
+   * ⚠⚠ WHAT THIS CATCHES, AND WHY IT IS WORTH A TEST.
+   *
+   * The owner ruled (`handoff_system_design.md` §11, decision 5) that **the REVIEWING agent merges**
+   * an additive PR. The reviewer is by construction a LATER session — `REVIEW.md`'s own justification
+   * is that *"a fresh session has genuinely lost the author's working state, which is what makes a
+   * self-review worth doing at all."* So an entry is supposed to land as an OPEN PR and be merged by
+   * the session that follows it.
+   *
+   * **Entry 74 was merged by its own author, minutes after opening it, and nothing objected.** The
+   * prompt's step 3 says *"RISK: additive + approving + CI green → MERGE it"* without scoping "it" to
+   * the PR that existed at t=0, and step 10(b) ended at `gh pr create` without ever saying *stop*.
+   * Composed, those two read as permission. The ruling that forbids it lived only in the design doc —
+   * §1e's *"a copy is a claim nobody will re-read"*, one more time.
+   *
+   * THE CHECK: the `AWAITING REVIEW` marker means *"this entry is the currently-open PR."* Only the
+   * NEWEST abstract may carry it. The moment a later entry exists, the earlier one must have been
+   * reviewed — so a stale marker proves either that step 3 was skipped, or that the author merged
+   * their own work and never came back to record who reviewed it.
+   *
+   * ⚠ It cannot fire in the session that commits the violation — merging is a GitHub action, invisible
+   * to a test in this repo. It fires at the NEXT entry, which is the first moment the evidence exists
+   * locally. That is late, but it is not useless: it is exactly how the *"nine of eighteen rules
+   * dirty"* sweeps were caught, and it converts a silent lapse into a loud one.
+   */
+  it('⚠⚠ only the NEWEST entry may be AWAITING REVIEW — the author never merges their own', () => {
+    const newest = abstracts.reduce((a, b) => (a.n > b.n ? a : b));
+    for (const a of abstracts) {
+      if (a.n === newest.n) continue;
+      const review = reviewText(a);
+      // Entries written before the PR flow existed are exempt, and say so in those words.
+      if (/pre-dates the PR flow/i.test(review)) continue;
+      expect(
+        /AWAITING REVIEW/i.test(review),
+        `Entry ${a.n} still says AWAITING REVIEW, but entry ${newest.n} exists.\n` +
+          `Either step 3 was skipped, or entry ${a.n} was merged by its own author.\n` +
+          `The reviewing session must rewrite entry ${a.n}'s REVIEW: line to record who reviewed ` +
+          `it and what they found.\n` +
+          `  REVIEW: ${review}`,
+      ).toBe(false);
+    }
+  });
+
+  /**
+   * ⚠⚠ THE GUARD ABOVE READ ONLY THE FIELD'S FIRST PHYSICAL LINE — found by Entry 76's review.
+   *
+   * `parseAbstracts` stored `fields.REVIEW` as the remainder of the `- **REVIEW:**` line and dropped
+   * every continuation line. **These documents are prettier-formatted at `printWidth: 100`, so where
+   * the break falls is decided mechanically by the sentence's length — not by the author.** Phrase the
+   * marker after any lead-in and it wraps onto line 2, where the guard could not see it.
+   *
+   * Measured on the real file before the fix: Entry 74's `REVIEW:` rewritten as
+   *
+   *     - **REVIEW:** ⚠ This entry is the currently open PR and the next session merges it at step 3 —
+   *       **AWAITING REVIEW.**
+   *
+   * passed `prettier --check` **and** left `docs:check` fully GREEN — a stale marker on `main`, exactly
+   * the condition the guard exists to make impossible. It is `REVIEW.md` item 6 in its purest form: the
+   * test passed while its own title was false.
+   *
+   * ⚠ The fix is `fieldsFull`, which keeps the whole indented block. The check deliberately does NOT
+   * use the abstract's `raw` text: Entry 75's own `VERIFIED:` field discusses the marker in prose
+   * (*"restore Entry 74's stale `AWAITING REVIEW`"*), so a raw-text match would fire on the entry that
+   * introduced the guard the moment it stopped being newest.
+   */
+  it('⚠⚠ sees a marker that prettier wrapped onto a continuation line', () => {
+    const wrapped = [
+      '## §7 — Entry abstracts (newest 10)',
+      '',
+      '### 99 | 2026-01-02 | Zayd | the newer entry, legitimately open',
+      '',
+      '- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.**',
+      '',
+      '### 98 | 2026-01-01 | Zayd | the stale one, merged by its own author',
+      '',
+      '- **REVIEW:** ⚠ This entry is the currently open PR and the next session merges it at step 3 —',
+      '  **AWAITING REVIEW.**',
+      '',
+      '## §8 — Generated',
+    ].join('\n');
+
+    const stale = parseAbstracts(wrapped).find((a) => a.n === 98);
+    expect(stale, 'the synthetic §7 must parse').toBeDefined();
+    expect(reviewText(stale as EntryAbstract)).toMatch(/AWAITING REVIEW/i);
+
+    // ...and the field is still ONE entry's worth: the next abstract must not bleed into it.
+    expect(reviewText(stale as EntryAbstract)).not.toMatch(/§8|Generated/);
   });
 });
 

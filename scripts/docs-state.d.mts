@@ -27,7 +27,16 @@ export interface EntryAbstract {
   date: string;
   agent: string;
   headline: string;
+  /** Each field's FIRST PHYSICAL LINE only — what the schema checks live on. */
   fields: Record<string, string>;
+  /**
+   * Each field's COMPLETE text, prettier's continuation lines joined back on.
+   *
+   * ⚠⚠ Any check that SEARCHES a field for a marker must read this, never `fields`. These docs are
+   * prettier-formatted at `printWidth: 100`, so the line break is placed by sentence length rather
+   * than by the author — see `parseAbstracts` in `docs-state.mjs`.
+   */
+  fieldsFull: Record<string, string>;
   raw: string;
 }
 

@@ -46,12 +46,25 @@ export function section7(src) {
 /**
  * Parse §7's abstracts. Heading form:  `### <n> | <date> | <agent> | <headline>`
  * Fields are `- **NAME:**` bullets beneath it.
+ *
+ * Each abstract carries its fields TWICE, and the difference is load-bearing:
+ *   * `fields[NAME]`     — the first physical line only. What the schema checks (present, non-empty,
+ *                          `RISK` starts with a known word, `FULL` is a path) all live on line one.
+ *   * `fieldsFull[NAME]` — the whole bullet, indented continuation lines joined back on.
+ *
+ * ⚠⚠ ANY CHECK THAT SEARCHES A FIELD FOR A MARKER MUST USE `fieldsFull`. These documents are
+ * prettier-formatted at `printWidth: 100`, so **the line break is placed by sentence length, not by
+ * the author** — a marker written after any lead-in silently lands on line 2. The `AWAITING REVIEW`
+ * guard in `tests/docs-budget.test.ts` read `fields` and was measurably blind to exactly that: a
+ * stale marker wrapped onto a continuation line passed `prettier --check` and left `docs:check`
+ * green (found reviewing Entry 75, fixed in Entry 76).
  */
 export function parseAbstracts(src) {
   const sec = section7(src);
   const lines = sec.split('\n');
   const out = [];
   let cur = null;
+  let open = null; // the field whose bullet we are still inside
   for (const line of lines) {
     const h = line.match(/^### (\d+) \| (\d{4}-\d{2}-\d{2}) \| (\w+) \| (.+)$/);
     if (h) {
@@ -62,14 +75,26 @@ export function parseAbstracts(src) {
         agent: h[3],
         headline: h[4].trim(),
         fields: {},
+        fieldsFull: {},
         raw: '',
       };
+      open = null;
       continue;
     }
     if (!cur) continue;
     cur.raw += line + '\n';
     const f = line.match(/^- \*\*([A-Z]+):\*\*\s*(.*)$/);
-    if (f) cur.fields[f[1]] = f[2].trim();
+    if (f) {
+      cur.fields[f[1]] = f[2].trim();
+      cur.fieldsFull[f[1]] = f[2].trim();
+      open = f[1];
+      continue;
+    }
+    // A continuation is an INDENTED non-empty line — markdown's own rule for staying inside a list
+    // item, and what prettier emits when it wraps. A blank line or an unindented one ends the bullet,
+    // which is what stops the next abstract's prose from bleeding into this field.
+    if (open && /^\s+\S/.test(line)) cur.fieldsFull[open] += '\n' + line.trim();
+    else if (open) open = null;
   }
   if (cur) out.push(cur);
   return out;
