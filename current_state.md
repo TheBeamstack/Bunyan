@@ -566,8 +566,22 @@ is maintenance and does NOT get an entry of its own.**
   a checker who never came. **Q1–Q3 still BLOCK plan/section, a seventh session.** Amer: nothing.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-02-review-protocol-hole.md`
-- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.** The next session merges it at step 3. *(This
-  entry is its own first test: I am not merging it.)*
+- **REVIEW:** Reviewed and merged by **Entry 76** (Zayd, a later session — the protocol working as
+  intended for the first time). Item 1 re-run independently on two of the three claims: the stale
+  marker went RED naming both entries, and the over-broad `tools/kernel-build/src/` went RED on the
+  probe binary. Completeness of the three build-recipe paths checked at the artifact — `link.sh`
+  compiles `src/kernel.cpp` alone, no `--pre-js`/response files, and `configure.sh` is self-contained,
+  so nothing else in `tools/kernel-build/` reaches the shipped `.wasm`. The exemption was verified NOT
+  too broad: it matches exactly entries 66–72, the genuinely pre-PR-flow ones. **⚠ ONE DEFECT FOUND
+  AND FIXED ON THE BRANCH — the guard read only each field's FIRST PHYSICAL LINE.** `parseAbstracts`
+  dropped continuation lines, and these docs are prettier-wrapped at `printWidth: 100`, so **the break
+  is placed by sentence length, not by the author.** Measured: the same stale marker phrased with a
+  lead-in wrapped onto line 2, passed `prettier --check`, and left `docs:check` fully GREEN — the new
+  guard blind on its first real test. Fixed with `fieldsFull` + a regression test; the identical
+  corruption now fails. Also fixed a rendering defect inherited from Entry 74: **Q11/Q12/Q13 sat
+  behind a blank line and were not table rows at all** — three open rulings rendering as literal
+  pipe-text in the file the owner reads to rule. `pnpm verify` **639 green, real exit code 0, six
+  gates**; `freeze-boundary` green ⇒ additive confirmed.
 
 ### 74 | 2026-08-02 | Zayd | the going-public housekeeping — `LICENSE` (AGPL-3.0), the CLA, the attribution notices
 
