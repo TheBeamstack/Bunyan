@@ -1,6 +1,7 @@
 {
   "name": "@bunyan/kernel-mock",
   "version": "0.0.0",
+  "license": "AGPL-3.0-only",
   "private": true,
   "description": "Protocol-conformant fake kernel (no OCCT). Unblocks the P4 shell before the real kernel lands.",
   "type": "module",

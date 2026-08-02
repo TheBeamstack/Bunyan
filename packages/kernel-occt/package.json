@@ -1,6 +1,7 @@
 {
   "name": "@bunyan/kernel-occt",
   "version": "0.0.0",
+  "license": "AGPL-3.0-only",
   "private": true,
   "description": "The real geometry kernel: upstream OCCT 7.9.3 compiled to WebAssembly, behind the Bunyan protocol.",
   "type": "module",

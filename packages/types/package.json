@@ -1,6 +1,7 @@
 {
   "name": "@bunyan/types",
   "version": "0.0.0",
+  "license": "AGPL-3.0-only",
   "private": true,
   "description": "The shipped MVP BimObjectTypes (P5). The real, registered building elements — starting with the D52 baseline, join-aware Wall (step 0c/3). A registry the app and tests load; the document engine stays type-agnostic (D19).",
   "type": "module",

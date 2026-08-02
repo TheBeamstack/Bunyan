@@ -1,6 +1,7 @@
 {
   "name": "@bunyan/document",
   "version": "0.0.0",
+  "license": "AGPL-3.0-only",
   "private": true,
   "description": "The document model: the parametric truth layer above the kernel — scene graph, parts, styles, the seven registries, commands, undo, the agent surface and the .bnn codec.",
   "type": "module",

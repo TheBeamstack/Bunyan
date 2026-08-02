@@ -10,22 +10,10 @@
  */
 
 import { execFileSync } from 'node:child_process';
-
-/** Code whose output the goldens certify. Extend this as the kernel grows (P2: the OCCT package). */
-const GEOMETRY_PATHS = [
-  'packages/kernel-mock/src/box.ts',
-  'packages/kernel-occt/', // ✅ landed in P2 — the real kernel + the committed WASM artifact
-  'packages/types/', // BimObjectType `buildGeometry` implementations (P5)
-];
-
-// ⚠ KNOWN GAP, SURFACED 2026-08-01 (Entry 73) AND DELIBERATELY NOT CLOSED HERE — it is a policy
-// change, not a bug fix. `tools/kernel-build/` (i.e. `src/kernel.cpp`) is NOT listed above, yet it
-// is the source the committed `packages/kernel-occt/wasm/` artifact is built FROM. In practice a
-// C++ change always ships with the rebuilt artifact, which IS listed, so the gate fires anyway —
-// but that is a convention holding the line, not this file. Adding `tools/kernel-build/` would make
-// CI refuse more than it does today, so it wants the reviewer's or the owner's assent first.
-
-const GOLDEN_PATHS = ['tests/goldens/'];
+// ⚠ The path lists and the matcher live in `reseed-paths.mjs` so a TEST can exercise them. They used
+// to be inline constants here, which is why nothing caught that a directory prefix matches a
+// package.json — see that file's header for the licence field this gate refused.
+import { isGeometryFile, isGoldenFile } from './reseed-paths.mjs';
 
 const base = process.env['BASE_REF'];
 const head = process.env['HEAD_REF'] ?? 'HEAD';
@@ -45,8 +33,8 @@ try {
   process.exit(1);
 }
 
-const touchedGeometry = changed.filter((file) => GEOMETRY_PATHS.some((p) => file.startsWith(p)));
-const touchedGoldens = changed.filter((file) => GOLDEN_PATHS.some((p) => file.startsWith(p)));
+const touchedGeometry = changed.filter(isGeometryFile);
+const touchedGoldens = changed.filter(isGoldenFile);
 
 if (touchedGeometry.length > 0 && touchedGoldens.length === 0) {
   console.error('re-seed gate FAILED — geometry changed but no goldens were re-seeded.\n');
