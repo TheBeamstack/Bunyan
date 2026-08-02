@@ -1,6 +1,7 @@
 {
   "name": "@bunyan/kernel-client",
   "version": "0.0.0",
+  "license": "AGPL-3.0-only",
   "private": true,
   "description": "Main-thread kernel dispatcher: correlation ids, transferables, edit coalescing, cancellation.",
   "type": "module",

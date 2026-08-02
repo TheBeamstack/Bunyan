@@ -1,6 +1,7 @@
 {
   "name": "@bunyan/sketch-solver",
   "version": "0.0.0",
+  "license": "AGPL-3.0-only",
   "private": true,
   "description": "The 2D sketch constraint solver: planegcs (FreeCAD's GCS in WASM) behind the @bunyan/document SketchSolver seam (D50 §0d).",
   "type": "module",

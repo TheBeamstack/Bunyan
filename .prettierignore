@@ -20,6 +20,29 @@ docs/decisions.md
 docs/history.md
 handoff/
 
+# ⚠⚠ THE LEGAL FILES — REFORMATTING THEM IS NOT A STYLE CHANGE, IT IS AN ALTERATION. `LICENSE` and
+# `licenses/*` are VERBATIM third-party texts, and the AGPL's own header says "changing it is not
+# allowed."
+#
+# ⚠ MEASURED, BECAUSE THE HONEST ANSWER IS THAT NONE OF THESE FOUR LINES CHANGES ANYTHING TODAY, and a
+# comment claiming otherwise would be exactly the §1c-7 defect this repo keeps catching. What was
+# actually run (`prettier --ignore-path /dev/null --check <file>`):
+#
+#   LICENSE · NOTICE · licenses/*.txt   no parser can be inferred -> prettier ERRORS if named
+#                                       explicitly, and SKIPS them under `--check .`, which is what
+#                                       `format:check` runs. So they are already safe, by luck.
+#   CLA.md                              markdown, so prettier DOES own it — but the file as committed
+#                                       already conforms, so the line is a no-op right now.
+#
+# They are here for the two futures where the luck runs out: a rename to `LICENSE.md`, and the next
+# edit to `CLA.md` that leaves it non-conforming and gets silently reflowed. In a legal document a
+# line break is not decoration, and a reflowed clause is a changed clause in the only sense that
+# matters. Defensive, deliberately — not load-bearing yet.
+LICENSE
+NOTICE
+licenses/
+CLA.md
+
 # generated / vendored
 pnpm-lock.yaml
 tests/goldens/

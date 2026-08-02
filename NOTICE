@@ -1,0 +1,91 @@
+================================================================================
+Bunyan — third-party notices
+================================================================================
+
+Bunyan is Copyright (c) 2026 the Bunyan authors, and is distributed under the
+GNU Affero General Public License, version 3. The full text is in `LICENSE`.
+
+This file is the attribution notice for third-party software that Bunyan uses
+or redistributes. It is not a summary: where a licence obliges us to state
+something, it is stated here in full, and the licence texts themselves are in
+`licenses/`.
+
+--------------------------------------------------------------------------------
+1. Open CASCADE Technology (OCCT)
+--------------------------------------------------------------------------------
+
+  Version:    7.9.3 (upstream tag `V7_9_3`, unpatched)
+  Upstream:   https://github.com/Open-Cascade-SAS/OCCT
+  Copyright:  Copyright (c) OPEN CASCADE SAS and contributors
+  Licence:    GNU Lesser General Public License, version 2.1,
+              WITH the Open CASCADE exception (version 1.0) to GNU LGPL 2.1
+  Texts:      `licenses/OCCT-LICENSE_LGPL_21.txt`
+              `licenses/OCCT_LGPL_EXCEPTION.txt`
+
+  ⚠ THE PROMINENT NOTICE, WHICH IS AN OBLIGATION AND NOT A COURTESY.
+  The Open CASCADE exception grants relief for object code incorporating
+  material from OCCT header files, and it grants that relief on one condition:
+  that we "give prominent notice in supporting documentation to this code that
+  it makes use of or is based on facilities provided by the Open CASCADE
+  Technology software." Accordingly, and prominently:
+
+      **Bunyan's geometry kernel makes use of, and is based on, facilities
+      provided by the Open CASCADE Technology software.**
+
+  HOW IT IS INCORPORATED, stated precisely because the form of the link is what
+  decides the obligation. Bunyan compiles its own C++ ops (`tools/kernel-build/
+  src/kernel.cpp`) and STATICALLY LINKS them against unmodified upstream OCCT
+  static libraries, producing a single WebAssembly module. That module is
+  committed to this repository at `packages/kernel-occt/wasm/bunyan-kernel.wasm`
+  and is therefore redistributed with Bunyan in object-code form.
+
+  ⚠ HOW THE LGPL 2.1 RELINKING REQUIREMENT IS DISCHARGED. A static link engages
+  LGPL 2.1 section 6, which requires that recipients be able to modify the
+  Library and relink. Bunyan discharges this by publishing complete
+  corresponding source under the AGPL: the OCCT source is upstream and
+  unmodified at the tag named above, our own kernel source is in this
+  repository, and the exact, reproducible build recipe that combines them —
+  including compiler flags, the OCCT configuration, and the pinned toolchain
+  version — is in `tools/kernel-build/`. A recipient can rebuild the module
+  against a modified OCCT using nothing but this repository and that recipe.
+  The build id `occt-7.9.3-emcc-6.0.2` pins the exact combination.
+
+  OCCT is NOT modified by this project. Bug reports about OCCT itself belong
+  upstream, not here.
+
+--------------------------------------------------------------------------------
+2. planegcs (FreeCAD's geometric constraint solver, compiled to WebAssembly)
+--------------------------------------------------------------------------------
+
+  Package:    @salusoft89/planegcs, version 1.2.0
+  Upstream:   https://github.com/Salusoft89/planegcs
+  Derives:    FreeCAD's Sketcher GCS — https://github.com/FreeCAD/FreeCAD
+  Copyright:  Copyright (c) the FreeCAD authors and the planegcs authors
+  Licence:    GNU Lesser General Public License, version 2.0 or later
+              (the package ships the LGPL 2.1 text)
+  Text:       `licenses/planegcs-LICENSE.txt`
+
+  HOW IT IS INCORPORATED. planegcs is consumed as an ordinary, unmodified npm
+  dependency of `@bunyan/sketch-solver`, loaded at runtime as its own WebAssembly
+  module. It is NOT statically linked into Bunyan's kernel module, and this
+  repository redistributes no planegcs binary — npm installs it from upstream.
+  planegcs is not modified by this project.
+
+  Bunyan reaches it only through the solver-neutral `SketchSolver` seam, so the
+  dependency is replaceable without touching the contract.
+
+--------------------------------------------------------------------------------
+3. Everything else
+--------------------------------------------------------------------------------
+
+  The remaining dependencies are build- and test-time only (TypeScript, Vite,
+  Vitest, ESLint, Prettier and their transitive dependencies) under permissive
+  licences, and are not redistributed as part of Bunyan. Each carries its own
+  licence in its own package; `pnpm licenses list` enumerates them against the
+  lockfile, which is the authoritative list.
+
+================================================================================
+If you believe an attribution here is incomplete or wrong, please open an issue.
+An attribution defect is a real defect, and it is fixed the same way as any
+other: with a report specific enough to act on.
+================================================================================

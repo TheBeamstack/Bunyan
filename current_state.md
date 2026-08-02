@@ -336,7 +336,11 @@ AND geometry from `scene.json` alone · **D19 is a MACHINE check** · the model 
   wire it for v1.0.0** (`open_rulings.md` Q6).
 - **No 2D views** — the plan/section unit is designed and **blocked on rulings Q1–Q3** (`open_rulings.md`).
 - **No IFC import** (P6; the op is reserved).
-- **No `LICENSE`/CLA/OCCT attribution yet.** None blocks work; all block going public. ⚠ **Its own commit.**
+- ✅ **`LICENSE`/CLA/attribution — DONE (Entry 74), and going public is no longer blocked BY THE REPO.**
+  AGPL-3.0 verbatim · `NOTICE` (OCCT's exception is CONDITIONAL on a prominent notice, and we ship its
+  binary; planegcs is an npm dep we do not redistribute) · `licenses/` · `CLA.md` · all ten manifests.
+  ⚠ **Two owner items remain inside `CLA.md` — Q11 `<LEGAL ENTITY>`, Q12 a lawyer's read.** They block
+  the first EXTERNAL PR, not publication.
 - No service worker/PWA/Cloudflare deploy; no WebGPU (WebGL2 ships); no File System Access adapter.
 - No sweep-along-path, no loft (out of scope).
 
@@ -399,8 +403,10 @@ ruling"* — with a machine holding the line afterwards.
    FALSE, and the top one is a one-plain-wall fixture. It must carry a curtain wall, an opening and a
    design option. ⚠ The `views` promotion is Entry 68's verbatim **including its correction — no
    `emptyScene()` entry.**
-2. **Housekeeping that blocks going public** — `LICENSE` AGPL-3.0, the CLA, the OCCT + planegcs
-   attribution notices. ⚠ **Its own commit.**
+2. ✅ **DONE (Entry 74) — the going-public housekeeping.** `LICENSE` AGPL-3.0, `CLA.md`, `NOTICE` +
+   `licenses/`, and the `license` field in all ten manifests. What is left is not repo work: **Q11
+   (`<LEGAL ENTITY>`) and Q12 (a lawyer's read of the CLA)**, both owner-only, both blocking the first
+   external PR rather than publication. An in-app "open source licences" screen is unbuilt — Amer's.
 
 ⚠ **TWO ITEMS THAT STOOD HERE ARE GONE, BOTH KILLED BY READING THEM AGAINST THE ARTIFACT (Entry 73).
 DO NOT RE-ADD EITHER.**
@@ -530,6 +536,36 @@ first, then the body. **Open a full body only when an abstract line touches your
 exceeds budget. When it does: move the oldest abstracts' summaries into `docs/history.md`, **after
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
+
+### 74 | 2026-08-02 | Zayd | the going-public housekeeping — `LICENSE` (AGPL-3.0), the CLA, the attribution notices
+
+- **CHANGED:** `LICENSE` (AGPL-3.0, verbatim, sha256 `0d96a4ff…9abcb0`) · `NOTICE` · `licenses/` (the
+  OCCT LGPL-2.1 text + the Open CASCADE exception + planegcs's, all copied from the artifacts we
+  actually build and install, never from a web page) · `CLA.md` · `.prettierignore` · and
+  **`"license": "AGPL-3.0-only"` in all TEN workspace manifests, none of which declared one.**
+  **No source package, no test, no contract byte.** Its own commit, its own PR (Entries 64+65's lesson).
+- **VERIFIED:** 630 green · all six gates 0 (exit code read) · `freeze-boundary` green. ⚠ No
+  revert-verification, correctly: §1b governs *fixes*, and there is no behaviour here to revert.
+- **FOUND:** ⚠⚠ **THE TWO LICENCE OBLIGATIONS ARE NOT SYMMETRIC, and writing them as one job would have
+  been wrong in both directions.** OCCT is **statically linked** and its binary **is committed**
+  (`bunyan-kernel.wasm`) ⇒ the Open CASCADE exception's relief is *conditional on a prominent notice*,
+  so `NOTICE` states that sentence in the exception's own terms rather than listing OCCT in a table,
+  and it writes down how D15's *"public source discharges relink"* is actually discharged (upstream
+  unmodified at `V7_9_3`, our kernel source in-repo, the recipe in `tools/kernel-build/`, build id
+  `occt-7.9.3-emcc-6.0.2`). planegcs is the opposite: an unmodified npm dependency whose binary **we do
+  not redistribute** — claiming we do would have been a false statement about our own distribution.
+  ⚠ **AND I REPEATED ENTRY 73'S MISTAKE ONE ENTRY LATER:** I wrote in `.prettierignore` that prettier
+  "would reflow" `CLA.md`, then measured with `--ignore-path /dev/null` and found **all four new lines
+  are no-ops today** — `.txt`/extensionless files get no parser, and `CLA.md` already conforms. The
+  comment now carries the command and says they are defensive, not load-bearing. Cost of checking: 90 s.
+- **OWES:** Owner: **Q11 + Q12, both inside `CLA.md` and both marked in the file** — `<LEGAL ENTITY>` is
+  a placeholder only you can fill, and no lawyer has read it (it is the Apache ICLA shape, sound as a
+  draft, and §2 grants what D15's dual-licensing model needs). Neither blocks anything until the first
+  external PR, which is exactly when both must be closed. **Q1–Q3 still BLOCK plan/section, now a sixth
+  session (69→71→72→73→74).** Amer: an "open source licences" screen is unbuilt and is his layer.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-02-going-public-housekeeping.md`
+- **REVIEW:** ⚠ **UNREVIEWED — this is the open PR.** Next session reviews it at step 3.
 
 ### 73 | 2026-08-01 | Zayd | the cached-import attribution — the `shapeSignature` memory view is CANCELLED
 
@@ -706,24 +742,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/zayd/2026-07-28-schedules-body-d78.md`
 - **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
 
-### 64 | 2026-07-28 | Zayd | the backward sweep COMPLETES — all 18 rules swept, nine dirty (D76, D77)
-
-- **CHANGED:** `journalCoversRevision` refused at three sites (`changesSince`, the Clean Delta exporter,
-  and `saveBnn`, which now refuses to WRITE a file whose journal contradicts its own manifest);
-  `childStyleUsers` so the style/section invalidator reaches generated children. No frozen byte.
-- **VERIFIED:** 503 green · revert-verified test-first (rule 14: **5 of 5** measured failing).
-- **FOUND:** **Rule 14 was dirty in its PRECONDITION, not its mechanism** — nothing checked that the log a
-  consumer holds reaches the baseline it is read against, so `since()` returned `[]`, indistinguishable
-  from *"nothing has happened."* **Rule 18 was dirty against the INVALIDATOR while clean against every
-  consumer** — a style edit left children **3× stale** under `basis:'exact'` until an unrelated
-  `rebuildAll` silently cured it. ⚠ **Rule 8 is DIRTY AND SURFACED, NOT FIXED:** the D61 family grammar
-  has no slot for `exposedRefs`, so every data-authored family can only report the whole-solid area.
-- **OWES:** Owner: rule 8's grammar shape, and rule 17's free-`point` Dimension anchor — both in
-  `open_rulings.md`.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-07-28-backward-sweep-complete-d76-d77.md`
-- **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
-
 ---
 
 ## §8 — Generated
@@ -732,17 +750,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **73 (Zayd, 2026-08-01)** |
-| branch · tip · tree | `zayd/2026-08-01-shapesig-memview` · `24e3678` · dirty |
-| open PRs | #1 zayd/2026-08-01-shapesig-memview |
+| **newest entry** | **74 (Zayd, 2026-08-02)** |
+| branch · tip · tree | `zayd/2026-08-02-going-public-housekeeping` · `47d3035` · dirty |
+| open PRs | none — main is the tip of the work |
 | suite | **630 green** · 78 files · 206 suites |
 | protocol | 21 live ops · 3 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 37 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 10 files changed, 731 insertions(+), 100 deletions(-) (10 files) |
-| docs budget | current_state 58.3/96.0 KB · §7 15.0/32.0 KB · abstracts 10/10 · bodies 20 |
+| diff vs origin/main | 15 files changed, 139 insertions(+), 52 deletions(-) (15 files) |
+| docs budget | current_state 60.2/96.0 KB · §7 16.3/32.0 KB · abstracts 10/10 · bodies 21 |
 
-_Generated 2026-08-01 by `pnpm state`._
+_Generated 2026-08-02 by `pnpm state`._
 
 <!-- END GENERATED -->
