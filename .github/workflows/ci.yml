@@ -14,7 +14,20 @@ jobs:
     name: typecheck · lint · geometry harness
     runs-on: ubuntu-latest
     steps:
+      # ⚠⚠ `fetch-depth: 0` IS LOAD-BEARING, AND ITS ABSENCE WAS INVISIBLE FOR 73 ENTRIES.
+      # `actions/checkout` defaults to a SHALLOW clone (depth 1), which contains the merge commit and
+      # nothing else — so the Re-seed gate's `git diff <base>...<head>` below dies with
+      # `fatal: Invalid symmetric difference expression`, and the whole job fails RED for a reason
+      # that has nothing to do with the diff being gated.
+      #
+      # It never surfaced because this repository had NO pull request until 2026-08-01 (PR #1):
+      # on a `push` the gate reads no `BASE_REF` and prints *"not a pull request — skipping"*, which
+      # is the only path it had ever taken. **The gate whose comment says it exists so the check is
+      # "impossible to quietly skip" had itself never executed once.** (§1c-7: a step believed to
+      # work because nothing ever ran it — the disease's fifth recorded occurrence.)
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
         with:

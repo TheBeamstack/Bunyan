@@ -41,6 +41,10 @@ import { RESERVED_OPS, decodeSubShapeRef } from '@bunyan/protocol';
 import type { ExportBrepResult } from '@bunyan/protocol';
 import { CORE_COMMANDS, DocumentContext, createRegistries } from '@bunyan/document';
 import { openingType, wallType } from '@bunyan/types';
+// ⚠ The raw module, on purpose and only for the ATTRIBUTION measurement below: the cost being priced
+// is the embind boundary itself, which no op can expose (the same reason this suite already reaches
+// into `cache.ts` directly). Everything else in this file goes through the client.
+import initBunyanKernel from '../packages/kernel-occt/wasm/bunyan-kernel.js';
 
 const text = (bytes: Uint8Array): string => new TextDecoder().decode(bytes);
 const bytes = (s: string): Uint8Array => new TextEncoder().encode(s);
@@ -502,5 +506,133 @@ describe('D29 — the geometry cache: a cached solid keeps its identities, or it
         `cache ${String(cache.brep.length)} B for ${String(cache.refs.length)} identities\n`,
     );
     expect(importMs).toBeGreaterThan(0);
+  }, 300_000);
+
+  /* ============================================================================================
+   * 8 — THE ATTRIBUTION. Where a cached import actually spends its time.
+   * ========================================================================================= */
+
+  /**
+   * ⚠⚠ THIS TEST EXISTS TO STOP ONE WRONG NUMBER BEING ACTED ON AGAIN.
+   *
+   * Entry 71 closed with *"the rest is **170 embind boundary crossings per solid** to drain the
+   * signature vector … the obvious next lever — a memory view, as `tessellate` already does"*, and that
+   * sentence became a planned unit of work in `current_state.md` §5 and both prompt files. **It was
+   * never measured.** It is a SUBTRACTION RESIDUE: a native breakdown was scaled ×3 for WASM, and
+   * whatever the scaled parts failed to explain was attributed to the crossings.
+   *
+   * Measured here instead, on the real 34-sub-shape fixture: **a crossing costs ~0.1–0.5 µs**, so all
+   * **345** of them cost **~0.03–0.15 ms** — under 1% of a ~12 ms import, and below the run-to-run noise
+   * of the import itself. ⚠ **345, not 170:** the count is now OBSERVED below rather than assumed, and
+   * both Entry 71's figure and this test's own first draft undercounted it ~2× by forgetting that
+   * `drainDoubles` re-calls `size()` in the loop condition. It cuts the per-crossing cost in half and
+   * leaves the total — the number the decision rests on — untouched.
+   * The residue is not the boundary; it is `shapeSignature`'s own C++ work, which is
+   * ~34 `GProp` integrations and is **the price of verification** — exactly what §1a already says
+   * (*"re-measuring every sub-shape to prove the tokens belong to the shape is the price of shipping
+   * identity in a file"*). A memory view would remove ~0.1 ms and add a global buffer with a
+   * *"valid only until the next call"* lifetime to the one file where a wrong answer produces a
+   * plausible wrong building. `tessellate`'s payoff is ~1.8 million crossings **per frame**; this one is
+   * 345 **per solid, once**. Four orders of magnitude apart, which is why the same fix does not follow.
+   *
+   * ⚠ THE METHOD, because the first attempt at it was wrong too: subtracting two whole-call timings puts
+   * a ~0.1 ms signal inside a ~10 ms measurement and returns noise (it returned a NEGATIVE drain cost).
+   * So the compute is held OUT — one vector is built once and drained K times before being deleted.
+   *
+   * ⚠ WHAT IS ASSERTED IS A RATIO, NOT A DURATION. `THE PRIZE` above declines to gate on absolute time
+   * because a shared box makes that untrustworthy, and that reasoning is not repealed here. A ratio
+   * survives a loaded box, and the bounds below sit 10–40× off the measured values: they are tripwires
+   * for *"the crossings became the cost after all"*, not thresholds.
+   */
+  it('⚠⚠ THE ATTRIBUTION: the embind crossings are NOT what a cached import costs — measured', async () => {
+    const { cache } = await exported();
+    const brepText = text(cache.brep);
+
+    // A second, raw instance: the phases have to be timed individually, and the client deliberately
+    // exposes no seam that would let that happen through an op.
+    const wasm = await initBunyanKernel();
+    const bench = (fn: () => void, runs: number): number => {
+      const t = performance.now();
+      for (let i = 0; i < runs; i++) fn();
+      return (performance.now() - t) / runs;
+    };
+
+    const handle = wasm.importBrep(brepText);
+    expect(handle, 'the fixture must import into the raw module').toBeGreaterThan(0);
+    const probe = wasm.shapeSignature(handle);
+    const numbers = probe.size();
+    probe.delete();
+    const subShapes = (numbers - 2) / 5;
+    expect(subShapes, 'the fixture is the measured 34-sub-shape wall cut by a door').toBe(34);
+
+    // (a) THE COMPUTE — `shapeSignature` and a single `delete`, nothing drained.
+    const compute = (): void => {
+      wasm.shapeSignature(handle).delete();
+    };
+    bench(compute, 20); // warm: JIT + embind binding resolution
+    const computeMs = bench(compute, 200);
+
+    // (b) THE CROSSINGS, with the compute held out — build ONE vector, drain it many times.
+    const vector = wasm.shapeSignature(handle);
+    const drainOnce = (): number => {
+      let sum = 0;
+      for (let i = 0; i < vector.size(); i++) sum += vector.get(i) ?? 0;
+      return sum;
+    };
+    bench(drainOnce, 20);
+    const drainMs = bench(drainOnce, 200);
+
+    // ⚠⚠ COUNT the crossings; do not reason about them. Entry 71 said "170 per solid" and the first
+    // draft of this test said `numbers + 1` — both counted only the reads and forgot that
+    // `drainDoubles` (kernel.ts:277) re-calls `size()` in the LOOP CONDITION, i.e. once per
+    // iteration plus once to terminate. The loop below is that production loop verbatim, run against
+    // a counting wrapper, so the number here is observed rather than derived.
+    const crossings = ((): number => {
+      let n = 0;
+      const spy = {
+        size: (): number => {
+          n++;
+          return vector.size();
+        },
+        get: (i: number): number | undefined => {
+          n++;
+          return vector.get(i);
+        },
+      };
+      const out: number[] = [];
+      for (let i = 0; i < spy.size(); i++) out.push(spy.get(i) ?? 0);
+      expect(out.length, 'the replicated drain must read the whole signature').toBe(numbers);
+      return n;
+    })();
+    vector.delete();
+    wasm.releaseShape(handle);
+
+    expect(
+      crossings,
+      'a drain crosses the boundary 2N+1 times — N `get`s, and one `size` per iteration plus the ' +
+        'terminating one. If this ever becomes N+1, `drainDoubles` has been hoisted and the ' +
+        'per-crossing cost below doubles.',
+    ).toBe(2 * numbers + 1);
+    const perCrossingUs = (drainMs / crossings) * 1000;
+    const drainShare = drainMs / (computeMs + drainMs);
+
+    console.log(
+      `\n  D29 ATTRIBUTION — ${String(subShapes)} sub-shapes, ${String(numbers)}-number signature\n` +
+        `    shapeSignature C++ compute  ${computeMs.toFixed(3)} ms\n` +
+        `    all ${String(crossings)} embind crossings    ${drainMs.toFixed(3)} ms  ` +
+        `(${perCrossingUs.toFixed(2)} us each, ${(drainShare * 100).toFixed(1)}% of the call)\n` +
+        `    ⇒ a memory view could remove ${drainMs.toFixed(3)} ms/solid, and no more.\n`,
+    );
+
+    // The finding, as a tripwire. Measured 0.19–0.91 µs and 0.6–2.7%.
+    expect(
+      perCrossingUs,
+      'an embind crossing must stay microseconds, not tens of them',
+    ).toBeLessThan(10);
+    expect(
+      drainShare,
+      'draining the signature must stay a minority of the signature call — if this ever fails, the ' +
+        'memory view IS worth building and this comment is out of date',
+    ).toBeLessThan(0.25);
   }, 300_000);
 });
