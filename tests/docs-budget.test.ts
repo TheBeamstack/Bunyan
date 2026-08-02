@@ -105,6 +105,53 @@ describe('every §7 abstract is well formed', () => {
     expect(new Set(ns).size, `duplicate entry numbers: ${ns.join(', ')}`).toBe(ns.length);
     expect([...ns], 'abstracts must be newest-first').toEqual([...ns].sort((x, y) => y - x));
   });
+
+  /* ============================================================================================
+   * ⚠⚠ THE AUTHOR MUST NOT MERGE THEIR OWN ENTRY — the hole Entry 74 fell through.
+   * ========================================================================================= */
+
+  /**
+   * ⚠⚠ WHAT THIS CATCHES, AND WHY IT IS WORTH A TEST.
+   *
+   * The owner ruled (`handoff_system_design.md` §11, decision 5) that **the REVIEWING agent merges**
+   * an additive PR. The reviewer is by construction a LATER session — `REVIEW.md`'s own justification
+   * is that *"a fresh session has genuinely lost the author's working state, which is what makes a
+   * self-review worth doing at all."* So an entry is supposed to land as an OPEN PR and be merged by
+   * the session that follows it.
+   *
+   * **Entry 74 was merged by its own author, minutes after opening it, and nothing objected.** The
+   * prompt's step 3 says *"RISK: additive + approving + CI green → MERGE it"* without scoping "it" to
+   * the PR that existed at t=0, and step 10(b) ended at `gh pr create` without ever saying *stop*.
+   * Composed, those two read as permission. The ruling that forbids it lived only in the design doc —
+   * §1e's *"a copy is a claim nobody will re-read"*, one more time.
+   *
+   * THE CHECK: the `AWAITING REVIEW` marker means *"this entry is the currently-open PR."* Only the
+   * NEWEST abstract may carry it. The moment a later entry exists, the earlier one must have been
+   * reviewed — so a stale marker proves either that step 3 was skipped, or that the author merged
+   * their own work and never came back to record who reviewed it.
+   *
+   * ⚠ It cannot fire in the session that commits the violation — merging is a GitHub action, invisible
+   * to a test in this repo. It fires at the NEXT entry, which is the first moment the evidence exists
+   * locally. That is late, but it is not useless: it is exactly how the *"nine of eighteen rules
+   * dirty"* sweeps were caught, and it converts a silent lapse into a loud one.
+   */
+  it('⚠⚠ only the NEWEST entry may be AWAITING REVIEW — the author never merges their own', () => {
+    const newest = abstracts.reduce((a, b) => (a.n > b.n ? a : b));
+    for (const a of abstracts) {
+      if (a.n === newest.n) continue;
+      const review = a.fields.REVIEW ?? '';
+      // Entries written before the PR flow existed are exempt, and say so in those words.
+      if (/pre-dates the PR flow/i.test(review)) continue;
+      expect(
+        /AWAITING REVIEW/i.test(review),
+        `Entry ${a.n} still says AWAITING REVIEW, but entry ${newest.n} exists.\n` +
+          `Either step 3 was skipped, or entry ${a.n} was merged by its own author.\n` +
+          `The reviewing session must rewrite entry ${a.n}'s REVIEW: line to record who reviewed ` +
+          `it and what they found.\n` +
+          `  REVIEW: ${review}`,
+      ).toBe(false);
+    }
+  });
 });
 
 describe('the generated blocks are present and current', () => {

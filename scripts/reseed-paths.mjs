@@ -37,15 +37,27 @@ export const GEOMETRY_PATHS = [
   'packages/kernel-occt/src/', // the real kernel's TypeScript half
   'packages/kernel-occt/wasm/', // the committed WASM artifact + its glue
   'packages/types/src/', // BimObjectType `buildGeometry` implementations (P5)
-];
 
-// ⚠ KNOWN GAP, SURFACED 2026-08-01 (Entry 73), ASSENTED TO BY ENTRY 74'S REVIEW, STILL NOT CLOSED
-// HERE — and deliberately not bundled into the fix above, because the two changes point in opposite
-// directions. Narrowing a false positive (what this file does) makes CI refuse LESS and cannot break
-// anyone. Adding `tools/kernel-build/` — the C++ source the committed `wasm/` artifact is built FROM
-// — makes CI refuse MORE, so it needs its own diff and its own revert-verification. It is the next
-// session's queued task. In the meantime a convention holds the line: a C++ change always ships with
-// the rebuilt artifact, which IS listed.
+  // ⚠⚠ THE BUILD RECIPE — CLOSED IN ENTRY 75. Surfaced by Entry 73, assented to by Entry 74's
+  // review of it, and deliberately held back from Entry 74's own narrowing fix because the two
+  // point in OPPOSITE directions: narrowing makes CI refuse less and can break nobody, whereas
+  // this makes CI refuse MORE and can newly fail a PR that used to pass. It therefore got its own
+  // diff and its own revert-verification, which is the whole reason it waited.
+  //
+  // These three files are the SOURCE the committed `packages/kernel-occt/wasm/` artifact is built
+  // FROM, so a change to any of them changes the geometry the goldens certify. Until now only a
+  // CONVENTION covered them — "a C++ change always ships with the rebuilt artifact, which IS
+  // listed" — and this repo's own sweep ledger rates unenforced conventions 1-in-2 dirty.
+  //
+  // ⚠ FILE-EXACT, NOT `tools/kernel-build/` AND NOT `tools/kernel-build/src/`, because Entry 74's
+  // lesson applies here first: a directory would catch `README.md`, `verify.mjs`, `probe.sh` — and
+  // `src/probe.cpp`, which builds a SEPARATE measurement binary (`probe.sh`) and is never linked
+  // into the shipped kernel (`link.sh` names `src/kernel.cpp` alone, measured). Gating a diagnostic
+  // behind "re-seed the goldens" is exactly the false positive this list just stopped having.
+  'tools/kernel-build/src/kernel.cpp', // the kernel's C++ ops — what link.sh actually compiles
+  'tools/kernel-build/configure.sh', // OCCT's build configuration
+  'tools/kernel-build/link.sh', // compiler/linker flags for the shipped module
+];
 
 export const GOLDEN_PATHS = ['tests/goldens/'];
 

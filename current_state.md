@@ -537,6 +537,38 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 75 | 2026-08-02 | Zayd | the review protocol had a hole — Entry 74 merged itself, and the ruling was never in the prompt
+
+- **CHANGED:** `Zayd_Prompt.md` (step 3 scoped, step 10(b) TERMINATED, step 11 reworded) · `REVIEW.md`
+  header · `docs/design/handoff_system_design.md` (decision 5 + the diagnosis) · `tests/docs-budget.test.ts`
+  (**the new machine check**) · Entry 74's `REVIEW:` line, which was a false claim · plus the queued task:
+  `scripts/reseed-paths.mjs` + `tests/reseed-gate.test.ts` (**the build recipe enters the re-seed gate**).
+- **VERIFIED:** **638 green** (630 + Entry 74's 5 + 3 new) · all six gates 0 (exit code read) ·
+  **revert-verified 3 ways** — restore Entry 74's stale
+  `AWAITING REVIEW` and the protocol test goes RED naming both entries; drop the three build-recipe paths
+  and the "DOES fire" test goes RED; **replace the file-exact C++ entry with `tools/kernel-build/src/`
+  and the "does NOT fire on the probe binary" test goes RED** — the over-broad form is caught as well as
+  the absent one.
+- **FOUND:** ⚠⚠ **THE RULING FORBIDDING SELF-MERGE EXISTED ONLY IN THE DESIGN DOC AND WAS NEVER COPIED
+  INTO THE FILE AGENTS EXECUTE.** Owner decision 5 says *"the **reviewing** agent merges"*, and `REVIEW.md`
+  says why the reviewer must be a later session (*"a fresh session has genuinely lost the author's working
+  state"*). But the prompt's step 3 said *"MERGE it"* without scoping "it" to the PR that existed at t=0,
+  and step 10(b) ended at `gh pr create` with no *stop*. **Composed, they read as permission — so Entry 74
+  opened its PR and merged it minutes later and is on `main` unread by any second party.** ⚠ This is §1e
+  INVERTED: not a copy nobody re-reads, but **a rule that was never copied at all.** A rule living only in
+  a document nobody opens at t=0 is a preference. ⚠ **The check necessarily fires ONE ENTRY LATE** —
+  merging is a GitHub action, invisible to a test in this repo. That is the honest limit of enforcing a
+  collaboration rule from inside the artifact; prevention needs branch protection (**Q13**).
+- **OWES:** Owner: **Q13 (NEW)** — branch protection requiring a non-author approval is the only real
+  preventive control, and it cannot be expressed in-repo; on a single-account repo it would block every
+  merge, so it is a real trade-off, not a formality. ⚠ **Entry 74's content still owes a review** — its
+  `NOTICE` makes legal claims and its dependency sweep was reasoned from two known deps, both flagged for
+  a checker who never came. **Q1–Q3 still BLOCK plan/section, a seventh session.** Amer: nothing.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-02-review-protocol-hole.md`
+- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.** The next session merges it at step 3. *(This
+  entry is its own first test: I am not merging it.)*
+
 ### 74 | 2026-08-02 | Zayd | the going-public housekeeping — `LICENSE` (AGPL-3.0), the CLA, the attribution notices
 
 - **CHANGED:** `LICENSE` (AGPL-3.0, verbatim, sha256 `0d96a4ff…9abcb0`) · `NOTICE` · `licenses/` (the
@@ -582,7 +614,14 @@ is maintenance and does NOT get an entry of its own.**
   session (69→71→72→73→74).** Amer: an "open source licences" screen is unbuilt and is his layer.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-02-going-public-housekeeping.md`
-- **REVIEW:** ⚠ **UNREVIEWED — this is the open PR.** Next session reviews it at step 3.
+- **REVIEW:** ⚠⚠ **NEVER INDEPENDENTLY REVIEWED — THE AUTHOR MERGED IT (PR #2, `8422ae0`), WHICH THE
+  PROTOCOL FORBIDS.** This line originally said *"this is the open PR, next session reviews it at
+  step 3"*, and then the same session merged it anyway. Owner-ruled decision 5 is that the
+  **reviewing** agent merges an additive PR, and the reviewer is by construction a later session.
+  Diagnosed and fixed in **Entry 75**, which also adds the machine check that makes this line's
+  successor impossible to leave stale. ⚠ **The content of Entry 74 was never re-run by a second
+  party** — if anything in it is wrong, no one has looked. It is `RISK: additive` and revertible as
+  two clean commits (`93ec2a0` prose, `9c066d3` the gate fix) if the owner wants it re-done properly.
 
 ### 73 | 2026-08-01 | Zayd | the cached-import attribution — the `shapeSignature` memory view is CANCELLED
 
@@ -743,22 +782,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/amer/2026-07-28-p45-interaction-model-design.md`
 - **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
 
-### 65 | 2026-07-28 | Zayd | the schedules body ships (D58 row Ⓐ's first body, D78)
-
-- **CHANGED:** `schedule.ts` + `DocumentContext.evaluateSchedule`. Three reservations corrected
-  (`groupBy` names STABLE COLUMN KEYS; `ScheduleDefinition.designOptionIds?` and `ChildOverride.mark?`
-  reserved). No frozen byte, no schema bump, no verb.
-- **VERIFIED:** 517 green · revert-verified five ways.
-- **FOUND:** ⚠⚠ **The wrong loop it replaces was living inside the reservation's own PASSING TEST** —
-  green from the day it was written because its fixture is two plain walls. Measured on a real model: a
-  curtain-panel schedule returned **0 rows where 6 is correct**; a no-filter schedule **THREW** on the pure
-  composite; one non-active design option produced a **2.0000× over-report**. ⇒ **the body consumes
-  `modelElements()` and has no enumeration loop of its own, which IS its correctness.**
-- **OWES:** nothing — the CRUD was owner-split into its own unit (Entry 68).
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-07-28-schedules-body-d78.md`
-- **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
-
 ---
 
 ## §8 — Generated
@@ -767,16 +790,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **74 (Zayd, 2026-08-02)** |
-| branch · tip · tree | `zayd/2026-08-02-going-public-housekeeping` · `93ec2a0` · dirty |
-| open PRs | #2 zayd/2026-08-02-going-public-housekeeping |
-| suite | **635 green** · 79 files · 208 suites |
+| **newest entry** | **75 (Zayd, 2026-08-02)** |
+| branch · tip · tree | `zayd/2026-08-02-review-protocol-hole` · `8422ae0` · dirty |
+| open PRs | none — main is the tip of the work |
+| suite | **638 green** · 79 files · 208 suites |
 | protocol | 21 live ops · 3 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 37 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 23 files changed, 2208 insertions(+), 69 deletions(-) (23 files) |
-| docs budget | current_state 60.2/96.0 KB · §7 16.3/32.0 KB · abstracts 10/10 · bodies 21 |
+| diff vs origin/main | 9 files changed, 245 insertions(+), 66 deletions(-) (9 files) |
+| docs budget | current_state 64.1/96.0 KB · §7 20.1/32.0 KB · abstracts 10/10 · bodies 22 |
 
 _Generated 2026-08-02 by `pnpm state`._
 

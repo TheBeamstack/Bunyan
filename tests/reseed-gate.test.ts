@@ -90,4 +90,36 @@ describe('the re-seed gate matches GEOMETRY, not LOCATION', () => {
     expect(paths).toContain('packages/kernel-mock/src/box.ts');
     expect(geometry('packages/kernel-mock/src/transport.ts')).toBe(false);
   });
+
+  /* ============================================================================================
+   * 4 — THE BUILD RECIPE (Entry 75). The source the committed .wasm is built FROM was covered by
+   *     a convention, not by this gate.
+   * ========================================================================================= */
+
+  /**
+   * ⚠ This half makes CI refuse MORE, which is why it is separated from Entry 74's narrowing and
+   * carries its own revert-verification. Until now, a change to `kernel.cpp` was gated only by the
+   * habit of committing the rebuilt artifact alongside it. The sweep ledger's base rate for
+   * unenforced conventions in this repo is **1-in-2 dirty**.
+   */
+  it('⚠ DOES fire on the C++ and the build flags the shipped .wasm is compiled from', () => {
+    expect(geometry('tools/kernel-build/src/kernel.cpp')).toBe(true);
+    expect(geometry('tools/kernel-build/configure.sh')).toBe(true);
+    expect(geometry('tools/kernel-build/link.sh')).toBe(true);
+  });
+
+  /**
+   * ⚠⚠ AND THE OTHER HALF, WHICH IS THE ONE THAT KEEPS ENTRY 74'S LESSON APPLIED. It would have
+   * been one keystroke cheaper to write `tools/kernel-build/` — and that is precisely the defect
+   * just removed from this list. `src/probe.cpp` builds a separate diagnostic via `probe.sh`;
+   * `link.sh` compiles `src/kernel.cpp` alone (measured). Gating a measurement instrument behind
+   * "re-seed the goldens" would re-create the false positive on day one.
+   */
+  it('⚠⚠ does NOT fire on the build directory’s docs, scripts, or the separate probe binary', () => {
+    expect(geometry('tools/kernel-build/src/probe.cpp')).toBe(false);
+    expect(geometry('tools/kernel-build/probe.sh')).toBe(false);
+    expect(geometry('tools/kernel-build/probe-history.mjs')).toBe(false);
+    expect(geometry('tools/kernel-build/verify.mjs')).toBe(false);
+    expect(geometry('tools/kernel-build/README.md')).toBe(false);
+  });
 });

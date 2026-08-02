@@ -44,9 +44,13 @@ never claim to have verified what you cannot run.**
         `../last_session_work.md`. BINDING, not in git, and NO test in this repo can enforce them.
         §6a is a SUMMARY — the live ports table, the standing-container list and the pause/restore
         log exist ONLY there. Do not skip: an OOM here can take the owner's live public sites offline.
- 3. OPEN PR?  (`gh pr list`)
-      ├─ REVIEW IT against REVIEW.md — the other agent's, or YOUR OWN if you ran last.
-      │     A self-review is a complete review; checklist item 1 is mandatory either way.
+ 3. OPEN PR?  (`gh pr list`)   ⚠ "IT" MEANS A PR THAT ALREADY EXISTED WHEN YOU STARTED. Nothing you
+                              create later this session is ever merged by you — see step 10(b).
+      ├─ REVIEW IT against REVIEW.md — the other agent's, or YOUR OWN ENTRY FROM A PREVIOUS SESSION.
+      │     ⚠ "Self-review" means a LATER SESSION reviewing earlier work, never the session that
+      │       wrote it. The whole justification is that a fresh session has lost the author's
+      │       working state (REVIEW.md's header). Same session = same blind spots = not a review.
+      │     A self-review in that sense is a complete review; checklist item 1 is mandatory either way.
       ├─ finding provable with a failing test   → write it, watch it fail, fix it on the branch
       ├─ finding not provable                   → review comment; never block on an opinion
       ├─ a BROWSER-ONLY claim you cannot re-run headlessly
@@ -54,6 +58,8 @@ never claim to have verified what you cannot run.**
       │      └─ does it BLOCK your task? → TELL THE OWNER TO RUN AMER NOW
       ├─ RISK: additive + approving + CI green  → MERGE it, then pull again
       └─ RISK: contract-touching                → approve; tell the owner it needs THEIR merge
+      ⇒ THEN REWRITE THAT ENTRY'S `REVIEW:` LINE in §7 — who reviewed it, what they found. Leaving
+        it saying `AWAITING REVIEW` now FAILS `docs:check` once your own entry lands.
  4. Read current_state.md in full, and compare §8's newest entry against §2's FRESH:
       ├─ SAME            ⇒ main is current. Start TASK.
       └─ FRESH is HIGHER ⇒ ⚠ A FINISHED ENTRY IS STILL SITTING IN AN OPEN PR. This prompt reached
@@ -85,9 +91,19 @@ never claim to have verified what you cannot run.**
       (b) EVERYTHING ELSE goes to the branch: git push · `gh pr create`
               title = the abstract headline · body = the abstract + REVIEW.md's checklist, unticked
           The PR now contains only work that is worth reviewing.
+          ⚠⚠ **AND THEN YOU STOP. YOU DO NOT MERGE IT. THIS IS WHERE YOUR SESSION ENDS.**
+          Your entry's `REVIEW:` line reads `⚠ AWAITING REVIEW — this is the open PR`, and the NEXT
+          session merges it at its step 3. Owner-ruled decision 5: **the REVIEWING agent merges**,
+          and the reviewer is by construction a later session.
+          ⚠ Entry 74 got this wrong — opened its PR and merged it minutes later, so it is on `main`
+          having never been read by a second party. Step 3's *"MERGE it"* is about the PR you found
+          at t=0; it was never about the one you just created. `docs:check` now enforces this: a
+          stale `AWAITING REVIEW` on any non-newest entry FAILS.
       ⚠ Push (a) BEFORE (b), and put the identical file on the branch too (it already is, if you
         edited it there) — same content both sides means the PR merges without a conflict.
-11. Closing summary: what landed · what the PR needs (Amer's merge? the owner's? a ruling?) · what is owed.
+        ⚠ `pnpm state` rewrites FRESH's tree line, so if you run it again after (a), re-sync (a).
+11. Closing summary: what landed · **what the OPEN PR is waiting for** (the next session's review is
+    the normal answer; the owner's merge only if contract-touching; a ruling?) · what is owed.
 ```
 
 ⚠ **Step 3 comes before step 4 on purpose.** You review from the lenses and the diff — the PR carries its
@@ -134,12 +150,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 74**
-        (Zayd, 2026-08-02) — the going-public housekeeping — `LICENSE` (AGPL-3.0), the CLA, the attribution notices
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 75**
+        (Zayd, 2026-08-02) — the review protocol had a hole — Entry 74 merged itself, and the ruling was never in the prompt
 
-        ⇒ After `git pull`: §8's "newest entry" == 74  ⇒ you are current, start TASK.
-          HIGHER than 74 ⇒ the other agent has merged: read every abstract after
-          74 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 75  ⇒ you are current, start TASK.
+          HIGHER than 75 ⇒ the other agent has merged: read every abstract after
+          75 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -147,7 +163,7 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 74**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-02-going-public-housekeeping` · `93ec2a0` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-02-review-protocol-hole` · `8422ae0` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
@@ -162,15 +178,18 @@ TASK:   **THE PLAN + SECTION UNIT** (`docs/design/P5_step6C_plan_section_design.
         ⚠⚠ **SO IF Q1–Q3 ARE STILL UNRULED WHEN YOU READ THIS, YOUR TASK IS THE ONE BELOW INSTEAD.**
         Do not idle, and do not start plan/section to fill the time.
 
-        **THE FALLBACK, AND IT IS A REAL UNIT, NOT BUSYWORK — `tools/kernel-build/` IS NOT IN THE
-        RE-SEED GATE'S `GEOMETRY_PATHS`.** Entry 73 surfaced it in `scripts/check-reseed.mjs` and
-        deliberately left it open for assent; Entry 74's review gave that assent (*"add it, but in
-        its own PR"*). `src/kernel.cpp` is the SOURCE the committed
-        `packages/kernel-occt/wasm/` artifact is built from, and only a convention — that a C++
-        change always ships with the rebuilt artifact, which IS listed — keeps the gate firing. This
-        repo's own sweep ledger rates unenforced conventions **1-in-2 dirty**. ⚠ It makes CI refuse
-        MORE, so it wants its own diff and its own revert-verification: add the path, then prove the
-        gate fires on a `kernel.cpp`-only change and does not on an unrelated one.
+        **THE FALLBACK — REVIEW ENTRY 74 LATE, AND IT IS THE MOST USEFUL THING AVAILABLE.** Entry 74
+        is on `main` having **never been read by a second party** (its author merged it — that is
+        Entry 75's whole subject). It is not re-openable as a PR, so review the two commits
+        directly: `git show 93ec2a0` (the licence/CLA/NOTICE prose) and `git show 9c066d3` (the
+        re-seed gate narrowing). Two claims in it were explicitly flagged for a checker who never
+        came: (a) **`NOTICE` makes legal claims** about how we consume OCCT and planegcs — read it
+        against `licenses/` and against `tools/kernel-build/link.sh`; (b) **its dependency sweep
+        was reasoned from the two deps I already knew about** — `pnpm licenses list` against the
+        lockfile is the authoritative instrument and nobody has run it. Record what you find in
+        Entry 74's `REVIEW:` line, which currently says only that no one has looked.
+        ⚠ Its re-seed-gate half is already re-verified by `tests/reseed-gate.test.ts` (Entry 75
+        extended it), so the prose is where the unchecked risk actually sits.
 
         THEN, once plan/section IS unblocked:
            ⚠ Read §5's test table BEFORE writing the fixture. Every criterion has a way to pass
@@ -203,7 +222,22 @@ TASK:   **THE PLAN + SECTION UNIT** (`docs/design/P5_step6C_plan_section_design.
           that stays ~3 min either way. My recommendation on the desk is **do not wire it for v1.0.0.**
         ⚠ **Do not re-open the move verbs' guard without the owner** — `open_rulings.md` Q7/Q8.
 
-NEW:    **⚠⚠ THE LESSON OF ENTRY 74 IS THAT ENTRY 73'S LESSON DID NOT STICK — I BROKE IT MYSELF,
+NEW:    **⚠⚠ THE LESSON OF ENTRY 75, AND IT IS THE ONE THAT MATTERS MOST: I MERGED MY OWN PR.**
+        Entry 74 was opened and merged by the same session, so it is on `main` unreviewed. The
+        owner caught it, not any check. **The ruling forbidding it existed the whole time** — owner
+        decision 5, *"the REVIEWING agent merges"* — **but only in `handoff_system_design.md`, a
+        document nobody opens at t=0.** The prompt you are reading said *"MERGE it"* without saying
+        which PR, and ended step 10(b) at `gh pr create` without saying *stop*. Both are fixed above.
+        ⇒ **THE TRANSFERABLE PART, WHICH IS BIGGER THAN THIS ONE RULE: a constraint that lives only
+        in a design doc is not a constraint, it is a preference.** §1e taught that a copy is a claim
+        nobody re-reads; this is the inverse and it is worse — **a ruling that was never copied at
+        all.** When you take a ruling, ask *"which file will the agent who must obey this actually
+        have open?"* and put it there, not only where it was decided.
+        ⇒ And the operational version, because it is one sentence: **if you are about to merge
+        something you wrote today, that is the bug.** Push it, mark it `AWAITING REVIEW`, stop.
+
+        (Entry 74's lesson, still standing:)
+        **⚠⚠ THE LESSON OF ENTRY 74 IS THAT ENTRY 73'S LESSON DID NOT STICK — I BROKE IT MYSELF,
         TWICE, IN THE TWO SESSIONS THAT FOLLOWED IT.** Read this before you trust your own prose.
         • **Reviewing 73, I found it had cancelled a unit because a number was DERIVED rather than
           measured — and had then shipped one more derived number in the same breath.** The crossing

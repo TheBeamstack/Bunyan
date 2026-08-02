@@ -348,6 +348,27 @@ Identical for both agents. The owner's prompt remains one line: _"read and follo
 an entry main's code does not yet contain. Step 4 turns that into a signal rather than a trap: a FRESH
 higher than §8 means _"merge the open PR first"_, never _"start work"_.
 
+⚠⚠ **THE AUTHOR NEVER MERGES THEIR OWN ENTRY, AND THIS HAD TO BE LEARNED THE EXPENSIVE WAY.**
+Decision 5 above says the _reviewing_ agent merges. That word is doing all the work, because **the
+reviewer is by construction a LATER SESSION** — `REVIEW.md`'s entire justification is that _"a fresh
+session has genuinely lost the author's working state, which is what makes a self-review worth doing
+at all."_ Same session ⇒ same blind spots ⇒ not a review, whatever it is called.
+
+**Entry 74 violated this, and the operational prompt is why.** Step 3 said _"RISK: additive +
+approving + CI green → MERGE it"_ without scoping "it" to the PR that existed at t=0, and step 10(b)
+ended at `gh pr create` with no terminal instruction. Composed, they read as permission — so the entry
+was opened and merged minutes later, and it sits on `main` having never been read by a second party.
+The ruling forbidding it existed **only here, in the design doc**, and was never transcribed into the
+document anybody actually executes. That is §1e's _"a copy is a claim nobody will re-read"_ inverted:
+the claim was never copied at all.
+
+⇒ Fixed in Entry 75 at all three levels, because a prose fix alone would have been the same mistake
+a third time: the **prompt** now scopes step 3 and terminates step 10(b); **this** decision row names
+the constraint; and `docs:check` now **machine-checks** it — an entry carrying `AWAITING REVIEW` while
+a newer entry exists fails the build. ⚠ The check necessarily fires one entry late (merging is a
+GitHub action, invisible to a test in this repo), which is the honest limit of enforcing a
+collaboration rule from inside the artifact.
+
 **Step 3 precedes step 4 deliberately.** The reviewer works from the lenses and the diff — the PR carries
 its own abstract — then merges, then reads a `current_state.md` that is actually current. Reading it
 before the merge would mean reading a stale file and re-reading it afterwards.
@@ -471,20 +492,20 @@ This removes judgement from the one call where a wrong answer is irreversible.
 
 ## §11 — Decisions (owner-ruled, 2026-07-31)
 
-| #   | Decision                                            | Ruling                                                                                           |
-| --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| 1   | How far the `current_state.md` restructure goes     | **Hot/cold split by audience** → `decisions.md` + `history.md`                                   |
-| 2   | How mechanical enforcement is                       | **Budget test + `pnpm state` generator, both gated** in `verify`/CI                              |
-| 3   | Where the newest entries live, and their form       | **Fixed-schema abstract in §7; full body in `handoff/`**                                         |
-| 4   | Who may write each prompt file                      | **One writer per file** — each agent writes only its own §2                                      |
-| 5   | Who merges a reviewed PR                            | **Split by risk** — reviewer merges additive, owner merges contract-touching                     |
-| 6   | What a reviewer does with a finding                 | **Fix it in the PR, only with a test that fails without the fix**                                |
-| 7   | What the review is made of                          | **Lens checklist + one independently re-run revert-verification**                                |
-| 8   | Flow control when the same agent runs consecutively | **Whoever runs next reviews**; can't verify → flag for next Amer; blocking → owner runs Amer now |
-| 9   | Does a self-review owe a later cross-review         | **No — a self-review is a complete review**                                                      |
-| 10  | How `RISK` is decided                               | **Machine-decided by the frozen-surface snapshot test**                                          |
-| 11  | How the migration is carried out                    | **One dedicated session, its own PR, no feature work**                                           |
-| 12  | Is there a PR size limit                            | **No — units stay whatever size the work is**                                                    |
+| #   | Decision                                            | Ruling                                                                                                                                                  |
+| --- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | How far the `current_state.md` restructure goes     | **Hot/cold split by audience** → `decisions.md` + `history.md`                                                                                          |
+| 2   | How mechanical enforcement is                       | **Budget test + `pnpm state` generator, both gated** in `verify`/CI                                                                                     |
+| 3   | Where the newest entries live, and their form       | **Fixed-schema abstract in §7; full body in `handoff/`**                                                                                                |
+| 4   | Who may write each prompt file                      | **One writer per file** — each agent writes only its own §2                                                                                             |
+| 5   | Who merges a reviewed PR                            | **Split by risk** — reviewer merges additive, owner merges contract-touching. ⚠ **And the reviewer is NEVER the session that wrote the PR** — see below |
+| 6   | What a reviewer does with a finding                 | **Fix it in the PR, only with a test that fails without the fix**                                                                                       |
+| 7   | What the review is made of                          | **Lens checklist + one independently re-run revert-verification**                                                                                       |
+| 8   | Flow control when the same agent runs consecutively | **Whoever runs next reviews**; can't verify → flag for next Amer; blocking → owner runs Amer now                                                        |
+| 9   | Does a self-review owe a later cross-review         | **No — a self-review is a complete review**                                                                                                             |
+| 10  | How `RISK` is decided                               | **Machine-decided by the frozen-surface snapshot test**                                                                                                 |
+| 11  | How the migration is carried out                    | **One dedicated session, its own PR, no feature work**                                                                                                  |
+| 12  | Is there a PR size limit                            | **No — units stay whatever size the work is**                                                                                                           |
 
 ---
 

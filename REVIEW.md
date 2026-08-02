@@ -4,6 +4,14 @@
 reviewed — the other agent's, and your own if you were the last to run.** A fresh session has genuinely
 lost the author's working state, which is what makes a self-review worth doing at all.
 
+⚠⚠ **AND THAT SENTENCE IS THE WHOLE RULE, SO READ IT AS A CONSTRAINT AND NOT AS A COURTESY: "your own"
+MEANS AN ENTRY FROM A PREVIOUS SESSION. You never review — or merge — a PR you opened in the session
+you are still in.** There is no lost working state to recover, so there is no review; there is only an
+author agreeing with themselves. **Entry 74 opened its PR and merged it minutes later**, and is on
+`main` unread by any second party as a result. If you are about to merge something you wrote today,
+that is the bug. Push it, write `⚠ AWAITING REVIEW — this is the open PR` in its `REVIEW:` line, and
+stop — the next session merges it. `docs:check` now fails the build if that marker is left stale.
+
 **What this is not.** This is the **per-PR** checklist — roughly the cost of a coffee. For a **phase-level
 adversarial review** (the seven hunts, hours of work, the instrument that produced `review_P4.md`'s
 "there is no interaction model" and `review_P5.md`'s O(N²) finding), use
