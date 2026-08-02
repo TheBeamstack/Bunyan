@@ -134,12 +134,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 73**
-        (Zayd, 2026-08-01) — the cached-import attribution — the `shapeSignature` memory view is CANCELLED
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 74**
+        (Zayd, 2026-08-02) — the going-public housekeeping — `LICENSE` (AGPL-3.0), the CLA, the attribution notices
 
-        ⇒ After `git pull`: §8's "newest entry" == 73  ⇒ you are current, start TASK.
-          HIGHER than 73 ⇒ the other agent has merged: read every abstract after
-          73 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 74  ⇒ you are current, start TASK.
+          HIGHER than 74 ⇒ the other agent has merged: read every abstract after
+          74 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -147,25 +147,32 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 73**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-01-shapesig-memview` · `24e3678` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-02-going-public-housekeeping` · `47d3035` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
 
 ```
-TASK:   **THE GOING-PUBLIC HOUSEKEEPING — `LICENSE` (AGPL-3.0), the CLA, and the OCCT + planegcs
-        attribution notices.** D15 is the ruling (*"Bunyan is open source: AGPL-3.0 + commercial;
-        the CLA is a hard prerequisite before the first external PR"*). Nothing blocks it, it needs
-        no ruling, and §3 lists it under NOT BUILT as the one item that **blocks going public**.
-        ⚠⚠ **ITS OWN COMMIT AND ITS OWN PR — do not intermingle it with a code entry** (Entries
-        64+65's lesson). ⚠ `.prettierignore` LISTS PATHS: if you add a prose file that prettier
-        should not reformat, add its line in the SAME commit (§6's second warning — `format:check`
-        failed silently for six sessions once already).
+TASK:   **THE PLAN + SECTION UNIT** (`docs/design/P5_step6C_plan_section_design.md` §8) — **the moment
+        Q1–Q3 are ruled, and NOT BEFORE.** Q1 decides the SHAPE of the unit, so building first is
+        building the wrong thing, not building early. It has now been ruling-blocked across SIX
+        sessions (69→71→72→73→74→you), which is a fact to put in your opening message, not a reason
+        to start it anyway.
 
-        THEN, in this order:
-        1. **The plan + section** (`docs/design/P5_step6C_plan_section_design.md` §8) — **the moment
-           Q1–Q3 are ruled, and not before**: Q1 decides the SHAPE of the unit, so building first is
-           building the wrong thing, not building early.
+        ⚠⚠ **SO IF Q1–Q3 ARE STILL UNRULED WHEN YOU READ THIS, YOUR TASK IS THE ONE BELOW INSTEAD.**
+        Do not idle, and do not start plan/section to fill the time.
+
+        **THE FALLBACK, AND IT IS A REAL UNIT, NOT BUSYWORK — `tools/kernel-build/` IS NOT IN THE
+        RE-SEED GATE'S `GEOMETRY_PATHS`.** Entry 73 surfaced it in `scripts/check-reseed.mjs` and
+        deliberately left it open for assent; Entry 74's review gave that assent (*"add it, but in
+        its own PR"*). `src/kernel.cpp` is the SOURCE the committed
+        `packages/kernel-occt/wasm/` artifact is built from, and only a convention — that a C++
+        change always ships with the rebuilt artifact, which IS listed — keeps the gate firing. This
+        repo's own sweep ledger rates unenforced conventions **1-in-2 dirty**. ⚠ It makes CI refuse
+        MORE, so it wants its own diff and its own revert-verification: add the path, then prove the
+        gate fires on a `kernel.cpp`-only change and does not on an unrelated one.
+
+        THEN, once plan/section IS unblocked:
            ⚠ Read §5's test table BEFORE writing the fixture. Every criterion has a way to pass
            while FALSE, and the top one is Entry 47's trap verbatim — **a one-plain-wall fixture.**
            It must carry a curtain wall (children), an opening (cut faces) and a design option.
@@ -174,8 +181,13 @@ TASK:   **THE GOING-PUBLIC HOUSEKEEPING — `LICENSE` (AGPL-3.0), the CLA, and t
            `REL_INHERIT` nor a cut node.
            ⚠ The `views` promotion is Entry 68's verbatim INCLUDING ITS CORRECTION — union member +
            dependency edge + optional-collection `.bnn` guard, and **NO `emptyScene()` entry**.
-        ⚠⚠ **TWO ITEMS THAT STOOD HERE ARE GONE (Entry 73). DO NOT RE-ADD EITHER — both were
-          killed by reading them against the artifact, and both are now recorded in §5:**
+        ⚠ **THE GOING-PUBLIC HOUSEKEEPING IS DONE (Entry 74) — do not redo it.** `LICENSE` (AGPL-3.0
+          verbatim), `NOTICE`, `licenses/`, `CLA.md`, and the `license` field in all ten manifests.
+          What is left is **owner-only and now Q11/Q12**: `CLA.md` ships `<LEGAL ENTITY>` as a marked
+          placeholder, and no lawyer has read it. Both block the first EXTERNAL PR, not publication.
+
+        ⚠⚠ **THREE ITEMS THAT STOOD HERE ARE GONE. DO NOT RE-ADD ANY — each was killed by reading it
+          against the artifact, and all are recorded in §5:**
           • **the `shapeSignature` memory view — CANCELLED, MEASURED.** *"170 embind crossings …
             most of what makes a cached import cost 12 ms"* was a SUBTRACTION RESIDUE, never timed.
             A crossing costs **0.21–0.39 µs**; all **345** cost **0.073–0.133 ms = ~1%** of the signature
@@ -191,7 +203,27 @@ TASK:   **THE GOING-PUBLIC HOUSEKEEPING — `LICENSE` (AGPL-3.0), the CLA, and t
           that stays ~3 min either way. My recommendation on the desk is **do not wire it for v1.0.0.**
         ⚠ **Do not re-open the move verbs' guard without the owner** — `open_rulings.md` Q7/Q8.
 
-NEW:    **⚠⚠ THE LESSON OF ENTRY 73, AND IT IS ABOUT THIS FILE.** Two of that session's three TASK
+NEW:    **⚠⚠ THE LESSON OF ENTRY 74 IS THAT ENTRY 73'S LESSON DID NOT STICK — I BROKE IT MYSELF,
+        TWICE, IN THE TWO SESSIONS THAT FOLLOWED IT.** Read this before you trust your own prose.
+        • **Reviewing 73, I found it had cancelled a unit because a number was DERIVED rather than
+          measured — and had then shipped one more derived number in the same breath.** The crossing
+          count was reasoned out as `N+1`; counted, a drain is **2N+1** (`drainDoubles` re-calls
+          `size()` in its loop condition), so **345, not 173**. The total never moved, so the verdict
+          held — but the headline per-crossing figure was 2× off in the entry, `decisions.md`, §1a and
+          this file.
+        • **Then in 74 I wrote into `.prettierignore` that prettier "would reflow `CLA.md`"** — a
+          confident claim about a tool's behaviour that I had not run. Measured with
+          `--ignore-path /dev/null`: it would not. All four lines I added are no-ops today.
+        ⇒ **THE RULE THAT WOULD HAVE CAUGHT BOTH, AND IT IS CHEAPER THAN IT SOUNDS: if a sentence you
+        are about to COMMIT asserts a quantity or a behaviour, run the one command that settles it
+        FIRST.** Both cost about ninety seconds to check and would have been permanent otherwise.
+        Prose is not exempt from *"a claim with no method is not done"* just because it is prose.
+        ⚠ Note what the base rate is telling you: §1c-8 says 1-in-2, and the session that had just
+        finished writing an entry ABOUT unmeasured numbers still shipped one. **You are not the
+        exception; build the check into the motion.**
+
+        (Entry 73's lesson, still standing, and now with evidence that it needs repeating:)
+        **⚠⚠ THE LESSON OF ENTRY 73, AND IT IS ABOUT THIS FILE.** Two of that session's three TASK
         items dissolved on contact with the artifact — one was a NUMBER nobody had timed, one was a
         belief whose own refutation was already committed two files away. Both reached the session
         the same way: **as a copy.** Entry 71 → `current_state.md` §5 → this file's `TASK` → the
