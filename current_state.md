@@ -558,15 +558,50 @@ is maintenance and does NOT get an entry of its own.**
   does **not** carry "the pinned toolchain version" — `README.md` says `emscripten/emsdk:latest` and
   the build id is a hand-maintained constant asserted only against itself (⇒ Q14). ⚠ And in PR #3:
   **the new `AWAITING REVIEW` guard read only each field's FIRST PHYSICAL LINE**, so a marker that
-  prettier wrapped onto line 2 passed `format:check` and left `docs:check` green — measured.
+  wrapped onto line 2 left `docs:check` green — measured. *(⚠ Entry 77: the wrap is HAND-placed, not
+  prettier's — `current_state.md` is in `.prettierignore`. Defect and fix stand; the cause named here
+  did not.)*
 - **OWES:** Owner: **Q14 (NEW)** — pin the emsdk image by digest. **Q1–Q3 still BLOCK plan/section, a
   SEVENTH session.** Q11/Q12/Q13 stand. Amer: the "open source licences" screen now has a real list to
   render (`NOTICE` §3); before, it would have shown two entries and been wrong.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-02-entry74-late-review.md`
-- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.** The next session reviews and merges it at
-  step 3. I am not merging my own work; that is Entry 75's rule, and this is the second entry to keep
-  it.
+- **REVIEW:** Reviewed and merged by **Entry 77** (Zayd, a later session — the protocol holding for a
+  second consecutive entry). Item 1 executed independently on the author's own cheapest claim: deleting
+  the `` `licenses/three-LICENSE.txt` `` citation from `NOTICE` §3 took the gate **RED naming
+  `three@0.171.0`**, and note that the bare word "three" still occurs twice in `NOTICE` at that point —
+  so the citation check really is stronger than a name match, as its comment claims. **CHECKED AND
+  SOUND:** the `OCCT_BUILD_ID` constant is at `kernel.ts:52` exactly as `NOTICE` §1 states,
+  `README.md` does invoke the mutable `emscripten/emsdk:latest` at five sites, no third-party source is
+  vendored anywhere under `packages/` or `apps/`, and **all eight** members of the closure declare **zero**
+  `optionalDependencies` (the one peer, `react`, is already inside it) — counted, not recalled, so there
+  is no second arrival path today.
+  ⚠⚠ **ONE DEFECT FOUND AND FIXED ON THE BRANCH, AND IT IS THIS ENTRY'S OWN LESSON TURNED ON ITSELF:
+  THE GATE ENUMERATED ITS INPUT SET FROM MEMORY.** `MANIFESTS` was a hand-written array of ten paths
+  while `pnpm-workspace.yaml` defines the set by glob (`packages/*`, `apps/*`), so a package added
+  later was invisible to all five assertions — and `.filter(existsSync)` made a renamed one drop out
+  silently too. **Demonstrated, not argued:** a probe package under `packages/` declaring
+  `typescript@5.9.3` as a runtime dependency, laid out exactly as pnpm lays one out, left the gate
+  **fully GREEN**; against the fix it goes **RED naming `typescript@5.9.3` twice** (unattributed, and
+  no licence text). ⚠ It was load-bearing rather than cosmetic: `runtimeClosure()` deliberately does
+  not recurse into `workspace:` siblings, relying on each sibling appearing in that list on its own —
+  two hand-maintained facts holding each other up. Fixed by deriving the list from the workspace globs,
+  plus a sixth test asserting the discovered set equals what is on disk, so the input set can no longer
+  go stale in silence.
+  ⚠ **SECOND FINDING, SMALLER BUT IN THE LESSON TEXT ITSELF, WHICH IS WHERE IT DOES THE MOST DAMAGE:
+  THE CAUSE THIS ENTRY GAVE FOR THE `fieldsFull` DEFECT IS FALSE.** It wrote — in `scripts/docs-state.mjs`,
+  in this entry's `FOUND`, in Entry 75's `REVIEW:` line and in the prompt's `NEW:` — that *"these
+  documents are prettier-formatted at `printWidth: 100`, so the line break is placed by sentence
+  length, not by the author"*, and that the stale marker *"passed `prettier --check`"*. **`current_state.md`
+  is in `.prettierignore`** (line 18), which is the only file `parseAbstracts` ever opens, so prettier
+  never touches it; measured with `--ignore-path /dev/null` it does **not** conform and **288 lines
+  would change** if prettier owned it. Passing `prettier --check` was therefore vacuous, not evidence.
+  The defect and the `fieldsFull` fix are untouched — but the wrapping is HAND-placed, so **no
+  formatter maintains those breaks and no gate is watching them**, which makes the rule stricter than
+  the entry argued. Corrected at all three in-repo sites. *Note the shape: an entry whose own headline
+  lesson is "a claim that quantifies over a set must be counted" shipped an unmeasured claim about a
+  tool's behaviour — Entry 74's mistake exactly, three entries later.*
+  `pnpm verify` **645 green, real exit code 0, six gates**; `freeze-boundary` green ⇒ additive confirmed.
 
 ### 75 | 2026-08-02 | Zayd | the review protocol had a hole — Entry 74 merged itself, and the ruling was never in the prompt
 
@@ -605,11 +640,13 @@ is maintenance and does NOT get an entry of its own.**
   so nothing else in `tools/kernel-build/` reaches the shipped `.wasm`. The exemption was verified NOT
   too broad: it matches exactly entries 66–72, the genuinely pre-PR-flow ones. **⚠ ONE DEFECT FOUND
   AND FIXED ON THE BRANCH — the guard read only each field's FIRST PHYSICAL LINE.** `parseAbstracts`
-  dropped continuation lines, and these docs are prettier-wrapped at `printWidth: 100`, so **the break
-  is placed by sentence length, not by the author.** Measured: the same stale marker phrased with a
-  lead-in wrapped onto line 2, passed `prettier --check`, and left `docs:check` fully GREEN — the new
-  guard blind on its first real test. Fixed with `fieldsFull` + a regression test; the identical
-  corruption now fails. Also fixed a rendering defect inherited from Entry 74: **Q11/Q12/Q13 sat
+  dropped continuation lines, so the same stale marker phrased with a lead-in wrapped onto line 2 and
+  left `docs:check` fully GREEN — the new guard blind on its first real test. Fixed with `fieldsFull`
+  + a regression test; the identical corruption now fails. ⚠ **Entry 77 corrected the CAUSE this entry
+  gave for it:** `current_state.md` is NOT "prettier-wrapped at `printWidth: 100`" — it is in
+  `.prettierignore`, prettier never opens it, and measured with `--ignore-path /dev/null` **288 lines
+  would change** if it did. The wrapping is placed BY HAND, which makes `fieldsFull` more necessary,
+  not less. Also fixed a rendering defect inherited from Entry 74: **Q11/Q12/Q13 sat
   behind a blank line and were not table rows at all** — three open rulings rendering as literal
   pipe-text in the file the owner reads to rule. `pnpm verify` **639 green, real exit code 0, six
   gates**; `freeze-boundary` green ⇒ additive confirmed.

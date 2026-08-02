@@ -28,7 +28,7 @@
  * manual. `pnpm licenses list --prod` is the same measurement by hand.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync, existsSync, realpathSync } from 'node:fs';
+import { readFileSync, existsSync, realpathSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -45,19 +45,50 @@ type PackageJson = {
 
 const readJson = (p: string) => JSON.parse(readFileSync(p, 'utf8')) as PackageJson;
 
-/** Every workspace manifest that can declare a runtime dependency. */
+/**
+ * The `packages:` globs from `pnpm-workspace.yaml` — the workspace's OWN definition of which
+ * directories are packages. Only the simple list form is supported, which is the only form this
+ * file has ever used; anything else throws rather than silently returning a short list.
+ */
+function workspaceGlobs(): string[] {
+  const yaml = readFileSync(join(ROOT, 'pnpm-workspace.yaml'), 'utf8');
+  const block = /^packages:\s*$((?:\s*\n|\s*-.*\n?)*)/m.exec(yaml);
+  const globs = [...(block?.[1] ?? '').matchAll(/^\s*-\s*['"]?([^'"\n]+?)['"]?\s*$/gm)].map(
+    (m) => m[1]!,
+  );
+  if (globs.length === 0) {
+    throw new Error('pnpm-workspace.yaml declares no `packages:` globs — the layout changed');
+  }
+  return globs;
+}
+
+/**
+ * Every workspace manifest that can declare a runtime dependency, DISCOVERED rather than listed.
+ *
+ * ⚠⚠ THIS WAS A HAND-WRITTEN ARRAY OF TEN PATHS, AND THAT IS THE EXACT DEFECT THIS FILE EXISTS TO
+ * PREVENT — a set enumerated from the author's memory instead of counted. Demonstrated in review
+ * (Entry 77): a new package under `packages/*` carrying an unattributed runtime dependency, laid
+ * out exactly as pnpm lays one out, left all five assertions GREEN, because the walk never looked
+ * at its manifest. The old `.filter(existsSync)` made the inverse silent too — a renamed package
+ * just dropped out of the set with nothing to say so.
+ *
+ * ⚠ It matters more than it looks, because `runtimeClosure()` deliberately does NOT recurse into
+ * `workspace:` siblings — it relies on every sibling appearing in this list on its own. Two
+ * hand-maintained facts were holding each other up.
+ */
 const MANIFESTS = [
   'package.json',
-  'packages/protocol/package.json',
-  'packages/kernel-core/package.json',
-  'packages/kernel-client/package.json',
-  'packages/kernel-mock/package.json',
-  'packages/kernel-occt/package.json',
-  'packages/document/package.json',
-  'packages/sketch-solver/package.json',
-  'packages/types/package.json',
-  'apps/web/package.json',
-].filter((p) => existsSync(join(ROOT, p)));
+  ...workspaceGlobs().flatMap((glob) => {
+    const literal = glob.replace(/\/\*$/, '');
+    if (!glob.endsWith('/*')) return existsSync(join(ROOT, glob, 'package.json')) ? [glob] : [];
+    if (!existsSync(join(ROOT, literal))) return [];
+    return readdirSync(join(ROOT, literal), { withFileTypes: true })
+      .filter((e) => e.isDirectory() || e.isSymbolicLink())
+      .map((e) => `${literal}/${e.name}`);
+  }),
+]
+  .map((d) => (d.endsWith('package.json') ? d : `${d}/package.json`))
+  .filter((p) => existsSync(join(ROOT, p)));
 
 type Dep = { name: string; version: string; license: string | undefined };
 
@@ -117,6 +148,29 @@ describe('NOTICE attributes everything that is redistributed', () => {
       closure.size,
       'the runtime dependency walk found nothing — node_modules missing, or the layout changed',
     ).toBeGreaterThanOrEqual(8);
+  });
+
+  it('⚠ reads EVERY workspace manifest, discovered from pnpm-workspace.yaml', () => {
+    // ⚠ The walk's input set is the thing that was wrong. Every assertion below quantifies over
+    // the closure, and the closure quantifies over MANIFESTS — so a manifest that is never read
+    // makes its dependencies invisible without failing anything. That is the same weak green as
+    // the empty-closure case above, one level further out.
+    const onDisk = [
+      'package.json',
+      ...['packages', 'apps'].flatMap((root) =>
+        existsSync(join(ROOT, root))
+          ? readdirSync(join(ROOT, root), { withFileTypes: true })
+              .filter((e) => e.isDirectory() || e.isSymbolicLink())
+              .map((e) => `${root}/${e.name}/package.json`)
+              .filter((p) => existsSync(join(ROOT, p)))
+          : [],
+      ),
+    ];
+    expect(
+      [...MANIFESTS].sort(),
+      'a workspace package exists that this gate never opens — its runtime dependencies would ' +
+        'ship unattributed and every assertion here would still pass',
+    ).toEqual(onDisk.sort());
   });
 
   it('⚠⚠ names every runtime dependency that ships in the bundle', () => {
