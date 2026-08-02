@@ -44,11 +44,22 @@ something, it is stated here in full, and the licence texts themselves are in
   Library and relink. Bunyan discharges this by publishing complete
   corresponding source under the AGPL: the OCCT source is upstream and
   unmodified at the tag named above, our own kernel source is in this
-  repository, and the exact, reproducible build recipe that combines them —
-  including compiler flags, the OCCT configuration, and the pinned toolchain
-  version — is in `tools/kernel-build/`. A recipient can rebuild the module
-  against a modified OCCT using nothing but this repository and that recipe.
-  The build id `occt-7.9.3-emcc-6.0.2` pins the exact combination.
+  repository, and the build recipe that combines them — the compiler and linker
+  flags, the OCCT configuration, and the container commands that run them — is
+  in `tools/kernel-build/`. A recipient can rebuild the module against a
+  modified OCCT using nothing but this repository and that recipe, which is what
+  section 6 requires.
+
+  ⚠ THE RECIPE IS COMPLETE BUT NOT BYTE-REPRODUCIBLE, AND SAYING SO IS PART OF
+  THE ATTRIBUTION. `tools/kernel-build/README.md` invokes the toolchain as
+  `emscripten/emsdk:latest` — a MUTABLE tag — so a rebuild today need not use
+  the compiler that produced the committed module. The build id
+  `occt-7.9.3-emcc-6.0.2` RECORDS the combination that did (it is a hand-
+  maintained constant in `packages/kernel-occt/src/kernel.ts`, not a value read
+  back out of the artifact); it does not pin it. Relinking against a modified
+  OCCT works regardless, which is the obligation; exact bit-for-bit
+  reproduction of the shipped module would additionally require pinning the
+  emsdk image by digest. That pin is open as a ruling.
 
   OCCT is NOT modified by this project. Bug reports about OCCT itself belong
   upstream, not here.
@@ -75,14 +86,62 @@ something, it is stated here in full, and the licence texts themselves are in
   dependency is replaceable without touching the contract.
 
 --------------------------------------------------------------------------------
-3. Everything else
+3. The MIT-licensed runtime dependencies, which ARE redistributed
 --------------------------------------------------------------------------------
 
-  The remaining dependencies are build- and test-time only (TypeScript, Vite,
-  Vitest, ESLint, Prettier and their transitive dependencies) under permissive
-  licences, and are not redistributed as part of Bunyan. Each carries its own
-  licence in its own package; `pnpm licenses list` enumerates them against the
-  lockfile, which is the authoritative list.
+  These ship inside the built browser bundle. The MIT licence requires that its
+  copyright notice and permission notice travel with "all copies or substantial
+  portions of the Software", so each licence text is reproduced in `licenses/`
+  and each package is named here.
+
+    react         18.3.1   Copyright (c) Facebook, Inc. and its affiliates.
+                           `licenses/react-LICENSE.txt`
+    react-dom     18.3.1   Copyright (c) Facebook, Inc. and its affiliates.
+                           `licenses/react-dom-LICENSE.txt`
+    scheduler     0.23.2   Copyright (c) Facebook, Inc. and its affiliates.
+                           `licenses/scheduler-LICENSE.txt`
+    three         0.171.0  Copyright (c) 2010-2024 three.js authors
+                           `licenses/three-LICENSE.txt`
+    fflate        0.8.3    Copyright (c) 2026 Arjun Barrett
+                           `licenses/fflate-LICENSE.txt`
+    js-tokens     4.0.0    Copyright (c) 2014-2018 Simon Lydell
+                           `licenses/js-tokens-LICENSE.txt`
+    loose-envify  1.4.0    Copyright (c) 2015 Andres Suarez
+                           `licenses/loose-envify-LICENSE.txt`
+
+  All seven are MIT. `react`, `react-dom` and `three` are direct dependencies of
+  `apps/web`; `fflate` is a direct dependency of `@bunyan/document` (it writes
+  the zipped `.bnn`); `scheduler`, `js-tokens` and `loose-envify` arrive
+  transitively through React. None is modified by this project.
+
+  ⚠ `tests/notice-attribution.test.ts` fails the build if a runtime dependency
+  is added to any workspace manifest without being named here. This section was
+  wrong once — see section 5 — and prose alone did not keep it right.
+
+--------------------------------------------------------------------------------
+4. Build- and test-time only
+--------------------------------------------------------------------------------
+
+  TypeScript, Vite, Vitest, ESLint, Prettier and their transitive dependencies
+  are permissively licensed, are used only to build and check Bunyan, and are
+  NOT redistributed as part of it. Each carries its own licence in its own
+  package; `pnpm licenses list` enumerates every dependency against the
+  lockfile, and that lockfile is the authoritative list.
+
+--------------------------------------------------------------------------------
+5. Corrections to this file
+--------------------------------------------------------------------------------
+
+  2026-08-02 — Sections 3 and 4 replace a single section that claimed "the
+  remaining dependencies are build- and test-time only ... and are not
+  redistributed as part of Bunyan." That was false: seven MIT-licensed packages
+  ship in the browser bundle and none was attributed. The original sweep was
+  reasoned from the two dependencies whose licences were already under
+  discussion, rather than run against the lockfile; `pnpm licenses list --prod`
+  is the instrument that settles it, and it now has a test behind it.
+
+  Also corrected in the same pass: section 1 described the build recipe as
+  carrying "the pinned toolchain version". It does not — see the note there.
 
 ================================================================================
 If you believe an attribution here is incomplete or wrong, please open an issue.

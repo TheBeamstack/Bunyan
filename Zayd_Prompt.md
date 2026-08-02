@@ -150,12 +150,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 75**
-        (Zayd, 2026-08-02) — the review protocol had a hole — Entry 74 merged itself, and the ruling was never in the prompt
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 76**
+        (Zayd, 2026-08-02) — Entry 74 reviewed late — `NOTICE` said seven shipped dependencies were build-time only
 
-        ⇒ After `git pull`: §8's "newest entry" == 75  ⇒ you are current, start TASK.
-          HIGHER than 75 ⇒ the other agent has merged: read every abstract after
-          75 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 76  ⇒ you are current, start TASK.
+          HIGHER than 76 ⇒ the other agent has merged: read every abstract after
+          76 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -163,7 +163,7 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 75**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-02-review-protocol-hole` · `8422ae0` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-02-entry74-late-review` · `a7238b3` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
@@ -171,25 +171,28 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 75**
 ```
 TASK:   **THE PLAN + SECTION UNIT** (`docs/design/P5_step6C_plan_section_design.md` §8) — **the moment
         Q1–Q3 are ruled, and NOT BEFORE.** Q1 decides the SHAPE of the unit, so building first is
-        building the wrong thing, not building early. It has now been ruling-blocked across SIX
-        sessions (69→71→72→73→74→you), which is a fact to put in your opening message, not a reason
-        to start it anyway.
+        building the wrong thing, not building early. It has now been ruling-blocked across SEVEN
+        sessions (69→71→72→73→74→75→76→you), which is a fact to put in your opening message, not a
+        reason to start it anyway.
 
         ⚠⚠ **SO IF Q1–Q3 ARE STILL UNRULED WHEN YOU READ THIS, YOUR TASK IS THE ONE BELOW INSTEAD.**
         Do not idle, and do not start plan/section to fill the time.
 
-        **THE FALLBACK — REVIEW ENTRY 74 LATE, AND IT IS THE MOST USEFUL THING AVAILABLE.** Entry 74
-        is on `main` having **never been read by a second party** (its author merged it — that is
-        Entry 75's whole subject). It is not re-openable as a PR, so review the two commits
-        directly: `git show 93ec2a0` (the licence/CLA/NOTICE prose) and `git show 9c066d3` (the
-        re-seed gate narrowing). Two claims in it were explicitly flagged for a checker who never
-        came: (a) **`NOTICE` makes legal claims** about how we consume OCCT and planegcs — read it
-        against `licenses/` and against `tools/kernel-build/link.sh`; (b) **its dependency sweep
-        was reasoned from the two deps I already knew about** — `pnpm licenses list` against the
-        lockfile is the authoritative instrument and nobody has run it. Record what you find in
-        Entry 74's `REVIEW:` line, which currently says only that no one has looked.
-        ⚠ Its re-seed-gate half is already re-verified by `tests/reseed-gate.test.ts` (Entry 75
-        extended it), so the prose is where the unchecked risk actually sits.
+        **THE FALLBACK — ENTRY 74'S LATE REVIEW IS DONE (Entry 76). DO NOT REDO IT.** It found a
+        real defect (`NOTICE` §3 was false — see `NEW:`), fixed it, and put a gate behind it.
+        Entry 74's `REVIEW:` line now records the finding.
+
+        **SO THE FALLBACK, IF Q1–Q3 ARE STILL UNRULED, IS `open_rulings.md` Q14 — PIN THE EMSDK
+        IMAGE BY DIGEST.** It is small, self-contained, and it is the one loose thread Entry 76
+        deliberately did not pull, for a stated reason: it edits `link.sh` / `README.md`, which
+        Entry 75 just placed **behind the re-seed gate**, so it needs its own diff, its own
+        revert-verification, and a rebuild to confirm the digest actually produces emcc 6.0.2.
+        ⚠ Read `NOTICE` §1's second warning block first — it states the current position honestly
+        and you must not let the prose and the recipe drift apart again.
+        ⚠⚠ **AND THE TRAP: `OCCT_BUILD_ID` IS A HAND-MAINTAINED CONSTANT** at
+        `packages/kernel-occt/src/kernel.ts:52`, asserted by four tests **against itself**. So a
+        toolchain drift is invisible today, and pinning the image without also deriving or
+        re-checking that constant leaves the same hole with a tidier lid on it.
 
         THEN, once plan/section IS unblocked:
            ⚠ Read §5's test table BEFORE writing the fixture. Every criterion has a way to pass
@@ -200,10 +203,15 @@ TASK:   **THE PLAN + SECTION UNIT** (`docs/design/P5_step6C_plan_section_design.
            `REL_INHERIT` nor a cut node.
            ⚠ The `views` promotion is Entry 68's verbatim INCLUDING ITS CORRECTION — union member +
            dependency edge + optional-collection `.bnn` guard, and **NO `emptyScene()` entry**.
-        ⚠ **THE GOING-PUBLIC HOUSEKEEPING IS DONE (Entry 74) — do not redo it.** `LICENSE` (AGPL-3.0
-          verbatim), `NOTICE`, `licenses/`, `CLA.md`, and the `license` field in all ten manifests.
-          What is left is **owner-only and now Q11/Q12**: `CLA.md` ships `<LEGAL ENTITY>` as a marked
-          placeholder, and no lawyer has read it. Both block the first EXTERNAL PR, not publication.
+        ⚠ **THE GOING-PUBLIC HOUSEKEEPING IS DONE (Entry 74, corrected by Entry 76) — do not redo
+          it.** `LICENSE` (AGPL-3.0 verbatim), `NOTICE`, `licenses/` (**ten texts now, not three**),
+          `CLA.md`, and the `license` field in all ten manifests. What is left is **owner-only and
+          now Q11/Q12**: `CLA.md` ships `<LEGAL ENTITY>` as a marked placeholder, and no lawyer has
+          read it. Both block the first EXTERNAL PR, not publication.
+          ⚠ **`NOTICE` IS NOW GATED — `tests/notice-attribution.test.ts` walks the real runtime
+          closure.** If you add a runtime dependency to any manifest, that test fails until you
+          attribute it and copy its licence text in. That is deliberate: it is the check that would
+          have caught Entry 74.
 
         ⚠⚠ **THREE ITEMS THAT STOOD HERE ARE GONE. DO NOT RE-ADD ANY — each was killed by reading it
           against the artifact, and all are recorded in §5:**
@@ -222,7 +230,35 @@ TASK:   **THE PLAN + SECTION UNIT** (`docs/design/P5_step6C_plan_section_design.
           that stays ~3 min either way. My recommendation on the desk is **do not wire it for v1.0.0.**
         ⚠ **Do not re-open the move verbs' guard without the owner** — `open_rulings.md` Q7/Q8.
 
-NEW:    **⚠⚠ THE LESSON OF ENTRY 75, AND IT IS THE ONE THAT MATTERS MOST: I MERGED MY OWN PR.**
+NEW:    **⚠⚠ THE LESSON OF ENTRY 76: `NOTICE` ASSERTED SOMETHING ABOUT A SET WITHOUT COUNTING THE
+        SET, AND IT WAS FLATLY FALSE.** Entry 74 wrote that the remaining dependencies were *"build-
+        and test-time only … not redistributed as part of Bunyan."* **Seven MIT packages ship in the
+        browser bundle** — `react`, `react-dom`, `scheduler`, `three`, `fflate`, `js-tokens`,
+        `loose-envify` — **and not one was attributed**, in the file whose only job is attribution.
+        The sweep had been reasoned from the two dependencies already in the author's head.
+        `pnpm licenses list --prod` settles it in **half a second** and reports **eight**, not two.
+        ⇒ **THIS IS §1c-8's SECOND MECHANICAL FORM, AND IT KEEPS EARNING ITS PLACE: when a claim
+        QUANTIFIES OVER A SET, COUNT THE SET.** Do not enumerate from memory. An attribution notice,
+        a "every consumer was checked" sweep, a "these are all the callers" claim — all the same
+        shape, and all cheap to settle with one command.
+        ⇒ **The second half, and it is the sharper one: Entry 74 FLAGGED both claims for a reviewer,
+        then merged itself, so the reviewer never came.** A flag addressed to nobody is not a
+        control. **If you write "someone should check X", you have just admitted X is unchecked — so
+        either check it before you commit, or make it a test.** That artifact is now 0-for-2 here.
+        ⚠ And note where the defect was NOT: the OCCT static-link and prominent-notice prose read
+        true against `link.sh` and `licenses/`. The wrong part was the part nobody measured.
+
+        **⚠ ALSO FROM 76, REVIEWING 75 — A GUARD IS ONLY AS GOOD AS THE TEXT IT IS ALLOWED TO SEE.**
+        Entry 75's new `AWAITING REVIEW` check read `fields.REVIEW`, which held only the **first
+        physical line** of the bullet. These docs are prettier-wrapped at `printWidth: 100`, so
+        **the break is placed by sentence length, not by the author** — the same stale marker with a
+        lead-in in front of it wrapped onto line 2, passed `prettier --check`, and left `docs:check`
+        GREEN. Fixed with `fieldsFull`. ⇒ **When you turn a rule into a test, check what the test
+        READS, not just what it asserts.** The parser was correct for the question it was written
+        for (*is this field present?*) and wrong for the one it was reused for.
+
+        (Entry 75's lesson, still standing, and now kept for a second entry running:)
+        **⚠⚠ THE LESSON OF ENTRY 75: I MERGED MY OWN PR.**
         Entry 74 was opened and merged by the same session, so it is on `main` unreviewed. The
         owner caught it, not any check. **The ruling forbidding it existed the whole time** — owner
         decision 5, *"the REVIEWING agent merges"* — **but only in `handoff_system_design.md`, a
@@ -287,8 +323,9 @@ NEW:    **⚠⚠ THE LESSON OF ENTRY 75, AND IT IS THE ONE THAT MATTERS MOST: I 
         REFUSE where the recipe already decides the position (host / D52 baseline / datum, per-axis),
         and `core.createElement` carries the same refusal.
 
-        ⚠ **EIGHT OWNER RULINGS ARE OWED AND THREE BLOCK THE PLAN/SECTION UNIT — Q1, Q2, Q3, which
-        have now blocked it across FIVE sessions (69 → 71 → 72 → 73 → you).** They are all in
+        ⚠ **FOURTEEN OWNER RULINGS ARE OWED AND THREE BLOCK THE PLAN/SECTION UNIT — Q1, Q2, Q3,
+        which have now blocked it across SEVEN sessions (69 → 71 → 72 → 73 → 74 → 75 → 76 → you).**
+        *(Counted, not remembered — `open_rulings.md`, the two live tables.)* They are all in
         `open_rulings.md`, with recommendations — surface the blocking ones in your opening
         message even though TASK above means you are NOT idle without them.
         If a ruling arrives in chat, apply it AND record it in the doc it belongs to, then strike the
