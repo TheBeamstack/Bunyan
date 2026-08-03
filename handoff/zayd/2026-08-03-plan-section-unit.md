@@ -116,6 +116,34 @@ prompt's step 3 tell a reviewer to route on** — and the routing rule is *contr
 merges*. So on exactly the PRs that must not be agent-merged, the generated label says they may be. Not
 fixed here (it is a `scripts/state.mjs` change with its own revert-verification); raised as **Q15**.
 
+### 3f. ⚠⚠ THE RE-SEED GATE IS SATISFIED BY A TIMESTAMP
+
+CI failed on the re-seed gate (its **first fire on a genuine kernel change** — Entry 74's fire was a
+false positive on a licence field). It is a LOCATION matcher: any change under `packages/kernel-occt/src/`
+or `wasm/`, or `tools/kernel-build/src/`, demands that `tests/goldens/` also change.
+
+I re-seeded on the pinned oracle rather than routing around it, **and then diffed the result**:
+
+```
+  tests/goldens/geometry.golden.json | 1 insertion(+), 1 deletion(-)
+
+  -  "seededAt": "2026-07-13T11:52:47.575775+00:00",
+  +  "seededAt": "2026-08-03T10:42:25.654256+00:00",
+```
+
+**One line. Every volume, area, count and bound across all 12 fixtures is byte-identical** — which is
+the right answer, because this PR ADDS an op and modifies no existing geometry path. The 653-green suite
+(every golden test running against the newly-linked WASM) already said so; the re-seed confirms it
+independently against native OCCT.
+
+⇒ **But note what actually satisfied the gate: a timestamp.** The remedy it prints bumps `seededAt`
+unconditionally, so the gate cannot tell *"re-seeded, and the geometry is unchanged"* from *"re-seeded,
+the geometry MOVED, and nobody looked at the diff."* Entry 74 named this exact hazard — *"an agent who
+trips it and complies has silently re-baselined every golden with 'the gate told me to' as cover"* — and
+narrowing the matcher in Entry 75 fixed the false-positive half while leaving this half untouched. **The
+only thing that made my compliance safe here is that I read the diff**, which is not a property of the
+gate. Raised as **Q16**.
+
 ---
 
 ## 4. What the frozen surface did

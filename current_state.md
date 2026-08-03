@@ -563,7 +563,11 @@ is maintenance and does NOT get an entry of its own.**
   authorable only on a document whose options arrived by another road — **no command can create a design
   option**, while `core.createElement` deliberately skips the same check. ⚠ Hosting on `lateral.0` instead
   of `lateral.1` cuts a face the plan never meets: **volume comes back exactly uncut (1,920,000,000 mm³)**
-  and everything reports success.
+  and everything reports success. ⚠⚠ **AND THE RE-SEED GATE IS SATISFIED BY A TIMESTAMP** — its first
+  fire on a real kernel change; I re-seeded on the pinned oracle and **the whole diff is one line,
+  `seededAt`**, every geometry value across 12 fixtures byte-identical (correct — this PR adds an op and
+  modifies no existing path). But the gate cannot tell that from a re-seed where the geometry MOVED and
+  nobody looked: **the only thing that made compliance safe was reading the diff** (⇒ Q16).
 - **OWES:** Owner: **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** (§4 — three declarations
   moved, baseline re-based in-PR under D81). **Q15 (NEW)** — `pnpm state --rebaseline` labels exactly
   these PRs `RISK: additive`. Q4/Q5 stand as recorded. Amer: `projectView` returns `ViewCurve[]` with real
@@ -893,15 +897,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **77 (Zayd, 2026-08-03)** |
-| branch · tip · tree | `zayd/2026-08-03-plan-section-unit` · `8423542` · dirty |
-| open PRs | none — main is the tip of the work |
+| branch · tip · tree | `zayd/2026-08-03-plan-section-unit` · `7da794d` · dirty |
+| open PRs | #5 zayd/2026-08-03-plan-section-unit |
 | suite | **653 green** · 81 files · 212 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 23 files changed, 909 insertions(+), 59 deletions(-) (23 files) |
-| docs budget | current_state 74.1/96.0 KB · §7 30.0/32.0 KB · abstracts 10/10 · bodies 24 |
+| diff vs origin/main | 27 files changed, 2137 insertions(+), 225 deletions(-) (27 files) |
+| docs budget | current_state 74.6/96.0 KB · §7 30.5/32.0 KB · abstracts 10/10 · bodies 24 |
 
 _Generated 2026-08-03 by `pnpm state`._
 
