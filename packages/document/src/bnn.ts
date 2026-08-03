@@ -208,10 +208,12 @@ export function loadBnn(bytes: Uint8Array): BnnPackage {
   // LEGAL (it means "this document has none"), present-and-not-an-object is a typed refusal. Guarding them
   // like the required ones would reject every `.bnn` ever written, since none of them carries the key.
   //
-  // ⚠ Only `schedules` is here, because Entry 68's CRUD made it the first documentation collection a body
-  // WRITES and READS — `null` would reach `applyOne`/`evaluateSchedule` as an object (`typeof null`, the
-  // trap above). `views`/`annotations`/`sheets` join it when their bodies land, per the row Ⓐ design.
-  for (const key of ['schedules'] as const) {
+  // ⚠ A collection joins this loop the moment a body WRITES and READS it, because that is when `null`
+  // stops being inert and starts reaching real code as an object (`typeof null`, the trap above).
+  // `schedules` joined in Entry 68 with its CRUD; `views` joins in Entry 77 with `core.createView` and
+  // `projectView` (D81). `annotations`/`sheets` are still pure reservations that nothing can author, so
+  // they stay out — guarding a key no body touches would be padding, and the row Ⓐ design says so.
+  for (const key of ['schedules', 'views'] as const) {
     if (parsed[key] !== undefined && !isPlainObject(parsed[key])) {
       throw new Error(`.bnn scene.json: "${key}" must be an object, and it is not`);
     }

@@ -351,6 +351,20 @@ completed, and after P5 it is an amendment across three products. §7 Q1/Q2.
 
 ## 7. Open questions for the Architect
 
+> ## ✅ **ALL FIVE ARE RULED. Q1–Q3 by the owner in chat on 2026-08-03 (D81), each as recommended;
+>
+> Q4 and Q5 stand where §7 left them.**
+>
+> - **Q1 ⇒ (a)** — v1.0.0 ships **`mode:'cut'` only.**
+> - **Q2 ⇒ (a)** — **`SectionCurve.nodeId?: string`**, reserved now, written by nothing until projection lands.
+> - **Q3 ⇒ all four** — `refTo` gains `'view'`, `'sheet'`, `'annotation'`, `'family'`.
+> - **Q4 ⇒ no sheet in v1.0.0** (`open_rulings.md` Q4, recommendation standing and uncontested).
+> - **Q5 ⇒ mine**, a documented fixed chord tolerance that never reaches a quantity (rule 15).
+>
+> ⚠ **These blocked this unit across SEVEN sessions (69 → 71 → 72 → 73 → 74 → 75 → 76).** The text below
+> is preserved verbatim as the reasoning the ruling was taken against — it is the argument, not the
+> queue. The queue is `open_rulings.md`, where these rows are struck.
+
 **Q1 — THE ONE THAT SHAPES THE UNIT. What does v1.0.0's plan and section SHOW?**
 Both measured facts push the same way: the projected half is the expensive one (§1.4, super-linear) _and_
 the unattributable one (§1.2).
@@ -430,7 +444,12 @@ version bump. Constrained at the source per §6a (`--memory=2g --cpus=2`), and t
 
 ## 9. Status
 
-**DESIGN DELIVERED — BUILD BLOCKED ON §7.** Nothing in this session touched source; the deliverable is this
-doc, per the standing design-first rule. Nothing frozen moved, and the freeze (step 6) remains the owner's
-act and remains unblocked: §6.1 is a hole in a _reservation nothing reads_, and both proposed fixes are
-additive.
+**DESIGN DELIVERED (Entry 69) — RULED 2026-08-03 (D81) — BUILT (Entry 77).** Nothing in the design session
+touched source; the deliverable was this doc, per the standing design-first rule. Nothing frozen moved,
+and the freeze (step 6) remains the owner's act and remains unblocked: §6.1 is a hole in a _reservation
+nothing reads_, and both proposed fixes are additive.
+
+⚠ **What Entry 77 actually built is §8 under Q1(a) + Q2(a) + Q3-all-four.** Where the build measured
+something this doc asserted, the correction is recorded in the entry and in `current_state.md` §7 —
+**read those against this doc before trusting a number here**, per §1c's standing rule that a copy is a
+claim nobody re-reads.

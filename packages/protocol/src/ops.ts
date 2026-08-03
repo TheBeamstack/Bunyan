@@ -654,10 +654,34 @@ export interface SectionCutPayload {
 
 export interface SectionCurve {
   /**
-   * The sub-shape this curve came from — the provenance that makes the drawing parametric. Absent only
-   * where a curve has no single owner (a silhouette of a curved surface has no edge behind it).
+   * The sub-shape this curve came from — the provenance that makes the drawing parametric.
+   *
+   * ⚠⚠ THIS COMMENT USED TO SAY *"absent only where a curve has no single owner (a silhouette of a
+   * curved surface has no edge behind it)"*, AND THAT WAS FALSE ABOUT HALF THE OP. Measured in Entry
+   * 69 (`P5_step6C_plan_section_design.md` §1.2/§6.1): a **projected** curve can carry no `ref` AT
+   * ALL, ever — HLR emits new geometry that shares **0 of 4** `IsSame()` with its input, and its
+   * finest granularity is the whole solid, not a face. The silhouette case is real but it is the
+   * rare one; the common one is that projection cannot attribute, full stop.
+   *
+   * ⇒ **`kind:'cut'` ALWAYS carries a `ref`** — OCCT's own `Generated()` history attributes every cut
+   * edge to exactly one owner face (measured 4/4, 1/1, 8/8, zero orphans). **`kind:'projected'` never
+   * does**; it carries `nodeId` instead, below. v1.0.0 emits only `cut` (D81/Q1), so in practice
+   * every curve a shipped Bunyan draws has one.
    */
   readonly ref?: SubShapeRef;
+  /**
+   * ⚠ RESERVED (D81/Q2, 2026-08-03) — the DAG node (the part) a PROJECTED curve came from, which is
+   * precisely the granularity §1.2 measured: no more, and honestly no less.
+   *
+   * Nothing writes it in v1.0.0, because Q1 ships `mode:'cut'` only. It exists now because the field
+   * must precede the freeze or the P6 projection body amends a frozen contract. `nodeId` is already
+   * the opaque first component of every `SubShapeRef`, so this introduces no new vocabulary — and
+   * that is the argument for it over widening `SubShapeKind` with `'solid'`, which would have widened
+   * the identity vocabulary three products bind to and that `scene.json` is written in.
+   *
+   * ⚠ A consumer must not read this as sub-shape identity. It names a solid; it cannot name a face.
+   */
+  readonly nodeId?: string;
   /** `cut` = the plane passes through solid material here. `projected` = visible beyond the plane. */
   readonly kind: 'cut' | 'projected';
   /** A polyline IN THE PLANE'S 2D FRAME, flat [x0,y0, x1,y1, …] in millimetres. */
@@ -794,12 +818,17 @@ export const OP_NAMES = [
  * design of deriving the advertisement from the handler map). **The MOCK still does not implement them,
  * and that is correct rather than incomplete:** it holds no B-Rep, so it cannot serialise one, and a
  * mock that faked a cache would fake exactly the thing the cache exists to verify.
+ *
+ * ⚠⚠ **AND `sectionCut` LEFT IT ON 2026-08-03 (Entry 77, D81) — THE 2D CUT HAS A BODY.** The reservation
+ * did its job exactly as designed: the payload shape was agreed in Entry 15 while the protocol was soft,
+ * and the body was written three phases later against that unchanged shape, with `capabilities` picking
+ * it up from the handler map and no other edit. ⚠ The MOCK does not implement it, for the `exportBrep`
+ * reason one artifact along: it holds no B-Rep, so it has nothing to cut, and a mock that returned
+ * plausible curves would fake precisely the invariant the op exists to prove (that a drawing IS the
+ * B-Rep). ⚠ `mode:'cut+projection'` is still unimplemented — D81/Q1 ruled cut-only for v1.0.0 — and it
+ * needs no reservation of its own, because the frozen payload already carries the mode.
  */
-export const RESERVED_OPS = [
-  'sectionCut',
-  'importIfc',
-  'instantiate',
-] as const satisfies readonly OpName[];
+export const RESERVED_OPS = ['importIfc', 'instantiate'] as const satisfies readonly OpName[];
 
 export function isOpName(value: string): value is OpName {
   return (OP_NAMES as readonly string[]).includes(value);

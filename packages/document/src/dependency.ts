@@ -150,6 +150,23 @@ export function dependents(
       // freshness needs no invalidation at all, because its rows are re-derived on every `evaluateSchedule`
       // and NOTHING is stored (D78 — the body caches nothing, exactly so this line can stay empty).
       return [];
+    case 'views':
+      // NO ELEMENT-GEOMETRY EDGE — a declared "nothing", and the schedules case above is the precedent
+      // rather than a coincidence: a VIEW IS A PROJECTION TOO (Entry 77, D58 row Ⓐ / D81). The arrow
+      // points one way — the drawing reads elements, no element reads the drawing — so no solid changes
+      // shape when a view is created, renamed, re-scaled, re-clipped or deleted.
+      //
+      // ⚠ THE PLAUSIBLE WRONG EDGE IS THE SAME SHAPE AND WORSE HERE. "Editing a view re-stages the
+      // elements it shows" would rebuild every solid on a LEVEL to change a drawing's scale — a number
+      // that sizes annotations and never touches the model. `scale` and `clip` are display parameters
+      // by construction (rule 17), and `designOptionIds` is a *question asked of* the model, never a
+      // change to it.
+      //
+      // ⚠ A view's own freshness needs no invalidation either, for the same reason the schedule's does
+      // not: `projectView` re-derives the curves on every call and STORES NOTHING (§4.5 — it is a query,
+      // writes no `scene.json` byte, mints no `UndoableEdit`, caches nothing). The `.bnn` carries the
+      // descriptor, never the drawing. That is precisely what lets this line stay empty.
+      return [];
     case 'roomSeparators':
       // NO ELEMENT-GEOMETRY EDGE — a declared "nothing", like `materials` (P5 step 0g). A separator re-bounds
       // a SPACE (a query the room-bounding solver recomputes on demand), never an element's SOLID — no wall,

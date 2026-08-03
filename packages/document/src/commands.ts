@@ -40,7 +40,12 @@ import type {
   SpatialContainer,
 } from './entities.js';
 import { isDatumConstraint, isJoinConstraint } from './entities.js';
-import type { ScheduleColumn, ScheduleDefinition, ScheduleFilter } from './documentation.js';
+import type {
+  ScheduleColumn,
+  ScheduleDefinition,
+  ScheduleFilter,
+  ViewDescriptor,
+} from './documentation.js';
 import { joinOverridesOf, wallsMeet } from './joins.js';
 import {
   applyMotions,
@@ -53,6 +58,7 @@ import {
   withTranslation,
 } from './placement.js';
 import { scheduleDefinitionIssues } from './schedule.js';
+import { viewDescriptorIssues } from './view.js';
 import { readSketch } from './sketch.js';
 import type { Registries } from './registries.js';
 import type { Scene, SceneChange } from './scene.js';
@@ -2269,6 +2275,251 @@ export const deleteScheduleCommand: Command = {
 };
 
 /* ================================================================================================
+ * THE VIEW CRUD (D58 row Ⓐ's third unit — `P5_step6C_plan_section_design.md` §4.3, D81)
+ *
+ * ⚠⚠ THE VERBS CARRY THE REFUSAL THE BODY WILL NOT, AND THAT ASYMMETRY IS THE DESIGN. A projection must
+ * never deny a builder his drawing (rule 17), so `projectView` DEGRADES — it draws what it can and
+ * reports what it could not in `unprojected[]`. That makes the AUTHORING DOOR the only place a
+ * malformed descriptor can be stopped, which is why every refusal lives here and none lives there.
+ *
+ * ⚠ The grammar itself lives in `view.ts` beside the thing it validates (`viewDescriptorIssues`),
+ * never here — Entry 68's Q1 discipline. `commands.ts` only turns issues into a typed `CommandFailure`.
+ * A validator in the command layer is a second home for the grammar, and two homes drift.
+ * ============================================================================================= */
+
+const VIEW_KIND_ARG: ParamField = {
+  kind: 'enum',
+  label: 'Kind',
+  required: true,
+  description: 'plan (cut at a Level) · section (a cut plane) · elevation · 3d.',
+  options: ['plan', 'section', 'elevation', '3d'],
+};
+
+const VIEW_CLIP_ARG: ParamField = {
+  kind: 'array',
+  label: 'Clip',
+  description: 'World-mm [[minX,minY,minZ],[maxX,maxY,maxZ]]. Absent ⇒ the whole model.',
+  items: { kind: 'array', label: 'Corner', items: { kind: 'number', label: 'mm' } },
+};
+
+const VIEW_OPTIONS_ARG: ParamField = {
+  kind: 'array',
+  label: 'Design options',
+  description: 'Which design alternatives this view shows. Absent ⇒ each set’s primary.',
+  items: { kind: 'ref', refTo: 'designOption', label: 'Design option' },
+};
+
+/**
+ * Build the descriptor an edit would store, then refuse it as ONE typed failure naming every problem.
+ *
+ * ⚠ IT VALIDATES THE MERGED RESULT, NOT THE ARGS — Entry 68's finding, which generalises directly and
+ * bites harder here: `updateView` changing `kind` from `plan` to `section` while mentioning no `normal`
+ * leaves a section with NO CUT DIRECTION. Each half is legal on its own; only the merged descriptor is
+ * degenerate, and it draws an empty plan that reads as "nothing is on this line".
+ */
+function checkViewDescriptor(descriptor: ViewDescriptor, scene: Scene): ViewDescriptor {
+  const issues = viewDescriptorIssues(descriptor, scene);
+  if (issues.length > 0) {
+    throw new CommandFailure(
+      'REFUSED',
+      `this view descriptor would not draw correctly — refusing to store it`,
+      issues,
+    );
+  }
+  return descriptor;
+}
+
+/**
+ * Who would break if this view were deleted.
+ *
+ * ⚠ IT REUSES ENTRY 68's REFERRER MACHINERY UNCHANGED, and the reuse is the argument. A `Sheet.viewports`
+ * entry may place a view, `sheets` is still a collection NOTHING CAN AUTHOR, so this is RESTRICT-or-break
+ * with `redirect` ABSENT — which is exactly why Entry 68 made `Referrer.redirect` optional. **That
+ * optionality is now load-bearing for a second consumer**, which is the evidence it was the right shape
+ * rather than a convenience.
+ */
+function viewReferrers(scene: Scene, viewId: string): readonly Referrer[] {
+  const out: Referrer[] = [];
+  for (const sheet of Object.values(scene.sheets ?? {})) {
+    if (!sheet.viewports.some((v) => v.viewId === viewId)) continue;
+    out.push({
+      describe: `sheet "${sheet.number}" places view "${viewId}"`,
+      retargetKey: viewId,
+    });
+  }
+  return out;
+}
+
+/** Narrow a validated nested `array` arg to a clip box. Never coerces — an unusable shape is absent. */
+function clipBox(value: ParamValue | undefined): ViewDescriptor['clip'] | undefined {
+  if (!Array.isArray(value) || value.length !== 2) return undefined;
+  const corner = (v: unknown): readonly [number, number, number] | undefined => {
+    if (!Array.isArray(v) || v.length !== 3) return undefined;
+    if (!v.every((n) => typeof n === 'number' && Number.isFinite(n))) return undefined;
+    return v as unknown as readonly [number, number, number];
+  };
+  const min = corner(value[0]);
+  const max = corner(value[1]);
+  if (min === undefined || max === undefined) return undefined;
+  return [min, max];
+}
+
+/** Assemble the kind-specific half of a descriptor from args, leaving absent args absent. */
+function viewKindFields(
+  kind: string,
+  args: Readonly<Record<string, ParamValue | undefined>>,
+): Record<string, unknown> {
+  switch (kind) {
+    case 'plan':
+      return {
+        ...(args['levelId'] === undefined ? {} : { levelId: text(args['levelId']) }),
+        ...(args['cutHeight'] === undefined ? {} : { cutHeight: num(args['cutHeight']) }),
+      };
+    case 'section':
+      return {
+        ...(vec3(args['origin']) === undefined ? {} : { origin: vec3(args['origin']) }),
+        ...(vec3(args['normal']) === undefined ? {} : { normal: vec3(args['normal']) }),
+      };
+    case 'elevation':
+    case '3d':
+      return {
+        ...(vec3(args['direction']) === undefined ? {} : { direction: vec3(args['direction']) }),
+      };
+    default:
+      return {};
+  }
+}
+
+const VIEW_GEOMETRY_ARGS: ParamSchema = {
+  levelId: { kind: 'ref', refTo: 'container', label: 'Level', description: 'plan only.' },
+  cutHeight: {
+    kind: 'number',
+    label: 'Cut height',
+    unit: 'mm',
+    description: 'plan only — mm above the Level datum. Absent ⇒ 1200.',
+  },
+  origin: {
+    kind: 'point',
+    label: 'Origin',
+    description: 'section only — a point on the cut plane, world mm.',
+  },
+  normal: {
+    kind: 'point',
+    label: 'Normal',
+    description: 'section only — the view direction. MUST be non-zero.',
+  },
+  direction: {
+    kind: 'point',
+    label: 'Direction',
+    description: 'elevation / 3d — the look direction.',
+  },
+};
+
+export const createViewCommand: Command = {
+  id: 'core.createView',
+  label: 'Create view',
+  description:
+    'Create a view — a plane, a scale, an optional clip. The CURVES are DERIVED on projection; no drawn geometry is stored (D58, rule 17). v1.0.0 draws the cut only (D81).',
+  argsSchema: {
+    kind: VIEW_KIND_ARG,
+    name: { kind: 'string', label: 'Name', required: true },
+    scale: { kind: 'number', label: 'Scale', required: true, description: '100 ⇒ 1:100.' },
+    clip: VIEW_CLIP_ARG,
+    designOptionIds: VIEW_OPTIONS_ARG,
+    ...VIEW_GEOMETRY_ARGS,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createViewCommand, rawArgs);
+    // ⚠ MINTED, never caller-supplied (D44) — same argument as a schedule: a view has a NAME the user
+    // owns and no natural key, so its id is machine identity, and a caller-chosen one re-opens id reuse.
+    const id = ctx.mintId('view');
+    const kind = text(args['kind']);
+    const clip = clipBox(args['clip']);
+    const designOptionIds = stringList(args['designOptionIds']);
+    const descriptor = checkViewDescriptor(
+      {
+        id,
+        kind,
+        name: text(args['name']),
+        scale: num(args['scale']),
+        ...(clip === undefined ? {} : { clip }),
+        ...(designOptionIds === undefined ? {} : { designOptionIds }),
+        ...viewKindFields(kind, args),
+      } as ViewDescriptor,
+      ctx.scene,
+    );
+    return ctx.edit(
+      `Create view ${descriptor.name}`,
+      [{ collection: 'views', id, after: descriptor }],
+      // ⚠ NOTHING REBUILDS. A view reads the model; the model does not read the view
+      // (`dependency.ts` declares that edge as a deliberate "nothing", for the schedules reason).
+      [],
+    );
+  },
+};
+
+export const updateViewCommand: Command = {
+  id: 'core.updateView',
+  label: 'Edit view',
+  description:
+    'Rename a view or change its scale/clip/plane/options. Absent args are left unchanged. No geometry rebuild — a view is a projection.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'view', label: 'View', required: true },
+    kind: { ...VIEW_KIND_ARG, required: false },
+    name: { kind: 'string', label: 'Name' },
+    scale: { kind: 'number', label: 'Scale' },
+    clip: VIEW_CLIP_ARG,
+    designOptionIds: VIEW_OPTIONS_ARG,
+    ...VIEW_GEOMETRY_ARGS,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(updateViewCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.views?.[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown view "${id}"`);
+    const kind = args['kind'] === undefined ? before.kind : text(args['kind']);
+    const clip = clipBox(args['clip']);
+    const designOptionIds = stringList(args['designOptionIds']);
+    const after = checkViewDescriptor(
+      {
+        ...before,
+        kind,
+        ...(args['name'] === undefined ? {} : { name: text(args['name']) }),
+        ...(args['scale'] === undefined ? {} : { scale: num(args['scale']) }),
+        ...(clip === undefined ? {} : { clip }),
+        ...(designOptionIds === undefined ? {} : { designOptionIds }),
+        ...viewKindFields(kind, args),
+      } as ViewDescriptor,
+      ctx.scene,
+    );
+    return ctx.edit(`Edit view ${after.name}`, [{ collection: 'views', id, before, after }], []);
+  },
+};
+
+export const deleteViewCommand: Command = {
+  id: 'core.deleteView',
+  label: 'Delete view',
+  description:
+    'Delete a view. REFUSED if a sheet places it, unless retargetMap redirects the viewport or acknowledge:true.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'view', label: 'View', required: true },
+    ...GUARD_ARGS,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteViewCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.views?.[id];
+    if (before === undefined) throw new CommandFailure('NOT_FOUND', `unknown view "${id}"`);
+    const extra = guardReferences(`view "${id}"`, viewReferrers(ctx.scene, id), args);
+    return ctx.edit(
+      `Delete view ${before.name}`,
+      [...extra, { collection: 'views', id, before }],
+      [],
+    );
+  },
+};
+
+/* ================================================================================================
  * THE FIVE MOVE VERBS (P4.5 row ⓑ, owner-ruled Q4 2026-07-30 — `P4.5_interaction_model_design.md` §9)
  *
  * ⚠⚠ THE RULED SPLIT IS THE WHOLE UNIT, AND IT IS COUNTER-INTUITIVE: **an element whose position lives in
@@ -2700,6 +2951,12 @@ export const CORE_COMMANDS: readonly Command[] = [
   createScheduleCommand,
   updateScheduleCommand,
   deleteScheduleCommand,
+  // ⚠ D58 row Ⓐ's third unit (D81): the view CRUD. The reserved `ViewDescriptor` had a READER coming
+  // (`projectView`) and no WRITER at all — 0 of 40 commands could author a view — so v1.0.0's "one plan
+  // and one section" were unreachable by any door, exactly the gap Entry 68 closed for schedules.
+  createViewCommand,
+  updateViewCommand,
+  deleteViewCommand,
   // ⚠ P4.5 row ⓑ (owner-ruled Q4): the five move verbs. `core.array` is a RESERVED SHAPE that refuses —
   // registered so its `argsSchema` freezes with the contract, not so it can be called (see its comment).
   setPlacementCommand,

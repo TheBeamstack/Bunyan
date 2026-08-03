@@ -33,6 +33,7 @@ import type {
   KernelFailureCode,
   KernelInfo,
   MeshBuffers,
+  SectionCurve,
 } from '@bunyan/protocol';
 
 import { UnnameableSubShape, composeRefs, composeTransformRefs, drainNaming } from './naming.js';
@@ -50,6 +51,18 @@ import type { OcctBounds, OcctModule, OcctVectorDouble } from '../wasm/bunyan-ke
  * goldens if OCCT itself moved.
  */
 export const OCCT_BUILD_ID = 'occt-7.9.3-emcc-6.0.2';
+
+/**
+ * The chord tolerance a section polyline approximates its exact curve to, in millimetres.
+ *
+ * ⚠⚠ IT IS A DISPLAY PARAMETER AND IT MUST NEVER REACH A QUANTITY (domain rule 15; owner Q5, taken as
+ * "mine, documented"). A section of a cylinder is an exact circle and `SectionCurve.points` is a
+ * polyline, so SOME tolerance has to be chosen — but the exact identity travels beside it in `ref`, so
+ * a dimension anchored in the drawing reads the MODEL, never this approximation. 0.5 mm is below the
+ * line weight of any drawing scale this product targets (at 1:100 it is 5 µm on paper), so it is
+ * invisible where it is displayed and irrelevant where it is measured.
+ */
+const SECTION_DEFLECTION = 0.5;
 
 /**
  * Everything about this kernel that is NOT derived from its handlers.
@@ -695,6 +708,86 @@ export async function createOcctKernel(
         uAxis: [f.ux, f.uy, f.uz],
         vAxis: [f.vx, f.vy, f.vz],
       };
+    },
+
+    /**
+     * THE 2D CUT (D81/Q1) — and the one line that matters is the `ref`.
+     *
+     * ⚠⚠ THE OWNER FACE ARRIVES AS A CANONICAL INDEX AND LEAVES AS THE FACE'S OWN EXISTING TOKEN.
+     * That is the whole point of the op: a dimension anchored to a wall face in plan must be anchored
+     * to *the same* `SubShapeRef` the 3D model carries, so it survives the wall being edited. Minting
+     * a new identity here — or returning the index raw and letting a consumer invent one — would make
+     * the drawing a picture. ⚠ `shape.faceRefs[i]` is exactly the mapping, because a face's canonical
+     * index IS its index into `refs` (faces are emitted first); the same assumption `tessellate`
+     * relies on, and it is asserted there too.
+     *
+     * ⚠ A curve the kernel could not attribute comes back with `face === -1` and is emitted WITH NO
+     * `ref` rather than dropped. Entry 69 measured section history complete on every shape class
+     * tried, so this should not fire — and if it ever does, a visible unattributed curve is a finding,
+     * whereas a missing wall in a drawing is a defect nobody sees until it is built.
+     */
+    sectionCut: (payload) => {
+      const handles = new wasm.VectorInt();
+      // Only handles that are still live are sent. A dead one costs its solid, never the drawing
+      // (rule 4 / D75) — the document layer reports the gap in `unprojected[]`.
+      const sent: OcctShape[] = [];
+      try {
+        for (const handle of payload.handles) {
+          const shape = shapes.get(handle);
+          if (shape === undefined) continue;
+          handles.push_back(shape.id);
+          sent.push(shape);
+        }
+
+        const { origin, normal, xAxis } = payload.plane;
+        const views = wasm.sectionCut(
+          handles,
+          origin[0],
+          origin[1],
+          origin[2],
+          normal[0],
+          normal[1],
+          normal[2],
+          xAxis[0],
+          xAxis[1],
+          xAxis[2],
+          SECTION_DEFLECTION,
+        );
+        if (!views.ok) throw failFromKernel(wasm, 'sectionCut');
+
+        // ⚠ COPY NOW — every array is a zero-copy window onto the WASM heap, invalidated by the next
+        // call or any heap growth. Nothing below may await before these run.
+        const points = new Float32Array(views.points);
+        const start = new Int32Array(views.start);
+        const count = new Int32Array(views.count);
+        const input = new Int32Array(views.input);
+        const face = new Int32Array(views.face);
+        const closed = new Int32Array(views.closed);
+
+        const curves: SectionCurve[] = [];
+        for (let i = 0; i < views.curves; i++) {
+          const from = start[i] ?? 0;
+          const n = count[i] ?? 0;
+          const flat: number[] = [];
+          for (let p = 0; p < n * 2; p++) flat.push(points[from * 2 + p] ?? 0);
+
+          const shape = sent[input[i] ?? -1];
+          const faceIndex = face[i] ?? -1;
+          const token = faceIndex < 0 ? undefined : shape?.faceRefs[faceIndex];
+          const ref = token === undefined ? undefined : decodeSubShapeRef(token);
+
+          curves.push({
+            ...(ref === undefined ? {} : { ref }),
+            kind: 'cut',
+            points: flat,
+            closed: (closed[i] ?? 0) === 1,
+          });
+        }
+        return { curves };
+      } finally {
+        // WASM heap — an embind vector constructed on the JS side must be released explicitly.
+        handles.delete();
+      }
     },
 
     tessellate: (payload) => {

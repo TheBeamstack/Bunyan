@@ -66,9 +66,15 @@ export interface ParamField {
    * `core.updateSchedule`/`deleteSchedule` take a schedule id, and typing it as a bare `string` would
    * leave the picker/tool-list unable to say what the id NAMES — then widening this union later, after
    * `ParamSchema` freezes at P5, would be an amendment across three products. Free now, precedented by
-   * row Ⓕ, and no body switches on it. ⚠ The other documentation collections (`view`, `sheet`,
-   * `annotation`) and `family` have the SAME exposure and are deliberately NOT added here — their CRUD is
-   * post-freeze, and whether to pre-widen for them is an owner call, not a side effect of this unit.
+   * row Ⓕ, and no body switches on it. ⚠ Entry 68 deliberately stopped there and left `view`, `sheet`,
+   * `annotation` and `family` out, calling them an owner call rather than a side effect of that unit.
+   *
+   * ⚠⚠ THAT OWNER CALL CAME BACK AS A BLOCKER, WHICH IS THE PART WORTH REMEMBERING. `core.createView`
+   * takes a view id, so the RESERVATION ITSELF blocked the plan/section unit across SEVEN sessions
+   * (69 → 71 → 72 → 73 → 74 → 75 → 76) — a question deferred to keep a unit clean stalled the next one
+   * entirely. Ruled 2026-08-03 (**D81/Q3**): **all four go in at once**, not just the `'view'` this
+   * unit needs, precisely so the next documentation unit does not pay the same toll. Free now, an
+   * amendment after step 6, and — still — no body switches on it.
    */
   readonly refTo?:
     | 'element'
@@ -79,7 +85,11 @@ export interface ParamField {
     | 'grid'
     | 'system'
     | 'designOption'
-    | 'schedule';
+    | 'schedule'
+    | 'view'
+    | 'sheet'
+    | 'annotation'
+    | 'family';
   /** For `array`: the shape of each item. For `object`: the shape of its fields. */
   readonly items?: ParamField;
   readonly fields?: ParamSchema;

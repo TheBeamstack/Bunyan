@@ -221,7 +221,20 @@ export type SceneCollection =
    * the designed mechanism, Entry 33). `views`/`annotations`/`sheets` follow the same way when their
    * bodies land.
    */
-  | 'schedules';
+  | 'schedules'
+  /**
+   * ⚠ PROMOTED FROM A RESERVATION (Entry 77 — D58 row Ⓐ's third unit, D81). Identical terms to
+   * `schedules` above, deliberately: a view is now AUTHORED (`core.createView`/`updateView`/
+   * `deleteView`), so its creation/rename/deletion is an ordinary undoable `SceneChange`, and adding
+   * this member forced its rebuild edge to be declared in `dependency.ts` before this file would
+   * compile. `annotations`/`sheets` remain reservations and follow the same way when their bodies land.
+   *
+   * ⚠⚠ AND NOTE WHAT DID NOT HAPPEN: no `emptyScene()` entry. Entry 68 predicted one and MEASURED that
+   * it was wrong (see the comment in `emptyScene` above); this unit did not re-litigate it. A document
+   * with no views stays byte-identical, and all four documentation collections keep the one rule —
+   * absent ⇒ none of it.
+   */
+  | 'views';
 
 /**
  * One atomic change to the scene — and the unit undo is built from.

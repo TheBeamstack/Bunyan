@@ -407,7 +407,13 @@ describe('D29 — the geometry cache: a cached solid keeps its identities, or it
    * ========================================================================================= */
 
   it('⚠ the two ops have LEFT `RESERVED_OPS`, the real kernel advertises them, and the MOCK still does not', async () => {
-    expect(RESERVED_OPS).toEqual(['sectionCut', 'importIfc', 'instantiate']);
+    // ⚠ `sectionCut` left the list in Entry 77 (D81) when the 2D cut got its body — the same handshake
+    // `exportBrep`/`importBrep` made here. ⚠⚠ AND NOTE THAT THIS LINE IS A **SECOND COPY** of an
+    // assertion `tests/quantities-and-contract.test.ts` already makes: taking one op off `RESERVED_OPS`
+    // fails in two files, and a reader who fixes only the one CI names has left the other to fail next
+    // run. §1e's *"a copy is a claim nobody re-reads"* with the copies one directory apart — recorded
+    // rather than deduplicated, because collapsing them is its own change and this PR is large enough.
+    expect(RESERVED_OPS).toEqual(['importIfc', 'instantiate']);
 
     const { kernel: info } = await client.request('handshake', { clientProtocolVersion: 1 });
     expect(info.capabilities).toContain('exportBrep');
