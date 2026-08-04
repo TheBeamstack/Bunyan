@@ -570,6 +570,29 @@ describe('D58 row Ⓐ — plan/section: a drawing is a PROJECTION of the B-Rep (
     // Excluding it is not a failure to draw it, and reporting it as one would be its own defect.
     expect(clipped.unprojected).toEqual([]);
   }, 180000);
+
+  /* ============================================================================================
+   * §10 — `closed` IS FALSE ON A CUT CURVE, AND THE FROZEN COMMENT USED TO SAY OTHERWISE
+   *
+   * ⚠ Entry 77 measured this and left the comment standing, believing a correction was a second
+   * contract edit. It is not: `scripts/frozen-surface.mjs` strips comments before hashing and says so
+   * in its own header. So the fix was free, and the only thing that had ever been missing was a test —
+   * which is what turns a measurement somebody wrote down into one the build keeps re-checking.
+   * ========================================================================================= */
+
+  it('⚠⚠ every cut curve reports `closed=false` — the section returns EDGES, not the loop they form', async () => {
+    const doc = newDoc();
+    const levelId = await makeLevel(doc);
+    await makeWall(doc, [0, 0], [4000, 0], { containerId: levelId });
+
+    const result = await doc.projectView(await planOn(doc, levelId));
+
+    // ⚠ THE NUMBER, NOT A DIRECTION. `some(c => !c.closed)` would be green if ONE of four were open,
+    // which is exactly the state a half-fixed implementation would leave behind.
+    expect(result.curves).toHaveLength(4);
+    expect(result.curves.every((c) => c.curve.kind === 'cut')).toBe(true);
+    expect(result.curves.filter((c) => c.curve.closed)).toHaveLength(0);
+  }, 180000);
 });
 
 /**

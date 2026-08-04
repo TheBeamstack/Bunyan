@@ -575,20 +575,21 @@ is maintenance and does NOT get an entry of its own.**
 - **RISK:** contract-touching
 - **FULL:** `handoff/zayd/2026-08-03-plan-section-unit.md`
 - **REVIEW:** **REVIEWED 2026-08-04 by the Entry-78 session** (Zayd, a later session — the protocol
-  holding for a fourth entry). ⚠ **STILL AWAITING THE OWNER'S MERGE, which is the gate here — not the
-  review.** Item 1 re-executed against the author's claim 1: reverting `projectView` to key by
+  holding for a fourth entry); full record in PR #5's review comment. ⚠ **STILL AWAITING THE OWNER'S
+  MERGE — that is the gate here, not the review.** Item 1 re-executed: reverting the attribution to
   `ref.nodeId` reproduced **`expected length 8 but got 6`** verbatim. **ONE REAL DEFECT, PROVEN AND
-  FIXED ON THE BRANCH: `projectView` never called its own pre-filter** — `straddlesPlane`/`withinClip`/
-  `levelScope` shipped written, exported and commented, and called by nothing, so **a stored, validated
-  `clip` was silently ignored and a wall 50 m outside it was drawn.** §5's eight-row table has no
-  pre-filter row, so eight green tests said nothing about it. Fixed + a 9th test (**654 green**);
-  measured at 10 levels × 4 walls: **4 handles into `sectionCut` instead of 40, 58.00 ms vs 315.45
-  ms/call — 5.4×, and the ratio is the level count.** Also corrected: the `3d` comment claimed it
-  returned an empty drawing where the code throws, and the attribution comment's "0 where 5" contradicted
-  the entry's own measured 6-vs-8. ⚠ **§4 undercounts the frozen surface — FOUR declarations moved, not
-  three** (`RESERVED_OPS` too, from `sectionCut` leaving it). **RISK: contract-touching, confirmed by
-  reading the snapshot rather than the label.** Q15 extended with a second symptom in the same block:
-  `_baselinedAtEntry` still reads **72**, written by nothing.
+  FIXED: `projectView` never called its own pre-filter** — `straddlesPlane`/`withinClip`/`levelScope`
+  shipped written, exported and called by NOTHING, so a stored, validated **`clip` was silently ignored
+  and a wall 50 m outside it was drawn**. §5's eight-row table has no pre-filter row, so eight green
+  tests said nothing about it (row added). Measured at 10 levels × 4 walls: **4 handles into
+  `sectionCut` instead of 40, 58.00 → vs 315.45 ms/call, 5.4×, ratio = level count.** ⚠ **§4
+  undercounts the frozen surface — FOUR declarations moved** (`RESERVED_OPS` too). **RISK:
+  contract-touching, read from the snapshot, not the label.** ⚠ **§3b's deferral rested on a FALSE
+  PREMISE and is now fixed:** `frozen-surface.mjs` strips comments before hashing, so correcting
+  `SectionCurve.closed` was never a contract edit — re-measured (**4 cut curves, all `closed=false`**),
+  corrected, pinned. ⚠ **§3c was never actually filed in `open_rulings.md`** though the entry says it
+  was — now **Q17**. Q15 extended: `_baselinedAtEntry` still reads **72**, written by nothing. Two
+  comment corrections. **655 green, six gates, exit 0.**
 
 ### 76 | 2026-08-02 | Zayd | Entry 74 reviewed late — `NOTICE` said seven shipped dependencies were build-time only
 
@@ -910,15 +911,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **77 (Zayd, 2026-08-03)** |
-| branch · tip · tree | `zayd/2026-08-03-plan-section-unit` · `c358aa9` · dirty |
+| branch · tip · tree | `zayd/2026-08-03-plan-section-unit` · `1c4e035` · dirty |
 | open PRs | #5 zayd/2026-08-03-plan-section-unit |
-| suite | **654 green** · 81 files · 212 suites |
+| suite | **655 green** · 81 files · 212 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 26 files changed, 2190 insertions(+), 84 deletions(-) (26 files) |
-| docs budget | current_state 75.9/96.0 KB · §7 31.7/32.0 KB · abstracts 10/10 · bodies 24 |
+| diff vs origin/main | 27 files changed, 2230 insertions(+), 86 deletions(-) (27 files) |
+| docs budget | current_state 75.9/96.0 KB · §7 31.8/32.0 KB · abstracts 10/10 · bodies 24 |
 
 _Generated 2026-08-04 by `pnpm state`._
 

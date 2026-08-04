@@ -686,7 +686,20 @@ export interface SectionCurve {
   readonly kind: 'cut' | 'projected';
   /** A polyline IN THE PLANE'S 2D FRAME, flat [x0,y0, x1,y1, …] in millimetres. */
   readonly points: readonly number[];
-  /** A cut curve bounds material and is closed; a projected edge generally is not. */
+  /**
+   * Whether THIS polyline closes on itself — reported from `BRep_Tool::IsClosed`, never assumed.
+   *
+   * ⚠⚠ THIS COMMENT USED TO READ *"a cut curve bounds material and is closed"*, AND THAT WAS FALSE.
+   * Measured through the whole stack on a plain wall: **4 cut curves, `closed=false` on all 4.**
+   * `BRepAlgoAPI_Section` returns individual **EDGES**, so the loop that bounds the material is the
+   * UNION of them — the granularity here is the edge, not the loop. A consumer that hatched every
+   * `kind:'cut'` curve as a closed region would hatch nothing.
+   *
+   * ⚠ Correcting it is NOT a contract touch and did not need a ruling: `scripts/frozen-surface.mjs`
+   * strips comments before hashing, and says so in its own header for exactly this case. Entry 77
+   * measured the falsehood and deferred it believing otherwise; Entry 78's review re-measured it,
+   * corrected it here, and pinned it in `tests/plan-section.test.ts` §10 so it cannot rot back.
+   */
   readonly closed: boolean;
 }
 
