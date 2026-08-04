@@ -163,116 +163,125 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 77**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-03-plan-section-unit` · `7da794d` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-03-plan-section-unit` · `1c4e035` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
 
 ```
-TASK:   **THE PLAN/SECTION UNIT IS BUILT AND SHIPPED (Entry 77). DO NOT REDO IT.** Q1–Q3 were ruled
-        by the owner on 2026-08-03 (**D81**) after blocking it across SEVEN sessions, and §8 of
-        `P5_step6C_plan_section_design.md` landed end to end: the `sectionCut` C++ + a WASM rebuild,
-        the `views` promotion, the view CRUD, `projectView`, and `tests/plan-section.test.ts` (8
-        tests, one per §5 criterion, real OCCT). **653 green, six gates, exit 0.**
+TASK:   ⚠⚠ **YOUR STEP 3 DECIDES WHAT THIS SESSION IS, AND THE ANSWER IS PROBABLY STILL "WAIT".**
+        **PR #5 (Entry 77 + Entry 78's review) IS `RISK: contract-touching` AND ONLY THE OWNER
+        MERGES IT.** It has now been reviewed in full by a later session (2026-08-04) — item 1
+        re-executed, one real defect found, proven and fixed on the branch — so **it is not waiting
+        on review any more. It is waiting on the owner, and no agent action can unblock it.**
 
-        ⚠⚠ **YOUR STEP 3 IS THE BIG ONE: ENTRY 77'S PR IS `RISK: contract-touching` AND THE OWNER
-        MERGES IT, NOT YOU.** Three frozen declarations moved (`SectionCurve` gained `nodeId?`,
-        `SceneCollection` gained `'views'`, `ParamField.refTo` gained four members) and the baseline
-        was re-based in the same PR under D81. **⚠ AND THE GENERATED LABEL LIES ABOUT THIS — it reads
-        `RISK: additive`, because `pnpm state --rebaseline` computes risk against the baseline and
-        then rewrites it.** That is `open_rulings.md` **Q15**. Review it, approve it, tell the owner
-        it needs their merge — and do not route on the label.
+        ├─ **#5 MERGED?** ⇒ pull, then do `open_rulings.md` **Q14 — PIN THE EMSDK IMAGE BY DIGEST.**
+        └─ **STILL OPEN?** ⇒ ⚠ **DO NOT START Q14, AND THIS IS A REAL ORDERING HAZARD, NOT
+           TIDINESS.** Q14 requires a WASM rebuild to confirm the digest yields emcc 6.0.2. Rebuilt
+           on a main that LACKS #5, that produces an artifact **without `sectionCut`** and hands it
+           the re-seeded goldens — i.e. it would silently un-ship Entry 77's kernel work. Q14 must
+           be rebuilt ON TOP of #5, never under it. **Instead: say so in your opening message and
+           take the fallback below.**
 
-        **THEN, ONCE ENTRY 77 IS MERGED, THE TASK IS `open_rulings.md` Q14 — PIN THE EMSDK IMAGE BY
-        DIGEST.** It was deliberately not pulled by Entries 76 or 77, for a stated reason: it edits
-        `link.sh` / `README.md`, which sit behind the re-seed gate, so it needs its own diff, its own
-        revert-verification, and a rebuild to confirm the digest really produces emcc 6.0.2.
-        ⚠⚠ **THE TRAP IS UNCHANGED: `OCCT_BUILD_ID` IS A HAND-MAINTAINED CONSTANT** at
-        `packages/kernel-occt/src/kernel.ts:52`, asserted by four tests **against itself**. Pinning
-        the image without deriving or re-checking that constant leaves the same hole with a tidier
-        lid on it. ⚠ Entry 77 rebuilt the WASM and did NOT touch that constant, so the artifact on
-        `main` is now one rebuild further from the id that names it.
+        **THE FALLBACK, AND IT IS UNBLOCKED, ADDITIVE AND SMALL: `open_rulings.md` Q15 + Q16 — the
+        two tooling gates that both fail OPEN.** Both live in `scripts/`, neither touches the
+        kernel, the WASM, the frozen surface or anything behind the re-seed gate, and both have a
+        recommendation on the desk already:
+          • **Q15** — `pnpm state --rebaseline` prints `RISK: additive` on a contract-touching PR,
+            which is the label step 3 tells a reviewer to ROUTE ON. **PR #5 is its own worked
+            example.** ⚠ And Entry 78 found a second symptom in the same block: `_baselinedAtEntry`
+            is carried forward by `...prev` and **written by nothing** — the snapshot Entry 77
+            re-baselined still says `72`. The rebaseline write happens BEFORE `state.mjs` parses
+            `newest`; move it below that parse and both fix in one edit.
+          • **Q16** — the re-seed gate is satisfied by a bumped **timestamp**, so it cannot tell
+            "re-seeded, geometry unchanged" from "geometry moved and nobody looked".
+        ⚠ Both are owner-*recommended* rather than owner-*gated* — they change no contract and no
+        `.bnn` byte. Build them, revert-verify each, and they are yours to merge if CI is green.
 
-        ⚠ **TWO THINGS ENTRY 77 RAISED AND DID NOT FIX — both are small and both are real:**
-          • **`SectionCurve.closed`'s frozen comment is wrong.** It says *"a cut curve bounds material
-            and is closed"*; measured, **all 4 curves of a plain box come back `closed=false`**, because
-            `BRepAlgoAPI_Section` returns EDGES and the loop is their union. The code reports OCCT
-            honestly; only the comment overclaims. It is a second contract edit, which is why 77 left it.
-          • **`designOptionIds` cannot be authored on a document built by commands.** `checkDesignOptions`
-            refuses any id absent from `scene.designOptions`, and **no command can create a design
-            option** — while `core.createElement` deliberately SKIPS the same check for the same field.
-            Two doors onto one reserved collection, opposite policies. Pre-existing since Entry 68.
+        ⚠ **WHAT ENTRY 78 ALREADY DID — DO NOT REDO ANY OF IT** (all on #5's branch):
+          • **`projectView` never called its own pre-filter.** `straddlesPlane`/`withinClip`/
+            `levelScope` shipped written, exported and called by NOTHING, so a stored, validated
+            `clip` was ignored and a wall 50 m outside it was drawn. Fixed + tested. Measured:
+            **4 handles into `sectionCut` instead of 40 · 58.00 vs 315.45 ms/call · 5.4×.**
+          • **`SectionCurve.closed`'s false frozen comment is CORRECTED.** ⚠ Entry 77 deferred it
+            believing it a second contract edit; **it never was** — `frozen-surface.mjs` strips
+            comments before hashing and says so in its own header. Re-measured (4 cut curves, all
+            `closed=false`), fixed, pinned by a test. **`freeze-boundary` stays green.**
+          • **§3c is now Q17** (it was never actually filed, though Entry 77 said it was).
+        **655 green, six gates, exit 0.**
 
-        ⚠ **THE GOING-PUBLIC HOUSEKEEPING AND THE ATTRIBUTION GATE ARE DONE** (74, corrected by 76,
-        hardened by 77's reviewer). `NOTICE` is gated by `tests/notice-attribution.test.ts`, which now
-        DISCOVERS its workspace manifests from `pnpm-workspace.yaml` instead of a hand-written list.
-        What is left is owner-only: **Q11/Q12** (`CLA.md` ships `<LEGAL ENTITY>`; no lawyer has read it).
+        ⚠ **STILL OWNER-ONLY AND UNCHANGED: Q11/Q12** (`CLA.md` ships `<LEGAL ENTITY>`; no lawyer
+        has read it). The 🔴 BLOCKING table is still EMPTY.
 
-        ⚠⚠ **DO NOT RE-ADD ANY OF THESE — each was killed by reading it against the artifact (§5):**
-          • the `shapeSignature` memory view — **CANCELLED, MEASURED** (a crossing costs 0.21–0.39 µs;
-            all 345 cost ~1% of the call, against `shapeSignature`'s own 7.9 ms of `GProp` work).
-          • `schedule.ts`'s "rule 17" rename — **A PHANTOM**; both citations are correct.
-          • the D29 document half — `open_rulings.md` **Q6**, recommendation on the desk: **do not wire
-            it for v1.0.0** (2.07×, 6.64 ms/solid per save, ~61 MB at 16k solids).
+NEW:    **⚠⚠ THE LESSON OF ENTRY 78, AND IT IS ABOUT WHERE A TEST PLAN COMES FROM: DEAD CODE IN A
+        DIFF IS A MISSING TEST, AND A MISSING TEST IS USUALLY A MISSING *CRITERION*.** Entry 77
+        shipped three pre-filter functions — written, exported, documented at length with a
+        performance argument — that **nothing called**. Eight tests were green because they were
+        written faithfully, one per row, against a §5 criterion table **that had no pre-filter
+        row**, while §8's algorithm listed the pre-filter as a required step. ⇒ **When a design doc
+        has both an ALGORITHM and a TEST TABLE, diff them against each other before you start.**
+        Every step in the algorithm that no row tests is where the next defect will be, and the
+        code will look finished there — because the function exists, exported and commented; it is
+        merely never invoked. ⚠ **`grep` for your own new exports' call sites before you ship.** One
+        command, and it is the whole finding.
 
-NEW:    **⚠⚠ THE LESSON OF ENTRY 77: THE DESIGN DOC NAMED THE TRAP, AND I WALKED INTO IT ANYWAY.**
-        `P5_step6C` §1.1 says in writing that a holed wall's reveal faces *"belong to the CUT NODE, not
-        to the wall"*, and Entry 71 had measured the same thing from the other side (16 of a real
-        wall's 34 identities belong to other nodes). I still attributed section curves by
-        `ref.nodeId` — reasoning, correctly but irrelevantly, that a part's node id IS
-        `partNodeId(elementId, partName)`. Measured on the fixture: **8 cut curves, 8 attributed,
-        spanning TWO nodeIds**; keyed by `nodeId` the plan draws **6 where 8 is right and 10 where 20
-        is**, in silence. ⇒ **A `nodeId` NAMES THE NODE THAT MINTED AN IDENTITY, NOT THE PART THAT
-        CARRIES IT. `Part.refs` is the authority.** And the transferable half: **reading a warning is
-        not the same as applying it.** The doc was open in front of me.
+        **⚠⚠ AND THE SHARPER HALF: THE DEFECT *ADDED* CURVES, SO EVERY "SOMETHING IS THERE"
+        ASSERTION SURVIVED IT.** `curves.length > 0`, `drawn.has(wallId)`, `drawn.size > 1` — all
+        green on a drawing that ignored its clip and drew the entire model. This is Entry 77's own
+        weak-green lesson with the sign flipped, and the flip is what makes it easy to miss:
+        Entry 77 learned to pin the number because a broken value was **too small**; here it was
+        **too large**, and a lower bound cannot see that at all. ⇒ **A directional assertion is
+        blind in ONE direction, and you must ask WHICH — `>` cannot catch over-production, and
+        `toHaveLength(n)` catches both.** Ask *"if this drew EVERYTHING, would my test still pass?"*
 
-        **⚠⚠ AND THE SHARPER ONE, BECAUSE IT IS ABOUT THE TEST AND NOT THE CODE: MY OWN TEST HAD A
-        WEAK GREEN, AND ONLY REVERT-VERIFICATION FOUND IT.** §6 asserted
-        `holedWallCurves.length > solidCount`. With the attribution broken it returned **6** against a
-        `solidCount` of **4** — so `6 > 4`, GREEN, on a drawing missing a quarter of its wall and half
-        of everything. ⇒ **A DIRECTIONAL ASSERTION (`>`, `toBeTruthy`, `not.toHaveLength(0)`) IS A
-        WEAK GREEN WHENEVER THE BROKEN VALUE IS STILL ON THE RIGHT SIDE OF IT.** Pin the NUMBER when
-        you know it — and you usually do, because the design doc measured it. §5's table asks *"how
-        could this pass while false?"*; the answer for a count is almost always *"by being a different
-        count"*.
-        ⇒ And note what actually caught it: **step 7's revert, not step 6's writing.** The rule
-        *"a fix without a test that fails in its absence is an assertion"* paid out on a test I had
-        already watched go red once — it went red for the WRONG REASON the first time (a broken host
-        ref), and I credited the fix to the wrong change. **Revert every claim separately.**
+        **⚠ THIRD, CHEAP, AND IT CHANGED A DEFERRAL INTO A FIX: READ THE GATE BEFORE YOU OBEY IT.**
+        Entry 77 measured `SectionCurve.closed`'s comment false and left it, on the stated ground
+        that touching a frozen declaration was a second contract edit. **It was not, and the script
+        that implements the freeze says so in its own header — `frozen-surface.mjs` strips comments
+        before hashing, for exactly this case.** A whole finding was deferred to an owner for want
+        of thirty seconds reading the tool. ⇒ **When a constraint stops you doing something
+        obviously right, go read the constraint's implementation.** It is a §1c-9 sibling: measure
+        the artifact, not the manual — including when the "manual" is your own memory of the rule.
 
-        **⚠ THIRD, AND IT IS THE CHEAPEST HABIT HERE: ONE OF MY "FIXES" WAS DOING NOTHING.** I
-        forwarded the resolved design-option catalogue into `modelElements` and wrote a comment calling
-        it load-bearing. Reverted it: **the suite stayed green** — `optionScopeOf` already falls back
-        to `scene.designOptions`. The line was REMOVED rather than kept with a false justification.
-        ⇒ **Revert-verify your fixes, not just your tests.** A line that changes nothing, wearing a
-        comment that says it matters, is §1c-7 with a helpful tone of voice.
+        ⚠ **AND THE PROCESS FACT THAT COST TIME: `gh pr review --approve` CANNOT WORK HERE.**
+        GitHub refuses to approve your own PR, and both agents push from the one account — so the
+        loop's *"approving review"* is **always** a `gh pr comment`, never an approval. This is
+        already known (it is the core of **Q13**'s recommendation against branch protection); it is
+        repeated here because step 3 reads as though an approval is available. It is not.
+
+        (Entry 77's lesson, still standing:)
+        **⚠⚠ A `nodeId` NAMES THE NODE THAT MINTED AN IDENTITY, NOT THE PART THAT CARRIES IT.**
+        `Part.refs` is the authority. The design doc named this trap in writing and it was walked
+        into anyway ⇒ **reading a warning is not the same as applying it.** Its revert-verification
+        half is now doubly earned: **revert every claim separately, and revert your FIXES, not just
+        your tests** — Entry 77 found one of its own "fixes" was doing nothing at all.
 
         (Entry 76's lesson, still standing:)
-        **⚠⚠ WHEN A CLAIM QUANTIFIES OVER A SET, COUNT THE SET.** `NOTICE` asserted the remaining
-        dependencies were build-time only; **seven MIT packages ship in the browser bundle** and none
-        was attributed. `pnpm licenses list --prod` settles it in half a second. ⇒ An attribution
-        notice, an "every consumer was checked" sweep, a "these are all the callers" claim — same
-        shape, all cheap to settle with one command. ⚠ And its second half, which Entry 77's reviewer
-        proved is not yet learned: **the gate Entry 76 built to enforce this ENUMERATED ITS OWN INPUT
-        SET BY HAND** — ten manifest paths written out, against a `pnpm-workspace.yaml` that defines
-        them by glob. A probe package left it fully green. Fixed in the same PR.
+        **⚠⚠ WHEN A CLAIM QUANTIFIES OVER A SET, COUNT THE SET.** `pnpm licenses list --prod`
+        settled a false attribution claim in half a second. ⚠ **And Entry 78 hit it again from the
+        other side:** Entry 77's §4 said *"three declarations moved"*; the snapshot says **four**
+        (`RESERVED_OPS`, from `sectionCut` leaving it). An enumeration in prose beside a generated
+        list is a claim, and the generated list is right there.
 
-        (Entry 75's lesson, still standing, and now kept for a third entry running:)
-        **⚠⚠ IF YOU ARE ABOUT TO MERGE SOMETHING YOU WROTE TODAY, THAT IS THE BUG.** Push it, mark it
-        `AWAITING REVIEW`, stop. Owner decision 5: **the REVIEWING agent merges**, and the reviewer is
-        by construction a later session. ⇒ And the bigger transferable: **a constraint that lives only
-        in a design doc is not a constraint, it is a preference.** Ask *"which file will the agent who
-        must obey this actually have open?"* and put it there.
+        (Entry 75's lesson, still standing, kept for a fourth entry running:)
+        **⚠⚠ IF YOU ARE ABOUT TO MERGE SOMETHING YOU WROTE TODAY, THAT IS THE BUG.** Push it, mark
+        it `AWAITING REVIEW`, stop. ⇒ **A constraint that lives only in a design doc is not a
+        constraint, it is a preference.** Ask *"which file will the agent who must obey this
+        actually have open?"* and put it there.
 
         (Standing, on the handoff system itself:)
         `pnpm state` before every commit (gate six, `docs:check`) · it writes §8 and THIS file's
-        FRESH, never `Amer_Prompt.md` · §7 holds **ten** abstracts, so landing an entry means ROTATING
-        THE OLDEST OUT to `docs/history.md` §C · `tests/freeze-boundary.test.ts` decides `RISK` —
-        **⚠ except after `--rebaseline`, see Q15** · `gh` is authenticated on this box and works.
+        FRESH, never `Amer_Prompt.md` · §7 holds **ten** abstracts, so landing an entry means
+        ROTATING THE OLDEST OUT to `docs/history.md` §C · ⚠ **§7 also has a BYTE budget (32,768) and
+        a long `REVIEW:` line can blow it** — Entry 78 did, by 374 bytes; the full review belongs in
+        the PR comment, not in §7 · ⚠ **`pnpm state` reads `.vitest-summary.json`, so run it AFTER a
+        green `pnpm verify`** or §8 will report the previous run's failure · `tests/freeze-boundary.test.ts`
+        decides `RISK` — **⚠ except after `--rebaseline`, see Q15** · `gh` is authenticated and works.
 
-        ⚠ **TWELVE OWNER RULINGS ARE OWED AND NONE BLOCKS A BUILD** — the 🔴 BLOCKING table is EMPTY
-        for the first time. *(Counted, not remembered — `open_rulings.md`.)* The live ones are **Q15**
-        (the RISK mislabel, new), **Q14** (pin the emsdk digest — your task), and **Q11/Q12** (the CLA).
-        If a ruling arrives in chat, apply it AND record it in the doc it belongs to, then strike the
-        row. This file is not where decisions live.
+        ⚠ **THIRTEEN OWNER RULINGS ARE OWED AND NONE BLOCKS A BUILD** — the 🔴 BLOCKING table is
+        EMPTY. *(Counted, not remembered — `open_rulings.md`.)* The live ones are **Q14** (blocked
+        behind #5's merge), **Q15/Q16** (your fallback, and yours to merge), **Q17** (new — the
+        `designOptions` two-doors defect) and **Q11/Q12** (the CLA). If a ruling arrives in chat,
+        apply it AND record it in the doc it belongs to, then strike the row. This file is not where
+        decisions live.
 ```
