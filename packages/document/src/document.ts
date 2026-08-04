@@ -43,8 +43,14 @@ import { projectSchedule, selectRows } from './schedule.js';
 import type { ScheduleResult, ScheduleSources } from './schedule.js';
 import type { ScheduleDefinition, ViewDescriptor } from './documentation.js';
 import type { GeometryGateway } from './geometry.js';
-import { activeForView, assembleViewResult, cutPlaneFor } from './view.js';
-import type { UnprojectedElement, ViewResult } from './view.js';
+import {
+  activeForView,
+  assembleViewResult,
+  cutPlaneFor,
+  straddlesPlane,
+  withinClip,
+} from './view.js';
+import type { ElementBounds, UnprojectedElement, ViewResult } from './view.js';
 import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
 import { dependents } from './dependency.js';
@@ -749,8 +755,10 @@ export class DocumentContext {
     const plane = cutPlaneFor(descriptor, this.#scene);
     if (plane === undefined) {
       // A `3d` view is not a section — the renderer serves it from `tessellate` through its own
-      // gateway. Asking a 2D op for a 3D answer would be the category error, so this returns an empty
-      // drawing rather than pretending.
+      // gateway. Asking a 2D op for a 3D answer would be the category error, so this REFUSES rather
+      // than pretending. ⚠ It throws; it does not return an empty drawing, and the difference is the
+      // whole point — an empty `ViewResult` is indistinguishable from "nothing is on this line", which
+      // is the D78 failure mode this file guards against everywhere else.
       throw new Error(
         `view "${descriptor.id}" is kind "${descriptor.kind}", which has no cut plane — ` +
           `a 3d view is served by the renderer, not by sectionCut`,
@@ -789,6 +797,64 @@ export class DocumentContext {
       candidates.push({ element, handles: parts.map((p) => p.handle) });
     }
 
+    /* THE PRE-FILTER (§1.4 / §8's algorithm) — throw away what the plane and the clip cannot touch
+     * BEFORE any section runs.
+     *
+     * ⚠⚠ IT IS TWO DIFFERENT THINGS AT ONCE AND ONLY ONE OF THEM IS AN OPTIMISATION. `straddlesPlane`
+     * is pure cost: an element the plane misses contributes no cut curve either way. **`withinClip` is
+     * CORRECTNESS** — `clip` is a stored, validated field of the descriptor, and without this line a
+     * clipped view draws the whole model. That matters most for an `elevation`, whose plane
+     * `cutPlaneFor` places at the world origin: `view.ts` says in writing that "the clip is what bounds
+     * it", so for an elevation the clip is the ONLY bound in existence.
+     *
+     * ⚠ THE DESIGN SAID THIS TEST WAS "FREE" AND IT IS NOT QUITE — bounds are not cached on
+     * `ElementGeometry`, so it costs one `bounds` crossing per part. That is still the right trade by
+     * three orders of magnitude: a crossing is 0.21–0.39 µs (Entry 73, measured) against the section's
+     * 1.28–1.31 ms/solid (Entry 69, measured). The whole batch is issued at once rather than serially.
+     *
+     * ⚠ AND IT DEGRADES CONSERVATIVELY, which is `straddlesPlane`'s own stated discipline: a `bounds`
+     * that refuses leaves its element IN. A false keep costs one kernel call; a false drop costs a
+     * missing wall in a drawing somebody builds from.
+     */
+    const bounded = await Promise.all(
+      candidates.map(async (candidate) => {
+        try {
+          const boxes = await Promise.all(
+            candidate.handles.map(async (handle) => this.#geometry.request('bounds', { handle })),
+          );
+          let bounds: ElementBounds | undefined;
+          for (const { bounds: box } of boxes) {
+            bounds =
+              bounds === undefined
+                ? { min: box.min, max: box.max }
+                : {
+                    min: [
+                      Math.min(bounds.min[0], box.min[0]),
+                      Math.min(bounds.min[1], box.min[1]),
+                      Math.min(bounds.min[2], box.min[2]),
+                    ],
+                    max: [
+                      Math.max(bounds.max[0], box.max[0]),
+                      Math.max(bounds.max[1], box.max[1]),
+                      Math.max(bounds.max[2], box.max[2]),
+                    ],
+                  };
+          }
+          return { candidate, bounds };
+        } catch {
+          return { candidate, bounds: undefined };
+        }
+      }),
+    );
+    const kept = bounded
+      .filter(
+        ({ bounds }) =>
+          bounds === undefined || (straddlesPlane(bounds, plane) && withinClip(bounds, descriptor)),
+      )
+      .map(({ candidate }) => candidate);
+    candidates.length = 0;
+    candidates.push(...kept);
+
     // ⚠ ONE REQUEST FOR THE WHOLE VIEW, not one per element. The op takes every handle at once because
     // that is what a section is — and it is also what keeps the boundary crossings at one per drawing
     // instead of one per wall at D48's 10,000-element target.
@@ -824,8 +890,11 @@ export class DocumentContext {
      * it: a wall with a window in it holds faces minted by the CUT node, and a `REL_INHERIT` face keeps
      * the token of the operand it came from. Entry 71 measured exactly this — **16 of a real wall's 34
      * identities belong to OTHER nodes, and 26 of a door frame's 34 do** — which is why §5's fixture
-     * must carry an opening. Keyed by `nodeId`, the plan through a window drew **0 wall curves where 5
-     * is correct**, and reported no error: D78's empty artifact on the one artifact people build from.
+     * must carry an opening. Keyed by `nodeId`, the plan through a window drew **6 wall curves where 8
+     * is correct** (and 10 where 20 is, across the drawing), and reported no error: D78's empty
+     * artifact on the one artifact people build from. ⚠ That pair of numbers is the one the branch's
+     * own §6 test reproduces on revert — `expected length 8 but got 6`, re-executed by Entry 78's
+     * review. An earlier draft of this comment said "0 where 5", which no longer matched the fixture.
      *
      * `Part.refs` is the authority, because it is the canonical list of every token that part actually
      * carries whoever minted them.

@@ -514,6 +514,62 @@ describe('D58 row Ⓐ — plan/section: a drawing is a PROJECTION of the B-Rep (
     await doc.undo();
     expect(Object.keys(doc.scene.views ?? {})).toHaveLength(0);
   }, 180000);
+
+  /* ============================================================================================
+   * §9 — THE PRE-FILTER, WHICH §8's ALGORITHM REQUIRES AND §5's TABLE FORGOT TO ASK FOR
+   *
+   * ⚠⚠ THIS SECTION EXISTS BECAUSE THE UNIT SHIPPED `straddlesPlane`/`withinClip`/`levelScope` —
+   * fully written, exported, commented at length — AND `projectView` CALLS NONE OF THEM. §5's table
+   * has eight rows and not one of them is the pre-filter, so eight green tests said nothing about it.
+   * That is REVIEW.md item 4 in its purest form: the criterion list, not the code, was the thing that
+   * was incomplete, and a test plan can only ever be as good as the row it does not have.
+   *
+   * The clip is not a nicety. `cutPlaneFor` places an ELEVATION's plane at the world origin and
+   * `view.ts` says in writing that "the clip is what bounds it" — so for an elevation the clip is the
+   * ONLY bound that exists.
+   * ========================================================================================= */
+
+  it('⚠⚠ a view HONOURS its `clip` — the descriptor stores one, and a wall outside it is not drawn', async () => {
+    const doc = newDoc();
+    const levelId = await makeLevel(doc);
+    const nearId = await makeWall(doc, [0, 0], [4000, 0], { containerId: levelId });
+    // 50 m away on +Y. Same level, same cut height, so the plane cuts it exactly as it cuts `near`.
+    const farId = await makeWall(doc, [0, 50000], [4000, 50000], { containerId: levelId });
+
+    // Both are drawn with no clip — the control, so a green below cannot come from `far` being
+    // un-cuttable for some unrelated reason. This is the measurement the assertion is built on.
+    const unclipped = await doc.projectView(await planOn(doc, levelId));
+    const drawnUnclipped = new Set(unclipped.curves.map((c) => c.elementId));
+    expect(drawnUnclipped.has(nearId)).toBe(true);
+    expect(drawnUnclipped.has(farId)).toBe(true);
+
+    // Now a clip that encloses `near` and excludes `far` by 40 m.
+    const clippedId = (
+      await doc.execute('core.createView', {
+        kind: 'plan',
+        name: 'Clipped Plan',
+        scale: 100,
+        levelId,
+        cutHeight: CUT,
+        clip: [
+          [-1000, -1000, -1000],
+          [5000, 10000, 5000],
+        ],
+      })
+    ).changes[0]!.id;
+    const clipped = await doc.projectView(doc.scene.views![clippedId]!);
+    const drawn = new Set(clipped.curves.map((c) => c.elementId));
+
+    // ⚠ THE NUMBER, NOT A DIRECTION — Entry 77's own lesson about weak greens, applied to the test
+    // that catches Entry 77. `drawn.size > 0` would be green on the broken code, and so would
+    // `drawn.has(nearId)`: the defect ADDS curves, so every "something is there" assertion survives it.
+    expect(drawn.has(nearId)).toBe(true);
+    expect(drawn.has(farId)).toBe(false);
+
+    // And the element outside the clip is not "unprojected" either — it was never a candidate.
+    // Excluding it is not a failure to draw it, and reporting it as one would be its own defect.
+    expect(clipped.unprojected).toEqual([]);
+  }, 180000);
 });
 
 /**

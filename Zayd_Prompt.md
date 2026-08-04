@@ -163,7 +163,7 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 77**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-03-plan-section-unit` · `7da794d` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-03-plan-section-unit` · `c358aa9` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
