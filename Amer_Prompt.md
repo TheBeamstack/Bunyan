@@ -42,15 +42,22 @@ outside `apps/`. Build **against `@bunyan/document`, never the kernel** — D19 
       OLD entry, dragging its commits into your PR. Nothing errors; you just quietly build on
       the wrong base.
  2. Read REVIEW.md + current_state.md §1c        (the lenses — small, and you need them to review)
- 3. OPEN PR?  (`gh pr list`)
-      ├─ REVIEW IT against REVIEW.md — Zayd's, or YOUR OWN if you ran last.
-      │     A self-review is a complete review; checklist item 1 is mandatory either way.
+ 3. OPEN PR?  (`gh pr list`)   ⚠ "IT" MEANS A PR THAT ALREADY EXISTED WHEN YOU STARTED. Nothing you
+                              create later this session is ever merged by you — see step 10(b).
+      ├─ REVIEW IT against REVIEW.md — Zayd's, or YOUR OWN ENTRY FROM A PREVIOUS SESSION.
+      │     ⚠ "Self-review" means a LATER SESSION reviewing earlier work, never the session that
+      │       wrote it. The whole justification is that a fresh session has lost the author's
+      │       working state (REVIEW.md's header). Same session = same blind spots = not a review.
+      │     A self-review in that sense is a complete review; checklist item 1 is mandatory either way.
       ├─ finding provable with a failing test   → write it, watch it fail, fix it on the branch
       ├─ finding not provable                   → review comment; never block on an opinion
       ├─ ⚠ YOU are the machine that can re-run a browser claim. If Zayd left
       │     `unverified here: <claim>` on a merged entry, CLEAR IT — that is your first action.
+      │     (None is outstanding as of Entry 79 — checked. This is a debt that ACCUMULATES.)
       ├─ RISK: additive + approving + CI green  → MERGE it, then pull again
       └─ RISK: contract-touching                → approve; tell the owner it needs THEIR merge
+      ⇒ THEN REWRITE THAT ENTRY'S `REVIEW:` LINE in §7 — who reviewed it, what they found. Leaving
+        it saying `AWAITING REVIEW` now FAILS `docs:check` once your own entry lands.
  4. Read current_state.md in full, and compare §8's newest entry against §2's FRESH:
       ├─ SAME            ⇒ main is current. Start TASK.
       └─ FRESH is HIGHER ⇒ ⚠ A FINISHED ENTRY IS STILL SITTING IN AN OPEN PR. This prompt reached
@@ -63,6 +70,10 @@ outside `apps/`. Build **against `@bunyan/document`, never the kernel** — D19 
  9. Write the entry:  handoff/amer/<date>-<slug>.md      the full body
                     + current_state.md §7 abstract        the eight fields, all mandatory
                     + THIS file's §2 TASK/NEW             never Zayd_Prompt.md
+      ⚠ §7 holds at most TEN abstracts **and a 32,768-byte budget, and the BUDGET is what bites.**
+        Landing one abstract usually means ROTATING the oldest out to `docs/history.md` §C — their
+        table rows are already there, so rotation is a deletion. Entry 79 had to rotate TWO.
+        ⚠ Keep the `REVIEW:` line SHORT — the full review belongs in the PR comment, not in §7.
 10. ⚠⚠ TWO PUSHES, AND THE SPLIT IS THE POINT:
       (a) THIS PROMPT GOES STRAIGHT TO MAIN, on its own, now.
               git checkout main && git checkout <your-branch> -- Amer_Prompt.md
@@ -78,9 +89,19 @@ outside `apps/`. Build **against `@bunyan/document`, never the kernel** — D19 
       (b) EVERYTHING ELSE goes to the branch: git push · `gh pr create`
               title = the abstract headline · body = the abstract + REVIEW.md's checklist, unticked
           The PR now contains only work that is worth reviewing.
+          ⚠⚠ **AND THEN YOU STOP. YOU DO NOT MERGE IT. THIS IS WHERE YOUR SESSION ENDS.**
+          Your entry's `REVIEW:` line reads `⚠ AWAITING REVIEW — this is the open PR`, and the NEXT
+          session merges it at its step 3. Owner-ruled decision 5: **the REVIEWING agent merges**,
+          and the reviewer is by construction a later session.
+          ⚠ Entry 74 got this wrong — opened its PR and merged it minutes later, so it is on `main`
+          having never been read by a second party. Step 3's *"MERGE it"* is about the PR you found
+          at t=0; it was never about the one you just created. `docs:check` now enforces this: a
+          stale `AWAITING REVIEW` on any non-newest entry FAILS.
       ⚠ Push (a) BEFORE (b), and put the identical file on the branch too (it already is, if you
         edited it there) — same content both sides means the PR merges without a conflict.
-11. Closing summary: what landed · what the PR needs (Zayd's merge? the owner's? a ruling?) · what is owed.
+        ⚠ `pnpm state` rewrites FRESH's tree line, so if you run it again after (a), re-sync (a).
+11. Closing summary: what landed · **what the OPEN PR is waiting for** (the next session's review is
+    the normal answer; the owner's merge only if contract-touching; a ruling?) · what is owed.
 ```
 
 ⚠ **Step 3 comes before step 4 on purpose.** You review from the lenses and the diff — the PR carries its
@@ -102,6 +123,11 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 - **Owner-gated: contract changes and the P5 freeze.** `tests/freeze-boundary.test.ts` decides which is
   which — if it fails, the PR is `contract-touching` and the owner merges it. **You merge additive PRs
   yourself** after an approving review and green CI.
+  ⚠ **`gh pr review --approve` CANNOT WORK HERE, so do not waste a session on it.** GitHub refuses to
+  approve a PR opened by your own account, and both agents push from the ONE account — so the loop's
+  _"approving review"_ is **always** a `gh pr comment`, never a formal approval. This is already known
+  (it is the core of **Q13**'s recommendation against branch protection); it is repeated here because
+  step 3 reads as though an approval were available. It is not.
 - **Do not stall on the owner.** `TASK` is always one definite thing you can start alone. When it is
   design-first, **the design doc IS the deliverable** — write it, put its open questions into
   `open_rulings.md`, and stop there. Never open a session by asking which track to take; §2 has chosen.
@@ -140,12 +166,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 72**
-        (Zayd, 2026-07-30) — the five move verbs + `transactionId` atomicity (D80, P4.5 rows ⓑ/ⓘ)
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 79**
+        (Zayd, 2026-08-05) — the emsdk image is pinned by digest — and the artifact now names its own compiler (Q14)
 
-        ⇒ After `git pull`: §8's "newest entry" == 72  ⇒ you are current, start TASK.
-          HIGHER than 72 ⇒ the other agent has merged: read every abstract after
-          72 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 79  ⇒ you are current, start TASK.
+          HIGHER than 79 ⇒ the other agent has merged: read every abstract after
+          79 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -153,27 +179,45 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 72**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `main` · `0086a27` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-05-emsdk-digest-pin` · `cee4f05` · clean · RISK: additive
 ```
 
 <!-- END FRESH -->
 
 ```
-TASK:   **P4.5 CONTINUES — AND THE TWO ROWS THAT WERE BLOCKED ON ZAYD ARE NOW UNBLOCKED (Entry 72).**
+TASK:   ⚠⚠ **READ THIS FIRST: SEVEN ZAYD ENTRIES (73–79) HAVE LANDED SINCE YOU LAST RAN, AND YOUR
+        STEP 3 HAS A REAL PR WAITING.** This TASK was written by your Entry 70 and the ORDERING below
+        still stands — but the world moved underneath it, so §2's NEW block is not optional reading
+        this time. ⚠ **FRESH says 79 while main's §8 still says 77, because Entry 79 is finished and
+        sitting in PR #6.** Merge it at step 3 (it is yours to merge) and step 4 then reads SAME. If
+        you ever reach step 4 with §8 still at 77, that gap is the designed signal to go back to
+        step 3 — not a fault, and never a reason to start TASK.
+          ⚠ **PR #6 (Zayd, Entry 79 — the emsdk digest pin) is `RISK: additive`, so it is YOURS to
+          merge** once you have reviewed it and CI is green. It is headless/tooling work, but one
+          part of it is browser-facing and is called out in the PR body: `createOcctKernel` can now
+          THROW at construction. See NEW (f).
+
+        **P4.5 CONTINUES — AND THE TWO ROWS THAT WERE BLOCKED ON ZAYD ARE NOW UNBLOCKED (Entry 72).**
         Q1–Q6 are ALL RULED and applied into `docs/design/P4.5_interaction_model_design.md` §12.
         Do not re-open them, and do not re-ask which track.
 
         ⇒ DO THIS, IN THIS ORDER:
           1. **THE OPENING TOOL.** Exit criterion 3 (*a window is placed by CLICKING A FACE and no
              human types a derivation token*) is ONE TOOL AWAY: `SnapHit.ref` already carries the
-             `SubShapeRef` and `SnapHit.hostElementId` the element, so the tool is a two-input
+             `SubShapeRef` and **`SnapHit.elementId`** the element, so the tool is a two-input
              registry entry committing `core.createElement` with `{hostId, hostRef}`. Model it on
              `WALL_TOOL` in `tool/tools.ts`; the face-snap candidate is the piece to add to
              `tool/snap.ts` (today it yields edge endpoints/midpoints + grid, not face hits — the
              pick path already resolves faces, so it is the same substrate again).
+             ⚠ **The field is `elementId`, not `hostElementId`** — this TASK said `hostElementId`
+             for two sessions and no such field exists. `SnapCandidate` is
+             `{ point, kind, ref?, elementId?, nodeId? }`; `SnapHit` adds `pixelDistance`. (Verified
+             against `tool/snap.ts` 2026-08-05.)
           2. **ALIGNMENT GUIDES** (design §4.3) — dashed overlay when the cursor lines up with a
-             live reference point. Pure `PreviewLayer` geometry over Tier-1 candidates; no model
-             state, no contract.
+             live reference point. Pure overlay geometry over Tier-1 candidates; no model state, no
+             contract. ⚠ **There is no `PreviewLayer` module** — the preview is the
+             `previewFrom` anchor on the controller, drawn by `render/ViewportCanvas.tsx`. Extend
+             that path rather than looking for a file that was never built.
           3. **THE MOVE TOOL + GIZMO** and **THE CORNER-DRAG** — both unblocked by Entry 72.
              ⚠⚠ **READ THE REFUSAL BEFORE YOU BUILD THE GIZMO — IT IS ENFORCED, NOT DOCUMENTED:**
              `core.move` **REFUSES a wall** (drag both endpoints with `core.setParams`) and
@@ -183,10 +227,27 @@ TASK:   **P4.5 CONTINUES — AND THE TWO ROWS THAT WERE BLOCKED ON ZAYD ARE NOW 
              The corner-drag has its atomicity: `doc.execute(id, args, { transactionId })` — one
              stage, one commit, one `Ctrl+Z` for the whole gesture.
 
-        ⚠ ONE THING TO KNOW, NOTHING OWED NOW: when the plan/section body lands it produces a
-        `ViewResult` of **2D polylines carrying sub-shape identity** — a new KIND of thing for
-        `apps/web` to draw (today the viewport draws meshes + edges). Later, additive,
-        browser-track. Named so it is not a surprise; do not let it displace P4.5.
+        ⚠⚠ **THAT "LATER, NOTHING OWED NOW" ITEM HAS LANDED — THE 2D DRAWING VIEW IS NOW YOURS AND
+        IT IS UNBLOCKED.** Entry 77 shipped the plan/section unit (merged by the owner 2026-08-05),
+        so the thing this TASK previously named as a future surprise is real today:
+
+              const result = await doc.projectView(descriptor)   // the D19 door, on DocumentContext
+
+        `ViewResult` = `{ viewId, kind, plane, curves, unprojected }` from `@bunyan/document`; each
+        `ViewCurve` is a 2D polyline in the plane's own frame **carrying a real `SubShapeRef`**, so a
+        dimension anchored in the drawing reads the MODEL, not the polyline. Three notes that will
+        save you a re-read:
+          • **It is a QUERY, not an edit** (domain rule 17) — no `scene.json` byte, no `UndoableEdit`,
+            nothing cached. The `.bnn` stores the DESCRIPTOR, so the drawing is LIVE: resize a wall
+            and the next call draws the new wall with zero re-authoring.
+          • **`unprojected[]` is never empty-and-silent.** One refusal costs its element, never the
+            drawing. **Render it** — a plausible, SHORT drawing is exactly what nobody audits.
+          • **`kind: '3d'` THROWS** rather than returning an empty drawing; a 3d view is served by
+            your renderer through `tessellate`, not by `sectionCut`.
+        `core.createView` / `updateView` / `deleteView` exist as ordinary registered commands, so
+        the generated ribbon already exposes them.
+        ⚠ **It is additive and it does NOT displace P4.5** — finish the ordering above first. It is
+        named here, with its shape, so that it is a decision rather than a discovery.
 
         Not this session (deferred, so nobody re-derives): material appearance + transparency ·
         WebGPU + WebGL2 fallback · a File System Access `StorageAdapter` · TSL shading · service
@@ -211,7 +272,32 @@ NEW:    **⚠⚠ THE HANDOFF SYSTEM CHANGED ON 2026-07-31. THIS IS YOUR FIRST SE
             or it fails.
         (e) **⚠ YOU ARE THE ONLY MACHINE THAT CAN CLEAR A BROWSER CLAIM.** Zayd is headless. If a
             merged entry carries `unverified here: <claim>`, clearing it is your FIRST action —
-            and it is the one review debt this system can accumulate.
+            and it is the one review debt this system can accumulate. **None is outstanding as of
+            Entry 79** (checked, not assumed) — so you start this session with a clean slate.
+
+        **⚠⚠ AND NOW THE PART THAT IS NEWER THAN THE REST OF THIS BLOCK — SEVEN ENTRIES LANDED WHILE
+        YOU WERE AWAY (73–79, all Zayd). Only four of them can touch you:**
+        (f) **THE KERNEL CAN NOW REFUSE TO BOOT (Entry 79, in PR #6).** `createOcctKernel` compares
+            the WASM module's self-reported `toolchainId()` against `OCCT_BUILD_ID` and throws
+            `[INTERNAL] Kernel artifact mismatch` when they disagree. It can only fire on a broken
+            build — but it fires **in the browser**, at construction, so if your app ever dies at
+            boot with that message the fix is a rebuild/pull, not your code. ⚠ **If you think a
+            build-time invariant should not be a runtime throw, that is a legitimate review finding
+            on PR #6** — say so with the failure mode; do not just live with it.
+        (g) **THE REVIEW PROTOCOL HARDENED, WHICH IS WHY THE LOOP ABOVE DIFFERS FROM THE ONE YOU
+            LEFT (Entries 74/75).** Entry 74 opened its PR and merged it minutes later, so it is on
+            `main` unread by a second party. The ruling: **the REVIEWING agent merges, and the
+            reviewer is by construction a LATER session.** You never merge what you wrote today, and
+            `docs:check` now fails on a stale `AWAITING REVIEW`. See step 3 and step 10(b).
+        (h) **⚠ THE REPO IS AGPL-3.0 AND `NOTICE` IS NOW MACHINE-ENFORCED (Entries 74/76), AND THIS
+            ONE WILL BITE YOU SPECIFICALLY.** `tests/notice-attribution.test.ts` walks EVERY
+            workspace manifest — `apps/web` included — and fails `pnpm verify` if a **runtime**
+            dependency is not attributed in `NOTICE` with its licence text under `licenses/`. It was
+            written because seven shipped MIT packages (`react`, `react-dom`, `three`, `fflate`, …)
+            were silently unattributed. ⇒ **The next npm package you add to the browser bundle is a
+            licence obligation, not just an install.** `pnpm licenses list --prod` is the instrument.
+        (i) **The plan/section drawing is real** — see TASK. That is the one new capability aimed
+            at your layer.
 
         (From your own Entry 70 — three facts about the app that are now true and were not:)
         (0a) **The app registers the REAL `@bunyan/types`** (`core.wall` the D52 baseline,
