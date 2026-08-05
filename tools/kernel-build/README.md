@@ -58,21 +58,26 @@ mkdir -p build install
 
 REPO=$HOME/projects/Bunyan/tools/kernel-build
 
+# ⚠⚠ THE TOOLCHAIN IS PINNED BY DIGEST, NOT BY TAG. `:latest` is a moving pointer — it named emcc
+# 6.0.2 when the committed artifact was linked and names 6.0.5 today. Read it from the manifest so
+# there is ONE copy of the digest in the repo (see "Pinned toolchain" below for what it costs to skip).
+EMSDK=$(node -p "require('$REPO/toolchain.json').emsdk.image + '@' + require('$REPO/toolchain.json').emsdk.digest")
+
 # 1. configure (emscripten toolchain)
 docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
   -v "$PWD/occt:/src/occt:ro" -v "$PWD/build:/build" -v "$PWD/install:/install" \
   -v "$REPO/configure.sh:/configure.sh:ro" \
-  emscripten/emsdk:latest bash -c "emcmake bash /configure.sh"
+  "$EMSDK" bash -c "emcmake bash /configure.sh"
 
 # 2. compile OCCT  (~2.5 h)
 docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
   -v "$PWD/occt:/src/occt:ro" -v "$PWD/build:/build" -v "$PWD/install:/install" \
-  emscripten/emsdk:latest cmake --build /build --target install -j 2
+  "$EMSDK" cmake --build /build --target install -j 2
 
 # 3. link our kernel  (seconds)
 docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
   -v "$REPO:/work" -v "$PWD/install:/install:ro" \
-  emscripten/emsdk:latest bash /work/link.sh
+  "$EMSDK" bash /work/link.sh
 
 # 4. judge it against the native-OCCT goldens (build-time smoke check)
 node verify.mjs
@@ -116,7 +121,7 @@ trusting the comment above them — or the literature, which on OCCT 7.9.3 turne
 ```bash
 docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
   -v "$REPO:/work" -v "$SPIKE/install:/install:ro" \
-  emscripten/emsdk:latest bash /work/probe.sh     # ~60 s, same libs as the kernel
+  "$EMSDK" bash /work/probe.sh                    # ~60 s, same libs as the kernel ($EMSDK: see Build)
 node probe-history.mjs                            # the report; --json for the raw data
 ```
 
@@ -130,17 +135,38 @@ moment when there is a `.wasm` but no repo around it.
 
 ## Pinned toolchain
 
+**The machine-readable copy is `toolchain.json`** — the recipe above and the tests both read it, so
+there is exactly one place to change and nothing to keep in sync by hand.
+
 |            |                                                                                                  |
 | ---------- | ------------------------------------------------------------------------------------------------ |
 | OCCT       | **7.9.3** (`V7_9_3`, upstream, **unpatched**)                                                    |
-| emscripten | `emscripten/emsdk:latest` → **emcc 6.0.2**                                                       |
+| emscripten | **`emscripten/emsdk@sha256:644883f5…`** (= tag `6.0.2`) → **emcc 6.0.2** (`7a2d97d6`)            |
 | Threading  | **single** (owner ruling: v1.0.0 ships single-threaded; MT in v1.0.x)                            |
 | Artifact   | `packages/kernel-occt/wasm/bunyan-kernel.{js,wasm}` — **15.36 MB raw / 4.24 MB gzip** (Entry 14) |
+
+⚠⚠ **PINNED BY DIGEST, AND `:latest` IS NOT AN ACCEPTABLE SUBSTITUTE — THIS IS MEASURED, NOT
+CAUTIOUS.** The recipe said `emscripten/emsdk:latest` until Entry 79. On 2026-08-05 that tag resolved
+to `sha256:76a44fff…`, which is **emsdk 6.0.5** — three releases past the **6.0.2** that linked the
+committed artifact. Anyone following the recipe would have relinked the kernel with a compiler the
+build id does not name, and the only reason this box did not is that Docker had the July image
+cached. `tests/kernel-build-pin.test.ts` fails if a mutable tag comes back.
 
 ⚠ **The OCCT version + emcc version are the kernel _build id_** (`occt-7.9.3-emcc-6.0.2`, in
 `packages/kernel-occt/src/kernel.ts`). It is stamped into every saved `.bnn` and invalidates the
 geometry cache when it changes (spec §6). Bump it deliberately, and **re-seed the goldens**
 (`tools/oracle`) whenever OCCT changes.
+
+⚠ **It is no longer a claim you have to keep true by hand.** `kernel.cpp` computes the same string
+from `OCC_VERSION_COMPLETE` and `__EMSCRIPTEN_*__` — compile-time macros — and exposes it as
+`toolchainId()`; `createOcctKernel` refuses to boot a module whose answer differs from `OCCT_BUILD_ID`.
+So a relink on a different emsdk now fails loudly instead of silently mis-stamping every `.bnn`.
+
+**Reproducibility, verified 2026-08-05 (Entry 79):** relinking on the pinned digest reproduced the
+then-committed artifact **byte for byte** — `bunyan-kernel.wasm` sha256
+`819ff12cbd627fd7d8a5e73e30b0d34f7f5b056702b23c38e218ad6784a6c696`, `bunyan-kernel.js` sha256
+`fc5b042176127d6bbaea48dafea9f3293a10c2f3059e495ea1e130bf68638345`. Step 3 alone, ~75 s. (The
+committed artifact has since moved on by the +139 bytes of `toolchainId()` itself.)
 
 ## The JS↔WASM boundary: one crossing per op, not per element
 

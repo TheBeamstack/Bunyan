@@ -469,7 +469,10 @@ solver, 0c joins) · **all eighteen backward sweeps** (D67–D77) · the enumera
 exporter · the schedules body (D78) + its CRUD (D79) · the renderer batching rewrite · P4.5's tool layer ·
 the D29 op bodies · **the five move verbs + `transactionId` (D80)** · browser storage · the join spatial
 index (D73) · **the cached-import cost attribution — the embind crossings are 0.9%, the memory view is
-cancelled and the "rule 17" rename is a phantom (Entry 73).**
+cancelled and the "rule 17" rename is a phantom (Entry 73)** · the plan/section unit (D81, Entry 77) ·
+**the toolchain pin (Q14, Entry 79) — the emsdk digest is in `tools/kernel-build/toolchain.json`, the
+build id is composed by the compiler and checked at kernel construction, and the pin is PROVEN (relinking
+on it reproduced the committed artifact byte for byte). A VERSION BUMP is a different question.**
 
 ---
 
@@ -487,10 +490,12 @@ pnpm state           # regenerate §8 and YOUR OWN prompt's FRESH. Never hand-ed
 pnpm docs:check      # the doc gates alone (budget · abstract schema · §8 freshness)
 
 # Change the kernel's C++ and re-test: ~60-74 s (OCCT's static libs are prebuilt). A VERSION bump = 2.5 h.
+# ⚠ THE IMAGE IS PINNED BY DIGEST (Q14, Entry 79). `:latest` moved 6.0.2 -> 6.0.5 under this recipe.
 SPIKE=$HOME/occt-wasm-spike;  REPO=$HOME/projects/Bunyan/tools/kernel-build
+EMSDK=$(node -p "require('$REPO/toolchain.json').emsdk.image + '@' + require('$REPO/toolchain.json').emsdk.digest")
 docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
   -v "$REPO:/work" -v "$SPIKE/install:/install:ro" \
-  emscripten/emsdk:latest bash /work/link.sh
+  "$EMSDK" bash /work/link.sh
 cp $REPO/dist/bunyan-kernel.{js,wasm} $HOME/projects/Bunyan/packages/kernel-occt/wasm/ && pnpm verify
 
 # Offline golden seeding (NEVER in CI): cd tools/oracle && VIRTUAL_ENV=$PWD/.venv uv run seed-goldens ../../tests/goldens
@@ -537,6 +542,45 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 79 | 2026-08-05 | Zayd | the emsdk image is pinned by digest — and the artifact now names its own compiler (Q14)
+
+- **CHANGED:** `tools/kernel-build/toolchain.json` (**NEW** — one machine-readable pin: OCCT version,
+  emsdk image + **digest**, emcc version + commit, derived `buildId`; read by the recipe AND the tests) ·
+  `README.md` (all five `emscripten/emsdk:latest` sites → `"$EMSDK"`; "Pinned toolchain" rewritten — it
+  claimed a pin it did not have) · `probe.sh` + `current_state.md` §6 (the pasteable commands) ·
+  `tools/kernel-build/src/kernel.cpp` (**`toolchainId()`** + `<emscripten/version.h>`,
+  `<Standard_Version.hxx>`, the binding) · **the WASM relinked on the pinned digest** (+139 B) + its
+  `.d.ts` · `packages/kernel-occt/src/kernel.ts` (**`createOcctKernel` REFUSES a module whose
+  `toolchainId()` disagrees with `OCCT_BUILD_ID`**; `artifactBuildId()` on `OcctKernel`) ·
+  `scripts/reseed-paths.mjs` (`toolchain.json` gated — it names the COMPILER) ·
+  `tests/kernel-build-pin.test.ts` (**NEW, 6 tests**) · `tests/reseed-gate.test.ts` (+1) · goldens
+  re-seeded · `open_rulings.md` (**Q14 STRUCK**). No schema bump, no frozen byte.
+- **VERIFIED:** **661 green** across 82 files, all six gates, **real exit code 0**, real OCCT throughout.
+  **Revert-verified 4 ways, each watched RED:** the pre-Entry-79 artifact → `wasm.toolchainId is not a
+  function`; `OCCT_BUILD_ID` set to `…6.0.5` → `[INTERNAL] Kernel artifact mismatch` in two suites;
+  `:latest` put back → the guard names the exact code block; the gate path removed → RED.
+- **FOUND:** ⚠⚠ **THE TAG HAD ALREADY MOVED — Q14 WAS A LIVE DEFECT, NOT A HYPOTHETICAL.** The artifact
+  was linked by `sha256:644883f5…` = **emsdk 6.0.2**; `:latest` today is `sha256:76a44fff…` = **6.0.5**,
+  three releases on. Following the README verbatim relinks with a compiler `OCCT_BUILD_ID` does not name
+  and **all four tests asserting it stay green**. ⚠ The only reason Entry 77's rebuild was not already
+  wrong is that `docker run` does not re-pull a cached tag — a coincidence, not a control. ⚠⚠ **AND
+  "READ IT BACK FROM THE ARTIFACT" WAS IMPOSSIBLE, NOT MERELY UNDONE:** the shipped `.wasm` had **11
+  sections, ZERO custom sections and not one version string in 14.7 MB** (`-O3` strips `producers`), so
+  no test could have caught it even in principle. The id is now composed from `OCC_VERSION_COMPLETE` +
+  `__EMSCRIPTEN_*__` — compile-time macros, greppable in the binary. ⚠⚠ **THE PIN IS PROVEN, NOT
+  ASSERTED: relinking the unmodified source on the digest reproduced the committed artifact BYTE FOR
+  BYTE** (wasm `819ff12c…`, js `fc5b0421…`, `cmp` clean, ~75 s). ⚠ `OCC_VERSION_STRING` is **"7.9"**,
+  not "7.9.3" (`OCC_VERSION_COMPLETE` is) — the obvious spelling ships a plausible wrong id. ⚠
+  `__EMSCRIPTEN_MAJOR__` is **not predefined** and the lowercase form is `#pragma clang deprecated`. ⚠
+  **The re-seed diff is ONE `seededAt` LINE again** — second entry running ⇒ Q16.
+- **OWES:** Owner: **nothing — `RISK: additive`, so the REVIEWING agent merges this.** Q15/Q16/Q17 and
+  Q11/Q12 stand as recorded; Q16 gained a second worked example. Amer: `createOcctKernel` can now
+  **reject at construction** on an artifact/constant mismatch — it fires in the browser too, and only on
+  a broken build.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-05-emsdk-digest-pin.md`
+- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+
 ### 77 | 2026-08-03 | Zayd | the plan/section unit ships — a drawing IS the B-Rep (D58 row Ⓐ, D81)
 
 - **CHANGED:** `tools/kernel-build/src/kernel.cpp` (**`sectionCut`**, `BRepAlgoAPI_Section` + `Generated()`
@@ -575,8 +619,8 @@ is maintenance and does NOT get an entry of its own.**
 - **RISK:** contract-touching
 - **FULL:** `handoff/zayd/2026-08-03-plan-section-unit.md`
 - **REVIEW:** **REVIEWED 2026-08-04 by the Entry-78 session** (Zayd, a later session — the protocol
-  holding for a fourth entry); full record in PR #5's review comment. ⚠ **STILL AWAITING THE OWNER'S
-  MERGE — that is the gate here, not the review.** Item 1 re-executed: reverting the attribution to
+  holding for a fourth entry); full record in PR #5's review comment. ✅ **MERGED BY THE OWNER
+  2026-08-05** (`173da22`) — contract-touching, so it was always theirs to merge, and it was. Item 1 re-executed: reverting the attribution to
   `ref.nodeId` reproduced **`expected length 8 but got 6`** verbatim. **ONE REAL DEFECT, PROVEN AND
   FIXED: `projectView` never called its own pre-filter** — `straddlesPlane`/`withinClip`/`levelScope`
   shipped written, exported and called by NOTHING, so a stored, validated **`clip` was silently ignored
@@ -852,56 +896,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/zayd/2026-07-30-d29-cache-bodies.md`
 - **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
 
-### 70 | 2026-07-30 | Amer | P4.5's six rulings taken, and the tool layer ships
-
-- **CHANGED:** all `apps/web` — `tool/QueryGateway.ts` (Tier 2, read-only, four ops as explicit OVERLOADS
-  so *the type signature is the allowlist*), `tool/snap.ts` (Tier 1, PURE, projection injected),
-  `toolMachine.ts` + `tools.ts`, `numeric.ts`, the preview layer, hover, multi-select. **Domain rule 19**
-  adopted into `core_logic.md` §8.
-- **VERIFIED:** 578 green · all five gates 0 · browser-verified (real OCCT + real GPU, through the
-  DOM/`window` path) + headless.
-- **FOUND:** ⚠⚠ **The app had NEVER registered the wall this design reasons about** — `bootstrap.ts` was
-  still on the scaffold `core.wall.v1` while P5's D52 baseline `core.wall` shipped in Entry 42, so
-  registering the real types was a PRECONDITION, not a tidy-up. And **React BATCHES**: typing `5000`
-  produced `0` because four keystrokes in one tick each read the same stale closed-over value — invisible
-  to slow manual typing.
-- **OWES:** Zayd: rows ⓑ/ⓘ (the move verbs and a `transactionId` reader) — **discharged by Entry 72**.
-- **RISK:** additive
-- **FULL:** `handoff/amer/2026-07-30-p45-tool-layer.md`
-- **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
-
-### 69 | 2026-07-30 | Zayd | the plan/section design, design-first
-
-- **CHANGED:** nothing — the deliverable is `docs/design/P5_step6C_plan_section_design.md`. No source
-  touched.
-- **VERIFIED:** measured against native OCCT via seven probes (all deleted afterwards).
-- **FOUND:** ⚠⚠ **The frozen `SectionCurve.ref` comment is FALSE about the projected half.** Cut curves
-  attribute perfectly (**4/4, 1/1, 8/8, zero orphans**) via OCCT's own history; projected curves cannot
-  attribute at all (HLR output shares **0 of 4** `IsSame()` with the input, and its finest granularity is
-  the whole solid). Scale: the cut is FLAT at 1.28–1.31 ms/solid; **HLR RISES ≈N^1.5.**
-- **OWES:** Owner: Q1–Q5 — **Q1–Q3 BLOCK the build.** Recommend `mode:'cut'` only for v1.0.0.
-- **RISK:** additive (no source touched)
-- **FULL:** `handoff/zayd/2026-07-30-plan-section-design.md`
-- **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
-
-### 68 | 2026-07-29 | Zayd | the schedule CRUD — `scene.schedules` becomes a first-class collection (D79)
-
-- **CHANGED:** `core.createSchedule`/`updateSchedule`/`deleteSchedule` as additive registry entries;
-  `scene.schedules` promoted to a full `SceneCollection` with undo + a declared "nothing" dependency edge.
-  One contract-touching line: `ParamField.refTo` gained `'schedule'`. No frozen byte, no schema bump.
-- **VERIFIED:** 538 green · all five gates 0 · revert-verified ten ways.
-- **FOUND:** ⚠⚠ **The verbs carry the refusal the body deliberately will not.** Measured before they
-  existed: a `groupBy` naming a missing column collapses 2 groups into 1 keyed `[""]`; an out-of-grammar
-  quantity key makes every cell **and the TOTAL** NaN, which JSON-stringifies to `null`. Also: the design
-  doc's own prediction was wrong — an `emptyScene()` entry turned two GREEN reservation assertions RED, so
-  **the collection materialises on first authoring** instead. And `schedule.ts` carried a raw **NUL byte**
-  that made the file invisible to `grep`, on a project whose method is grep.
-- **OWES:** Owner: should `refTo` also gain `'view'`/`'sheet'`/`'annotation'`/`'family'`? (Q3 —
-  now BLOCKING the plan/section unit.)
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-07-29-schedule-crud-d79.md`
-- **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
-
 ---
 
 ## §8 — Generated
@@ -910,17 +904,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **77 (Zayd, 2026-08-03)** |
-| branch · tip · tree | `zayd/2026-08-03-plan-section-unit` · `1c4e035` · dirty |
-| open PRs | #5 zayd/2026-08-03-plan-section-unit |
-| suite | **655 green** · 81 files · 212 suites |
+| **newest entry** | **79 (Zayd, 2026-08-05)** |
+| branch · tip · tree | `zayd/2026-08-05-emsdk-digest-pin` · `173da22` · dirty |
+| open PRs | none — main is the tip of the work |
+| suite | **661 green** · 82 files · 214 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 27 files changed, 2230 insertions(+), 86 deletions(-) (27 files) |
-| docs budget | current_state 75.9/96.0 KB · §7 31.8/32.0 KB · abstracts 10/10 · bodies 24 |
+| diff vs origin/main | 13 files changed, 198 insertions(+), 76 deletions(-) (13 files) |
+| docs budget | current_state 76.4/96.0 KB · §7 31.7/32.0 KB · abstracts 8/10 · bodies 25 |
 
-_Generated 2026-08-04 by `pnpm state`._
+_Generated 2026-08-05 by `pnpm state`._
 
 <!-- END GENERATED -->

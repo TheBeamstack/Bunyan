@@ -106,6 +106,10 @@ describe('the re-seed gate matches GEOMETRY, not LOCATION', () => {
     expect(geometry('tools/kernel-build/src/kernel.cpp')).toBe(true);
     expect(geometry('tools/kernel-build/configure.sh')).toBe(true);
     expect(geometry('tools/kernel-build/link.sh')).toBe(true);
+    // Entry 79 (Q14): the pinned emsdk digest names WHICH COMPILER applies those flags. A digest
+    // bump is a toolchain change and a toolchain change can move a golden — the same argument that
+    // put `link.sh` on this list, one level up.
+    expect(geometry('tools/kernel-build/toolchain.json')).toBe(true);
   });
 
   /**

@@ -50,16 +50,37 @@ something, it is stated here in full, and the licence texts themselves are in
   modified OCCT using nothing but this repository and that recipe, which is what
   section 6 requires.
 
-  ⚠ THE RECIPE IS COMPLETE BUT NOT BYTE-REPRODUCIBLE, AND SAYING SO IS PART OF
-  THE ATTRIBUTION. `tools/kernel-build/README.md` invokes the toolchain as
-  `emscripten/emsdk:latest` — a MUTABLE tag — so a rebuild today need not use
-  the compiler that produced the committed module. The build id
-  `occt-7.9.3-emcc-6.0.2` RECORDS the combination that did (it is a hand-
-  maintained constant in `packages/kernel-occt/src/kernel.ts`, not a value read
-  back out of the artifact); it does not pin it. Relinking against a modified
-  OCCT works regardless, which is the obligation; exact bit-for-bit
-  reproduction of the shipped module would additionally require pinning the
-  emsdk image by digest. That pin is open as a ruling.
+  ⚠ THE RECIPE IS PINNED BY DIGEST AND IS BYTE-REPRODUCIBLE, AND SAYING SO
+  PRECISELY IS PART OF THE ATTRIBUTION. Until 2026-08-05 this paragraph said the
+  opposite, because it was true: the recipe invoked a MUTABLE image tag, so a
+  rebuild need not have used the compiler that produced the committed module.
+  `tools/kernel-build/README.md` now invokes the toolchain by immutable digest —
+
+    emscripten/emsdk@sha256:644883f58ca15c38c8be59b3a727ba0eff347729bc31d50a3348a6c9ed92bc07
+    (equivalent to tag 6.0.2 — emcc 6.0.2, commit 7a2d97d6)
+
+  recorded once, machine-readably, in `tools/kernel-build/toolchain.json`, which
+  the recipe and the tests both read.
+
+  ⚠ THAT THIS IS A REAL PIN WAS DEMONSTRATED, NOT ASSUMED — and the demonstration
+  has a date attached because that is what makes it checkable. On 2026-08-05 the
+  kernel source as it then stood was relinked, unmodified, on this digest, and
+  reproduced the module then committed here BYTE FOR BYTE:
+
+    819ff12cbd627fd7d8a5e73e30b0d34f7f5b056702b23c38e218ad6784a6c696
+
+  The module redistributed today is that same source with `toolchainId()` added,
+  relinked on the same digest; it is 139 bytes larger and is not itself what that
+  comparison was run against.
+
+  The build id `occt-7.9.3-emcc-6.0.2` names that combination, and it is no
+  longer a constant kept true by hand: `tools/kernel-build/src/kernel.cpp`
+  composes the same string from its own compile-time macros, the module reports
+  it as `toolchainId()`, and the kernel refuses to load an artifact whose answer
+  disagrees with the source. ⚠ What the pin does not promise is that the image
+  stays pullable, or that any other emsdk reproduces those exact bytes.
+  Relinking against a MODIFIED OCCT — which is the actual section 6 obligation —
+  depends on neither, and works regardless.
 
   OCCT is NOT modified by this project. Bug reports about OCCT itself belong
   upstream, not here.

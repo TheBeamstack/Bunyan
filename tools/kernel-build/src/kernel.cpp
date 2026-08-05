@@ -27,6 +27,10 @@
 
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
+// ⚠ NOT predefined by emcc — `__EMSCRIPTEN_MAJOR__` &c. live here, and the lowercase spellings
+// (`__EMSCRIPTEN_major__`) carry a `#pragma clang deprecated`. Measured, not remembered: without
+// this include the compile fails with "use of undeclared identifier". See `toolchainId()`.
+#include <emscripten/version.h>
 
 #include <BRepPrimAPI_MakeBox.hxx>
 #include <BRepPrimAPI_MakeCylinder.hxx>
@@ -48,6 +52,7 @@
 #include <BRepTools.hxx>
 #include <BRep_Builder.hxx>
 #include <TopTools_FormatVersion.hxx>
+#include <Standard_Version.hxx>  // OCC_VERSION_COMPLETE — see `toolchainId()`
 #include <GC_MakeArcOfCircle.hxx>
 #include <Geom_TrimmedCurve.hxx>
 #include <TopoDS_Wire.hxx>
@@ -438,6 +443,35 @@ std::string derivationKey(const NameRow& r) {
 }  // namespace
 
 std::string lastError() { return g_lastError; }
+
+// ---------------------------------------------------------------------------------------------
+// THE BUILD ID, AS REPORTED BY THE ARTIFACT ITSELF — the answer to open ruling Q14.
+//
+// ⚠⚠ WHY THIS EXISTS: THE SHIPPED `.wasm` CARRIED NO RECORD OF WHAT BUILT IT. Measured on the
+// Entry-77 artifact: 11 sections, NOT ONE custom section (no `producers`), and not one version
+// string anywhere in 14.7 MB. So `OCCT_BUILD_ID` in `packages/kernel-occt/src/kernel.ts` was a
+// hand-maintained constant asserted only AGAINST ITSELF, in four tests — and the drift it exists to
+// catch is silent by construction: relink on a newer emsdk and the module is compiled by a compiler
+// the constant does not name, while every one of those tests stays green. That is not theoretical.
+// `emscripten/emsdk:latest` moved from **6.0.2 to 6.0.5** between 2026-07-01 and 2026-07-29, so the
+// recipe as written would already build a stranger today (hence the digest pin in `README.md`).
+//
+// BOTH HALVES ARE COMPILE-TIME MACROS, which is the entire point: this string is written by the
+// toolchain that compiles this file, is baked into the data section as a literal, and CANNOT be
+// hand-edited into agreement with a claim made elsewhere. TypeScript checks its constant against it.
+//
+// Two traps, both measured rather than remembered:
+//   * `OCC_VERSION_COMPLETE` ("7.9.3"), NOT `OCC_VERSION_STRING` — the latter is "7.9", major.minor
+//     only, and would have produced `occt-7.9-emcc-6.0.2` and a plausible-looking wrong id.
+//   * `__EMSCRIPTEN_MAJOR__` &c. require <emscripten/version.h> and are not predefined.
+// ---------------------------------------------------------------------------------------------
+#define BUNYAN_STRINGIFY_(x) #x
+#define BUNYAN_STRINGIFY(x) BUNYAN_STRINGIFY_(x)
+
+std::string toolchainId() {
+  return "occt-" OCC_VERSION_COMPLETE "-emcc-" BUNYAN_STRINGIFY(__EMSCRIPTEN_MAJOR__) "." BUNYAN_STRINGIFY(
+      __EMSCRIPTEN_MINOR__) "." BUNYAN_STRINGIFY(__EMSCRIPTEN_TINY__);
+}
 
 namespace {
 
@@ -2603,4 +2637,6 @@ EMSCRIPTEN_BINDINGS(bunyan_kernel) {
   function("liveHandles", &liveHandles);
   function("heapUsedBytes", &heapUsedBytes);
   function("lastError", &lastError);
+  // Q14 — the artifact naming its own toolchain, so `OCCT_BUILD_ID` is checked and not merely asserted.
+  function("toolchainId", &toolchainId);
 }

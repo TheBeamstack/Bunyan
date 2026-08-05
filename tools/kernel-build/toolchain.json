@@ -1,0 +1,33 @@
+{
+  "_comment": [
+    "THE PINNED TOOLCHAIN — one machine-readable source of truth, because it used to be five prose",
+    "copies of a MUTABLE tag (open ruling Q14, raised E76, built E79).",
+    "",
+    "`emscripten/emsdk:latest` is not a version, it is a moving pointer: it named emcc 6.0.2 when the",
+    "shipped artifact was linked (2026-07-01) and names 6.0.5 today (2026-07-29 build). Following the",
+    "recipe verbatim would therefore relink the kernel with a compiler that `OCCT_BUILD_ID` does not",
+    "name, and nothing would have said so — the .wasm carried no version string at all.",
+    "",
+    "`buildId` is the string `tools/kernel-build/src/kernel.cpp` computes FROM ITS OWN COMPILER at",
+    "compile time and `packages/kernel-occt/src/kernel.ts` declares. All three are checked against each",
+    "other by `tests/kernel-build-pin.test.ts`, and the kernel refuses to boot if the artifact disagrees.",
+    "",
+    "⚠ CHANGING `emsdk.digest` CHANGES THE COMPILER AND THEREFORE THE GEOMETRY — this file is in the",
+    "re-seed gate's GEOMETRY_PATHS for the same reason `link.sh` is."
+  ],
+  "occt": {
+    "version": "7.9.3",
+    "sourceTag": "V7_9_3",
+    "patched": false
+  },
+  "emsdk": {
+    "image": "emscripten/emsdk",
+    "digest": "sha256:644883f58ca15c38c8be59b3a727ba0eff347729bc31d50a3348a6c9ed92bc07",
+    "equivalentTag": "6.0.2",
+    "emcc": "6.0.2",
+    "emccCommit": "7a2d97d627ff4945eae28847ce0387ac52b92c09",
+    "verifiedOn": "2026-08-05",
+    "verifiedBy": "Entry 79 — relinked on this digest and the artifact came back BYTE-IDENTICAL to the committed one (wasm sha256 819ff12cbd627fd7d8a5e73e30b0d34f7f5b056702b23c38e218ad6784a6c696), which is what makes this a pin and not a note."
+  },
+  "buildId": "occt-7.9.3-emcc-6.0.2"
+}

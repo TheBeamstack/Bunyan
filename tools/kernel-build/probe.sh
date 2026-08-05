@@ -4,9 +4,11 @@
 # Same OCCT static libs, same flags as link.sh (no -flto; see the note there). It produces its own
 # module so that nothing exploratory ever lands in the kernel Amer ships against.
 #
+#   # ⚠ PINNED BY DIGEST (Q14) — `:latest` moves, and it already has: 6.0.2 -> 6.0.5. See toolchain.json.
+#   EMSDK=$(node -p "require('./toolchain.json').emsdk.image + '@' + require('./toolchain.json').emsdk.digest")
 #   docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
 #     -v "$PWD:/work" -v "$HOME/occt-wasm-spike/install:/install:ro" \
-#     emscripten/emsdk:latest bash /work/probe.sh
+#     "$EMSDK" bash /work/probe.sh
 #   node probe-history.mjs
 set -e
 

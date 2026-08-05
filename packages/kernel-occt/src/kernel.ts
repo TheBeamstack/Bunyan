@@ -49,6 +49,12 @@ import type { OcctBounds, OcctModule, OcctVectorDouble } from '../wasm/bunyan-ke
  * It is stamped into every saved `.bnn` and invalidates the cached B-Rep when it changes
  * (spec §6). Bump it whenever `tools/kernel-build` produces a different binary, and re-seed the
  * goldens if OCCT itself moved.
+ *
+ * ⚠⚠ IT IS NO LONGER SELF-ASSERTED (Q14). This line is a CLAIM about the artifact next to it, and
+ * `createOcctKernel` now refuses to boot a module that disagrees — the WASM computes the same string
+ * from `OCC_VERSION_COMPLETE` and `__EMSCRIPTEN_*__` at compile time (`wasm.toolchainId()`), so the
+ * two cannot drift apart in silence. Before this, four tests asserted the constant against itself and
+ * a relink on a newer emsdk would have changed the compiler with every one of them still green.
  */
 export const OCCT_BUILD_ID = 'occt-7.9.3-emcc-6.0.2';
 
@@ -318,6 +324,15 @@ export interface OcctKernel extends KernelImplementation {
    * cannot price a single solid, but this tracks every allocation. See `tests/document-heap-scale.test.ts`.
    */
   wasmHeapUsedBytes(): number;
+  /**
+   * What the loaded WASM module says compiled it — `occt-<version>-emcc-<version>`, computed in C++
+   * from compile-time macros, not from anything on this side of the boundary.
+   *
+   * ⚠ Construction already refuses a module that disagrees with `OCCT_BUILD_ID`, so in a healthy
+   * build this equals that constant; it is exposed so a test can assert the equality it enforces
+   * rather than trusting the enforcement (`tests/kernel-build-pin.test.ts`, Q14).
+   */
+  artifactBuildId(): string;
 }
 
 export async function createOcctKernel(
@@ -330,6 +345,25 @@ export async function createOcctKernel(
   moduleArg?: Record<string, unknown>,
 ): Promise<OcctKernel> {
   const wasm = await initBunyanKernel(moduleArg);
+
+  // ⚠⚠ THE ARTIFACT ANSWERS FOR ITSELF, ONCE PER SESSION, BEFORE ANYTHING ELSE (Q14). A `.bnn`'s
+  // build id is what decides whether a cached B-Rep is reused or rebuilt (spec §6), so a module whose
+  // real toolchain differs from the id we stamp does not fail loudly — it silently certifies caches
+  // as compatible when they are not. That is worth a hard refusal at construction: it can only fire
+  // on a build defect, it costs one string compare per session, and the alternative is shipping a
+  // kernel that misdescribes itself (the same argument as `capabilities` above, which drifted once).
+  const artifactBuildId = wasm.toolchainId();
+  if (artifactBuildId !== OCCT_BUILD_ID) {
+    throw new KernelFailureError(
+      kernelFailure(
+        'INTERNAL',
+        `Kernel artifact mismatch: the WASM module reports "${artifactBuildId}" but OCCT_BUILD_ID ` +
+          `claims "${OCCT_BUILD_ID}". The committed artifact was built by a different toolchain than ` +
+          `this source names — rebuild on the pinned image (tools/kernel-build/README.md) or correct ` +
+          `OCCT_BUILD_ID, and re-seed the goldens if OCCT itself moved.`,
+      ),
+    );
+  }
 
   // The registry is the single owner of WASM-heap memory: OCCT shapes are NOT garbage-collected, so
   // releasing a handle here is what actually frees the solid over there (spec §6.2).
@@ -990,6 +1024,7 @@ export async function createOcctKernel(
     handlers,
     wasmLiveHandles: () => wasm.liveHandles(),
     wasmHeapUsedBytes: () => wasm.heapUsedBytes(),
+    artifactBuildId: () => wasm.toolchainId(),
     dispose: () => {
       shapes.releaseAll();
     },
