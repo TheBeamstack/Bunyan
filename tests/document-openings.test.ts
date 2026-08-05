@@ -327,6 +327,75 @@ describe('openings, hosts, and the broken-reference state', () => {
     );
   });
 
+  /**
+   * ⚠⚠ THE SIBLING OF THE TEST ABOVE, AND UNTIL ENTRY 80'S REVIEW IT LANDED IN A FOURTH STATE THAT NO
+   * DIAGNOSTIC REPORTED — the one failure mode this document model did not have a name for.
+   *
+   * The test above retargets onto a face that DOES NOT EXIST: `hostPart` is not found, a
+   * `BrokenReference` is recorded, `state` is `broken-ref`, and the user can see it and retarget it.
+   * This one names a token that **does** exist on the part — an **EDGE** of the same wall. The `refs`
+   * lookup therefore SUCCEEDS, and the failure surfaces one step later, out of the kernel, as
+   * `UNRESOLVED_SUBSHAPE_REF` from `bounds`/`faceFrame`, into a `catch` that marked the opening
+   * `state: 'failed'` and moved on.
+   *
+   * Measured on this branch before the fix (real kernel, headless):
+   *
+   * ```
+   * GEOMETRY:    {"state":"failed","parts":[],"error":"[UNRESOLVED_SUBSHAPE_REF] … no such named face"}
+   * UNBUILDABLE: []      ← only `failure: 'unbuildable'` reaches this list
+   * BROKENREFS:  []      ← nothing was pushed
+   * ```
+   *
+   * So the SAME authoring error — *"this opening names a host sub-shape it cannot be hosted on"* — was
+   * visible or invisible depending on whether the token happened to be in `part.refs`. That is not a
+   * design question, it is an inconsistency: `document.ts`'s own comment promises a failed element is
+   * *"visible via `unbuildable()` / `geometryOf()`"*, and `unbuildable()` never saw this one (§1c-7).
+   *
+   * ⚠ Found while REVIEWING Entry 80, which met the same silence from the browser side (a corner snap
+   * handed the opening tool an edge ref and the door simply was not there — no banner, no console
+   * error). Amer guarded the tool, which was theirs to guard; this is the layer underneath, where an
+   * agent driving `core.createElement` directly meets the identical hole.
+   */
+  it('⚠⚠ an opening hosted on an EDGE is a BROKEN REF, not a silent `failed` (Entry 80 review)', async () => {
+    const { doc, wallId, hostFace } = await buildWall();
+    const windowId = (await addWindow(doc, wallId, hostFace)).changes[0]!.id;
+
+    // An edge of the very part the window is hosted on: present in `refs`, and no surface to read.
+    const interior = doc.partsOf(wallId)!.find((p) => p.name === 'finish.interior')!;
+    const edgeRef = interior.refs.find((ref) => ref.includes('/edge/'))!;
+    expect(
+      edgeRef,
+      'the fixture wall exposes no edge ref — this test proves nothing',
+    ).toBeDefined();
+
+    await doc.execute('core.retargetReference', {
+      elementId: windowId,
+      hostId: wallId,
+      hostRef: edgeRef,
+    });
+
+    // ⚠ 1. IT IS VISIBLE, by the same route as its sibling. A user or an agent can enumerate it.
+    const broken = doc.brokenRefs();
+    expect(broken).toHaveLength(1);
+    expect(broken[0]!.elementId).toBe(windowId);
+    expect(broken[0]!.ref).toBe(edgeRef);
+    expect(broken[0]!.reason).toMatch(/edge/);
+    expect(doc.geometryOf(windowId)!.state).toBe('broken-ref');
+
+    // ⚠ 2. AND THE WALL STILL BUILDS, un-pierced — domain rule 3, exactly as for a missing face.
+    const structure = (await doc.quantities(wallId)).parts.find((p) => p.name === 'structure')!;
+    expect(structure.volume).toBeCloseTo(LENGTH * BLOCKWORK * HEIGHT, 3);
+
+    // ⚠ 3. AND RETARGETING BACK ONTO A FACE HEALS IT — the way out is the same one.
+    await doc.execute('core.retargetReference', {
+      elementId: windowId,
+      hostId: wallId,
+      hostRef: hostFace,
+    });
+    expect(doc.brokenRefs()).toHaveLength(0);
+    expect(doc.geometryOf(windowId)!.state).toBe('valid');
+  });
+
   /* ============================================================================================
    * DOMAIN RULE 4 — REJECT + KEEP LAST-GOOD.
    * ========================================================================================= */

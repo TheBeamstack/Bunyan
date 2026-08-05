@@ -25,6 +25,7 @@ import {
   readCurrentState,
   section7,
   parseAbstracts,
+  newestAbstract,
   entryBodies,
   generatedBlock,
   MARKERS,
@@ -35,12 +36,25 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const src = readCurrentState(ROOT);
 const abstracts = parseAbstracts(src);
 const bodies = entryBodies(ROOT);
-const bytes = (p: string) => (existsSync(join(ROOT, p)) ? readFileSync(join(ROOT, p)).length : 0);
+/**
+ * ⚠ THE BUDGET IS ABOUT THE COMMITTED FILE, AND ON A CRLF WORKING TREE THAT IS NOT THE FILE ON DISK.
+ *
+ * `core.autocrlf=true` on the local PC adds one byte per line — ~920 of them to `current_state.md`,
+ * which put §7 at **32.05 KB against a 32 KB budget there while CI measured 31.7 KB**. A gate whose
+ * verdict depends on which box checked the repo out is not a gate; normalising here makes both boxes
+ * measure the thing that is actually stored. (Found alongside the parser defect, Entry 80.)
+ */
+const committed = (s: string) => s.replace(/\r\n/g, '\n');
+const bytes = (p: string) =>
+  existsSync(join(ROOT, p))
+    ? Buffer.byteLength(committed(readFileSync(join(ROOT, p), 'utf8')), 'utf8')
+    : 0;
 const kb = (n: number) => `${(n / 1024).toFixed(1)} KB`;
 
 /**
  * A field's COMPLETE text, continuation lines included. ⚠ Never read `fields.REVIEW` for a marker
- * check — it is only the first physical line, and prettier decides where that line ends.
+ * check — it is only the first physical line, and the author's hand decides where that line ends.
+ * (`current_state.md` is in `.prettierignore`; the formatter has never touched these breaks.)
  */
 const reviewText = (a: EntryAbstract) => a.fieldsFull?.REVIEW ?? a.fields.REVIEW ?? '';
 
@@ -56,7 +70,7 @@ describe('the handoff docs stay within budget', () => {
   });
 
   it('§7 is under its byte budget and holds no more than ten abstracts', () => {
-    expect(section7(src).length).toBeLessThanOrEqual(BUDGET.section7);
+    expect(section7(committed(src)).length).toBeLessThanOrEqual(BUDGET.section7);
     expect(abstracts.length).toBeLessThanOrEqual(BUDGET.maxAbstracts);
   });
 
@@ -271,5 +285,75 @@ describe('the doc tree is intact', () => {
     ]) {
       expect(ignore, `.prettierignore does not exempt ${p}`).toContain(p);
     }
+  });
+});
+
+/**
+ * ⚠⚠ THE GATE READ THE FILE AS IT WAS COMMITTED, NOT AS IT IS CHECKED OUT — and on Amer's box those
+ * are different files (found Entry 80, the first Amer session under this handoff system).
+ *
+ * The local PC has `core.autocrlf=true`, so `current_state.md` arrives in the working tree with 920
+ * CRLF pairs. `parseAbstracts` split on `\n`, leaving `\r` on every line, and its heading regex ends
+ * `\| (.+)$` — JS `.` does not match `\r` and `$` (no `m` flag) does not match before one. So no
+ * heading matched, `abstracts` was `[]`, and FIVE of this file's tests failed there while CI stayed
+ * green, every session, invisibly to the only machine that runs CI.
+ *
+ * ⚠ AND THE SILENT HALF WAS WORSE THAN THE LOUD ONE. `pnpm state` took the same empty array through
+ * `reduce(…, null)` and wrote `**(none)**` into §8 and `ENTRY ?` into `Amer_Prompt.md`'s FRESH —
+ * which loop step 10(a) pushes STRAIGHT TO MAIN, ahead of its own PR. The next session's "am I
+ * behind?" check would have been a question mark, and nothing would have errored.
+ *
+ * ⚠ Weak-green (REVIEW.md item 6): both variants are derived from the REAL file, so this fails on an
+ * LF box too — it is not a Windows-only test that a Linux CI can never exercise, which is the whole
+ * point. The LF parse is asserted non-empty first, so it cannot pass by both sides returning `[]`.
+ */
+describe('the doc parser reads the file as it is CHECKED OUT, not as it was committed', () => {
+  const lf = src.replace(/\r?\n/g, '\n');
+  const crlf = src.replace(/\r?\n/g, '\r\n');
+  const identity = (a: EntryAbstract) => `${a.n}|${a.date}|${a.agent}|${a.headline}`;
+
+  it('finds the same abstracts whichever line ending the working tree has', () => {
+    const fromLf = parseAbstracts(lf);
+    expect(
+      fromLf.length,
+      'the LF parse found nothing — the rest of this test would be vacuous',
+    ).toBeGreaterThan(0);
+    expect(parseAbstracts(crlf).map(identity)).toEqual(fromLf.map(identity));
+  });
+
+  it('carries no carriage return into a parsed field', () => {
+    const parsed = parseAbstracts(crlf);
+    // ⚠ Without this line the loop below is vacuous on exactly the broken parser it exists to catch —
+    // caught by revert-verifying my own test, which is the point of doing it.
+    expect(parsed.length, 'the CRLF parse found nothing, so the loop below proves nothing').toBe(
+      parseAbstracts(lf).length,
+    );
+    for (const a of parsed) {
+      for (const [name, value] of Object.entries(a.fieldsFull)) {
+        expect(value, `entry ${a.n}'s ${name} kept a \\r`).not.toMatch(/\r/);
+      }
+    }
+  });
+
+  it('REFUSES an empty parse instead of answering `(none)`', () => {
+    // The guard `pnpm state` now runs before it writes anything. A parser that finds nothing has not
+    // discovered an empty §7 — §7 is never empty here — it has failed, and must say so.
+    expect(() => newestAbstract([])).toThrow(/ZERO abstracts/);
+    expect(newestAbstract(parseAbstracts(crlf)).n).toBe(
+      Math.max(...parseAbstracts(lf).map((a) => a.n)),
+    );
+  });
+
+  it('is the guard `pnpm state` actually runs, not one this test calls in private', () => {
+    // ⚠ The two assertions above prove the guard works; this one proves it is WIRED. Without it the
+    // test passes while `state.mjs` keeps its own silent `reduce(…, null)` — a green test asserting
+    // something weaker than its own name, which is this repo's most expensive recurring defect.
+    const state = readFileSync(join(ROOT, 'scripts/state.mjs'), 'utf8');
+    expect(state, '`pnpm state` no longer calls newestAbstract').toMatch(
+      /const newest = newestAbstract\(abstracts\)/,
+    );
+    expect(state, '`pnpm state` still has a silent default for the newest entry').not.toMatch(
+      /abstracts\.reduce\(/,
+    );
   });
 });

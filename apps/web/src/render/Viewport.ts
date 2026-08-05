@@ -34,7 +34,15 @@ import type { RenderPart } from './RenderPart';
 import { planRedraw, type CachedPart } from './reconcile';
 import { resolveFacePick, type PickResult } from './pick';
 import { PartBatch } from './PartBatch';
-import { SnapIndex, chooseSnap, edgeCandidates, gridCandidates, type SnapHit } from '../tool/snap';
+import {
+  SnapIndex,
+  chooseSnap,
+  edgeCandidates,
+  gridCandidates,
+  type SnapCandidate,
+  type SnapHit,
+  type SnapKind,
+} from '../tool/snap';
 
 export type { RenderPart } from './RenderPart';
 export type { PickResult } from './pick';
@@ -229,7 +237,14 @@ export class Viewport {
       if (resolved === null) continue;
       const drawn = this.#drawn.get(resolved.nodeId);
       if (drawn === undefined) continue;
-      const result = resolveFacePick(drawn, resolved.localFaceIndex);
+      // ⚠ `hit.point` is the ray/triangle intersection in WORLD mm — the batch is not transformed, so
+      // no basis change is needed here. It is Tier 1 (see `PickResult.point`), and it is what lets a
+      // click POSITION a hosted element and not merely host one.
+      const result = resolveFacePick(drawn, resolved.localFaceIndex, [
+        hit.point.x,
+        hit.point.y,
+        hit.point.z,
+      ]);
       if (result !== null) return result;
       // else: fall through to the next hit behind this triangle.
     }
@@ -262,7 +277,19 @@ export class Viewport {
    * removed or rebuilt. It is rebuilt on the next query, not on the edit, so a burst of edits costs one
    * rebuild rather than one per edit.
    */
-  snapAt(cursorPx: readonly [number, number], tolerancePx = 12): SnapHit | null {
+  snapAt(
+    cursorPx: readonly [number, number],
+    tolerancePx = 12,
+    /**
+     * Candidates that are not in the index because they are not fixed places — today, exactly the
+     * `'face'` candidate built from the ray hit under the cursor (`tool/snap.ts` `faceCandidate`).
+     * They go through the SAME `chooseSnap`, so the ruled priority order decides between them and the
+     * indexed ones rather than either side special-casing the other.
+     */
+    live: readonly SnapCandidate[] = [],
+    /** The active input's `snapTo` — `null` ⇒ every kind. See `chooseSnap` for why it is applied here. */
+    allow: readonly SnapKind[] | null = null,
+  ): SnapHit | null {
     if (this.#disposed) return null;
     const index = this.#ensureSnapIndex();
     // Prune in world space first: unproject the cursor to the ground plane and take a generous sphere.
@@ -270,7 +297,7 @@ export class Viewport {
     // the real pixel test to the survivors.
     const around = this.groundPointAt(cursorPx) ?? [0, 0, 0];
     const candidates = index.near(around, SNAP_SEARCH_RADIUS_MM);
-    return chooseSnap(candidates, this.project, cursorPx, tolerancePx);
+    return chooseSnap([...candidates, ...live], this.project, cursorPx, tolerancePx, allow);
   }
 
   /**

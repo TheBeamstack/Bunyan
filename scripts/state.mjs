@@ -24,11 +24,14 @@
  *                              freeze: re-baselining is what the freeze forbids.
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+// ⚠ Imported explicitly rather than taken as a global: `eslint` does not declare Node globals for
+// `.mjs` here, so the bare `Buffer` is a lint error even though the runtime has it.
+import { Buffer } from 'node:buffer';
 import { execSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSurface, diffSurface } from './frozen-surface.mjs';
-import { parseAbstracts, MARKERS, BUDGET, entryBodies } from './docs-state.mjs';
+import { parseAbstracts, newestAbstract, MARKERS, BUDGET, entryBodies } from './docs-state.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -167,11 +170,36 @@ if (flag('rebaseline')) {
 const csPath = join(ROOT, 'current_state.md');
 let cs = readFileSync(csPath, 'utf8');
 const abstracts = parseAbstracts(cs);
-const newest = abstracts.reduce((a, b) => (a && a.n > b.n ? a : b), null);
+// ⚠ THROWS on an empty parse rather than writing `(none)` / `ENTRY ?` into main's prompt — see
+// `newestAbstract` in `docs-state.mjs` for the failure it is standing in front of (Entry 80).
+const newest = newestAbstract(abstracts);
 const bodies = entryBodies(ROOT);
-const size = (p) => (existsSync(join(ROOT, p)) ? readFileSync(join(ROOT, p)).length : 0);
+// ⚠ NORMALISE CRLF BEFORE MEASURING, so §8 reports the same number the gate enforces. A CRLF working
+// tree adds a byte per line (~920 to this file), and `tests/docs-budget.test.ts` measures what is
+// COMMITTED — §8 quoting the checked-out size instead would disagree with the gate on Amer's box only.
+const committed = (s) => s.replace(/\r\n/g, '\n');
+
+/**
+ * Write `text` back using the line ending the file ALREADY has.
+ *
+ * ⚠⚠ WITHOUT THIS, `pnpm state` LEAVES EVERY FILE IT TOUCHES FAILING `format:check` ON A CRLF BOX
+ * (Entry 80). The generated blocks below are template literals, so they carry LF; splicing them into
+ * a CRLF working file produces MIXED endings, and `.prettierrc`'s `endOfLine: "auto"` then infers the
+ * dominant ending and rewrites them — which means step 8 (`pnpm state`) silently undoes step 7
+ * (`prettier --write` → `pnpm verify`) and the loop's own ordering fails on Amer's machine only.
+ *
+ * ⚠ Nothing is committed differently either way (`core.autocrlf` normalises on the way in). This is
+ * about the working tree, which is what the gates actually read.
+ */
+const withFileEol = (original, text) =>
+  original.includes('\r\n') ? committed(text).replace(/\n/g, '\r\n') : text;
+const size = (p) =>
+  existsSync(join(ROOT, p))
+    ? Buffer.byteLength(committed(readFileSync(join(ROOT, p), 'utf8')), 'utf8')
+    : 0;
 const kb = (n) => (n / 1024).toFixed(1);
-const sec7Len = cs.slice(cs.indexOf('## §7'), cs.indexOf('## §8')).length;
+const csLf = committed(cs);
+const sec7Len = csLf.slice(csLf.indexOf('## §7'), csLf.indexOf('## §8')).length;
 
 const agent = (flag('agent') || (branch.startsWith('amer/') ? 'amer' : 'zayd')).toString();
 const AgentName = agent[0].toUpperCase() + agent.slice(1);
@@ -180,7 +208,7 @@ const AgentName = agent[0].toUpperCase() + agent.slice(1);
 const generated = `
 | | |
 | --- | --- |
-| **newest entry** | **${newest ? `${newest.n} (${newest.agent}, ${newest.date})` : '(none)'}** |
+| **newest entry** | **${newest.n} (${newest.agent}, ${newest.date})** |
 | branch · tip · tree | \`${branch}\` · \`${tip}\` · ${dirty} |
 | open PRs | ${prLine} |
 | suite | ${testLine} |
@@ -205,7 +233,7 @@ cs =
   generated +
   '\n' +
   cs.slice(cs.indexOf(m.end));
-writeFileSync(csPath, cs);
+writeFileSync(csPath, withFileEol(readFileSync(csPath, 'utf8'), cs));
 
 // ── write THIS agent's FRESH, and only this agent's ──────────────────────────────────────────────
 const promptPath = join(ROOT, `${AgentName}_Prompt.md`);
@@ -215,12 +243,12 @@ if (existsSync(promptPath)) {
   if (p.includes(f.begin) && p.includes(f.end)) {
     const fresh = `
 \`\`\`
-FRESH:  Newest entry in \`current_state.md\` §7 = **ENTRY ${newest?.n ?? '?'}**
-        (${newest?.agent ?? '?'}, ${newest?.date ?? '?'}) — ${newest?.headline ?? ''}
+FRESH:  Newest entry in \`current_state.md\` §7 = **ENTRY ${newest.n}**
+        (${newest.agent}, ${newest.date}) — ${newest.headline}
 
-        ⇒ After \`git pull\`: §8's "newest entry" == ${newest?.n ?? '?'}  ⇒ you are current, start TASK.
-          HIGHER than ${newest?.n ?? '?'} ⇒ the other agent has merged: read every abstract after
-          ${newest?.n ?? '?'} before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After \`git pull\`: §8's "newest entry" == ${newest.n}  ⇒ you are current, start TASK.
+          HIGHER than ${newest.n} ⇒ the other agent has merged: read every abstract after
+          ${newest.n} before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -237,12 +265,12 @@ FRESH:  Newest entry in \`current_state.md\` §7 = **ENTRY ${newest?.n ?? '?'}**
       fresh +
       '\n' +
       p.slice(p.indexOf(f.end));
-    writeFileSync(promptPath, p);
+    writeFileSync(promptPath, withFileEol(readFileSync(promptPath, 'utf8'), p));
   }
 }
 
 console.log(`✔ current_state.md §8 and ${AgentName}_Prompt.md FRESH regenerated.`);
-console.log(`  newest entry ${newest?.n} · RISK: ${risk} · ${testLine}`);
+console.log(`  newest entry ${newest.n} · RISK: ${risk} · ${testLine}`);
 if (risk === 'contract-touching') {
   console.log('  ⚠⚠ contract-touching ⇒ the OWNER merges this PR, not the reviewing agent.');
 }

@@ -433,13 +433,17 @@ stays ~3 min either way.
 
 ### Amer (browser hot path)
 
-1. **THE OPENING TOOL.** P4.5 exit criterion 3 (*a window is placed by CLICKING A FACE and no human types
-   a derivation token*) is ONE TOOL AWAY: `SnapHit.ref` already carries the `SubShapeRef` and
-   `SnapHit.hostElementId` the element, so the tool is a two-input registry entry committing
-   `core.createElement` with `{hostId, hostRef}`. Model it on `WALL_TOOL`; the face-snap candidate is the
-   piece to add to `tool/snap.ts`.
+1. ✅ **DONE (Entry 80) — THE OPENING TOOL, and P4.5 EXIT CRITERION 3 WITH IT.** One click on a wall face
+   places a `core.opening` carrying `{hostId, hostRef}`, verified in the real browser: `state: 'valid'`,
+   `parts: [leaf, frame]`, quantities measured off the B-Rep, console-error-free boot. ⚠ **The field is
+   `SnapHit.elementId`, never `hostElementId`** — this row said otherwise for three entries and no such
+   field has ever existed. ⚠ **`InputSpec.snapTo` is now READ** (`chooseSnap`'s `allow`); it was
+   decorative before, which is the defect Entry 80 found. **What is still open is the SECOND opening on
+   the same wall — `open_rulings.md` Q18.**
 2. **ALIGNMENT GUIDES** (design §4.3) — dashed overlay when the cursor lines up with a live reference
-   point. Pure `PreviewLayer` geometry; no model state, no contract.
+   point. Pure overlay geometry; no model state, no contract. ⚠ **There is no `PreviewLayer` MODULE** —
+   this row named one for three entries and none was ever built. The preview is the `previewFrom` anchor
+   on the controller, drawn by `render/ViewportCanvas.tsx` via `Viewport.setPreviewLine`. Extend that.
 3. **THE MOVE TOOL + GIZMO and THE CORNER-DRAG are now UNBLOCKED (D80).** ⚠⚠ **READ THE SPLIT BEFORE THE
    GIZMO — IT IS ENFORCED, NOT MERELY DOCUMENTED: `core.move` REFUSES a wall** (drag both endpoints with
    `core.setParams`) **and REFUSES a door** (`setParams` on `offsetU`), naming the road that works. The
@@ -542,6 +546,63 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 80 | 2026-08-05 | Amer | the opening tool ships — one click on a face is a hosted door, and `snapTo` was decorative
+
+- **CHANGED:** `apps/web/src/tool/tools.ts` (**`OPENING_TOOL`** — one input, commits `core.createElement`
+  with `{hostId, hostRef}`; `offsetU` projected onto the host's AUTHORED baseline, `offsetV` from the face
+  centre, both clamped to fit; declines a non-face ref) · `toolMachine.ts` (**`CollectedInput`** — a
+  session now carries what a click LANDED ON, not only where it was; **`ToolContext.paramsOf`**) ·
+  `snap.ts` (**`faceCandidate`** — per-frame, from the ray hit; **`chooseSnap(…, allow)`**) ·
+  `useToolController.ts` (`snapTo` published; ref+element carried from the snap, never from the pick) ·
+  `render/pick.ts` (**`PickResult.point`**) · `Viewport.ts` · `ViewportCanvas.tsx` (pick BEFORE snap) ·
+  `App.tsx` · `scaffold/seed.ts` · **`scripts/docs-state.mjs` + `state.mjs` + `docs-state.d.mts`** (the
+  CRLF fix + **`newestAbstract` refuses an empty parse** + `state` writes back in the file's OWN line
+  ending, so step 8 stops undoing step 7) · `tests/docs-budget.test.ts` (+4) ·
+  `open_rulings.md` (**Q18 NEW**) · §5 rows 1–2 corrected. **No frozen byte, no schema bump.**
+- **VERIFIED:** **688 green** across 82 files, six gates, real exit code 0 — **and gate six had never run here**
+  (see FOUND). Revert-verified **6 ways, each watched RED**: baseline projection → x-only (the +y wall
+  test); `offsetU` measured from the face centre (3 fail); `hostRef` hand-rebuilt instead of carried;
+  `parseAbstracts` back to `split('\n')` (7 fail); and my own no-`\r` test strengthened after it passed
+  vacuously under its own revert. **Browser (the split's other half):** one click → `state: 'valid'`,
+  `parts: [leaf, frame]`, quantities off the B-Rep (leaf 64 000 000 mm³, frame 85 550 000 mm³, mass "—"),
+  console-error-free boot on a fresh tab.
+- **FOUND:** ⚠⚠ **`InputSpec.snapTo` WAS DECORATIVE FOR THREE ENTRIES — DECLARED, TYPED, DOCUMENTED, AND
+  READ BY NOTHING.** `SNAP_PRIORITY` ranks `endpoint`/`midpoint` ABOVE `face`, and an endpoint candidate
+  carries the **EDGE's** ref — so pointing near a corner hosted the door on an edge. `core.createElement`
+  ACCEPTS it, the build throws, and the element lands **`state: 'failed'`, `parts: []`, with NO banner, NO
+  console error, and `unbuildable()` AND `brokenRefs()` both EMPTY.** Measured: **1 of 2 placements**.
+  Found by USING it (§1b), not by reading — the code says `snapTo: ['face']` and looks correct.
+  ⚠⚠ **GATE SIX HAS NEVER RUN ON AMER'S BOX SINCE THE 2026-07-31 MIGRATION.** `core.autocrlf=true` ⇒ 920
+  CRLF pairs in `current_state.md`; `parseAbstracts` split on `\n`, leaving `\r`, and its heading regex
+  ends `\| (.+)$` — JS `.` does not match `\r`. **Zero abstracts, five tests red, CI green.** ⚠ **The
+  silent half is worse than the red half:** `pnpm state` took the same `[]` through `reduce(…, null)` and
+  would have written **`(none)`** into §8 and **`ENTRY ?`** into the FRESH block that step 10(a) pushes
+  STRAIGHT TO MAIN. `.prettierrc` already carries `endOfLine:"auto"` for exactly this box — the parser
+  missed that memo. ⚠ **A second opening on the same wall comes back `broken-ref`** (the pick correctly
+  hands over a face of the wall AS CUT, `…structure~opening-X/face/cut(…)`) ⇒ **Q18**, not guessed at.
+  ⚠ My own test fixture invented the token format (`|` for `/`) and nothing noticed until the new guard
+  DECODED it — §1c-9 in miniature. ⚠ `offsetU` must come off the D52 baseline, not the picked face: on a
+  straight demo wall the wrong one is indistinguishable, and on the +y wall it is 450 instead of 1200.
+- **OWES:** Owner: **Q18 (NEW)** — what may a hosted void host on; Q11/Q12/Q13/Q15/Q16/Q17 stand.
+  ⚠ **Q13 is now cheaper than when it was filed: this session ran on its OWN GitHub account**
+  (`narutousomaki741`), so branch protection would no longer block every merge. Zayd: nothing owed, but
+  two things are yours — `snapTo`'s fix is app-side only, and **Q18's real fix belongs in the document
+  layer** (the app can only parse tokens, which it must not).
+- **RISK:** additive
+- **FULL:** `handoff/amer/2026-08-05-opening-tool.md`
+- **REVIEW:** ✅ Zayd, 2026-08-05 (Entry 81's step 3) — reviewed against `REVIEW.md` and MERGED
+  (`additive`, freeze-boundary green, CI green). Item 1 executed TWICE: the baseline projection → x-only
+  went RED at **450 vs 1200**, and `parseAbstracts` → `split('\n')` went RED — **3 tests here, not the 7
+  claimed**, because on an LF box only the synthetic-CRLF trio can fail (the claim holds on a CRLF tree;
+  the number is box-dependent and the entry does not say so). ⚠ **ONE FINDING, PROVEN AND FIXED ON THE
+  BRANCH — and it is the "yours" this entry named:** the app-side face guard left the DOCUMENT layer
+  unguarded, so an opening hosted on an EDGE token (which IS in `part.refs`) still landed `state: failed`
+  with `brokenRefs()` AND `unbuildable()` both empty — reproduced headlessly, verbatim. `build.ts` now
+  answers a non-face `hostRef` with a **BROKEN REF**, the same visible, retargetable state its missing-face
+  sibling has had all along (`document-openings.test.ts`, watched RED). ⚠ Second, free: the phantom sweep
+  stopped one file short — `useToolController.ts`'s header still drew `SnapGateway`/`PreviewLayer`, and
+  neither has ever existed. **689 green, 82 files, six gates, exit 0.**
+
 ### 79 | 2026-08-05 | Zayd | the emsdk image is pinned by digest — and the artifact now names its own compiler (Q14)
 
 - **CHANGED:** `tools/kernel-build/toolchain.json` (**NEW** — one machine-readable pin: OCCT version,
@@ -579,7 +640,18 @@ is maintenance and does NOT get an entry of its own.**
   a broken build.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-05-emsdk-digest-pin.md`
-- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+- **REVIEW:** **REVIEWED + MERGED 2026-08-05 by the Entry-80 session** (Amer, a later session — the
+  protocol holding for a fifth entry); full record in PR #6's comment. Item 1 executed: `OCCT_BUILD_ID` →
+  `…6.0.5` went RED in **both** suites with the refusal firing from `createOcctKernel`. Independently
+  corroborated the load-bearing claim the entry did not make — the id is **one NUL-terminated literal at
+  offset 13,109,054** of the shipped `.wasm`, so nothing on the TypeScript side can have put it there.
+  ⚠ **ONE FINDING, PROVEN AND FIXED ON THE BRANCH: the backward sweep stopped one file short of `NOTICE`,**
+  whose §1 asserted all four of the things this entry made false (the mutable tag, the non-reproducible
+  rebuild, *"not a value read back out of the artifact"*, and *"that pin is open as a ruling"*) — in the
+  LGPL 2.1 §6 attribution, the one document here with a reader outside this repo. 4 tests, all watched RED.
+  ⚠ Correction: the byte-for-byte relink was against the artifact as committed **before** this entry
+  (`819ff12c…` = main's wasm, re-measured); what ships is that source +`toolchainId()`, 14 682 327 →
+  14 682 466 B. `NOTICE` now states the two separately.
 
 ### 77 | 2026-08-03 | Zayd | the plan/section unit ships — a drawing IS the B-Rep (D58 row Ⓐ, D81)
 
@@ -816,86 +888,6 @@ is maintenance and does NOT get an entry of its own.**
   described, including the honest note that it declares LGPL-2.0-or-later while shipping the 2.1
   text. The re-seed-gate half was already re-verified by Entry 75.
 
-### 73 | 2026-08-01 | Zayd | the cached-import attribution — the `shapeSignature` memory view is CANCELLED
-
-- **CHANGED:** `tests/geometry-cache-d29.test.ts` (+`THE ATTRIBUTION`) · `.github/workflows/ci.yml`
-  (`fetch-depth: 0`) + `scripts/check-reseed.mjs` · `current_state.md` §1a/§5 + `docs/decisions.md` D29
-  and §4j-2 (the false number, four sites) · `Zayd_Prompt.md` §1 (the box-local read/write restored).
-  **No kernel C++, no WASM rebuild, no artifact churn, no source package touched** — the TASK's own
-  *"measure both sides"* line cancelled its own unit. `schedule.ts` untouched (FOUND, below).
-- **VERIFIED:** 630 green · all six gates 0 (exit code read) · real OCCT · dev box headless ·
-  revert-verified 1 way — Entry 71's belief asserted goes RED at the measured value.
-- **FOUND:** ⚠⚠ **THE "170 EMBIND CROSSINGS" WERE NEVER MEASURED — a subtraction residue** (a native
-  breakdown ×3, *"and the rest is"*). Measured: a crossing costs **0.21–0.39 µs**, so all **345** cost
-  **0.073–0.133 ms = ~1%** of the signature call, against `shapeSignature`'s own **7.9 ms** of `GProp` work
-  (**46%** of the kernel-side import). ⚠ My first probe repeated Entry 71's error — subtracting two
-  ~10 ms timings to find a 0.073 ms signal returned a **negative** cost; the compute must be held OUT.
-  ⚠⚠ **And TASK item 2 was a PHANTOM:** both `schedule.ts` "rule 17" citations are correct uses of the
-  real domain rule 17 (D58), and `core_logic.md:376` already records that the collision belief *"was
-  wrong"* — renaming would have INTRODUCED the error.
-  ⚠⚠ **AND CI'S RE-SEED GATE HAD NEVER RUN ITS REAL PATH ONCE IN 73 ENTRIES.** `actions/checkout`
-  defaults to a SHALLOW clone, so `git diff <base>...<head>` died with *"Invalid symmetric difference
-  expression"* and PR #1 went RED for a reason unrelated to its diff. Invisible because the repo had
-  never had a PR: on a `push` the gate reads no `BASE_REF` and prints *"skipping"* — the only path it
-  had ever taken. **The gate whose own comment says it exists so the check is "impossible to quietly
-  skip" had itself never executed.** Fixed (`fetch-depth: 0`). §1c-7, fifth occurrence.
-  ⚠ **The 2026-07-31 migration also silently DROPPED two box-local steps from Zayd's loop** — the
-  binding read of `../cross_projects_policy.md` + `../last_session_work.md`, and the write-back at
-  hand-off. Not deliberate (§1 changes only when a standing fact has drifted). **Consequence, measured:
-  the 2026-07-31 session left NO record on the box at all.** Both restored; the missing record
-  reconstructed box-locally.
-- **OWES:** Owner: **Q1–Q3 still BLOCK plan/section — now across four sessions (69→71→72→73)**; the freeze
-  is still yours and still unblocked. Amer: nothing. Next Zayd: the going-public housekeeping (its own
-  commit), then plan/section the moment Q1–Q3 land.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-01-cached-import-attribution.md`
-- **REVIEW:** self-review by the NEXT session (Entry 74's step 3), not by the author — a fresh session,
-  which is the point of the rule. Item 1 executed independently: the ATTRIBUTION reproduced at
-  **7.345 ms compute vs 0.121 ms drain (1.6%)**, then Entry 71's belief asserted (`drainShare > 0.5`)
-  went **RED at 0.0138**. ⚠ **ONE FINDING, PROVEN AND FIXED ON THE BRANCH: the crossing COUNT was
-  itself derived rather than counted, and was ~2× low** — a drain is **2N+1** crossings, not N+1
-  (`drainDoubles` re-calls `size()` in the loop condition), so **345, not 173**, at **0.21–0.39 µs**
-  each. The total, and therefore the cancellation, is unchanged; the count is now OBSERVED in the test
-  by a counting wrapper around the production loop. *An entry whose whole subject is "a number nobody
-  measured" shipped one more derived number — which is exactly the base rate §1c-8 predicts.*
-
-### 72 | 2026-07-30 | Zayd | the five move verbs + `transactionId` atomicity (D80, P4.5 rows ⓑ/ⓘ)
-
-- **CHANGED:** `packages/document` only — `placement.ts` (NEW: rigid-motion algebra + the positioning
-  rule), five registry entries + a guard on `createElement`, the transaction unit in `undo.ts`/`document.ts`.
-  `core.array` registered but REFUSES. No kernel, no WASM, no frozen byte, no schema bump, no field.
-- **VERIFIED:** 613 green · all five gates 0 · real OCCT · dev box headless · revert-verified 15 ways.
-- **FOUND:** ⚠⚠ **ALL THREE SHIPPED TYPES ARE PARAMS-POSITIONED** (`core.wall` {start,end} ·
-  `core.opening` {offsetU,offsetV} · `core.curtainwall` {origin}), and **a hosted element's own
-  `placement` is never read by the engine at all** — measured, byte-identical bounds. So the ruled split's
-  own example was wrong, and `core.move` on a door would have succeeded, moved nothing, and journalled a
-  move to the Clean Delta.
-- **OWES:** Amer: the move tool + gizmo and the corner-drag are unblocked — **read the refusal first**.
-  Owner: Q7 (`core.copy` of a host's openings) and Q8 (is the baseline refusal the right strictness) —
-  both in `open_rulings.md`.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-07-30-move-verbs-transactionid.md`
-- **REVIEW:** pre-dates the PR flow — merged directly to `main` 2026-07-31, `pnpm verify` re-run green
-  before commit. ⚠ Not independently reviewed.
-
-### 71 | 2026-07-30 | Zayd | the D29 geometry-cache bodies — `exportBrep` / `importBrep`
-
-- **CHANGED:** `tools/kernel-build` + `packages/kernel-occt` (`src/cache.ts` NEW) + `packages/protocol` +
-  tests. The committed WASM artifact changed (+12,631 B). Two false COMMENTS on frozen shapes corrected;
-  the wire contract is byte-identical.
-- **VERIFIED:** 590 green · all five gates 0 · real OCCT · revert-verified 7 ways.
-- **FOUND:** ⚠⚠ **The ruled design was wrong in two places.** Step 1 cannot be implemented as written (a
-  cached shape has no derivations, because the recipe never ran) ⇒ bind by the read shape's own sub-shape
-  order, pinned by the fingerprint. Step 2 left the TOKEN LIST unguarded — over the geometry alone a
-  permuted `refs` array mis-names two faces and still verifies. **THE PRIZE IS 2.07×, NOT AN ORDER OF
-  MAGNITUDE** (24.86 → 12.00 ms/solid; export costs 6.64 ms/solid on every save; ~61 MB at 16k solids).
-- **OWES:** Owner: Q6 — is the `.bnn` half worth wiring at 2.07×? Recommendation on the desk: **no** for
-  v1.0.0. Next: the `shapeSignature` memory view (170 embind crossings/solid). ⚠⚠ **THAT "NEXT" IS
-  CANCELLED — Entry 73 measured the crossings at 0.9%, and the claim was never measured here.**
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-07-30-d29-cache-bodies.md`
-- **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
-
 ---
 
 ## §8 — Generated
@@ -904,16 +896,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **79 (Zayd, 2026-08-05)** |
-| branch · tip · tree | `zayd/2026-08-05-emsdk-digest-pin` · `173da22` · dirty |
+| **newest entry** | **80 (Amer, 2026-08-05)** |
+| branch · tip · tree | `amer/2026-08-05-opening-tool` · `05dea93` · dirty |
 | open PRs | none — main is the tip of the work |
-| suite | **661 green** · 82 files · 214 suites |
+| suite | **688 green** · 82 files · 219 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 198 insertions(+), 76 deletions(-) (13 files) |
-| docs budget | current_state 76.4/96.0 KB · §7 31.7/32.0 KB · abstracts 8/10 · bodies 25 |
+| diff vs origin/main | 19 files changed, 1067 insertions(+), 318 deletions(-) (19 files) |
+| docs budget | current_state 75.6/96.0 KB · §7 30.5/32.0 KB · abstracts 6/10 · bodies 26 |
 
 _Generated 2026-08-05 by `pnpm state`._
 

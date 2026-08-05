@@ -30,11 +30,17 @@ export interface EntryAbstract {
   /** Each field's FIRST PHYSICAL LINE only — what the schema checks live on. */
   fields: Record<string, string>;
   /**
-   * Each field's COMPLETE text, prettier's continuation lines joined back on.
+   * Each field's COMPLETE text, indented continuation lines joined back on.
    *
-   * ⚠⚠ Any check that SEARCHES a field for a marker must read this, never `fields`. These docs are
-   * prettier-formatted at `printWidth: 100`, so the line break is placed by sentence length rather
-   * than by the author — see `parseAbstracts` in `docs-state.mjs`.
+   * ⚠⚠ Any check that SEARCHES a field for a marker must read this, never `fields`. A marker written
+   * after any lead-in lands on line 2, where `fields` cannot see it.
+   *
+   * ⚠ THE OLD REASON GIVEN HERE WAS FALSE, and Entry 76's correction missed this fourth copy of it
+   * (found Entry 80). It said these docs are "prettier-formatted at `printWidth: 100`, so the line
+   * break is placed by sentence length rather than by the author" — but `current_state.md`, the only
+   * file this parser opens, is in `.prettierignore`. The wrapping is placed BY HAND, which makes
+   * `fieldsFull` more necessary rather than less: nothing maintains those breaks and no gate watches
+   * them. See `parseAbstracts` in `docs-state.mjs`.
    */
   fieldsFull: Record<string, string>;
   raw: string;
@@ -43,6 +49,11 @@ export interface EntryAbstract {
 export declare function readCurrentState(root: string): string;
 export declare function section7(src: string): string;
 export declare function parseAbstracts(src: string): EntryAbstract[];
+/**
+ * The highest-numbered abstract. **Throws** on an empty array rather than returning `null` — see the
+ * implementation for why a silent default is the dangerous answer here.
+ */
+export declare function newestAbstract(abstracts: EntryAbstract[]): EntryAbstract;
 export declare function entryBodies(root: string): string[];
 export declare function generatedBlock(
   src: string,

@@ -11,6 +11,7 @@ import {
   decodeSubShapeRef,
   type MeshBuffers,
   type SubShapeRef,
+  type Vec3,
 } from '@bunyan/protocol';
 import type { ElementId } from '@bunyan/document';
 
@@ -21,6 +22,19 @@ export interface PickResult {
   readonly partName: string;
   /** The `SubShapeRef` of the face the ray hit — the token a hosted void (a window) binds to. */
   readonly faceRef: SubShapeRef;
+  /**
+   * WHERE on that face the ray landed, in world millimetres (Entry 80).
+   *
+   * ⚠⚠ IT IS TIER 1 AND IT IS NOT NEGOTIABLE THAT IT SAYS SO. This point comes off the DISPLAY mesh —
+   * a 5 mm chord approximation — via a three.js raycast, so it is a place, not a coordinate. It is
+   * what lets a click mean *"a door about here on this wall"* rather than only *"this wall"*; the
+   * exact thing a click authors is the `faceRef` beside it, which is an identity and carries no
+   * approximation at all. `tool/snap.ts`'s header is the standing statement of the rule.
+   *
+   * ⚠ The `faceRef` was already enough to HOST a void. It was never enough to POSITION one, which is
+   * why the opening tool needed this field and the wall tool never did.
+   */
+  readonly point: Vec3;
 }
 
 /** The identity + retained buffers a pick resolves against — the fields `pick()` reads off a `DrawnPart`. */
@@ -36,10 +50,20 @@ export interface PickablePart {
  * in step 2c. Returns `null` when the triangle carries no decodable face ref (an out-of-range index, or an
  * untrusted token that fails to decode — an untrusted map must never yield a *wrong* ref, only no ref).
  */
-export function resolveFacePick(part: PickablePart, faceIndex: number): PickResult | null {
+export function resolveFacePick(
+  part: PickablePart,
+  faceIndex: number,
+  point: Vec3,
+): PickResult | null {
   const faceRef = faceRefForTriangle(part.buffers, faceIndex, decodeSubShapeRef);
   if (faceRef === undefined) return null;
-  return { elementId: part.elementId, nodeId: part.nodeId, partName: part.partName, faceRef };
+  return {
+    elementId: part.elementId,
+    nodeId: part.nodeId,
+    partName: part.partName,
+    faceRef,
+    point,
+  };
 }
 
 /**

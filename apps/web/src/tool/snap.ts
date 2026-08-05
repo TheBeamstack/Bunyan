@@ -164,6 +164,44 @@ export function gridCandidates(options: {
   return out;
 }
 
+/**
+ * THE FACE CANDIDATE — the piece that was missing for design §4.2 (*"click a face to place a
+ * window"*), and the one candidate kind that is NOT precomputed (Entry 80).
+ *
+ * ⚠⚠ IT IS PER-FRAME AND POSITIONAL, WHICH IS WHY IT CANNOT LIVE IN THE INDEX. Every other candidate
+ * is a fixed place — an endpoint is at the end of an edge whether you point at it or not — so the
+ * index precomputes them once per drawn set. A face is not a place: it is a whole region, and *where
+ * on it* the user is pointing is the entire information. Precomputing one candidate per face means
+ * committing to a point on it in advance, and the only defensible choice would be its centre — which
+ * would put every door a user places in the middle of the wall, silently. So the candidate is built
+ * from the ray hit the pick already computes, once per pointer move, and handed to `chooseSnap`
+ * alongside the indexed ones.
+ *
+ * ⚠ AND `SNAP_PRIORITY` ALREADY ANTICIPATED IT: `'face'` sits second-to-last, below every exact kind
+ * and above `'free'`. That ordering is the design, not an accident of this function — an endpoint
+ * within tolerance beats the face behind it, so pointing near a wall's corner still means the corner,
+ * and the face is what you get when nothing sharper is near. Nothing about the ruled order changes.
+ *
+ * ⚠ `ref` is the ENCODED token, matching `SnapCandidate.ref` (the picking path decodes for its own
+ * use; the document is written in tokens). Encoding cannot throw here — the token round-tripped out
+ * of the provenance table to be decoded in the first place — but a hostile buffer is exactly what
+ * `decodeSubShapeRef` is untrusted about, so this takes the token and never re-derives it.
+ */
+export function faceCandidate(hit: {
+  readonly point: Vec3;
+  readonly ref: string;
+  readonly elementId: ElementId;
+  readonly nodeId: string;
+}): SnapCandidate {
+  return {
+    point: hit.point,
+    kind: 'face',
+    ref: hit.ref,
+    elementId: hit.elementId,
+    nodeId: hit.nodeId,
+  };
+}
+
 /* ================================================================================================
  * The index — a uniform spatial hash in WORLD space, so a query touches a handful of candidates.
  * ============================================================================================= */
@@ -259,10 +297,28 @@ export function chooseSnap(
   project: Project,
   cursorPx: readonly [number, number],
   tolerancePx: number,
+  /**
+   * ⚠⚠ THE KINDS THE ACTIVE INPUT WILL ACCEPT (`InputSpec.snapTo`) — `null`/omitted ⇒ all of them.
+   *
+   * ⚠ THIS PARAMETER EXISTS BECAUSE `snapTo` WAS DECORATIVE FOR THREE ENTRIES AND IT COST A REAL
+   * DEFECT (Entry 80, found in the browser, not by reading). `InputSpec.snapTo` was declared, typed
+   * and documented — *"which snap kinds are offered for this input"* — and **nothing ever read it.**
+   * The opening tool declares `['face']`, but `SNAP_PRIORITY` ranks `endpoint` and `midpoint` ABOVE
+   * `face`, so pointing anywhere near a wall's corner won the endpoint — and an endpoint candidate
+   * carries the **EDGE's** `SubShapeRef`. The tool then committed a door hosted on an edge, which
+   * `core.createElement` accepts and the build then silently fails: `state: 'failed'`, `parts: []`,
+   * no banner, no console error, and `unbuildable()`/`brokenRefs()` both empty. Measured on the demo
+   * scene: **1 in 2 successful placements came back hosted on an edge.**
+   *
+   * ⇒ The filter belongs HERE, before the ruled comparison, not after it. Filtering the winner
+   * afterwards would answer "no snap" where a perfectly good face candidate was sitting second.
+   */
+  allow: readonly SnapKind[] | null = null,
 ): SnapHit | null {
   let best: SnapHit | null = null;
 
   for (const candidate of candidates) {
+    if (allow !== null && !allow.includes(candidate.kind)) continue;
     const screen = project(candidate.point);
     if (screen === null) continue;
     const pixelDistance = Math.hypot(screen[0] - cursorPx[0], screen[1] - cursorPx[1]);

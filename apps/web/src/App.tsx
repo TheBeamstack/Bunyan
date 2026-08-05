@@ -451,7 +451,16 @@ export function App() {
   );
 
   // ---- THE TOOL LAYER (P4.5 §2/§3). One active tool, the snap seam, numeric entry, one Command. ----
-  const tool = useToolController({ dispatch, onCommitted: onCommandDone });
+  /**
+   * ⚠ The `ToolContext`: the ONE thing a tool may read about the model, and it is read live off the
+   * scene rather than captured, because `DocumentContext` is not React-reactive (see this file's
+   * header) — a stale closure here would price a door against a wall's PREVIOUS baseline.
+   */
+  const paramsOf = useCallback(
+    (elementId: ElementId) => app?.doc.scene.elements[elementId]?.params ?? null,
+    [app],
+  );
+  const tool = useToolController({ dispatch, onCommitted: onCommandDone, paramsOf });
 
   /**
    * A viewport click. ⚠ THE TOOL GETS FIRST REFUSAL: while a tool is collecting, a click is an ARGUMENT,
@@ -625,6 +634,7 @@ export function App() {
             render={app.render}
             parts={renderParts}
             previewFrom={tool.previewFrom}
+            snapTo={tool.snapTo}
             onPick={onPick}
             onPointerSample={onPointerSample}
           />
