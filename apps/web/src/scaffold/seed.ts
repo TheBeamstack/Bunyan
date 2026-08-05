@@ -25,6 +25,19 @@ export const WALL_TYPE_ID = 'core.wall';
 /** Storey height for the demo + for a tool-drawn wall (the D52 fallback, used when no top datum binds). */
 export const DEFAULT_WALL_HEIGHT_MM = 2800;
 
+/** The Type the opening tool hosts on a clicked face — the real `core.opening` (leaf + frame, ⓙ). */
+export const OPENING_TYPE_ID = 'core.opening';
+/**
+ * The opening the tool places before anyone edits it in the property panel: a standard single door.
+ *
+ * ⚠ These are the TOOL's defaults, not the Type's. `core.opening` declares `width`/`height` as
+ * `required` with no default, precisely because there is no such thing as a default door in a
+ * contract — the number belongs to whoever is authoring. A pointing tool has to choose one to have
+ * anything to place, and choosing it here keeps that choice out of the frozen schema.
+ */
+export const DEFAULT_OPENING_WIDTH_MM = 900;
+export const DEFAULT_OPENING_HEIGHT_MM = 2100;
+
 /** Seed a few materials, a composite wall style, and two walls meeting at a corner. Returns the first. */
 export async function seedDemoScene(doc: DocumentContext): Promise<ElementId> {
   await doc.execute('core.createMaterial', {

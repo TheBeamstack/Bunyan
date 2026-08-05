@@ -20,9 +20,49 @@
  * Pure, so it is headless-verified in Node.
  */
 
-import type { Params } from '@bunyan/document';
+import type { ElementId, Params } from '@bunyan/document';
 import type { Vec3 } from '@bunyan/protocol';
 import type { SnapKind } from './snap';
+
+/**
+ * ONE COLLECTED ARGUMENT — a point, PLUS WHAT IT WAS ON (Entry 80).
+ *
+ * ⚠⚠ IT USED TO BE A BARE `Vec3`, AND THAT IS WHY THE OPENING TOOL COULD NOT BE WRITTEN. Rule 19's
+ * own sentence is *"a tool gathers arguments — a point, **a face**, a length"*, but the session could
+ * only ever hold the point: a click that resolved a `SubShapeRef` threw the ref away one line later,
+ * so the one input a hosted element needs — its host's identity — could not survive to `commit`. The
+ * wall tool never noticed, because two clicked points are the whole of a baseline.
+ *
+ * ⚠ Both extras are OPTIONAL and the wall tool ignores them. A click on empty ground has no ref and
+ * no element, and that is a legitimate input, not a degraded one — `commit` decides whether the
+ * absence matters.
+ */
+export interface CollectedInput {
+  readonly point: Vec3;
+  /** The ENCODED `SubShapeRef` the click landed on, when it landed on a named sub-shape. */
+  readonly ref?: string;
+  /** The element that sub-shape belongs to — a hosted void's `hostId`, never typed by a human. */
+  readonly elementId?: ElementId;
+}
+
+/**
+ * What a tool may READ about the document while interpreting a gesture — and the boundary is the
+ * point of the type (Entry 80).
+ *
+ * ⚠⚠ THIS IS NOT A HOLE IN RULE 19. A tool still commits exactly one command and still cannot write:
+ * this hands it the AUTHORED PARAMETERS of an element the user has already clicked, so that "here on
+ * this wall" can be turned into the numbers the command's own schema asks for (`offsetU` is measured
+ * from the wall's start — you cannot compute it without knowing where the wall starts). It is a pure
+ * function of the scene, injected, so the tools stay headless-testable with a two-line fake.
+ *
+ * ⚠ It reads `params`, not the scene, and deliberately: a tool that could reach `Element` could reach
+ * its `hostId`, its children and its style, and would slowly become a second query layer. Widening
+ * this is a design decision, exactly as widening `QueryGateway`'s four ops is.
+ */
+export interface ToolContext {
+  /** The authored params of an element, or `null` if it is not in the scene. */
+  paramsOf(elementId: ElementId): Params | null;
+}
 
 /** One argument a tool collects from the viewport, in order. */
 export interface InputSpec {
@@ -50,18 +90,18 @@ export interface Tool {
   /** Ordered; the session is ready to commit when every one is satisfied. */
   readonly inputs: readonly InputSpec[];
   /**
-   * Build the single command from the collected points. Called only with `inputs.length` points.
-   * ⚠ Returning `null` means "these inputs do not describe a valid edit" (a zero-length wall) — the tool
-   * declines rather than committing something the kernel would refuse and the banner would blame on the
-   * user's mouse.
+   * Build the single command from the collected inputs. Called only with `inputs.length` of them.
+   * ⚠ Returning `null` means "these inputs do not describe a valid edit" (a zero-length wall, a door
+   * wider than the wall it was dropped on) — the tool declines rather than committing something the
+   * kernel would refuse and the banner would blame on the user's mouse.
    */
-  commit(points: readonly Vec3[]): ToolCommit | null;
+  commit(inputs: readonly CollectedInput[], ctx: ToolContext): ToolCommit | null;
 }
 
 /** An in-progress gesture. Immutable: every transition returns a new value. NEVER model state. */
 export interface ToolSession {
   readonly toolId: string;
-  readonly collected: readonly Vec3[];
+  readonly collected: readonly CollectedInput[];
 }
 
 export function beginSession(tool: Tool): ToolSession {
@@ -89,10 +129,10 @@ export function isComplete(tool: Tool, session: ToolSession): boolean {
 export function acceptInput(
   tool: Tool,
   session: ToolSession,
-  point: Vec3,
+  input: CollectedInput,
 ): { readonly session: ToolSession; readonly complete: boolean } {
   if (isComplete(tool, session)) return { session, complete: true };
-  const next: ToolSession = { ...session, collected: [...session.collected, point] };
+  const next: ToolSession = { ...session, collected: [...session.collected, input] };
   return { session: next, complete: isComplete(tool, next) };
 }
 
@@ -100,9 +140,9 @@ export function acceptInput(
  * The command a complete session describes, or `null` if it is incomplete or the tool declined.
  * ⚠ This is the ONLY thing that ever leaves the tool layer heading for the document.
  */
-export function commitOf(tool: Tool, session: ToolSession): ToolCommit | null {
+export function commitOf(tool: Tool, session: ToolSession, ctx: ToolContext): ToolCommit | null {
   if (!isComplete(tool, session)) return null;
-  return tool.commit(session.collected);
+  return tool.commit(session.collected, ctx);
 }
 
 /**
@@ -110,5 +150,5 @@ export function commitOf(tool: Tool, session: ToolSession): ToolCommit | null {
  * `null` before the first click, when there is nothing to rubber-band from.
  */
 export function anchorOf(session: ToolSession): Vec3 | null {
-  return session.collected.at(-1) ?? null;
+  return session.collected.at(-1)?.point ?? null;
 }

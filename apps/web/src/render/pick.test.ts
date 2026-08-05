@@ -15,9 +15,13 @@ import {
   type MeshBuffers,
   type MeshProvenance,
   type SubShapeRef,
+  type Vec3,
 } from '@bunyan/protocol';
 
 import { resolveFacePick, localFaceIndex, type PickablePart } from './pick';
+
+/** Where the ray met the face. Carried through untouched — this half does no geometry (Entry 80). */
+const HIT: Vec3 = [1500, 0, 1200];
 
 const yMin: SubShapeRef = {
   nodeId: 'wall-1.structure',
@@ -56,22 +60,30 @@ describe('sub-shape picking (step 4) — a triangle resolves to a face SubShapeR
   const part = twoFacePart([encodeSubShapeRef(yMin), encodeSubShapeRef(yMax)]);
 
   it('maps a triangle to the face it belongs to, decoded', () => {
-    expect(resolveFacePick(part, 0)?.faceRef).toEqual(yMin);
-    expect(resolveFacePick(part, 1)?.faceRef).toEqual(yMin);
-    expect(resolveFacePick(part, 2)?.faceRef).toEqual(yMax);
-    expect(resolveFacePick(part, 3)?.faceRef).toEqual(yMax);
+    expect(resolveFacePick(part, 0, HIT)?.faceRef).toEqual(yMin);
+    expect(resolveFacePick(part, 1, HIT)?.faceRef).toEqual(yMin);
+    expect(resolveFacePick(part, 2, HIT)?.faceRef).toEqual(yMax);
+    expect(resolveFacePick(part, 3, HIT)?.faceRef).toEqual(yMax);
   });
 
   it('carries the element + part identity through, so the click can select and read out', () => {
-    const hit = resolveFacePick(part, 2);
+    const hit = resolveFacePick(part, 2, HIT);
     expect(hit).not.toBeNull();
     expect(hit?.elementId).toBe('wall-1');
     expect(hit?.nodeId).toBe('wall-1.structure');
     expect(hit?.partName).toBe('structure');
   });
 
+  it('⚠ carries the ray HIT POINT through unchanged — this half does no geometry (Entry 80)', () => {
+    // The point is what lets a click POSITION a hosted element; the ref is what lets it host one. This
+    // function computes neither: it is an identity lookup, and the point is passed through verbatim so
+    // that stays true. Anything that started deriving a point here would be measuring off a chord.
+    expect(resolveFacePick(part, 0, HIT)?.point).toBe(HIT);
+    expect(resolveFacePick(part, 2, [0, 0, 0])?.point).toEqual([0, 0, 0]);
+  });
+
   it('returns null for a triangle index the provenance does not cover (a stale/out-of-range hit)', () => {
-    expect(resolveFacePick(part, 99)).toBeNull();
+    expect(resolveFacePick(part, 99, HIT)).toBeNull();
   });
 
   it('returns null when the token does not decode — an untrusted map never yields a wrong ref', () => {
@@ -80,9 +92,9 @@ describe('sub-shape picking (step 4) — a triangle resolves to a face SubShapeR
       'wall-1.structure/face/finish.interior#notanumber',
       encodeSubShapeRef(yMax),
     ]);
-    expect(resolveFacePick(corrupt, 0)).toBeNull();
+    expect(resolveFacePick(corrupt, 0, HIT)).toBeNull();
     // …while the sound face beside it still resolves.
-    expect(resolveFacePick(corrupt, 2)?.faceRef).toEqual(yMax);
+    expect(resolveFacePick(corrupt, 2, HIT)?.faceRef).toEqual(yMax);
   });
 });
 
@@ -102,11 +114,11 @@ describe('batch pick remap (step 9(b), design §5) — a global face index becom
     const globalHit = 12;
     const local = localFaceIndex(globalHit, rangeStart);
     expect(local).toBe(2);
-    expect(resolveFacePick(part, local)?.faceRef).toEqual(yMax);
+    expect(resolveFacePick(part, local, HIT)?.faceRef).toEqual(yMax);
   });
 
   it('a garbage range yields a non-local index that resolveFacePick rejects (no WRONG ref)', () => {
     // A range start past the hit gives a negative local index — out of range ⇒ null, never a wrong face.
-    expect(resolveFacePick(part, localFaceIndex(1, 30))).toBeNull();
+    expect(resolveFacePick(part, localFaceIndex(1, 30), HIT)).toBeNull();
   });
 });

@@ -13,8 +13,8 @@ import { useEffect, useRef } from 'react';
 import { Viewport, type PickResult } from './Viewport';
 import type { RenderPart } from './Viewport';
 import type { RenderGateway } from './RenderGateway';
-import type { SnapHit } from '../tool/snap';
-import type { Vec3 } from '@bunyan/protocol';
+import { faceCandidate, type SnapHit, type SnapKind } from '../tool/snap';
+import { encodeSubShapeRef, type Vec3 } from '@bunyan/protocol';
 
 /** A pointer that moves more than this (CSS px) between down and up is an orbit drag, not a pick. */
 const CLICK_SLOP_PX = 4;
@@ -35,11 +35,17 @@ export function ViewportCanvas({
   render,
   parts,
   previewFrom,
+  snapTo,
   onPick,
   onPointerSample,
 }: {
   readonly render: RenderGateway;
   readonly parts: readonly RenderPart[];
+  /**
+   * The snap kinds the active tool input accepts (`InputSpec.snapTo`); `null`/absent ⇒ all of them.
+   * ⚠ Applied inside `chooseSnap`, before the ruled priority comparison — see its `allow` parameter.
+   */
+  readonly snapTo?: readonly SnapKind[] | null;
   /**
    * The anchor a rubber band is drawn FROM while a tool is collecting (design §5). `null` ⇒ no preview.
    * ⚠ This is OVERLAY geometry and never truth — the document has no idea it exists (rule 19).
@@ -60,6 +66,9 @@ export function ViewportCanvas({
   // The live preview anchor, read inside the move handler without re-registering it.
   const previewFromRef = useRef<Vec3 | null>(previewFrom ?? null);
   previewFromRef.current = previewFrom ?? null;
+  // The active input's snap filter, read inside the move handler without re-registering it.
+  const snapToRef = useRef<readonly SnapKind[] | null>(snapTo ?? null);
+  snapToRef.current = snapTo ?? null;
 
   // Create the Viewport once, for the life of the canvas.
   useEffect(() => {
@@ -116,9 +125,28 @@ export function ViewportCanvas({
       const ndcX = (cursor[0] / rect.width) * 2 - 1;
       const ndcY = -(cursor[1] / rect.height) * 2 + 1;
 
-      const snap = viewport.snapAt(cursor, SNAP_TOLERANCE_PX);
       const ground = viewport.groundPointAt(cursor);
+      // ⚠ THE PICK COMES FIRST NOW, AND THE ORDER IS LOAD-BEARING (Entry 80): the face under the
+      // cursor is a snap CANDIDATE, so it has to exist before the snap is chosen. It is fed in as a
+      // live candidate rather than resolved separately, so `SNAP_PRIORITY` decides between "the face
+      // you are over" and "the endpoint 3 px away" — one ruled comparison, not two answers the tool
+      // would then have to reconcile.
       const pick = viewport.pick(ndcX, ndcY);
+      const snap = viewport.snapAt(
+        cursor,
+        SNAP_TOLERANCE_PX,
+        pick === null
+          ? []
+          : [
+              faceCandidate({
+                point: pick.point,
+                ref: encodeSubShapeRef(pick.faceRef),
+                elementId: pick.elementId,
+                nodeId: pick.nodeId,
+              }),
+            ],
+        snapToRef.current,
+      );
 
       viewport.setSnapMarker(snap === null ? null : snap.point);
 

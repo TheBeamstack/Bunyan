@@ -16,6 +16,7 @@ import {
   SnapIndex,
   chooseSnap,
   edgeCandidates,
+  faceCandidate,
   gridCandidates,
   rankOf,
   type Project,
@@ -175,5 +176,57 @@ describe('chooseSnap — the OWNER-RULED priority order (Q3), not nearest-wins',
 
   it('an unknown kind sorts last rather than throwing — a snap degrades, never crashes', () => {
     expect(rankOf('nonsense' as never)).toBe(SNAP_PRIORITY.length);
+  });
+});
+
+/* ================================================================================================
+ * THE FACE CANDIDATE + THE `snapTo` FILTER — Entry 80, and the second one is a fixed DEFECT.
+ * ============================================================================================= */
+
+describe('the face candidate and the filter that makes `snapTo` real', () => {
+  it('carries the picked face through as a `face` candidate — ref, element and part intact', () => {
+    const c = faceCandidate({
+      point: [1000, 0, 1400],
+      ref: 'wall-1.structure/face/lateral.1#0',
+      elementId: 'wall-1',
+      nodeId: 'wall-1.structure',
+    });
+    expect(c.kind).toBe('face');
+    expect(c.ref).toBe('wall-1.structure/face/lateral.1#0');
+    expect(c.elementId).toBe('wall-1');
+  });
+
+  /**
+   * ⚠⚠ THE DEFECT THIS FIXES, AND IT WAS FOUND IN A REAL BROWSER RATHER THAN BY READING THE CODE.
+   *
+   * `InputSpec.snapTo` was declared, typed and documented for three entries — *"which snap kinds are
+   * offered for this input"* — and **nothing read it.** The opening tool asks for `['face']`, but
+   * `SNAP_PRIORITY` ranks `endpoint` and `midpoint` ABOVE `face`, so a cursor anywhere near a wall's
+   * corner won the endpoint — whose `ref` is the EDGE's, not the face's. The tool then hosted a door
+   * on an edge; `core.createElement` accepted it, the build threw, and the element landed
+   * `state: 'failed'` with `parts: []`, NO banner, NO console error, and `unbuildable()` and
+   * `brokenRefs()` both empty. Measured on the demo scene: **1 of 2 successful placements** came back
+   * hosted on an edge, i.e. a door the user asked for that simply was not there.
+   *
+   * ⚠ Weak-green: the assertion is on the CHOSEN KIND, not on "a filter ran". A `chooseSnap` that
+   * dropped the filter returns `endpoint` here, because the endpoint is both nearer and higher-ranked
+   * — the test is built so the wrong answer is the tempting one.
+   */
+  it("⚠ HONOURS the input's allowed kinds, and applies them BEFORE the ruled priority", () => {
+    const near = candidate([1, 0, 0], 'endpoint'); // nearer AND higher-ranked
+    const far = candidate([6, 0, 0], 'face');
+
+    expect(chooseSnap([near, far], flat, [0, 0], 20)?.kind).toBe('endpoint');
+    expect(chooseSnap([near, far], flat, [0, 0], 20, ['face'])?.kind).toBe('face');
+  });
+
+  it('answers null rather than falling back when nothing of an allowed kind is in reach', () => {
+    // ⚠ The honest answer. Falling back to the best DISALLOWED candidate is how the defect above
+    // reached the document in the first place.
+    expect(chooseSnap([candidate([1, 0, 0], 'endpoint')], flat, [0, 0], 20, ['face'])).toBeNull();
+  });
+
+  it('an explicit null allows everything, so `snapTo: null` keeps the wall tool unchanged', () => {
+    expect(chooseSnap([candidate([1, 0, 0], 'grid')], flat, [0, 0], 20, null)?.kind).toBe('grid');
   });
 });

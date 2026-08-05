@@ -66,9 +66,23 @@ export function section7(src) {
  * stable across an edit, and `format:check` is not even looking. The old note also credited the miss
  * to a marker that "passed `prettier --check`" — vacuously true, since prettier skips the file.
  */
+/**
+ * ⚠⚠ SPLIT ON `\r?\n`, NOT `\n`, AND THIS IS NOT DEFENSIVE PROGRAMMING — IT IS THE DIFFERENCE BETWEEN
+ * THIS PARSER WORKING ON AMER'S BOX AND RETURNING AN EMPTY ARRAY THERE (found Entry 80).
+ *
+ * The local PC has `core.autocrlf=true`, so every text file in its working tree is CRLF — 920 CRLF
+ * pairs in `current_state.md`, measured. Splitting on `\n` then leaves a `\r` at the end of every
+ * line, and the heading regex below ends `\| (.+)$`: JS `.` does not match `\r`, and `$` without the
+ * `m` flag does not match before one. So NO heading ever matched, `parseAbstracts` returned `[]`, and
+ * gate six failed five ways on that box while CI (Linux, LF) stayed green.
+ *
+ * ⚠ THE REPO ALREADY KNEW ABOUT THIS AND THIS FILE MISSED THE MEMO: `.prettierrc` carries
+ * `endOfLine: "auto"` precisely so `format:check` is green on both. A parser that only reads LF is
+ * the same assumption, unstated.
+ */
 export function parseAbstracts(src) {
   const sec = section7(src);
-  const lines = sec.split('\n');
+  const lines = sec.split(/\r?\n/);
   const out = [];
   let cur = null;
   let open = null; // the field whose bullet we are still inside
@@ -105,6 +119,31 @@ export function parseAbstracts(src) {
   }
   if (cur) out.push(cur);
   return out;
+}
+
+/**
+ * The highest-numbered abstract — and it REFUSES an empty set rather than answering `null`.
+ *
+ * ⚠⚠ WHY A THROW AND NOT A DEFAULT. `pnpm state` writes two things from this value: §8's "newest
+ * entry" row and the running agent's `FRESH` block — and `FRESH` is pushed STRAIGHT TO MAIN at the
+ * loop's step 10(a), ahead of its own PR, because it is the only document read at t=0. When the CRLF
+ * defect above made `parseAbstracts` return `[]`, the old `reduce(…, null)` did not fail: it wrote
+ * `**(none)**` into §8 and `ENTRY ?` into the prompt, and the push would have briefed the NEXT
+ * session with a question mark where its "am I behind?" check belongs.
+ *
+ * That is `current_state.md` §1c's own lesson about OCCT's `Modified()` — silence read as an answer.
+ * A parser that finds nothing has not discovered that there are no entries; it has failed. The
+ * only safe thing it can do is say so and stop before anything is written.
+ */
+export function newestAbstract(abstracts) {
+  if (!abstracts.length) {
+    throw new Error(
+      'current_state.md: §7 parsed to ZERO abstracts.\n' +
+        'That is a PARSER failure, not an empty section — §7 is never empty in this repo.\n' +
+        'Check line endings first: this is what a CRLF working tree did before Entry 80.',
+    );
+  }
+  return abstracts.reduce((a, b) => (a.n > b.n ? a : b));
 }
 
 /** Every entry body actually present on disk, as repo-relative paths. */

@@ -16,11 +16,12 @@
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 
-import type { UndoableEdit } from '@bunyan/document';
+import type { ElementId, Params, UndoableEdit } from '@bunyan/document';
 import type { Vec3 } from '@bunyan/protocol';
 import type { Dispatch } from '../edit/runner';
 import type { PointerSample } from '../render/ViewportCanvas';
 import { applyNumericKey, parseLengthMm, pointAtLength } from './numeric';
+import type { SnapKind } from './snap';
 import { SELECT_TOOL, toolById } from './tools';
 import {
   acceptInput,
@@ -28,7 +29,9 @@ import {
   beginSession,
   commitOf,
   currentInput,
+  type CollectedInput,
   type Tool,
+  type ToolContext,
   type ToolSession,
 } from './toolMachine';
 
@@ -39,6 +42,14 @@ export interface ToolController {
   readonly prompt: string | null;
   /** The rubber-band anchor for the viewport overlay, or null when nothing is being collected. */
   readonly previewFrom: Vec3 | null;
+  /**
+   * The snap kinds the input being collected right now will accept (`InputSpec.snapTo`); `null` ⇒ all.
+   *
+   * ⚠ The viewport must apply this BEFORE choosing a snap, which is why it is published rather than
+   * checked here — see `chooseSnap`'s `allow` parameter for the defect that came of nobody reading
+   * `snapTo` at all.
+   */
+  readonly snapTo: readonly SnapKind[] | null;
   /** The numeric field's contents while it is open, else null. */
   readonly numericText: string | null;
   // ⚠ Declared as function PROPERTIES, not methods. These are stable `useCallback` arrows passed straight
@@ -56,6 +67,12 @@ export interface ToolController {
 export function useToolController(options: {
   readonly dispatch: Dispatch;
   readonly onCommitted?: (edit: UndoableEdit) => void;
+  /**
+   * The authored params of an element the gesture has clicked on — the `ToolContext` (design §3, and
+   * see `toolMachine.ts` for why a tool may read this and nothing else). Absent ⇒ every lookup answers
+   * `null`, which makes a host-reading tool decline rather than commit a half-known element.
+   */
+  readonly paramsOf?: (elementId: ElementId) => Params | null;
 }): ToolController {
   const [activeToolId, setActiveToolId] = useState(SELECT_TOOL.id);
   const [session, setSession] = useState<ToolSession | null>(null);
@@ -117,10 +134,10 @@ export function useToolController(options: {
    * gesture, and it goes through the shared `Dispatch`. On failure the banner already has it and the tool
    * returns to its start state — nothing was committed, so there is nothing to roll back (D42).
    */
-  const offerPoint = useCallback(
-    (tool: Tool, point: Vec3) => {
+  const offerInput = useCallback(
+    (tool: Tool, input: CollectedInput) => {
       const current = sessionRef.current ?? beginSession(tool);
-      const { session: next, complete } = acceptInput(tool, current, point);
+      const { session: next, complete } = acceptInput(tool, current, input);
       putNumeric(null);
 
       if (!complete) {
@@ -128,7 +145,11 @@ export function useToolController(options: {
         return;
       }
 
-      const commit = commitOf(tool, next);
+      // ⚠ Read through the ref, like everything else here: `options` changes identity every render.
+      const ctx: ToolContext = {
+        paramsOf: (id) => optionsRef.current.paramsOf?.(id) ?? null,
+      };
+      const commit = commitOf(tool, next, ctx);
       // The tool declined (a zero-length wall): drop the gesture rather than send a doomed command.
       putSession(null);
       if (commit === null) return;
@@ -150,13 +171,34 @@ export function useToolController(options: {
     return snap?.point ?? ground;
   }, []);
 
+  /**
+   * What a click means, right now — the point AND what it landed on (Entry 80).
+   *
+   * ⚠ The ref and the element come from the SNAP, never from `pick`, even though the face candidate
+   * is built out of a pick. They must agree with the point being committed, and a snap that beat the
+   * face on priority (an endpoint 3 px away) is a point on a DIFFERENT feature from whatever the ray
+   * happens to be over. Taking the ref from `pick` and the point from `snap` would host a door on one
+   * wall at a coordinate measured on another — plausibly, and only when two walls meet.
+   */
+  const resolveCursorInput = useCallback((): CollectedInput | null => {
+    const { snap, ground } = cursorRef.current;
+    if (snap !== null) {
+      return {
+        point: snap.point,
+        ...(snap.ref === undefined ? {} : { ref: snap.ref }),
+        ...(snap.elementId === undefined ? {} : { elementId: snap.elementId }),
+      };
+    }
+    return ground === null ? null : { point: ground };
+  }, []);
+
   const handleClick = useCallback((): boolean => {
     if (activeTool.inputs.length === 0) return false; // Select: the click is a selection, not input.
-    const point = resolveCursorPoint();
-    if (point === null) return true; // A tool is active but the cursor means nothing — swallow, don't select.
-    offerPoint(activeTool, point);
+    const input = resolveCursorInput();
+    if (input === null) return true; // A tool is active but the cursor means nothing — swallow, don't select.
+    offerInput(activeTool, input);
     return true;
-  }, [activeTool, offerPoint, resolveCursorPoint]);
+  }, [activeTool, offerInput, resolveCursorInput]);
 
   const handleKey = useCallback(
     (event: KeyboardEvent): boolean => {
@@ -194,7 +236,10 @@ export function useToolController(options: {
         // A half-typed value or a cursor with no direction leaves the field open rather than guessing.
         if (length !== null && anchor !== null && towards !== null) {
           const exact = pointAtLength(anchor, towards, length);
-          if (exact !== null) offerPoint(activeTool, exact);
+          // ⚠ A typed length is a POINT and nothing else: it is measured along a direction, so it does
+          // not land on any particular sub-shape and must not inherit the cursor's ref. A tool that
+          // needs a host cannot be driven from the keyboard, and that is correct.
+          if (exact !== null) offerInput(activeTool, { point: exact });
         }
         return true;
       }
@@ -202,7 +247,7 @@ export function useToolController(options: {
 
       return collecting && event.key === 'Enter';
     },
-    [activeTool, cancel, offerPoint, putNumeric, resolveCursorPoint],
+    [activeTool, cancel, offerInput, putNumeric, resolveCursorPoint],
   );
 
   const prompt = useMemo(() => {
@@ -210,10 +255,16 @@ export function useToolController(options: {
     return currentInput(activeTool, session ?? beginSession(activeTool))?.prompt ?? null;
   }, [activeTool, session]);
 
+  const snapTo = useMemo(() => {
+    if (activeTool.inputs.length === 0) return null;
+    return currentInput(activeTool, session ?? beginSession(activeTool))?.snapTo ?? null;
+  }, [activeTool, session]);
+
   return {
     activeTool,
     session,
     prompt,
+    snapTo,
     previewFrom: session === null ? null : anchorOf(session),
     numericText,
     activate,
