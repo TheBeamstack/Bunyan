@@ -81,7 +81,11 @@
 #include <TopLoc_Location.hxx>
 #include <Standard_Failure.hxx>
 #include <GCPnts_AbscissaPoint.hxx>
+#include <GCPnts_QuasiUniformDeflection.hxx>
 #include <BRepAdaptor_Curve.hxx>
+#include <BRepAlgoAPI_Section.hxx>
+#include <TopExp_Explorer.hxx>
+#include <TopTools_DataMapOfShapeInteger.hxx>
 #include <BRepAdaptor_Surface.hxx>
 #include <gp_Ax2.hxx>
 #include <gp_Pnt.hxx>
@@ -2368,6 +2372,161 @@ double heapUsedBytes() {
   return static_cast<double>(static_cast<unsigned int>(info.uordblks));
 }
 
+/* ================================================================================================
+ * SECTION CUT — the 2D plan and section (P6 step 1, D81/Q1).
+ *
+ * ⚠⚠ THE INVARIANT THIS OP EXISTS TO PROVE: a drawing is a PROJECTION OF THE B-REP, never a
+ * separately-drawn artefact that can disagree with the model. Cut the same solids with a plane and you
+ * get the plan. That is the whole claim of the product, and this is the function that makes it true.
+ *
+ * ⚠⚠ AND THE REASON EVERY CURVE CARRIES ITS OWNER FACE: a plan must be ANNOTATABLE AND CLICKABLE. A
+ * dimension anchored to a wall's face in plan is anchored to *that face's `SubShapeRef`*, so it
+ * survives the wall being edited — exactly as a 3D reference does. A section that returned anonymous
+ * polylines would be a picture, and pictures go stale.
+ *
+ * ⚠ CUT ONLY. D81/Q1 ruled `mode:'cut'` for v1.0.0, and the measurement behind it is Entry 69's: the
+ * projected half (HLR) shares 0 of 4 `IsSame()` with its input, so it CANNOT attribute at all, and it
+ * rises ≈N^1.5 against a binding 10,000-element target. This function therefore never touches TKHLR;
+ * `cut+projection` is an additive mode a later body adds beside it.
+ *
+ * ⚠ THE ATTRIBUTION IS OCCT'S OWN HISTORY, NOT A GEOMETRIC GUESS. `BRepAlgoAPI_Section::Generated(f)`
+ * reports the edges the section produced FROM face `f`. Walking the operand's canonical faces and
+ * recording what each generated inverts that into edge -> owner face. Entry 69 measured this complete
+ * on every shape class tried (4/4, 1/1, 8/8, zero orphans). ⚠ A curve whose owner cannot be found is
+ * emitted with faceIndex -1 rather than dropped — silence in a drawing is the failure nobody audits.
+ * ============================================================================================= */
+
+struct SectionOut {
+  std::vector<float> points;   // flat [u0,v0, u1,v1, …] over ALL curves, in the plane's 2D frame
+  std::vector<int> curveStart; // index of each curve's first POINT (not float) into `points`
+  std::vector<int> curveCount; // number of POINTS in each curve
+  std::vector<int> curveInput; // which entry of the `handles` argument this curve came from
+  std::vector<int> curveFace;  // the owner face's CANONICAL index in that shape, or -1
+  std::vector<int> curveClosed;
+};
+
+// A member, not a local, for the same reason `g_mesh` is: JS is handed zero-copy typed_memory_views
+// onto these buffers, and a local would be destroyed before JS could read them. The views are valid
+// only until the next `sectionCut` call; the TS adapter copies synchronously.
+SectionOut g_section;
+
+emscripten::val sectionCut(const std::vector<int>& handles, double ox, double oy, double oz,
+                           double nx, double ny, double nz, double xx, double xy, double xz,
+                           double deflection) {
+  using emscripten::val;
+
+  g_section = SectionOut();
+  SectionOut& out = g_section;
+
+  const auto view = [](const auto& v) {
+    return val(emscripten::typed_memory_view(v.size(), v.data()));
+  };
+  const auto result = [&](bool ok) {
+    val o = val::object();
+    o.set("ok", ok);
+    o.set("curves", static_cast<int>(out.curveStart.size()));
+    o.set("points", view(out.points));
+    o.set("start", view(out.curveStart));
+    o.set("count", view(out.curveCount));
+    o.set("input", view(out.curveInput));
+    o.set("face", view(out.curveFace));
+    o.set("closed", view(out.curveClosed));
+    return o;
+  };
+
+  const gp_Vec normal(nx, ny, nz);
+  if (normal.Magnitude() < gp::Resolution()) {
+    // A degenerate plane cuts nothing and would return an EMPTY drawing that reads exactly like
+    // "nothing is on this line". The document layer refuses this at the authoring door; this is the
+    // backstop for a caller that reached the kernel another way.
+    g_lastError = "DEGENERATE_PLANE";
+    return result(false);
+  }
+
+  try {
+    const gp_Pnt origin(ox, oy, oz);
+    const gp_Dir dirN(normal);
+    const gp_Vec vx(xx, xy, xz);
+    // The 2D frame. `xAxis` comes from the caller and is deterministic there (`xAxisFor`), so the same
+    // view re-projected after an edit lands in the same frame and stored dimensions still read true.
+    const gp_Dir dirX = (vx.Magnitude() < gp::Resolution()) ? gp_Ax3(origin, dirN).XDirection()
+                                                            : gp_Dir(vx.Crossed(normal).Crossed(normal).Reversed());
+    const gp_Dir dirY = dirN.Crossed(dirX);
+    const gp_Pln plane(origin, dirN);
+
+    for (std::size_t h = 0; h < handles.size(); ++h) {
+      const ShapeEntry* entry = lookup(handles[h]);
+      if (entry == nullptr) {
+        // ⚠ ONE BAD HANDLE COSTS ITS SOLID, NEVER THE DRAWING (domain rule 4 / D75). The remaining
+        // solids still draw; the document layer reports the gap in `unprojected[]`.
+        continue;
+      }
+
+      BRepAlgoAPI_Section section(entry->shape, plane, Standard_False);
+      section.ComputePCurveOn1(Standard_True);
+      section.Approximation(Standard_True);
+      section.Build();
+      if (!section.IsDone()) continue;
+
+      // INVERT OCCT'S HISTORY: canonical face index -> the edges it generated, then edge -> face.
+      TopTools_IndexedMapOfShape faceMap;
+      TopExp::MapShapes(entry->shape, TopAbs_FACE, faceMap);
+      // OCCT's own shape-keyed hash map. `std::map<TopoDS_Shape,…>` cannot be used: a TopoDS_Shape has
+      // no ordering, and comparing them by identity is exactly what this map type exists to do.
+      TopTools_DataMapOfShapeInteger ownerOf;
+      for (std::size_t c = 0; c < entry->faceOcct.size(); ++c) {
+        const int occtIndex = entry->faceOcct[c];
+        if (occtIndex < 1 || occtIndex > faceMap.Extent()) continue;
+        const TopoDS_Shape& face = faceMap(occtIndex);
+        const TopTools_ListOfShape& generated = section.Generated(face);
+        for (TopTools_ListIteratorOfListOfShape it(generated); it.More(); it.Next()) {
+          // ⚠ FIRST OWNER WINS, and it is not arbitrary. Entry 69 measured the section history
+          // COMPLETE and SINGLE-OWNER on every shape class tried (4/4, 1/1, 8/8, zero orphans), so a
+          // second binding for the same edge would mean that finding no longer holds on this shape —
+          // in which case the honest answer is the first canonical face, not a silently-overwritten
+          // last one. `Bind` would overwrite; this does not.
+          if (!ownerOf.IsBound(it.Value())) ownerOf.Bind(it.Value(), static_cast<int>(c));
+        }
+      }
+
+      for (TopExp_Explorer ex(section.Shape(), TopAbs_EDGE); ex.More(); ex.Next()) {
+        const TopoDS_Edge& edge = TopoDS::Edge(ex.Current());
+        BRepAdaptor_Curve curve(edge);
+
+        // ⚠ THE DISCRETISATION IS A DISPLAY PARAMETER AND MUST NEVER REACH A QUANTITY (rule 15,
+        // owner Q5). A section of a cylinder is an exact circle; `points` is a polyline that
+        // approximates it to `deflection`. The EXACT identity travels beside it in the owner face, so
+        // a dimension reads the MODEL, never this polyline.
+        GCPnts_QuasiUniformDeflection sampler(curve, deflection);
+        if (!sampler.IsDone() || sampler.NbPoints() < 2) continue;
+
+        const int start = static_cast<int>(out.points.size() / 2);
+        for (int i = 1; i <= sampler.NbPoints(); ++i) {
+          const gp_Pnt p = sampler.Value(i);
+          const gp_Vec d(origin, p);
+          out.points.push_back(static_cast<float>(d.Dot(gp_Vec(dirX))));
+          out.points.push_back(static_cast<float>(d.Dot(gp_Vec(dirY))));
+        }
+        const int count = static_cast<int>(out.points.size() / 2) - start;
+
+        out.curveStart.push_back(start);
+        out.curveCount.push_back(count);
+        out.curveInput.push_back(static_cast<int>(h));
+        out.curveFace.push_back(ownerOf.IsBound(edge) ? ownerOf.Find(edge) : -1);
+        // A cut curve bounds material and is generally closed; report what OCCT actually says rather
+        // than assuming, because an open cut curve is a real and legible thing (a wall meeting the
+        // clip boundary) and calling it closed would draw a line that is not there.
+        out.curveClosed.push_back(BRep_Tool::IsClosed(edge) ? 1 : 0);
+      }
+    }
+  } catch (const Standard_Failure& e) {
+    g_lastError = std::string("SECTION_FAILED: ") + e.GetMessageString();
+    return result(false);
+  }
+
+  return result(true);
+}
+
 EMSCRIPTEN_BINDINGS(bunyan_kernel) {
   using namespace emscripten;
 
@@ -2435,6 +2594,7 @@ EMSCRIPTEN_BINDINGS(bunyan_kernel) {
   function("classifyPoint", &classifyPoint);
   function("measure", &measure);
   function("tessellate", &tessellate);
+  function("sectionCut", &sectionCut);
   // D29 — the geometry cache. `shapeSignature` is called on BOTH sides of the round trip.
   function("exportBrep", &exportBrep);
   function("shapeSignature", &shapeSignature);

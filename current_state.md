@@ -537,6 +537,60 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 77 | 2026-08-03 | Zayd | the plan/section unit ships — a drawing IS the B-Rep (D58 row Ⓐ, D81)
+
+- **CHANGED:** `tools/kernel-build/src/kernel.cpp` (**`sectionCut`**, `BRepAlgoAPI_Section` + `Generated()`
+  attribution) + **the WASM artifact rebuilt** (+69,808 B) · `packages/kernel-occt` (the adapter +
+  `SECTION_DEFLECTION` 0.5 mm) · `packages/protocol` (`SectionCurve.nodeId?`; **`sectionCut` off
+  `RESERVED_OPS`**; the false `ref` comment corrected) · `packages/document/src/view.ts` (**NEW** — the
+  validator, the plane, the pre-filter, every result type) · `scene.ts`/`dependency.ts`/`bnn.ts` (the
+  `views` promotion) · `commands.ts` (**`core.createView`/`updateView`/`deleteView`**) · `document.ts`
+  (**`projectView`**, the D19 door) · `schema.ts` (`refTo` +4) · `tests/plan-section.test.ts` (**NEW, 8
+  tests, one per §5 criterion**) · `docs/decisions.md` **D81** · `open_rulings.md` (Q1–Q3 STRUCK, Q15 new).
+  **No `SCENE_SCHEMA_VERSION` bump, no `emptyScene()` entry.**
+- **VERIFIED:** **653 green** across 81 files, all six gates, **real exit code 0**, real OCCT throughout.
+  Revert-verified: reverting the ref-token attribution goes **RED at "expected length 8 but got 6"**.
+- **FOUND:** ⚠⚠ **A REF'S `nodeId` NAMES THE NODE THAT MINTED IT, NOT THE PART THAT CARRIES IT** — the
+  design predicted it and I walked in anyway. Measured on a holed wall: **8 cut curves, 8 attributed, but
+  spanning TWO nodeIds** (`wall-….wall` and `opening-…`, the reveals belonging to the cut node). Keyed by
+  `nodeId` the plan draws **6 curves where 8 is correct and 10 where 20 is**, silently. ⚠⚠ **AND MY OWN
+  TEST HAD A WEAK GREEN THAT ONLY REVERT-VERIFICATION EXPOSED:** `toBeGreaterThan(solidCount)` still
+  passed on the broken version, because `6 > 4`. Pinned to the exact count. ⚠ **A "fix" of mine was
+  nothing at all** — I forwarded the option catalogue into `modelElements` and wrote a comment calling it
+  load-bearing; reverted, the suite stayed GREEN, so the line was REMOVED rather than kept with a false
+  justification. ⚠ `SectionCurve.closed`'s frozen comment says a cut curve "is closed"; measured, **all 4
+  curves of a plain box are `closed=false`** (Section returns EDGES, not loops). ⚠ `designOptionIds` is
+  authorable only on a document whose options arrived by another road — **no command can create a design
+  option**, while `core.createElement` deliberately skips the same check. ⚠ Hosting on `lateral.0` instead
+  of `lateral.1` cuts a face the plan never meets: **volume comes back exactly uncut (1,920,000,000 mm³)**
+  and everything reports success. ⚠⚠ **AND THE RE-SEED GATE IS SATISFIED BY A TIMESTAMP** — its first
+  fire on a real kernel change; I re-seeded on the pinned oracle and **the whole diff is one line,
+  `seededAt`**, every geometry value across 12 fixtures byte-identical (correct — this PR adds an op and
+  modifies no existing path). But the gate cannot tell that from a re-seed where the geometry MOVED and
+  nobody looked: **the only thing that made compliance safe was reading the diff** (⇒ Q16).
+- **OWES:** Owner: **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** (§4 — three declarations
+  moved, baseline re-based in-PR under D81). **Q15 (NEW)** — `pnpm state --rebaseline` labels exactly
+  these PRs `RISK: additive`. Q4/Q5 stand as recorded. Amer: `projectView` returns `ViewCurve[]` with real
+  `SubShapeRef`s — the 2D drawing view is unblocked and is his layer.
+- **RISK:** contract-touching
+- **FULL:** `handoff/zayd/2026-08-03-plan-section-unit.md`
+- **REVIEW:** **REVIEWED 2026-08-04 by the Entry-78 session** (Zayd, a later session — the protocol
+  holding for a fourth entry); full record in PR #5's review comment. ⚠ **STILL AWAITING THE OWNER'S
+  MERGE — that is the gate here, not the review.** Item 1 re-executed: reverting the attribution to
+  `ref.nodeId` reproduced **`expected length 8 but got 6`** verbatim. **ONE REAL DEFECT, PROVEN AND
+  FIXED: `projectView` never called its own pre-filter** — `straddlesPlane`/`withinClip`/`levelScope`
+  shipped written, exported and called by NOTHING, so a stored, validated **`clip` was silently ignored
+  and a wall 50 m outside it was drawn**. §5's eight-row table has no pre-filter row, so eight green
+  tests said nothing about it (row added). Measured at 10 levels × 4 walls: **4 handles into
+  `sectionCut` instead of 40, 58.00 → vs 315.45 ms/call, 5.4×, ratio = level count.** ⚠ **§4
+  undercounts the frozen surface — FOUR declarations moved** (`RESERVED_OPS` too). **RISK:
+  contract-touching, read from the snapshot, not the label.** ⚠ **§3b's deferral rested on a FALSE
+  PREMISE and is now fixed:** `frozen-surface.mjs` strips comments before hashing, so correcting
+  `SectionCurve.closed` was never a contract edit — re-measured (**4 cut curves, all `closed=false`**),
+  corrected, pinned. ⚠ **§3c was never actually filed in `open_rulings.md`** though the entry says it
+  was — now **Q17**. Q15 extended: `_baselinedAtEntry` still reads **72**, written by nothing. Two
+  comment corrections. **655 green, six gates, exit 0.**
+
 ### 76 | 2026-08-02 | Zayd | Entry 74 reviewed late — `NOTICE` said seven shipped dependencies were build-time only
 
 - **CHANGED:** `NOTICE` (§3 rewritten, §4 split out, §5 records the correction) · `licenses/` (+7 MIT
@@ -848,21 +902,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/zayd/2026-07-29-schedule-crud-d79.md`
 - **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
 
-### 67 | 2026-07-28 | Amer | P4.5's non-gating half — selection, view filter, the first keyboard owner
-
-- **CHANGED:** `apps/web` only — new pure `view/viewFilter.ts` (+7 headless tests), wired into `App.tsx`
-  with a View panel. Selection highlight, hide/isolate, type + discipline filters, the app's first-ever
-  `keydown` handler (Esc/undo/redo).
-- **VERIFIED:** 524 green · **all five gates 0 including `format:check`** · browser-verified (clean boot,
-  filter/isolate/Esc exercised live, zero console errors).
-- **FOUND:** the whole feature is a **pure predicate over the existing `renderParts` array** — dropping a
-  part IS hide, a changed colour IS selection — so `Viewport`/`PartBatch`/`pick` are untouched.
-  ⚠⚠ `format:check` passed for the first time since Entry 59 **by formatting BEFORE verify, not by luck.**
-- **OWES:** nothing.
-- **RISK:** additive
-- **FULL:** `handoff/amer/2026-07-28-p45-selection-view-filter.md`
-- **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
-
 ---
 
 ## §8 — Generated
@@ -871,17 +910,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **76 (Zayd, 2026-08-02)** |
-| branch · tip · tree | `zayd/2026-08-02-entry74-late-review` · `a7238b3` · dirty |
-| open PRs | none — main is the tip of the work |
-| suite | **644 green** · 80 files · 210 suites |
-| protocol | 21 live ops · 3 reserved (of 24 declared) |
-| shipped source | 6 `BimObjectType`s in `@bunyan/types` · 37 command ids in `commands.ts` · 1 `FormatCodec` |
+| **newest entry** | **77 (Zayd, 2026-08-03)** |
+| branch · tip · tree | `zayd/2026-08-03-plan-section-unit` · `1c4e035` · dirty |
+| open PRs | #5 zayd/2026-08-03-plan-section-unit |
+| suite | **655 green** · 81 files · 212 suites |
+| protocol | 22 live ops · 2 reserved (of 24 declared) |
+| shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 4 files changed, 146 insertions(+), 56 deletions(-) (4 files) |
-| docs budget | current_state 68.4/96.0 KB · §7 24.3/32.0 KB · abstracts 10/10 · bodies 23 |
+| diff vs origin/main | 27 files changed, 2230 insertions(+), 86 deletions(-) (27 files) |
+| docs budget | current_state 75.9/96.0 KB · §7 31.8/32.0 KB · abstracts 10/10 · bodies 24 |
 
-_Generated 2026-08-02 by `pnpm state`._
+_Generated 2026-08-04 by `pnpm state`._
 
 <!-- END GENERATED -->

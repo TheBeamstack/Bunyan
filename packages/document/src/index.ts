@@ -29,6 +29,8 @@ export * from './undo.js';
 export * from './build.js';
 export * from './enumerate.js';
 export * from './schedule.js';
+// D58 row Ⓐ's third unit (D81) — the view body, its result types and the descriptor validator.
+export * from './view.js';
 export * from './cleandelta.js';
 export * from './dependency.js';
 export * from './document.js';

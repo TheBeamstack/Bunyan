@@ -55,6 +55,15 @@ const DIMENSIONLESS = new Set([
   // what freezes, so it is the shape that must obey rule 7.
   'cmd core.array  count',
   'cmd core.array  count2',
+  // ⚠ THE VIEW CRUD's `scale` (D58 row Ⓐ's third unit, Entry 77 / D81) — a RATIO DENOMINATOR, not a
+  // length. `100` means 1:100, and it sizes ANNOTATIONS on paper; it never touches the model, which is
+  // the whole reason `dependency.ts` declares the `views` edge as a deliberate "nothing".
+  //
+  // ⚠ Its sibling `cutHeight` is the opposite and declares `mm`, exactly as `core.array`'s `step` does
+  // beside its `count` — a plan cut 1200 above the Level datum is a MEASUREMENT. The two sitting one
+  // line apart in the same schema is the distinction this list exists to keep visible.
+  'cmd core.createView  scale',
+  'cmd core.updateView  scale',
 ]);
 
 interface Leaf {

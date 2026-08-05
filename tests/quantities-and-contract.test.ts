@@ -209,8 +209,16 @@ describe('capabilities are DERIVED from the handlers, never hand-written', () =>
     // ⚠ The MOCK still implements neither — it holds no B-Rep, so it cannot serialise one, and a mock
     // that faked a cache would fake the very thing the cache exists to verify. That is why the loop
     // below no longer covers them and the D29 suite asserts the mock's refusal instead.
+    // ⚠⚠ AND TWO SINCE 2026-08-03 (Entry 77, D81). `sectionCut` — the 2D plan and section — now has a
+    // BODY, so it left this list by the same deliberate handshake `exportBrep`/`importBrep` left it by:
+    // the real kernel advertises it because it implements it, `capabilities` picked it up from the
+    // handler map with no other edit, and a human took `RESERVED_OPS` down on purpose. **This is the
+    // reservation mechanism completing its full arc for the first time** — the payload shape was frozen
+    // in Entry 15 while the protocol was soft, and the body was written three phases later against that
+    // shape UNCHANGED, which is precisely what D13 reserved it for. ⚠ The MOCK does not implement it,
+    // for the `exportBrep` reason: it holds no B-Rep, so it has nothing to cut, and a mock returning
+    // plausible curves would fake the very invariant the op exists to prove.
     expect(RESERVED_OPS, 'declared before the freeze; bodies come later').toEqual([
-      'sectionCut',
       'importIfc',
       'instantiate',
     ]);

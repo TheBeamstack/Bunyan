@@ -303,7 +303,22 @@ project._
 
 ---
 
-## §C — Entries 54–75 — the full bodies now live in `handoff/`
+## §C — Entries 54–76 — the full bodies now live in `handoff/`
+
+### 67 | 2026-07-28 | Amer | P4.5's non-gating half — selection, view filter, the first keyboard owner
+
+- **CHANGED:** `apps/web` only — new pure `view/viewFilter.ts` (+7 headless tests), wired into `App.tsx`
+  with a View panel. Selection highlight, hide/isolate, type + discipline filters, the app's first-ever
+  `keydown` handler (Esc/undo/redo).
+- **VERIFIED:** 524 green · **all five gates 0 including `format:check`** · browser-verified (clean boot,
+  filter/isolate/Esc exercised live, zero console errors).
+- **FOUND:** the whole feature is a **pure predicate over the existing `renderParts` array** — dropping a
+  part IS hide, a changed colour IS selection — so `Viewport`/`PartBatch`/`pick` are untouched.
+  ⚠⚠ `format:check` passed for the first time since Entry 59 **by formatting BEFORE verify, not by luck.**
+- **OWES:** nothing.
+- **RISK:** additive
+- **FULL:** `handoff/amer/2026-07-28-p45-selection-view-filter.md`
+- **REVIEW:** pre-dates the PR flow. ⚠ Not independently reviewed.
 
 **⚠ CHANGED 2026-07-31 (the handoff-system migration).** These entries used to sit in
 `current_state.md` §7 in full. They are now **one file each** under `handoff/<agent>/`, and

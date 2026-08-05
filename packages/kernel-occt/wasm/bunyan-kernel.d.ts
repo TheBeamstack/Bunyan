@@ -34,6 +34,34 @@ export interface OcctVectorDouble {
   delete(): void;
 }
 
+/**
+ * ⚠ ZERO-COPY VIEWS ONTO THE WASM HEAP, exactly like `OcctMeshViews` — invalidated by the NEXT
+ * `sectionCut` call and by any heap growth. `kernel.ts` copies out of them synchronously.
+ *
+ * The flat/parallel-array shape is not a micro-optimisation, it is the same boundary discipline the
+ * mesh views exist for: reading an embind vector costs ONE JS<->WASM crossing PER ELEMENT, and a
+ * level's worth of section curves would pay tens of thousands of them per re-projection. This costs
+ * one crossing, total.
+ */
+export interface OcctSectionViews {
+  /** False when the op failed; call `lastError()`. The views are empty in that case. */
+  readonly ok: boolean;
+  /** How many curves — the length of every per-curve array below. */
+  readonly curves: number;
+  /** Flat `[u0,v0, u1,v1, …]` over ALL curves, in the plane's own 2D frame, millimetres. */
+  readonly points: Float32Array;
+  /** Per curve: offset in POINTS (not floats) into `points`. */
+  readonly start: Int32Array;
+  /** Per curve: number of points. */
+  readonly count: Int32Array;
+  /** Per curve: which entry of the `handles` argument it came from. */
+  readonly input: Int32Array;
+  /** Per curve: the CANONICAL index of its owner face in that shape, or -1 if unattributed. */
+  readonly face: Int32Array;
+  /** Per curve: 1 when the curve is closed. */
+  readonly closed: Int32Array;
+}
+
 /** An embind `std::vector<NameRow>`. */
 export interface OcctVectorNameRow {
   size(): number;
@@ -156,6 +184,7 @@ export interface OcctMeshViews {
 export interface OcctModule {
   /** The embind `std::vector<double>` constructor — the only one JS builds rather than drains. */
   VectorDouble: new () => OcctVectorDouble;
+  VectorInt: new () => OcctVectorInt & { push_back(value: number): void };
 
   /** Every op returns a shape id, or 0 on failure (then `lastError()` explains). None ever throws. */
   makeBox(x: number, y: number, z: number, dx: number, dy: number, dz: number): number;
@@ -228,6 +257,23 @@ export interface OcctModule {
    */
   measure(shapeId: number, kind: number, index: number): OcctMeasure;
   tessellate(shapeId: number, deflection: number): OcctMeshViews;
+  /**
+   * The 2D cut (D81/Q1 — `mode:'cut'` only in v1.0.0). `handles` are the solids to cut; the plane is
+   * given as origin + normal + the xAxis that FIXES the 2D frame the result is expressed in.
+   */
+  sectionCut(
+    handles: OcctVectorInt,
+    ox: number,
+    oy: number,
+    oz: number,
+    nx: number,
+    ny: number,
+    nz: number,
+    xx: number,
+    xy: number,
+    xz: number,
+    deflection: number,
+  ): OcctSectionViews;
 
   /**
    * THE GEOMETRY CACHE (D29). ⚠ `shapeSignature` is called on BOTH sides of the round trip — that is
