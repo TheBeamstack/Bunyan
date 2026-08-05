@@ -119,3 +119,44 @@ describe('the kernel toolchain is pinned by digest (Q14)', () => {
     }
   });
 });
+
+/**
+ * ⚠⚠ ADDED IN REVIEW OF PR #6 (Entry 80, Amer) — REVIEW.md items 2 and 4, and the finding is that the
+ * backward sweep stopped one file short.
+ *
+ * Entry 79 rewrote every site that CLAIMS a toolchain — `README.md`, `toolchain.json`, `kernel.cpp`,
+ * `kernel.ts`, `open_rulings.md` — except `NOTICE`, whose §1 paragraph "THE RECIPE IS COMPLETE BUT NOT
+ * BYTE-REPRODUCIBLE" asserted all four of the things this entry made false: that the recipe invokes
+ * `emscripten/emsdk:latest`, that a rebuild today need not use the compiler that produced the module,
+ * that the build id is "not a value read back out of the artifact", and that the digest pin "is open as
+ * a ruling". That is not stale prose in a design doc. `NOTICE` is the LGPL 2.1 §6 attribution for a
+ * statically linked OCCT, it is the file Entries 74/76 made machine-enforced for exactly this reason,
+ * and a licence notice that understates what the project can prove about its own artifact is the one
+ * kind of documentation drift that has a reader outside this repository.
+ *
+ * ⚠ Weak-green (item 6): the digest assertion is the load-bearing one — it reads `toolchain.json`, so
+ * bumping the pin fails `NOTICE` too, which is the invariant (`NOTICE` must name the toolchain that
+ * actually linked the shipped module). The other two are document-vs-document phrase guards, no
+ * stronger than the four above them, and they are here to stop the retracted claims coming back rather
+ * than to prove the pin.
+ */
+describe('the licence NOTICE describes the toolchain this repo actually has (Q14)', () => {
+  const notice = read('NOTICE');
+
+  it('names the pinned digest that linked the committed module', () => {
+    expect(notice).toContain(toolchain.emsdk.digest.slice('sha256:'.length, 'sha256:'.length + 8));
+  });
+
+  it('no longer tells a recipient the recipe invokes a mutable tag', () => {
+    expect(notice).not.toMatch(/emsdk:latest/);
+  });
+
+  it('no longer says the build id cannot be read back out of the artifact', () => {
+    // `toolchainId()` is compiled into the module and asserted against above; the claim is false now.
+    expect(notice).not.toMatch(/not a value read\s+back out of the artifact/);
+  });
+
+  it('no longer describes the digest pin as an open ruling', () => {
+    expect(notice).not.toMatch(/pin is open as a ruling/);
+  });
+});
