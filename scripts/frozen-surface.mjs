@@ -170,6 +170,32 @@ export function buildSurface(root) {
   return surface;
 }
 
+/**
+ * THE BASELINE FILE `--rebaseline` WRITES — every derived field COMPUTED, none inherited (Q15).
+ *
+ * ⚠⚠ `_baselinedAtEntry` USED TO BE CARRIED FORWARD BY `...prev` AND WRITTEN BY NOTHING. The old
+ * writer spread the previous snapshot and then overrode `_baselinedAt`, `_declarationCount` and
+ * `surface` — so the one field that says WHICH ENTRY'S RULING AUTHORISED THIS BASELINE was the only
+ * one nobody updated. It read `72` beside a `_baselinedAt` of `2026-08-03`, five entries stale, and
+ * no test looked. That is the `OCCT_BUILD_ID` disease Entry 79 named — *a constant a human must
+ * remember to retype* — with not even a self-assertion, and on the audit trail back to the ruling
+ * that permits touching the freeze.
+ *
+ * ⇒ The entry number is now PASSED IN, from the `current_state.md` §7 parse the same run performs.
+ * `...prev` survives only to keep fields this function does not own (`_README`), and every field this
+ * function DOES own is written on every rebaseline, so none of them can be stale by omission.
+ */
+export function baselineSnapshot(prev, surface, { entry, today }) {
+  const declarationCount = Object.values(surface).reduce((n, d) => n + Object.keys(d).length, 0);
+  return {
+    ...prev,
+    _baselinedAt: today,
+    _baselinedAtEntry: entry,
+    _declarationCount: declarationCount,
+    surface,
+  };
+}
+
 /** Compare a surface to a baseline. Returns `{ added, removed, changed }`, all `file :: decl`. */
 export function diffSurface(baseline, current) {
   const added = [];

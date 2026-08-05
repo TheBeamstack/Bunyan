@@ -30,8 +30,15 @@ import { Buffer } from 'node:buffer';
 import { execSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { buildSurface, diffSurface } from './frozen-surface.mjs';
-import { parseAbstracts, newestAbstract, MARKERS, BUDGET, entryBodies } from './docs-state.mjs';
+import { baselineSnapshot, buildSurface, diffSurface } from './frozen-surface.mjs';
+import {
+  parseAbstracts,
+  newestAbstract,
+  riskVerdict,
+  MARKERS,
+  BUDGET,
+  entryBodies,
+} from './docs-state.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
@@ -130,41 +137,22 @@ const schemaVersion =
   readSrc('packages/document/src/scene.ts').match(/SCENE_SCHEMA_VERSION\s*=\s*(\d+)/)?.[1] ?? '?';
 
 // ── the frozen surface → RISK ────────────────────────────────────────────────────────────────────
+//
+// ⚠⚠ THE DIFF IS MEASURED HERE AND THE BASELINE IS REWRITTEN LATER, AND THE ORDER IS THE FIX (Q15).
+// `--rebaseline` overwrites the file this diff is measured against, so a verdict computed after it is
+// trivially `additive` — which is what `pnpm state --rebaseline` used to print on the only kind of PR
+// that ever runs it. The write now happens below, once `newest` is parsed, for the second half of the
+// same defect: the baseline records WHICH ENTRY authorised it, and that number lives in §7.
 const snapPath = join(ROOT, 'tests/frozen-surface.snapshot.json');
 const current = buildSurface(ROOT);
-let risk = 'additive';
-let riskDetail = 'unchanged vs baseline';
+const moved = [];
 if (existsSync(snapPath)) {
   const snap = JSON.parse(readFileSync(snapPath, 'utf8'));
   const d = diffSurface(snap.surface, current);
-  const n = d.added.length + d.removed.length + d.changed.length;
-  if (n > 0) {
-    risk = 'contract-touching';
-    riskDetail = `${n} declaration(s) moved — ${[...d.changed, ...d.removed, ...d.added].slice(0, 3).join(', ')}${n > 3 ? ' …' : ''}`;
-  }
+  moved.push(...d.changed, ...d.removed, ...d.added);
 }
-if (flag('rebaseline')) {
-  const count = Object.values(current).reduce((n, d) => n + Object.keys(d).length, 0);
-  const prev = existsSync(snapPath) ? JSON.parse(readFileSync(snapPath, 'utf8')) : {};
-  writeFileSync(
-    snapPath,
-    JSON.stringify(
-      {
-        ...prev,
-        _baselinedAt: new Date().toISOString().slice(0, 10),
-        _declarationCount: count,
-        surface: current,
-      },
-      null,
-      2,
-    ) + '\n',
-  );
-  console.log(
-    `⚠ frozen-surface baseline REWRITTEN (${count} declarations). This is owner-gated after the freeze.`,
-  );
-  risk = 'additive';
-  riskDetail = 're-baselined this session';
-}
+const rebaselining = flag('rebaseline') !== undefined;
+const { risk, label: riskLabel, detail: riskDetail } = riskVerdict(moved, rebaselining);
 
 // ── the docs ─────────────────────────────────────────────────────────────────────────────────────
 const csPath = join(ROOT, 'current_state.md');
@@ -173,6 +161,22 @@ const abstracts = parseAbstracts(cs);
 // ⚠ THROWS on an empty parse rather than writing `(none)` / `ENTRY ?` into main's prompt — see
 // `newestAbstract` in `docs-state.mjs` for the failure it is standing in front of (Entry 80).
 const newest = newestAbstract(abstracts);
+
+// ⚠ THE REBASELINE WRITE, DELIBERATELY DOWN HERE. It needs `newest.n` — the entry whose ruling
+// authorises this baseline — and the parse that produces it is above. `newestAbstract` throws on a
+// failed parse, so a session that cannot read §7 does not get to rewrite the freeze baseline either.
+if (rebaselining) {
+  const prev = existsSync(snapPath) ? JSON.parse(readFileSync(snapPath, 'utf8')) : {};
+  const next = baselineSnapshot(prev, current, {
+    entry: newest.n,
+    today: new Date().toISOString().slice(0, 10),
+  });
+  writeFileSync(snapPath, JSON.stringify(next, null, 2) + '\n');
+  console.log(
+    `⚠ frozen-surface baseline REWRITTEN (${next._declarationCount} declarations, entry ${next._baselinedAtEntry}). ` +
+      'This is owner-gated after the freeze.',
+  );
+}
 const bodies = entryBodies(ROOT);
 // ⚠ NORMALISE CRLF BEFORE MEASURING, so §8 reports the same number the gate enforces. A CRLF working
 // tree adds a byte per line (~920 to this file), and `tests/docs-budget.test.ts` measures what is
@@ -215,7 +219,7 @@ const generated = `
 | protocol | ${ops} live ops · ${reserved} reserved (of ${opNames} declared) |
 | shipped source | ${shippedTypes} \`BimObjectType\`s in \`@bunyan/types\` · ${commands} command ids in \`commands.ts\` · ${codecs} \`FormatCodec\` |
 | schema | \`SCENE_SCHEMA_VERSION\` ${schemaVersion} |
-| **frozen surface** | **RISK: ${risk}** — ${riskDetail} |
+| **frozen surface** | **RISK: ${riskLabel}** — ${riskDetail} |
 | diff vs origin/main | ${diffStat} (${diffFiles} files) |
 | docs budget | current_state ${kb(size('current_state.md'))}/${kb(BUDGET.currentState)} KB · §7 ${kb(sec7Len)}/${kb(BUDGET.section7)} KB · abstracts ${abstracts.length}/${BUDGET.maxAbstracts} · bodies ${bodies.length} |
 
@@ -256,7 +260,7 @@ FRESH:  Newest entry in \`current_state.md\` §7 = **ENTRY ${newest.n}**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: \`${branch}\` · \`${tip}\` · ${dirty} · RISK: ${risk}
+        Tree at generation: \`${branch}\` · \`${tip}\` · ${dirty} · RISK: ${riskLabel}
 \`\`\`
 `;
     p =
@@ -270,7 +274,7 @@ FRESH:  Newest entry in \`current_state.md\` §7 = **ENTRY ${newest.n}**
 }
 
 console.log(`✔ current_state.md §8 and ${AgentName}_Prompt.md FRESH regenerated.`);
-console.log(`  newest entry ${newest.n} · RISK: ${risk} · ${testLine}`);
+console.log(`  newest entry ${newest.n} · RISK: ${riskLabel} · ${testLine}`);
 if (risk === 'contract-touching') {
   console.log('  ⚠⚠ contract-touching ⇒ the OWNER merges this PR, not the reviewing agent.');
 }

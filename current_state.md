@@ -546,6 +546,47 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 81 | 2026-08-05 | Zayd | the two gates that failed OPEN are closed — and one of them had never run (Q15, Q16)
+
+- **CHANGED:** `scripts/docs-state.mjs` (**`riskVerdict`** — `{risk, label, detail}`; re-baselining is a
+  QUALIFIER, never an answer) · `scripts/frozen-surface.mjs` (**`baselineSnapshot`** — every owned field
+  COMPUTED) · `scripts/state.mjs` (the diff is measured against the PREVIOUS baseline; the rebaseline
+  WRITE moved below the §7 parse so it has an entry number to record) ·
+  `tests/frozen-surface.snapshot.json` (`_baselinedAtEntry` **72 → 77**, the entry `git log` says wrote
+  it) · **`scripts/reseed-payload.mjs` NEW** (`payloadHash` with `seededAt` excluded, `goldenValuesMoved`,
+  the `Re-seed-unchanged: <reason>` trailer) · `scripts/check-reseed.mjs` (compares the golden PAYLOAD
+  across `base…head`, read from git) · `tests/freeze-boundary.test.ts` (+7) · `tests/reseed-gate.test.ts`
+  (+6) · **`tests/reseed-gate-e2e.test.ts` NEW (+6)** · `open_rulings.md` (Q15 + Q16 **STRUCK**, on Q14's
+  precedent — tooling, no contract, reversible in one commit). **No frozen byte, no schema bump.**
+- **VERIFIED:** **709 green** across 83 files, six gates, real exit code 0. **Revert-verified 5 ways,
+  each watched RED**: the old `risk = 'additive'` override (`expected 'additive' to be
+  'contract-touching'`); `baselineSnapshot` without the entry (`the stale 72 survived the write`);
+  `payloadHash` keeping the clock (2 red); a bare trailer accepted (`expected '' to be null`); and the
+  pre-Q16 gate body — **3 e2e tests red**. Plus the committed `72` itself (`expected 72 to be 77`).
+- **FOUND:** ⚠⚠ **A SOURCE-TEXT "IS IT WIRED?" ASSERTION PROVES THE CALL IS WRITTEN, NOT THAT IT RUNS.**
+  Reverting the gate's body to its pre-Q16 form left the unit tests green **and both grep-the-source
+  wiring assertions green**, because the reverted gate still CONTAINED the calls — below an early
+  `process.exit(0)`. Only the end-to-end test went red. ⇒ where the artifact can be executed, EXECUTE it:
+  `reseed-gate-e2e.test.ts` builds a throwaway git repo, commits the four scenarios and asserts the EXIT
+  CODE, which is the only thing CI reads. That path had never run in 73 entries (Entry 73).
+  ⚠⚠ **BOTH DEFECTS FAILED OPEN, AND THAT IS WHAT AN UNTESTED GATE DRIFTS TOWARDS** — a gate is written
+  by someone who wants their own PR to pass. `--rebaseline`'s label was *technically* true and wrong
+  because **the only PR that ever runs it is a PR that moved the frozen surface**: the exception clause
+  covered the whole population. ⇒ **ask what a check's population actually is.** ⚠ The confirmation had
+  to cost a SENTENCE or it would be the timestamp again — an env var is set once in a workflow and true
+  forever; a trailer with a reason lands in the history beside the diff it excuses, and a bare
+  `Re-seed-unchanged:` does not match. ⚠ Weak-green caught in my own test: *"a bumped `seededAt` is not a
+  re-seed"* also passes if the hash strips TOO MUCH, so both directions are asserted.
+- **OWES:** Owner: **nothing new.** 🟡 OPEN is now **Q4–Q13, Q17, Q18** — Q15/Q16 struck as BUILT, and
+  the 🔴 BLOCKING table is EMPTY for a fourth session. Amer: the `contract-touching (re-baselined)` label
+  has been produced by tests, never yet by a real `--rebaseline` run — **the next contract-touching PR is
+  its first live use; read the label it prints.** ⚠ And Entry 80's review is in this session too: PR #7
+  merged after one finding was fixed on its branch (the document layer accepted a non-face `hostRef`);
+  **Q18 — the cut-face half — is still yours and still open.**
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-05-q15-q16.md`
+- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+
 ### 80 | 2026-08-05 | Amer | the opening tool ships — one click on a face is a hosted door, and `snapTo` was decorative
 
 - **CHANGED:** `apps/web/src/tool/tools.ts` (**`OPENING_TOOL`** — one input, commits `core.createElement`
@@ -821,73 +862,6 @@ is maintenance and does NOT get an entry of its own.**
   pipe-text in the file the owner reads to rule. `pnpm verify` **639 green, real exit code 0, six
   gates**; `freeze-boundary` green ⇒ additive confirmed.
 
-### 74 | 2026-08-02 | Zayd | the going-public housekeeping — `LICENSE` (AGPL-3.0), the CLA, the attribution notices
-
-- **CHANGED:** `LICENSE` (AGPL-3.0, verbatim, sha256 `0d96a4ff…9abcb0`) · `NOTICE` · `licenses/` (the
-  OCCT LGPL-2.1 text + the Open CASCADE exception + planegcs's, all copied from the artifacts we
-  actually build and install, never from a web page) · `CLA.md` · `.prettierignore` · and
-  **`"license": "AGPL-3.0-only"` in all TEN workspace manifests, none of which declared one.**
-  **No source package, no test, no contract byte.** Its own commit, its own PR (Entries 64+65's lesson).
-  ⚠⚠ **PLUS A SECOND, SEPARATE COMMIT THAT THE FIRST ONE FORCED** — `scripts/reseed-paths.mjs` (NEW,
-  the matcher extracted so it can be tested) + `scripts/check-reseed.mjs` + `tests/reseed-gate.test.ts`
-  (NEW, 5 tests). See FOUND.
-- **VERIFIED:** **635 green** (630 + the 5 new) · all six gates 0 (exit code read) · `freeze-boundary`
-  green · **revert-verified 1 way** — restore either package-root path and 2 of the 5 go RED with the
-  CI failure verbatim. ⚠ The housekeeping half carries no revert-verification, correctly: §1b governs
-  *fixes*, and prose has no behaviour to revert.
-- **FOUND:** ⚠⚠ **THE TWO LICENCE OBLIGATIONS ARE NOT SYMMETRIC, and writing them as one job would have
-  been wrong in both directions.** OCCT is **statically linked** and its binary **is committed**
-  (`bunyan-kernel.wasm`) ⇒ the Open CASCADE exception's relief is *conditional on a prominent notice*,
-  so `NOTICE` states that sentence in the exception's own terms rather than listing OCCT in a table,
-  and it writes down how D15's *"public source discharges relink"* is actually discharged (upstream
-  unmodified at `V7_9_3`, our kernel source in-repo, the recipe in `tools/kernel-build/`, build id
-  `occt-7.9.3-emcc-6.0.2`). planegcs is the opposite: an unmodified npm dependency whose binary **we do
-  not redistribute** — claiming we do would have been a false statement about our own distribution.
-  ⚠ **AND I REPEATED ENTRY 73'S MISTAKE ONE ENTRY LATER:** I wrote in `.prettierignore` that prettier
-  "would reflow" `CLA.md`, then measured with `--ignore-path /dev/null` and found **all four new lines
-  are no-ops today** — `.txt`/extensionless files get no parser, and `CLA.md` already conforms. The
-  comment now carries the command and says they are defensive, not load-bearing. Cost of checking: 90 s.
-  ⚠⚠ **AND THE RE-SEED GATE'S FIRST REAL EXECUTION IN 74 ENTRIES REFUSED A LICENCE FIELD.** Entry 73
-  fixed `fetch-depth` so the gate could finally run; this PR was the first change it ever measured, and
-  it FAILED on `packages/kernel-occt/package.json` + `packages/types/package.json` — two edits that add
-  `"license"` and cannot move a vertex. Cause: it matched `startsWith('packages/kernel-occt/')`, **a
-  directory prefix, which is a statement about LOCATION, not about geometry**, so it caught manifests,
-  tsconfigs and READMEs. Narrowed to `src/`+`wasm/`, matcher extracted, **5 tests added including a
-  structural one that refuses any future package-root entry.** ⚠ The reason this is a bug and not a
-  nitpick: the gate's own remedy is *"re-seed the goldens"*, so an agent who trips it on a licence field
-  and complies has **silently re-baselined every golden** with *"the gate told me to"* as cover. An
-  over-broad guard does not fail safe — it trains people to route around it. ⚠ `tools/kernel-build/` is
-  still NOT listed and is deliberately still open: narrowing makes CI refuse LESS and is safe;
-  **widening is a policy change and gets its own PR** (queued as the next session's task).
-- **OWES:** Owner: **Q11 + Q12, both inside `CLA.md` and both marked in the file** — `<LEGAL ENTITY>` is
-  a placeholder only you can fill, and no lawyer has read it (it is the Apache ICLA shape, sound as a
-  draft, and §2 grants what D15's dual-licensing model needs). Neither blocks anything until the first
-  external PR, which is exactly when both must be closed. **Q1–Q3 still BLOCK plan/section, now a sixth
-  session (69→71→72→73→74).** Amer: an "open source licences" screen is unbuilt and is his layer.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-02-going-public-housekeeping.md`
-- **REVIEW:** **REVIEWED LATE BY ENTRY 76** (Zayd), against the two commits directly — it was merged
-  by its own author (PR #2, `8422ae0`), which the protocol forbids, so it reached `main` unread;
-  Entry 75 diagnosed that and this is the review that was owed. ⚠⚠ **ONE REAL DEFECT, IN THE HALF
-  THAT WAS FLAGGED FOR A CHECKER WHO NEVER CAME: `NOTICE` §3 CLAIMED THE REMAINING DEPENDENCIES WERE
-  "BUILD- AND TEST-TIME ONLY … NOT REDISTRIBUTED AS PART OF BUNYAN." FALSE.** `pnpm licenses list
-  --prod` — the authoritative instrument Entry 74's own text named and nobody ran — reports **eight**
-  production packages, not two: **seven MIT packages ship in the browser bundle** (`react`,
-  `react-dom`, `scheduler`, `three`, `fflate`, `js-tokens`, `loose-envify`) and **none was
-  attributed**, though MIT requires its notice to travel with every copy. Fixed: their licence texts
-  copied from the installed packages into `licenses/`, `NOTICE` §3/§4 rewritten, correction recorded
-  in a new §5, and **`tests/notice-attribution.test.ts` now walks the real runtime closure so the
-  claim cannot rot again** (revert-verified 3 ways, incl. adding a runtime dep → RED naming it).
-  ⚠ SECOND, SMALLER: `NOTICE` said the recipe carries "the pinned toolchain version" and that the
-  build id "pins the exact combination". It does not — `README.md` invokes `emscripten/emsdk:latest`
-  (mutable) and `OCCT_BUILD_ID` is a hand-maintained constant in `kernel.ts:52`, not read back from
-  the artifact. Prose corrected to match; the digest pin is now **Q14**. ⚠ Also fixed, inherited
-  from this entry: **Q11/Q12 were not table rows** (blank-line-separated), rendering as literal
-  pipe-text in the owner's ruling document. **CHECKED AND SOUND:** the OCCT static-link and
-  prominent-notice claims read true against `link.sh` and `licenses/`; planegcs is correctly
-  described, including the honest note that it declares LGPL-2.0-or-later while shipping the 2.1
-  text. The re-seed-gate half was already re-verified by Entry 75.
-
 ---
 
 ## §8 — Generated
@@ -896,16 +870,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **80 (Amer, 2026-08-05)** |
-| branch · tip · tree | `amer/2026-08-05-opening-tool` · `05dea93` · dirty |
+| **newest entry** | **81 (Zayd, 2026-08-05)** |
+| branch · tip · tree | `zayd/2026-08-05-q15-q16` · `7f77125` · dirty |
 | open PRs | none — main is the tip of the work |
-| suite | **688 green** · 82 files · 219 suites |
+| suite | **709 green** · 83 files · 224 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 19 files changed, 1067 insertions(+), 318 deletions(-) (19 files) |
-| docs budget | current_state 75.6/96.0 KB · §7 30.5/32.0 KB · abstracts 6/10 · bodies 26 |
+| diff vs origin/main | 12 files changed, 505 insertions(+), 138 deletions(-) (12 files) |
+| docs budget | current_state 74.3/96.0 KB · §7 29.2/32.0 KB · abstracts 6/10 · bodies 27 |
 
 _Generated 2026-08-05 by `pnpm state`._
 

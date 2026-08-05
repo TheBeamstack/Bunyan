@@ -150,12 +150,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 79**
-        (Zayd, 2026-08-05) — the emsdk image is pinned by digest — and the artifact now names its own compiler (Q14)
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 81**
+        (Zayd, 2026-08-05) — the two gates that failed OPEN are closed — and one of them had never run (Q15, Q16)
 
-        ⇒ After `git pull`: §8's "newest entry" == 79  ⇒ you are current, start TASK.
-          HIGHER than 79 ⇒ the other agent has merged: read every abstract after
-          79 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 81  ⇒ you are current, start TASK.
+          HIGHER than 81 ⇒ the other agent has merged: read every abstract after
+          81 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -163,123 +163,124 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 79**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-05-emsdk-digest-pin` · `173da22` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-05-q15-q16` · `7f77125` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
 
 ```
-TASK:   ⚠⚠ **YOUR STEP 3 IS A REAL REVIEW THIS TIME, AND THE PR IS YOURS TO MERGE.** Entry 79's PR
-        (the Q14 toolchain pin) is `RISK: additive` — freeze-boundary green, snapshot unchanged — so
-        under step 3 the REVIEWING agent merges it once the review is done and CI is green. **No
-        owner gate.** Review it against `REVIEW.md`, then merge, then pull.
-          ⚠ **Item 1 is mandatory, and Entry 79 left you four revert-verifications to pick from**
-          (its §2a lists each with the exact RED output). The cheapest that actually proves
-          something: set `OCCT_BUILD_ID` to `occt-7.9.3-emcc-6.0.5` and watch `kernel-build-pin` +
-          `occt-kernel` both go RED with `[INTERNAL] Kernel artifact mismatch`.
-          ⚠ **The one worth attacking:** `createOcctKernel` can now REJECT at construction, in the
-          browser too. Entry 79 argues that is right (a kernel misdescribing itself silently
-          certifies stale B-Rep caches as compatible, spec §6). If you think a build-time invariant
-          should not be a runtime throw, that is a finding — say so, with the failure mode.
+TASK:   ⚠⚠ **YOUR STEP 3 IS ENTRY 81'S OWN PR, AND IT IS YOURS TO MERGE.** It is `RISK: additive`
+        (freeze-boundary green, snapshot `surface` untouched — only its `_baselinedAtEntry` metadata
+        moved), so under step 3 the REVIEWING session merges it once the review is done and CI is
+        green. **No owner gate.** ⚠ If Amer has opened one too, review BOTH; theirs is browser work
+        and the browser-only claims in it are the named exception to checklist item 1.
+          ⚠ **Item 1 is mandatory, and Entry 81 left you six revert-verifications** (§2a of its body
+          lists each with the exact RED). The cheapest that proves the thing that matters: put the
+          early `process.exit(0)` back into `scripts/check-reseed.mjs` right after its
+          `touchedGoldens.length === 0` block and watch **`tests/reseed-gate-e2e.test.ts` go 3 RED**
+          — and note that the two source-text "is it wired?" assertions stay GREEN through that
+          revert. That is the entry's own finding, and re-running it is how you keep it true.
+          ⚠ **The one worth attacking:** the re-seed gate can now REFUSE a PR whose goldens were
+          honestly re-seeded, and the only way past it is a `Re-seed-unchanged: <reason>` commit
+          trailer. If you think a gate that can only be satisfied by a commit message is a gate that
+          will be satisfied by a commit message *reflexively* — say so, with the failure mode. The
+          alternative on the desk was a marker file, rejected in §3c for rotting.
 
-        **THEN: `open_rulings.md` Q15 + Q16 — the two tooling gates that both fail OPEN.** Both live
-        in `scripts/`, neither touches the kernel, the WASM or the frozen surface, and both have a
-        recommendation on the desk already. This is the same fallback Entry 79 was handed and did
-        not need; it is now the main task.
-          • **Q15** — `pnpm state --rebaseline` prints `RISK: additive` on a contract-touching PR,
-            which is the label step 3 tells a reviewer to ROUTE ON. ⚠ Second symptom in the same
-            block: `_baselinedAtEntry` is carried forward by `...prev` and **written by nothing** —
-            it still reads `72`. The rebaseline write happens BEFORE `state.mjs` parses `newest`;
-            move it below that parse and both fix in one edit.
-          • **Q16** — the re-seed gate is satisfied by a bumped **timestamp**. ⚠⚠ **ENTRY 79 IS NOW
-            ITS SECOND WORKED EXAMPLE IN A ROW:** its diff was one `seededAt` line, every geometry
-            value byte-identical, and *the only thing that made compliance safe was reading the
-            diff by hand.* Two entries running is the argument; build it.
+        **THEN: `open_rulings.md` Q17 — and READ IT BEFORE YOU PLAN, because it is the first
+        contract-touching thing on the desk in five entries.** `designOptionIds` can be authored only
+        on a document whose design options arrived by some OTHER road; the question is whether
+        `scene.designOptions` gets promoted to a full `SceneCollection` the way `schedules` was in
+        D79. ⚠⚠ **It is CONTRACT-TOUCHING, so the OWNER merges whatever you build** — and that makes
+        it design-first by this file's own standing constraints: **write the design doc, put its open
+        questions into `open_rulings.md`, and stop there.** Do not widen a frozen shape on your own
+        judgement. The D79 promotion is the worked precedent to read first (*"it materialises on
+        first authoring, so a document with no schedules stays byte-identical"*) — if the same trick
+        works here, the promotion may be additive after all, and THAT is the finding worth having.
+          ⚠ Fallback if Q17 turns out to be owner-blocked on its first question: **Q18 is Amer's but
+          its fix is in MY layer** (`packages/document`) — a second opening hosted on a face the
+          first opening's cut produced comes back `broken-ref`. Entry 81 fixed only the EDGE half of
+          that family (a non-face `hostRef` is now a broken ref, visibly). The cut-face half needs a
+          ruling on what a hosted void may host ON, which is why it is still open.
 
-        ⚠ **WHAT ENTRY 79 ALREADY DID — DO NOT REDO ANY OF IT:**
-          • **The emsdk image is pinned by digest** in `tools/kernel-build/toolchain.json` (ONE copy;
-            the recipe and the tests both read it). ⚠ **It was not hypothetical — `:latest` had
-            ALREADY moved 6.0.2 → 6.0.5**, and only Docker's local cache kept Entry 77's rebuild
-            honest. The pin is PROVEN: relinking the unmodified source on it reproduced the committed
-            artifact **byte for byte**.
-          • **The build id is no longer self-asserted.** `kernel.cpp` composes it from
-            `OCC_VERSION_COMPLETE` + `__EMSCRIPTEN_*__` (compile-time macros) and exposes
-            `toolchainId()`; `createOcctKernel` refuses a module that disagrees with `OCCT_BUILD_ID`.
-          • `toolchain.json` is in the re-seed gate's `GEOMETRY_PATHS` — it names the COMPILER.
-          • **Q14 is STRUCK.** A *version bump* to 6.0.5 is a different question and is NOT owed.
-        **661 green, 82 files, six gates, exit 0.**
+        ⚠ **WHAT ENTRY 81 ALREADY DID — DO NOT REDO ANY OF IT:**
+          • **Q15 is STRUCK.** `riskVerdict` treats `--rebaseline` as a QUALIFIER
+            (`contract-touching (re-baselined)`), never as an answer; `_baselinedAtEntry` is COMPUTED
+            from the §7 parse and the committed `72` is corrected to **77**.
+          • **Q16 is STRUCK.** The re-seed gate compares the golden PAYLOAD with `seededAt` excluded.
+            A bumped timestamp no longer satisfies it; an unmoved payload must be CLAIMED.
+          • **The gate is now executed end-to-end** against a throwaway git repo — the path that had
+            never run in 73 entries.
+          • **Entry 80's PR was reviewed and merged**, with one finding fixed on its branch: the
+            document layer accepted a non-face `hostRef` and landed it `state: 'failed'` where
+            `brokenRefs()` and `unbuildable()` both came back EMPTY. It is a BROKEN REF now.
+        **709 green, 83 files, six gates, exit 0.**
 
-        ⚠ **STILL OWNER-ONLY AND UNCHANGED: Q11/Q12** (`CLA.md` ships `<LEGAL ENTITY>`; no lawyer
-        has read it) and **Q17** (the `designOptions` two-doors defect — contract-touching). The 🔴
-        BLOCKING table is still EMPTY, now three sessions running.
+        ⚠ **STILL OWNER-ONLY AND UNCHANGED: Q11/Q12** (`CLA.md` ships `<LEGAL ENTITY>`; no lawyer has
+        read it). The 🔴 BLOCKING table is still EMPTY, now four sessions running.
 
-NEW:    **⚠⚠ THE LESSON OF ENTRY 79, AND IT IS THE ONE THAT ALMOST WENT WRONG: YOU CANNOT FIX A
-        HAND-MAINTAINED CONSTANT BY ADDING ANOTHER HAND-MAINTAINED CONSTANT.** The obvious cheap
-        answer to "the build id is asserted against itself" was to commit the artifact's sha256 beside
-        it and have a test compare them. It would have passed, it would have looked rigorous, and it
-        would have been **the same disease one level down** — a number a human types, that a human
-        must retype on every legitimate rebuild, and that says nothing about *which compiler* ran.
-        The real fix was to make the ARTIFACT compute the claim: `kernel.cpp` builds the id out of
-        `OCC_VERSION_COMPLETE` and `__EMSCRIPTEN_*__`, so the string is written by the toolchain and
-        cannot be edited into agreement. ⇒ **When a constant must describe something, ask WHO COMPUTES
-        IT. If the answer is "whoever remembers", no test over it is worth much** — this is Q15's
-        `_baselinedAtEntry` complaint too, which is why it is your next task.
+NEW:    **⚠⚠ THE LESSON OF ENTRY 81: A TEST THAT GREPS THE SOURCE FOR A CALL PROVES THE CALL IS
+        WRITTEN, NOT THAT IT RUNS.** Entry 80 introduced two of these — *"is the guard `pnpm state`
+        actually runs, not one this test calls in private"* — and they are far better than nothing.
+        But when I reverted `check-reseed.mjs` to its pre-Q16 body by inserting an early
+        `process.exit(0)`, the unit tests stayed green **and so did both wiring assertions**, because
+        the reverted file still CONTAINED the calls, below the exit. Only the end-to-end test — which
+        builds a git repo, commits the scenarios and asserts the **exit code** — went red.
+        ⇒ **A grep is a proxy for execution. Where the artifact can be executed, EXECUTE it**, and
+        keep the grep for the cases where it genuinely cannot (a shell script CI runs, a browser
+        boot). ⚠ This is §1c-9 with a new face: measure the artifact, not the manual — and a source
+        file is a manual for what the process will do.
 
-        **⚠⚠ AND THE PRECONDITION NOBODY CHECKED FOR TWO SESSIONS: "READ IT BACK FROM THE ARTIFACT"
-        ASSUMED THE ARTIFACT HAD IT. IT DID NOT.** Q14 was filed in E76 and re-stated in the prompt
-        for three sessions as though the readback were merely undone. The shipped `.wasm` has **11
-        sections, ZERO custom sections and not one version string in 14.7 MB** — `-O3` strips
-        `producers` — so the check Q14 asked for was **impossible**, not pending, and the fix had to
-        first *give the artifact something to say*. ⇒ **Before designing a check, spend one command
-        confirming the thing you plan to check against actually exists.** A parsed section list cost
-        thirty seconds and changed the shape of the whole entry.
+        **⚠⚠ SECOND, AND IT IS WHY BOTH OF THIS ENTRY'S DEFECTS POINTED THE SAME WAY: AN UNTESTED
+        GATE DRIFTS TOWARDS FAILING OPEN.** A gate is written by someone who wants their own PR to
+        pass, so every shortcut that makes it quieter is invisible in the session that takes it.
+        `--rebaseline` set `risk = 'additive'` — *technically true after the write*, and wrong
+        because **the only PR that ever runs `--rebaseline` is a PR that moved the frozen surface**:
+        the exception clause covered the entire population. ⇒ **Ask what a check's POPULATION
+        actually is.** A rule whose exception covers all of it is not a rule.
 
-        **⚠ THIRD, AND IT IS §1c-9 AGAIN WITH A NEW FACE: A FIVE-SECOND PROBE BEAT TWO CONFIDENT
-        MEMORIES.** Both obvious spellings of the C++ half were wrong: `OCC_VERSION_STRING` is
-        **"7.9"**, not "7.9.3" (`OCC_VERSION_COMPLETE` is the full one), and `__EMSCRIPTEN_MAJOR__`
-        is **not predefined** — it needs `<emscripten/version.h>`, while the lowercase form everyone
-        remembers carries a deprecation pragma. The first would have compiled, linked, run, and
-        reported a plausible **wrong** id — on the very entry whose point is a constant that cannot
-        lie. ⇒ **`grep` the header, or compile a six-line probe, BEFORE the 75-second link.**
+        **⚠ THIRD: AN ESCAPE HATCH MUST COST A SENTENCE, OR IT BECOMES THE THING IT REPLACED.** The
+        re-seed gate needed a way to say *"the values really are unchanged"* (Entry 79's
+        byte-identical relink is the legitimate case). An env var is set once in a workflow and true
+        forever; a marker file says nothing and rots. A `Re-seed-unchanged: <reason>` commit trailer
+        lands in the history beside the diff it excuses, is reviewable, must be rewritten each time —
+        and a bare marker with no reason does NOT match, which is revert-verified.
+
+        (Entry 80's lesson, still standing:)
+        **⚠⚠ YOU CANNOT FIX A HAND-MAINTAINED CONSTANT BY ADDING ANOTHER HAND-MAINTAINED CONSTANT** —
+        ask WHO COMPUTES IT. `_baselinedAtEntry` was that disease with not even a self-assertion.
+        And: **before designing a check, spend one command confirming the thing you plan to check
+        against actually exists.**
 
         (Entry 78's lesson, still standing:)
         **⚠⚠ DEAD CODE IN A DIFF IS A MISSING TEST, AND A MISSING TEST IS USUALLY A MISSING
-        *CRITERION*.** When a design doc has both an ALGORITHM and a TEST TABLE, diff them against
-        each other before you start; every algorithm step no row tests is where the next defect will
-        be. ⚠ **`grep` for your own new exports' call sites before you ship.** And its sharper half:
-        **a directional assertion is blind in ONE direction** — `>` cannot catch over-production.
-        Ask *"if this drew EVERYTHING, would my test still pass?"*; `toHaveLength(n)` catches both.
+        *CRITERION*.** ⚠ **`grep` for your own new exports' call sites before you ship.** And its
+        sharper half: **a directional assertion is blind in ONE direction** — ask *"if this drew
+        EVERYTHING, would my test still pass?"*
 
-        (Entry 77's lesson, still standing:)
-        **⚠⚠ A `nodeId` NAMES THE NODE THAT MINTED AN IDENTITY, NOT THE PART THAT CARRIES IT.**
-        `Part.refs` is the authority. ⇒ **Reading a warning is not the same as applying it.** And
-        **revert every claim separately, and revert your FIXES, not just your tests.**
-
-        (Entry 76's lesson, still standing:)
-        **⚠⚠ WHEN A CLAIM QUANTIFIES OVER A SET, COUNT THE SET.** `pnpm licenses list --prod` settled
-        a false attribution claim in half a second; Entry 77's "three declarations moved" was four.
-
-        (Entry 75's lesson, still standing, kept for a fifth entry running:)
-        **⚠⚠ IF YOU ARE ABOUT TO MERGE SOMETHING YOU WROTE TODAY, THAT IS THE BUG.** Push it, mark
-        it `AWAITING REVIEW`, stop. ⇒ **A constraint that lives only in a design doc is not a
-        constraint, it is a preference.** Ask *"which file will the agent who must obey this
-        actually have open?"* and put it there.
+        (Entry 75's lesson, still standing, kept for a seventh entry running:)
+        **⚠⚠ IF YOU ARE ABOUT TO MERGE SOMETHING YOU WROTE TODAY, THAT IS THE BUG.** Push it, mark it
+        `AWAITING REVIEW`, stop. ⇒ **A constraint that lives only in a design doc is not a
+        constraint, it is a preference.**
 
         (Standing, on the handoff system itself:)
         `pnpm state` before every commit (gate six, `docs:check`) · it writes §8 and THIS file's
         FRESH, never `Amer_Prompt.md` · §7 holds at most **ten** abstracts **and a 32,768-byte
-        budget, and the BUDGET is what bites** — Entry 79 landed one abstract and had to rotate
-        **two** entries (69, 70) out to `docs/history.md` §C to fit; their table rows were already
-        there, so rotation was a deletion · ⚠ **`pnpm state` reads `.vitest-summary.json`, so run it
-        AFTER a green `pnpm verify`** · `tests/freeze-boundary.test.ts` decides `RISK` — **⚠ except
-        after `--rebaseline`, see Q15** · ⚠ **`gh pr review --approve` CANNOT WORK HERE** (GitHub
-        refuses self-approval and both agents push from one account) — the loop's *"approving
-        review"* is **always** a `gh pr comment`. This is Q13's core.
+        budget, and the BUDGET is what bites** — Entry 81 landed one abstract and rotated **74** out
+        to `docs/history.md` §C (its row was already there, so rotation was a deletion; ⚠ it also
+        carries the `---` before `## §8`, so put that back) · ⚠ **`pnpm state` reads
+        `.vitest-summary.json`, so run it AFTER a green `pnpm verify`** — and if §8 quotes a FAILING
+        suite, re-run the suite and `pnpm state` again · `tests/freeze-boundary.test.ts` decides
+        `RISK`, and **`--rebaseline` no longer lies about it (Q15)** · ⚠ **`gh pr review --approve`
+        CANNOT WORK HERE** — the loop's *"approving review"* is **always** a `gh pr comment`. This is
+        Q13's core. ⚠⚠ **AND ON THIS BOX THE MERGE ITSELF MAY BE BLOCKED BY THE HARNESS'S PERMISSION
+        CLASSIFIER** — `gh pr merge` and `git merge` were both refused in Entry 81, and a settings
+        permission rule (`Bash(gh pr merge:*)`) did not help in an earlier session. Do the whole
+        review, post the comment, then **ask the owner to run the merge** and carry on; it is not a
+        protocol failure, and it is not something to work around.
 
-        ⚠ **THIRTEEN OWNER RULINGS ARE OWED AND NONE BLOCKS A BUILD** — the 🔴 BLOCKING table is
-        EMPTY. *(Counted, not remembered — `open_rulings.md` 🟡 OPEN holds Q4–Q13, Q15, Q16, Q17.)*
-        The live ones are **Q15/Q16** (your task, and yours to merge), **Q17** (contract-touching, so
-        the owner merges whatever you build) and **Q11/Q12** (the CLA). If a ruling arrives in chat,
-        apply it AND record it in the doc it belongs to, then strike the row. This file is not where
-        decisions live.
+        ⚠ **ELEVEN OWNER RULINGS ARE OWED AND NONE BLOCKS A BUILD** — the 🔴 BLOCKING table is EMPTY.
+        *(Counted, not remembered — `open_rulings.md` 🟡 OPEN holds Q4–Q13, Q17, Q18.)* The live ones
+        are **Q17** (contract-touching, so the owner merges whatever you build), **Q18** (Amer's
+        question, my layer's fix) and **Q11/Q12** (the CLA). If a ruling arrives in chat, apply it AND
+        record it in the doc it belongs to, then strike the row. This file is not where decisions live.
 ```

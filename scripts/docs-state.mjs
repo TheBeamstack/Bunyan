@@ -146,6 +146,41 @@ export function newestAbstract(abstracts) {
   return abstracts.reduce((a, b) => (a.n > b.n ? a : b));
 }
 
+/**
+ * THE FROZEN-SURFACE VERDICT — what moved, what the reviewer READS, and therefore WHO MERGES (Q15).
+ *
+ * ⚠⚠ THE LABEL AND THE ROUTING VALUE ARE THE SAME STRING FOR A REASON, AND `--rebaseline` USED TO
+ * BREAK IT. The old code computed the diff, and then, if the baseline had just been rewritten, it
+ * assigned `risk = 'additive'` — on the grounds that the surface now matches the file beside it. That
+ * is true and it is the wrong thing to say: **the only PR that ever runs `--rebaseline` is a PR that
+ * moved the frozen surface**, so the flag turned the label on exactly the PRs that must NOT be
+ * agent-merged. `REVIEW.md` item 7 and the loop's step 3 both route on that word: *additive ⇒ the
+ * reviewing agent merges; contract-touching ⇒ the OWNER merges.* An agent merging an owner-gated PR
+ * because the tooling told it to is the Entry 74 failure with a machine as the excuse.
+ *
+ * ⇒ The verdict describes THE DIFF THAT WAS MEASURED, always — re-baselining is reported as a
+ * qualifier on top of it, never as an answer that replaces it. `risk` is what routes; `label` is what
+ * §8 prints; and `label` still STARTS with `risk`, so `docs-budget`'s `/^(additive|contract-touching)/`
+ * check on an entry's `RISK:` field holds for an author who copies the printed line.
+ *
+ * ⚠ `moved` must be measured against the PREVIOUS baseline, i.e. before `--rebaseline` overwrites it.
+ * Measured afterwards it is trivially empty, which is the same lie by another route.
+ */
+export function riskVerdict(moved, rebaselined = false) {
+  const risk = moved.length > 0 ? 'contract-touching' : 'additive';
+  const label = rebaselined ? `${risk} (re-baselined)` : risk;
+  const named = moved.slice(0, 3).join(', ');
+  const detail =
+    moved.length > 0
+      ? `${moved.length} declaration(s) moved — ${named}${moved.length > 3 ? ' …' : ''}`
+      : 'unchanged vs baseline';
+  return {
+    risk,
+    label,
+    detail: rebaselined ? `${detail} · baseline REWRITTEN this session` : detail,
+  };
+}
+
 /** Every entry body actually present on disk, as repo-relative paths. */
 export function entryBodies(root) {
   const dir = join(root, 'handoff');

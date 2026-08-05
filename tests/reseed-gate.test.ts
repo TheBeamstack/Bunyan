@@ -25,6 +25,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 // @ts-expect-error — plain .mjs helper, deliberately untyped; it is CI plumbing, not shipped code.
 import { GEOMETRY_PATHS, isGeometryFile, isGoldenFile } from '../scripts/reseed-paths.mjs';
 
@@ -125,5 +126,104 @@ describe('the re-seed gate matches GEOMETRY, not LOCATION', () => {
     expect(geometry('tools/kernel-build/probe-history.mjs')).toBe(false);
     expect(geometry('tools/kernel-build/verify.mjs')).toBe(false);
     expect(geometry('tools/kernel-build/README.md')).toBe(false);
+  });
+});
+
+/* ================================================================================================
+ * ⚠⚠ THE VALUE CHECK (Q16) — because everything above is satisfied by a CLOCK.
+ *
+ * The path matcher answers *"was a golden touched?"* and `seed-goldens` stamps a fresh `seededAt` on
+ * every run, so a ONE-LINE TIMESTAMP DIFF satisfied the whole gate. Entry 77 and Entry 79 both shipped
+ * exactly that, and in both cases the only thing that made compliance safe was an agent reading the
+ * diff by hand. A gate that cannot distinguish *"re-seeded, values unchanged"* from *"re-seeded,
+ * values MOVED, nobody looked"* certifies the second while looking like it checked.
+ * ============================================================================================= */
+
+// @ts-expect-error — plain .mjs helper, deliberately untyped; it is CI plumbing, not shipped code.
+import { confirmationIn, goldenValuesMoved, payloadHash } from '../scripts/reseed-payload.mjs';
+
+const hashOf = payloadHash as (text: string) => string | null;
+const movedIn = goldenValuesMoved as (
+  before: Record<string, string | null>,
+  after: Record<string, string | null>,
+) => string[];
+const confirmed = confirmationIn as (messages: readonly string[]) => string | null;
+
+const goldenJson = (seededAt: string, volume: number): string =>
+  JSON.stringify({
+    $schema: 'bunyan.goldens.v1',
+    seededAt,
+    env: { ocpVersion: '7.9.3.1.1' },
+    cases: [{ case: 'box-wall', volume }],
+  });
+
+const GOLDENS = 'tests/goldens/geometry.golden.json';
+
+describe('the re-seed gate compares VALUES, not the clock (Q16)', () => {
+  it('⚠⚠ a bumped `seededAt` alone is NOT a re-seed — the payload hash is identical', () => {
+    // The exact diff Entry 79 shipped: one timestamp line, every geometry value byte-identical.
+    expect(hashOf(goldenJson('2026-08-05T15:38:36Z', 1500))).toBe(
+      hashOf(goldenJson('2026-08-06T09:00:00Z', 1500)),
+    );
+    expect(
+      movedIn({ [GOLDENS]: goldenJson('a', 1500) }, { [GOLDENS]: goldenJson('b', 1500) }),
+    ).toEqual([]);
+  });
+
+  it('…and a moved VALUE is caught, whatever the timestamp does', () => {
+    // ⚠ Weak-green guard: if `payloadHash` stripped too much — the whole `cases` array, say — this
+    // pair would also come back equal, and the test above would still pass. Both directions are
+    // asserted, so a hash that ignores everything fails here and a hash that ignores nothing fails
+    // above. Neither alone is enough.
+    expect(hashOf(goldenJson('a', 1500))).not.toBe(hashOf(goldenJson('a', 1501)));
+    expect(
+      movedIn({ [GOLDENS]: goldenJson('a', 1500) }, { [GOLDENS]: goldenJson('a', 1501) }),
+    ).toEqual([GOLDENS]);
+  });
+
+  it('key order is not a change — a re-serialisation that reorders keys says nothing', () => {
+    const a = '{"seededAt":"x","cases":[{"case":"w","volume":1}],"env":{"ocpVersion":"7.9"}}';
+    const b = '{"env":{"ocpVersion":"7.9"},"cases":[{"volume":1,"case":"w"}],"seededAt":"y"}';
+    expect(hashOf(a)).toBe(hashOf(b));
+  });
+
+  it('⚠ ARRAY ORDER *IS* a change — the cases are an ordered list, not a set', () => {
+    const one = '{"cases":[{"case":"a"},{"case":"b"}]}';
+    const two = '{"cases":[{"case":"b"},{"case":"a"}]}';
+    expect(hashOf(one)).not.toBe(hashOf(two));
+  });
+
+  it('a golden that is new, deleted or unparseable counts as MOVED — never as unchanged', () => {
+    // ⚠ The silence-as-answer trap (§1c-9): a gate that reads "I could not parse it" as "nothing
+    // changed" certifies the one file it failed to read. Refusing is the only honest answer.
+    expect(movedIn({}, { [GOLDENS]: goldenJson('a', 1500) })).toEqual([GOLDENS]);
+    expect(movedIn({ [GOLDENS]: goldenJson('a', 1500) }, {})).toEqual([GOLDENS]);
+    expect(movedIn({ [GOLDENS]: 'not json' }, { [GOLDENS]: goldenJson('a', 1500) })).toEqual([
+      GOLDENS,
+    ]);
+    expect(hashOf('not json')).toBeNull();
+  });
+
+  it('the way out is a commit trailer WITH A REASON, and a bare marker is not one', () => {
+    expect(confirmed(['Entry 82: something\n\nRe-seed-unchanged: relinked byte-for-byte'])).toBe(
+      'relinked byte-for-byte',
+    );
+    // Any commit in the range may carry it, not only the tip.
+    expect(confirmed(['a merge commit', 'Re-seed-unchanged: no op changed'])).toBe('no op changed');
+    // ⚠ A marker with nothing after it is exactly the box-ticking this gate exists to stop.
+    expect(confirmed(['Re-seed-unchanged:'])).toBeNull();
+    expect(confirmed(['Re-seed-unchanged:   '])).toBeNull();
+    expect(confirmed(['nothing to see here'])).toBeNull();
+  });
+
+  it('is the check `check-reseed.mjs` actually runs, not one this test calls in private', () => {
+    // ⚠ Without this the suite passes while the gate keeps its old `touchedGoldens.length === 0` test
+    // as its only value check — a green test asserting something weaker than its own name.
+    const gate = readFileSync(new URL('../scripts/check-reseed.mjs', import.meta.url), 'utf8');
+    expect(gate, '`check-reseed.mjs` no longer calls goldenValuesMoved').toMatch(
+      /goldenValuesMoved\(/,
+    );
+    expect(gate, 'the gate no longer honours the author confirmation').toMatch(/confirmationIn\(/);
+    expect(gate, 'the gate no longer fails on an unmoved payload').toMatch(/NOT ONE VALUE MOVED/);
   });
 });
