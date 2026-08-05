@@ -27,6 +27,7 @@
  *      would OOM the tab in a minute.
  */
 
+import { decodeSubShapeRef } from '@bunyan/protocol';
 import type { RigidMotion } from '@bunyan/protocol';
 import type { BrokenReference, Element, ElementId, Params, Part, TypeId } from './entities.js';
 import { childElementId, cutNodeId, partNodeId } from './geometry.js';
@@ -370,6 +371,41 @@ export async function buildAssembly(
       });
       // ⚠ AND THE HOST STILL BUILDS. Domain rule 3: the document must survive carrying a broken
       // reference. It is a visible state awaiting manual retargeting — not a reason to lose the wall.
+      continue;
+    }
+
+    // ⚠⚠ AND THE SAME ANSWER WHEN THE TOKEN RESOLVES TO SOMETHING THAT IS NOT A FACE — WITHOUT THIS,
+    // ONE AUTHORING ERROR HAD TWO OUTCOMES DEPENDING ON A LOOKUP (found reviewing Entry 80).
+    //
+    // A void is cut against a face's `bounds` + `faceFrame`; an EDGE has neither. But an edge token IS
+    // in `part.refs`, so the lookup above SUCCEEDS and the failure used to surface one step later, out
+    // of the kernel, as `UNRESOLVED_SUBSHAPE_REF` into the `catch` below — which marked the opening
+    // `state: 'failed'` and moved on. That state is reported by NOTHING: `brokenRefs()` was never
+    // pushed to, and `unbuildable()` only lists `failure: 'unbuildable'`. Measured: a door hosted on an
+    // edge simply was not there, with no banner, no console error and both diagnostics empty — while
+    // the same door hosted on a *missing* face was visible and retargetable three lines above.
+    //
+    // ⚠ It is a BROKEN REF and not a hard failure because it is the same kind of thing: an opening
+    // naming a host sub-shape it cannot be hosted on, fixable by `core.retargetReference` and by
+    // nothing else. Domain rule 3 then applies unchanged — the wall builds, un-pierced.
+    const hostKind = decodeSubShapeRef(hostRef)?.kind;
+    if (hostKind !== 'face') {
+      brokenRefs.push({
+        elementId: opening.id,
+        ref: hostRef,
+        hostId: rootId,
+        reason: `the host reference "${hostRef}" names ${
+          hostKind === undefined
+            ? 'a token this document cannot decode'
+            : `a sub-shape of kind "${hostKind}"`
+        }, and a hosted void can only be cut against a face`,
+      });
+      voidResults.push({
+        elementId: opening.id,
+        parts: [],
+        state: 'broken-ref',
+        error: `host reference "${hostRef}" is not a face`,
+      });
       continue;
     }
 

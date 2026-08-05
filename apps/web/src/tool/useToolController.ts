@@ -1,9 +1,16 @@
 /**
  * THE TOOL CONTROLLER — P4.5 design §3. The single active-tool slot, the keyboard, and numeric entry.
  *
- *     Ribbon button / shortcut ─► ToolController ─► reads  SnapGateway (Tier 1, per frame)
- *                                                  draws  PreviewLayer (overlay, never truth)
+ *     Ribbon button / shortcut ─► ToolController ─► reads  Viewport.snapAt (Tier 1, per frame)
+ *                                                  draws  Viewport.setPreviewLine (overlay, never truth)
  *                                                  commits ONE Command through Dispatch ─► DocumentContext
+ *
+ * ⚠ THOSE TWO NAMES USED TO READ `SnapGateway` AND `PreviewLayer`, AND NEITHER HAS EVER EXISTED (found
+ * reviewing Entry 80, which struck the same two phantoms out of `current_state.md` §5 and stopped one
+ * file short of this one — `grep` the name, then count what it hits, §1c-8). The snap seam is
+ * `Viewport.snapAt` reached through the `previewFrom`/`snapTo` props; the overlay is
+ * `Viewport.setPreviewLine`. `docs/design/P4.5_interaction_model_design.md` still uses both names, and
+ * there it is a DESIGN naming a component — this line was describing code that is here.
  *
  * ⚠⚠ WHAT MAKES THIS A CONTROLLER AND NOT A COMMAND LAYER (domain rule 19). It holds the in-progress
  * gesture in **React state** — a plain value, outside the document — and it reaches the model through the

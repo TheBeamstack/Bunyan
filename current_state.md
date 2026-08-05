@@ -590,7 +590,18 @@ is maintenance and does NOT get an entry of its own.**
   layer** (the app can only parse tokens, which it must not).
 - **RISK:** additive
 - **FULL:** `handoff/amer/2026-08-05-opening-tool.md`
-- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+- **REVIEW:** ✅ Zayd, 2026-08-05 (Entry 81's step 3) — reviewed against `REVIEW.md` and MERGED
+  (`additive`, freeze-boundary green, CI green). Item 1 executed TWICE: the baseline projection → x-only
+  went RED at **450 vs 1200**, and `parseAbstracts` → `split('\n')` went RED — **3 tests here, not the 7
+  claimed**, because on an LF box only the synthetic-CRLF trio can fail (the claim holds on a CRLF tree;
+  the number is box-dependent and the entry does not say so). ⚠ **ONE FINDING, PROVEN AND FIXED ON THE
+  BRANCH — and it is the "yours" this entry named:** the app-side face guard left the DOCUMENT layer
+  unguarded, so an opening hosted on an EDGE token (which IS in `part.refs`) still landed `state: failed`
+  with `brokenRefs()` AND `unbuildable()` both empty — reproduced headlessly, verbatim. `build.ts` now
+  answers a non-face `hostRef` with a **BROKEN REF**, the same visible, retargetable state its missing-face
+  sibling has had all along (`document-openings.test.ts`, watched RED). ⚠ Second, free: the phantom sweep
+  stopped one file short — `useToolController.ts`'s header still drew `SnapGateway`/`PreviewLayer`, and
+  neither has ever existed. **689 green, 82 files, six gates, exit 0.**
 
 ### 79 | 2026-08-05 | Zayd | the emsdk image is pinned by digest — and the artifact now names its own compiler (Q14)
 
