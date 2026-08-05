@@ -53,7 +53,7 @@ outside `apps/`. Build **against `@bunyan/document`, never the kernel** — D19 
       ├─ finding not provable                   → review comment; never block on an opinion
       ├─ ⚠ YOU are the machine that can re-run a browser claim. If Zayd left
       │     `unverified here: <claim>` on a merged entry, CLEAR IT — that is your first action.
-      │     (None is outstanding as of Entry 79 — checked. This is a debt that ACCUMULATES.)
+      │     (None is outstanding as of Entry 80 — checked. This is a debt that ACCUMULATES.)
       ├─ RISK: additive + approving + CI green  → MERGE it, then pull again
       └─ RISK: contract-touching                → approve; tell the owner it needs THEIR merge
       ⇒ THEN REWRITE THAT ENTRY'S `REVIEW:` LINE in §7 — who reviewed it, what they found. Leaving
@@ -152,7 +152,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 - **Env (local PC):** `pnpm install` · **`pnpm --filter @bunyan/web dev`** (Vite, the app) ·
   `pnpm --filter @bunyan/web build` · **`pnpm verify` at the repo root = the CI step list, exactly** — now
   **six** gates. ⚠ `current_state.md` §6 is the DEV BOX's environment, not yours; the `corepack` shim and
-  the OCCT rebuild recipe there are Zayd's. **You do need `gh`** — install it and `gh auth login` once.
+  the OCCT rebuild recipe there are Zayd's. **`gh` is installed and authenticated as
+  `narutousomaki741`** — this machine's OWN GitHub account, distinct from Zayd's (owner, 2026-08-05).
+  ⚠ **All six gates DO run here now.** They could not before Entry 80: `core.autocrlf=true` gives this
+  box CRLF working files and `scripts/docs-state.mjs` assumed LF, so `docs:check` failed five ways and
+  `pnpm state` would have written `ENTRY ?` into this file without erroring. If a doc gate ever behaves
+  differently here from CI again, **suspect line endings first.**
 - **Standing API facts that have bitten before:** `planDelete()` is gone (use `dryRun`); `discipline` lives
   on the part; ids are opaque ULIDs (never parse or render them — use `element.name`); `mass` may be absent
   (render "—", never "0 kg"); on save persist
@@ -166,12 +171,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 79**
-        (Zayd, 2026-08-05) — the emsdk image is pinned by digest — and the artifact now names its own compiler (Q14)
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 80**
+        (Amer, 2026-08-05) — the opening tool ships — one click on a face is a hosted door, and `snapTo` was decorative
 
-        ⇒ After `git pull`: §8's "newest entry" == 79  ⇒ you are current, start TASK.
-          HIGHER than 79 ⇒ the other agent has merged: read every abstract after
-          79 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 80  ⇒ you are current, start TASK.
+          HIGHER than 80 ⇒ the other agent has merged: read every abstract after
+          80 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -179,46 +184,32 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 79**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-05-emsdk-digest-pin` · `cee4f05` · clean · RISK: additive
+        Tree at generation: `amer/2026-08-05-opening-tool` · `05dea93` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
 
 ```
-TASK:   ⚠⚠ **READ THIS FIRST: SEVEN ZAYD ENTRIES (73–79) HAVE LANDED SINCE YOU LAST RAN, AND YOUR
-        STEP 3 HAS A REAL PR WAITING.** This TASK was written by your Entry 70 and the ORDERING below
-        still stands — but the world moved underneath it, so §2's NEW block is not optional reading
-        this time. ⚠ **FRESH says 79 while main's §8 still says 77, because Entry 79 is finished and
-        sitting in PR #6.** Merge it at step 3 (it is yours to merge) and step 4 then reads SAME. If
-        you ever reach step 4 with §8 still at 77, that gap is the designed signal to go back to
-        step 3 — not a fault, and never a reason to start TASK.
-          ⚠ **PR #6 (Zayd, Entry 79 — the emsdk digest pin) is `RISK: additive`, so it is YOURS to
-          merge** once you have reviewed it and CI is green. It is headless/tooling work, but one
-          part of it is browser-facing and is called out in the PR body: `createOcctKernel` can now
-          THROW at construction. See NEW (f).
-
-        **P4.5 CONTINUES — AND THE TWO ROWS THAT WERE BLOCKED ON ZAYD ARE NOW UNBLOCKED (Entry 72).**
-        Q1–Q6 are ALL RULED and applied into `docs/design/P4.5_interaction_model_design.md` §12.
-        Do not re-open them, and do not re-ask which track.
+TASK:   **P4.5 CONTINUES. EXIT CRITERION 3 IS DISCHARGED (Entry 80) — the next two rows are yours, and
+        neither is blocked.** Q1–Q6 are ALL RULED and applied into
+        `docs/design/P4.5_interaction_model_design.md` §12. Do not re-open them, and do not re-ask
+        which track. ⚠ Entry 80 is in the open PR at t=0; merge it at step 3 (it is `RISK: additive`,
+        so it is yours) and step 4 then reads SAME.
 
         ⇒ DO THIS, IN THIS ORDER:
-          1. **THE OPENING TOOL.** Exit criterion 3 (*a window is placed by CLICKING A FACE and no
-             human types a derivation token*) is ONE TOOL AWAY: `SnapHit.ref` already carries the
-             `SubShapeRef` and **`SnapHit.elementId`** the element, so the tool is a two-input
-             registry entry committing `core.createElement` with `{hostId, hostRef}`. Model it on
-             `WALL_TOOL` in `tool/tools.ts`; the face-snap candidate is the piece to add to
-             `tool/snap.ts` (today it yields edge endpoints/midpoints + grid, not face hits — the
-             pick path already resolves faces, so it is the same substrate again).
-             ⚠ **The field is `elementId`, not `hostElementId`** — this TASK said `hostElementId`
-             for two sessions and no such field exists. `SnapCandidate` is
-             `{ point, kind, ref?, elementId?, nodeId? }`; `SnapHit` adds `pixelDistance`. (Verified
-             against `tool/snap.ts` 2026-08-05.)
-          2. **ALIGNMENT GUIDES** (design §4.3) — dashed overlay when the cursor lines up with a
+          1. **ALIGNMENT GUIDES** (design §4.3) — a dashed overlay when the cursor lines up with a
              live reference point. Pure overlay geometry over Tier-1 candidates; no model state, no
-             contract. ⚠ **There is no `PreviewLayer` module** — the preview is the
-             `previewFrom` anchor on the controller, drawn by `render/ViewportCanvas.tsx`. Extend
-             that path rather than looking for a file that was never built.
-          3. **THE MOVE TOOL + GIZMO** and **THE CORNER-DRAG** — both unblocked by Entry 72.
+             contract, no command.
+             ⚠ **There is no `PreviewLayer` MODULE and there never was** — §5 named one for three
+             entries and Entry 80 struck the row. The preview is the `previewFrom` anchor on
+             `useToolController`, drawn by `render/ViewportCanvas.tsx` through
+             `Viewport.setPreviewLine` / `setSnapMarker`, which live in `#preview` — a group
+             deliberately outside `#sceneGroup` so overlay geometry can never be picked or snapped
+             to. Extend THAT path.
+             ⚠ The candidates you are aligning against already exist: `SnapIndex.near()` gives you
+             everything within a world radius without a kernel call. Keep the geometry PURE and
+             headless-verified (`tool/snap.ts` is the model to copy); only the drawing is GL.
+          2. **THE MOVE TOOL + GIZMO** and **THE CORNER-DRAG**.
              ⚠⚠ **READ THE REFUSAL BEFORE YOU BUILD THE GIZMO — IT IS ENFORCED, NOT DOCUMENTED:**
              `core.move` **REFUSES a wall** (drag both endpoints with `core.setParams`) and
              **REFUSES a door** (`setParams` on `offsetU`), naming the road that works in the
@@ -226,97 +217,112 @@ TASK:   ⚠⚠ **READ THIS FIRST: SEVEN ZAYD ENTRIES (73–79) HAVE LANDED SINCE
              a registered shape that REFUSES by design — **keep it out of the ribbon.**
              The corner-drag has its atomicity: `doc.execute(id, args, { transactionId })` — one
              stage, one commit, one `Ctrl+Z` for the whole gesture.
+             ⚠ Q8 asks whether that baseline refusal is the right strictness and says *"revisit if
+             Amer's move tool finds it hostile in the hand."* **You are the session that finds out.**
+             Report it as a finding either way — that is the answer the ruling is waiting for.
 
-        ⚠⚠ **THAT "LATER, NOTHING OWED NOW" ITEM HAS LANDED — THE 2D DRAWING VIEW IS NOW YOURS AND
-        IT IS UNBLOCKED.** Entry 77 shipped the plan/section unit (merged by the owner 2026-08-05),
-        so the thing this TASK previously named as a future surprise is real today:
+        ⚠⚠ **THE 2D DRAWING VIEW IS STILL YOURS AND STILL UNBLOCKED** (Entry 77, merged by the owner
+        2026-08-05). It does NOT displace the two rows above; it is named here with its shape so that
+        taking it is a decision rather than a discovery:
 
               const result = await doc.projectView(descriptor)   // the D19 door, on DocumentContext
 
         `ViewResult` = `{ viewId, kind, plane, curves, unprojected }` from `@bunyan/document`; each
         `ViewCurve` is a 2D polyline in the plane's own frame **carrying a real `SubShapeRef`**, so a
-        dimension anchored in the drawing reads the MODEL, not the polyline. Three notes that will
-        save you a re-read:
+        dimension anchored in the drawing reads the MODEL, not the polyline.
           • **It is a QUERY, not an edit** (domain rule 17) — no `scene.json` byte, no `UndoableEdit`,
-            nothing cached. The `.bnn` stores the DESCRIPTOR, so the drawing is LIVE: resize a wall
-            and the next call draws the new wall with zero re-authoring.
-          • **`unprojected[]` is never empty-and-silent.** One refusal costs its element, never the
-            drawing. **Render it** — a plausible, SHORT drawing is exactly what nobody audits.
-          • **`kind: '3d'` THROWS** rather than returning an empty drawing; a 3d view is served by
-            your renderer through `tessellate`, not by `sectionCut`.
-        `core.createView` / `updateView` / `deleteView` exist as ordinary registered commands, so
-        the generated ribbon already exposes them.
-        ⚠ **It is additive and it does NOT displace P4.5** — finish the ordering above first. It is
-        named here, with its shape, so that it is a decision rather than a discovery.
+            nothing cached. The `.bnn` stores the DESCRIPTOR, so the drawing is LIVE.
+          • **`unprojected[]` is never empty-and-silent. Render it** — a plausible, SHORT drawing is
+            exactly what nobody audits.
+          • **`kind: '3d'` THROWS** rather than returning an empty drawing.
+        `core.createView` / `updateView` / `deleteView` are ordinary registered commands, so the
+        generated ribbon already exposes them.
 
         Not this session (deferred, so nobody re-derives): material appearance + transparency ·
         WebGPU + WebGL2 fallback · a File System Access `StorageAdapter` · TSL shading · service
         worker/PWA + Cloudflare deploy · the optional `codecFor` open/save wiring (D71) · a
-        schedules UI (the CRUD exists and the generated ribbon already exposes it — it is simply
-        not your task while P4.5 is; the read path is `doc.evaluateSchedule`).
+        schedules UI (the CRUD exists and the generated ribbon already exposes it; the read path is
+        `doc.evaluateSchedule`).
 
-NEW:    **⚠⚠ THE HANDOFF SYSTEM CHANGED ON 2026-07-31. THIS IS YOUR FIRST SESSION UNDER IT.**
-        Read `docs/design/handoff_system_design.md` ONCE — you will not need it again.
-        What is different, in the order it will bite you:
-        (a) **The docs MOVED.** `core_logic.md`, `architecture.md`, `V1.0.0_spec.md` and
-            `v1.0.0_imp_plan.md` are now in `docs/contracts/`; every `*_design.md` is in
-            `docs/design/`; the reviews are in `docs/reviews/`. `current_state.md`, both prompts,
-            `REVIEW.md` and `open_rulings.md` stay at the root.
-        (b) **`current_state.md` is 54 KB, not 394 KB.** §4 is a one-line INDEX — full rulings are
-            `docs/decisions.md`. §5 is LIVE PRIORITIES ONLY. §7 is ten fixed-schema ABSTRACTS; full
-            entry bodies are one file each in `handoff/<agent>/`. **Nothing was deleted.**
-        (c) **You work on a BRANCH and open a PR**, and **you review Zayd's** (or your own, if you
-            ran last) before starting. See the loop above. ⚠ **You need `gh`** — install it and
-            `gh auth login` once on the PC; without it you cannot merge.
-        (d) **`pnpm verify` has a SIXTH gate, `docs:check`.** **Run `pnpm state` before you commit**
-            or it fails.
-        (e) **⚠ YOU ARE THE ONLY MACHINE THAT CAN CLEAR A BROWSER CLAIM.** Zayd is headless. If a
-            merged entry carries `unverified here: <claim>`, clearing it is your FIRST action —
-            and it is the one review debt this system can accumulate. **None is outstanding as of
-            Entry 79** (checked, not assumed) — so you start this session with a clean slate.
+NEW:    **⚠⚠ START HERE: THE THREE THINGS ENTRY 80 LEARNED THE HARD WAY, IN THE ORDER THEY WILL BITE.**
 
-        **⚠⚠ AND NOW THE PART THAT IS NEWER THAN THE REST OF THIS BLOCK — SEVEN ENTRIES LANDED WHILE
-        YOU WERE AWAY (73–79, all Zayd). Only four of them can touch you:**
-        (f) **THE KERNEL CAN NOW REFUSE TO BOOT (Entry 79, in PR #6).** `createOcctKernel` compares
-            the WASM module's self-reported `toolchainId()` against `OCCT_BUILD_ID` and throws
-            `[INTERNAL] Kernel artifact mismatch` when they disagree. It can only fire on a broken
-            build — but it fires **in the browser**, at construction, so if your app ever dies at
-            boot with that message the fix is a rebuild/pull, not your code. ⚠ **If you think a
-            build-time invariant should not be a runtime throw, that is a legitimate review finding
-            on PR #6** — say so with the failure mode; do not just live with it.
-        (g) **THE REVIEW PROTOCOL HARDENED, WHICH IS WHY THE LOOP ABOVE DIFFERS FROM THE ONE YOU
-            LEFT (Entries 74/75).** Entry 74 opened its PR and merged it minutes later, so it is on
-            `main` unread by a second party. The ruling: **the REVIEWING agent merges, and the
-            reviewer is by construction a LATER session.** You never merge what you wrote today, and
-            `docs:check` now fails on a stale `AWAITING REVIEW`. See step 3 and step 10(b).
-        (h) **⚠ THE REPO IS AGPL-3.0 AND `NOTICE` IS NOW MACHINE-ENFORCED (Entries 74/76), AND THIS
-            ONE WILL BITE YOU SPECIFICALLY.** `tests/notice-attribution.test.ts` walks EVERY
-            workspace manifest — `apps/web` included — and fails `pnpm verify` if a **runtime**
-            dependency is not attributed in `NOTICE` with its licence text under `licenses/`. It was
-            written because seven shipped MIT packages (`react`, `react-dom`, `three`, `fflate`, …)
-            were silently unattributed. ⇒ **The next npm package you add to the browser bundle is a
-            licence obligation, not just an install.** `pnpm licenses list --prod` is the instrument.
-        (i) **The plan/section drawing is real** — see TASK. That is the one new capability aimed
-            at your layer.
+        (a) **`InputSpec.snapTo` IS NOW READ, AND IT WAS DECORATIVE FOR THREE ENTRIES BEFORE THAT.**
+            `chooseSnap(candidates, project, cursor, tolerancePx, allow)` filters BEFORE the ruled
+            priority comparison, and the active input's kinds travel
+            `useToolController.snapTo` → `App` → `ViewportCanvas` → `Viewport.snapAt`.
+            ⚠ **Why it matters to YOUR tools, not just the opening tool:** `SNAP_PRIORITY` ranks
+            `endpoint`/`midpoint` ABOVE `face`, and an endpoint candidate carries the **EDGE's**
+            `SubShapeRef`. Any tool that consumes `SnapHit.ref` and does not constrain `snapTo` will
+            silently receive the wrong KIND of identity near a corner. Declaring it is now enough;
+            before Entry 80 declaring it did nothing at all.
+        (b) **A `SnapHit`'s `ref`/`elementId` AND ITS `point` MUST COME FROM THE SAME PLACE.** The
+            controller takes both from the snap, never one from the snap and one from `pick`. A snap
+            that beat the face on priority is a point on a DIFFERENT feature from whatever the ray is
+            over — mixing them hosts on one wall at a coordinate measured on another, plausibly, and
+            only where two walls meet.
+        (c) **⚠⚠ THE VERIFICATION SPLIT EARNED ITSELF THIS SESSION, SO TRUST IT:** the opening tool
+            was headless-green and revert-verified three ways, and it **did not work in the browser**.
+            The defect was invisible to every headless test because the code declared the right thing
+            (`snapTo: ['face']`) and nothing enforced it. **Run the tool. In the app. Before you
+            claim it.** ⚠ And when you do: read the console **on a FRESH TAB** — editing a live
+            component gives real *"Rendered more hooks than during the previous render"* errors from
+            HMR, and the console buffer survives both a reload and a dev-server restart.
 
-        (From your own Entry 70 — three facts about the app that are now true and were not:)
-        (0a) **The app registers the REAL `@bunyan/types`** (`core.wall` the D52 baseline,
-             `core.opening`, the curtain-wall four). The scaffold `core.wall.v1` is still registered
-             but relabelled "Wall (legacy v1 scaffold)" so pre-Entry-70 saved documents still build
-             (D43). Author new walls as `core.wall`.
-        (0b) **`apps/web/src/tool/` is the tool layer** — `snap.ts` (Tier 1, PURE, projection
-             injected) · `QueryGateway.ts` (Tier 2, read-only, four ops as explicit overloads = the
-             allowlist) · `toolMachine.ts` + `tools.ts` · `numeric.ts` · `useToolController.ts`.
-             Domain rule 19 governs it: a tool collects input, only a command changes the model.
-        (0c) ⚠ **React BATCHES, and a handler that closes over state WILL read a stale value** —
-             this cost a real bug (typing `5000` produced `0`). In `useToolController`, decisions
-             read a REF and writes go through `putSession`/`putNumeric`. Keep that discipline in any
-             new tool.
-        (From Entry 65 — for whenever a schedule UI eventually lands, still not now:)
-             `doc.evaluateSchedule(def, options?)` returns rows/groups/totals/unmeasured. A cell's
-             `value` is ABSENT (not 0) when unmeasurable; `unknown: true` distinguishes "could not
-             measure" from "nothing to measure" (render "N/A" vs "—", never "0"); every numeric cell
-             carries its own native `unit` — do NOT convert in two places.
+        **What you inherit that is new since Entry 70:**
+        (d) **`ToolSession.collected` is `CollectedInput[]`, not `Vec3[]`** — `{ point, ref?,
+            elementId? }`. `anchorOf` still returns a `Vec3`. `Tool.commit(inputs, ctx)` takes a
+            **`ToolContext`** whose only method is `paramsOf(elementId)`; widening it is a design
+            decision, exactly as widening `QueryGateway`'s four ops is.
+        (e) **`PickResult` carries `point`** — the ray hit in world mm, Tier 1. `faceCandidate()` in
+            `tool/snap.ts` turns a pick into a per-frame `'face'` candidate; it is NOT in the index,
+            and the comment there says why (a face is a region, not a place).
+        (f) **`pnpm verify` runs on this box now, and it never did before.** `scripts/docs-state.mjs`
+            assumed LF; `core.autocrlf=true` here made `parseAbstracts` return `[]`, five doc-gate
+            tests red, and — worse — `pnpm state` write `(none)`/`ENTRY ?` into main's prompt without
+            erroring. Fixed + guarded. If you ever see a doc gate behave differently here from CI,
+            **suspect line endings first.**
+        (g) **⚠ THE OWNER GAVE THIS MACHINE ITS OWN GITHUB ACCOUNT** (`narutousomaki741`, distinct
+            from Zayd's). Two consequences: `gh` is authenticated, and **Q13's objection is gone** —
+            branch protection requiring a non-author approval would no longer block every merge on a
+            single-account repo. It is still the owner's call; say so if it comes up.
+
+        **Standing, unchanged:**
+        (h) The docs live in `docs/contracts/`, `docs/design/`, `docs/reviews/`; `current_state.md`,
+            both prompts, `REVIEW.md` and `open_rulings.md` stay at the root. `current_state.md` §4 is
+            a one-line INDEX (full rulings in `docs/decisions.md`), §5 is LIVE PRIORITIES ONLY, §7 is
+            ten fixed-schema ABSTRACTS with bodies in `handoff/<agent>/`.
+        (i) **You work on a BRANCH, open a PR, and DO NOT MERGE IT.** The reviewing agent merges, and
+            the reviewer is by construction a later session. `docs:check` fails on a stale
+            `AWAITING REVIEW`.
+        (j) **`NOTICE` IS MACHINE-ENFORCED AND IT AIMS AT YOU.** `tests/notice-attribution.test.ts`
+            walks every workspace manifest, `apps/web` included, and fails `pnpm verify` if a
+            **runtime** dependency is unattributed with its licence text under `licenses/`. **The next
+            npm package you add to the browser bundle is a licence obligation, not just an install.**
+            `pnpm licenses list --prod` is the instrument.
+        (k) **⚠ THE KERNEL CAN REFUSE TO BOOT** (Entry 79). `createOcctKernel` throws
+            `[INTERNAL] Kernel artifact mismatch` when the WASM's `toolchainId()` disagrees with
+            `OCCT_BUILD_ID`. It fires in the browser, at construction, and only on a broken build —
+            if the app ever dies at boot with that message the fix is a rebuild/pull, not your code.
+        (l) **⚠ YOU ARE THE ONLY MACHINE THAT CAN CLEAR A BROWSER CLAIM.** If a merged entry carries
+            `unverified here: <claim>`, clearing it is your FIRST action. **None is outstanding as of
+            Entry 80** (checked, not assumed).
+
+        (Standing app facts, still true:)
+        (0a) The app registers the REAL `@bunyan/types` (`core.wall` the D52 baseline, `core.opening`,
+             the curtain-wall four). `core.wall.v1` is still registered but relabelled "legacy v1
+             scaffold" so pre-Entry-70 documents build (D43). Author new walls as `core.wall`.
+        (0b) `apps/web/src/tool/` is the tool layer — `snap.ts` (Tier 1, PURE, projection injected) ·
+             `QueryGateway.ts` (Tier 2, read-only, four ops as explicit overloads = the allowlist) ·
+             `toolMachine.ts` + `tools.ts` · `numeric.ts` · `useToolController.ts`. Domain rule 19
+             governs it: a tool collects input, only a command changes the model.
+        (0c) ⚠ **React BATCHES, and a handler that closes over state WILL read a stale value** — this
+             cost a real bug (typing `5000` produced `0`). In `useToolController`, decisions read a
+             REF and writes go through `putSession`/`putNumeric`. Keep that discipline in any new tool.
+        (0d) For whenever a schedule UI lands (still not now): `doc.evaluateSchedule(def, options?)`
+             returns rows/groups/totals/unmeasured. A cell's `value` is ABSENT (not 0) when
+             unmeasurable; `unknown: true` distinguishes "could not measure" from "nothing to
+             measure" (render "N/A" vs "—", never "0"); every numeric cell carries its own native
+             `unit` — do NOT convert in two places.
         If an owner ruling arrives in chat, apply it AND record it in the doc it belongs to, then
         strike the row in `open_rulings.md`. This file is not where decisions live.
 ```
