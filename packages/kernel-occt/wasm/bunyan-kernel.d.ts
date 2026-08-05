@@ -301,6 +301,14 @@ export interface OcctModule {
    */
   heapUsedBytes(): number;
   lastError(): string;
+  /**
+   * What this module was ACTUALLY compiled by — `occt-<OCC_VERSION_COMPLETE>-emcc-<__EMSCRIPTEN_*__>`,
+   * both compile-time macros, baked in as a string literal.
+   *
+   * ⚠ It exists so `OCCT_BUILD_ID` is CHECKED rather than self-asserted (Q14): before it, the shipped
+   * `.wasm` carried no version string at all, so a relink on a different emsdk drifted silently.
+   */
+  toolchainId(): string;
 }
 
 declare function initBunyanKernel(moduleArg?: Record<string, unknown>): Promise<OcctModule>;

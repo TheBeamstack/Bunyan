@@ -57,6 +57,13 @@ export const GEOMETRY_PATHS = [
   'tools/kernel-build/src/kernel.cpp', // the kernel's C++ ops — what link.sh actually compiles
   'tools/kernel-build/configure.sh', // OCCT's build configuration
   'tools/kernel-build/link.sh', // compiler/linker flags for the shipped module
+
+  // ⚠ ADDED IN ENTRY 79 WITH THE DIGEST PIN (Q14), and it belongs beside `link.sh` for the same
+  // reason: this file names the COMPILER. `link.sh` decides which flags OCCT is optimised with;
+  // `toolchain.json` decides which emcc applies them. A digest bump is a toolchain change, and a
+  // toolchain change can move a golden — that is the whole argument for pinning it in the first
+  // place. It is file-exact for Entry 74's reason: `tools/kernel-build/` would catch the README.
+  'tools/kernel-build/toolchain.json', // WHICH compiler builds it — see that file's header
 ];
 
 export const GOLDEN_PATHS = ['tests/goldens/'];
