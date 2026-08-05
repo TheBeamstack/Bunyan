@@ -140,14 +140,19 @@ describe('the RISK verdict — the word a reviewer routes on (Q15)', () => {
     }
   });
 
+  /**
+   * ⚠⚠ THIS IS A GREP, AND A GREP IS A PROXY FOR EXECUTION — read `tests/state-risk-e2e.test.ts`
+   * first. It is kept because it names the two shapes that must never come back, and it is worth
+   * exactly that much: it was GREEN throughout the defect that e2e file exists for, because
+   * `state.mjs` did call `riskVerdict` — with an input that had already been erased.
+   *
+   * ⚠ It also asserted the call's ARGUMENT LIST verbatim (`riskVerdict(moved, rebaselining)`), so it
+   * failed on the fix and passed on the bug — the exact inversion a source-text assertion invites.
+   * It matches the CALL now, and the e2e file measures what the call produces.
+   */
   it('is the verdict `pnpm state` actually prints, not one this test computes in private', () => {
-    // ⚠ The assertions above prove the function; this proves it is WIRED. Without it the tests pass
-    // while `state.mjs` keeps its own `risk = 'additive'` override — a green test asserting something
-    // weaker than its own name, this repo's most expensive recurring defect.
     const state = readFileSync(new URL('../scripts/state.mjs', import.meta.url), 'utf8');
-    expect(state, '`pnpm state` no longer calls riskVerdict').toMatch(
-      /riskVerdict\(moved, rebaselining\)/,
-    );
+    expect(state, '`pnpm state` no longer calls riskVerdict').toMatch(/riskVerdict\(\s*moved/);
     expect(state, '`pnpm state` still overwrites the risk after re-baselining').not.toMatch(
       /risk\s*=\s*'additive'/,
     );

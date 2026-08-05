@@ -74,7 +74,14 @@ Recorded here only long enough to stop them being re-asked; the ruling itself li
   reviewing agent merges this"_ onto the only kind of PR that ever runs it. Its second symptom is closed
   too — `_baselinedAtEntry` is COMPUTED from the §7 parse (the write moved below it) instead of being
   carried forward by `...prev`, and the stale `72` in the committed snapshot is corrected to the entry
-  that actually wrote it, **77**. **Q16** — the re-seed gate now compares the golden PAYLOAD with
+  that actually wrote it, **77**. ⚠⚠ **AND ENTRY 81'S OWN REVIEW FOUND THAT HALF-CLOSED, so read this
+  before quoting Q15 as done:** the qualifier held only for the ONE invocation carrying the flag. The
+  verdict was read out of the working-tree baseline that `--rebaseline` had just rewritten, so the very
+  next plain `pnpm state` — routine, and the run whose output survives into §8 and `FRESH` — measured the
+  surface against itself and printed `additive` again. `state.mjs` now measures against the baseline **as
+  it exists on the branch this work merges into**, read from git, which no working-tree write can erase;
+  and `tests/state-risk-e2e.test.ts` executes the generator instead of grepping it. **Q16** — the re-seed
+  gate now compares the golden PAYLOAD with
   `seededAt` excluded; a bumped timestamp no longer satisfies it. An unmoved payload is still a
   legitimate outcome, but it must be CLAIMED, by a `Re-seed-unchanged: <reason>` trailer on a commit in
   the PR, and the gate quotes the reason back. ⚠ The gate is now executed end-to-end against a real git

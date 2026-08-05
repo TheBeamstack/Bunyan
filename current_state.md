@@ -556,9 +556,12 @@ is maintenance and does NOT get an entry of its own.**
   it) · **`scripts/reseed-payload.mjs` NEW** (`payloadHash` with `seededAt` excluded, `goldenValuesMoved`,
   the `Re-seed-unchanged: <reason>` trailer) · `scripts/check-reseed.mjs` (compares the golden PAYLOAD
   across `base…head`, read from git) · `tests/freeze-boundary.test.ts` (+7) · `tests/reseed-gate.test.ts`
-  (+6) · **`tests/reseed-gate-e2e.test.ts` NEW (+6)** · `open_rulings.md` (Q15 + Q16 **STRUCK**, on Q14's
+  (+7) · **`tests/reseed-gate-e2e.test.ts` NEW (+6)** · `open_rulings.md` (Q15 + Q16 **STRUCK**, on Q14's
   precedent — tooling, no contract, reversible in one commit). **No frozen byte, no schema bump.**
-- **VERIFIED:** **709 green** across 83 files, six gates, real exit code 0. **Revert-verified 5 ways,
+  ⚠ **+ THE REVIEW'S FIX (Entry 82's session, on this branch):** `scripts/state.mjs` measures the verdict
+  against the baseline **at the merge base**, read from git · **`tests/state-risk-e2e.test.ts` NEW (+6)**.
+- **VERIFIED:** **709 green** across 83 files, six gates, real exit code 0 as authored; **715 across 84
+  files** after the review's fix. **Revert-verified 5 ways,
   each watched RED**: the old `risk = 'additive'` override (`expected 'additive' to be
   'contract-touching'`); `baselineSnapshot` without the entry (`the stale 72 survived the write`);
   `payloadHash` keeping the clock (2 red); a bare trailer accepted (`expected '' to be null`); and the
@@ -585,7 +588,20 @@ is maintenance and does NOT get an entry of its own.**
   **Q18 — the cut-face half — is still yours and still open.**
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-05-q15-q16.md`
-- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+- **REVIEW:** **Reviewed by Zayd (later session, 2026-08-06) — all seven items; MERGED (`additive`,
+  `surface` byte-identical to main, six gates green).** Item 1 re-executed: the pre-Q16 gate body put
+  back ⇒ **3 e2e RED**, unit file 14/14 green including its wiring grep. ⚠⚠ **ONE REAL DEFECT, PROVEN
+  AND FIXED ON THIS BRANCH — Q15's fix held for exactly ONE invocation.** The verdict was measured
+  against the working-tree baseline `--rebaseline` had just rewritten, so the next plain `pnpm state`
+  printed `RISK: additive` again on the same PR — and that is the run whose output survives into §8 and
+  `FRESH`. `state.mjs` now measures against the baseline **at the merge base**, read from git;
+  `tests/state-risk-e2e.test.ts` EXECUTES the generator (revert-verified RED, while
+  `freeze-boundary.test.ts` stayed 10/10 green — §3a's lesson landing on §3a's own author). ⚠ One of
+  those greps asserted the argument list verbatim, so it **failed on the fix and passed on the bug**;
+  loosened. ⚠ Number corrected: `reseed-gate.test.ts` is **+7**, not +6. ⚠ One non-blocking opinion in
+  the body §7e: the `Re-seed-unchanged:` trailer means *silence is no longer a pass, and any sentence
+  is* — `REVIEW.md` item 4 already covers it, no eighth checklist item proposed. Full write-up:
+  `handoff/zayd/2026-08-05-q15-q16.md` §7.
 
 ### 80 | 2026-08-05 | Amer | the opening tool ships — one click on a face is a hosted door, and `snapTo` was decorative
 
@@ -871,15 +887,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **81 (Zayd, 2026-08-05)** |
-| branch · tip · tree | `zayd/2026-08-05-q15-q16` · `7f77125` · dirty |
-| open PRs | none — main is the tip of the work |
-| suite | **709 green** · 83 files · 224 suites |
+| branch · tip · tree | `zayd/2026-08-05-q15-q16` · `0380452` · dirty |
+| open PRs | #8 zayd/2026-08-05-q15-q16 |
+| suite | **715 green** · 84 files · 226 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 12 files changed, 505 insertions(+), 138 deletions(-) (12 files) |
-| docs budget | current_state 74.3/96.0 KB · §7 29.2/32.0 KB · abstracts 6/10 · bodies 27 |
+| diff vs origin/main | 15 files changed, 1206 insertions(+), 247 deletions(-) (15 files) |
+| docs budget | current_state 75.9/96.0 KB · §7 30.7/32.0 KB · abstracts 6/10 · bodies 27 |
 
 _Generated 2026-08-05 by `pnpm state`._
 

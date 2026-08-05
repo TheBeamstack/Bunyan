@@ -143,16 +143,53 @@ const schemaVersion =
 // trivially `additive` — which is what `pnpm state --rebaseline` used to print on the only kind of PR
 // that ever runs it. The write now happens below, once `newest` is parsed, for the second half of the
 // same defect: the baseline records WHICH ENTRY authorised it, and that number lives in §7.
-const snapPath = join(ROOT, 'tests/frozen-surface.snapshot.json');
+//
+// ⚠⚠ AND THE ORDERING ALONE WAS NOT ENOUGH — IT ONLY HELD FOR THE ONE INVOCATION CARRYING THE FLAG
+// (found reviewing Entry 81, revert-verified by `tests/state-risk-e2e.test.ts`). The verdict was read
+// out of the WORKING-TREE baseline, and `--rebaseline` had just rewritten that file, so the very next
+// plain `pnpm state` measured the surface against itself and printed `additive` again — on a PR that
+// had moved the freeze. Re-running `pnpm state` is not exotic: gate six wants it before every commit,
+// and step 10(a) of the loop asks for it a second time explicitly. The LAST run is the one whose
+// output lands in §8 and in `FRESH`, so the fixed run was the one being overwritten.
+//
+// ⇒ Measure against the baseline **as it exists on the branch this work merges into**, read from git
+// rather than from the checkout. That answers the question a reviewer is actually routing on — *"does
+// this PR move the frozen surface relative to what main has frozen?"* — and it cannot be erased by
+// rewriting a file in the working tree, on this run or any later one. When the base baseline is
+// unreadable (a fresh repo, an unfetched `origin/main`) it falls back to the checkout, which is the
+// old behaviour. ⚠ It keys on `surface`, not on the file: correcting the baseline's own metadata (as
+// Entry 81 did to `_baselinedAtEntry`) is not a contract change and must not be labelled as one.
+const SNAP_REL = 'tests/frozen-surface.snapshot.json';
+const snapPath = join(ROOT, SNAP_REL);
 const current = buildSurface(ROOT);
+const parseSnapshot = (text) => {
+  try {
+    const s = JSON.parse(text);
+    return s && typeof s.surface === 'object' && s.surface !== null ? s : null;
+  } catch {
+    return null;
+  }
+};
+const workingSnap = existsSync(snapPath) ? parseSnapshot(readFileSync(snapPath, 'utf8')) : null;
+const baseSnap = parseSnapshot(sh(`git show ${baseRef}:${SNAP_REL}`, ''));
+const against = baseSnap ?? workingSnap;
 const moved = [];
-if (existsSync(snapPath)) {
-  const snap = JSON.parse(readFileSync(snapPath, 'utf8'));
-  const d = diffSurface(snap.surface, current);
+if (against) {
+  const d = diffSurface(against.surface, current);
   moved.push(...d.changed, ...d.removed, ...d.added);
 }
+// The baseline was rewritten by THIS PR if the flag says so now, or if a previous run already
+// committed the rewrite — the second is what the flag alone could not see.
+const baselineRewritten =
+  baseSnap !== null &&
+  workingSnap !== null &&
+  Object.values(diffSurface(baseSnap.surface, workingSnap.surface)).some((l) => l.length > 0);
 const rebaselining = flag('rebaseline') !== undefined;
-const { risk, label: riskLabel, detail: riskDetail } = riskVerdict(moved, rebaselining);
+const {
+  risk,
+  label: riskLabel,
+  detail: riskDetail,
+} = riskVerdict(moved, rebaselining || baselineRewritten);
 
 // ── the docs ─────────────────────────────────────────────────────────────────────────────────────
 const csPath = join(ROOT, 'current_state.md');
