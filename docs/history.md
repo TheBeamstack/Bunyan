@@ -305,6 +305,72 @@ project._
 
 ## §C — Entries 54–76 — the full bodies now live in `handoff/`
 
+### 76 | 2026-08-02 | Zayd | Entry 74 reviewed late — `NOTICE` said seven shipped dependencies were build-time only
+
+- **CHANGED:** `NOTICE` (§3 rewritten, §4 split out, §5 records the correction) · `licenses/` (+7 MIT
+  texts, copied from the installed packages) · `tests/notice-attribution.test.ts` (**the new gate**) ·
+  Entry 74's and Entry 75's `REVIEW:` lines · `open_rulings.md` (Q14; and Q11–Q13 turned into actual
+  table rows) · and, reviewing PR #3: `scripts/docs-state.mjs` + `.d.mts` (`fieldsFull`) +
+  `tests/docs-budget.test.ts`.
+- **VERIFIED:** **644 green**, all six gates, **real exit code 0**. **Revert-verified 3 ways on the new
+  gate** — drop
+  `three`'s citation → RED naming it; delete its licence text → RED twice, independently; add `vitest`
+  as a runtime dep → RED naming `vitest@2.1.9`. Reviewing PR #3, item 1 re-run independently on two of
+  its three claims. The runtime closure the test walks (**8 packages**) agrees exactly with
+  `pnpm licenses list --prod`.
+- **FOUND:** ⚠⚠ **`NOTICE` CLAIMED THE REMAINING DEPENDENCIES WERE "BUILD- AND TEST-TIME ONLY … NOT
+  REDISTRIBUTED AS PART OF BUNYAN". FALSE — seven MIT packages ship in the browser bundle** (`react`,
+  `react-dom`, `scheduler`, `three`, `fflate`, `js-tokens`, `loose-envify`) **and none was attributed**,
+  though MIT requires its notice to travel with every copy. The sweep had been reasoned from the two
+  deps already in the author's head; the lockfile settles it in half a second. ⚠ Second: the recipe
+  does **not** carry "the pinned toolchain version" — `README.md` says `emscripten/emsdk:latest` and
+  the build id is a hand-maintained constant asserted only against itself (⇒ Q14). ⚠ And in PR #3:
+  **the new `AWAITING REVIEW` guard read only each field's FIRST PHYSICAL LINE**, so a marker that
+  wrapped onto line 2 left `docs:check` green — measured. *(⚠ Entry 77: the wrap is HAND-placed, not
+  prettier's — `current_state.md` is in `.prettierignore`. Defect and fix stand; the cause named here
+  did not.)*
+- **OWES:** Owner: **Q14 (NEW)** — pin the emsdk image by digest. **Q1–Q3 still BLOCK plan/section, a
+  SEVENTH session.** Q11/Q12/Q13 stand. Amer: the "open source licences" screen now has a real list to
+  render (`NOTICE` §3); before, it would have shown two entries and been wrong.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-02-entry74-late-review.md`
+- **REVIEW:** Reviewed and merged by **Entry 77** (Zayd, a later session — the protocol holding for a
+  second consecutive entry). Item 1 executed independently on the author's own cheapest claim: deleting
+  the `` `licenses/three-LICENSE.txt` `` citation from `NOTICE` §3 took the gate **RED naming
+  `three@0.171.0`**, and note that the bare word "three" still occurs twice in `NOTICE` at that point —
+  so the citation check really is stronger than a name match, as its comment claims. **CHECKED AND
+  SOUND:** the `OCCT_BUILD_ID` constant is at `kernel.ts:52` exactly as `NOTICE` §1 states,
+  `README.md` does invoke the mutable `emscripten/emsdk:latest` at five sites, no third-party source is
+  vendored anywhere under `packages/` or `apps/`, and **all eight** members of the closure declare **zero**
+  `optionalDependencies` (the one peer, `react`, is already inside it) — counted, not recalled, so there
+  is no second arrival path today.
+  ⚠⚠ **ONE DEFECT FOUND AND FIXED ON THE BRANCH, AND IT IS THIS ENTRY'S OWN LESSON TURNED ON ITSELF:
+  THE GATE ENUMERATED ITS INPUT SET FROM MEMORY.** `MANIFESTS` was a hand-written array of ten paths
+  while `pnpm-workspace.yaml` defines the set by glob (`packages/*`, `apps/*`), so a package added
+  later was invisible to all five assertions — and `.filter(existsSync)` made a renamed one drop out
+  silently too. **Demonstrated, not argued:** a probe package under `packages/` declaring
+  `typescript@5.9.3` as a runtime dependency, laid out exactly as pnpm lays one out, left the gate
+  **fully GREEN**; against the fix it goes **RED naming `typescript@5.9.3` twice** (unattributed, and
+  no licence text). ⚠ It was load-bearing rather than cosmetic: `runtimeClosure()` deliberately does
+  not recurse into `workspace:` siblings, relying on each sibling appearing in that list on its own —
+  two hand-maintained facts holding each other up. Fixed by deriving the list from the workspace globs,
+  plus a sixth test asserting the discovered set equals what is on disk, so the input set can no longer
+  go stale in silence.
+  ⚠ **SECOND FINDING, SMALLER BUT IN THE LESSON TEXT ITSELF, WHICH IS WHERE IT DOES THE MOST DAMAGE:
+  THE CAUSE THIS ENTRY GAVE FOR THE `fieldsFull` DEFECT IS FALSE.** It wrote — in `scripts/docs-state.mjs`,
+  in this entry's `FOUND`, in Entry 75's `REVIEW:` line and in the prompt's `NEW:` — that *"these
+  documents are prettier-formatted at `printWidth: 100`, so the line break is placed by sentence
+  length, not by the author"*, and that the stale marker *"passed `prettier --check`"*. **`current_state.md`
+  is in `.prettierignore`** (line 18), which is the only file `parseAbstracts` ever opens, so prettier
+  never touches it; measured with `--ignore-path /dev/null` it does **not** conform and **288 lines
+  would change** if prettier owned it. Passing `prettier --check` was therefore vacuous, not evidence.
+  The defect and the `fieldsFull` fix are untouched — but the wrapping is HAND-placed, so **no
+  formatter maintains those breaks and no gate is watching them**, which makes the rule stricter than
+  the entry argued. Corrected at all three in-repo sites. *Note the shape: an entry whose own headline
+  lesson is "a claim that quantifies over a set must be counted" shipped an unmeasured claim about a
+  tool's behaviour — Entry 74's mistake exactly, three entries later.*
+  `pnpm verify` **645 green, real exit code 0, six gates**; `freeze-boundary` green ⇒ additive confirmed.
+
 ### 67 | 2026-07-28 | Amer | P4.5's non-gating half — selection, view filter, the first keyboard owner
 
 - **CHANGED:** `apps/web` only — new pure `view/viewFilter.ts` (+7 headless tests), wired into `App.tsx`

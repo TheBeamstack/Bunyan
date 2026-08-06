@@ -31,8 +31,19 @@
  * now, a field-support bug later. Three consumers must obey it: **Bunyan's own quantities**, **Planitor**
  * (scheduling/cost), and **Miqdar** (it must never analyse two exclusive variants as one structure).
  *
- * ⚠ NO BODY READS ANY OF THIS IN v1.0.0 — no element carries a `designOptionId`, so the invariant is
- * vacuously satisfied today. The reservation exists so Parity-F is a BUILD, not an amendment.
+ * ⚠⚠ **THIS BLOCK USED TO END "NO BODY READS ANY OF THIS IN v1.0.0 — no element carries a
+ * `designOptionId`, so the invariant is vacuously satisfied today." BOTH HALVES WERE FALSE, and the
+ * second is what made the first dangerous** (measured, Entry 82; swept, Entry 83). `core.createElement`
+ * ACCEPTS a `designOptionId` — shape-validated, never resolved — and no verb can author the catalogue it
+ * would resolve against, so `ownTagActive` below returns `false` and the element is EXCLUDED from every
+ * enumerating consumer. Measured through the shipped verbs: two identical walls, one tagged, **1 row
+ * where 2 exist and 3 600 000 000 mm³ where 7 200 000 000 is correct — a 50.0% under-report** carrying
+ * `basis: 'exact'`, with `brokenRefs()` and `unbuildable()` both empty. **D65's own named failure mode,
+ * arriving inverted:** it predicted 2.0000× over; what ships is 0.5000× under.
+ *
+ * ⇒ The invariant is NOT vacuous, the reservation is reachable, and the *"a future body surfaces it"*
+ * half of `ownTagActive` was never written. `open_rulings.md` **Q17a/Q17b/Q17c**; the walk is
+ * `docs/design/P5_step6D_design_options_crud_design.md`.
  */
 
 import type { ElementId } from './entities.js';
@@ -84,7 +95,19 @@ export interface OptionedElement {
   readonly designOptionId?: DesignOptionId;
   /** The element it is hosted BY (a window in a wall). The edge that carried the D67 defect. */
   readonly hostId?: ElementId;
-  /** The manual group/assembly it is a member of (reserved; groups are v1.0.x). The same edge, dormant. */
+  /**
+   * The manual group/assembly it is a member of (reserved; groups are v1.0.x). The same edge as `hostId`.
+   *
+   * ⚠⚠ **IT IS NOT DORMANT, AND THIS COMMENT USED TO SAY IT WAS** (Entry 83's sweep). `isElementActive`
+   * below WALKS it, and **two shipped verbs WRITE it** — `core.createElement` and
+   * `core.setElementMetadata` — each validating that the id resolves. But the two walks disagree about
+   * which edges are "belongs-to": `cascadeOf` (D39) cascades a delete over `hostId` ONLY, while this rule
+   * excludes over `hostId` **and** `parentElementId`. ⇒ **delete a parent and its children survive in
+   * `scene.elements` while vanishing from every enumerating consumer.** Measured: `modelElements()` 0 of
+   * 1, a whole-model schedule 0 rows and 0 mm³ with `basis: 'exact'`, `brokenRefs()` and `unbuildable()`
+   * both empty. Filed as `open_rulings.md` **Q19** — reconciling the two edge sets is a semantic ruling
+   * (cascade, refuse, or surface), not a body decision.
+   */
   readonly parentElementId?: ElementId;
 }
 
@@ -172,6 +195,33 @@ export function isElementActive(
     }
   }
   return true; // every element in the belongs-to closure passed its own-tag test
+}
+
+/**
+ * ⚠⚠ THE REFERENTIAL HALF OF THE RULE, EXPRESSED ONCE — *"which of these ids name no option here?"*
+ *
+ * Distinct from `isElementActive`, which answers *"does this element COUNT?"*. This answers the prior
+ * question every AUTHORING door has to ask before it stores a selection: **a selection nobody can
+ * resolve is not a selection.**
+ *
+ * ⚠ IT EXISTS BECAUSE THERE WERE TWO OF IT (found by Entry 83's sweep; Entry 82 measured the same shape
+ * one level down). `core.createSchedule`/`updateSchedule` looked the ids up in `commands.ts`, and
+ * `core.createView`/`updateView` looked them up AGAIN in `view.ts`'s own loop — two implementations of
+ * one rule in two files, which is domain rule 10's *"one description, never two"* and the exact drift
+ * `optionScopeOf` was extracted to stop one level up. `open_rulings.md`'s Q17 row had meanwhile been
+ * quoting the check as *shared* through two entries, so the prose and the code had already parted.
+ *
+ * ⚠⚠ AND IT RETURNS THE MISSES RATHER THAN THROWING, WHICH IS THE WHOLE POINT OF THE SHAPE. The two
+ * doors REFUSE DIFFERENTLY ON PURPOSE and each code is agent-visible surface that must not move:
+ *   - the schedule door throws `NOT_FOUND` on the FIRST unresolved id;
+ *   - the view door collects it with every other descriptor problem into one `REFUSED`.
+ * Sharing the *throw* would have silently re-coded one of them. **Share the predicate, not the throw.**
+ */
+export function unresolvedDesignOptions(
+  scene: OptionScopeSource,
+  ids: readonly string[] | undefined,
+): readonly DesignOptionId[] {
+  return (ids ?? []).filter((id) => scene.designOptions?.[id] === undefined);
 }
 
 /**

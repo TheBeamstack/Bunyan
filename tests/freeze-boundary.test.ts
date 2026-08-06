@@ -28,7 +28,7 @@ import {
   WATCHED,
 } from '../scripts/frozen-surface.mjs';
 import type { FrozenSurface } from '../scripts/frozen-surface.mjs';
-import { riskVerdict } from '../scripts/docs-state.mjs';
+import { parseAbstracts, readCurrentState, riskVerdict } from '../scripts/docs-state.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
@@ -197,9 +197,23 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
   });
 
   it('the committed baseline names an entry that exists, and no longer names 72', () => {
-    // ⚠ The number the defect left behind. This is the one assertion that fails on the OLD snapshot,
-    // which is why the file itself is corrected in this entry rather than left for the next rebaseline.
-    expect(snapshot._baselinedAtEntry).toBe(77);
-    expect(snapshot._baselinedAt).toBe('2026-08-03');
+    // ⚠⚠ THIS ASSERTION USED TO BE `toBe(77)` + `toBe('2026-08-03')`, AND IT WAS A THIRD HAND-MAINTAINED
+    // CONSTANT (Entry 83). Entry 80's standing lesson is *"you cannot fix a hand-maintained constant by
+    // adding another hand-maintained constant — ask WHO COMPUTES IT"*, and Q15's whole fix was to make
+    // `_baselinedAtEntry` COMPUTED from the §7 parse. Pinning the literal it computed on one particular
+    // day put the constant straight back: every LEGITIMATE re-baseline then fails this test, which is a
+    // gate that cries wolf — and a gate that cries wolf is edited to shut up. It fired on exactly that,
+    // this entry's own re-baseline (`expected 83 to be 77`), having asserted something STRONGER AND
+    // DIFFERENT from its own title for two entries.
+    //
+    // ⇒ Assert the TITLE. The invariant is *"names an entry that exists"*, so resolve it against the §7
+    // parse — the same source `baselineSnapshot` computes it from — and keep the `72` regression pinned,
+    // because that number IS a specific historical defect rather than a moving fact.
+    const entries = parseAbstracts(readCurrentState(ROOT)).map((a) => a.n);
+    expect(entries.length).toBeGreaterThan(0);
+    expect(entries).toContain(snapshot._baselinedAtEntry);
+    expect(snapshot._baselinedAtEntry).not.toBe(72);
+    // A real ISO date, not a placeholder — the other half `...prev` used to carry forward silently.
+    expect(snapshot._baselinedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
