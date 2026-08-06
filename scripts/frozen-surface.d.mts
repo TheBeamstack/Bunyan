@@ -26,7 +26,8 @@ export declare function buildSurface(root: string): FrozenSurface;
 export declare function baselineSnapshot(
   prev: Record<string, unknown>,
   surface: FrozenSurface,
-  meta: { entry: number; today: string },
+  /** ⚠ `at` is the AUTHORISING ENTRY's §7 date, never the clock — see the implementation. */
+  meta: { entry: number; at: string },
 ): Record<string, unknown> & {
   _baselinedAt: string;
   _baselinedAtEntry: number;

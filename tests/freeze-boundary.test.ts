@@ -177,7 +177,7 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
       { 'a.ts': { 'interface A': 'deadbeef' } },
       {
         entry: 81,
-        today: '2026-08-05',
+        at: '2026-08-05',
       },
     ) as unknown as Snapshot & { _README: string };
 
@@ -192,7 +192,7 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
     const next = baselineSnapshot(
       {},
       { 'a.ts': { 'interface A': 'x', 'type B': 'y' }, 'b.ts': { 'const C': 'z' } },
-      { entry: 81, today: '2026-08-05' },
+      { entry: 81, at: '2026-08-05' },
     ) as unknown as Snapshot;
     expect(next._declarationCount).toBe(3);
   });

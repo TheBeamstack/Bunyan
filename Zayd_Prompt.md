@@ -163,7 +163,7 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 83**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-06-e83-reserved-ref-sweep` · `f3c5ff1` · dirty · RISK: contract-touching (re-baselined)
+        Tree at generation: `zayd/2026-08-06-e83-reserved-ref-sweep` · `cba786b` · dirty · RISK: contract-touching (re-baselined)
 ```
 
 <!-- END FRESH -->

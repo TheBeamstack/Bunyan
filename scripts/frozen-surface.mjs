@@ -184,12 +184,22 @@ export function buildSurface(root) {
  * ⇒ The entry number is now PASSED IN, from the `current_state.md` §7 parse the same run performs.
  * `...prev` survives only to keep fields this function does not own (`_README`), and every field this
  * function DOES own is written on every rebaseline, so none of them can be stale by omission.
+ *
+ * ⚠⚠ AND `at` IS THE AUTHORISING ENTRY'S OWN §7 DATE, NOT THE CLOCK — THE PARAMETER USED TO BE CALLED
+ * `today` AND WAS `new Date()` (found reviewing Entry 84, `tests/state-risk-e2e.test.ts`). Q15's fix
+ * made the NUMBER computed from §7 and left the DATE on the clock, so the two halves of one fact had
+ * two sources. `baselineEntryIssues` below then closes on a cross-field check that they agree — which
+ * is the right check — and **a rebaseline run on any day but the entry's own date produced a baseline
+ * its own gate rejects**: a session crossing UTC midnight, Amer's `+0100` box before 01:00 local
+ * (`toISOString()` is UTC), or an abstract written the day before the rebaseline. Nothing hand-edited,
+ * nothing wrong, gate red — the cry-wolf shape this whole area exists to stop. One source for the
+ * pair, and the cross-field check goes back to meaning *"someone hand-edited this file"*.
  */
-export function baselineSnapshot(prev, surface, { entry, today }) {
+export function baselineSnapshot(prev, surface, { entry, at }) {
   const declarationCount = Object.values(surface).reduce((n, d) => n + Object.keys(d).length, 0);
   return {
     ...prev,
-    _baselinedAt: today,
+    _baselinedAt: at,
     _baselinedAtEntry: entry,
     _declarationCount: declarationCount,
     surface,

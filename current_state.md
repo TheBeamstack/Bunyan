@@ -608,7 +608,13 @@ is maintenance and does NOT get an entry of its own.**
   baseline sits still post-freeze, so the gate would go red for obeying the freeze.** Now
   `baselineEntryIssues` in `frozen-surface.mjs`, checked against what does not rot, plus the cross-field
   date check that would have caught Q15 itself; revert-verified (`76 is not in §7`). **APPROVED — and it
-  is `contract-touching`, so it needs the OWNER's merge, not mine.**
+  is `contract-touching`.** ⇒ **Re-reviewed by Entry 85** (Zayd, 2026-08-06), since Entry 84's own fix had
+  never been read by a second party. Item 1 re-executed both halves (15/15 either way; membership
+  restored ⇒ RED). ⚠⚠ **ONE FURTHER DEFECT FIXED: Entry 84's cross-field date check is sound, but the
+  writer fed it TWO SOURCES** — the entry from the §7 parse, the date from `new Date()` — **so any
+  rebaseline outside the entry's own calendar day wrote a baseline its own gate rejects** (a session
+  crossing UTC midnight; Amer's `+0100` box before 01:00). Proven by running the real generator in
+  `state-risk-e2e`; fixed by stamping the entry's date. **723 green, exit 0. MERGED on owner authority.**
 
 ### 82 | 2026-08-06 | Zayd | the design-options question, walked — the two doors are a 50% silent under-report (Q17)
 
@@ -888,15 +894,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **83 (Zayd, 2026-08-06)** |
-| branch · tip · tree | `zayd/2026-08-06-e83-reserved-ref-sweep` · `f3c5ff1` · dirty |
-| open PRs | none — main is the tip of the work |
-| suite | **720 green** · 85 files · 228 suites |
+| branch · tip · tree | `zayd/2026-08-06-e83-reserved-ref-sweep` · `cba786b` · dirty |
+| open PRs | #11 amer/2026-08-06-alignment-guides · #10 zayd/2026-08-06-e83-reserved-ref-sweep |
+| suite | **723 green** · 85 files · 228 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/designoptions.ts :: function unresolvedDesignOptions · baseline REWRITTEN this session |
-| diff vs origin/main | 10 files changed, 433 insertions(+), 250 deletions(-) (10 files) |
-| docs budget | current_state 75.5/96.0 KB · §7 30.1/32.0 KB · abstracts 6/10 · bodies 29 |
+| diff vs origin/main | 16 files changed, 1078 insertions(+), 260 deletions(-) (16 files) |
+| docs budget | current_state 77.3/96.0 KB · §7 32.0/32.0 KB · abstracts 6/10 · bodies 29 |
 
 _Generated 2026-08-06 by `pnpm state`._
 
