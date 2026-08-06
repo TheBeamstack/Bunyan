@@ -24,7 +24,8 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync, readFileSync, copyFileSy
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { WATCHED } from '../scripts/frozen-surface.mjs';
+import { baselineEntryIssues, WATCHED } from '../scripts/frozen-surface.mjs';
+import { parseAbstracts } from '../scripts/docs-state.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SNAP = 'tests/frozen-surface.snapshot.json';
@@ -161,6 +162,42 @@ describe('the RISK verdict `pnpm state` actually prints (Q15)', () => {
     commit('correct the baseline metadata');
     git('update-ref', 'refs/remotes/origin/main', git('rev-parse', 'HEAD'));
     expect(runState()).toMatch(/RISK: additive/);
+  });
+
+  /**
+   * ⚠⚠ THE WRITER'S OWN OUTPUT MUST PASS THE READER'S GATE, ON EVERY DAY OF THE YEAR — and until this
+   * test existed it did so on ONE day: whichever day the entry happened to be dated.
+   *
+   * `baselineEntryIssues` (Entry 84) closes on a cross-field check: the baseline's `_baselinedAt` must
+   * agree with the §7 date of the entry `_baselinedAtEntry` names. That is the right check — it is what
+   * catches Q15's own shape without a hand-maintained constant. But the two fields it compares were
+   * COMPUTED FROM DIFFERENT SOURCES: the number came from the §7 parse and the date came from
+   * `new Date()`. **A rebaseline run on any day other than the entry's own date therefore produced a
+   * baseline that its own gate rejects** — no hand-edit, nothing wrong, gate red.
+   *
+   * ⚠ That is not hypothetical and it is not rare: a session that crosses UTC midnight, a session on
+   * Amer's `+0100` box between 00:00 and 01:00 local (`toISOString()` is UTC and the §7 date is not),
+   * or any entry whose abstract was written the day before its rebaseline. This very fixture reproduces
+   * it — §7 says `2026-08-05` and the clock says whatever today is.
+   *
+   * ⇒ Q15's fix made the NUMBER computed; the date stayed on the clock, so the pair had two sources for
+   * one fact. `state.mjs` now stamps the authorising entry's own date, and the cross-field check goes
+   * back to meaning what it says: someone hand-edited this file.
+   *
+   * ⚠ EXECUTED, NOT GREPPED (Entry 81's standing lesson): this runs the real generator and reads the
+   * file it wrote, so it cannot pass on a call site that is merely written.
+   */
+  it("⚠⚠ writes a baseline its own gate accepts — the date is the ENTRY's, never the clock's", () => {
+    runState('--rebaseline');
+    const snap = JSON.parse(read(SNAP)) as { _baselinedAtEntry: number; _baselinedAt: string };
+    const abstracts = parseAbstracts(read('current_state.md'));
+
+    // The premise, measured: §7's only entry is NOT dated today, so a clock-stamped date disagrees.
+    expect(abstracts.map((a) => a.date)).not.toContain(new Date().toISOString().slice(0, 10));
+
+    expect(snap._baselinedAtEntry).toBe(1);
+    expect(snap._baselinedAt).toBe('2026-08-05');
+    expect(baselineEntryIssues(snap, abstracts)).toEqual([]);
   });
 
   it('⚠ falls back to the checked-out baseline when the base ref has none', () => {

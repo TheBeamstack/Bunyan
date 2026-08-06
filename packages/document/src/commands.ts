@@ -57,6 +57,7 @@ import {
   withRotation,
   withTranslation,
 } from './placement.js';
+import { unresolvedDesignOptions } from './designoptions.js';
 import { scheduleDefinitionIssues } from './schedule.js';
 import { viewDescriptorIssues } from './view.js';
 import { readSketch } from './sketch.js';
@@ -684,7 +685,19 @@ export const createElementCommand: Command = {
       // ⚠ ROW Ⓕ (D62/D65) — the reserved MEP/design-option state, born WITH the element in this one edit.
       // Shape-validated only: v1.0.0 has no `scene.systems`/`designOptions` CRUD to check an id against, and
       // inventing referential validation against collections nothing can author yet would refuse every
-      // legitimate call. The integrity check lands WITH those bodies (Parity-C/F), like `parentElementId`'s.
+      // legitimate call.
+      //
+      // ⚠⚠ THIS COMMENT USED TO END *"the integrity check lands WITH those bodies (Parity-C/F), like
+      // `parentElementId`'s"*, AND THAT ANALOGY WAS BACKWARDS — against code forty lines above it (Entry
+      // 83's sweep). `parentElementId` is a reserved field whose body has NOT landed either, and it is
+      // validated RIGHT NOW (`requireElement`, above) for the stated reason: *"a dangling ref is the
+      // silent breakage this project refuses — the `containerId` lesson."* It is the COUNTER-EXAMPLE,
+      // not the precedent. Nor are the two refs below alike; the sweep separated them:
+      //   • `systemId` — genuinely DORMANT. Zero readers: declared in `entities.ts`/`systems.ts`, written
+      //     here, read by NOTHING that excludes, aggregates or publishes. Skipping its check costs nothing.
+      //   • `designOptionId` — NOT dormant, and skipping its check IS the 50.0% silent under-report Entry
+      //     82 measured: `isElementActive` then excludes the element from every enumerating consumer.
+      //     Q17a/Q17b/Q17c in `open_rulings.md`.
       ...(args['systemId'] === undefined ? {} : { systemId: text(args['systemId']) }),
       // ⚠ Cast via `unknown`: a `Connector`'s `at`/`direction` are fixed-length TUPLES, which do not
       // structurally overlap `ParamValue`'s open array — unlike `placement`, whose motions are plain
@@ -1077,9 +1090,15 @@ export const setClassificationCommand: Command = {
  * future ADDITIVE arg (e.g. a `clear: string[]`), never an overload of `null` — baking a value-vs-cleared
  * ambiguity into a frozen contract is exactly what this project reserves shapes to avoid.
  *
- * ⚠ NO GUARD, NO REBUILD: none of these fields is identity- or quantity-bearing (unlike a style-layer name
- * or a `materialId` — D51/ⓓ), so no refuse-or-retarget guard applies; and none feeds the build, so it
- * re-stages nothing (`rebuilt: []`, like `setClassification`).
+ * ⚠ NO GUARD, NO REBUILD: none of these fields feeds the build, so it re-stages nothing (`rebuilt: []`,
+ * like `setClassification`).
+ *
+ * ⚠⚠ **THIS BLOCK USED TO CLAIM "none of these fields is identity- or quantity-bearing … so no
+ * refuse-or-retarget guard applies", AND `parentElementId` IS QUANTITY-BEARING** (Entry 83's sweep).
+ * `isElementActive` walks it as a belongs-to edge and treats a missing ancestor as EXCLUSION, so an
+ * element whose parent has gone contributes to no schedule, no roll-up and no Clean Delta. The id is
+ * validated here on the way IN (below) — but nothing guards the parent's DELETION, because `cascadeOf`
+ * (D39) cascades over `hostId` only. ⇒ `open_rulings.md` **Q19**, with the measurement.
  */
 export const setElementMetadataCommand: Command = {
   id: 'core.setElementMetadata',
@@ -2137,12 +2156,18 @@ function checkScheduleDefinition(definition: ScheduleDefinition): ScheduleDefini
   return definition;
 }
 
-/** Every design option named by a schedule must exist — a selection nobody can resolve is not a selection. */
+/**
+ * Every design option named by a schedule must exist — a selection nobody can resolve is not a selection.
+ *
+ * ⚠ THE LOOKUP ITSELF NOW LIVES ONCE, in `designoptions.ts` (`unresolvedDesignOptions`), because the view
+ * door had a second copy of it. **This function is the schedule door's THROW, not the rule** — it keeps
+ * `NOT_FOUND` on the first unresolved id, which is agent-visible surface; the view door keeps `REFUSED`
+ * over all of them. Share the predicate, never the throw.
+ */
 function checkDesignOptions(scene: Scene, ids: readonly string[] | undefined): void {
-  for (const id of ids ?? []) {
-    if (scene.designOptions?.[id] === undefined) {
-      throw new CommandFailure('NOT_FOUND', `unknown design option "${id}"`);
-    }
+  const missing = unresolvedDesignOptions(scene, ids);
+  if (missing[0] !== undefined) {
+    throw new CommandFailure('NOT_FOUND', `unknown design option "${missing[0]}"`);
   }
 }
 

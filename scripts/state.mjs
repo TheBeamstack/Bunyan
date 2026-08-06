@@ -204,10 +204,11 @@ const newest = newestAbstract(abstracts);
 // failed parse, so a session that cannot read §7 does not get to rewrite the freeze baseline either.
 if (rebaselining) {
   const prev = existsSync(snapPath) ? JSON.parse(readFileSync(snapPath, 'utf8')) : {};
-  const next = baselineSnapshot(prev, current, {
-    entry: newest.n,
-    today: new Date().toISOString().slice(0, 10),
-  });
+  // ⚠⚠ BOTH FIELDS COME FROM THE SAME §7 PARSE, AND THE DATE USED TO COME FROM `new Date()`. The
+  // baseline's gate cross-checks them against each other, so a clock-stamped date made every
+  // rebaseline run outside the entry's own calendar day write a file its own gate rejects — see
+  // `baselineSnapshot` and `tests/state-risk-e2e.test.ts`.
+  const next = baselineSnapshot(prev, current, { entry: newest.n, at: newest.date });
   writeFileSync(snapPath, JSON.stringify(next, null, 2) + '\n');
   console.log(
     `⚠ frozen-surface baseline REWRITTEN (${next._declarationCount} declarations, entry ${next._baselinedAtEntry}). ` +

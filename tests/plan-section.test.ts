@@ -285,13 +285,20 @@ describe('D58 row Ⓐ — plan/section: a drawing is a PROJECTION of the B-Rep (
 
   it('⚠⚠ a NON-ACTIVE design option is NOT drawn — the variant wall contributes no curves', async () => {
     /* ⚠⚠ THE OPTIONS ARE SEEDED INTO THE SCENE, AND THAT IS NOT TEST CONVENIENCE — IT IS THE ONLY ROAD
-     * THAT EXISTS. `checkDesignOptions` (shared with the schedule CRUD) refuses an id absent from
-     * `scene.designOptions`, and **v1.0.0 ships no command that can author one** — `core.createElement`
-     * says so in its own comment and deliberately SKIPS the same check for its `designOptionId` field.
-     * So the two doors onto one reserved collection hold opposite policies, and `designOptionIds` is
-     * authorable only on a document whose options arrived by another road (a loaded `.bnn`, or a Scene
-     * assembled in code, as here). Reported in the entry; the design doc's §4.3 rule is kept because a
-     * view and a schedule must not answer the same question two ways. */
+     * THAT EXISTS. The artifact doors refuse an id absent from `scene.designOptions`, and **v1.0.0 ships
+     * no command that can author one** — `core.createElement` says so in its own comment and deliberately
+     * SKIPS the same check for its `designOptionId` field. So the three doors onto one reserved collection
+     * hold two policies, and `designOptionIds` is authorable only on a document whose options arrived by
+     * another road (a loaded `.bnn`, or a Scene assembled in code, as here).
+     *
+     * ⚠⚠ THIS COMMENT USED TO SAY `checkDesignOptions` WAS *"shared with the schedule CRUD"*, AND IT WAS
+     * NOT — the view door carried its own second copy of the lookup in `view.ts`, with a different failure
+     * code (Entry 82 found the same false claim in `open_rulings.md`'s Q17 row; this was its third home).
+     * It is shared NOW: both doors call `unresolvedDesignOptions`, and each keeps its own throw. The
+     * standing guard for that is `tests/design-option-refs.test.ts`.
+     *
+     * ⚠ The ACCEPTING door is the one that matters: it produces a 50.0% silent under-report (Entry 82,
+     * `docs/design/P5_step6D_design_options_crud_design.md` §1.4). Q17a/Q17b/Q17c. */
     const designOptions: Record<string, DesignOption> = {
       'opt-a': { id: 'opt-a', setName: 'Facade', name: 'A', isPrimary: true },
       'opt-b': { id: 'opt-b', setName: 'Facade', name: 'B', isPrimary: false },

@@ -26,6 +26,7 @@
  * makes stored-vs-derived legible from the file a type is in, and greppable.
  */
 import type { SectionCurve } from '@bunyan/protocol';
+import { unresolvedDesignOptions } from './designoptions.js';
 import type { ContainerId, ElementId, SpatialContainer } from './entities.js';
 import type { Scene } from './scene.js';
 import type { ViewDescriptor } from './documentation.js';
@@ -140,13 +141,18 @@ export function viewDescriptorIssues(descriptor: ViewDescriptor, scene: Scene): 
     }
   }
 
-  // ⚠ An unknown design option is NOT_FOUND, never silently dropped — Entry 68's rule. Silently
-  // ignoring it would show the PRIMARY option while the descriptor says otherwise: a drawing that
-  // claims to be Option B and is Option A.
-  for (const optionId of descriptor.designOptionIds ?? []) {
-    if (scene.designOptions?.[optionId] === undefined) {
-      issues.push(`designOptionId "${optionId}" names no design option in this document`);
-    }
+  // ⚠ An unknown design option is never silently dropped — Entry 68's rule. Silently ignoring it would
+  // show the PRIMARY option while the descriptor says otherwise: a drawing that claims to be Option B
+  // and is Option A.
+  //
+  // ⚠⚠ THE LOOKUP IS `designoptions.ts`'s, NOT A SECOND COPY OF IT. This loop used to re-implement it,
+  // so one rule had two homes and they had already drifted apart in the prose describing them (Entry 83's
+  // sweep). ⚠ The REFUSAL stays here and stays different from the schedule door's on purpose: a view
+  // reports every descriptor problem at once, so an unresolved option is COLLECTED into `issues` and
+  // surfaces as `REFUSED`, while the schedule door throws `NOT_FOUND` on the first. Both codes are
+  // agent-visible surface — the predicate is shared, the throw is not.
+  for (const optionId of unresolvedDesignOptions(scene, descriptor.designOptionIds)) {
+    issues.push(`designOptionId "${optionId}" names no design option in this document`);
   }
 
   switch (descriptor.kind) {
