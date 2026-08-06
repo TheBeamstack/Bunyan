@@ -54,6 +54,18 @@ export declare function parseAbstracts(src: string): EntryAbstract[];
  * implementation for why a silent default is the dangerous answer here.
  */
 export declare function newestAbstract(abstracts: EntryAbstract[]): EntryAbstract;
+/**
+ * The frozen-surface verdict a reviewer routes on (Q15).
+ *
+ * `risk` is the routing value (*additive ⇒ the reviewing agent merges; contract-touching ⇒ the OWNER
+ * merges*); `label` is what §8 prints and always STARTS with `risk`; `detail` names what moved.
+ * ⚠ `rebaselined` is a QUALIFIER on the measured diff, never an answer that replaces it — passing it
+ * cannot turn a contract-touching verdict into an additive one.
+ */
+export declare function riskVerdict(
+  moved: readonly string[],
+  rebaselined?: boolean,
+): { risk: 'additive' | 'contract-touching'; label: string; detail: string };
 export declare function entryBodies(root: string): string[];
 export declare function generatedBlock(
   src: string,

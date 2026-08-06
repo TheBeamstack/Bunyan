@@ -18,6 +18,22 @@ export declare function extractDeclarations(source: string): Record<string, stri
 /** Hash every watched declaration in the repo rooted at `root`. */
 export declare function buildSurface(root: string): FrozenSurface;
 
+/**
+ * The baseline object `pnpm state --rebaseline` writes. Every derived field is COMPUTED — `entry` is
+ * the `current_state.md` §7 entry that authorises the rewrite, and it used to be inherited and stale
+ * (Q15). `prev` survives only for the fields this function does not own (`_README`).
+ */
+export declare function baselineSnapshot(
+  prev: Record<string, unknown>,
+  surface: FrozenSurface,
+  meta: { entry: number; today: string },
+): Record<string, unknown> & {
+  _baselinedAt: string;
+  _baselinedAtEntry: number;
+  _declarationCount: number;
+  surface: FrozenSurface;
+};
+
 /** Compare a surface against a baseline. All entries are `"<file> :: <kind> <name>"`. */
 export declare function diffSurface(
   baseline: FrozenSurface,
