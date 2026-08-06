@@ -546,6 +546,41 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 85 | 2026-08-06 | Zayd | the `hostId` edge, swept — the ancestry is a DAG and the walk called it a cycle
+
+- **CHANGED:** `packages/document/src/designoptions.ts` (**`isElementActive`'s traversal** — the conflated
+  `seen` set replaced by DFS colours; the docblock records why) · `tests/option-cascade-d67.test.ts`
+  (**NEW §7, +6**) · `open_rulings.md` (**Q19 extended to the `hostId` edge**) · and, reviewing PR #10:
+  `scripts/frozen-surface.mjs` + `.d.mts` (`baselineSnapshot`'s `today` → `at`) · `scripts/state.mjs` ·
+  `tests/state-risk-e2e.test.ts` (**+1**) · `tests/freeze-boundary.test.ts` · entry 83's `REVIEW:` line ·
+  `tests/frozen-surface.snapshot.json` (re-baselined) · entry **77 rotated** to `docs/history.md` §C.
+- **VERIFIED:** **729 green** across 85 files, all six gates, **real exit code 0**, real OCCT throughout.
+  Revert-verified twice: restoring the single `seen` set fails **4 of the 6 new tests**, the verb-driven
+  one at `modelElements()` **3 where 4 is correct**; restoring the clock-stamped date fails
+  `state-risk-e2e` at `expected '2026-08-06' to be '2026-08-05'`.
+- **FOUND:** ⚠⚠ **`isElementActive` MISREAD A SHARED ANCESTOR AS A CYCLE.** Two edges out of one node make
+  the ancestry a **DAG**, so the two routes upward can MEET — and one `seen` set was doing two jobs,
+  *"already judged"* (global) and *"on the current path"* (path-scoped). The second route in refused.
+  **Measured through four shipped verbs on a document with NO design options at all: `scene.elements` 4,
+  `modelElements()` 3, the opening absent from all SIX consumers, `brokenRefs()` and `unbuildable()` both
+  empty** — control with the routes pointed at different ancestors: 5 of 5. §5's both-edges test existed
+  but its two ancestors shared nothing, **so the shape that mattered was never built.** ⚠ **`hostId`
+  cannot dangle through the verbs** (`createElement`/`retargetReference` both `requireElement`; D39
+  cascades the hosted with the host) — **but a `.bnn` can, and it is silent**: 5 elements, `modelElements()`
+  3, both diagnostics `[]`. `brokenRefs` walks `hostedBy` from each ROOT, so an element whose host does not
+  exist is never anyone's child and is never examined ⇒ **Q19 needs a reconciliation covering BOTH edges.**
+  ⚠ **Six consumers, not five** — `joins.ts` has three. ⚠ **And reviewing PR #10: Entry 84's cross-field
+  date check was sound while the WRITER fed it two sources** — the entry from the §7 parse, the date from
+  `new Date()` — so any rebaseline outside the entry's own calendar day wrote a baseline its own gate
+  rejects. `state-risk-e2e`'s own fixture reproduced it every day but one, and nothing had looked.
+- **OWES:** Owner: ⚠⚠ **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** — one declaration moved
+  (`designoptions.ts :: function isElementActive`), baseline re-generated in-PR at entry 85. **Q19 still
+  needs its ruling and now spans both edges; Q17a still blocks; Q11/Q12 unchanged.** Amer: **PR #11 is
+  yours to review and merge** — left untouched on the owner's instruction. **Q18 is still yours.**
+- **RISK:** contract-touching
+- **FULL:** `handoff/zayd/2026-08-06-e85-hostid-sweep.md`
+- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+
 ### 83 | 2026-08-06 | Zayd | the three reserved reference args, swept — one is dormant, one is a 100% erasure (Q19)
 
 - **CHANGED:** `packages/document/src/designoptions.ts` (**`unresolvedDesignOptions` NEW** — the referential
@@ -831,60 +866,6 @@ is maintenance and does NOT get an entry of its own.**
   (`819ff12c…` = main's wasm, re-measured); what ships is that source +`toolchainId()`, 14 682 327 →
   14 682 466 B. `NOTICE` now states the two separately.
 
-### 77 | 2026-08-03 | Zayd | the plan/section unit ships — a drawing IS the B-Rep (D58 row Ⓐ, D81)
-
-- **CHANGED:** `tools/kernel-build/src/kernel.cpp` (**`sectionCut`**, `BRepAlgoAPI_Section` + `Generated()`
-  attribution) + **the WASM artifact rebuilt** (+69,808 B) · `packages/kernel-occt` (the adapter +
-  `SECTION_DEFLECTION` 0.5 mm) · `packages/protocol` (`SectionCurve.nodeId?`; **`sectionCut` off
-  `RESERVED_OPS`**; the false `ref` comment corrected) · `packages/document/src/view.ts` (**NEW** — the
-  validator, the plane, the pre-filter, every result type) · `scene.ts`/`dependency.ts`/`bnn.ts` (the
-  `views` promotion) · `commands.ts` (**`core.createView`/`updateView`/`deleteView`**) · `document.ts`
-  (**`projectView`**, the D19 door) · `schema.ts` (`refTo` +4) · `tests/plan-section.test.ts` (**NEW, 8
-  tests, one per §5 criterion**) · `docs/decisions.md` **D81** · `open_rulings.md` (Q1–Q3 STRUCK, Q15 new).
-  **No `SCENE_SCHEMA_VERSION` bump, no `emptyScene()` entry.**
-- **VERIFIED:** **653 green** across 81 files, all six gates, **real exit code 0**, real OCCT throughout.
-  Revert-verified: reverting the ref-token attribution goes **RED at "expected length 8 but got 6"**.
-- **FOUND:** ⚠⚠ **A REF'S `nodeId` NAMES THE NODE THAT MINTED IT, NOT THE PART THAT CARRIES IT** — the
-  design predicted it and I walked in anyway. Measured on a holed wall: **8 cut curves, 8 attributed, but
-  spanning TWO nodeIds** (`wall-….wall` and `opening-…`, the reveals belonging to the cut node). Keyed by
-  `nodeId` the plan draws **6 curves where 8 is correct and 10 where 20 is**, silently. ⚠⚠ **AND MY OWN
-  TEST HAD A WEAK GREEN THAT ONLY REVERT-VERIFICATION EXPOSED:** `toBeGreaterThan(solidCount)` still
-  passed on the broken version, because `6 > 4`. Pinned to the exact count. ⚠ **A "fix" of mine was
-  nothing at all** — I forwarded the option catalogue into `modelElements` and wrote a comment calling it
-  load-bearing; reverted, the suite stayed GREEN, so the line was REMOVED rather than kept with a false
-  justification. ⚠ `SectionCurve.closed`'s frozen comment says a cut curve "is closed"; measured, **all 4
-  curves of a plain box are `closed=false`** (Section returns EDGES, not loops). ⚠ `designOptionIds` is
-  authorable only on a document whose options arrived by another road — **no command can create a design
-  option**, while `core.createElement` deliberately skips the same check. ⚠ Hosting on `lateral.0` instead
-  of `lateral.1` cuts a face the plan never meets: **volume comes back exactly uncut (1,920,000,000 mm³)**
-  and everything reports success. ⚠⚠ **AND THE RE-SEED GATE IS SATISFIED BY A TIMESTAMP** — its first
-  fire on a real kernel change; I re-seeded on the pinned oracle and **the whole diff is one line,
-  `seededAt`**, every geometry value across 12 fixtures byte-identical (correct — this PR adds an op and
-  modifies no existing path). But the gate cannot tell that from a re-seed where the geometry MOVED and
-  nobody looked: **the only thing that made compliance safe was reading the diff** (⇒ Q16).
-- **OWES:** Owner: **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** (§4 — three declarations
-  moved, baseline re-based in-PR under D81). **Q15 (NEW)** — `pnpm state --rebaseline` labels exactly
-  these PRs `RISK: additive`. Q4/Q5 stand as recorded. Amer: `projectView` returns `ViewCurve[]` with real
-  `SubShapeRef`s — the 2D drawing view is unblocked and is his layer.
-- **RISK:** contract-touching
-- **FULL:** `handoff/zayd/2026-08-03-plan-section-unit.md`
-- **REVIEW:** **REVIEWED 2026-08-04 by the Entry-78 session** (Zayd, a later session — the protocol
-  holding for a fourth entry); full record in PR #5's review comment. ✅ **MERGED BY THE OWNER
-  2026-08-05** (`173da22`) — contract-touching, so it was always theirs to merge, and it was. Item 1 re-executed: reverting the attribution to
-  `ref.nodeId` reproduced **`expected length 8 but got 6`** verbatim. **ONE REAL DEFECT, PROVEN AND
-  FIXED: `projectView` never called its own pre-filter** — `straddlesPlane`/`withinClip`/`levelScope`
-  shipped written, exported and called by NOTHING, so a stored, validated **`clip` was silently ignored
-  and a wall 50 m outside it was drawn**. §5's eight-row table has no pre-filter row, so eight green
-  tests said nothing about it (row added). Measured at 10 levels × 4 walls: **4 handles into
-  `sectionCut` instead of 40, 58.00 → vs 315.45 ms/call, 5.4×, ratio = level count.** ⚠ **§4
-  undercounts the frozen surface — FOUR declarations moved** (`RESERVED_OPS` too). **RISK:
-  contract-touching, read from the snapshot, not the label.** ⚠ **§3b's deferral rested on a FALSE
-  PREMISE and is now fixed:** `frozen-surface.mjs` strips comments before hashing, so correcting
-  `SectionCurve.closed` was never a contract edit — re-measured (**4 cut curves, all `closed=false`**),
-  corrected, pinned. ⚠ **§3c was never actually filed in `open_rulings.md`** though the entry says it
-  was — now **Q17**. Q15 extended: `_baselinedAtEntry` still reads **72**, written by nothing. Two
-  comment corrections. **655 green, six gates, exit 0.**
-
 ---
 
 ## §8 — Generated
@@ -893,16 +874,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **83 (Zayd, 2026-08-06)** |
-| branch · tip · tree | `zayd/2026-08-06-e83-reserved-ref-sweep` · `cba786b` · dirty |
-| open PRs | #11 amer/2026-08-06-alignment-guides · #10 zayd/2026-08-06-e83-reserved-ref-sweep |
-| suite | **723 green** · 85 files · 228 suites |
+| **newest entry** | **85 (Zayd, 2026-08-06)** |
+| branch · tip · tree | `zayd/2026-08-06-e85-hostid-sweep` · `935bebe` · dirty |
+| open PRs | #11 amer/2026-08-06-alignment-guides |
+| suite | **729 green** · 85 files · 228 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/designoptions.ts :: function unresolvedDesignOptions · baseline REWRITTEN this session |
-| diff vs origin/main | 16 files changed, 1078 insertions(+), 260 deletions(-) (16 files) |
-| docs budget | current_state 77.3/96.0 KB · §7 32.0/32.0 KB · abstracts 6/10 · bodies 29 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/designoptions.ts :: function isElementActive · baseline REWRITTEN this session |
+| diff vs origin/main | 7 files changed, 466 insertions(+), 242 deletions(-) (7 files) |
+| docs budget | current_state 75.5/96.0 KB · §7 30.1/32.0 KB · abstracts 6/10 · bodies 30 |
 
 _Generated 2026-08-06 by `pnpm state`._
 

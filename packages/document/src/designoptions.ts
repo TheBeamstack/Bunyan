@@ -163,6 +163,21 @@ function ownTagActive(
  *   has nothing to be cut into; counting it bills a window into thin air);
  * - **a cycle ⇒ excluded, and it TERMINATES** (a hostile `.bnn` defect; the `buildChildrenTree` cycle-guard
  *   precedent — predictable breakage, never a hang).
+ *
+ * ⚠⚠ **AND "A CYCLE" MEANS A CYCLE, NOT A SHARED ANCESTOR — THE FIRST IMPLEMENTATION CONFLATED THE TWO
+ * AND SILENTLY EXCLUDED A LEGITIMATE ELEMENT** (found by Entry 85's `hostId` sweep, which is the other
+ * half of the Q19 walk). Two edges out of one node means the ancestry is a **DAG, not a chain**, so the
+ * two routes can MEET: a window hosted on a wall *and* a member of a group, where the wall and the group
+ * both sit in one outer group. That is a diamond. It contains no cycle.
+ *
+ * The old guard tested `seen.has(ancestorId)` with ONE set doing TWO jobs — *"already judged"* (which
+ * must be global, or the walk is exponential) and *"on the path I am currently walking"* (which must be
+ * path-scoped, or a diamond looks like a loop). The second route into the shared ancestor found it in
+ * `seen` and returned `false`. **Measured through four shipped verbs, on a document with NO design
+ * options at all: `scene.elements` 4, `modelElements()` 3, the window absent from every consumer, with
+ * `brokenRefs()` and `unbuildable()` both empty** — and the same graph with the two routes pointed at
+ * different ancestors returns all 5 of 5. ⇒ The colours below separate the two jobs: `grey` is the
+ * current path and is what a cycle closes onto; `black` is done-and-fine and is what a diamond hits.
  */
 export function isElementActive(
   element: OptionedElement,
@@ -170,28 +185,43 @@ export function isElementActive(
   active: ActiveOptions = {},
 ): boolean {
   const options = scope?.designOptions;
-  const seen = new Set<ElementId>();
+  /** `grey` ⇒ on the path being walked right now; `black` ⇒ fully judged and active. */
+  const colour = new Map<ElementId, 'grey' | 'black'>();
   // ⚠ An element may hang off BOTH edges at once — a window in a wall that is also a member of a group —
   // and ALL of its ancestors must be active. So this is a traversal, not a single chain walk: following
   // only one edge would silently ignore the other, which is the shape of the very defect D67 corrects.
-  const pending: OptionedElement[] = [element];
+  const pending: { readonly node: OptionedElement; readonly leaving: boolean }[] = [
+    { node: element, leaving: false },
+  ];
 
   while (pending.length > 0) {
-    const current = pending.pop()!;
+    const { node, leaving } = pending.pop()!;
+    // The node's whole sub-walk is finished: it leaves the current path, and can never again be mistaken
+    // for a cycle by a LATER route that reaches it (that route is a diamond, and a diamond is legal).
+    if (leaving) {
+      colour.set(node.id, 'black');
+      continue;
+    }
+
+    const seen = colour.get(node.id);
+    if (seen === 'black') continue; // judged already, and it passed — a second route in is a DAG
     // A cycle in the host/parent edges is an authoring defect, not a question with an answer. Refuse it
     // the way every other hostile-document path refuses: predictably, and without spinning.
-    if (seen.has(current.id)) continue;
-    seen.add(current.id);
+    if (seen === 'grey') return false; // this edge closes onto the path we are standing on
 
-    if (!ownTagActive(current, options, active)) return false;
+    colour.set(node.id, 'grey');
+    if (!ownTagActive(node, options, active)) return false;
 
-    for (const ancestorId of [current.hostId, current.parentElementId]) {
+    // ⚠ PUSHED BEFORE THE ANCESTORS, so it pops AFTER all of them — the whole sub-walk happens while
+    // this node is still `grey`, which is what makes the cycle test mean what it says.
+    pending.push({ node, leaving: true });
+
+    for (const ancestorId of [node.hostId, node.parentElementId]) {
       if (ancestorId === undefined) continue;
-      if (seen.has(ancestorId)) return false; // the edge closes a cycle — refuse, never spin
       const ancestor = scope?.elements[ancestorId];
       // ⚠ The ancestor is NAMED but ABSENT — a broken reference. Excluded, never counted (see above).
       if (ancestor === undefined) return false;
-      pending.push(ancestor);
+      pending.push({ node: ancestor, leaving: false });
     }
   }
   return true; // every element in the belongs-to closure passed its own-tag test
