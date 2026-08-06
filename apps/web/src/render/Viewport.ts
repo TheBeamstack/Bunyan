@@ -43,6 +43,12 @@ import {
   type SnapHit,
   type SnapKind,
 } from '../tool/snap';
+import {
+  GUIDE_SNAP_KIND,
+  alignmentGuides,
+  referencePoints,
+  type AlignmentGuide,
+} from '../tool/align';
 
 export type { RenderPart } from './RenderPart';
 export type { PickResult } from './pick';
@@ -97,6 +103,8 @@ export class Viewport {
   readonly #preview = new THREE.Group();
   readonly #previewLine: THREE.Line;
   readonly #snapMarker: THREE.Mesh;
+  /** The dashed alignment guides (design §4.3) — one `LineSegments` for however many are showing. */
+  readonly #guideLines: THREE.LineSegments;
 
   /** Lazily-built Tier-1 index over `#drawn`; dropped whenever the drawn set changes. */
   #snapIndex: SnapIndex | null = null;
@@ -152,6 +160,30 @@ export class Viewport {
     this.#snapMarker.renderOrder = 1000;
     this.#snapMarker.visible = false;
 
+    // ⚠ THE GUIDES ARE DASHED, AND THAT IS SEMANTIC RATHER THAN DECORATIVE (design §4.3 says "dashed").
+    // A solid line in this scene is geometry — a wall edge, or the rubber band that will BECOME one. A
+    // guide is neither: it is an inference the app is offering, it exists only while the cursor holds
+    // it, and nothing is authored along it. Drawing it solid would make the viewport claim there is an
+    // edge where there is not one.
+    // ⚠ `LineDashedMaterial` needs `computeLineDistances()` on the geometry, which `setGuideLines` does
+    // on every update — without it the dashes silently render solid, which is the failure that looks
+    // like success.
+    this.#guideLines = new THREE.LineSegments(
+      new THREE.BufferGeometry(),
+      new THREE.LineDashedMaterial({
+        color: 0x7fe08a,
+        dashSize: 120,
+        gapSize: 80,
+        depthTest: false,
+        transparent: true,
+        opacity: 0.85,
+      }),
+    );
+    this.#guideLines.renderOrder = 998;
+    this.#guideLines.visible = false;
+    this.#guideLines.frustumCulled = false;
+
+    this.#preview.add(this.#guideLines);
     this.#preview.add(this.#previewLine);
     this.#preview.add(this.#snapMarker);
     this.#scene.add(this.#preview);
@@ -301,6 +333,70 @@ export class Viewport {
   }
 
   /**
+   * The alignment guides live at this cursor position (design §4.3) — the dashed lines to draw, and the
+   * candidates to feed back into `snapAt`.
+   *
+   * ⚠⚠ IT IS A SEPARATE CALL FROM `snapAt` ON PURPOSE, AND THE ORDER IS LOAD-BEARING — the same shape
+   * Entry 80 gave the face candidate. A guide's foot is a snap CANDIDATE, so it must exist before the
+   * snap is chosen; feeding it through `snapAt`'s `live` array is what makes `SNAP_PRIORITY` decide
+   * between *"the corner you have lined up with"* and *"the face you are over"* in ONE ruled comparison,
+   * instead of two answers the tool would then have to reconcile.
+   *
+   * ⚠⚠ AND IT TAKES `allow` FOR A REASON THAT IS NOT PERFORMANCE: **a guide the active input cannot
+   * snap to must not be DRAWN.** The opening tool declares `snapTo: ['face']`, so a dashed line offered
+   * to it would be an overlay promising a landing the click cannot make — the renderer lying about what
+   * the tool will do. One filter, applied where the guides are made, keeps the drawing and the snapping
+   * answering the same question.
+   *
+   * ⚠ THE STATED BOUND: references come from the index within `GUIDE_REFERENCE_RADIUS_MM` of the cursor
+   * (plus whatever the caller passes, which is how the gesture's own anchor gets in). A corner further
+   * away than that produces no guide. That is a limit, not a bug, and it is written down here rather
+   * than discovered — the alternative is projecting every endpoint in the model on every pointer move.
+   */
+  guidesAt(
+    cursorPx: readonly [number, number],
+    tolerancePx = 12,
+    allow: readonly SnapKind[] | null = null,
+    /** Extra references the index does not hold — today, the in-progress gesture's anchor. */
+    extraReferences: readonly Vec3[] = [],
+  ): AlignmentGuide[] {
+    if (this.#disposed) return [];
+    if (allow !== null && !allow.includes(GUIDE_SNAP_KIND)) return [];
+    const cursor = this.groundPointAt(cursorPx);
+    if (cursor === null) return [];
+
+    const near = this.#ensureSnapIndex().near(cursor, GUIDE_REFERENCE_RADIUS_MM);
+    return alignmentGuides({
+      cursor,
+      cursorPx,
+      references: [...extraReferences, ...referencePoints(near)],
+      project: this.project,
+      tolerancePx,
+    });
+  }
+
+  /** Draw these dashed guides, or clear them with `null`/an empty list. Overlay only. */
+  setGuideLines(lines: readonly (readonly [Vec3, Vec3])[] | null): void {
+    if (this.#disposed) return;
+    if (lines === null || lines.length === 0) {
+      this.#guideLines.visible = false;
+      return;
+    }
+    const xyz = new Float32Array(lines.length * 6);
+    lines.forEach((line, i) => {
+      xyz.set([...line[0], ...line[1]], i * 6);
+    });
+    this.#guideLines.geometry.dispose();
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(xyz, 3));
+    // ⚠ WITHOUT THIS THE DASHES RENDER SOLID and nothing errors — `LineDashedMaterial` reads a
+    // `lineDistance` attribute this call computes, and an absent one is read as zero everywhere.
+    this.#guideLines.geometry = geometry;
+    this.#guideLines.computeLineDistances();
+    this.#guideLines.visible = true;
+  }
+
+  /**
    * Where a cursor ray meets the Z=0 ground plane — the FREE point, used when nothing snaps.
    *
    * ⚠ Without this a tool could only ever author on top of existing geometry: the very first wall in an
@@ -395,6 +491,8 @@ export class Viewport {
     this.#batch.dispose();
     this.#previewLine.geometry.dispose();
     (this.#previewLine.material as THREE.Material).dispose();
+    this.#guideLines.geometry.dispose();
+    (this.#guideLines.material as THREE.Material).dispose();
     this.#snapMarker.geometry.dispose();
     (this.#snapMarker.material as THREE.Material).dispose();
     this.#snapIndex = null;
@@ -411,6 +509,21 @@ export class Viewport {
  * failure mode is a snap that just "doesn't work sometimes", which is the hardest kind to report.
  */
 const SNAP_SEARCH_RADIUS_MM = 3000;
+
+/**
+ * World-space radius for gathering ALIGNMENT references (mm) — and it is deliberately five times the
+ * snap radius, because the two answer different questions.
+ *
+ * A snap asks *"what is under my cursor?"*, so 3 m of slack around the cursor is already generous. An
+ * alignment asks *"what am I lined up WITH?"*, and the whole value of the feature is that the thing you
+ * are lined up with is somewhere ELSE — the far corner of the room, not the one you are standing on. A
+ * radius tuned for snapping would make guides fire only when the reference was nearly under the cursor,
+ * which is exactly when you no longer need one.
+ *
+ * ⚠ 15 m is three quarters of the drawn grid's half-extent (`GridHelper(20_000, …)`), so it covers a
+ * building-sized view and stops there. Beyond it there is no guide — a STATED bound, not a silent one.
+ */
+const GUIDE_REFERENCE_RADIUS_MM = 15_000;
 
 /** The per-node coalesce key for a tessellation (step 2d) — namespaced off the document's `rebuild:` key. */
 function renderKey(nodeId: string): string {

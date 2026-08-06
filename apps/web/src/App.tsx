@@ -635,6 +635,7 @@ export function App() {
             parts={renderParts}
             previewFrom={tool.previewFrom}
             snapTo={tool.snapTo}
+            authoring={tool.authoring}
             onPick={onPick}
             onPointerSample={onPointerSample}
           />

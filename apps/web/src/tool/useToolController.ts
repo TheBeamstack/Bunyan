@@ -57,6 +57,20 @@ export interface ToolController {
    * `snapTo` at all.
    */
   readonly snapTo: readonly SnapKind[] | null;
+  /**
+   * Is a tool that COLLECTS POINTS active right now? False for Select, which collects nothing.
+   *
+   * ⚠⚠ IT EXISTS BECAUSE `snapTo: null` IS AMBIGUOUS AND THE OVERLAY NEEDED THE DIFFERENCE. `null`
+   * means *"every kind"* for a collecting input (the wall tool) and ALSO *"there is no input"* for
+   * Select — so a consumer reading only `snapTo` cannot tell "author anywhere" from "author nothing".
+   * The alignment guides need to: a dashed guide is an offer to land a click on a line, and while
+   * Select is active there is no click to land. Drawing them anyway would put a permanent flicker of
+   * dashes over the model on every hover, which is noise on the one interaction a user performs most.
+   *
+   * ⚠ It is also the cheaper answer: `Viewport.guidesAt` projects a reference set per pointer move, and
+   * Select is where most pointer moves happen.
+   */
+  readonly authoring: boolean;
   /** The numeric field's contents while it is open, else null. */
   readonly numericText: string | null;
   // ⚠ Declared as function PROPERTIES, not methods. These are stable `useCallback` arrows passed straight
@@ -272,6 +286,7 @@ export function useToolController(options: {
     session,
     prompt,
     snapTo,
+    authoring: activeTool.inputs.length > 0,
     previewFrom: session === null ? null : anchorOf(session),
     numericText,
     activate,

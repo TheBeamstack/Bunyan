@@ -440,10 +440,15 @@ stays ~3 min either way.
    field has ever existed. ⚠ **`InputSpec.snapTo` is now READ** (`chooseSnap`'s `allow`); it was
    decorative before, which is the defect Entry 80 found. **What is still open is the SECOND opening on
    the same wall — `open_rulings.md` Q18.**
-2. **ALIGNMENT GUIDES** (design §4.3) — dashed overlay when the cursor lines up with a live reference
-   point. Pure overlay geometry; no model state, no contract. ⚠ **There is no `PreviewLayer` MODULE** —
-   this row named one for three entries and none was ever built. The preview is the `previewFrom` anchor
-   on the controller, drawn by `render/ViewportCanvas.tsx` via `Viewport.setPreviewLine`. Extend that.
+2. ✅ **DONE (Entry 84) — ALIGNMENT GUIDES** (design §4.3). `tool/align.ts` is the pure half;
+   `Viewport.guidesAt`/`setGuideLines` draw a dashed `LineSegments` in `#preview`. Browser-proven by
+   revert (guides on ⇒ the aligned component comes from the reference; off ⇒ the raw ground point).
+   ⚠ **A guide carries NO `ref`/`elementId`** — a point reached along an axis FROM a reference is on no
+   sub-shape, so a hosted-void tool declines it. ⚠ **References are endpoints and midpoints only, plus
+   the gesture anchor**: the world grid is a LATTICE, and admitting it lights both guides everywhere.
+   ⚠ It is `'extension'` in the Q3-ruled order — **no `SnapKind` was added.** What is still open from
+   §4.3's list: the **perpendicular foot** and the **intersection of two candidate lines** — same shape,
+   same module, same identity rule.
 3. **THE MOVE TOOL + GIZMO and THE CORNER-DRAG are now UNBLOCKED (D80).** ⚠⚠ **READ THE SPLIT BEFORE THE
    GIZMO — IT IS ENFORCED, NOT MERELY DOCUMENTED: `core.move` REFUSES a wall** (drag both endpoints with
    `core.setParams`) **and REFUSES a door** (`setParams` on `offsetU`), naming the road that works. The
@@ -471,7 +476,9 @@ The op set (`transform`/`extrude`/`chamfer`/`revolve`/`faceFrame`) · `measure(r
 no speed; do not re-run**) · the heap ceiling · **all of D50 step 0** (0a–0g, the sketch solver, the room
 solver, 0c joins) · **all eighteen backward sweeps** (D67–D77) · the enumeration query + Clean Delta
 exporter · the schedules body (D78) + its CRUD (D79) · the renderer batching rewrite · P4.5's tool layer ·
-the D29 op bodies · **the five move verbs + `transactionId` (D80)** · browser storage · the join spatial
+the D29 op bodies · **the five move verbs + `transactionId` (D80)** · **P4.5's alignment guides (Entry
+84) — the axis-alignment kind only; the perpendicular foot and the two-line intersection are not built**
+· browser storage · the join spatial
 index (D73) · **the cached-import cost attribution — the embind crossings are 0.9%, the memory view is
 cancelled and the "rule 17" rename is a phantom (Entry 73)** · the plan/section unit (D81, Entry 77) ·
 **the toolchain pin (Q14, Entry 79) — the emsdk digest is in `tools/kernel-build/toolchain.json`, the
@@ -546,6 +553,52 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 84 | 2026-08-06 | Amer | alignment guides ship — and the guide is the first candidate that owns NOTHING
+
+- **CHANGED:** `apps/web` only. **`tool/align.ts` NEW** (`alignmentGuides` · `guideCandidates` ·
+  `referencePoints` · `GUIDE_SNAP_KIND`; PURE, projection injected) · `render/Viewport.ts`
+  (**`guidesAt`** + **`setGuideLines`** + a dashed `LineSegments` inside `#preview`, so a guide can
+  never be picked or snapped to) · `render/ViewportCanvas.tsx` (guides computed BEFORE the snap and fed
+  through the same `live` array the face candidate uses) · `tool/useToolController.ts`
+  (**`ToolController.authoring`**) · `App.tsx` · **`tool/align.test.ts` NEW (+13)** ·
+  `current_state.md` (this abstract; §5 rows; **Entry 77 rotated out** — see OWES for why 77 and not
+  76; **and Entry 82's stale `AWAITING REVIEW` line**, which only PR #10 had rewritten, so `docs:check`
+  failed the moment this entry landed — copied VERBATIM from PR #10 so the two merge without a
+  conflict) · `docs/history.md` §C. **No new `SnapKind`, `SNAP_PRIORITY` UNTOUCHED, no frozen byte, no
+  verb, no schema bump, no `packages/` file.**
+- **VERIFIED:** **728 green** across 85 files, six gates, real exit code 0. Revert-verified **3 ways
+  headless, each watched RED** (drop `referencePoints`' kind filter ⇒ 2 red; let `guideCandidates`
+  inherit the reference's `ref`/`elementId` ⇒ 2 red; remove the `minSpanMm` degeneracy guard ⇒ 2 red).
+  ⚠⚠ **AND IN THE BROWSER BY REVERT, NOT BY PICTURE:** same document, same pixels, wall anchored at
+  `[-5000, 4000]` — guides ON `end = [0, 5780.276509297827]`, guides OFF
+  `end = [115.71171400965068, 5780.276509297827]`. **The y is byte-identical and only the aligned
+  component moved**, 115.7 mm taken from a reference at x=0 — a grid snap would have made both
+  components round, an endpoint snap would have replaced both. The opening tool re-run under the guides:
+  `state: valid`, leaf 63 999 999.99 mm³ / frame 85 549 999.99 mm³, both diagnostics `[]`, console clean
+  on a fresh tab.
+- **FOUND:** ⚠⚠ **THE GRID LATTICE IS THE FAILURE MODE THAT LOOKS LIKE SUCCESS.** Feeding every Tier-1
+  candidate in as a reference — the obvious implementation — lights **both guides at every cursor
+  position, permanently**, because every point on the plane shares its x with some grid intersection and
+  its y with another. Measured: a 1000 mm lattice and a cursor on no visible grid line yields `['x','y']`
+  admitted and `[]` filtered. `'face'` is excluded for the same reason one step along — a face candidate
+  moves WITH the cursor, so it can never be *aligned with* it. ⚠⚠ **A GUIDE CARRIES NO `ref`, NO
+  `elementId`, NO `nodeId`** — its point is reached by travelling along an axis FROM a reference, so
+  inheriting the reference's identity is Entry 80's defect with a longer lever. A hosted-void tool
+  therefore declines a guide, and `snapTo: ['face']` means it never sees one. ⚠ **`snapTo: null` IS
+  AMBIGUOUS** — *"every kind"* for a collecting input and *"there is no input"* for Select — so the
+  overlay needed `authoring`, or dashes would flicker over the model on every hover. ⚠ `'extension'` is
+  the ruled slot (Q3) and no kind was added; the test asserts the guide's PLACE in `SNAP_PRIORITY`, so
+  re-ruling Q3 re-rules this. ⚠ `LineDashedMaterial` renders **solid** without `computeLineDistances()`
+  and nothing errors.
+- **OWES:** Owner: **nothing new** — `RISK: additive`, so the REVIEWING agent merges this. ⚠ **PR #10
+  (entry 83) is `contract-touching` and still needs YOUR merge**; it was reviewed this session and one
+  defect was fixed **on its branch** (`cba786b`). Q8/Q11/Q12/Q13/Q17a/Q17b/Q17c/Q18/Q19 stand. Zayd:
+  ⚠ **this entry rotates 77, not the strictly-oldest 76, because PR #10 rotates 76** — either merge
+  order ends with §7 = {84, 83, 82, 81, 80, 79} and both in §C; expect an ordinary §7 conflict.
+- **RISK:** additive
+- **FULL:** `handoff/amer/2026-08-06-alignment-guides.md`
+- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+
 ### 82 | 2026-08-06 | Zayd | the design-options question, walked — the two doors are a 50% silent under-report (Q17)
 
 - **CHANGED:** **`docs/design/P5_step6D_design_options_crud_design.md` NEW** — the Q17 walk: the gap
@@ -585,7 +638,17 @@ is maintenance and does NOT get an entry of its own.**
   fixed only the edge half.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-06-q17-designoptions.md`
-- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+- **REVIEW:** ✅ Reviewed by **Entry 83** (Zayd, 2026-08-06) against all 7 items — **APPROVED, no defect
+  found**; merged by the owner (the harness classifier refused `gh pr merge` again — see Entry 83). Item 1
+  **executed**: reverting `state.mjs:175` to `const against = workingSnap` drove `state-risk-e2e` RED on
+  *"the verdict was erased by re-baselining"* **while `freeze-boundary` stayed 10/10 GREEN** — the gate that
+  decides RISK cannot see this defect, only the e2e that EXECUTES the generator. Item 4 the one that
+  mattered: §1's numbers were re-derived from a fresh harness after the original was deleted, and **every
+  row of §1.4 reproduced exactly**, both failure codes and all four empty diagnostics included. §3.2 and
+  §3.3 re-measured too — `CHANGED (1) scene.ts :: type SceneCollection`, one `TS2345` at
+  `dependency.ts:177`. ⚠ Item 6 found the one real gap and it is not this PR's to close: **§5 criterion 6 is
+  the only thing that would ever hold the 50% measurement down, and it lives inside a unit Q17a blocks** —
+  so the defect has no committed test and has now been hand-derived twice.
 
 ### 81 | 2026-08-05 | Zayd | the two gates that failed OPEN are closed — and one of them had never run (Q15, Q16)
 
@@ -751,60 +814,6 @@ is maintenance and does NOT get an entry of its own.**
   (`819ff12c…` = main's wasm, re-measured); what ships is that source +`toolchainId()`, 14 682 327 →
   14 682 466 B. `NOTICE` now states the two separately.
 
-### 77 | 2026-08-03 | Zayd | the plan/section unit ships — a drawing IS the B-Rep (D58 row Ⓐ, D81)
-
-- **CHANGED:** `tools/kernel-build/src/kernel.cpp` (**`sectionCut`**, `BRepAlgoAPI_Section` + `Generated()`
-  attribution) + **the WASM artifact rebuilt** (+69,808 B) · `packages/kernel-occt` (the adapter +
-  `SECTION_DEFLECTION` 0.5 mm) · `packages/protocol` (`SectionCurve.nodeId?`; **`sectionCut` off
-  `RESERVED_OPS`**; the false `ref` comment corrected) · `packages/document/src/view.ts` (**NEW** — the
-  validator, the plane, the pre-filter, every result type) · `scene.ts`/`dependency.ts`/`bnn.ts` (the
-  `views` promotion) · `commands.ts` (**`core.createView`/`updateView`/`deleteView`**) · `document.ts`
-  (**`projectView`**, the D19 door) · `schema.ts` (`refTo` +4) · `tests/plan-section.test.ts` (**NEW, 8
-  tests, one per §5 criterion**) · `docs/decisions.md` **D81** · `open_rulings.md` (Q1–Q3 STRUCK, Q15 new).
-  **No `SCENE_SCHEMA_VERSION` bump, no `emptyScene()` entry.**
-- **VERIFIED:** **653 green** across 81 files, all six gates, **real exit code 0**, real OCCT throughout.
-  Revert-verified: reverting the ref-token attribution goes **RED at "expected length 8 but got 6"**.
-- **FOUND:** ⚠⚠ **A REF'S `nodeId` NAMES THE NODE THAT MINTED IT, NOT THE PART THAT CARRIES IT** — the
-  design predicted it and I walked in anyway. Measured on a holed wall: **8 cut curves, 8 attributed, but
-  spanning TWO nodeIds** (`wall-….wall` and `opening-…`, the reveals belonging to the cut node). Keyed by
-  `nodeId` the plan draws **6 curves where 8 is correct and 10 where 20 is**, silently. ⚠⚠ **AND MY OWN
-  TEST HAD A WEAK GREEN THAT ONLY REVERT-VERIFICATION EXPOSED:** `toBeGreaterThan(solidCount)` still
-  passed on the broken version, because `6 > 4`. Pinned to the exact count. ⚠ **A "fix" of mine was
-  nothing at all** — I forwarded the option catalogue into `modelElements` and wrote a comment calling it
-  load-bearing; reverted, the suite stayed GREEN, so the line was REMOVED rather than kept with a false
-  justification. ⚠ `SectionCurve.closed`'s frozen comment says a cut curve "is closed"; measured, **all 4
-  curves of a plain box are `closed=false`** (Section returns EDGES, not loops). ⚠ `designOptionIds` is
-  authorable only on a document whose options arrived by another road — **no command can create a design
-  option**, while `core.createElement` deliberately skips the same check. ⚠ Hosting on `lateral.0` instead
-  of `lateral.1` cuts a face the plan never meets: **volume comes back exactly uncut (1,920,000,000 mm³)**
-  and everything reports success. ⚠⚠ **AND THE RE-SEED GATE IS SATISFIED BY A TIMESTAMP** — its first
-  fire on a real kernel change; I re-seeded on the pinned oracle and **the whole diff is one line,
-  `seededAt`**, every geometry value across 12 fixtures byte-identical (correct — this PR adds an op and
-  modifies no existing path). But the gate cannot tell that from a re-seed where the geometry MOVED and
-  nobody looked: **the only thing that made compliance safe was reading the diff** (⇒ Q16).
-- **OWES:** Owner: **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** (§4 — three declarations
-  moved, baseline re-based in-PR under D81). **Q15 (NEW)** — `pnpm state --rebaseline` labels exactly
-  these PRs `RISK: additive`. Q4/Q5 stand as recorded. Amer: `projectView` returns `ViewCurve[]` with real
-  `SubShapeRef`s — the 2D drawing view is unblocked and is his layer.
-- **RISK:** contract-touching
-- **FULL:** `handoff/zayd/2026-08-03-plan-section-unit.md`
-- **REVIEW:** **REVIEWED 2026-08-04 by the Entry-78 session** (Zayd, a later session — the protocol
-  holding for a fourth entry); full record in PR #5's review comment. ✅ **MERGED BY THE OWNER
-  2026-08-05** (`173da22`) — contract-touching, so it was always theirs to merge, and it was. Item 1 re-executed: reverting the attribution to
-  `ref.nodeId` reproduced **`expected length 8 but got 6`** verbatim. **ONE REAL DEFECT, PROVEN AND
-  FIXED: `projectView` never called its own pre-filter** — `straddlesPlane`/`withinClip`/`levelScope`
-  shipped written, exported and called by NOTHING, so a stored, validated **`clip` was silently ignored
-  and a wall 50 m outside it was drawn**. §5's eight-row table has no pre-filter row, so eight green
-  tests said nothing about it (row added). Measured at 10 levels × 4 walls: **4 handles into
-  `sectionCut` instead of 40, 58.00 → vs 315.45 ms/call, 5.4×, ratio = level count.** ⚠ **§4
-  undercounts the frozen surface — FOUR declarations moved** (`RESERVED_OPS` too). **RISK:
-  contract-touching, read from the snapshot, not the label.** ⚠ **§3b's deferral rested on a FALSE
-  PREMISE and is now fixed:** `frozen-surface.mjs` strips comments before hashing, so correcting
-  `SectionCurve.closed` was never a contract edit — re-measured (**4 cut curves, all `closed=false`**),
-  corrected, pinned. ⚠ **§3c was never actually filed in `open_rulings.md`** though the entry says it
-  was — now **Q17**. Q15 extended: `_baselinedAtEntry` still reads **72**, written by nothing. Two
-  comment corrections. **655 green, six gates, exit 0.**
-
 ### 76 | 2026-08-02 | Zayd | Entry 74 reviewed late — `NOTICE` said seven shipped dependencies were build-time only
 
 - **CHANGED:** `NOTICE` (§3 rewritten, §4 split out, §5 records the correction) · `licenses/` (+7 MIT
@@ -880,16 +889,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **82 (Zayd, 2026-08-06)** |
-| branch · tip · tree | `zayd/2026-08-06-q17-designoptions` · `6a8acb3` · dirty |
-| open PRs | none — main is the tip of the work |
-| suite | **715 green** · 84 files · 226 suites |
+| **newest entry** | **84 (Amer, 2026-08-06)** |
+| branch · tip · tree | `amer/2026-08-06-alignment-guides` · `73bcdac` · dirty |
+| open PRs | #10 zayd/2026-08-06-e83-reserved-ref-sweep |
+| suite | **728 green** · 85 files · 231 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 3 files changed, 81 insertions(+), 77 deletions(-) (3 files) |
-| docs budget | current_state 75.2/96.0 KB · §7 30.0/32.0 KB · abstracts 6/10 · bodies 28 |
+| diff vs origin/main | 7 files changed, 440 insertions(+), 186 deletions(-) (7 files) |
+| docs budget | current_state 75.7/96.0 KB · §7 29.9/32.0 KB · abstracts 6/10 · bodies 29 |
 
 _Generated 2026-08-06 by `pnpm state`._
 
