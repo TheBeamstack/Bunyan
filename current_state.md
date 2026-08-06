@@ -546,6 +546,47 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 82 | 2026-08-06 | Zayd | the design-options question, walked — the two doors are a 50% silent under-report (Q17)
+
+- **CHANGED:** **`docs/design/P5_step6D_design_options_crud_design.md` NEW** — the Q17 walk: the gap
+  measured through the shipped verbs, the promotion's real cost, the CRUD's shape, the dependency edge, an
+  8-row test plan each with its weak-green, and §7's three questions · `open_rulings.md` (**Q17 REPLACED by
+  Q17a/Q17b/Q17c**, and **Q17a moved to 🔴 BLOCKING**, empty for five sessions) · `current_state.md` (this
+  abstract; **Entry 75 rotated out**, already in `docs/history.md` §C) · plus **Entry 81's review, fixed on
+  its branch**: `scripts/state.mjs` (the verdict is measured against the baseline **at the merge base**,
+  read from git) + **`tests/state-risk-e2e.test.ts` NEW (+6)**. **No code in `packages/`, no frozen byte,
+  no verb, no schema bump.**
+- **VERIFIED:** **715 green** across 84 files, six gates, real exit code 0. Q17's numbers driven through
+  `DocumentContext` + `CORE_COMMANDS` against the real OCCT kernel, not quoted. Entry 81's fix
+  **revert-verified**: restore its `state.mjs` and `state-risk-e2e` goes RED (`the verdict was erased by
+  re-baselining`) **while `freeze-boundary.test.ts` stays 10/10 green**. Its item 1 re-executed: the
+  pre-Q16 gate body ⇒ **3 e2e RED**, unit file 14/14 green.
+- **FOUND:** ⚠⚠ **Q17 IS NOT A SYMMETRY COMPLAINT — IT IS A 50.0% SILENT UNDER-REPORT WEARING
+  `basis: 'exact'`, ON A DOCUMENT WITH NO DESIGN OPTIONS AT ALL.** 0 of 40 verbs can author an option, so
+  `scene.designOptions` is always absent; `core.createElement` accepts a `designOptionId` naming nothing;
+  `isElementActive` then excludes that element from every enumerating consumer. Two identical walls, one
+  tagged ⇒ `scene.elements` **2**, `modelElements()` **1**, a whole-model schedule **1 row and
+  3 600 000 000 mm³ where 7 200 000 000 is correct** — `unmeasured: []`, `brokenRefs()` `[]`,
+  `unbuildable()` `[]`. **D65's own named failure mode INVERTED** (it predicted 2.0000× over; what ships is
+  0.5000× under) and §1c-8's ledger exactly: the consumer rule landed 07-23, the authoring arg 07-24, and
+  nobody swept the door against the rule. ⚠⚠ **AND "IS IT ADDITIVE?" HAS TWO ANSWERS THAT PART COMPANY:**
+  data-additive **YES** (D79's trick transfers verbatim — no schema bump, byte-identical documents),
+  freeze-additive **NO** — measured, the gate names `scene.ts :: type SceneCollection`, one of 21 watched
+  declarations there. Saying "additive" without saying which is how a contract-touching PR gets
+  agent-merged. ⚠ The `dependency.ts` edge is **not** the "nothing" `schedules`/`views` declared: an option
+  edit changes what the join resolver sees (D68's ambiguity flip) from the authoring side. ⚠ And the Q17
+  row was wrong about the code — `checkDesignOptions` is **not** shared with `core.createView`, which has
+  its own second copy in `view.ts` (rule 10). **A row in the owner's queue is a claim about the code.**
+- **OWES:** Owner: ⚠⚠ **🔴 BLOCKING IS NO LONGER EMPTY — `Q17a`** (promote `designOptions` +
+  the CRUD; contract-touching, so the owner also merges it). 🟡 OPEN: **Q4–Q13, Q17b, Q17c, Q18**.
+  `Q17b` is the stopgap direction (shut vs open — deliberately not chosen); `Q17c` is the one additive,
+  direction-neutral piece (make a dangling `designOptionId` a broken ref, so the number above stops being
+  silent). Amer: **Q18 is still yours** — the cut-face half of what a hosted void may host on; Entry 81
+  fixed only the edge half.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-06-q17-designoptions.md`
+- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+
 ### 81 | 2026-08-05 | Zayd | the two gates that failed OPEN are closed — and one of them had never run (Q15, Q16)
 
 - **CHANGED:** `scripts/docs-state.mjs` (**`riskVerdict`** — `{risk, label, detail}`; re-baselining is a
@@ -830,53 +871,6 @@ is maintenance and does NOT get an entry of its own.**
   tool's behaviour — Entry 74's mistake exactly, three entries later.*
   `pnpm verify` **645 green, real exit code 0, six gates**; `freeze-boundary` green ⇒ additive confirmed.
 
-### 75 | 2026-08-02 | Zayd | the review protocol had a hole — Entry 74 merged itself, and the ruling was never in the prompt
-
-- **CHANGED:** `Zayd_Prompt.md` (step 3 scoped, step 10(b) TERMINATED, step 11 reworded) · `REVIEW.md`
-  header · `docs/design/handoff_system_design.md` (decision 5 + the diagnosis) · `tests/docs-budget.test.ts`
-  (**the new machine check**) · Entry 74's `REVIEW:` line, which was a false claim · plus the queued task:
-  `scripts/reseed-paths.mjs` + `tests/reseed-gate.test.ts` (**the build recipe enters the re-seed gate**).
-- **VERIFIED:** **638 green** (630 + Entry 74's 5 + 3 new) · all six gates 0 (exit code read) ·
-  **revert-verified 3 ways** — restore Entry 74's stale
-  `AWAITING REVIEW` and the protocol test goes RED naming both entries; drop the three build-recipe paths
-  and the "DOES fire" test goes RED; **replace the file-exact C++ entry with `tools/kernel-build/src/`
-  and the "does NOT fire on the probe binary" test goes RED** — the over-broad form is caught as well as
-  the absent one.
-- **FOUND:** ⚠⚠ **THE RULING FORBIDDING SELF-MERGE EXISTED ONLY IN THE DESIGN DOC AND WAS NEVER COPIED
-  INTO THE FILE AGENTS EXECUTE.** Owner decision 5 says *"the **reviewing** agent merges"*, and `REVIEW.md`
-  says why the reviewer must be a later session (*"a fresh session has genuinely lost the author's working
-  state"*). But the prompt's step 3 said *"MERGE it"* without scoping "it" to the PR that existed at t=0,
-  and step 10(b) ended at `gh pr create` with no *stop*. **Composed, they read as permission — so Entry 74
-  opened its PR and merged it minutes later and is on `main` unread by any second party.** ⚠ This is §1e
-  INVERTED: not a copy nobody re-reads, but **a rule that was never copied at all.** A rule living only in
-  a document nobody opens at t=0 is a preference. ⚠ **The check necessarily fires ONE ENTRY LATE** —
-  merging is a GitHub action, invisible to a test in this repo. That is the honest limit of enforcing a
-  collaboration rule from inside the artifact; prevention needs branch protection (**Q13**).
-- **OWES:** Owner: **Q13 (NEW)** — branch protection requiring a non-author approval is the only real
-  preventive control, and it cannot be expressed in-repo; on a single-account repo it would block every
-  merge, so it is a real trade-off, not a formality. ⚠ **Entry 74's content still owes a review** — its
-  `NOTICE` makes legal claims and its dependency sweep was reasoned from two known deps, both flagged for
-  a checker who never came. **Q1–Q3 still BLOCK plan/section, a seventh session.** Amer: nothing.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-02-review-protocol-hole.md`
-- **REVIEW:** Reviewed and merged by **Entry 76** (Zayd, a later session — the protocol working as
-  intended for the first time). Item 1 re-run independently on two of the three claims: the stale
-  marker went RED naming both entries, and the over-broad `tools/kernel-build/src/` went RED on the
-  probe binary. Completeness of the three build-recipe paths checked at the artifact — `link.sh`
-  compiles `src/kernel.cpp` alone, no `--pre-js`/response files, and `configure.sh` is self-contained,
-  so nothing else in `tools/kernel-build/` reaches the shipped `.wasm`. The exemption was verified NOT
-  too broad: it matches exactly entries 66–72, the genuinely pre-PR-flow ones. **⚠ ONE DEFECT FOUND
-  AND FIXED ON THE BRANCH — the guard read only each field's FIRST PHYSICAL LINE.** `parseAbstracts`
-  dropped continuation lines, so the same stale marker phrased with a lead-in wrapped onto line 2 and
-  left `docs:check` fully GREEN — the new guard blind on its first real test. Fixed with `fieldsFull`
-  + a regression test; the identical corruption now fails. ⚠ **Entry 77 corrected the CAUSE this entry
-  gave for it:** `current_state.md` is NOT "prettier-wrapped at `printWidth: 100`" — it is in
-  `.prettierignore`, prettier never opens it, and measured with `--ignore-path /dev/null` **288 lines
-  would change** if it did. The wrapping is placed BY HAND, which makes `fieldsFull` more necessary,
-  not less. Also fixed a rendering defect inherited from Entry 74: **Q11/Q12/Q13 sat
-  behind a blank line and were not table rows at all** — three open rulings rendering as literal
-  pipe-text in the file the owner reads to rule. `pnpm verify` **639 green, real exit code 0, six
-  gates**; `freeze-boundary` green ⇒ additive confirmed.
 
 ---
 
@@ -886,17 +880,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **81 (Zayd, 2026-08-05)** |
-| branch · tip · tree | `zayd/2026-08-05-q15-q16` · `0380452` · dirty |
-| open PRs | #8 zayd/2026-08-05-q15-q16 |
+| **newest entry** | **82 (Zayd, 2026-08-06)** |
+| branch · tip · tree | `zayd/2026-08-06-q17-designoptions` · `6a8acb3` · dirty |
+| open PRs | none — main is the tip of the work |
 | suite | **715 green** · 84 files · 226 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 15 files changed, 1206 insertions(+), 247 deletions(-) (15 files) |
-| docs budget | current_state 75.9/96.0 KB · §7 30.7/32.0 KB · abstracts 6/10 · bodies 27 |
+| diff vs origin/main | 3 files changed, 81 insertions(+), 77 deletions(-) (3 files) |
+| docs budget | current_state 75.2/96.0 KB · §7 30.0/32.0 KB · abstracts 6/10 · bodies 28 |
 
-_Generated 2026-08-05 by `pnpm state`._
+_Generated 2026-08-06 by `pnpm state`._
 
 <!-- END GENERATED -->
