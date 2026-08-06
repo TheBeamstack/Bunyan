@@ -53,7 +53,7 @@ outside `apps/`. Build **against `@bunyan/document`, never the kernel** — D19 
       ├─ finding not provable                   → review comment; never block on an opinion
       ├─ ⚠ YOU are the machine that can re-run a browser claim. If Zayd left
       │     `unverified here: <claim>` on a merged entry, CLEAR IT — that is your first action.
-      │     (None is outstanding as of Entry 80 — checked. This is a debt that ACCUMULATES.)
+      │     (None is outstanding as of Entry 84 — checked. This is a debt that ACCUMULATES.)
       ├─ RISK: additive + approving + CI green  → MERGE it, then pull again
       └─ RISK: contract-touching                → approve; tell the owner it needs THEIR merge
       ⇒ THEN REWRITE THAT ENTRY'S `REVIEW:` LINE in §7 — who reviewed it, what they found. Leaving
@@ -154,6 +154,11 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
   **six** gates. ⚠ `current_state.md` §6 is the DEV BOX's environment, not yours; the `corepack` shim and
   the OCCT rebuild recipe there are Zayd's. **`gh` is installed and authenticated as
   `narutousomaki741`** — this machine's OWN GitHub account, distinct from Zayd's (owner, 2026-08-05).
+  ⚠⚠ **`pnpm` IS NOT ON PATH HERE, AND `corepack pnpm verify` IS NOT A SUBSTITUTE** (Entry 84): the
+  `verify` script chains `pnpm typecheck && pnpm lint && …`, so it dies at the first link with
+  _"'pnpm' n'est pas reconnu"_. Drop a shim once, then prepend it to `PATH` in the same command:
+  `%USERPROFILE%\bin\pnpm.cmd` containing `@echo off` + `corepack pnpm %*`. The Windows twin of the dev
+  box's `~/bin/pnpm` shim in `current_state.md` §6.
   ⚠ **All six gates DO run here now.** They could not before Entry 80: `core.autocrlf=true` gives this
   box CRLF working files and `scripts/docs-state.mjs` assumed LF, so `docs:check` failed five ways and
   `pnpm state` would have written `ENTRY ?` into this file without erroring. If a doc gate ever behaves
@@ -171,12 +176,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 80**
-        (Amer, 2026-08-05) — the opening tool ships — one click on a face is a hosted door, and `snapTo` was decorative
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 84**
+        (Amer, 2026-08-06) — alignment guides ship — and the guide is the first candidate that owns NOTHING
 
-        ⇒ After `git pull`: §8's "newest entry" == 80  ⇒ you are current, start TASK.
-          HIGHER than 80 ⇒ the other agent has merged: read every abstract after
-          80 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 84  ⇒ you are current, start TASK.
+          HIGHER than 84 ⇒ the other agent has merged: read every abstract after
+          84 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -184,59 +189,56 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 80**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `amer/2026-08-05-opening-tool` · `05dea93` · dirty · RISK: additive
+        Tree at generation: `amer/2026-08-06-alignment-guides` · `73bcdac` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
 
 ```
-TASK:   **P4.5 CONTINUES. EXIT CRITERION 3 IS DISCHARGED (Entry 80) — the next two rows are yours, and
-        neither is blocked.** Q1–Q6 are ALL RULED and applied into
-        `docs/design/P4.5_interaction_model_design.md` §12. Do not re-open them, and do not re-ask
-        which track. ⚠ Entry 80 is in the open PR at t=0; merge it at step 3 (it is `RISK: additive`,
-        so it is yours) and step 4 then reads SAME.
+TASK:   **P4.5 CONTINUES, AND EXACTLY ONE ROW IS LEFT IN IT.** Exit criterion 3 is discharged (Entry
+        80) and the alignment guides shipped (Entry 84). Q1–Q6 are ALL RULED and applied into
+        `docs/design/P4.5_interaction_model_design.md` §12 — do not re-open them, and do not re-ask
+        which track. ⚠ **Entry 84 is in the open PR at t=0 and it is `RISK: additive`, so it is YOURS
+        to merge at step 3.** ⚠⚠ **PR #10 (entry 83, Zayd) may ALSO still be open — it is
+        `contract-touching`, so it is the OWNER's, NOT yours. Review it if the owner has not merged it,
+        say so, and move on.** Its review is already written (Entry 84's comment); do not redo it.
 
-        ⇒ DO THIS, IN THIS ORDER:
-          1. **ALIGNMENT GUIDES** (design §4.3) — a dashed overlay when the cursor lines up with a
-             live reference point. Pure overlay geometry over Tier-1 candidates; no model state, no
-             contract, no command.
-             ⚠ **There is no `PreviewLayer` MODULE and there never was** — §5 named one for three
-             entries and Entry 80 struck the row. The preview is the `previewFrom` anchor on
-             `useToolController`, drawn by `render/ViewportCanvas.tsx` through
-             `Viewport.setPreviewLine` / `setSnapMarker`, which live in `#preview` — a group
-             deliberately outside `#sceneGroup` so overlay geometry can never be picked or snapped
-             to. Extend THAT path.
-             ⚠ The candidates you are aligning against already exist: `SnapIndex.near()` gives you
-             everything within a world radius without a kernel call. Keep the geometry PURE and
-             headless-verified (`tool/snap.ts` is the model to copy); only the drawing is GL.
-          2. **THE MOVE TOOL + GIZMO** and **THE CORNER-DRAG**.
-             ⚠⚠ **READ THE REFUSAL BEFORE YOU BUILD THE GIZMO — IT IS ENFORCED, NOT DOCUMENTED:**
-             `core.move` **REFUSES a wall** (drag both endpoints with `core.setParams`) and
-             **REFUSES a door** (`setParams` on `offsetU`), naming the road that works in the
-             failure message. The move verbs are for GenericSolid-shaped elements. `core.array` is
-             a registered shape that REFUSES by design — **keep it out of the ribbon.**
-             The corner-drag has its atomicity: `doc.execute(id, args, { transactionId })` — one
-             stage, one commit, one `Ctrl+Z` for the whole gesture.
-             ⚠ Q8 asks whether that baseline refusal is the right strictness and says *"revisit if
-             Amer's move tool finds it hostile in the hand."* **You are the session that finds out.**
-             Report it as a finding either way — that is the answer the ruling is waiting for.
+        ⇒ DO THIS:
+          **THE MOVE TOOL + GIZMO, AND THE CORNER-DRAG.**
+          ⚠⚠ **READ THE REFUSAL BEFORE YOU BUILD THE GIZMO — IT IS ENFORCED, NOT DOCUMENTED:**
+          `core.move` **REFUSES a wall** (drag both endpoints with `core.setParams`) and **REFUSES a
+          door** (`setParams` on `offsetU`), naming the road that works in the failure message. The
+          move verbs are for GenericSolid-shaped elements. `core.array` is a registered shape that
+          REFUSES by design — **keep it out of the ribbon.**
+          The corner-drag has its atomicity: `doc.execute(id, args, { transactionId })` — one stage,
+          one commit, one `Ctrl+Z` for the whole gesture.
+          ⚠ **Q8 asks whether that baseline refusal is the right strictness** and says *"revisit if
+          Amer's move tool finds it hostile in the hand."* **You are the session that finds out.**
+          Report it as a finding either way — that is the answer the ruling is waiting for.
+          ⚠ **The guides are already there for you.** A corner-drag is a gesture whose whole value is
+          landing somewhere exact, and `Viewport.guidesAt` + `SnapHit` already deliver it — declare
+          `snapTo: null` on the drag input and the alignment fires. **But read `tool/align.ts`'s
+          header first:** a guide carries NO `ref`/`elementId`, so a drag that needs to know WHAT it
+          landed on must take that from a different candidate kind, and mixing the two is the Entry-80
+          defect.
 
-        ⚠⚠ **THE 2D DRAWING VIEW IS STILL YOURS AND STILL UNBLOCKED** (Entry 77, merged by the owner
-        2026-08-05). It does NOT displace the two rows above; it is named here with its shape so that
-        taking it is a decision rather than a discovery:
-
+        **ALSO YOURS AND STILL UNBLOCKED (name it as a decision, not a discovery):**
+        • **THE 2D DRAWING VIEW** (Entry 77, merged by the owner 2026-08-05):
               const result = await doc.projectView(descriptor)   // the D19 door, on DocumentContext
-
-        `ViewResult` = `{ viewId, kind, plane, curves, unprojected }` from `@bunyan/document`; each
-        `ViewCurve` is a 2D polyline in the plane's own frame **carrying a real `SubShapeRef`**, so a
-        dimension anchored in the drawing reads the MODEL, not the polyline.
-          • **It is a QUERY, not an edit** (domain rule 17) — no `scene.json` byte, no `UndoableEdit`,
-            nothing cached. The `.bnn` stores the DESCRIPTOR, so the drawing is LIVE.
-          • **`unprojected[]` is never empty-and-silent. Render it** — a plausible, SHORT drawing is
-            exactly what nobody audits.
-          • **`kind: '3d'` THROWS** rather than returning an empty drawing.
-        `core.createView` / `updateView` / `deleteView` are ordinary registered commands, so the
-        generated ribbon already exposes them.
+          `ViewResult` = `{ viewId, kind, plane, curves, unprojected }`; each `ViewCurve` is a 2D
+          polyline in the plane's own frame **carrying a real `SubShapeRef`**, so a dimension anchored
+          in the drawing reads the MODEL. It is a QUERY, not an edit (domain rule 17) — no `scene.json`
+          byte, nothing cached; the `.bnn` stores the DESCRIPTOR, so the drawing is LIVE.
+          ⚠ **`unprojected[]` is never empty-and-silent. Render it** — a plausible, SHORT drawing is
+          exactly what nobody audits. ⚠ `kind: '3d'` THROWS rather than returning an empty drawing.
+          `core.createView`/`updateView`/`deleteView` are ordinary registered commands, so the
+          generated ribbon already exposes them.
+        • **§4.3's two remaining derived snap kinds** — the **perpendicular foot** and the
+          **intersection of two candidate lines**. Same shape as the guides, same module
+          (`tool/align.ts`), same identity rule. Small, and the design already names them.
+        • **Q18 IS STILL YOURS AND STILL OPEN** — a SECOND opening on the same wall comes back
+          `broken-ref`, because the pick correctly hands over a face of the wall AS CUT
+          (`…structure~opening-X/face/cut(…)`). Entry 81 fixed only the edge half in `build.ts`.
 
         Not this session (deferred, so nobody re-derives): material appearance + transparency ·
         WebGPU + WebGL2 fallback · a File System Access `StorageAdapter` · TSL shading · service
@@ -244,77 +246,101 @@ TASK:   **P4.5 CONTINUES. EXIT CRITERION 3 IS DISCHARGED (Entry 80) — the next
         schedules UI (the CRUD exists and the generated ribbon already exposes it; the read path is
         `doc.evaluateSchedule`).
 
-NEW:    **⚠⚠ START HERE: THE THREE THINGS ENTRY 80 LEARNED THE HARD WAY, IN THE ORDER THEY WILL BITE.**
+NEW:    **⚠⚠ START HERE: WHAT ENTRY 84 LEARNED, IN THE ORDER IT WILL BITE.**
 
-        (a) **`InputSpec.snapTo` IS NOW READ, AND IT WAS DECORATIVE FOR THREE ENTRIES BEFORE THAT.**
-            `chooseSnap(candidates, project, cursor, tolerancePx, allow)` filters BEFORE the ruled
-            priority comparison, and the active input's kinds travel
-            `useToolController.snapTo` → `App` → `ViewportCanvas` → `Viewport.snapAt`.
-            ⚠ **Why it matters to YOUR tools, not just the opening tool:** `SNAP_PRIORITY` ranks
-            `endpoint`/`midpoint` ABOVE `face`, and an endpoint candidate carries the **EDGE's**
-            `SubShapeRef`. Any tool that consumes `SnapHit.ref` and does not constrain `snapTo` will
-            silently receive the wrong KIND of identity near a corner. Declaring it is now enough;
-            before Entry 80 declaring it did nothing at all.
-        (b) **A `SnapHit`'s `ref`/`elementId` AND ITS `point` MUST COME FROM THE SAME PLACE.** The
-            controller takes both from the snap, never one from the snap and one from `pick`. A snap
-            that beat the face on priority is a point on a DIFFERENT feature from whatever the ray is
-            over — mixing them hosts on one wall at a coordinate measured on another, plausibly, and
-            only where two walls meet.
-        (c) **⚠⚠ THE VERIFICATION SPLIT EARNED ITSELF THIS SESSION, SO TRUST IT:** the opening tool
-            was headless-green and revert-verified three ways, and it **did not work in the browser**.
-            The defect was invisible to every headless test because the code declared the right thing
-            (`snapTo: ['face']`) and nothing enforced it. **Run the tool. In the app. Before you
-            claim it.** ⚠ And when you do: read the console **on a FRESH TAB** — editing a live
-            component gives real *"Rendered more hooks than during the previous render"* errors from
-            HMR, and the console buffer survives both a reload and a dev-server restart.
-
-        **What you inherit that is new since Entry 70:**
-        (d) **`ToolSession.collected` is `CollectedInput[]`, not `Vec3[]`** — `{ point, ref?,
-            elementId? }`. `anchorOf` still returns a `Vec3`. `Tool.commit(inputs, ctx)` takes a
-            **`ToolContext`** whose only method is `paramsOf(elementId)`; widening it is a design
-            decision, exactly as widening `QueryGateway`'s four ops is.
-        (e) **`PickResult` carries `point`** — the ray hit in world mm, Tier 1. `faceCandidate()` in
-            `tool/snap.ts` turns a pick into a per-frame `'face'` candidate; it is NOT in the index,
-            and the comment there says why (a face is a region, not a place).
-        (f) **`pnpm verify` runs on this box now, and it never did before.** `scripts/docs-state.mjs`
-            assumed LF; `core.autocrlf=true` here made `parseAbstracts` return `[]`, five doc-gate
-            tests red, and — worse — `pnpm state` write `(none)`/`ENTRY ?` into main's prompt without
-            erroring. Fixed + guarded. If you ever see a doc gate behave differently here from CI,
-            **suspect line endings first.**
-        (g) **⚠ THE OWNER GAVE THIS MACHINE ITS OWN GITHUB ACCOUNT** (`narutousomaki741`, distinct
-            from Zayd's). Two consequences: `gh` is authenticated, and **Q13's objection is gone** —
-            branch protection requiring a non-author approval would no longer block every merge on a
-            single-account repo. It is still the owner's call; say so if it comes up.
+        (a) **`apps/web/src/tool/align.ts` EXISTS NOW, AND ITS HEADER IS THE THING TO READ.** The one
+            rule that shapes everything in it: **a guide candidate carries NO `ref`, NO `elementId`,
+            NO `nodeId`** — its point is reached by travelling along an axis FROM a reference, so it
+            is on no sub-shape. Inheriting the reference's identity would be Entry 80's defect with a
+            longer lever (a corner's identity on a coordinate four metres away). ⇒ any tool that needs
+            a host must DECLINE a guide, and `snapTo` is what stops it ever seeing one.
+        (b) **⚠⚠ THE REFERENCE SET IS ENDPOINTS + MIDPOINTS + THE GESTURE ANCHOR, AND THE EXCLUSIONS
+            ARE THE DESIGN.** The world grid is a **LATTICE**: every point on the plane shares its x
+            with some intersection and its y with another, so admitting grid points lights both guides
+            at every cursor position, permanently — a feature that is always on, and that looks in a
+            screenshot exactly like one that works. `'face'` is excluded one step along: a face
+            candidate is wherever the ray hit, so it moves WITH the cursor and can never be *aligned
+            with* it. If you add a reference kind, ask first whether it is a PLACE or a REGION.
+        (c) **⚠ `snapTo: null` IS AMBIGUOUS AND `ToolController.authoring` IS THE FIX.** `null` means
+            *"every kind"* for a collecting input and ALSO *"there is no input"* for Select. Anything
+            that must not act while Select is active reads `authoring`, not `snapTo`.
+        (d) **⚠ `SNAP_PRIORITY` WAS NOT TOUCHED AND MUST NOT BE.** A guide is `'extension'`, the slot
+            Q3's owner-ruled order already has. `align.test.ts` asserts the guide's PLACE in the array
+            rather than restating it, so re-ruling Q3 re-rules the guides. **Adding a kind is
+            re-opening an owner ruling.**
+        (e) **⚠⚠ THE VERIFICATION SPLIT, TWICE VINDICATED — AND HERE IS THE FORM THAT WORKED WHEN A
+            SCREENSHOT COULD NOT.** The Browser pane **cannot screenshot a continuously-animating
+            WebGL canvas** ("not compositing frames"), so the browser claim was made by **REVERT ON A
+            MEASURED NUMBER**: same document, same pixels, guides on ⇒ `end = [0, 5780.276509297827]`,
+            guides off ⇒ `end = [115.71171400965068, 5780.276509297827]`. The y byte-identical, only
+            the aligned component moved. ⇒ **drive the app with synthetic `PointerEvent`s on
+            `canvas.viewport-canvas` and read the committed params back through `window.bunyan`** —
+            `query({kind:'elements'})`, `quantities(id)`, `brokenRefs()`, `unbuildable()`. That is a
+            re-runnable browser measurement, and it is the pattern to copy.
+            ⚠ `window.bunyan` has **no `scene()`** — it is `query`/`get`/`quantities`/`brokenRefs`/
+            `unbuildable`/`changeFeed`/`execute`/`dryRun`/`undo`/`redo`/the four `list*`.
+            ⚠ Read the console on a **FRESH TAB**: editing a live component gives real *"Rendered more
+            hooks than during the previous render"* errors from HMR, and the buffer survives a reload.
+        (f) **⚠ `LineDashedMaterial` RENDERS SOLID WITHOUT `computeLineDistances()`, AND NOTHING
+            ERRORS.** If you add overlay geometry that is meant to be dashed, that call is the
+            difference between the feature and a silent lie. `#preview` is where overlay geometry
+            lives — deliberately outside `#sceneGroup`, so it can never be picked or snapped to.
+        (g) **⚠ `pnpm verify` NEEDS `pnpm` ON PATH AND COREPACK ALONE IS NOT ENOUGH HERE.** The script
+            chains `pnpm typecheck && pnpm lint && …`, so `corepack pnpm verify` fails at the first
+            link with *"'pnpm' n'est pas reconnu"*. A shim at `%USERPROFILE%\bin\pnpm.cmd` containing
+            `@echo off` + `corepack pnpm %*`, with that directory prepended to `PATH` for the command,
+            makes all six gates run. **This is the Windows twin of the dev box's `~/bin/pnpm` shim in
+            `current_state.md` §6.**
 
         **Standing, unchanged:**
-        (h) The docs live in `docs/contracts/`, `docs/design/`, `docs/reviews/`; `current_state.md`,
-            both prompts, `REVIEW.md` and `open_rulings.md` stay at the root. `current_state.md` §4 is
-            a one-line INDEX (full rulings in `docs/decisions.md`), §5 is LIVE PRIORITIES ONLY, §7 is
-            ten fixed-schema ABSTRACTS with bodies in `handoff/<agent>/`.
-        (i) **You work on a BRANCH, open a PR, and DO NOT MERGE IT.** The reviewing agent merges, and
+        (h) **`InputSpec.snapTo` IS READ** (`chooseSnap`'s `allow`, Entry 80). `SNAP_PRIORITY` ranks
+            `endpoint`/`midpoint` ABOVE `face`, and an endpoint candidate carries the **EDGE's**
+            `SubShapeRef` — so any tool consuming `SnapHit.ref` that does not constrain `snapTo` will
+            silently receive the wrong KIND of identity near a corner.
+        (i) **A `SnapHit`'s `ref`/`elementId` AND ITS `point` MUST COME FROM THE SAME PLACE.** The
+            controller takes both from the snap, never one from the snap and one from `pick`.
+        (j) `ToolSession.collected` is `CollectedInput[]` (`{ point, ref?, elementId? }`), not
+            `Vec3[]`; `anchorOf` still returns a `Vec3`; `Tool.commit(inputs, ctx)` takes a
+            `ToolContext` whose only method is `paramsOf(elementId)`. Widening it is a design decision.
+        (k) `PickResult` carries `point` (the ray hit, world mm, Tier 1). `faceCandidate()` turns a
+            pick into a per-frame `'face'` candidate; it is NOT in the index, and the comment says why
+            (a face is a region, not a place).
+        (l) The docs live in `docs/contracts/`, `docs/design/`, `docs/reviews/`; `current_state.md`,
+            both prompts, `REVIEW.md` and `open_rulings.md` stay at the root. §4 is a one-line INDEX
+            (full rulings in `docs/decisions.md`), §5 is LIVE PRIORITIES ONLY, §7 is ten fixed-schema
+            ABSTRACTS with bodies in `handoff/<agent>/`.
+            ⚠ **§7 IS OVER-TIGHT RIGHT NOW.** Entry 84 had to rotate one out to fit and chose **77**
+            rather than the strictly-oldest **76**, because PR #10 rotates 76 and doing it twice would
+            collide in `docs/history.md` §C. Expect an ordinary §7 merge conflict; it is thirty seconds.
+        (m) **You work on a BRANCH, open a PR, and DO NOT MERGE IT.** The reviewing agent merges, and
             the reviewer is by construction a later session. `docs:check` fails on a stale
             `AWAITING REVIEW`.
-        (j) **`NOTICE` IS MACHINE-ENFORCED AND IT AIMS AT YOU.** `tests/notice-attribution.test.ts`
+        (n) **`NOTICE` IS MACHINE-ENFORCED AND IT AIMS AT YOU.** `tests/notice-attribution.test.ts`
             walks every workspace manifest, `apps/web` included, and fails `pnpm verify` if a
             **runtime** dependency is unattributed with its licence text under `licenses/`. **The next
             npm package you add to the browser bundle is a licence obligation, not just an install.**
             `pnpm licenses list --prod` is the instrument.
-        (k) **⚠ THE KERNEL CAN REFUSE TO BOOT** (Entry 79). `createOcctKernel` throws
+        (o) **⚠ THE KERNEL CAN REFUSE TO BOOT** (Entry 79). `createOcctKernel` throws
             `[INTERNAL] Kernel artifact mismatch` when the WASM's `toolchainId()` disagrees with
-            `OCCT_BUILD_ID`. It fires in the browser, at construction, and only on a broken build —
-            if the app ever dies at boot with that message the fix is a rebuild/pull, not your code.
-        (l) **⚠ YOU ARE THE ONLY MACHINE THAT CAN CLEAR A BROWSER CLAIM.** If a merged entry carries
+            `OCCT_BUILD_ID`. It fires in the browser, at construction, and only on a broken build.
+        (p) **⚠ YOU ARE THE ONLY MACHINE THAT CAN CLEAR A BROWSER CLAIM.** If a merged entry carries
             `unverified here: <claim>`, clearing it is your FIRST action. **None is outstanding as of
-            Entry 80** (checked, not assumed).
+            Entry 84** (checked, not assumed).
+        (q) **⚠ THIS MACHINE HAS ITS OWN GITHUB ACCOUNT** (`narutousomaki741`, distinct from Zayd's).
+            `gh` is authenticated, and **Q13's objection is gone** — branch protection requiring a
+            non-author approval would no longer block every merge. Still the owner's call.
+            ⚠ `gh pr review --approve` CANNOT WORK on your own PR, so the loop's "approving review" is
+            always a `gh pr comment`.
 
         (Standing app facts, still true:)
         (0a) The app registers the REAL `@bunyan/types` (`core.wall` the D52 baseline, `core.opening`,
              the curtain-wall four). `core.wall.v1` is still registered but relabelled "legacy v1
              scaffold" so pre-Entry-70 documents build (D43). Author new walls as `core.wall`.
         (0b) `apps/web/src/tool/` is the tool layer — `snap.ts` (Tier 1, PURE, projection injected) ·
-             `QueryGateway.ts` (Tier 2, read-only, four ops as explicit overloads = the allowlist) ·
-             `toolMachine.ts` + `tools.ts` · `numeric.ts` · `useToolController.ts`. Domain rule 19
-             governs it: a tool collects input, only a command changes the model.
+             **`align.ts` (Tier 1, PURE, the guides)** · `QueryGateway.ts` (Tier 2, read-only, four ops
+             as explicit overloads = the allowlist) · `toolMachine.ts` + `tools.ts` · `numeric.ts` ·
+             `useToolController.ts`. Domain rule 19 governs it: a tool collects input, only a command
+             changes the model.
         (0c) ⚠ **React BATCHES, and a handler that closes over state WILL read a stale value** — this
              cost a real bug (typing `5000` produced `0`). In `useToolController`, decisions read a
              REF and writes go through `putSession`/`putNumeric`. Keep that discipline in any new tool.
