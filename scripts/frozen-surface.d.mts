@@ -34,6 +34,17 @@ export declare function baselineSnapshot(
   surface: FrozenSurface;
 };
 
+/**
+ * Every reason the committed baseline's audit fields are wrong. Empty ⇒ sound.
+ *
+ * ⚠ `abstracts` is the `current_state.md` §7 parse — a ROTATING window, which is why membership in
+ * it is not the invariant. See the implementation's comment; Entry 84's review is the reason.
+ */
+export declare function baselineEntryIssues(
+  snapshot: { _baselinedAtEntry: number; _baselinedAt: string },
+  abstracts: readonly { n: number; date: string }[],
+): string[];
+
 /** Compare a surface against a baseline. All entries are `"<file> :: <kind> <name>"`. */
 export declare function diffSurface(
   baseline: FrozenSurface,

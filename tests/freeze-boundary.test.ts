@@ -22,6 +22,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
+  baselineEntryIssues,
   baselineSnapshot,
   buildSurface,
   diffSurface,
@@ -203,17 +204,77 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
     // `_baselinedAtEntry` COMPUTED from the §7 parse. Pinning the literal it computed on one particular
     // day put the constant straight back: every LEGITIMATE re-baseline then fails this test, which is a
     // gate that cries wolf — and a gate that cries wolf is edited to shut up. It fired on exactly that,
-    // this entry's own re-baseline (`expected 83 to be 77`), having asserted something STRONGER AND
+    // Entry 83's own re-baseline (`expected 83 to be 77`), having asserted something STRONGER AND
     // DIFFERENT from its own title for two entries.
     //
-    // ⇒ Assert the TITLE. The invariant is *"names an entry that exists"*, so resolve it against the §7
-    // parse — the same source `baselineSnapshot` computes it from — and keep the `72` regression pinned,
-    // because that number IS a specific historical defect rather than a moving fact.
-    const entries = parseAbstracts(readCurrentState(ROOT)).map((a) => a.n);
-    expect(entries.length).toBeGreaterThan(0);
-    expect(entries).toContain(snapshot._baselinedAtEntry);
-    expect(snapshot._baselinedAtEntry).not.toBe(72);
-    // A real ISO date, not a placeholder — the other half `...prev` used to carry forward silently.
-    expect(snapshot._baselinedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    // ⚠⚠ AND ENTRY 83's REPLACEMENT — `expect(entries).toContain(...)` INLINE HERE — HAD THE SAME
+    // DISEASE ONE STEP FURTHER OUT (found by Entry 84's review, which Entry 83's own checklist item 1
+    // asked for). §7 is a ROTATING TEN-ENTRY WINDOW, so membership in it is not existence; the next
+    // test measures the difference. The rule now lives in `baselineEntryIssues`, beside the writer it
+    // audits, and is checked against a population that does not rot.
+    expect(baselineEntryIssues(snapshot, parseAbstracts(readCurrentState(ROOT)))).toEqual([]);
+  });
+
+  /**
+   * ⚠⚠ THE GATE MUST SURVIVE §7's ROTATION, AND THIS IS THE TEST THAT SAYS SO.
+   *
+   * `parseAbstracts` reads §7, whose own rotation rule caps it at ten abstracts. Entry **76** is a
+   * real entry — its abstract is in `docs/history.md` §C, its body is
+   * `handoff/zayd/2026-08-02-entry74-late-review.md` — and it is NOT in §7. A baseline naming it is a
+   * repo that has not touched a frozen shape in a while, which is the CORRECT state, and after the P5
+   * freeze it is the MANDATORY one: `_README` says the file may not be updated without an owner ruling.
+   *
+   * ⇒ Under the previous assertion (`expect(§7 numbers).toContain(entry)`) this scenario is RED with
+   * nothing wrong. Revert `baselineEntryIssues` to that membership test and the second expectation
+   * below fails; the first is what proves the scenario is real rather than hypothetical.
+   */
+  it('⚠ an entry that has ROTATED OUT of §7 still exists — the gate must not cry wolf', () => {
+    const abstracts = parseAbstracts(readCurrentState(ROOT));
+
+    // The premise, measured rather than assumed: 76 really has left the window.
+    expect(abstracts.map((a) => a.n)).not.toContain(76);
+
+    // …and it is still a real entry, so a baseline naming it is sound.
+    expect(
+      baselineEntryIssues({ _baselinedAtEntry: 76, _baselinedAt: '2026-08-02' }, abstracts),
+    ).toEqual([]);
+  });
+
+  /**
+   * ⚠ THE HALF THAT REPLACES WHAT `toContain` WAS REACHING FOR — and it costs no constant.
+   *
+   * Q15's defect was `_baselinedAtEntry: 72` sitting beside `_baselinedAt: '2026-08-03'`, which is
+   * ENTRY 77's date. The two fields disagreed, and 72 was in §7 at the time, so the disagreement was
+   * detectable without anyone remembering a number. That is the check — and it SKIPS once the named
+   * entry rotates, which is exactly why it never becomes the previous test's problem.
+   */
+  it("⚠⚠ catches Q15's own shape: an entry number that disagrees with the date beside it", () => {
+    const abstracts = parseAbstracts(readCurrentState(ROOT));
+    // ⚠ By MAX, not by position — §7 is written newest-first by convention and nothing enforces it.
+    const newest = abstracts.reduce((a, b) => (b.n > a.n ? b : a));
+    // ⚠ Pick a date that is NOT this entry's own, whatever §7 currently says — a literal would be
+    // one more hand-maintained constant, which is the disease this whole describe block is about.
+    const wrong = newest.date === '2026-01-01' ? '2026-01-02' : '2026-01-01';
+
+    expect(
+      baselineEntryIssues({ _baselinedAtEntry: newest.n, _baselinedAt: wrong }, abstracts),
+    ).toEqual([
+      `_baselinedAtEntry ${newest.n} is dated ${newest.date} in §7, but _baselinedAt says ${wrong}`,
+    ]);
+
+    // An entry number that has not happened yet — the shape a mistyped constant takes.
+    expect(
+      baselineEntryIssues(
+        { _baselinedAtEntry: newest.n + 1, _baselinedAt: newest.date },
+        abstracts,
+      ),
+    ).toEqual([
+      `_baselinedAtEntry is ${newest.n + 1}, but the newest entry that exists is ${newest.n}`,
+    ]);
+
+    // And the historical number stays pinned.
+    expect(
+      baselineEntryIssues({ _baselinedAtEntry: 72, _baselinedAt: '2026-08-03' }, abstracts).join(),
+    ).toContain('72');
   });
 });

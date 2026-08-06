@@ -596,7 +596,19 @@ is maintenance and does NOT get an entry of its own.**
   the remaining lever is the owner's alone.** Amer: **Q18 is still yours.**
 - **RISK:** contract-touching
 - **FULL:** `handoff/zayd/2026-08-06-e83-reserved-ref-sweep.md`
-- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+- **REVIEW:** Reviewed by **Entry 84** (Amer, a later session). Item 1(a) re-executed: `view.ts`'s deleted
+  copy restored ⇒ `design-option-refs` **5/5 GREEN either way** — behaviour-preserving, as claimed. Item 4:
+  `systemId`'s zero-readers claim **counted independently** — 5 sites in `packages/`, all declaration,
+  schema or write; no body reads it. Item 5: Q19 **re-derived from a fresh harness** — 2 rows /
+  7 200 000 000 mm³ ⇒ after `core.deleteElement` on the parent, **0 rows / 0 mm³ `basis:'exact'`**,
+  `modelElements()` 0, both diagnostics `[]`, child measures 3 600 000 000 mm³ directly. ⚠⚠ **ONE DEFECT
+  FOUND AND FIXED ON THE BRANCH — item 1(b), the half this entry asked to be attacked: the replacement
+  assertion resolved `_baselinedAtEntry` against §7, which is a ROTATING TEN-ENTRY WINDOW, so it tests
+  "has not rotated out" and not "exists" — and the `_README` policy this file enforces GUARANTEES the
+  baseline sits still post-freeze, so the gate would go red for obeying the freeze.** Now
+  `baselineEntryIssues` in `frozen-surface.mjs`, checked against what does not rot, plus the cross-field
+  date check that would have caught Q15 itself; revert-verified (`76 is not in §7`). **APPROVED — and it
+  is `contract-touching`, so it needs the OWNER's merge, not mine.**
 
 ### 82 | 2026-08-06 | Zayd | the design-options question, walked — the two doors are a 50% silent under-report (Q17)
 
