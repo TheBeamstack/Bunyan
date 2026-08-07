@@ -250,11 +250,44 @@ export class SnapIndex {
     for (const candidate of candidates) this.add(candidate);
   }
 
-  /** Every candidate within `radiusMm` of `point` — every bucket the sphere touches, never just one. */
+  /**
+   * Every candidate within `radiusMm` of `point` — every bucket the sphere touches, never just one.
+   *
+   * ⚠⚠ TWO WAYS TO ANSWER THE SAME QUESTION, AND WHICH IS CHEAPER DEPENDS ENTIRELY ON THE RADIUS.
+   * Sweeping the sphere's cells costs `(2·reach+1)³` map lookups **whether or not those cells hold
+   * anything**, so the cost is set by the RADIUS and not by the model. That is fine at the snap
+   * radius (3 m ⇒ 13³ = 2 197 probes, 0.16 ms) and ruinous at the guide radius (15 m ⇒ 61³ =
+   * 226 981 probes, measured at **16.5 ms per call against a 24-candidate index** — essentially all
+   * of it spent proving that empty cells are empty, on the per-frame pointer path). Entry 86 review
+   * of Entry 84.
+   *
+   * ⇒ When the sweep would probe more cells than the index holds candidates, SCAN the candidates
+   * instead and apply the identical cell-window test. Same answer; the cost becomes the smaller of
+   * the two rather than always the first. This is D73's lesson carried one step on — *an index buys
+   * speed by changing who is asked* — and a sweep whose bound is the query VOLUME has stopped being
+   * an index at all.
+   *
+   * ⚠ The cell-window test is kept EXACTLY the sweep's, so the branches return the same set. Order is
+   * not part of this method's contract (it was already insertion-order within a bucket); callers rank
+   * by the ruled priority and pixel distance, never by position in this array.
+   */
   near(point: Vec3, radiusMm: number): SnapCandidate[] {
     const reach = Math.max(0, Math.ceil(radiusMm / this.#cellMm));
     const [cx, cy, cz] = this.#cellOf(point);
     const out: SnapCandidate[] = [];
+
+    if ((2 * reach + 1) ** 3 > this.#size) {
+      for (const bucket of this.#buckets.values()) {
+        for (const candidate of bucket) {
+          const [i, j, k] = this.#cellOf(candidate.point);
+          if (Math.abs(i - cx) <= reach && Math.abs(j - cy) <= reach && Math.abs(k - cz) <= reach) {
+            out.push(candidate);
+          }
+        }
+      }
+      return out;
+    }
+
     for (let i = cx - reach; i <= cx + reach; i++) {
       for (let j = cy - reach; j <= cy + reach; j++) {
         for (let k = cz - reach; k <= cz + reach; k++) {

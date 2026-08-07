@@ -124,6 +124,64 @@ describe('SnapIndex — and the bucket-boundary risk the index itself creates (D
     expect(index.size).toBe(2);
     expect(index.near([0, 0, 0], 100)).toHaveLength(2);
   });
+
+  /**
+   * ⚠⚠ THE COST OF A `near()` MUST BE SET BY WHAT THE INDEX HOLDS, NOT BY THE RADIUS ASKED FOR.
+   *
+   * The sweep probes `(2·reach+1)³` cells whether or not they hold anything, so a large radius pays
+   * for proving that empty space is empty. Entry 84 put a 15 m query (61³ = 226 981 probes) on the
+   * per-frame pointer path — measured at **16.5 ms per call against a 24-candidate index**, where the
+   * 3 m snap query beside it costs 0.16 ms. It is not a scale problem: the demo scene pays it too,
+   * because the count that drives it is the radius.
+   */
+  it('⚠ answers a huge radius in the time the CANDIDATES cost, not the time the VOLUME costs', () => {
+    const index = new SnapIndex(500);
+    index.add(candidate([1000, 0, 0], 'endpoint'));
+
+    // 100 m: a legitimate query on a large site, and the radius is chosen so a REGRESSION FAILS
+    // RATHER THAN HANGS. The sweep would probe 401³ ≈ 64 million cells for this ONE candidate
+    // (~6 s — measured); a kilometre would be 6.4e10 and would never finish, and because the loop is
+    // synchronous vitest's own timeout cannot fire, so CI would hang instead of going red.
+    const t0 = performance.now();
+    const found = index.near([0, 0, 0], 100_000);
+    const elapsedMs = performance.now() - t0;
+
+    expect(found).toHaveLength(1);
+    expect(found[0]!.point).toEqual([1000, 0, 0]);
+    // Three orders of magnitude below the 16.5 ms the guide radius already costs, and the sweep
+    // cannot come near it — this asserts the ALGORITHM, not a machine speed.
+    expect(elapsedMs).toBeLessThan(15);
+  });
+
+  it('⚠ the two branches agree — a scanned answer is the SAME SET as a swept one', () => {
+    // The fast path must not change WHO IS ASKED (D73). Same index, radii either side of the
+    // crossover, compared as sets.
+    const index = new SnapIndex(500);
+    for (let i = 0; i < 60; i++) {
+      index.add(candidate([((i * 37) % 20) * 250, ((i * 53) % 20) * 250, 0], 'endpoint'));
+    }
+    const key = (list: readonly { readonly point: Vec3 }[]): string =>
+      list
+        .map((c) => c.point.join(','))
+        .sort()
+        .join(' | ');
+
+    for (const radiusMm of [0, 250, 600, 1200, 3000, 7500, 15_000, 40_000]) {
+      // The sweep, computed here independently of the index's own choice of branch.
+      const reach = Math.ceil(radiusMm / 500);
+      const swept = index
+        .near([0, 0, 0], 40_000) // everything, then filtered by the sweep's own cell window
+        .filter((c) => {
+          const cell = (v: number): number => Math.floor(v / 500);
+          return (
+            Math.abs(cell(c.point[0]) - 0) <= reach &&
+            Math.abs(cell(c.point[1]) - 0) <= reach &&
+            Math.abs(cell(c.point[2]) - 0) <= reach
+          );
+        });
+      expect(key(index.near([0, 0, 0], radiusMm))).toBe(key(swept));
+    }
+  });
 });
 
 describe('chooseSnap — the OWNER-RULED priority order (Q3), not nearest-wins', () => {

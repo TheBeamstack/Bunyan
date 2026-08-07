@@ -140,9 +140,14 @@ export function guideCandidates(guides: readonly AlignmentGuide[]): SnapCandidat
  * Which Tier-1 candidates may serve as a guide's reference.
  *
  * ⚠⚠ **`'grid'` IS EXCLUDED, AND IT IS THE WHOLE REASON THIS FUNCTION EXISTS RATHER THAN A `.map()`.**
- * The ground grid is a lattice: every cursor position on the plane is aligned with SOME grid
- * intersection on both axes, so admitting grid points would light both guides permanently, everywhere,
- * and a guide that is always on carries no information at all. Grid alignment is already served, and
+ * The ground grid is a lattice, so admitting grid points lights both guides at once — and **the
+ * condition for "everywhere, permanently" is a zoom, not a certainty** (corrected at Entry 86; the
+ * original note here claimed it held at every cursor position unconditionally, and the test backing it
+ * had put the cursor ON both grid lines). A guide fires on a PIXEL tolerance: once the grid pitch
+ * projects to no more than twice that tolerance — a 1 m grid at anything but a close zoom — every
+ * cursor is within tolerance of some grid line on both axes and the overlay never goes out. Zoomed
+ * in it flickers on and off with the pitch instead, which is not an improvement: an alignment that
+ * appears and vanishes as you zoom informs nobody either way. Grid alignment is already served, and
  * served better, by the `'grid'` snap itself — which is EXACT (`snap.ts`) where a guide is not.
  *
  * ⚠ `'face'` is excluded for the same reason one step along: a face candidate is wherever the ray hit,

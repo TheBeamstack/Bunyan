@@ -210,35 +210,67 @@ describe('⚠⚠ which candidates may be a REFERENCE — and the lattice that mu
     ]);
   });
 
-  it('⚠⚠ THE WEAK GREEN THIS BLOCKS: a grid lattice would light both guides at EVERY cursor position', () => {
-    // Measured rather than argued. A 1000 mm grid over ±3 m, and a cursor at an arbitrary spot that is
-    // on no grid line at all: admitting grid points as references fires two guides anyway, because some
-    // intersection shares the cursor's x and another shares its y to within a pixel.
+  /**
+   * ⚠⚠ THE LATTICE ARGUMENT, WITH ITS REAL PRECONDITION — corrected at Entry 86's review of Entry 84.
+   *
+   * The original form of this test asserted *"both guides at EVERY cursor position, permanently"* from a
+   * cursor at `[1000, 2000, 0]` on a 1000 mm lattice — which is a point sitting ON both grid lines, the
+   * single most favourable position there is. It passed for a reason weaker than its own title (§1c-7),
+   * and the universal claim it stated is false: the guide fires on a PIXEL tolerance, so whether the
+   * lattice covers the plane depends on what a grid pitch is WORTH IN PIXELS, i.e. on the zoom.
+   *
+   * The true statement is the one below, and it is the one that justifies the exclusion: **once the grid
+   * pitch projects to no more than twice the tolerance, every cursor position is within tolerance of some
+   * grid line on both axes** — so the overlay is permanently lit at any zoom at or beyond that, which for
+   * a 1 m grid and a 12 px tolerance is simply "most of the time". Zoomed in it is intermittent instead,
+   * which is not better: an alignment that appears and vanishes with the zoom is noise either way.
+   */
+  it('⚠⚠ THE WEAK GREEN THIS BLOCKS: a grid lattice lights both guides at every cursor ONCE ZOOMED OUT', () => {
     const lattice: SnapCandidate[] = [];
     for (let i = -3; i <= 3; i++) {
       for (let j = -3; j <= 3; j++) {
         lattice.push({ point: [i * 1000, j * 1000, 0], kind: 'grid' });
       }
     }
-    const cursor: Vec3 = [1000, 2000, 0];
+    // 1000 mm ⇒ 20 px, i.e. pitch < 2 × tolerance. THE WORST CASE: dead between four intersections,
+    // the position furthest from every grid line. If the guides fire here they fire everywhere.
+    const zoomedOut: Project = (p) => [p[0] / 50, p[1] / 50];
+    const worst: Vec3 = [1500, 2500, 0];
     const asGrid = alignmentGuides({
-      cursor,
-      cursorPx: [1000, 2000],
+      cursor: worst,
+      cursorPx: [1500 / 50, 2500 / 50],
       references: lattice.map((c) => c.point),
-      project: flat,
+      project: zoomedOut,
       tolerancePx: 12,
     });
     expect(asGrid.map((g) => g.axis)).toEqual(['x', 'y']); // always on ⇒ informs nobody
 
-    // Through the real reference filter, the same lattice yields nothing at all.
+    // ⚠ And the precondition is REAL, not decorative: at 1 mm ⇒ 1 px the same lattice and the same
+    // worst-case cursor fire NOTHING, which is why the original universal claim was wrong.
     expect(
       alignmentGuides({
-        cursor,
-        cursorPx: [1000, 2000],
-        references: referencePoints(lattice),
+        cursor: worst,
+        cursorPx: [1500, 2500],
+        references: lattice.map((c) => c.point),
         project: flat,
         tolerancePx: 12,
       }),
     ).toEqual([]);
+
+    // Through the real reference filter, the lattice yields nothing at EITHER zoom.
+    for (const [project, cursorPx] of [
+      [zoomedOut, [1500 / 50, 2500 / 50]],
+      [flat, [1500, 2500]],
+    ] as const) {
+      expect(
+        alignmentGuides({
+          cursor: worst,
+          cursorPx,
+          references: referencePoints(lattice),
+          project,
+          tolerancePx: 12,
+        }),
+      ).toEqual([]);
+    }
   });
 });
