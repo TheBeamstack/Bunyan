@@ -553,6 +553,50 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 86 | 2026-08-07 | Amer | the corner-drag, and the wrapper that was eating D23's transaction
+
+- **CHANGED:** `apps/web` only. **`tool/drag.ts` NEW** (`dragPlans` · `cornerDragPlan` ·
+  `cornerPeerCount`; PURE, no `DocumentContext`) · **`tool/drag.test.ts` NEW (+13)** ·
+  `edit/agentRefresh.ts` (**the fix**) · `edit/agentRefresh.test.ts` (**+2**) · `App.tsx`
+  (`RIBBON_WITHHELD` — `core.array` refuses by design, so its generated button is a control that cannot
+  work) · `current_state.md` · `docs/history.md` §C · `open_rulings.md` (Q8 answered, Q20 NEW).
+  **No frozen byte, no verb, no schema bump, no `packages/` file.**
+- **VERIFIED:** **753 green** across 87 files, six gates, real exit code 0. Revert-verified on the fix
+  (drop `options` again ⇒ RED, `expected undefined to deeply equal { transactionId: 'gesture-7' }`).
+  ⚠⚠ **AND IN THE BROWSER, BEFORE AND AFTER, ON THE REAL DEMO SCENE:** two `core.setParams` under ONE
+  `transactionId`, then one undo — **before:** `w1.end=[4500,500]` `w2.start=[4000,0]` (two undos
+  needed); **after:** both back, and one redo restores both. Control: the same edits with NO
+  `transactionId` behaved IDENTICALLY to the broken case, which is what proved it was the wrapper.
+- **FOUND:** ⚠⚠ **`withUiRefresh` WAS DROPPING `ExecuteOptions` — `execute` was declared
+  `(command, args)`, so `transactionId` never reached the document and D23's corner-drag undid ONE EDIT
+  AT A TIME.** Nothing failed: every edit applied, geometry right, both diagnostics `[]`. The casualty
+  was undo GRANULARITY — and the half-undone state of a corner-drag is a corner left **OPEN**, a model
+  the user never authored that the join resolver will faithfully resolve. **The document layer is
+  clean** — `agent.ts:178` forwards, `document.ts:396` stamps, `:416` pushes, `takeUndoGroup` groups
+  (pinned headlessly); it was four missing characters in `apps/web`. ⇒ **The four existing tests were
+  good tests that all asserted what the wrapper ADDS and none what it must not TAKE AWAY. For a
+  wrapper, assert the ARGUMENTS ARRIVE — the variadic tail is where things vanish silently.**
+  ⚠⚠ **Q8 ANSWERED: the refusal is RIGHT and must not be relaxed** (a placement beside a D52 baseline
+  moves the solid and leaves the join resolver, room solver and billed length at the old baseline —
+  a silent wrong schedule), **but the demo scene contains NOTHING `core.move` accepts** — both walls
+  REFUSED. ⇒ the hostility is in rendering a refusing verb as a generic ribbon button, not in the rule
+  (⇒ **Q20**). ⚠ **Measured correction to the dry run's reputation:** a REFUSED probe costs **1.6 ms
+  then 0.2 ms**, not ~100 ms — `checkPositioning` refuses BEFORE any geometry is staged; an ACCEPTED
+  one costs 28.5 ms. That is what makes probe-and-route affordable. ⚠ The planner therefore **does not
+  classify**: duplicating `positioningOf` in the app would be a second copy of the engine's own
+  `baselineOf` test, and it would drift silently.
+- **OWES:** Owner: **Q20 NEW** (which verbs deserve a generated ribbon button, given some refuse by
+  design) · **Q8 is answered above — strike or confirm**. ⚠ **PR #12 (entry 85, Zayd) is
+  `contract-touching` and still needs YOUR merge**; reviewed this session, no defect found, full record
+  in its comment. Q11/Q12/Q13/Q17a/Q17b/Q17c/Q18/Q19 stand. Zayd: ⚠ **the D23 transaction was never
+  actually reaching the document through `window.bunyan`** — any agent-side work that assumed grouping
+  worked was running without it.
+- **RISK:** additive
+- **FULL:** `handoff/amer/2026-08-07-move-tool-corner-drag.md`
+- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+  ⚠ **The GL gizmo did NOT ship** — the planner, the corner-drag grouping and the transaction did.
+  Stated in §4 of the body rather than glossed; next session builds the handles on top.
+
 ### 84 | 2026-08-06 | Amer | alignment guides ship — and the guide is the first candidate that owns NOTHING
 
 - **CHANGED:** `apps/web` only. **`tool/align.ts` NEW** (`alignmentGuides` · `guideCandidates` ·
@@ -845,57 +889,6 @@ is maintenance and does NOT get an entry of its own.**
   stopped one file short — `useToolController.ts`'s header still drew `SnapGateway`/`PreviewLayer`, and
   neither has ever existed. **689 green, 82 files, six gates, exit 0.**
 
-### 79 | 2026-08-05 | Zayd | the emsdk image is pinned by digest — and the artifact now names its own compiler (Q14)
-
-- **CHANGED:** `tools/kernel-build/toolchain.json` (**NEW** — one machine-readable pin: OCCT version,
-  emsdk image + **digest**, emcc version + commit, derived `buildId`; read by the recipe AND the tests) ·
-  `README.md` (all five `emscripten/emsdk:latest` sites → `"$EMSDK"`; "Pinned toolchain" rewritten — it
-  claimed a pin it did not have) · `probe.sh` + `current_state.md` §6 (the pasteable commands) ·
-  `tools/kernel-build/src/kernel.cpp` (**`toolchainId()`** + `<emscripten/version.h>`,
-  `<Standard_Version.hxx>`, the binding) · **the WASM relinked on the pinned digest** (+139 B) + its
-  `.d.ts` · `packages/kernel-occt/src/kernel.ts` (**`createOcctKernel` REFUSES a module whose
-  `toolchainId()` disagrees with `OCCT_BUILD_ID`**; `artifactBuildId()` on `OcctKernel`) ·
-  `scripts/reseed-paths.mjs` (`toolchain.json` gated — it names the COMPILER) ·
-  `tests/kernel-build-pin.test.ts` (**NEW, 6 tests**) · `tests/reseed-gate.test.ts` (+1) · goldens
-  re-seeded · `open_rulings.md` (**Q14 STRUCK**). No schema bump, no frozen byte.
-- **VERIFIED:** **661 green** across 82 files, all six gates, **real exit code 0**, real OCCT throughout.
-  **Revert-verified 4 ways, each watched RED:** the pre-Entry-79 artifact → `wasm.toolchainId is not a
-  function`; `OCCT_BUILD_ID` set to `…6.0.5` → `[INTERNAL] Kernel artifact mismatch` in two suites;
-  `:latest` put back → the guard names the exact code block; the gate path removed → RED.
-- **FOUND:** ⚠⚠ **THE TAG HAD ALREADY MOVED — Q14 WAS A LIVE DEFECT, NOT A HYPOTHETICAL.** The artifact
-  was linked by `sha256:644883f5…` = **emsdk 6.0.2**; `:latest` today is `sha256:76a44fff…` = **6.0.5**,
-  three releases on. Following the README verbatim relinks with a compiler `OCCT_BUILD_ID` does not name
-  and **all four tests asserting it stay green**. ⚠ The only reason Entry 77's rebuild was not already
-  wrong is that `docker run` does not re-pull a cached tag — a coincidence, not a control. ⚠⚠ **AND
-  "READ IT BACK FROM THE ARTIFACT" WAS IMPOSSIBLE, NOT MERELY UNDONE:** the shipped `.wasm` had **11
-  sections, ZERO custom sections and not one version string in 14.7 MB** (`-O3` strips `producers`), so
-  no test could have caught it even in principle. The id is now composed from `OCC_VERSION_COMPLETE` +
-  `__EMSCRIPTEN_*__` — compile-time macros, greppable in the binary. ⚠⚠ **THE PIN IS PROVEN, NOT
-  ASSERTED: relinking the unmodified source on the digest reproduced the committed artifact BYTE FOR
-  BYTE** (wasm `819ff12c…`, js `fc5b0421…`, `cmp` clean, ~75 s). ⚠ `OCC_VERSION_STRING` is **"7.9"**,
-  not "7.9.3" (`OCC_VERSION_COMPLETE` is) — the obvious spelling ships a plausible wrong id. ⚠
-  `__EMSCRIPTEN_MAJOR__` is **not predefined** and the lowercase form is `#pragma clang deprecated`. ⚠
-  **The re-seed diff is ONE `seededAt` LINE again** — second entry running ⇒ Q16.
-- **OWES:** Owner: **nothing — `RISK: additive`, so the REVIEWING agent merges this.** Q15/Q16/Q17 and
-  Q11/Q12 stand as recorded; Q16 gained a second worked example. Amer: `createOcctKernel` can now
-  **reject at construction** on an artifact/constant mismatch — it fires in the browser too, and only on
-  a broken build.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-05-emsdk-digest-pin.md`
-- **REVIEW:** **REVIEWED + MERGED 2026-08-05 by the Entry-80 session** (Amer, a later session — the
-  protocol holding for a fifth entry); full record in PR #6's comment. Item 1 executed: `OCCT_BUILD_ID` →
-  `…6.0.5` went RED in **both** suites with the refusal firing from `createOcctKernel`. Independently
-  corroborated the load-bearing claim the entry did not make — the id is **one NUL-terminated literal at
-  offset 13,109,054** of the shipped `.wasm`, so nothing on the TypeScript side can have put it there.
-  ⚠ **ONE FINDING, PROVEN AND FIXED ON THE BRANCH: the backward sweep stopped one file short of `NOTICE`,**
-  whose §1 asserted all four of the things this entry made false (the mutable tag, the non-reproducible
-  rebuild, *"not a value read back out of the artifact"*, and *"that pin is open as a ruling"*) — in the
-  LGPL 2.1 §6 attribution, the one document here with a reader outside this repo. 4 tests, all watched RED.
-  ⚠ Correction: the byte-for-byte relink was against the artifact as committed **before** this entry
-  (`819ff12c…` = main's wasm, re-measured); what ships is that source +`toolchainId()`, 14 682 327 →
-  14 682 466 B. `NOTICE` now states the two separately.
-
-
 ---
 
 ## §8 — Generated
@@ -904,17 +897,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **84 (Amer, 2026-08-06)** |
-| branch · tip · tree | `amer/2026-08-06-alignment-guides` · `73bcdac` · dirty |
+| **newest entry** | **86 (Amer, 2026-08-07)** |
+| branch · tip · tree | `amer/2026-08-07-move-tool-corner-drag` · `a1a82e0` · dirty |
 | open PRs | #12 zayd/2026-08-06-e85-hostid-sweep |
-| suite | **730 green** · 85 files · 231 suites |
+| suite | **753 green** · 87 files · 236 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 7 files changed, 440 insertions(+), 186 deletions(-) (7 files) |
-| docs budget | current_state 75.7/96.0 KB · §7 29.9/32.0 KB · abstracts 6/10 · bodies 29 |
+| diff vs origin/main | 7 files changed, 195 insertions(+), 68 deletions(-) (7 files) |
+| docs budget | current_state 77.1/96.0 KB · §7 31.3/32.0 KB · abstracts 6/10 · bodies 31 |
 
-_Generated 2026-08-06 by `pnpm state`._
+_Generated 2026-08-07 by `pnpm state`._
 
 <!-- END GENERATED -->

@@ -303,7 +303,57 @@ project._
 
 ---
 
-## §C — Entries 54–77 — the full bodies now live in `handoff/`
+## §C — Entries 54–79 — the full bodies now live in `handoff/`
+
+### 79 | 2026-08-05 | Zayd | the emsdk image is pinned by digest — and the artifact now names its own compiler (Q14)
+
+- **CHANGED:** `tools/kernel-build/toolchain.json` (**NEW** — one machine-readable pin: OCCT version,
+  emsdk image + **digest**, emcc version + commit, derived `buildId`; read by the recipe AND the tests) ·
+  `README.md` (all five `emscripten/emsdk:latest` sites → `"$EMSDK"`; "Pinned toolchain" rewritten — it
+  claimed a pin it did not have) · `probe.sh` + `current_state.md` §6 (the pasteable commands) ·
+  `tools/kernel-build/src/kernel.cpp` (**`toolchainId()`** + `<emscripten/version.h>`,
+  `<Standard_Version.hxx>`, the binding) · **the WASM relinked on the pinned digest** (+139 B) + its
+  `.d.ts` · `packages/kernel-occt/src/kernel.ts` (**`createOcctKernel` REFUSES a module whose
+  `toolchainId()` disagrees with `OCCT_BUILD_ID`**; `artifactBuildId()` on `OcctKernel`) ·
+  `scripts/reseed-paths.mjs` (`toolchain.json` gated — it names the COMPILER) ·
+  `tests/kernel-build-pin.test.ts` (**NEW, 6 tests**) · `tests/reseed-gate.test.ts` (+1) · goldens
+  re-seeded · `open_rulings.md` (**Q14 STRUCK**). No schema bump, no frozen byte.
+- **VERIFIED:** **661 green** across 82 files, all six gates, **real exit code 0**, real OCCT throughout.
+  **Revert-verified 4 ways, each watched RED:** the pre-Entry-79 artifact → `wasm.toolchainId is not a
+  function`; `OCCT_BUILD_ID` set to `…6.0.5` → `[INTERNAL] Kernel artifact mismatch` in two suites;
+  `:latest` put back → the guard names the exact code block; the gate path removed → RED.
+- **FOUND:** ⚠⚠ **THE TAG HAD ALREADY MOVED — Q14 WAS A LIVE DEFECT, NOT A HYPOTHETICAL.** The artifact
+  was linked by `sha256:644883f5…` = **emsdk 6.0.2**; `:latest` today is `sha256:76a44fff…` = **6.0.5**,
+  three releases on. Following the README verbatim relinks with a compiler `OCCT_BUILD_ID` does not name
+  and **all four tests asserting it stay green**. ⚠ The only reason Entry 77's rebuild was not already
+  wrong is that `docker run` does not re-pull a cached tag — a coincidence, not a control. ⚠⚠ **AND
+  "READ IT BACK FROM THE ARTIFACT" WAS IMPOSSIBLE, NOT MERELY UNDONE:** the shipped `.wasm` had **11
+  sections, ZERO custom sections and not one version string in 14.7 MB** (`-O3` strips `producers`), so
+  no test could have caught it even in principle. The id is now composed from `OCC_VERSION_COMPLETE` +
+  `__EMSCRIPTEN_*__` — compile-time macros, greppable in the binary. ⚠⚠ **THE PIN IS PROVEN, NOT
+  ASSERTED: relinking the unmodified source on the digest reproduced the committed artifact BYTE FOR
+  BYTE** (wasm `819ff12c…`, js `fc5b0421…`, `cmp` clean, ~75 s). ⚠ `OCC_VERSION_STRING` is **"7.9"**,
+  not "7.9.3" (`OCC_VERSION_COMPLETE` is) — the obvious spelling ships a plausible wrong id. ⚠
+  `__EMSCRIPTEN_MAJOR__` is **not predefined** and the lowercase form is `#pragma clang deprecated`. ⚠
+  **The re-seed diff is ONE `seededAt` LINE again** — second entry running ⇒ Q16.
+- **OWES:** Owner: **nothing — `RISK: additive`, so the REVIEWING agent merges this.** Q15/Q16/Q17 and
+  Q11/Q12 stand as recorded; Q16 gained a second worked example. Amer: `createOcctKernel` can now
+  **reject at construction** on an artifact/constant mismatch — it fires in the browser too, and only on
+  a broken build.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-05-emsdk-digest-pin.md`
+- **REVIEW:** **REVIEWED + MERGED 2026-08-05 by the Entry-80 session** (Amer, a later session — the
+  protocol holding for a fifth entry); full record in PR #6's comment. Item 1 executed: `OCCT_BUILD_ID` →
+  `…6.0.5` went RED in **both** suites with the refusal firing from `createOcctKernel`. Independently
+  corroborated the load-bearing claim the entry did not make — the id is **one NUL-terminated literal at
+  offset 13,109,054** of the shipped `.wasm`, so nothing on the TypeScript side can have put it there.
+  ⚠ **ONE FINDING, PROVEN AND FIXED ON THE BRANCH: the backward sweep stopped one file short of `NOTICE`,**
+  whose §1 asserted all four of the things this entry made false (the mutable tag, the non-reproducible
+  rebuild, *"not a value read back out of the artifact"*, and *"that pin is open as a ruling"*) — in the
+  LGPL 2.1 §6 attribution, the one document here with a reader outside this repo. 4 tests, all watched RED.
+  ⚠ Correction: the byte-for-byte relink was against the artifact as committed **before** this entry
+  (`819ff12c…` = main's wasm, re-measured); what ships is that source +`toolchainId()`, 14 682 327 →
+  14 682 466 B. `NOTICE` now states the two separately.
 
 ### 77 | 2026-08-03 | Zayd | the plan/section unit ships — a drawing IS the B-Rep (D58 row Ⓐ, D81)
 

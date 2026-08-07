@@ -79,4 +79,50 @@ describe('withUiRefresh — an agent edit refreshes the view like a human edit (
     expect(wrapped.agentApi).toBe(1);
     expect(typeof wrapped.query).toBe('function');
   });
+
+  /**
+   * ⚠⚠ THE TRANSPARENCY TEST — Entry 86, and it is the one that was missing.
+   *
+   * Every test above asserts what the wrapper ADDS (a notify). None asserted what it must not TAKE AWAY,
+   * and it was taking away the third argument: `execute` was declared `(command, args)`, so
+   * `transactionId` never reached the document and D23's corner-drag silently undid one edit at a time.
+   * A pass-through wrapper's contract is that it is invisible, and the only way to hold it to that is to
+   * assert the arguments arrive.
+   */
+  it('⚠⚠ FORWARDS options to execute — a dropped `transactionId` breaks D23 and nothing errors', async () => {
+    const seen: unknown[][] = [];
+    const { agent } = fakeSurface({
+      execute: (...args: unknown[]) => {
+        seen.push(args);
+        return Promise.resolve(EDIT);
+      },
+    });
+    const wrapped = withUiRefresh(agent, () => {});
+
+    await wrapped.execute(
+      'core.setParams',
+      { elementId: 'wall-1' },
+      { transactionId: 'gesture-7' },
+    );
+
+    expect(seen).toHaveLength(1);
+    expect(seen[0]?.[0]).toBe('core.setParams');
+    expect(seen[0]?.[1]).toEqual({ elementId: 'wall-1' });
+    // ⚠ The whole finding, in one assertion.
+    expect(seen[0]?.[2]).toEqual({ transactionId: 'gesture-7' });
+  });
+
+  it('⚠ …and forwards an ABSENT options unchanged, rather than inventing an empty one', async () => {
+    const seen: unknown[][] = [];
+    const { agent } = fakeSurface({
+      execute: (...args: unknown[]) => {
+        seen.push(args);
+        return Promise.resolve(EDIT);
+      },
+    });
+    const wrapped = withUiRefresh(agent, () => {});
+
+    await wrapped.execute('core.setParams', {});
+    expect(seen[0]?.[2]).toBeUndefined();
+  });
 });
