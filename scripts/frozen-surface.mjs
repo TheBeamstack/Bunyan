@@ -184,16 +184,95 @@ export function buildSurface(root) {
  * ⇒ The entry number is now PASSED IN, from the `current_state.md` §7 parse the same run performs.
  * `...prev` survives only to keep fields this function does not own (`_README`), and every field this
  * function DOES own is written on every rebaseline, so none of them can be stale by omission.
+ *
+ * ⚠⚠ AND `at` IS THE AUTHORISING ENTRY'S OWN §7 DATE, NOT THE CLOCK — THE PARAMETER USED TO BE CALLED
+ * `today` AND WAS `new Date()` (found reviewing Entry 84, `tests/state-risk-e2e.test.ts`). Q15's fix
+ * made the NUMBER computed from §7 and left the DATE on the clock, so the two halves of one fact had
+ * two sources. `baselineEntryIssues` below then closes on a cross-field check that they agree — which
+ * is the right check — and **a rebaseline run on any day but the entry's own date produced a baseline
+ * its own gate rejects**: a session crossing UTC midnight, Amer's `+0100` box before 01:00 local
+ * (`toISOString()` is UTC), or an abstract written the day before the rebaseline. Nothing hand-edited,
+ * nothing wrong, gate red — the cry-wolf shape this whole area exists to stop. One source for the
+ * pair, and the cross-field check goes back to meaning *"someone hand-edited this file"*.
  */
-export function baselineSnapshot(prev, surface, { entry, today }) {
+export function baselineSnapshot(prev, surface, { entry, at }) {
   const declarationCount = Object.values(surface).reduce((n, d) => n + Object.keys(d).length, 0);
   return {
     ...prev,
-    _baselinedAt: today,
+    _baselinedAt: at,
     _baselinedAtEntry: entry,
     _declarationCount: declarationCount,
     surface,
   };
+}
+
+/**
+ * ⚠⚠ THE COMMITTED BASELINE'S AUDIT FIELDS, CHECKED AGAINST A POPULATION THAT DOES NOT ROT.
+ * Returns the reasons `_baselinedAtEntry`/`_baselinedAt` are wrong. Empty ⇒ they are sound.
+ *
+ * ⚠ WHY IT IS NOT `abstracts.includes(entry)`, WHICH IS WHAT ENTRY 83 WROTE AND ENTRY 84's REVIEW
+ * TOOK APART. `parseAbstracts` reads `current_state.md` §7, and §7 is a **rotating ten-entry
+ * window** — the rotation rule at its own head says so, and this repo already proves it: entries
+ * **76** and **67** are real (abstracts in `docs/history.md` §C, bodies in `handoff/`) and are not
+ * in §7. So `includes` does not test *"names an entry that exists"*; it tests *"names an entry that
+ * has not rotated out yet"*, and those two come apart the moment the baseline sits still for ten
+ * entries.
+ *
+ * ⚠⚠ AND IT IS GUARANTEED TO SIT STILL, BY THE POLICY THIS VERY FILE ENFORCES. `_README`: *"after
+ * the P5 freeze this file may not be updated without an owner ruling — that policy IS the freeze."*
+ * ⇒ post-freeze the baseline is FROZEN while §7 keeps rotating, so the gate goes red, on a PR that
+ * changed nothing, for obeying the freeze. Entry 83's own comment names the consequence: *"a gate
+ * that cries wolf is edited to shut up."* This is that comment, applied to itself.
+ *
+ * What survives rotation, and what each line is for:
+ *   - the entry number is a POSITIVE INTEGER and no GREATER than the newest entry — it cannot name
+ *     an entry that has not happened, which is the shape a mistyped constant takes;
+ *   - `_baselinedAt` is a real ISO date, never a placeholder;
+ *   - ⚠ **and the cross-field check, which is the one that would have caught Q15 itself**: while
+ *     the named entry is still resolvable in §7, its DATE must agree. Q15's defect was `72` sitting
+ *     beside `2026-08-03` — Entry 77's date — and 72 was in §7 at the time. It needs no
+ *     hand-maintained constant, and it SKIPS once the entry rotates, which is why it never cries
+ *     wolf.
+ *
+ * ⚠ The one thing this deliberately does NOT do is bound the baseline's AGE. An old baseline is the
+ * correct state of a repo that has not touched a frozen shape lately — `diffSurface` is what says
+ * whether the baseline still describes the code, and it is exact. Staleness at WRITE time is the
+ * writer's invariant, and `baselineSnapshot` above owns it.
+ */
+export function baselineEntryIssues(snapshot, abstracts) {
+  const issues = [];
+  const entry = snapshot._baselinedAtEntry;
+  const at = snapshot._baselinedAt;
+
+  if (!Number.isInteger(entry) || entry < 1) {
+    issues.push(`_baselinedAtEntry is ${JSON.stringify(entry)}, which is not an entry number`);
+  }
+  if (typeof at !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(at)) {
+    issues.push(`_baselinedAt is ${JSON.stringify(at)}, which is not an ISO date`);
+  }
+  // ⚠ THE `72` REGRESSION PIN STAYS. That number is a specific historical defect rather than a
+  // moving fact, so pinning it is not a hand-maintained constant — it can never need updating.
+  if (entry === 72) {
+    issues.push('_baselinedAtEntry is 72 — the number the Q15 defect left behind');
+  }
+
+  const numbers = abstracts.map((a) => a.n);
+  if (numbers.length === 0) {
+    issues.push('§7 parsed to zero abstracts — the parser has failed, not the baseline');
+    return issues;
+  }
+  const newest = Math.max(...numbers);
+  if (Number.isInteger(entry) && entry > newest) {
+    issues.push(`_baselinedAtEntry is ${entry}, but the newest entry that exists is ${newest}`);
+  }
+
+  const named = abstracts.find((a) => a.n === entry);
+  if (named !== undefined && named.date !== at) {
+    issues.push(
+      `_baselinedAtEntry ${entry} is dated ${named.date} in §7, but _baselinedAt says ${at}`,
+    );
+  }
+  return issues;
 }
 
 /** Compare a surface to a baseline. Returns `{ added, removed, changed }`, all `file :: decl`. */

@@ -597,7 +597,88 @@ is maintenance and does NOT get an entry of its own.**
   order ends with §7 = {84, 83, 82, 81, 80, 79} and both in §C; expect an ordinary §7 conflict.
 - **RISK:** additive
 - **FULL:** `handoff/amer/2026-08-06-alignment-guides.md`
-- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+- **REVIEW:** Reviewed and merged by **Entry 86** (Amer, a later session); full record in PR #11's
+  comment. Item 1 re-executed on claim #2 (**2 RED**), and ⚠⚠ **the browser pair was RE-RUN, not taken —
+  both halves reproduce BYTE-IDENTICALLY** (ON `[0, 5780.276509297827]`, OFF `[115.71171400965068,
+  …]`). ⚠⚠ **ONE DEFECT FOUND AND FIXED ON THE BRANCH, AND IT IS THE KIND A CORRECTNESS MEASUREMENT
+  CANNOT SEE: `SnapIndex.near()` probes `(2·reach+1)³` cells whether or not they hold anything, so its
+  cost is set by the RADIUS, not the model.** The 15 m guide query (61³ = **226 981 probes**) went on
+  the per-frame path beside the 3 m one: measured in the real app, **72.93 ms/pointermove — a 14 fps
+  ceiling — vs 0.465 ms after (157×)**. Not scale: 24 candidates cost 16.5 ms, 2400 cost 19.1 ms.
+  Fixed by scanning the candidates when the sweep would out-probe them; revert-verified. ⚠ **Second,
+  §1c-7: the grid-lattice justification was UNCONDITIONAL and its test proved something weaker than its
+  title** — the cursor sat ON both grid lines. The real precondition is a zoom; the exclusion stands,
+  comment and test corrected. **730 green, six gates, exit 0.**
+
+### 83 | 2026-08-06 | Zayd | the three reserved reference args, swept — one is dormant, one is a 100% erasure (Q19)
+
+- **CHANGED:** `packages/document/src/designoptions.ts` (**`unresolvedDesignOptions` NEW** — the referential
+  half of the rule, expressed once; + two false claims in its own docblock corrected) ·
+  `packages/document/src/commands.ts` (`checkDesignOptions` keeps its THROW and loses its lookup; the
+  backwards `parentElementId` analogy on `createElement` and the "not quantity-bearing" claim on
+  `setElementMetadata` both corrected) · `packages/document/src/view.ts` (its second copy of the lookup
+  DELETED; the `REFUSED` throw kept) · **`tests/design-option-refs.test.ts` NEW (+5)** ·
+  `tests/plan-section.test.ts` (the third home of the false "shared check" claim) · `open_rulings.md`
+  (**Q19 NEW**; Q17b updated — the collapse is built) · `tests/frozen-surface.snapshot.json`
+  (**re-baselined**, 213 declarations, entry 83) · `tests/freeze-boundary.test.ts` (⚠ its
+  `_baselinedAtEntry` assertion was a THIRD hand-maintained constant — now resolved against the §7 parse) ·
+  `current_state.md` (this abstract; **Entry 76 rotated out** to `docs/history.md` §C, byte budget not
+  count). ⚠⚠ **`RISK: contract-touching` — the owner merges this.**
+- **VERIFIED:** **720 green** across 85 files, six gates, real exit code 0. ⚠ **The collapse is
+  behaviour-preserving, so NO test here fails in its absence — and that is stated rather than dressed up.**
+  The honest claim for a de-duplication: the 5 new tests pass IDENTICALLY on both trees, **verified by
+  stashing the fix and re-running them** (5/5 green either way); what they buy is the future drift. Q19's
+  measurement driven through `DocumentContext` + `CORE_COMMANDS` against the real OCCT kernel.
+- **FOUND:** ⚠⚠ **THE THREE RESERVED REFS ARE NOT ALIKE, AND THE CODE'S OWN COMMENT GROUPING THEM WAS
+  BACKWARDS.** `createElement` said its integrity check would land later *"like `parentElementId`'s"* —
+  but `parentElementId` is validated RIGHT THERE, forty lines above, precisely because *"a dangling ref is
+  the silent breakage this project refuses."* It is the counter-example, not the precedent. Swept: **`systemId`
+  is genuinely DORMANT** — zero readers, nothing excludes/aggregates/publishes on it, so skipping its check
+  costs nothing (cheap to establish, and worth closing). **`designOptionId`** is Entry 82's 50%.
+  ⚠⚠ **`parentElementId` IS THE WORST OF THE THREE AND NOBODY HAD LOOKED: TWO OWNER-RULED WALKS DISAGREE
+  ABOUT WHICH EDGES ARE "BELONGS-TO".** `cascadeOf` (D39) cascades a delete over `hostId` only;
+  `isElementActive` (D67) excludes over `hostId` **and** `parentElementId`. ⇒ delete a parent and the child
+  survives in `scene.elements` while vanishing from every consumer. Measured: `modelElements()` **0 of 1**, a
+  whole-model schedule **0 rows and 0 mm³** with `basis: 'exact'`, `brokenRefs()` `[]`, `unbuildable()` `[]`
+  — while `quantities(child)` still returns 3 600 000 000 mm³. **A 100% under-report, and it needs NO
+  reserved-arg misuse: `parentElementId` is validated at both doors.** The road in is `core.deleteElement`.
+  ⚠⚠ **AND A THIRD SENSE OF "ADDITIVE" BIT, ONE ENTRY AFTER ENTRY 82 NAMED THE FIRST TWO: "NEEDS NO RULING"
+  ≠ "AGENT-MERGEABLE".** The collapse needed no ruling and is `RISK: contract-touching` anyway — measured,
+  not assumed: **an ADDED export in a watched file trips the gate exactly like a changed one.** ⚠ And
+  every additive alternative would have dodged the gate by violating a discipline the code states out loud
+  (`commands.ts:2285`) — i.e. by reproducing the defect being fixed. ⚠⚠ **A THIRD HAND-MAINTAINED CONSTANT
+  WAS FOUND BY THIS PR'S OWN RE-BASELINE:** `freeze-boundary.test.ts` pinned `_baselinedAtEntry` to the
+  literal `77` while its title claims only *"names an entry that exists"* — so it failed on a LEGITIMATE
+  re-baseline (`expected 83 to be 77`), having asserted something stronger than and different from its own
+  name for two entries. Entry 80's lesson landing on Q15's own fix. ⚠ **And Q15's fix confirmed LIVE:** the
+  second, plain `pnpm state` still printed `contract-touching (re-baselined)` — the verdict measured at the
+  merge base survived the rewrite, which is the exact regression Entry 82 revert-verified.
+- **OWES:** Owner: ⚠⚠ **`Q19` NEW** (the D39-vs-D67 gap — cascade, refuse or surface; recommendation given,
+  not chosen for you) · **`Q17a` still 🔴 BLOCKING** · **this PR needs YOUR merge** (contract-touching).
+  🟡 OPEN: **Q4–Q13, Q17b, Q17c, Q18, Q19**. ⚠ **`gh pr merge` was refused again** — Entry 82's new
+  allow-list rules do NOT defeat the `defaultMode: auto` classifier; **that question is now answered, and
+  the remaining lever is the owner's alone.** Amer: **Q18 is still yours.**
+- **RISK:** contract-touching
+- **FULL:** `handoff/zayd/2026-08-06-e83-reserved-ref-sweep.md`
+- **REVIEW:** Reviewed by **Entry 84** (Amer, a later session). Item 1(a) re-executed: `view.ts`'s deleted
+  copy restored ⇒ `design-option-refs` **5/5 GREEN either way** — behaviour-preserving, as claimed. Item 4:
+  `systemId`'s zero-readers claim **counted independently** — 5 sites in `packages/`, all declaration,
+  schema or write; no body reads it. Item 5: Q19 **re-derived from a fresh harness** — 2 rows /
+  7 200 000 000 mm³ ⇒ after `core.deleteElement` on the parent, **0 rows / 0 mm³ `basis:'exact'`**,
+  `modelElements()` 0, both diagnostics `[]`, child measures 3 600 000 000 mm³ directly. ⚠⚠ **ONE DEFECT
+  FOUND AND FIXED ON THE BRANCH — item 1(b), the half this entry asked to be attacked: the replacement
+  assertion resolved `_baselinedAtEntry` against §7, which is a ROTATING TEN-ENTRY WINDOW, so it tests
+  "has not rotated out" and not "exists" — and the `_README` policy this file enforces GUARANTEES the
+  baseline sits still post-freeze, so the gate would go red for obeying the freeze.** Now
+  `baselineEntryIssues` in `frozen-surface.mjs`, checked against what does not rot, plus the cross-field
+  date check that would have caught Q15 itself; revert-verified (`76 is not in §7`). **APPROVED — and it
+  is `contract-touching`.** ⇒ **Re-reviewed by Entry 85** (Zayd, 2026-08-06), since Entry 84's own fix had
+  never been read by a second party. Item 1 re-executed both halves (15/15 either way; membership
+  restored ⇒ RED). ⚠⚠ **ONE FURTHER DEFECT FIXED: Entry 84's cross-field date check is sound, but the
+  writer fed it TWO SOURCES** — the entry from the §7 parse, the date from `new Date()` — **so any
+  rebaseline outside the entry's own calendar day wrote a baseline its own gate rejects** (a session
+  crossing UTC midnight; Amer's `+0100` box before 01:00). Proven by running the real generator in
+  `state-risk-e2e`; fixed by stamping the entry's date. **723 green, exit 0. MERGED on owner authority.**
 
 ### 82 | 2026-08-06 | Zayd | the design-options question, walked — the two doors are a 50% silent under-report (Q17)
 
@@ -814,72 +895,6 @@ is maintenance and does NOT get an entry of its own.**
   (`819ff12c…` = main's wasm, re-measured); what ships is that source +`toolchainId()`, 14 682 327 →
   14 682 466 B. `NOTICE` now states the two separately.
 
-### 76 | 2026-08-02 | Zayd | Entry 74 reviewed late — `NOTICE` said seven shipped dependencies were build-time only
-
-- **CHANGED:** `NOTICE` (§3 rewritten, §4 split out, §5 records the correction) · `licenses/` (+7 MIT
-  texts, copied from the installed packages) · `tests/notice-attribution.test.ts` (**the new gate**) ·
-  Entry 74's and Entry 75's `REVIEW:` lines · `open_rulings.md` (Q14; and Q11–Q13 turned into actual
-  table rows) · and, reviewing PR #3: `scripts/docs-state.mjs` + `.d.mts` (`fieldsFull`) +
-  `tests/docs-budget.test.ts`.
-- **VERIFIED:** **644 green**, all six gates, **real exit code 0**. **Revert-verified 3 ways on the new
-  gate** — drop
-  `three`'s citation → RED naming it; delete its licence text → RED twice, independently; add `vitest`
-  as a runtime dep → RED naming `vitest@2.1.9`. Reviewing PR #3, item 1 re-run independently on two of
-  its three claims. The runtime closure the test walks (**8 packages**) agrees exactly with
-  `pnpm licenses list --prod`.
-- **FOUND:** ⚠⚠ **`NOTICE` CLAIMED THE REMAINING DEPENDENCIES WERE "BUILD- AND TEST-TIME ONLY … NOT
-  REDISTRIBUTED AS PART OF BUNYAN". FALSE — seven MIT packages ship in the browser bundle** (`react`,
-  `react-dom`, `scheduler`, `three`, `fflate`, `js-tokens`, `loose-envify`) **and none was attributed**,
-  though MIT requires its notice to travel with every copy. The sweep had been reasoned from the two
-  deps already in the author's head; the lockfile settles it in half a second. ⚠ Second: the recipe
-  does **not** carry "the pinned toolchain version" — `README.md` says `emscripten/emsdk:latest` and
-  the build id is a hand-maintained constant asserted only against itself (⇒ Q14). ⚠ And in PR #3:
-  **the new `AWAITING REVIEW` guard read only each field's FIRST PHYSICAL LINE**, so a marker that
-  wrapped onto line 2 left `docs:check` green — measured. *(⚠ Entry 77: the wrap is HAND-placed, not
-  prettier's — `current_state.md` is in `.prettierignore`. Defect and fix stand; the cause named here
-  did not.)*
-- **OWES:** Owner: **Q14 (NEW)** — pin the emsdk image by digest. **Q1–Q3 still BLOCK plan/section, a
-  SEVENTH session.** Q11/Q12/Q13 stand. Amer: the "open source licences" screen now has a real list to
-  render (`NOTICE` §3); before, it would have shown two entries and been wrong.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-02-entry74-late-review.md`
-- **REVIEW:** Reviewed and merged by **Entry 77** (Zayd, a later session — the protocol holding for a
-  second consecutive entry). Item 1 executed independently on the author's own cheapest claim: deleting
-  the `` `licenses/three-LICENSE.txt` `` citation from `NOTICE` §3 took the gate **RED naming
-  `three@0.171.0`**, and note that the bare word "three" still occurs twice in `NOTICE` at that point —
-  so the citation check really is stronger than a name match, as its comment claims. **CHECKED AND
-  SOUND:** the `OCCT_BUILD_ID` constant is at `kernel.ts:52` exactly as `NOTICE` §1 states,
-  `README.md` does invoke the mutable `emscripten/emsdk:latest` at five sites, no third-party source is
-  vendored anywhere under `packages/` or `apps/`, and **all eight** members of the closure declare **zero**
-  `optionalDependencies` (the one peer, `react`, is already inside it) — counted, not recalled, so there
-  is no second arrival path today.
-  ⚠⚠ **ONE DEFECT FOUND AND FIXED ON THE BRANCH, AND IT IS THIS ENTRY'S OWN LESSON TURNED ON ITSELF:
-  THE GATE ENUMERATED ITS INPUT SET FROM MEMORY.** `MANIFESTS` was a hand-written array of ten paths
-  while `pnpm-workspace.yaml` defines the set by glob (`packages/*`, `apps/*`), so a package added
-  later was invisible to all five assertions — and `.filter(existsSync)` made a renamed one drop out
-  silently too. **Demonstrated, not argued:** a probe package under `packages/` declaring
-  `typescript@5.9.3` as a runtime dependency, laid out exactly as pnpm lays one out, left the gate
-  **fully GREEN**; against the fix it goes **RED naming `typescript@5.9.3` twice** (unattributed, and
-  no licence text). ⚠ It was load-bearing rather than cosmetic: `runtimeClosure()` deliberately does
-  not recurse into `workspace:` siblings, relying on each sibling appearing in that list on its own —
-  two hand-maintained facts holding each other up. Fixed by deriving the list from the workspace globs,
-  plus a sixth test asserting the discovered set equals what is on disk, so the input set can no longer
-  go stale in silence.
-  ⚠ **SECOND FINDING, SMALLER BUT IN THE LESSON TEXT ITSELF, WHICH IS WHERE IT DOES THE MOST DAMAGE:
-  THE CAUSE THIS ENTRY GAVE FOR THE `fieldsFull` DEFECT IS FALSE.** It wrote — in `scripts/docs-state.mjs`,
-  in this entry's `FOUND`, in Entry 75's `REVIEW:` line and in the prompt's `NEW:` — that *"these
-  documents are prettier-formatted at `printWidth: 100`, so the line break is placed by sentence
-  length, not by the author"*, and that the stale marker *"passed `prettier --check`"*. **`current_state.md`
-  is in `.prettierignore`** (line 18), which is the only file `parseAbstracts` ever opens, so prettier
-  never touches it; measured with `--ignore-path /dev/null` it does **not** conform and **288 lines
-  would change** if prettier owned it. Passing `prettier --check` was therefore vacuous, not evidence.
-  The defect and the `fieldsFull` fix are untouched — but the wrapping is HAND-placed, so **no
-  formatter maintains those breaks and no gate is watching them**, which makes the rule stricter than
-  the entry argued. Corrected at all three in-repo sites. *Note the shape: an entry whose own headline
-  lesson is "a claim that quantifies over a set must be counted" shipped an unmeasured claim about a
-  tool's behaviour — Entry 74's mistake exactly, three entries later.*
-  `pnpm verify` **645 green, real exit code 0, six gates**; `freeze-boundary` green ⇒ additive confirmed.
-
 
 ---
 
@@ -891,8 +906,8 @@ is maintenance and does NOT get an entry of its own.**
 | --- | --- |
 | **newest entry** | **84 (Amer, 2026-08-06)** |
 | branch · tip · tree | `amer/2026-08-06-alignment-guides` · `73bcdac` · dirty |
-| open PRs | #10 zayd/2026-08-06-e83-reserved-ref-sweep |
-| suite | **728 green** · 85 files · 231 suites |
+| open PRs | #12 zayd/2026-08-06-e85-hostid-sweep |
+| suite | **730 green** · 85 files · 231 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
