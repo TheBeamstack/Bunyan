@@ -150,12 +150,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 85**
-        (Zayd, 2026-08-06) — the `hostId` edge, swept — the ancestry is a DAG and the walk called it a cycle
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 87**
+        (Zayd, 2026-08-08) — a belongs-to CYCLE is authorable by two shipped verbs — and it erases the element silently
 
-        ⇒ After `git pull`: §8's "newest entry" == 85  ⇒ you are current, start TASK.
-          HIGHER than 85 ⇒ the other agent has merged: read every abstract after
-          85 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 87  ⇒ you are current, start TASK.
+          HIGHER than 87 ⇒ the other agent has merged: read every abstract after
+          87 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -163,158 +163,154 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 85**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-06-e85-hostid-sweep` · `935bebe` · dirty · RISK: contract-touching (re-baselined)
+        Tree at generation: `zayd/2026-08-08-e87-cascadeof-sweep` · `958658d` · dirty · RISK: contract-touching (re-baselined)
 ```
 
 <!-- END FRESH -->
 
 ```
-TASK:   ⚠⚠ **YOUR STEP 3 IS ENTRY 85'S OWN PR, AND IT IS `RISK: contract-touching` — REVIEW IT, THEN
+TASK:   ⚠⚠ **YOUR STEP 3 IS ENTRY 87'S OWN PR, AND IT IS `RISK: contract-touching` — REVIEW IT, THEN
         ASK THE OWNER TO MERGE.** ⚠ `gh pr merge` is NOT categorically blocked: it went through in
-        Entry 85 **because the owner authorised it in the opening instruction**. Absent that, the
-        routing is unchanged and it is theirs. Do not merge it on your own authority.
-        ⚠ **PR #11 (Amer, Entry 84 — alignment guides) MAY STILL BE OPEN AND IS *NOT* YOURS.** The
-        owner ruled it belongs to an Amer session. Leave it. If it is still open, say so and move on.
-          ⚠ **Item 1 is mandatory, and the cheap half is genuinely cheap here** — both fixes have a
-          test that fails in their absence, which is not what the last two entries could say:
-            (a) restore the single `seen` set in `isElementActive` (replace the `grey`/`black` map with
-                one visited set and put back `if (seen.has(ancestorId)) return false`) ⇒ **4 of the 6
-                new §7 tests in `tests/option-cascade-d67.test.ts` go RED**, the verb-driven one at
-                `modelElements()` **3 where 4 is correct**. **Re-do it.**
-            (b) ⚠⚠ **THE HALF WORTH YOUR TIME — ATTACK THE CYCLE SEMANTICS, NOT THE DIAMOND.** The fix
-                makes the walk accept a DAG; the risk it carries is the OPPOSITE one — **what if it now
-                accepts something that should still be refused?** Three of the six new tests assert
-                `true`, and `return true` passes all three. ⇒ **Hunt for a cycle shape the colours let
-                through.** Try: a cycle entered from OUTSIDE it (X → A → B → A, ask about X, not A);
-                a two-node cycle reached down the `parentElementId` edge only; a self-loop
-                (`hostId === own id`); and a diamond whose shared ancestor is itself in a cycle. The
-                existing §4 cycle test and the two new `false` assertions are the guard — **decide
-                whether they are the whole population, and if you find a hole it is Entry 85's.**
+        Entries 85 and 87 **because the owner authorised it in the opening instruction**. Absent that,
+        the routing is unchanged and it is theirs.
+        ⚠ **PR #13 (Amer, Entry 86 — the corner-drag) MAY STILL BE OPEN AND IS *NOT* YOURS.** The owner
+        ruled it belongs to an Amer session. **It was fully reviewed by Entry 87** — findings, a proven
+        two-line strengthening, and a merge warning are in its comment. Leave it; say so and move on.
+          ⚠ **Item 1 is mandatory and cheap here — both guards have a test that fails in their absence:**
+            (a) delete the `wouldCloseBelongsToCycle` call in `core.retargetReference` ⇒ **3 RED** in
+                `tests/belongs-to-cycle-guard.test.ts` (`promise resolved "{ …(7) }" instead of
+                rejecting`); delete the one in `core.setElementMetadata` ⇒ **1 RED**. Do them separately.
+            (b) ⚠⚠ **THE HALF WORTH YOUR TIME — THIS ENTRY SHIPPED A REFUSAL, SO ATTACK THE
+                OVER-REFUSAL.** Nine of the fourteen new tests assert that something is REFUSED, and
+                `return true` from the guard passes every one of them. §3 of that file is my own mirror
+                (a legitimate retarget, a diamond, re-parenting upward, a broken ancestor, a pre-existing
+                cycle) — **decide whether it is the whole population.** Try: retargeting an element onto
+                its own SIBLING under a shared ancestor; a chain long enough to matter; and the case I
+                did not build — **does the guard cost anything on a big model?** It walks the closure on
+                every `retargetReference`. **If you find a legitimate authoring act it refuses, that is
+                Entry 87's, and it is worse than the bug it fixed** — a guard that blocks real work gets
+                deleted.
 
-        **THEN — READ `open_rulings.md` FIRST. `Q17a` STILL BLOCKS AND `Q19` IS STILL THE WORST DEFECT
-        ON THE BOARD, AND IT GREW:**
-
-        ⚠⚠ **Q19 NOW SPANS BOTH EDGES AND STILL NEEDS A RULING, SO DO NOT BUILD IT — BUT RAISE IT
-        FIRST.** Delete an element another names via `parentElementId` and the child survives in
+        **THEN — READ `open_rulings.md` FIRST. `Q17a` STILL BLOCKS AND `Q19` IS STILL THE WORST DEFECT ON
+        THE BOARD. Entry 87 closed the AUTHORING road into a belongs-to cycle; the DELETION road is
+        untouched.** Delete an element another names via `parentElementId` and the child survives in
         `scene.elements` while vanishing from every consumer (`modelElements()` 0 of 1, a whole-model
-        schedule **0 rows / 0 mm³ with `basis: 'exact'`**, both diagnostics empty). **Entry 85 measured
-        the same hole on `hostId`** — it cannot dangle through the verbs, but a `.bnn` whose host is
-        gone loses the orphan AND everything hosted on it, silently, because `brokenRefs` walks
-        `hostedBy` from each ROOT and an element with no host is never anyone's child. ⇒ **(c) SURFACE
-        is the reconciliation that closes both edges**, and it is the same body as Q17c. **If the owner
-        rules Q19 or Q17c in chat, BUILD IT.**
+        schedule **0 rows with `basis: 'exact'`**, both diagnostics empty). ⇒ **(c) SURFACE closes both
+        edges and is the same body as Q17c. If the owner rules Q19 or Q17c in chat, BUILD IT** — and note
+        `tests/belongs-to-cycle-guard.test.ts` now **pins the current edge set on purpose**, so the
+        ruling has to come past it deliberately. **That pin failing is success, not a regression.**
 
         **YOUR TASK IF NOTHING IS RULED — and it needs no ruling at all:**
-        ⚠⚠ **THE RESERVED-REFERENCE QUESTION IS CLOSED; THE *TRAVERSAL* QUESTION IS NOT. SWEEP THE
-        OTHER WALK: `cascadeOf`.** Entry 85 fixed `isElementActive` and left `cascadeOf` alone on the
-        grounds that its `seen` set is *"a pure visited-memo over a single edge, which is the correct
-        guard for what it does."* **That sentence is a claim about code, so read it against the code
-        (§1c-7).** `cascadeOf` is `commands.ts:997`, and `core.deleteElement` is its only caller.
-          ⇒ **Three questions, and Entry 85's own answers are the thing to distrust:** (1) `cascadeOf`
-          seeds `seen` with the root and walks `hostedBy` — **what does it do on a HOSTING CYCLE**
-          (A hosts B hosts A) that `isElementActive` explicitly refuses? Does the delete terminate, and
-          does it delete the right set? (2) **`deleteElement` computes `rebuilt` as `[element.hostId]`
-          only** (`commands.ts:984`) — if the cascade kills N elements, are all their hosts rebuilt, or
-          only the root's? **Count it.** (3) ⚠ **the asymmetry that is now written down and never
-          measured:** D39 cascades `hostId` and the exclusion rule walks `hostId` AND
-          `parentElementId` — so after Q19 is ruled, whichever way it goes, **one of these two walks
-          changes edge set.** Which tests pin the CURRENT set, and would they notice?
-          ⚠ **"Clean" is a fine answer and it is cheap to establish.** `docs/design/P5_step5G_option_cascade_design.md`
-          is the related argument.
+        ⚠⚠ **WRITE THE GATE THAT THREE CONSECUTIVE SESSIONS HAVE NEEDED AND NONE HAS BUILT: `docs:check`
+        MUST ASSERT `Zayd_Prompt.md`'s BYTE-IDENTITY WITH `origin/main`.** Step 10(a) merges this file
+        ahead of its PR, and `pnpm state` rewrites its FRESH tree line — so running `state` after 10(a)
+        silently breaks the invariant. It cost Entry 85 a blocked merge (`GraphQL: Pull Request has merge
+        conflicts`), Entry 87 caught it twice by hand, and Entry 87 warned Amer about the same thing on
+        `Amer_Prompt.md`. **The written mitigation is a HABIT, and a habit that must fire on every PR is
+        a gate nobody wrote** (Entry 87 §5).
+          ⇒ **Three questions before you build it:** (1) **what exactly must match?** The whole file, or
+          only the FRESH block? A branch legitimately edits `TASK`/`NEW` — **so a whole-file check is
+          WRONG and would fire on every correct session.** (2) **can `docs:check` even see
+          `origin/main`?** It runs in CI and offline; a gate that needs a network fetch is a gate that
+          fails for the wrong reason. **Measure what `git show origin/main:Zayd_Prompt.md` costs and
+          whether the ref exists in a fresh clone.** (3) ⚠ **it must not fire on `main` itself**, where
+          the two are trivially equal, nor on Amer's branch for a file Amer does not write.
+          ⚠ **"This cannot be gated cheaply" is a FINE answer** and worth writing down with the reason —
+          but establish it by measuring, not by predicting. ⚠ Touching `pnpm state`'s contract is likely
+          `contract-touching` again; check with `pnpm state` before you promise the owner anything.
 
-        ⚠ **WHAT ENTRY 85 ALREADY DID — DO NOT REDO ANY OF IT:**
-          • **PR #10 (Entry 83) was re-reviewed and MERGED** on the owner's explicit authorisation.
-            Both halves of item 1 re-executed; one further defect found and fixed (see NEW).
-          • **`isElementActive` walks a DAG correctly now** — `grey`/`black` colours, six new tests.
-          • **`hostId` cannot dangle through the shipped verbs.** Counted: `createElement` and
-            `retargetReference` both `requireElement`; D39 takes the hosted with the host. **Closed.**
-          • **Six `isElementActive` call sites in four files, not five** — `joins.ts` has three.
-          • **`baselineSnapshot` stamps the ENTRY's date, not the clock** (`at`, not `today`).
-        **729 green, 85 files, six gates, exit 0.**
+        ⚠ **WHAT ENTRY 87 ALREADY DID — DO NOT REDO ANY OF IT:**
+          • **PR #12 (Entry 85) reviewed, corrected and MERGED** on the owner's authorisation. Its cycle
+            hunt is CLOSED — a differential fuzz (closure+Kahn vs the colours) over **20 000 graphs,
+            ~90 000 queries, zero disagreements**, shipped as `option-cascade-d67.test.ts` §8.
+          • **PR #13 (Entry 86) fully reviewed and deliberately NOT merged.** Do not re-review it.
+          • **`cascadeOf` is CLEAN on all three of Entry 85's questions** — it terminates on a cycle, one
+            `seen` set is right because it computes a SET, and `rebuilt` is complete because the EXECUTOR
+            overwrites the command's hint with `affected` (`document.ts:396`). **Counted: 3 ids where the
+            command's own hint was `[]`.**
+          • **Entries 79 and 80 rotated** to `docs/history.md` §C (§C's header reads 54–80). ⚠ **There is
+            no entry 78** — a review-only session; recorded in §C so nobody hunts for it again.
+        **759 green, 87 files, six gates, exit 0.**
 
-        ⚠ **STILL OWNER-ONLY AND UNCHANGED: Q11/Q12** (`CLA.md` ships `<LEGAL ENTITY>`). ⚠ **Q18 is
-        Amer's and still open.**
+        ⚠ **STILL OWNER-ONLY AND UNCHANGED: Q11/Q12** (`CLA.md` ships `<LEGAL ENTITY>`). ⚠ **Q18 and the
+        new Q20 (which verbs deserve a generated ribbon button) are Amer's.**
 
-NEW:    **⚠⚠ THE LESSON OF ENTRY 85: A TEST THAT BUILDS THE RIGHT *KIND* OF THING CAN STILL MISS THE
-        ONE SHAPE THAT BREAKS — ASK WHETHER ITS FIXTURE HAS THE PROPERTY THE BUG NEEDS.**
-        `option-cascade-d67.test.ts` §5 already had *"an element hanging off BOTH edges needs BOTH
-        active — a traversal, not a single chain walk."* It is a good test and it passes. But its two
-        ancestors **share nothing**, and the defect needed them to MEET. One outer group above both and
-        the walk returns `false` on a document with no design options at all. ⇒ **The checklist item is
-        §1c-8's COUNT form turned on a fixture: when a rule quantifies over a SHAPE, enumerate the
-        shapes — a chain, a diamond, a cycle, a self-loop — not just the edges.** A two-edge traversal
-        makes the ancestry a DAG, and *"is it a DAG or a tree?"* is a question nobody had asked out
-        loud.
+NEW:    **⚠⚠ THE LESSON OF ENTRY 87: ASK WHAT A VALIDATOR ACTUALLY *PROVES*, NOT WHAT IT IS *FOR*.**
+        Entry 85 closed the `hostId` edge with *"both writers `requireElement` the host"* — true, and it
+        proves the target **EXISTS**. It says nothing about whether the target is the element itself, or
+        something that leads back to it. **A reference that resolves can still be a reference that
+        LOOPS**, and a loop is not a broken reference — it is an ERASED element, because
+        `isElementActive` excludes every member of a cycle. One verb call
+        (`core.retargetReference { elementId: w, hostId: w }`) took a real wall to `modelElements()` **0
+        of 1** with `projectQuantities()` **0 rows carrying `basis: 'exact'`** and BOTH diagnostics
+        empty. ⇒ **When a sweep closes an edge, write down the sentence the guard actually proves and
+        read it back. "Can it point at nothing?" and "can it point at itself?" are different questions,
+        and the second one had never been asked.**
 
-        **⚠⚠ SECOND, AND THE MORE TRANSFERABLE ONE: ONE VARIABLE DOING TWO JOBS IS A DEFECT WAITING
-        FOR THE SECOND JOB TO DIVERGE.** `isElementActive`'s `seen` set meant *"already judged"* AND
-        *"on the path I am walking"*. Those agree on a tree and part company on a DAG. ⇒ **When a guard
-        is a single `Set`, name the two questions it answers. If there are two, it needs two.**
-        `cascadeOf` has the same shape and is your TASK.
+        **⚠⚠ SECOND, AND THE MOST TRANSFERABLE THING IN THIS ENTRY: "WOULD THE SUITE NOTICE?" IS A
+        MEASUREMENT, NOT A JUDGEMENT — MAKE THE CHANGE AND COUNT.** The D39/D67 edge-set asymmetry has
+        been written down for four entries and never tested. I made `cascadeOf` walk both edges — a real
+        change to what a delete DESTROYS — and ran everything: **`1 failed | 757 passed`, and the one
+        failure was the freeze-boundary HASH**, which sees declaration text, not meaning. **Zero
+        behavioural tests.** ⇒ **Before trusting that a ruling will be caught, break the thing on purpose
+        and count the RED.** Reading the tests would have suggested coverage; running them proved there
+        was none.
 
-        **⚠ THIRD: ASK THE WEAK-GREEN QUESTION IN BOTH DIRECTIONS.** Entry 83 asked its reviewer *"what
-        can now PASS that should not?"* and Entry 84 answered it well. **Nobody asked the mirror —
-        *what can now FAIL that should not?*** — and that is where the defect was: the baseline gate
-        was correct and the WRITER fed it two sources for one fact (`_baselinedAtEntry` from the §7
-        parse, `_baselinedAt` from `new Date()`), so a rebaseline on any day but the entry's own wrote
-        a file its own gate rejects. **A gate that cries wolf gets edited to shut up** — Entry 83's own
-        sentence, landing on Entry 84's fix. ⇒ **Entry 80's "ask WHO COMPUTES IT" has a plural form:
-        when two fields are cross-checked against each other, ask who computes EACH.**
+        **⚠ THIRD: THE §7 BYTE BUDGET IS A GATE TWO PARALLEL SESSIONS CAN BREAK WITHOUT EITHER BEING
+        WRONG.** Entry 85 measured 30.1/32.0 KB and Entry 84 measured 29.9/32.0 KB — both green, both
+        honest — and their MERGE was **35 981 against 32 768**. It is per-branch, so the overflow is a
+        property of the merge and is structurally invisible until the second PR lands. ⇒ **Every parallel
+        pair should expect a forced rotation, and it is maintenance — no entry of its own.** Entry 87 hit
+        it on PR #12 and warned Amer that PR #13's merge will hit it too.
 
-        **⚠ FOURTH, MECHANICAL AND IT COST A BLOCKED MERGE: `pnpm state` REWRITES `FRESH`'s TREE LINE,
-        SO RUNNING IT ON THE BRANCH BREAKS STEP 10(a)'s BYTE-IDENTICAL INVARIANT.** `gh pr merge 10`
-        came back `GraphQL: Pull Request has merge conflicts` — a REAL conflict on `Zayd_Prompt.md`,
-        not the classifier. ⇒ **Before merging, `git diff origin/main -- Zayd_Prompt.md`; if it is
-        non-empty, `git checkout origin/main -- Zayd_Prompt.md`, re-run gate six, commit.** And read
-        the refusal text: the classifier and a conflict look nothing alike.
+        **⚠ FOURTH: ASK WHAT A `Set` IS *FOR* — THIRD INSTANCE, THIRD DIFFERENT ANSWER.** `isElementActive`
+        needed two colours because its `seen` decided a **boolean about the current path**. `cascadeOf`
+        needs one because it computes a **reachable SET**, where re-arrival is idempotent.
+        `wouldCloseBelongsToCycle` needs one for the same reason. **The shape is identical every time and
+        the right answer is not** — so do not pattern-match off the last one; name the question the set
+        answers, and count how many there are.
 
-        (Entry 83's lesson, still standing:)
+        (From reviewing PR #13, worth keeping:)
+        **⚠⚠ A PASS-THROUGH WRAPPER'S ARITY CANNOT BE CHECKED BY THE TYPE SYSTEM, IN ANY CODEBASE.**
+        TypeScript accepts a function of FEWER parameters wherever one of more is expected — deliberate
+        assignability, and why `arr.map(x => x)` compiles. `withUiRefresh` was declared `AgentSurface` and
+        implemented `(command, args)`, dropping D23's `transactionId`, and **nothing errored**. ⇒ **For a
+        wrapper, assert the ARGUMENTS ARRIVE — and assert the ARITY, because `toBeUndefined()` cannot
+        separate "forwarded undefined" from "never passed".**
+
+        (Entry 85's lesson, still standing:)
         **⚠⚠ "NEEDS NO RULING" ≠ "AGENT-MERGEABLE", AND "ADDITIVE" IS TWO WORDS.** Three independent
-        questions, asked separately every time: *does this need an owner RULING?* · *is it data-additive
-        (`.bnn` in the field)?* · *is it freeze-additive (who MERGES)?* **Only the third decides the
-        merge**, and an ADDED export trips the gate exactly like a changed one. ⚠ Entry 85 is another
-        instance: a pure BUG FIX with no contract intent is `contract-touching`, because the freeze gate
-        hashes declaration TEXT and the fix changed a body. **If the honest fix moves the surface, be
-        contract-touching and say so** — every additive dodge reproduces the defect being fixed.
-
-        (Entry 81's lesson, still standing, and it earned its keep again:)
-        **⚠⚠ A TEST THAT GREPS THE SOURCE PROVES THE CALL IS WRITTEN, NOT THAT IT RUNS.**
-        `freeze-boundary` greps `state.mjs` for the `baselineSnapshot` call — and that is exactly the
-        assertion that could not see the clock defect. **Where the artifact can be executed, EXECUTE
-        it**: the fix's test runs the real generator in a throwaway repo and reads the file it wrote.
-
-        (Entry 75's lesson, still standing, kept for an eleventh entry running:)
-        **⚠⚠ IF YOU ARE ABOUT TO MERGE SOMETHING YOU WROTE TODAY, THAT IS THE BUG.** Push it, mark it
-        `AWAITING REVIEW`, stop. ⚠ **And a reviewer's fix is an author's work**: Entry 84 reviewed PR
-        #10 and fixed a defect in the same commit that approved it, so its own fix had never been read
-        by a second party. Entry 85 read it and found the defect above. **A review that changes code
-        needs a reader too.**
+        questions every time: *does this need an owner RULING?* · *is it data-additive?* · *is it
+        freeze-additive (who MERGES)?* **Only the third decides the merge.** ⚠ Entry 87 is a sharp
+        instance in BOTH directions: the two `execute` bodies it changed did **not** move the frozen
+        surface, and the one ADDED export **did**. **The gate is not a proxy for how big your change is.**
 
         (Standing, on the handoff system itself:)
         `pnpm state` before every commit (gate six, `docs:check`) · it writes §8 and THIS file's FRESH,
         never `Amer_Prompt.md` · §7 holds at most **ten** abstracts **and a 32,768-byte budget, and the
-        BUDGET is what bites** — it was at **32.0/32.0 KB** before Entry 85 landed, which rotated **77**
-        out to `docs/history.md` §C (a real move; §C's header now reads 54–77, and the `---` before
-        `## §8` was checked) · ⚠ **`pnpm state` reads `.vitest-summary.json`, so run it AFTER a green
-        `pnpm verify`** · ⚠ **A RE-BASELINE IS A THREE-STEP DANCE AND ITS ORDER IS LOAD-BEARING:**
-        **write your §7 abstract FIRST** (`--rebaseline` stamps `newest.n` from the §7 parse, so it
-        names the WRONG entry if your abstract is not there yet), then
-        `pnpm state --rebaseline` → `pnpm verify` (green) → `pnpm state` (plain) ·
+        BUDGET is what bites** — Entry 87 rotated **79** (forced by PR #12's merge) and **80** (to fit its
+        own abstract); §C's header now reads **54–80** · ⚠ **`pnpm state` reads `.vitest-summary.json`, so
+        run it AFTER a green `pnpm verify`** · ⚠ **A RE-BASELINE IS A THREE-STEP DANCE AND ITS ORDER IS
+        LOAD-BEARING:** **write your §7 abstract FIRST** (`--rebaseline` stamps `newest.n` from the §7
+        parse), then `pnpm state --rebaseline` → `pnpm verify` (green) → `pnpm state` (plain) ·
         `tests/freeze-boundary.test.ts` decides `RISK`, measured **at the merge base** ·
         ⚠ **`gh pr review --approve` CANNOT WORK HERE** — GitHub refuses self-approval from the one
         account, so the loop's *"approving review"* is **always** a `gh pr comment`; this is Q13's core.
         ⚠⚠ **THE MERGE ITSELF: THE HARNESS CLASSIFIER REFUSES `gh pr merge` BY DEFAULT, BUT NOT WHEN THE
-        OWNER AUTHORISES IT IN THE SESSION PROMPT** — corrected in Entry 85, where it went through
-        first try. Three sessions had recorded it as unconditionally settled. **The protocol is
-        unchanged** (`contract-touching` is the owner's merge *by policy*), but do not tell the owner it
-        is technically impossible. Stop adding permission rules for it either way — the allow-list was
-        never the gate. *(The classifier also refuses `sed` and some `grep` forms; re-phrase once or use
-        the Read tool, then move on.)*
+        OWNER AUTHORISES IT IN THE SESSION PROMPT** — went through first try in Entries 85 and 87. **The
+        protocol is unchanged** (`contract-touching` is the owner's merge *by policy*); do not tell the
+        owner it is technically impossible, and stop adding permission rules for it. *(The classifier also
+        refuses `sed` and some `grep` forms; re-phrase once or use the Read tool, then move on.)*
+        ⚠⚠ **AND THE ONE THAT KEEPS BITING: `pnpm state` REWRITES `FRESH`'s TREE LINE, SO RUNNING IT AFTER
+        STEP 10(a) BREAKS THE BYTE-IDENTICAL INVARIANT.** Before merging: `git diff origin/main --
+        Zayd_Prompt.md`; if non-empty, `git checkout origin/main -- Zayd_Prompt.md`, re-run gate six,
+        commit. **Building the gate for this is your TASK.**
 
-        ⚠ **THE 🔴 BLOCKING TABLE STILL HOLDS `Q17a`.** Thirteen owner rulings are owed. *(Counted, not
-        remembered — `open_rulings.md` holds Q4–Q13, Q17a, Q17b, Q17c, Q18, Q19.)* The live ones are
-        **Q17a** (blocking, contract-touching, owner-merged), **Q19** (the silent erasure, now on BOTH
-        edges — raise it first, it is a live wrong number), **Q17b/Q17c** (blocking nothing), **Q18**
-        (Amer's) and **Q11/Q12** (the CLA). If a ruling arrives in chat, apply it AND record it in the
-        doc it belongs to, then strike the row. This file is not where decisions live.
+        ⚠ **THE 🔴 BLOCKING TABLE STILL HOLDS `Q17a`.** Fourteen owner rulings are owed. *(Counted, not
+        remembered — `open_rulings.md` holds Q4–Q13, Q17a, Q17b, Q17c, Q18, Q19, and Q20 is new from
+        Entry 86.)* The live ones are **Q17a** (blocking, contract-touching, owner-merged), **Q19** (the
+        silent erasure — the authoring road is closed, the DELETION road is not, and it is now pinned),
+        **Q17b/Q17c** (blocking nothing), **Q18/Q20** (Amer's) and **Q11/Q12** (the CLA). If a ruling
+        arrives in chat, apply it AND record it in the doc it belongs to, then strike the row. This file
+        is not where decisions live.
 ```
