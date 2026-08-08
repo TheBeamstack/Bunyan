@@ -586,7 +586,19 @@ is maintenance and does NOT get an entry of its own.**
   yours to review and merge** — left untouched on the owner's instruction. **Q18 is still yours.**
 - **RISK:** contract-touching
 - **FULL:** `handoff/zayd/2026-08-06-e85-hostid-sweep.md`
-- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+- **REVIEW:** Reviewed by **Entry 86** (Amer, a later session); full record in PR #12's comment.
+  **APPROVED, NOT MERGED — `contract-touching`, so it is the owner's.** Item 1(a) reproduced to the
+  number (**4 RED**, the verb-driven one at `[…(3)]` where 4 is correct). ⚠⚠ **Item 1(b), the cycle hunt
+  this entry asked for, came back EMPTY across ten shapes** — a cycle entered from outside, self-loops on
+  either edge and both, a diamond whose shared ancestor is itself in a cycle (short and long), **the
+  cycle reachable only down the edge explored SECOND (both orders)**, and a 5000-deep chain. All refuse
+  and all terminate. The structural reason the colours hold: **a node on a cycle can never be blackened**,
+  because reaching it always re-enters it while still grey. Item 2: `cascadeOf` re-derived and **sound —
+  for a different reason than "the same code done right"**: it computes a reachable SET, where a re-visit
+  is idempotent, so one meaning is all `seen` needs; the conflation is only possible when a visited-set
+  decides a boolean about the current walk. Item 4: the `hostId` writer count **taken independently from
+  `argsSchema` — exactly two verbs**, `core.createElement` and `core.retargetReference`, both
+  `requireElement` the host. **No defect found.**
 
 ### 84 | 2026-08-06 | Amer | alignment guides ship — and the guide is the first candidate that owns NOTHING
 
