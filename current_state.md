@@ -553,6 +553,48 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 90 | 2026-08-08 | Zayd | a pinned state proves the PIN, not the POPULATION — and D66's lazy build, measured
+
+- **CHANGED:** Reviewing PR #15 (merged): `scripts/prompt-sync.mjs` (**question 2 replaced** —
+  `merge-base --is-ancestor` ⇒ `git diff <merge-base> <main> -- <file>`; `contains()` deleted, unused) ·
+  `scripts/prompt-sync.d.mts` · `tests/prompt-sync.test.ts` (**+2**, 12 → 14) · entry **88's `REVIEW:` line**
+  and its stale counts. Own work: **`docs/design/P5_step9_D66_lazy_build_design.md` NEW** ·
+  **`tests/d66-lazy-build-measure.test.ts` NEW (+4)** · entry **82 rotated** to `docs/history.md` §C
+  (§C now **54–82**). No frozen byte, no schema bump, no new API.
+- **VERIFIED:** **780 green** across 89 files, six gates, **real exit code 0**. Item 1 on PR #15 re-executed
+  **four ways, separately: 2 · 3 · 3 · 1 RED.** The false-positive fix is test-first — the new state was
+  **watched RED before the fix**, and both new tests assert the real `git merge` outcome, not just a verdict.
+- **FOUND:** ⚠⚠ **THE GATE ASKED ABOUT COMMITS AND THE INVARIANT IS ABOUT A FILE — a correct session
+  FAILED.** Skip 2 (*"is main contained in this branch?"*) goes quiet the moment `main` gains any commit,
+  **so the other agent merging their PR mid-session failed this seat at step 7** — claiming 10(a) had pushed
+  (false) and prescribing a fix that **deletes the `§2 TASK`/`NEW` just written.** `git merge` says that
+  merge is clean. ⇒ **A conflict needs BOTH sides to have edited the file; question 1 asked it of the
+  branch, question 2 now asks it of main.** ⚠ **Question 2 was wrong THREE times and every wrong version
+  passed all four pinned states: a pinned state proves the PIN, not the POPULATION.** ⚠ Two claimed
+  numbers were stale because they were measured **before the entry's own follow-up commit** — *a
+  measurement is pinned to a commit.*
+  **D66 (measured before designed):** **64.5% of a cold load is deferrable** (54 el: `rebuildAll` 1271 ms
+  vs first storey 452 ms = 35.5% for 33.3% of elements; two-pass overhead ~1–4.5%) — ⚠ **but one storey of
+  a 10k tower is still ~24 s, so §1a's row is NOT closed and I have not re-coloured it.** **Identity is
+  safe, and the JOIN is why that was not obvious**: a wall whose corner partner is **never built** is
+  identical to the same wall in a full document, because `resolveJoins` reads the **RECIPE**, never the
+  built set. ⚠⚠ **AND I PREDICTED THE Q19 SHAPE AND WAS WRONG** — a take-off on a partially built document
+  is 75% short **with all three missing elements NAMED in `unmeasured`**; `projectQuantities` tests
+  `state !== 'valid'` before `hasParts`. ⇒ **The hook D66 needs is in the ENUMERATION, not the renderer**,
+  and **`rebuildOnly` is already the lazy-build primitive** — the build half needs no new API.
+- **OWES:** Owner: **nothing new** — `RISK: additive`, so the next session merges this. **Q17a still
+  blocks; Q19 is still the worst defect on the board** (the DELETION road is untouched). Q11/Q12 unchanged.
+  ⚠ **Not measured, and named as such:** the 10k extrapolation of the lazy number, and whether `save` reads
+  built state (§3c of the design says it must FORCE, not DECLARE — data loss is not a reporting choice).
+  Amer: ⚠⚠ **I ROTATED ENTRY 82 — the rotation entry 88's OWES assigned to your merge.** §7 had 14 bytes
+  left after the review amendment and entry 90 could not otherwise be written. **If your branch rotates 82
+  too, that is an ordinary §7 / `docs/history.md` merge conflict** — loud and standard. **Entry 86 will
+  likely need entry 83 rotated as well.** ⚠ **The gate now behaves differently and IN YOUR FAVOUR:** main
+  moving under your branch can no longer fail it. Q18, Q20 and `Amer_Prompt.md` in `GATED` are yours.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-08-e90-d66-lazy-build.md`
+- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+
 ### 88 | 2026-08-08 | Zayd | the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
 
 - **CHANGED:** **`scripts/prompt-sync.mjs` + `.d.mts` NEW** (the gate: three git questions, no network) ·
@@ -837,57 +879,6 @@ is maintenance and does NOT get an entry of its own.**
   crossing UTC midnight; Amer's `+0100` box before 01:00). Proven by running the real generator in
   `state-risk-e2e`; fixed by stamping the entry's date. **723 green, exit 0. MERGED on owner authority.**
 
-### 82 | 2026-08-06 | Zayd | the design-options question, walked — the two doors are a 50% silent under-report (Q17)
-
-- **CHANGED:** **`docs/design/P5_step6D_design_options_crud_design.md` NEW** — the Q17 walk: the gap
-  measured through the shipped verbs, the promotion's real cost, the CRUD's shape, the dependency edge, an
-  8-row test plan each with its weak-green, and §7's three questions · `open_rulings.md` (**Q17 REPLACED by
-  Q17a/Q17b/Q17c**, and **Q17a moved to 🔴 BLOCKING**, empty for five sessions) · `current_state.md` (this
-  abstract; **Entry 75 rotated out**, already in `docs/history.md` §C) · plus **Entry 81's review, fixed on
-  its branch**: `scripts/state.mjs` (the verdict is measured against the baseline **at the merge base**,
-  read from git) + **`tests/state-risk-e2e.test.ts` NEW (+6)**. **No code in `packages/`, no frozen byte,
-  no verb, no schema bump.**
-- **VERIFIED:** **715 green** across 84 files, six gates, real exit code 0. Q17's numbers driven through
-  `DocumentContext` + `CORE_COMMANDS` against the real OCCT kernel, not quoted. Entry 81's fix
-  **revert-verified**: restore its `state.mjs` and `state-risk-e2e` goes RED (`the verdict was erased by
-  re-baselining`) **while `freeze-boundary.test.ts` stays 10/10 green**. Its item 1 re-executed: the
-  pre-Q16 gate body ⇒ **3 e2e RED**, unit file 14/14 green.
-- **FOUND:** ⚠⚠ **Q17 IS NOT A SYMMETRY COMPLAINT — IT IS A 50.0% SILENT UNDER-REPORT WEARING
-  `basis: 'exact'`, ON A DOCUMENT WITH NO DESIGN OPTIONS AT ALL.** 0 of 40 verbs can author an option, so
-  `scene.designOptions` is always absent; `core.createElement` accepts a `designOptionId` naming nothing;
-  `isElementActive` then excludes that element from every enumerating consumer. Two identical walls, one
-  tagged ⇒ `scene.elements` **2**, `modelElements()` **1**, a whole-model schedule **1 row and
-  3 600 000 000 mm³ where 7 200 000 000 is correct** — `unmeasured: []`, `brokenRefs()` `[]`,
-  `unbuildable()` `[]`. **D65's own named failure mode INVERTED** (it predicted 2.0000× over; what ships is
-  0.5000× under) and §1c-8's ledger exactly: the consumer rule landed 07-23, the authoring arg 07-24, and
-  nobody swept the door against the rule. ⚠⚠ **AND "IS IT ADDITIVE?" HAS TWO ANSWERS THAT PART COMPANY:**
-  data-additive **YES** (D79's trick transfers verbatim — no schema bump, byte-identical documents),
-  freeze-additive **NO** — measured, the gate names `scene.ts :: type SceneCollection`, one of 21 watched
-  declarations there. Saying "additive" without saying which is how a contract-touching PR gets
-  agent-merged. ⚠ The `dependency.ts` edge is **not** the "nothing" `schedules`/`views` declared: an option
-  edit changes what the join resolver sees (D68's ambiguity flip) from the authoring side. ⚠ And the Q17
-  row was wrong about the code — `checkDesignOptions` is **not** shared with `core.createView`, which has
-  its own second copy in `view.ts` (rule 10). **A row in the owner's queue is a claim about the code.**
-- **OWES:** Owner: ⚠⚠ **🔴 BLOCKING IS NO LONGER EMPTY — `Q17a`** (promote `designOptions` +
-  the CRUD; contract-touching, so the owner also merges it). 🟡 OPEN: **Q4–Q13, Q17b, Q17c, Q18**.
-  `Q17b` is the stopgap direction (shut vs open — deliberately not chosen); `Q17c` is the one additive,
-  direction-neutral piece (make a dangling `designOptionId` a broken ref, so the number above stops being
-  silent). Amer: **Q18 is still yours** — the cut-face half of what a hosted void may host on; Entry 81
-  fixed only the edge half.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-06-q17-designoptions.md`
-- **REVIEW:** ✅ Reviewed by **Entry 83** (Zayd, 2026-08-06) against all 7 items — **APPROVED, no defect
-  found**; merged by the owner (the harness classifier refused `gh pr merge` again — see Entry 83). Item 1
-  **executed**: reverting `state.mjs:175` to `const against = workingSnap` drove `state-risk-e2e` RED on
-  *"the verdict was erased by re-baselining"* **while `freeze-boundary` stayed 10/10 GREEN** — the gate that
-  decides RISK cannot see this defect, only the e2e that EXECUTES the generator. Item 4 the one that
-  mattered: §1's numbers were re-derived from a fresh harness after the original was deleted, and **every
-  row of §1.4 reproduced exactly**, both failure codes and all four empty diagnostics included. §3.2 and
-  §3.3 re-measured too — `CHANGED (1) scene.ts :: type SceneCollection`, one `TS2345` at
-  `dependency.ts:177`. ⚠ Item 6 found the one real gap and it is not this PR's to close: **§5 criterion 6 is
-  the only thing that would ever hold the 50% measurement down, and it lives inside a unit Q17a blocks** —
-  so the defect has no committed test and has now been hand-derived twice.
-
 ---
 
 ## §8 — Generated
@@ -896,16 +887,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **88 (Zayd, 2026-08-08)** |
-| branch · tip · tree | `zayd/2026-08-08-e88-prompt-sync-gate` · `0018acb` · dirty |
-| open PRs | #15 zayd/2026-08-08-e88-prompt-sync-gate · #13 amer/2026-08-07-move-tool-corner-drag |
-| suite | **776 green** · 88 files · 239 suites |
+| **newest entry** | **90 (Zayd, 2026-08-08)** |
+| branch · tip · tree | `zayd/2026-08-08-e90-d66-lazy-build` · `8c1aa79` · dirty |
+| open PRs | #13 amer/2026-08-07-move-tool-corner-drag |
+| suite | **780 green** · 89 files · 241 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 9 files changed, 1299 insertions(+), 142 deletions(-) (9 files) |
-| docs budget | current_state 77.3/96.0 KB · §7 31.4/32.0 KB · abstracts 6/10 · bodies 33 |
+| diff vs origin/main | 3 files changed, 209 insertions(+), 168 deletions(-) (3 files) |
+| docs budget | current_state 76.4/96.0 KB · §7 30.6/32.0 KB · abstracts 6/10 · bodies 34 |
 
 _Generated 2026-08-08 by `pnpm state`._
 
