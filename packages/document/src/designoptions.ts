@@ -228,6 +228,68 @@ export function isElementActive(
 }
 
 /**
+ * ⚠⚠ **WOULD POINTING `elementId`'s BELONGS-TO EDGE AT `ancestorId` CLOSE A CYCLE?** The authoring guard
+ * that `isElementActive` above has always NEEDED and never had (Entry 87).
+ *
+ * ⚠⚠ **WHY IT EXISTS — A CYCLE IS AUTHORABLE THROUGH TWO SHIPPED VERBS, AND IT ERASES THE ELEMENT
+ * SILENTLY.** Entry 85 swept `hostId` and concluded it *"cannot dangle through the shipped verbs"* —
+ * true, and the wrong question. `core.retargetReference` and `core.setElementMetadata` both
+ * `requireElement` the ancestor they are about to store, which proves the target **EXISTS**; neither
+ * asked whether the target is **the element itself, or something that leads back to it.** A reference
+ * that resolves can still be a reference that loops. Measured through the shipped verbs on a document
+ * with no design options and no `.bnn` tampering:
+ *
+ * ```
+ * core.retargetReference { elementId: w, hostId: w }        → ACCEPTED
+ *   scene.elements 1 · modelElements() 0 · brokenRefs() [] · unbuildable() []
+ * core.setElementMetadata { elementId: w, parentElementId: w } → ACCEPTED
+ *   scene.elements 1 · modelElements() 0 · brokenRefs() [] · unbuildable() []
+ *   projectQuantities() → { rows: [], unmeasured: [], basis: 'exact' }
+ * ```
+ *
+ * **A real wall, one verb call, zero rows in a whole-model schedule wearing `basis: 'exact'`, and both
+ * diagnostics empty** — domain rule 15's failure mode and Q19's silent erasure, reached by a third road
+ * and needing no hostile document at all.
+ *
+ * ⚠ **IT WALKS BOTH EDGES, AND THAT IS LOAD-BEARING RATHER THAN THOROUGH.** A guard on `hostId` alone
+ * leaves the MIXED cycle open — `A.hostId = B` then `B.parentElementId = A` is refused by neither
+ * single-edge check, and `isElementActive` (which walks both) excludes both elements anyway. ⇒ **the
+ * guard's edge set must be the EXCLUSION RULE's edge set, or the hole simply moves.** This is the one
+ * place the D39/D67 asymmetry is not free: `cascadeOf` may cascade `hostId` only, but nothing may
+ * *author* a cycle in the closure `isElementActive` reads.
+ *
+ * ⚠ **ONE `seen` SET IS CORRECT HERE, AND THE REASON IS NOT "IT WORKED FOR THE OTHER ONE."** This
+ * computes a REACHABLE SET — *"is `elementId` above `ancestorId`?"* — where arriving twice is
+ * idempotent, so `seen` answers exactly one question. `isElementActive` needed two colours because its
+ * `seen` decided a BOOLEAN ABOUT THE CURRENT PATH, and *"already judged"* parts company with *"on the
+ * path I am walking"* on a DAG (Entry 85). Same shape, different job: ask what the set is FOR.
+ *
+ * ⚠ It also terminates on a scene that ALREADY contains a cycle — a `.bnn` authored before this guard
+ * existed — which is why `seen` guards the walk rather than merely the answer.
+ */
+export function wouldCloseBelongsToCycle(
+  scope: OptionScope,
+  elementId: ElementId,
+  ancestorId: ElementId,
+): boolean {
+  if (elementId === ancestorId) return true; // the self-loop, which is the one a user reaches first
+  const seen = new Set<ElementId>([ancestorId]);
+  const pending: ElementId[] = [ancestorId];
+  while (pending.length > 0) {
+    const node = scope.elements[pending.pop()!];
+    if (node === undefined) continue; // a BROKEN ancestor is not this guard's business (domain rule 3)
+    for (const next of [node.hostId, node.parentElementId]) {
+      if (next === undefined) continue;
+      if (next === elementId) return true;
+      if (seen.has(next)) continue;
+      seen.add(next);
+      pending.push(next);
+    }
+  }
+  return false;
+}
+
+/**
  * ⚠⚠ THE REFERENTIAL HALF OF THE RULE, EXPRESSED ONCE — *"which of these ids name no option here?"*
  *
  * Distinct from `isElementActive`, which answers *"does this element COUNT?"*. This answers the prior

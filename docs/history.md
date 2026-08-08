@@ -303,10 +303,67 @@ project._
 
 ---
 
-## §C — Entries 54–79 — the full bodies now live in `handoff/`
+## §C — Entries 54–80 — the full bodies now live in `handoff/`
 
 ⚠ **There is no entry 78.** It was a REVIEW-ONLY session (PR #5) that wrote no abstract of
 its own; its findings are in entry 77's `REVIEW:` line above. The gap is real, not a loss.
+
+### 80 | 2026-08-05 | Amer | the opening tool ships — one click on a face is a hosted door, and `snapTo` was decorative
+
+- **CHANGED:** `apps/web/src/tool/tools.ts` (**`OPENING_TOOL`** — one input, commits `core.createElement`
+  with `{hostId, hostRef}`; `offsetU` projected onto the host's AUTHORED baseline, `offsetV` from the face
+  centre, both clamped to fit; declines a non-face ref) · `toolMachine.ts` (**`CollectedInput`** — a
+  session now carries what a click LANDED ON, not only where it was; **`ToolContext.paramsOf`**) ·
+  `snap.ts` (**`faceCandidate`** — per-frame, from the ray hit; **`chooseSnap(…, allow)`**) ·
+  `useToolController.ts` (`snapTo` published; ref+element carried from the snap, never from the pick) ·
+  `render/pick.ts` (**`PickResult.point`**) · `Viewport.ts` · `ViewportCanvas.tsx` (pick BEFORE snap) ·
+  `App.tsx` · `scaffold/seed.ts` · **`scripts/docs-state.mjs` + `state.mjs` + `docs-state.d.mts`** (the
+  CRLF fix + **`newestAbstract` refuses an empty parse** + `state` writes back in the file's OWN line
+  ending, so step 8 stops undoing step 7) · `tests/docs-budget.test.ts` (+4) ·
+  `open_rulings.md` (**Q18 NEW**) · §5 rows 1–2 corrected. **No frozen byte, no schema bump.**
+- **VERIFIED:** **688 green** across 82 files, six gates, real exit code 0 — **and gate six had never run here**
+  (see FOUND). Revert-verified **6 ways, each watched RED**: baseline projection → x-only (the +y wall
+  test); `offsetU` measured from the face centre (3 fail); `hostRef` hand-rebuilt instead of carried;
+  `parseAbstracts` back to `split('\n')` (7 fail); and my own no-`\r` test strengthened after it passed
+  vacuously under its own revert. **Browser (the split's other half):** one click → `state: 'valid'`,
+  `parts: [leaf, frame]`, quantities off the B-Rep (leaf 64 000 000 mm³, frame 85 550 000 mm³, mass "—"),
+  console-error-free boot on a fresh tab.
+- **FOUND:** ⚠⚠ **`InputSpec.snapTo` WAS DECORATIVE FOR THREE ENTRIES — DECLARED, TYPED, DOCUMENTED, AND
+  READ BY NOTHING.** `SNAP_PRIORITY` ranks `endpoint`/`midpoint` ABOVE `face`, and an endpoint candidate
+  carries the **EDGE's** ref — so pointing near a corner hosted the door on an edge. `core.createElement`
+  ACCEPTS it, the build throws, and the element lands **`state: 'failed'`, `parts: []`, with NO banner, NO
+  console error, and `unbuildable()` AND `brokenRefs()` both EMPTY.** Measured: **1 of 2 placements**.
+  Found by USING it (§1b), not by reading — the code says `snapTo: ['face']` and looks correct.
+  ⚠⚠ **GATE SIX HAS NEVER RUN ON AMER'S BOX SINCE THE 2026-07-31 MIGRATION.** `core.autocrlf=true` ⇒ 920
+  CRLF pairs in `current_state.md`; `parseAbstracts` split on `\n`, leaving `\r`, and its heading regex
+  ends `\| (.+)$` — JS `.` does not match `\r`. **Zero abstracts, five tests red, CI green.** ⚠ **The
+  silent half is worse than the red half:** `pnpm state` took the same `[]` through `reduce(…, null)` and
+  would have written **`(none)`** into §8 and **`ENTRY ?`** into the FRESH block that step 10(a) pushes
+  STRAIGHT TO MAIN. `.prettierrc` already carries `endOfLine:"auto"` for exactly this box — the parser
+  missed that memo. ⚠ **A second opening on the same wall comes back `broken-ref`** (the pick correctly
+  hands over a face of the wall AS CUT, `…structure~opening-X/face/cut(…)`) ⇒ **Q18**, not guessed at.
+  ⚠ My own test fixture invented the token format (`|` for `/`) and nothing noticed until the new guard
+  DECODED it — §1c-9 in miniature. ⚠ `offsetU` must come off the D52 baseline, not the picked face: on a
+  straight demo wall the wrong one is indistinguishable, and on the +y wall it is 450 instead of 1200.
+- **OWES:** Owner: **Q18 (NEW)** — what may a hosted void host on; Q11/Q12/Q13/Q15/Q16/Q17 stand.
+  ⚠ **Q13 is now cheaper than when it was filed: this session ran on its OWN GitHub account**
+  (`narutousomaki741`), so branch protection would no longer block every merge. Zayd: nothing owed, but
+  two things are yours — `snapTo`'s fix is app-side only, and **Q18's real fix belongs in the document
+  layer** (the app can only parse tokens, which it must not).
+- **RISK:** additive
+- **FULL:** `handoff/amer/2026-08-05-opening-tool.md`
+- **REVIEW:** ✅ Zayd, 2026-08-05 (Entry 81's step 3) — reviewed against `REVIEW.md` and MERGED
+  (`additive`, freeze-boundary green, CI green). Item 1 executed TWICE: the baseline projection → x-only
+  went RED at **450 vs 1200**, and `parseAbstracts` → `split('\n')` went RED — **3 tests here, not the 7
+  claimed**, because on an LF box only the synthetic-CRLF trio can fail (the claim holds on a CRLF tree;
+  the number is box-dependent and the entry does not say so). ⚠ **ONE FINDING, PROVEN AND FIXED ON THE
+  BRANCH — and it is the "yours" this entry named:** the app-side face guard left the DOCUMENT layer
+  unguarded, so an opening hosted on an EDGE token (which IS in `part.refs`) still landed `state: failed`
+  with `brokenRefs()` AND `unbuildable()` both empty — reproduced headlessly, verbatim. `build.ts` now
+  answers a non-face `hostRef` with a **BROKEN REF**, the same visible, retargetable state its missing-face
+  sibling has had all along (`document-openings.test.ts`, watched RED). ⚠ Second, free: the phantom sweep
+  stopped one file short — `useToolController.ts`'s header still drew `SnapGateway`/`PreviewLayer`, and
+  neither has ever existed. **689 green, 82 files, six gates, exit 0.**
 
 ### 79 | 2026-08-05 | Zayd | the emsdk image is pinned by digest — and the artifact now names its own compiler (Q14)
 
