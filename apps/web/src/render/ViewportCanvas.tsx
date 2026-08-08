@@ -14,6 +14,7 @@ import { Viewport, type PickResult } from './Viewport';
 import type { RenderPart } from './Viewport';
 import type { RenderGateway } from './RenderGateway';
 import { faceCandidate, type SnapHit, type SnapKind } from '../tool/snap';
+import { guideCandidates } from '../tool/align';
 import { encodeSubShapeRef, type Vec3 } from '@bunyan/protocol';
 
 /** A pointer that moves more than this (CSS px) between down and up is an orbit drag, not a pick. */
@@ -36,11 +37,18 @@ export function ViewportCanvas({
   parts,
   previewFrom,
   snapTo,
+  authoring,
   onPick,
   onPointerSample,
 }: {
   readonly render: RenderGateway;
   readonly parts: readonly RenderPart[];
+  /**
+   * Is a point-collecting tool active (design §4.3)? Alignment guides are drawn only then — a dashed
+   * guide offers a place to land a click, and Select has no click to land. See `ToolController.authoring`
+   * for why `snapTo: null` could not answer this.
+   */
+  readonly authoring?: boolean;
   /**
    * The snap kinds the active tool input accepts (`InputSpec.snapTo`); `null`/absent ⇒ all of them.
    * ⚠ Applied inside `chooseSnap`, before the ruled priority comparison — see its `allow` parameter.
@@ -69,6 +77,9 @@ export function ViewportCanvas({
   // The active input's snap filter, read inside the move handler without re-registering it.
   const snapToRef = useRef<readonly SnapKind[] | null>(snapTo ?? null);
   snapToRef.current = snapTo ?? null;
+  // Whether a point-collecting tool is active, read inside the move handler without re-registering it.
+  const authoringRef = useRef(authoring ?? false);
+  authoringRef.current = authoring ?? false;
 
   // Create the Viewport once, for the life of the canvas.
   useEffect(() => {
@@ -132,27 +143,47 @@ export function ViewportCanvas({
       // you are over" and "the endpoint 3 px away" — one ruled comparison, not two answers the tool
       // would then have to reconcile.
       const pick = viewport.pick(ndcX, ndcY);
+      // ⚠ THE GUIDES ARE COMPUTED BEFORE THE SNAP, FOR THE SAME REASON THE PICK IS (Entry 80): a
+      // guide's foot is a snap CANDIDATE, so it must exist before `chooseSnap` runs. It rides in
+      // through the same `live` array the face candidate uses, so `SNAP_PRIORITY` decides between
+      // "the corner you have lined up with" and "the face you are over" in one ruled comparison.
+      // ⚠ The gesture's own anchor is passed as an extra reference: the point you are drawing FROM is
+      // the one a human most expects to line up with, and it is not in the snap index (it is a value
+      // the controller holds, not geometry the viewport drew).
+      const anchor = previewFromRef.current;
+      const guides = authoringRef.current
+        ? viewport.guidesAt(
+            cursor,
+            SNAP_TOLERANCE_PX,
+            snapToRef.current,
+            anchor === null ? [] : [anchor],
+          )
+        : [];
+
       const snap = viewport.snapAt(
         cursor,
         SNAP_TOLERANCE_PX,
-        pick === null
-          ? []
-          : [
-              faceCandidate({
-                point: pick.point,
-                ref: encodeSubShapeRef(pick.faceRef),
-                elementId: pick.elementId,
-                nodeId: pick.nodeId,
-              }),
-            ],
+        [
+          ...(pick === null
+            ? []
+            : [
+                faceCandidate({
+                  point: pick.point,
+                  ref: encodeSubShapeRef(pick.faceRef),
+                  elementId: pick.elementId,
+                  nodeId: pick.nodeId,
+                }),
+              ]),
+          ...guideCandidates(guides),
+        ],
         snapToRef.current,
       );
 
       viewport.setSnapMarker(snap === null ? null : snap.point);
+      viewport.setGuideLines(guides.map((guide) => guide.line));
 
       // The rubber band: from the collected anchor to wherever the cursor resolves right now. Snap wins
       // over the free ground point, so the preview shows the point that would actually be committed.
-      const anchor = previewFromRef.current;
       const to = snap?.point ?? ground;
       viewport.setPreviewLine(anchor !== null && to !== null ? [anchor, to] : null);
 
@@ -162,6 +193,7 @@ export function ViewportCanvas({
     const onPointerLeave = (): void => {
       viewport.setSnapMarker(null);
       viewport.setPreviewLine(null);
+      viewport.setGuideLines(null);
       onSampleRef.current?.({ pick: null, snap: null, ground: null });
     };
 
@@ -188,6 +220,9 @@ export function ViewportCanvas({
   }, [parts]);
 
   // A cancelled or committed gesture clears the rubber band without waiting for the next pointer move.
+  // ⚠ The guides are NOT cleared here, and that asymmetry is deliberate: the rubber band belongs to the
+  // gesture and dies with it, while a guide belongs to the CURSOR and is still true when no tool is
+  // active. It is recomputed on the next move and cleared on `pointerleave`.
   useEffect(() => {
     if ((previewFrom ?? null) === null) viewportRef.current?.setPreviewLine(null);
   }, [previewFrom]);
