@@ -176,12 +176,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 87**
-        (Zayd, 2026-08-08) — a belongs-to CYCLE is authorable by two shipped verbs — and it erases the element silently
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 86**
+        (Amer, 2026-08-07) — the corner-drag, and the wrapper that was eating D23's transaction
 
-        ⇒ After `git pull`: §8's "newest entry" == 87  ⇒ you are current, start TASK.
-          HIGHER than 87 ⇒ the other agent has merged: read every abstract after
-          87 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 86  ⇒ you are current, start TASK.
+          HIGHER than 86 ⇒ the other agent has merged: read every abstract after
+          86 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -189,7 +189,7 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 87**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `amer/2026-08-07-move-tool-corner-drag` · `8dcc932` · dirty · RISK: contract-touching (re-baselined)
+        Tree at generation: `amer/2026-08-07-move-tool-corner-drag` · `a1a82e0` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->

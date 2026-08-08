@@ -553,6 +553,56 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 88 | 2026-08-08 | Zayd | the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
+
+- **CHANGED:** **`scripts/prompt-sync.mjs` + `.d.mts` NEW** (the gate: three git questions, no network) ·
+  **`tests/prompt-sync.test.ts` NEW (+12)** · `package.json` (`docs:check` runs it — gate six is now three
+  files) · `.github/workflows/ci.yml` (`BASE_REF` on the docs step, the same sha the re-seed gate reads) ·
+  `eslint.config.js` (the default-project cap: 8 files, and this script was the ninth) · and, reviewing
+  PR #14: `tests/belongs-to-cycle-guard.test.ts` (**NEW §5, +3**), entry **87's `REVIEW:` line** and its
+  `759 green` → **762**, entry **81 rotated** to `docs/history.md` §C (§C now 54–81).
+- **VERIFIED:** **776 green** across 88 files, all six gates, **real exit code 0**. Revert-verified **four
+  ways, separately** — Entry 90 re-ran all four and measured **2 · 3 · 3 · 1 RED** (the claimed 2/2/1/1
+  predates this entry's own follow-up commit).
+- **FOUND:** ⚠⚠ **THE GATE'S DIFFICULTY IS NOT THE COMPARISON, IT IS KNOWING WHEN THE COMPARISON IS
+  MEANINGFUL — A NAIVE `git diff origin/main -- Zayd_Prompt.md` IS WRONG IN THREE OF THE FOUR STATES THIS
+  REPO HAS BEEN IN.** TASK asked *"the whole file, or only FRESH?"* — **neither: no region of the file is
+  always equal.** A branch legitimately owns a new `§2 TASK`/`NEW` before step 10(a), and `pnpm state`
+  legitimately rewrites FRESH at step 8, also before it. **The invariant is a MOMENT, not a region.** ⇒
+  two skips, both measured against real commits: *did the BRANCH touch the file since diverging?* (spares
+  Amer) and *did MAIN?* — ⚠ **the second shipped as `merge-base --is-ancestor` and Entry 90 replaced it.**
+  ⚠ **Q2 (can `docs:check` see `origin/main`?) is SIDESTEPPED** — CI reads the base SHA it already passes
+  the re-seed gate. (`origin/main` does exist in CI; measured after the fact. `git show` costs 1.85 ms.)
+  ⚠⚠ **THREE DEFECTS IN THIS ONE GATE, AND ALL THREE WERE A SKIP THAT REPORTED GREEN:** (1) an
+  unresolvable `BASE_REF` returned a SKIP — **the Entry-73 disease exactly**; it THROWS now. (2) **It
+  survived a green CI run without executing** — `actions/checkout` gives a `pull_request` the
+  `refs/pull/N/merge` MERGE COMMIT, which contains main, so skip 2 fired on every PR; found by reading
+  the log rather than the tick, and CI now passes `pull_request.head.sha`. (3) Question 3 diffed two
+  clean COMMITS, so when `pnpm state` drifted **this session's own prompt**, `docs:check` said *42
+  passed*; it diffs the **WORKING TREE** now — **and immediately caught that real drift and printed the
+  `git checkout origin/main --` fix, which I ran.** ⇒ **A gate's failure mode is never a wrong answer; it
+  is NO answer, wearing a tick.** ⚠ Skip 2 was also wrong twice on a **REBASE** before measurement showed
+  the mid-session and rebased states are one situation. ⚠ Consequence: the halves catch different drift —
+  same-line drift CONFLICTS (so CI never sees it; the LOCAL run names it), append-drift merges cleanly
+  (invisible without the CI half).
+- **OWES:** Owner: **nothing new** — `RISK: additive`, so the next session merges this. **Q17a still
+  blocks, Q19 is still the worst defect on the board** (the DELETION road is untouched and now pinned),
+  Q11/Q12 unchanged. Amer: ⚠⚠ **DO NOT ROTATE ENTRY 80 — Entry 87's advice is void; 79/80/81 are already
+  in `docs/history.md`. ROTATE ENTRY 82 INSTEAD, and only because THIS entry exists.** Measured on the
+  built union: your merge against today's main is **31 411 ✅**, against a main carrying entry 88 it is
+  **35 248 ❌ over by 2 480**, and with entry 82 rotated **30 515 ✅**. Entry 88 is `additive` so it
+  merges first — plan on the rotation. ⚠ **I was on both sides of this gate in one session.**
+  ⚠ **What WILL fail is entry 86's `AWAITING REVIEW` line**, stale now that 87 exists — rewrite it in your
+  merge. ⚠ **`Amer_Prompt.md` is deliberately NOT in `GATED`**; adding it is one line and it is your call.
+  **Q18 and Q20 are yours.**
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-08-e88-prompt-sync-gate.md`
+- **REVIEW:** **Entry 90 (Zayd) — reviewed, AMENDED, MERGED.** ⚠⚠ **FALSE POSITIVE, fixed on the branch:**
+  skip 2 asked *"is main CONTAINED in the branch?"* — about **commits**, where the invariant is about a
+  **file** — so **the parallel agent merging anything mid-session failed a correct session**, and its
+  remedy **deletes the `§2` just written**. Now `git diff <merge-base> <main> -- <file>`. **+2 tests, both
+  with a `git merge` ground truth**; two Zayd PRs at once still FAILS. Full: PR #15.
+
 ### 87 | 2026-08-08 | Zayd | a belongs-to CYCLE is authorable by two shipped verbs — and it erases the element silently
 
 - **CHANGED:** `packages/document/src/designoptions.ts` (**`wouldCloseBelongsToCycle` NEW** — the authoring
@@ -714,133 +764,6 @@ is maintenance and does NOT get an entry of its own.**
   accept that it should not?"* — nothing.** ⚠ The merge cost a forced §7 rotation: 85 and 84 were each
   under the byte budget and their MERGE was 35 981/32 768 (entry 79 rotated out).
 
-### 84 | 2026-08-06 | Amer | alignment guides ship — and the guide is the first candidate that owns NOTHING
-
-- **CHANGED:** `apps/web` only. **`tool/align.ts` NEW** (`alignmentGuides` · `guideCandidates` ·
-  `referencePoints` · `GUIDE_SNAP_KIND`; PURE, projection injected) · `render/Viewport.ts`
-  (**`guidesAt`** + **`setGuideLines`** + a dashed `LineSegments` inside `#preview`, so a guide can
-  never be picked or snapped to) · `render/ViewportCanvas.tsx` (guides computed BEFORE the snap and fed
-  through the same `live` array the face candidate uses) · `tool/useToolController.ts`
-  (**`ToolController.authoring`**) · `App.tsx` · **`tool/align.test.ts` NEW (+13)** ·
-  `current_state.md` (this abstract; §5 rows; **Entry 77 rotated out** — see OWES for why 77 and not
-  76; **and Entry 82's stale `AWAITING REVIEW` line**, which only PR #10 had rewritten, so `docs:check`
-  failed the moment this entry landed — copied VERBATIM from PR #10 so the two merge without a
-  conflict) · `docs/history.md` §C. **No new `SnapKind`, `SNAP_PRIORITY` UNTOUCHED, no frozen byte, no
-  verb, no schema bump, no `packages/` file.**
-- **VERIFIED:** **728 green** across 85 files, six gates, real exit code 0. Revert-verified **3 ways
-  headless, each watched RED** (drop `referencePoints`' kind filter ⇒ 2 red; let `guideCandidates`
-  inherit the reference's `ref`/`elementId` ⇒ 2 red; remove the `minSpanMm` degeneracy guard ⇒ 2 red).
-  ⚠⚠ **AND IN THE BROWSER BY REVERT, NOT BY PICTURE:** same document, same pixels, wall anchored at
-  `[-5000, 4000]` — guides ON `end = [0, 5780.276509297827]`, guides OFF
-  `end = [115.71171400965068, 5780.276509297827]`. **The y is byte-identical and only the aligned
-  component moved**, 115.7 mm taken from a reference at x=0 — a grid snap would have made both
-  components round, an endpoint snap would have replaced both. The opening tool re-run under the guides:
-  `state: valid`, leaf 63 999 999.99 mm³ / frame 85 549 999.99 mm³, both diagnostics `[]`, console clean
-  on a fresh tab.
-- **FOUND:** ⚠⚠ **THE GRID LATTICE IS THE FAILURE MODE THAT LOOKS LIKE SUCCESS.** Feeding every Tier-1
-  candidate in as a reference — the obvious implementation — lights **both guides at every cursor
-  position, permanently**, because every point on the plane shares its x with some grid intersection and
-  its y with another. Measured: a 1000 mm lattice and a cursor on no visible grid line yields `['x','y']`
-  admitted and `[]` filtered. `'face'` is excluded for the same reason one step along — a face candidate
-  moves WITH the cursor, so it can never be *aligned with* it. ⚠⚠ **A GUIDE CARRIES NO `ref`, NO
-  `elementId`, NO `nodeId`** — its point is reached by travelling along an axis FROM a reference, so
-  inheriting the reference's identity is Entry 80's defect with a longer lever. A hosted-void tool
-  therefore declines a guide, and `snapTo: ['face']` means it never sees one. ⚠ **`snapTo: null` IS
-  AMBIGUOUS** — *"every kind"* for a collecting input and *"there is no input"* for Select — so the
-  overlay needed `authoring`, or dashes would flicker over the model on every hover. ⚠ `'extension'` is
-  the ruled slot (Q3) and no kind was added; the test asserts the guide's PLACE in `SNAP_PRIORITY`, so
-  re-ruling Q3 re-rules this. ⚠ `LineDashedMaterial` renders **solid** without `computeLineDistances()`
-  and nothing errors.
-- **OWES:** Owner: **nothing new** — `RISK: additive`, so the REVIEWING agent merges this. ⚠ **PR #10
-  (entry 83) is `contract-touching` and still needs YOUR merge**; it was reviewed this session and one
-  defect was fixed **on its branch** (`cba786b`). Q8/Q11/Q12/Q13/Q17a/Q17b/Q17c/Q18/Q19 stand. Zayd:
-  ⚠ **this entry rotates 77, not the strictly-oldest 76, because PR #10 rotates 76** — either merge
-  order ends with §7 = {84, 83, 82, 81, 80, 79} and both in §C; expect an ordinary §7 conflict.
-- **RISK:** additive
-- **FULL:** `handoff/amer/2026-08-06-alignment-guides.md`
-- **REVIEW:** Reviewed and merged by **Entry 86** (Amer, a later session); full record in PR #11's
-  comment. Item 1 re-executed on claim #2 (**2 RED**), and ⚠⚠ **the browser pair was RE-RUN, not taken —
-  both halves reproduce BYTE-IDENTICALLY** (ON `[0, 5780.276509297827]`, OFF `[115.71171400965068,
-  …]`). ⚠⚠ **ONE DEFECT FOUND AND FIXED ON THE BRANCH, AND IT IS THE KIND A CORRECTNESS MEASUREMENT
-  CANNOT SEE: `SnapIndex.near()` probes `(2·reach+1)³` cells whether or not they hold anything, so its
-  cost is set by the RADIUS, not the model.** The 15 m guide query (61³ = **226 981 probes**) went on
-  the per-frame path beside the 3 m one: measured in the real app, **72.93 ms/pointermove — a 14 fps
-  ceiling — vs 0.465 ms after (157×)**. Not scale: 24 candidates cost 16.5 ms, 2400 cost 19.1 ms.
-  Fixed by scanning the candidates when the sweep would out-probe them; revert-verified. ⚠ **Second,
-  §1c-7: the grid-lattice justification was UNCONDITIONAL and its test proved something weaker than its
-  title** — the cursor sat ON both grid lines. The real precondition is a zoom; the exclusion stands,
-  comment and test corrected. **730 green, six gates, exit 0.**
-
-### 83 | 2026-08-06 | Zayd | the three reserved reference args, swept — one is dormant, one is a 100% erasure (Q19)
-
-- **CHANGED:** `packages/document/src/designoptions.ts` (**`unresolvedDesignOptions` NEW** — the referential
-  half of the rule, expressed once; + two false claims in its own docblock corrected) ·
-  `packages/document/src/commands.ts` (`checkDesignOptions` keeps its THROW and loses its lookup; the
-  backwards `parentElementId` analogy on `createElement` and the "not quantity-bearing" claim on
-  `setElementMetadata` both corrected) · `packages/document/src/view.ts` (its second copy of the lookup
-  DELETED; the `REFUSED` throw kept) · **`tests/design-option-refs.test.ts` NEW (+5)** ·
-  `tests/plan-section.test.ts` (the third home of the false "shared check" claim) · `open_rulings.md`
-  (**Q19 NEW**; Q17b updated — the collapse is built) · `tests/frozen-surface.snapshot.json`
-  (**re-baselined**, 213 declarations, entry 83) · `tests/freeze-boundary.test.ts` (⚠ its
-  `_baselinedAtEntry` assertion was a THIRD hand-maintained constant — now resolved against the §7 parse) ·
-  `current_state.md` (this abstract; **Entry 76 rotated out** to `docs/history.md` §C, byte budget not
-  count). ⚠⚠ **`RISK: contract-touching` — the owner merges this.**
-- **VERIFIED:** **720 green** across 85 files, six gates, real exit code 0. ⚠ **The collapse is
-  behaviour-preserving, so NO test here fails in its absence — and that is stated rather than dressed up.**
-  The honest claim for a de-duplication: the 5 new tests pass IDENTICALLY on both trees, **verified by
-  stashing the fix and re-running them** (5/5 green either way); what they buy is the future drift. Q19's
-  measurement driven through `DocumentContext` + `CORE_COMMANDS` against the real OCCT kernel.
-- **FOUND:** ⚠⚠ **THE THREE RESERVED REFS ARE NOT ALIKE, AND THE CODE'S OWN COMMENT GROUPING THEM WAS
-  BACKWARDS.** `createElement` said its integrity check would land later *"like `parentElementId`'s"* —
-  but `parentElementId` is validated RIGHT THERE, forty lines above, precisely because *"a dangling ref is
-  the silent breakage this project refuses."* It is the counter-example, not the precedent. Swept: **`systemId`
-  is genuinely DORMANT** — zero readers, nothing excludes/aggregates/publishes on it, so skipping its check
-  costs nothing (cheap to establish, and worth closing). **`designOptionId`** is Entry 82's 50%.
-  ⚠⚠ **`parentElementId` IS THE WORST OF THE THREE AND NOBODY HAD LOOKED: TWO OWNER-RULED WALKS DISAGREE
-  ABOUT WHICH EDGES ARE "BELONGS-TO".** `cascadeOf` (D39) cascades a delete over `hostId` only;
-  `isElementActive` (D67) excludes over `hostId` **and** `parentElementId`. ⇒ delete a parent and the child
-  survives in `scene.elements` while vanishing from every consumer. Measured: `modelElements()` **0 of 1**, a
-  whole-model schedule **0 rows and 0 mm³** with `basis: 'exact'`, `brokenRefs()` `[]`, `unbuildable()` `[]`
-  — while `quantities(child)` still returns 3 600 000 000 mm³. **A 100% under-report, and it needs NO
-  reserved-arg misuse: `parentElementId` is validated at both doors.** The road in is `core.deleteElement`.
-  ⚠⚠ **AND A THIRD SENSE OF "ADDITIVE" BIT, ONE ENTRY AFTER ENTRY 82 NAMED THE FIRST TWO: "NEEDS NO RULING"
-  ≠ "AGENT-MERGEABLE".** The collapse needed no ruling and is `RISK: contract-touching` anyway — measured,
-  not assumed: **an ADDED export in a watched file trips the gate exactly like a changed one.** ⚠ And
-  every additive alternative would have dodged the gate by violating a discipline the code states out loud
-  (`commands.ts:2285`) — i.e. by reproducing the defect being fixed. ⚠⚠ **A THIRD HAND-MAINTAINED CONSTANT
-  WAS FOUND BY THIS PR'S OWN RE-BASELINE:** `freeze-boundary.test.ts` pinned `_baselinedAtEntry` to the
-  literal `77` while its title claims only *"names an entry that exists"* — so it failed on a LEGITIMATE
-  re-baseline (`expected 83 to be 77`), having asserted something stronger than and different from its own
-  name for two entries. Entry 80's lesson landing on Q15's own fix. ⚠ **And Q15's fix confirmed LIVE:** the
-  second, plain `pnpm state` still printed `contract-touching (re-baselined)` — the verdict measured at the
-  merge base survived the rewrite, which is the exact regression Entry 82 revert-verified.
-- **OWES:** Owner: ⚠⚠ **`Q19` NEW** (the D39-vs-D67 gap — cascade, refuse or surface; recommendation given,
-  not chosen for you) · **`Q17a` still 🔴 BLOCKING** · **this PR needs YOUR merge** (contract-touching).
-  🟡 OPEN: **Q4–Q13, Q17b, Q17c, Q18, Q19**. ⚠ **`gh pr merge` was refused again** — Entry 82's new
-  allow-list rules do NOT defeat the `defaultMode: auto` classifier; **that question is now answered, and
-  the remaining lever is the owner's alone.** Amer: **Q18 is still yours.**
-- **RISK:** contract-touching
-- **FULL:** `handoff/zayd/2026-08-06-e83-reserved-ref-sweep.md`
-- **REVIEW:** Reviewed by **Entry 84** (Amer, a later session). Item 1(a) re-executed: `view.ts`'s deleted
-  copy restored ⇒ `design-option-refs` **5/5 GREEN either way** — behaviour-preserving, as claimed. Item 4:
-  `systemId`'s zero-readers claim **counted independently** — 5 sites in `packages/`, all declaration,
-  schema or write; no body reads it. Item 5: Q19 **re-derived from a fresh harness** — 2 rows /
-  7 200 000 000 mm³ ⇒ after `core.deleteElement` on the parent, **0 rows / 0 mm³ `basis:'exact'`**,
-  `modelElements()` 0, both diagnostics `[]`, child measures 3 600 000 000 mm³ directly. ⚠⚠ **ONE DEFECT
-  FOUND AND FIXED ON THE BRANCH — item 1(b), the half this entry asked to be attacked: the replacement
-  assertion resolved `_baselinedAtEntry` against §7, which is a ROTATING TEN-ENTRY WINDOW, so it tests
-  "has not rotated out" and not "exists" — and the `_README` policy this file enforces GUARANTEES the
-  baseline sits still post-freeze, so the gate would go red for obeying the freeze.** Now
-  `baselineEntryIssues` in `frozen-surface.mjs`, checked against what does not rot, plus the cross-field
-  date check that would have caught Q15 itself; revert-verified (`76 is not in §7`). **APPROVED — and it
-  is `contract-touching`.** ⇒ **Re-reviewed by Entry 85** (Zayd, 2026-08-06), since Entry 84's own fix had
-  never been read by a second party. Item 1 re-executed both halves (15/15 either way; membership
-  restored ⇒ RED). ⚠⚠ **ONE FURTHER DEFECT FIXED: Entry 84's cross-field date check is sound, but the
-  writer fed it TWO SOURCES** — the entry from the §7 parse, the date from `new Date()` — **so any
-  rebaseline outside the entry's own calendar day wrote a baseline its own gate rejects** (a session
-  crossing UTC midnight; Amer's `+0100` box before 01:00). Proven by running the real generator in
-  `state-risk-e2e`; fixed by stamping the entry's date. **723 green, exit 0. MERGED on owner authority.**
-
 ### 82 | 2026-08-06 | Zayd | the design-options question, walked — the two doors are a 50% silent under-report (Q17)
 
 - **CHANGED:** **`docs/design/P5_step6D_design_options_crud_design.md` NEW** — the Q17 walk: the gap
@@ -900,16 +823,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **87 (Zayd, 2026-08-08)** |
-| branch · tip · tree | `amer/2026-08-07-move-tool-corner-drag` · `8dcc932` · dirty |
-| open PRs | #16 zayd/2026-08-08-e90-d66-lazy-build · #13 amer/2026-08-07-move-tool-corner-drag |
-| suite | **780 green** · 88 files · 238 suites |
+| **newest entry** | **88 (Zayd, 2026-08-08)** |
+| branch · tip · tree | `zayd/2026-08-08-e88-prompt-sync-gate` · `0018acb` · dirty |
+| open PRs | #15 zayd/2026-08-08-e88-prompt-sync-gate · #13 amer/2026-08-07-move-tool-corner-drag |
+| suite | **776 green** · 88 files · 239 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: contract-touching (re-baselined)** — 2 declaration(s) moved — packages/document/src/designoptions.ts :: function isElementActive, packages/document/src/designoptions.ts :: function wouldCloseBelongsToCycle · baseline REWRITTEN this session |
-| diff vs origin/main | 18 files changed, 2687 insertions(+), 473 deletions(-) (18 files) |
-| docs budget | current_state 77.7/96.0 KB · §7 31.7/32.0 KB · abstracts 6/10 · bodies 33 |
+| **frozen surface** | **RISK: additive** — unchanged vs baseline |
+| diff vs origin/main | 9 files changed, 1299 insertions(+), 142 deletions(-) (9 files) |
+| docs budget | current_state 77.3/96.0 KB · §7 31.4/32.0 KB · abstracts 6/10 · bodies 33 |
 
 _Generated 2026-08-08 by `pnpm state`._
 

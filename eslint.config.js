@@ -22,6 +22,12 @@ export default tseslint.config(
         projectService: {
           // Build/config/CI scripts live outside the typecheck projects.
           allowDefaultProject: ['vitest.config.ts', 'eslint.config.js', 'scripts/*.mjs'],
+          // ⚠ typescript-eslint caps the default project at EIGHT files and then fails the lint with
+          // an error about its own internals, not about your code. `scripts/*.mjs` (7) plus the two
+          // config files is 9, so entry 88's `prompt-sync.mjs` was the one that tipped it over.
+          // Raised rather than worked around: these are small, and the alternative is excluding a
+          // gate script from type-aware linting — which is the opposite of what a gate wants.
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 20,
         },
         tsconfigRootDir: import.meta.dirname,
       },
