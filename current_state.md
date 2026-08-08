@@ -901,15 +901,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **85 (Zayd, 2026-08-06)** |
-| branch · tip · tree | `zayd/2026-08-06-e85-hostid-sweep` · `34c46f2` · dirty |
+| branch · tip · tree | `zayd/2026-08-06-e85-hostid-sweep` · `38c153c` · clean |
 | open PRs | #13 amer/2026-08-07-move-tool-corner-drag · #12 zayd/2026-08-06-e85-hostid-sweep |
 | suite | **744 green** · 86 files · 233 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/designoptions.ts :: function isElementActive · baseline REWRITTEN this session |
-| diff vs origin/main | 7 files changed, 499 insertions(+), 88 deletions(-) (7 files) |
-| docs budget | current_state 76.6/96.0 KB · §7 30.7/32.0 KB · abstracts 6/10 · bodies 31 |
+| diff vs origin/main | 7 files changed, 512 insertions(+), 89 deletions(-) (7 files) |
+| docs budget | current_state 77.8/96.0 KB · §7 31.9/32.0 KB · abstracts 6/10 · bodies 31 |
 
 _Generated 2026-08-08 by `pnpm state`._
 
