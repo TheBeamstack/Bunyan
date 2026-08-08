@@ -57,7 +57,7 @@ import {
   withRotation,
   withTranslation,
 } from './placement.js';
-import { unresolvedDesignOptions } from './designoptions.js';
+import { unresolvedDesignOptions, wouldCloseBelongsToCycle } from './designoptions.js';
 import { scheduleDefinitionIssues } from './schedule.js';
 import { viewDescriptorIssues } from './view.js';
 import { readSketch } from './sketch.js';
@@ -1031,6 +1031,19 @@ export const retargetReferenceCommand: Command = {
     const args = checkArgs(retargetReferenceCommand, rawArgs);
     const element = requireElement(ctx.scene, args['elementId']);
     const host = requireElement(ctx.scene, args['hostId']);
+    // ⚠⚠ `requireElement` proves the host EXISTS. It does not prove the host is not the element itself,
+    // or something hosted on it — and a hosting CYCLE is not a broken reference, it is an erased element:
+    // `isElementActive` excludes every member, so the wall leaves every schedule, roll-up, Clean Delta and
+    // view with `brokenRefs()` and `unbuildable()` both EMPTY. Refused at the door (Entry 87).
+    if (wouldCloseBelongsToCycle(ctx.scene, element.id, host.id)) {
+      throw new CommandFailure(
+        'REFUSED',
+        `"${host.id}" already belongs to "${element.id}" (directly or through a host/parent chain), so ` +
+          `hosting "${element.id}" on it would close a cycle. An element in a belongs-to cycle is ` +
+          `excluded from every consumer — it would vanish from the model with no broken reference to ` +
+          `show for it. Retarget onto an element outside that chain.`,
+      );
+    }
 
     const after: Element = { ...element, hostId: host.id, hostRef: text(args['hostRef']) };
     const rebuilt = [host.id];
@@ -1119,7 +1132,22 @@ export const setElementMetadataCommand: Command = {
     const element = requireElement(ctx.scene, args['elementId']);
 
     const parentElementId = args['parentElementId'] as string | undefined;
-    if (parentElementId !== undefined) requireElement(ctx.scene, parentElementId);
+    if (parentElementId !== undefined) {
+      requireElement(ctx.scene, parentElementId);
+      // ⚠⚠ THE SAME HOLE ON THE OTHER EDGE — and this one erases with NO diagnostic at all (the hosting
+      // cycle at least leaves an `unbuildable()` row when the geometry needs the loop). Measured:
+      // `parentElementId = own id` ⇒ `modelElements()` 0 of 1, `projectQuantities()` 0 rows carrying
+      // `basis: 'exact'`, `brokenRefs()` [] and `unbuildable()` [] (Entry 87).
+      if (wouldCloseBelongsToCycle(ctx.scene, element.id, parentElementId)) {
+        throw new CommandFailure(
+          'REFUSED',
+          `"${parentElementId}" already belongs to "${element.id}" (directly or through a host/parent ` +
+            `chain), so making it the parent would close a cycle. An element in a belongs-to cycle is ` +
+            `excluded from every consumer — it would vanish from the model with no broken reference to ` +
+            `show for it. Choose a parent outside that chain.`,
+        );
+      }
+    }
 
     const after: Element = {
       ...element,
