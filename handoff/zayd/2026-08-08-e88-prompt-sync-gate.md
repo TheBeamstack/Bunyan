@@ -325,3 +325,68 @@ alternative is excluding a *gate script* from type-aware linting. Lint cost afte
 - **Amer**: the §7 rotation warning on PR #13 is withdrawn (see §1); entry 86's `AWAITING REVIEW` line is
   what will actually fail; `Amer_Prompt.md` in `GATED` is yours to add. Q18 and Q20 are yours.
 - **Owner**: nothing new. Q11/Q12 (`CLA.md` ships `<LEGAL ENTITY>`) unchanged.
+
+---
+
+## 4 · Entry 90's review (2026-08-08) — appended by the reviewer, not the author
+
+**Verdict: approved with an amendment pushed to this branch, then merged.** The full record is in PR #15's
+comment. Two things belong in this file, because they change what the entry above claims.
+
+### 4a · The false positive — §1's four states were not the population
+
+TASK commissioned this review to *"attack the false positive"*, and there is one. Question 2 shipped as
+`git merge-base --is-ancestor <main> <head>` — *"is main contained in this branch?"* — which is a question
+about **commits**, while the invariant it guards is about a **file**. So any commit landing on `main` for
+any reason stops the skip firing:
+
+> **The other agent merges their PR while this seat is between step 8 and step 10(a).** `main ⊄ branch`
+> now, question 2 goes quiet, and question 3 compares a `§2 TASK`/`NEW` that main has not been shown yet
+> against the one it still carries. **A correct session fails at step 7.**
+
+Measured, with `git merge` as the ground truth: the merge it "protects" is **clean**. And the failure is
+destructive rather than merely noisy — it prints *"Step 10(a) already pushed this file to main"* (false)
+and prescribes `git checkout main -- Zayd_Prompt.md`, **which deletes the hand-off to the next entry.**
+With two agents running in parallel this is the ordinary case, not an exotic one.
+
+**The fix is one question, and it is the one `git merge` itself asks:** a conflict needs *both* sides to
+have edited the file since they diverged. Question 1 already asked it of the branch; question 2 now asks
+it of main — `git diff <merge-base> <main> -- <file>`. It **subsumes** containment (`main ⊆ branch` makes
+main the merge-base, so that diff is empty too) and stops answering for states it was never asked about.
+`contains()` is deleted; nothing else called it.
+
+⇒ **Question 2 was wrong three times, and every wrong version passed all four pinned states.** That is the
+transferable finding, and it is sharper than the entry's own: **a pinned state proves the pin, not the
+population.** Four real commits accepted `rev-list`, then "who wrote it last", then containment. Ask what
+the pins do not contain.
+
+Four states are now pinned in §2 that were not before — `pnpm state` run twice, main fast-forwarded
+mid-session, main **merged** into the branch, and **two Zayd PRs open at once**. The last must still FAIL
+and does; both new tests assert the real `git merge` outcome, not just the verdict.
+
+### 4b · Numbers that had gone stale — and how
+
+- **Item 1 re-run four ways: `2 · 3 · 3 · 1 RED`**, not the `2 · 2 · 1 · 1` claimed. Every revert produced
+  a RED, so item 1 is satisfied; the counts simply **undercount**.
+- **`774 green`, not `771`** — measured on this branch's tip before any review change.
+
+Both have the same cause and it is worth naming: **the numbers were measured at `4a9cd10` and never
+re-measured after `0018acb`**, this entry's own follow-up commit, which added three tests. The entry
+already teaches *"a review comment is a claim, and a claim with no method is not done"*; the corollary is
+that **a measurement is pinned to a commit, and a follow-up commit un-measures it.**
+
+### 4c · The gate caught a real drift during this review, unplanned
+
+Importing `scripts/state.mjs` to read a constant **executes it** (top-level side effects), which rewrote
+FRESH's tree line — exactly the drift this gate exists for. `docs:check` failed by name and printed the
+`git checkout origin/main --` fix, which worked. ⚠ Note for anyone reaching for a constant: import
+`scripts/docs-state.mjs`, not `state.mjs`.
+
+### 4d · Confirmed, not re-litigated
+
+Item 7 (`RISK: additive`), item 2 (the backward sweep — both open PRs re-checked against the amended gate:
+**#13 skips, #15 looks and passes**), and the deliberate exclusion of `Amer_Prompt.md`, which remains
+Amer's call. ⚠ **§7 is at 32 754/32 768 bytes** after this amendment — **14 bytes of headroom** — so the
+rotation entry 88 asked Amer for is now unavoidable rather than merely advisable. *(This review deliberately
+did NOT rotate an entry itself: entry 88's `OWES` already assigns entry 82's rotation to Amer's in-flight
+merge, and two sessions appending to `docs/history.md` at once is the one thing §7 cannot survive.)*

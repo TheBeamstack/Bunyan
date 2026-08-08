@@ -20,9 +20,6 @@ export type PromptSyncVerdict =
 /** Does `ref` resolve to a commit in this repository? */
 export declare function resolves(ref: string, cwd?: string): boolean;
 
-/** Is every commit of `ancestor` already in `descendant`'s history? */
-export declare function contains(ancestor: string, descendant: string, cwd?: string): boolean;
-
 /** `BASE_REF` in CI, `origin/main` locally, `undefined` when neither is available (a skip). */
 export declare function mainRef(env?: NodeJS.ProcessEnv, cwd?: string): string | undefined;
 

@@ -561,16 +561,16 @@ is maintenance and does NOT get an entry of its own.**
   `eslint.config.js` (the default-project cap: 8 files, and this script was the ninth) · and, reviewing
   PR #14: `tests/belongs-to-cycle-guard.test.ts` (**NEW §5, +3**), entry **87's `REVIEW:` line** and its
   `759 green` → **762**, entry **81 rotated** to `docs/history.md` §C (§C now 54–81).
-- **VERIFIED:** **774 green** across 88 files, all six gates, **real exit code 0**. Revert-verified **four
-  ways, separately**: drop skip 1 ⇒ **2 RED**, drop skip 2 ⇒ **2 RED**, make the comparison always pass ⇒
-  **1 RED**, make an unresolvable `BASE_REF` skip instead of throw ⇒ **1 RED**. 
+- **VERIFIED:** **776 green** across 88 files, all six gates, **real exit code 0**. Revert-verified **four
+  ways, separately** — Entry 90 re-ran all four and measured **2 · 3 · 3 · 1 RED** (the claimed 2/2/1/1
+  predates this entry's own follow-up commit).
 - **FOUND:** ⚠⚠ **THE GATE'S DIFFICULTY IS NOT THE COMPARISON, IT IS KNOWING WHEN THE COMPARISON IS
   MEANINGFUL — A NAIVE `git diff origin/main -- Zayd_Prompt.md` IS WRONG IN THREE OF THE FOUR STATES THIS
   REPO HAS BEEN IN.** TASK asked *"the whole file, or only FRESH?"* — **neither: no region of the file is
   always equal.** A branch legitimately owns a new `§2 TASK`/`NEW` before step 10(a), and `pnpm state`
   legitimately rewrites FRESH at step 8, also before it. **The invariant is a MOMENT, not a region.** ⇒
-  two skips, both measured against real commits: *does this branch AUTHOR the file?* (spares Amer) and
-  *is main CONTAINED in it?* (`merge-base --is-ancestor` ⇒ fast-forward ⇒ no conflict possible).
+  two skips, both measured against real commits: *did the BRANCH touch the file since diverging?* (spares
+  Amer) and *did MAIN?* — ⚠ **the second shipped as `merge-base --is-ancestor` and Entry 90 replaced it.**
   ⚠ **Q2 (can `docs:check` see `origin/main`?) is SIDESTEPPED** — CI reads the base SHA it already passes
   the re-seed gate. (`origin/main` does exist in CI; measured after the fact. `git show` costs 1.85 ms.)
   ⚠⚠ **THREE DEFECTS IN THIS ONE GATE, AND ALL THREE WERE A SKIP THAT REPORTED GREEN:** (1) an
@@ -597,7 +597,11 @@ is maintenance and does NOT get an entry of its own.**
   **Q18 and Q20 are yours.**
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-08-e88-prompt-sync-gate.md`
-- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+- **REVIEW:** **Entry 90 (Zayd) — reviewed, AMENDED, MERGED.** ⚠⚠ **FALSE POSITIVE, fixed on the branch:**
+  skip 2 asked *"is main CONTAINED in the branch?"* — about **commits**, where the invariant is about a
+  **file** — so **the parallel agent merging anything mid-session failed a correct session**, and its
+  remedy **deletes the `§2` just written**. Now `git diff <merge-base> <main> -- <file>`. **+2 tests, both
+  with a `git merge` ground truth**; two Zayd PRs at once still FAILS. Full: PR #15.
 
 ### 87 | 2026-08-08 | Zayd | a belongs-to CYCLE is authorable by two shipped verbs — and it erases the element silently
 
@@ -893,15 +897,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **88 (Zayd, 2026-08-08)** |
-| branch · tip · tree | `zayd/2026-08-08-e88-prompt-sync-gate` · `4a9cd10` · dirty |
+| branch · tip · tree | `zayd/2026-08-08-e88-prompt-sync-gate` · `0018acb` · dirty |
 | open PRs | #15 zayd/2026-08-08-e88-prompt-sync-gate · #13 amer/2026-08-07-move-tool-corner-drag |
-| suite | **774 green** · 88 files · 239 suites |
+| suite | **776 green** · 88 files · 239 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 9 files changed, 1111 insertions(+), 142 deletions(-) (9 files) |
-| docs budget | current_state 76.8/96.0 KB · §7 31.0/32.0 KB · abstracts 6/10 · bodies 33 |
+| diff vs origin/main | 9 files changed, 1299 insertions(+), 142 deletions(-) (9 files) |
+| docs budget | current_state 77.3/96.0 KB · §7 31.4/32.0 KB · abstracts 6/10 · bodies 33 |
 
 _Generated 2026-08-08 by `pnpm state`._
 

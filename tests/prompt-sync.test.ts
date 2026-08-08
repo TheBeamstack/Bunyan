@@ -158,9 +158,11 @@ describe('§2 — the failure it exists for, constructed', () => {
     expect(explain(drifted)).toContain(`git checkout ${mainAfter10a} -- Zayd_Prompt.md`);
 
     // ⚠⚠ AND THE SAME DRIFT, REBASED — it SKIPS, and that is measured to be correct, not assumed.
-    // After a rebase the 10(a) commit is an ancestor, so the two sides have not both edited the file
-    // since diverging and `git merge` reports NO conflict: main simply takes the branch's line. There
-    // is nothing for this gate to prevent. The skip must SAY that, though — see the message below.
+    // The rebase moves the merge-base onto the 10(a) commit itself, so main has not touched the file
+    // *since the two sides diverged* and `git merge` reports NO conflict: main simply takes the
+    // branch's line. There is nothing for this gate to prevent.
+    // ⚠ Entry 90: this used to be explained by "main is contained in the branch". Same verdict here,
+    // but that phrasing answered for states it was never asked about — see this file's §2 below.
     run('rebase', '-q', mainAfter10a);
     const rebased = promptSync('Zayd_Prompt.md', { main: mainAfter10a, head: 'HEAD', cwd: repo });
     expect(rebased.ok).toBe(true);
@@ -269,6 +271,112 @@ describe('§2 — the failure it exists for, constructed', () => {
       // ⚠ …but an EXPLICIT head means "compare these two commits", and a dirty tree must not leak in.
       const tip = run('rev-parse', 'HEAD');
       expect(promptSync('Zayd_Prompt.md', { main, head: tip, cwd: fresh })).toEqual({ ok: true });
+    } finally {
+      rmSync(fresh, { recursive: true, force: true });
+    }
+  });
+
+  /**
+   * ⚠⚠ **ENTRY 90's REVIEW FINDING — THE FALSE POSITIVE, AND IT IS THE ONE STATE THAT MATTERS.**
+   * Entry 88 listed *"a `git pull` that fast-forwards main MID-session"* as untried. It is not merely
+   * untried, it **fails a correct session**, and the parallel-agent setup makes it the common case
+   * rather than an exotic one: Amer merges their PR while this seat is between step 8 and step 10(a).
+   *
+   * Nothing about `Zayd_Prompt.md` has gone wrong. Main never touched it; only the branch did, which
+   * is exactly what step 9 is for. But `main ⊄ branch` now, so the old question 2 stopped skipping,
+   * and question 3 compared a §2 that main has not been shown yet against the one it still carries.
+   *
+   * ⚠ **And the failure is destructive, not just noisy.** It printed *"Step 10(a) already pushed this
+   * file to main"* — false — and prescribed `git checkout main -- Zayd_Prompt.md`, which **deletes the
+   * `TASK`/`NEW` the session had just written for its successor.** A gate that fires on a correct
+   * session gets disabled; a gate whose remedy erases the hand-off is worse than the merge conflict it
+   * replaced (Entry 88's own words, in the TASK that commissioned this review).
+   *
+   * ⇒ The fix is not another exception. It is the RIGHT question, and it was one question away all
+   * along: a conflict needs **BOTH** sides to have edited the file since they diverged. Question 1
+   * already asks it of the branch; question 2 now asks it of main.
+   */
+  it('⚠⚠ MAIN MOVING MID-SESSION IS NOT DRIFT — the parallel agent must not fail this seat', () => {
+    const fresh = mkdtempSync(join(tmpdir(), 'bunyan-prompt-sync-ff-'));
+    try {
+      const run = (...args: string[]) => git(args, fresh);
+      run('init', '-q', '-b', 'main');
+      run('config', 'user.email', 'gate@test');
+      run('config', 'user.name', 'gate');
+      const prompt = join(fresh, 'Zayd_Prompt.md');
+      writeFileSync(prompt, 'FRESH: ENTRY 1\nTree: `abc`\nTASK: the old thing\n');
+      writeFileSync(join(fresh, 'app.ts'), 'export const v = 1;\n');
+      run('add', '-A');
+      run('commit', '-qm', 'entry 1');
+
+      // Steps 8–9 on the branch: `pnpm state` rewrites FRESH and the session writes its successor's
+      // §2. Step 10(a) has NOT run — by the loop's own order it cannot have.
+      run('checkout', '-q', '-b', 'zayd/entry-2');
+      writeFileSync(
+        prompt,
+        'FRESH: ENTRY 2\nTree: `def`\nTASK: the thing I just wrote for entry 3\n',
+      );
+      run('commit', '-qam', 'entry 2 work + pnpm state');
+
+      // …and meanwhile the OTHER agent merges their own PR. It does not touch this file.
+      run('checkout', '-q', 'main');
+      writeFileSync(join(fresh, 'app.ts'), 'export const v = 2;\n');
+      run('commit', '-qam', "Amer's entry lands — nothing to do with Zayd_Prompt.md");
+      run('checkout', '-q', 'zayd/entry-2');
+
+      const v = promptSync('Zayd_Prompt.md', { main: 'main', head: 'HEAD', cwd: fresh });
+      expect(v.ok).toBe(true);
+      expect(v.skipped).toMatch(/no conflict is possible/);
+
+      // ⚠ GROUND TRUTH, not an opinion about git: the merge this gate exists to protect is clean.
+      run('checkout', '-q', 'main');
+      expect(() => run('merge', '--no-commit', '--no-ff', 'zayd/entry-2')).not.toThrow();
+      run('merge', '--abort');
+    } finally {
+      rmSync(fresh, { recursive: true, force: true });
+    }
+  });
+
+  /**
+   * ⚠ **THE OTHER HALF OF THE SAME FIX — proof it did not over-correct.** Entry 88 also listed *"two
+   * Zayd PRs open at once"* as untried. There the older branch has genuinely never seen a 10(a) that
+   * main carries, both sides HAVE edited the file since diverging, and `git merge` really does
+   * conflict. **That one must still fail**, and it is the case where the gate is worth most: GitHub
+   * would report it as the unrecognisable "Pull Request has merge conflicts".
+   */
+  it('⚠⚠ TWO ZAYD PRs AT ONCE — the older one still FAILS, and the real merge really does conflict', () => {
+    const fresh = mkdtempSync(join(tmpdir(), 'bunyan-prompt-sync-two-'));
+    try {
+      const run = (...args: string[]) => git(args, fresh);
+      run('init', '-q', '-b', 'main');
+      run('config', 'user.email', 'gate@test');
+      run('config', 'user.name', 'gate');
+      const prompt = join(fresh, 'Zayd_Prompt.md');
+      writeFileSync(prompt, 'FRESH: ENTRY 1\nTASK: entry 2 please\n');
+      run('add', '-A');
+      run('commit', '-qm', 'entry 1');
+
+      run('checkout', '-q', '-b', 'zayd/entry-2'); // entry 2's branch — its PR stays open
+      writeFileSync(prompt, 'FRESH: ENTRY 2\nTASK: entry 3 please\n');
+      run('commit', '-qam', 'entry 2 work');
+      run('checkout', '-q', 'main'); // entry 2's 10(a)
+      run('checkout', 'zayd/entry-2', '--', 'Zayd_Prompt.md');
+      run('commit', '-qam', 'Zayd_Prompt: hand off to entry 3');
+
+      run('checkout', '-q', '-b', 'zayd/entry-3'); // entry 3 runs while entry 2 is still open
+      writeFileSync(prompt, 'FRESH: ENTRY 3\nTASK: entry 4 please\n');
+      run('commit', '-qam', 'entry 3 work');
+      run('checkout', '-q', 'main'); // entry 3's 10(a) — entry 2's branch has never seen it
+      run('checkout', 'zayd/entry-3', '--', 'Zayd_Prompt.md');
+      run('commit', '-qam', 'Zayd_Prompt: hand off to entry 4');
+
+      const v = promptSync('Zayd_Prompt.md', { main: 'main', head: 'zayd/entry-2', cwd: fresh });
+      expect(v.skipped).toBeUndefined(); // it looked
+      expect(v.ok).toBe(false); // and it is right to complain
+
+      // ⚠ GROUND TRUTH: both sides edited the file since diverging, so this really does conflict.
+      expect(() => run('merge', '--no-commit', '--no-ff', 'zayd/entry-2')).toThrow();
+      run('merge', '--abort');
     } finally {
       rmSync(fresh, { recursive: true, force: true });
     }

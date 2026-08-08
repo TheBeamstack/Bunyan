@@ -32,32 +32,50 @@
  * So the gate asks three questions in order, and **the two skip conditions are load-bearing — each one
  * was measured against real commits to prevent a real false failure** (`tests/prompt-sync.test.ts` §1):
  *
+ * **Both skips ask the SAME question of the two sides, and that symmetry is the whole design** — a
+ * three-way merge conflicts only where both sides edited the same file since they diverged:
+ *
  * | Question | How | Skip means |
  * | --- | --- | --- |
- * | 1. Does this branch AUTHOR the file? | `git diff <merge-base> <head> -- <file>` | not this seat's file — Amer's branch, or `main` itself |
- * | 2. Is main CONTAINED in the branch? | `git merge-base --is-ancestor <main> <head>` | no conflict is possible: mid-session, or rebased |
+ * | 1. Did the BRANCH touch the file since diverging? | `git diff <merge-base> <head> -- <file>` | not this seat's file — Amer's branch, or `main` itself |
+ * | 2. Did MAIN touch it since diverging? | `git diff <merge-base> <main> -- <file>` | no conflict is possible: 10(a) has not landed here |
  * | 3. Then: do they MATCH? | `git diff <main> <head> -- <file>` | **non-empty here is the defect** |
  *
  * Measured on this repository's own history — and both skips earn their place, because a naive
  * `git diff main HEAD -- <file>` reports a difference in **three** of these four and is right about one:
  *
  * ```
- * in-sync Zayd PR   (4fd302f vs ec107cb)  contains=false  → PASS
- * pre-10(a)         (958658d vs 714447d)  contains=true   → SKIP  (question 2 saves it)
- * Amer's branch     (4fd302f vs 8dcc932)  contains=false  → SKIP  (question 1 saves it)
- * on main itself    (eb74f43 vs eb74f43)  contains=true   → SKIP  (question 1 gets there first)
+ * in-sync Zayd PR   (4fd302f vs ec107cb)  main touched it  → PASS
+ * pre-10(a)         (958658d vs 714447d)  main did not     → SKIP  (question 2 saves it)
+ * Amer's branch     (4fd302f vs 8dcc932)  branch did not   → SKIP  (question 1 saves it)
+ * on main itself    (eb74f43 vs eb74f43)  neither did      → SKIP  (question 1 gets there first)
  * ```
  *
- * ⚠⚠ **QUESTION 2 WAS WRONG TWICE BEFORE IT WAS RIGHT, AND THE WRONG VERSIONS BOTH PASSED §1.** It began
- * as *"has a commit touched this file on main that is not in the branch?"* (`git rev-list`), which is the
- * 10(a) push's signature and reads well — but a **rebase** onto a main that already carries 10(a) makes
- * that commit an ancestor, and the gate then skipped while quietly telling the next session *"step 10(a)
- * has not pushed yet"*, which by then is a lie. I tried to separate the two states by who wrote the file
- * last (wrong — the branch did, in both) and then by containment (wrong — main is contained in both) before
- * measuring that **they are the same situation**: `main ⊆ branch` ⇒ a fast-forward ⇒ main simply takes the
- * branch's copy, and `git merge` reports **no conflict** (constructed and verified in §2). ⇒ **one
- * condition, one true reason.** The defect this gate exists for needs main to hold a commit the branch does
- * not — which is exactly what 10(a) creates.
+ * ⚠⚠ **AND THE FOUR ABOVE ARE NOT THE WHOLE POPULATION — Entry 90's review found the fifth and it was
+ * a FALSE FAILURE.** Question 2 used to ask `merge-base --is-ancestor <main> <head>` ("is main
+ * contained in this branch?"), which is a question about COMMITS where the invariant is about a FILE.
+ * **When the other agent merges their PR mid-session, main gains a commit this branch lacks, that skip
+ * stops firing, and a correct session fails at step 7** — telling it 10(a) had pushed (it had not) and
+ * prescribing `git checkout main -- Zayd_Prompt.md`, which **deletes the §2 `TASK`/`NEW` just written
+ * for the next entry.** With two agents running in parallel that is the ordinary case, not an exotic
+ * one. ⇒ Ask about the file. Four further states are pinned in `tests/prompt-sync.test.ts` §2:
+ * `pnpm state` run twice, main fast-forwarded mid-session, main MERGED into the branch, and **two Zayd
+ * PRs open at once** — the last of which must still FAIL, and does.
+ *
+ * ⚠⚠ **QUESTION 2 WAS WRONG THREE TIMES, AND EVERY WRONG VERSION PASSED ALL FOUR PINNED STATES — WHICH
+ * IS THE REAL LESSON HERE.** It began as *"has a commit touched this file on main that is not in the
+ * branch?"* (`git rev-list`), the 10(a) push's signature, which a **rebase** defeats: the commit becomes
+ * an ancestor and the gate skipped while telling the next session *"step 10(a) has not pushed yet"*, by
+ * then a lie. Attempt two asked who wrote the file last (wrong — the branch did, in both). Attempt
+ * three, `merge-base --is-ancestor`, was right about the rebase and shipped — **and Entry 90 measured
+ * that it fails a correct session the moment the parallel agent merges anything** (above).
+ *
+ * All three shared one mistake: they asked **which commits are where**, when the thing that must not
+ * drift is **a file**. `main ⊆ branch` is only one of the ways main can have left this file alone;
+ * `git diff <merge-base> <main> -- <file>` is all of them, and it is the criterion `git merge` itself
+ * uses. ⇒ **One condition, one true reason** — and this time the reason is about the same noun as the
+ * invariant. *(That a state is pinned proves the pin, not the population: four pinned states accepted
+ * three wrong implementations in a row. Ask what the pins do not contain.)*
  *
  * ⚠ **WHY `BASE_REF` AND NOT `origin/main`.** In CI the gate reads the base **SHA** the workflow already
  * passes to the re-seed gate (`github.event.pull_request.base.sha`), never a ref name. ⚠ `origin/main`
@@ -99,16 +117,6 @@ const git = (args, cwd) =>
 export function resolves(ref, cwd) {
   try {
     git(['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], cwd);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/** Is every commit of `ancestor` already in `descendant`'s history? */
-export function contains(ancestor, descendant, cwd) {
-  try {
-    git(['merge-base', '--is-ancestor', ancestor, descendant], cwd);
     return true;
   } catch {
     return false;
@@ -187,22 +195,28 @@ export function promptSync(file, { main, head = 'HEAD', cwd } = {}) {
     return { ok: true, skipped: `this branch does not modify ${file}` };
   }
 
-  // 2 · Is main already CONTAINED in this branch? Then the two sides have not both edited the file
-  //     since they diverged, so **no conflict is possible** and there is nothing to assert. This is
-  //     the mid-session state (step 6–9, before 10(a) has pushed anything) and it is also the state
-  //     after a rebase onto a main that already carries 10(a).
+  // 2 · Has MAIN touched this file since the two sides diverged? A conflict needs BOTH sides to have
+  //     edited it; question 1 established the branch did, and this establishes whether main did. If
+  //     main has not, there is nothing to assert — main will simply take the branch's copy.
   //
-  //     ⚠⚠ THOSE TWO STATES ARE INDISTINGUISHABLE FROM GIT TOPOLOGY, AND I TRIED TWICE TO TELL THEM
-  //     APART BEFORE MEASURING THAT I SHOULD NOT. First by asking who wrote the file last (wrong —
-  //     the branch did, in both), then by containment (wrong — main is contained in both). They are
-  //     the same shape because they ARE the same situation: main ⊆ branch ⇒ a fast-forward ⇒ main
-  //     simply takes the branch's copy. Verified on a constructed rebase: `git merge` reports no
-  //     conflict. ⇒ **One condition, one true reason.** The defect this gate exists for needs main to
-  //     hold a commit the branch does not — which is exactly what step 10(a) creates.
-  if (contains(main, head, cwd)) {
+  //     ⚠⚠ THIS ASKS ABOUT THE FILE, NOT ABOUT THE TOPOLOGY, AND ENTRY 88 GOT THAT WRONG THREE TIMES.
+  //     It began as `git rev-list <main> ^<head> -- <file>` — the 10(a) push's signature — which a
+  //     REBASE defeats. That became `merge-base --is-ancestor <main> <head>` ("is main contained in
+  //     the branch?"), which is right about the rebase and the mid-session state but asks a question
+  //     about COMMITS when the invariant is about a FILE. ⚠ **Entry 90's review measured what that
+  //     costs: main advancing for a reason that has nothing to do with this file — the OTHER AGENT
+  //     merging their PR mid-session — stops the containment skip and fails a correct session**, with
+  //     a message claiming 10(a) had pushed (false) and a remedy that deletes the §2 `TASK`/`NEW` the
+  //     session had just written. See `tests/prompt-sync.test.ts` §2.
+  //
+  //     ⇒ The file-scoped question subsumes every state containment covered — `main ⊆ branch` makes
+  //     main the merge-base, so this diff is empty too — and it stops answering for states it was
+  //     never asked about. **One condition, one true reason**, and now it is the reason that is true:
+  //     this is the three-way merge's own criterion, restricted to the one file that must not drift.
+  if (git(['diff', '--name-only', mergeBase, main, '--', file], cwd) === '') {
     return {
       ok: true,
-      skipped: `main is already contained in this branch — no conflict is possible`,
+      skipped: `main has not touched ${file} since this branch diverged — no conflict is possible`,
     };
   }
 
