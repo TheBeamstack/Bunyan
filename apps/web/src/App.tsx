@@ -78,6 +78,13 @@ const SELECTION_COLOR = 0x4aa3ff;
  *  re-tessellation. Selection wins over hover when an element is both. */
 const HOVER_COLOR = 0x8fd0ff;
 
+/**
+ * Commands the generated ribbon does NOT render. See the `commands` memo for the argument.
+ *
+ * ⚠ `core.array` refuses by design, so a button for it is a control that cannot work.
+ */
+const RIBBON_WITHHELD: ReadonlySet<string> = new Set(['core.array']);
+
 type Status =
   | { readonly kind: 'booting' }
   | { readonly kind: 'ready' }
@@ -316,8 +323,23 @@ export function App() {
 
   // ---- Derived state. Recomputed whenever the document changes (`version`) or selection moves. -----
 
+  /**
+   * ⚠⚠ ONE COMMAND IS WITHHELD FROM THE GENERATED RIBBON, AND THE REASON IS NOT TASTE.
+   *
+   * `core.array` is a **registered shape that REFUSES by design** — it is in the registry so the
+   * contract and the agent surface carry it, not because a human can drive it from a button. Rendering
+   * it generates a control whose every press is a typed failure, which teaches a user that the ribbon
+   * lies. ⚠ The withholding is HERE, in the app, and deliberately not in `describeCommands`: that lives
+   * in `@bunyan/document` and is the AGENT's list too (D22), where the verb genuinely belongs. A UI
+   * decision does not get to edit a contract — this is the D47 line read in the correct direction.
+   *
+   * ⚠ It is a LIST, not a special case, so the next such verb is one entry rather than one more `if`.
+   */
   const commands = useMemo<readonly CommandDescriptor[]>(
-    () => (app === null ? [] : describeCommands(app.doc.registries)),
+    () =>
+      app === null
+        ? []
+        : describeCommands(app.doc.registries).filter((c) => !RIBBON_WITHHELD.has(c.name)),
     [app],
   );
 
