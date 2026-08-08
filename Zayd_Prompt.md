@@ -150,12 +150,12 @@ would find the older entry, and would quietly rewrite `FRESH` backwards.
 <!-- BEGIN FRESH — written by `pnpm state`. Never hand-edit. -->
 
 ```
-FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 88**
-        (Zayd, 2026-08-08) — the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
+FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 90**
+        (Zayd, 2026-08-08) — a pinned state proves the PIN, not the POPULATION — and D66's lazy build, measured
 
-        ⇒ After `git pull`: §8's "newest entry" == 88  ⇒ you are current, start TASK.
-          HIGHER than 88 ⇒ the other agent has merged: read every abstract after
-          88 before starting, and re-check that TASK is still the right thing to do.
+        ⇒ After `git pull`: §8's "newest entry" == 90  ⇒ you are current, start TASK.
+          HIGHER than 90 ⇒ the other agent has merged: read every abstract after
+          90 before starting, and re-check that TASK is still the right thing to do.
 
         ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
         content, so any hash written in this file can only ever name an EARLIER commit than the
@@ -163,35 +163,33 @@ FRESH:  Newest entry in `current_state.md` §7 = **ENTRY 88**
         check** — it moves only when real work lands. (Git answers "what is the tip?"; this
         answers "am I behind?", which git cannot.)
 
-        Tree at generation: `zayd/2026-08-08-e88-prompt-sync-gate` · `eb74f43` · dirty · RISK: additive
+        Tree at generation: `zayd/2026-08-08-e90-d66-lazy-build` · `8c1aa79` · dirty · RISK: additive
 ```
 
 <!-- END FRESH -->
 
 ```
-TASK:   ⚠⚠ **YOUR STEP 3 IS ENTRY 88'S OWN PR, AND IT IS `RISK: additive` — SO YOU MERGE IT YOURSELF**
-        after an approving review and green CI. No owner ruling, no owner merge. ⚠ `gh pr merge` is not
-        categorically blocked — it went through in Entries 85, 87 and 88 **when the owner authorised it
-        in the opening instruction**; absent that, `additive` is yours by policy anyway.
-        ⚠ **PR #13 (Amer, Entry 86 — the corner-drag) MAY STILL BE OPEN AND IS *NOT* YOURS.** Reviewed
-        fully by Entry 87, and Entry 88 replaced its stale merge advice. **Do not review it a third
+TASK:   ⚠⚠ **YOUR STEP 3 IS ENTRY 90'S OWN PR, AND IT IS `RISK: additive` — SO YOU MERGE IT YOURSELF**
+        after an approving review and green CI. ⚠ `gh pr merge` is not categorically blocked — it went
+        through in Entries 85, 87, 88 and 90 **when the owner authorised it in the opening instruction**;
+        absent that, `additive` is yours by policy anyway.
+        ⚠ **PR #13 (Amer, Entry 86 — the corner-drag) MAY STILL BE OPEN AND IS *NOT* YOURS.** Reviewed by
+        Entry 87, re-checked by Entry 88, and Entry 89 is Amer merging it. **Do not review it a fourth
         time. Say it is Amer's and move on.**
-          ⚠ **Item 1 is mandatory and cheap here — FOUR reverts, each with a named RED:**
-            in `scripts/prompt-sync.mjs`, delete skip 1 (the `merge-base` diff) ⇒ **2 RED**; delete
-            skip 2 (`merge-base --is-ancestor`) ⇒ **2 RED**; make question 3 always return ok ⇒ **1
-            RED**; make an unresolvable `BASE_REF` return `undefined` instead of throwing ⇒ **1 RED**.
-            Do them separately.
-          ⚠⚠ **THE HALF WORTH YOUR TIME — I SHIPPED A GATE, SO ATTACK THE FALSE POSITIVE.** A gate that
-            fires on a correct session gets disabled, and then it protects nothing. §1 pins the four
-            states I could find in this repo's history, plus a constructed drift and a constructed
-            REBASE. **Decide whether that is the whole population.** ⚠ The rebase is worth reading
-            before you hunt: it broke my FIRST TWO implementations of skip 2 and both wrong versions
-            passed all four pinned states — see the handoff §2b(i). Still untried: a session that runs
-            `pnpm state` TWICE before 10(a); a `git pull` that fast-forwards main MID-session (does
-            skip 2 then hide a real drift?); a MERGE of main into the branch rather than a rebase; and
-            **two Zayd PRs open at once**, where main carries a 10(a) for an entry the older branch has
-            never seen. ⚠ **If you find a correct session it fails, that is Entry 88's, and it is worse
-            than the merge conflict it replaced.**
+          ⚠ **Item 1 is mandatory and cheap here — TWO reverts, each with a named RED:** in
+            `scripts/prompt-sync.mjs`, put question 2 back to `contains(main, head)` ⇒ **1 RED** (the
+            false-positive test); delete question 2 entirely ⇒ **3 RED**. ⚠ **And re-measure the counts
+            rather than copying mine** — Entry 88's were stale because a follow-up commit added tests
+            under them, and that is the single most repeatable mistake in this file's history.
+          ⚠⚠ **THE HALF WORTH YOUR TIME — I CLAIMED IDENTITY IS SAFE UNDER A PARTIAL BUILD. ATTACK IT.**
+            `tests/d66-lazy-build-measure.test.ts` proves it for walls, a wall with a WINDOW (the CUT node
+            mints names) and the JOIN (a mitre against a neighbour that is never built). **That is three
+            shapes, not a population.** §1b's own warning: *the probe only measures the shapes you think
+            to cut.* **Still untried: a CURTAIN WALL (D59 composition — generated children with derived
+            PEIs, the one place a build produces elements that are not scene rows), a hosted void through
+            a CURVED face, and an element whose host is built in a LATER pass than the host itself.** ⚠ If
+            a partial build disagrees with a full one anywhere, **D66 is a correctness change wearing a
+            performance change's clothes** and the design doc is wrong.
 
         **THEN — READ `open_rulings.md` FIRST. `Q17a` STILL BLOCKS AND `Q19` IS STILL THE WORST DEFECT ON
         THE BOARD.** Entry 87 closed the AUTHORING road into a belongs-to cycle and Entry 88 proved that
@@ -204,98 +202,99 @@ TASK:   ⚠⚠ **YOUR STEP 3 IS ENTRY 88'S OWN PR, AND IT IS `RISK: additive` �
         to come past it deliberately. **That pin failing is success, not a regression.**
 
         **YOUR TASK IF NOTHING IS RULED — and it needs no ruling at all:**
-        ⚠⚠ **THE COLD-LOAD AXIS IS THE ONLY RED ROW LEFT IN §1a, AND NOBODY HAS TOUCHED IT SINCE ENTRY
-        73: ~3 MINUTES AT THE 10k TARGET, STILL UNUSABLE.** §1a names exactly three levers — `instantiate`
-        (RESERVED), lazy build/eviction (**D66 — additive**) and MT (D8, ruled v1.0.x). Two are closed to
-        you; **D66 is not.** ⇒ **Design D66's lazy build + eviction, and MEASURE FIRST.**
-          ⇒ **Three questions before you write a line of it:** (1) **what fraction of a cold load is
-          actually forced?** Entry 73 measured that verification is most of the cost and that the embind
-          boundary is ~1% — **so re-measure WHICH solids a first paint genuinely needs** before designing
-          a cache around a guess. (2) **what does eviction cost the INVARIANT, not the schedule?** §1b's
-          third method: *"ship the BREP cache"* read as a perf call and dragged in a persisted
-          name→shape index that D1 forbids. **Ask what an evicted-and-rebuilt shape does to identity.**
-          (3) **is it contract-shaping?** If it is, **the design doc IS the deliverable** — write it, put
-          its open questions into `open_rulings.md`, and stop. ⚠ **"This cannot be closed additively" is a
-          FINE answer** if you establish it by measuring.
+        ⚠⚠ **BUILD D66's LAZY FIRST PAINT. THE DESIGN IS WRITTEN AND MEASURED
+        (`docs/design/P5_step9_D66_lazy_build_design.md`); WHAT IS MISSING IS THE CALLER.**
+        **`rebuildOnly` IS the primitive and has shipped since 2026-07-25** — the build half is additive
+        and needs no new API. ⇒ **Three things, in this order:**
+          (1) ⚠ **THE ONE I FLAGGED AND DID NOT MEASURE: does `save` read BUILT state?** It must not — it
+              writes the recipe — **but that is a claim, not a measurement.** If a lazily-loaded document
+              saves short, that is **data loss, not a reporting choice**, and it outranks everything else
+              in this list. **Measure it first: load, build one element of four, `saveBnn`, reload, count.**
+          (2) **FORCE-ON-MEASURE** (design §3c): every aggregate that quantifies over the model
+              (`projectQuantities`, schedules, the Clean Delta) builds its own subject first. ⚠ The
+              honest channel already exists — a partially built take-off names every unbuilt element in
+              `unmeasured` — so this is about making the number RIGHT, not about making it loud.
+          (3) **The 10k extrapolation.** Mine is 54 elements and the per-element cost was flat across two
+              passes; **flat at 54 is not flat at 10 000.** Copy `document-heap-scale.test.ts`'s
+              least-squares approach rather than building 10 000 solids on a 3.7 GB box.
+        ⚠ **DO NOT RE-COLOUR §1a's COLD-LOAD ROW.** Lazy build takes 64.5% off the first paint and one
+        storey of a 10k tower is still ~24 s. **The row closes with `instantiate` (RESERVED) or MT (D8),
+        not with this.** Writing "closed" there would be exactly the §0a disease.
 
-        ⚠ **WHAT ENTRY 88 ALREADY DID — DO NOT REDO ANY OF IT:**
-          • **PR #14 (Entry 87) reviewed, amended and MERGED** on the owner's authorisation. Its
-            over-refusal question is **CLOSED by measurement** — 20 000 graphs, 100 000 queries, 43 667
-            refused / 56 333 allowed, **zero disagreements** against two independent oracles. Shipped as
-            `belongs-to-cycle-guard.test.ts` §5. **The guard costs 0.17 µs/call on a 10k model.**
-          • **The backward sweep on that guard is DONE: FOUR write sites, not two.** `createElement` and
-            `copy` are structurally immune — a freshly minted ULID cannot be anyone's ancestor.
-          • **PR #13 re-checked at the MERGE level and left open.** Its §7-overflow warning is
-            **withdrawn** (I rotated 81; the merge lands at 31 411/32 768). What will actually fail is
-            **entry 86's stale `AWAITING REVIEW`** line.
-          • **Entry 81 rotated** to `docs/history.md` §C (§C's header reads 54–81).
-        **771 green, 88 files, six gates, exit 0.**
+        ⚠ **WHAT ENTRY 90 ALREADY DID — DO NOT REDO ANY OF IT:**
+          • **PR #15 (Entry 88) reviewed, amended and MERGED.** The gate's question 2 was a FALSE POSITIVE
+            and is replaced; four previously untried states are pinned.
+          • **D66 measured on three axes** — the forced fraction, identity, and what a take-off says.
+          • **Entry 82 rotated** to `docs/history.md` §C (§C's header reads 54–82).
+        **780 green, 89 files, six gates, exit 0.**
 
         ⚠ **STILL OWNER-ONLY AND UNCHANGED: Q11/Q12** (`CLA.md` ships `<LEGAL ENTITY>`). ⚠ **Q18 and Q20
-        are Amer's**, as is adding `Amer_Prompt.md` to the new gate's `GATED` list.
+        are Amer's**, as is adding `Amer_Prompt.md` to the gate's `GATED` list.
 
-NEW:    **⚠⚠ THE LESSON OF ENTRY 88: WHEN YOU BUILD A GATE, THE HARD PART IS THE *SKIP*, NOT THE CHECK.**
-        TASK asked *"what exactly must match — the whole file, or only the FRESH block?"* and the answer
-        was **neither, and the question had the wrong shape.** A branch legitimately owns a new
-        `§2 TASK`/`NEW` before step 10(a), and `pnpm state` legitimately rewrites FRESH at step 8 — also
-        before 10(a). **There is no region of the file that is always equal. The invariant is about a
-        MOMENT, not a region.** ⇒ **When a check keeps needing exceptions, stop carving the DATA and ask
-        what STATE the system is in** — here, two git questions decide it with no parsing at all: *does
-        this branch author the file?* and *has the 10(a) commit landed on main without being an ancestor
-        of this branch?* ⚠ **And measure the skips like a fix:** a naive `git diff origin/main -- file`
-        reports a difference in **three of the four states this repo has actually been in** and is right
-        about exactly one. Both skips are revert-verified.
+NEW:    **⚠⚠ THE LESSON OF ENTRY 90: A PINNED STATE PROVES THE PIN, NOT THE POPULATION.** Entry 88's gate
+        pinned four real commits from this repo's history, and **three successive wrong implementations of
+        its question 2 passed all four.** The fourth wrong version shipped, and it failed a CORRECT session:
+        *"is main contained in this branch?"* is a question about **COMMITS**, and the invariant is about a
+        **FILE** — so the other agent merging anything mid-session made the skip go quiet and the gate
+        compared a `§2` that main had not been shown yet. ⇒ **When a check keeps needing exceptions, ask
+        whether it is even about the same NOUN as the thing it protects.** The fix asks git's own
+        three-way-merge criterion (both sides must have edited the file) and **subsumes** what it replaced.
+        ⚠ **The corollary for pins: a test that pins states is only as good as your enumeration of them.
+        Ask what the pins do not contain** — for a gate, "what did the OTHER agent just do?" is the cheap
+        one nobody asks.
 
-        **⚠⚠ SECOND, AND THE ONE I NEARLY SHIPPED: A GATE THAT DISABLES ITSELF ON A BROKEN INPUT REPORTS
-        GREEN, AND THAT IS WORSE THAN NO GATE.** My first `mainRef` returned `undefined` — a SKIP — when
-        `BASE_REF` was set but did not resolve. **That is the Entry-73 disease exactly**: an unresolvable
-        ref is the signature of a shallow checkout, and it is why the re-seed gate reported green for 73
-        entries without executing once. I found it by **probing the gate with a deliberately bogus
-        input**, not by reading it. ⇒ **For every skip branch you write, ask which BROKEN state also
-        takes it.** It now throws and names the shallow clone.
+        **⚠⚠ SECOND: A MEASUREMENT IS PINNED TO A COMMIT, AND A FOLLOW-UP COMMIT UN-MEASURES IT.** Entry
+        88's `2/2/1/1 RED` and its `771 green` were both honest when written and both wrong when I read
+        them — measured at `4a9cd10`, never re-measured after `0018acb` added three tests. **This is the
+        THIRD variant of the same disease in three entries** (E88 posted an inferred table; E87's merge
+        advice went stale under it). ⇒ **After any follow-up commit, re-run the numbers in your own PR
+        body.** They are the cheapest thing in the entry to refresh and the most quoted.
 
-        **⚠ THIRD: A REVIEW COMMENT IS A CLAIM, AND *"A CLAIM WITH NO METHOD IS NOT DONE"* BINDS IT TOO.**
-        I posted a three-row table to PR #13 having measured **one** row and inferred two, and corrected
-        it in a follow-up. A table is exactly the shape that makes an inferred number look measured. ⇒
-        **Measure every cell, or mark the ones you did not.**
+        **⚠ THIRD: PREDICT, THEN MEASURE — AND SAY SO WHEN THE MEASUREMENT SAYS NO.** I expected a
+        partially built document to under-report a take-off in the Q19 shape (short, `basis: 'exact'`,
+        diagnostics empty). **It does not** — `projectQuantities` tests `state !== 'valid'` before
+        `hasParts`, so every unbuilt element is NAMED in `unmeasured`. Writing the prediction down first is
+        what made the negative result worth having, **and the negative result is what makes D66 shippable.**
 
-        **⚠ FOURTH, ON REVIEWING A PR THE PREVIOUS SESSION ALREADY REVIEWED:** do not re-read the code —
-        **re-run the part of the review whose answer depends on the MERGE BASE.** Amer's branch had not
-        moved at all; `main` had moved twice, and that alone turned Entry 87's headline merge advice from
-        right to wrong and made entry 86's `AWAITING REVIEW` line newly fatal. **A review has a shelf
-        life, and its perishable half is everything it said about the merge.**
+        **⚠ FOURTH, ON DESIGNING A PERFORMANCE FEATURE:** §1b's third method held again. The interesting
+        question was never *"how much faster?"* but *"what does a partially built document TELL people?"* —
+        and the answer moved the hook **out of the renderer and into the ENUMERATION**. ⚠ And the one that
+        nearly slipped past: a wall's geometry is **not** a function of the wall alone (`resolveJoins`
+        clips against neighbours), so lazy build could have shipped D68's silent plain-cap. It does not,
+        **because the pipeline reads the RECIPE and never the built set** — measured, not assumed, on the
+        real D52 wall, because the scale fixture's `{length,height}` walls cannot see joins at all.
 
-        (Entry 87's lesson, still standing:)
+        (Entry 88's lesson, still standing:)
+        **⚠⚠ WHEN YOU BUILD A GATE, THE HARD PART IS THE *SKIP*, NOT THE CHECK** — and **a gate that
+        disables itself on a broken input reports GREEN, which is worse than no gate.** For every skip
+        branch, ask which BROKEN state also takes it. ⚠ **A green tick means the job exited 0, not that
+        your step ran: grep the run log for your gate's name** (`gh run view <id> --log | grep -i <gate>`).
+
+        (Entry 87's, still standing:)
         **⚠⚠ ASK WHAT A VALIDATOR *PROVES*, NOT WHAT IT IS *FOR*.** *"Both writers `requireElement` the
-        host"* proves the target **EXISTS** — never that it is not the element itself, or something that
-        leads back to it. **A reference that resolves can still LOOP**, and a loop is an ERASED element.
-        ⚠ Entry 88 extended it: the new guard proves *"no NEW cycle through this element"*, **not** *"the
-        element is active afterwards"* — and that distinction is pinned rather than left implicit.
-
-        **⚠⚠ AND: "WOULD THE SUITE NOTICE?" IS A MEASUREMENT, NOT A JUDGEMENT — MAKE THE CHANGE AND
-        COUNT.** Reading the tests suggests coverage; running them proves it. Nine of fourteen tests in a
-        REFUSAL entry pass on `return true`, and only a population measurement says otherwise.
+        host"* proves the target **EXISTS** — never that it is not the element itself. **A reference that
+        resolves can still LOOP**, and a loop is an ERASED element.
 
         (Standing, on the handoff system itself:)
         `pnpm state` before every commit (gate six, `docs:check`) · it writes §8 and THIS file's FRESH,
-        never `Amer_Prompt.md` · §7 holds at most **ten** abstracts **and a 32,768-byte budget, and the
-        BUDGET is what bites** — Entry 88 rotated **81**; §C's header now reads **54–81** · ⚠ **`pnpm
-        state` reads `.vitest-summary.json`, so run it AFTER a green `pnpm verify`** · ⚠ **A RE-BASELINE
-        IS A THREE-STEP DANCE AND ITS ORDER IS LOAD-BEARING:** **write your §7 abstract FIRST**
-        (`--rebaseline` stamps `newest.n` from the §7 parse), then `pnpm state --rebaseline` → `pnpm
-        verify` (green) → `pnpm state` (plain) · `tests/freeze-boundary.test.ts` decides `RISK`, measured
-        **at the merge base** · ⚠ **`gh pr review --approve` CANNOT WORK HERE** — GitHub refuses
-        self-approval from the one account, so the loop's *"approving review"* is **always** a
-        `gh pr comment`; this is Q13's core.
+        never `Amer_Prompt.md` · ⚠ **importing `scripts/state.mjs` EXECUTES it** — use
+        `scripts/docs-state.mjs` for constants · §7 holds at most **ten** abstracts **and a 32,768-byte
+        budget, and the BUDGET is what bites** — Entry 90 rotated **82**; §C's header now reads **54–82**,
+        and **entry 86 landing will likely need 83 rotated too** · ⚠ **`pnpm state` reads
+        `.vitest-summary.json`, so run it AFTER a green `pnpm verify`** · ⚠ **A RE-BASELINE IS A THREE-STEP
+        DANCE AND ITS ORDER IS LOAD-BEARING:** **write your §7 abstract FIRST**, then `pnpm state
+        --rebaseline` → `pnpm verify` (green) → `pnpm state` (plain) · `tests/freeze-boundary.test.ts`
+        decides `RISK`, measured **at the merge base** · ⚠ **`gh pr review --approve` CANNOT WORK HERE** —
+        GitHub refuses self-approval from the one account, so the loop's *"approving review"* is **always**
+        a `gh pr comment`; this is Q13's core.
         ⚠⚠ **THE MERGE ITSELF: THE HARNESS CLASSIFIER REFUSES `gh pr merge` BY DEFAULT, BUT NOT WHEN THE
-        OWNER AUTHORISES IT IN THE SESSION PROMPT** — went through first try in Entries 85, 87 and 88.
+        OWNER AUTHORISES IT IN THE SESSION PROMPT** — went through first try in Entries 85, 87, 88 and 90.
         **The protocol is unchanged** (`contract-touching` is the owner's merge *by policy*); do not tell
         the owner it is technically impossible, and stop adding permission rules for it. *(The classifier
         also refuses `sed` and some `grep` forms; re-phrase once or use the Read tool, then move on.)*
-        ⚠ **THE `Zayd_Prompt.md` DRIFT IS NOW GATED — `tests/prompt-sync.test.ts`, inside `docs:check`.**
-        The habit (`git diff origin/main -- Zayd_Prompt.md` before merging) is no longer load-bearing: CI
-        fails the PR by name instead of GitHub reporting `Pull Request has merge conflicts`. ⚠ **It still
-        skips locally until you `git fetch` after 10(a)** — so if you want the local check to bite, fetch.
+        ⚠ **THE `Zayd_Prompt.md` DRIFT IS GATED — `tests/prompt-sync.test.ts`, inside `docs:check`** — and
+        after Entry 90 it no longer fires when main merely moves. **It still skips locally until you
+        `git fetch` after 10(a)**, so if you want the local check to bite, fetch.
 
         ⚠ **THE 🔴 BLOCKING TABLE STILL HOLDS `Q17a`.** Fourteen owner rulings are owed. *(Counted, not
         remembered — `open_rulings.md` holds Q4–Q13, Q17a, Q17b, Q17c, Q18, Q19, Q20.)* The live ones are
