@@ -326,4 +326,171 @@ describe('D67 — the exclusion invariant cascades over every belongs-to edge', 
     const counted = Object.values(untagged).filter((e) => isElementActive(e, scope));
     expect(counted).toHaveLength(Object.keys(doc.scene.elements).length); // 2 walls + 4 windows
   });
+
+  /* ============================================================================================
+   * §7 — ⚠⚠ THE ANCESTRY IS A **DAG**, NOT A CHAIN, AND A SHARED ANCESTOR IS NOT A CYCLE.
+   *
+   * Entry 85's `hostId` sweep — the other half of the Q19 walk, and the question the hand-off named:
+   * *"does `cascadeOf`'s transitive walk agree with `isElementActive`'s traversal on CYCLES and on an
+   * element hanging off BOTH edges at once — two cycle guards written separately is the D68 shape?"*
+   * **They did not agree, and this one was wrong.**
+   *
+   * Two edges out of one node means the two routes upward can MEET. §5 above already pins that an
+   * element may hang off both edges — but its `wall-1` and `grp-1` share no ancestor, so the shape that
+   * matters was never built. Add one outer group above both and it is a **diamond**, which contains no
+   * cycle at all.
+   *
+   * The old guard was `if (seen.has(ancestorId)) return false`, with ONE set doing TWO jobs: *"already
+   * judged"* (necessarily global) and *"on the path I am walking"* (necessarily path-scoped). The second
+   * route into the shared ancestor found it in `seen` and refused. ⇒ The element vanished from all SIX
+   * `isElementActive` call sites — `enumerate.ts:188`, `room.ts:413`, `cleandelta.ts:525` and
+   * `joins.ts:322/358/416` — with both diagnostics empty.
+   *
+   * ⚠ REVERT-VERIFY: restore the single `seen` set in `isElementActive` and every test in this section
+   * fails, §7.1 with `modelElements()` 3 where 4 is correct.
+   * ========================================================================================= */
+
+  const DIAMOND_OPTIONS: OptionScope['designOptions'] = OPTIONS;
+
+  it('⚠⚠ a SHARED ancestor reached by BOTH edges is a diamond, not a cycle — and it counts', () => {
+    // win --hostId--> wall --parentElementId--> top
+    // win --parentElementId--> grp --parentElementId--> top     ⇒ the routes meet at `top`.
+    const top = { id: 'grp-top' };
+    const wall = { id: 'wall-1', parentElementId: 'grp-top' };
+    const grp = { id: 'grp-mid', parentElementId: 'grp-top' };
+    const win = { id: 'win-1', hostId: 'wall-1', parentElementId: 'grp-mid' };
+    const scope: OptionScope = {
+      elements: { 'grp-top': top, 'wall-1': wall, 'grp-mid': grp, 'win-1': win },
+      designOptions: DIAMOND_OPTIONS,
+    };
+    // Every element here is MAIN MODEL — not one carries a `designOptionId`. Nothing may be excluded.
+    for (const element of [top, wall, grp, win]) {
+      expect(isElementActive(element, scope), `${element.id} was excluded`).toBe(true);
+    }
+  });
+
+  it('⚠ the same ancestor down BOTH edges of one element is not a cycle either', () => {
+    const host = { id: 'wall-1' };
+    const win = { id: 'win-1', hostId: 'wall-1', parentElementId: 'wall-1' };
+    const scope: OptionScope = {
+      elements: { 'wall-1': host, 'win-1': win },
+      designOptions: DIAMOND_OPTIONS,
+    };
+    expect(isElementActive(win, scope)).toBe(true);
+  });
+
+  it('⚠ nor is a shared ancestor reached at DIFFERENT depths down the two routes', () => {
+    // win --hostId--> wall --hostId--> top, and win --parentElementId--> top. Two hops versus one.
+    const top = { id: 'grp-top' };
+    const wall = { id: 'wall-1', hostId: 'grp-top' };
+    const win = { id: 'win-1', hostId: 'wall-1', parentElementId: 'grp-top' };
+    const scope: OptionScope = {
+      elements: { 'grp-top': top, 'wall-1': wall, 'win-1': win },
+      designOptions: DIAMOND_OPTIONS,
+    };
+    expect(isElementActive(win, scope)).toBe(true);
+  });
+
+  /**
+   * ⚠⚠ THE WEAK GREEN THIS SECTION MUST NOT HAVE: a "fix" that stops refusing diamonds by no longer
+   * refusing anything. The three tests above all assert `true`, so a `return true` passes every one of
+   * them. **These two are the other direction**, and §4's cycle test is a third.
+   */
+  it('⚠⚠ a REAL cycle is still refused, and still terminates — even reached through a diamond', () => {
+    // The diamond above, with the shared ancestor pointed back DOWN at the wall: a genuine loop.
+    const top = { id: 'grp-top', parentElementId: 'wall-1' };
+    const wall = { id: 'wall-1', parentElementId: 'grp-top' };
+    const grp = { id: 'grp-mid', parentElementId: 'grp-top' };
+    const win = { id: 'win-1', hostId: 'wall-1', parentElementId: 'grp-mid' };
+    const scope: OptionScope = {
+      elements: { 'grp-top': top, 'wall-1': wall, 'grp-mid': grp, 'win-1': win },
+      designOptions: DIAMOND_OPTIONS,
+    };
+    expect(isElementActive(win, scope)).toBe(false);
+    expect(isElementActive(wall, scope)).toBe(false);
+  });
+
+  it('⚠ and an EXCLUDED shared ancestor still excludes both routes', () => {
+    const top = { id: 'grp-top', designOptionId: 'opt-b' }; // NOT the active option
+    const wall = { id: 'wall-1', parentElementId: 'grp-top' };
+    const grp = { id: 'grp-mid', parentElementId: 'grp-top' };
+    const win = { id: 'win-1', hostId: 'wall-1', parentElementId: 'grp-mid' };
+    const scope: OptionScope = {
+      elements: { 'grp-top': top, 'wall-1': wall, 'grp-mid': grp, 'win-1': win },
+      designOptions: DIAMOND_OPTIONS,
+    };
+    expect(isElementActive(win, scope)).toBe(false);
+    expect(isElementActive(win, scope, { Facade: 'opt-b' })).toBe(true);
+  });
+
+  /**
+   * ⚠⚠ §7.1 — THE SAME THING THROUGH THE SHIPPED VERBS, WHICH IS WHERE THE NUMBER COMES FROM (§1b).
+   * Four verbs, no hand-assembled `Scene`, and **no design options in the document at all** — so this is
+   * the D65 failure mode on a document that has never heard of design options, exactly like Q17a's.
+   */
+  it('⚠⚠ MEASURED: a diamond authored by four verbs hides an opening from modelElements()', async () => {
+    const doc = newDoc();
+    await doc.execute('core.createMaterial', {
+      id: 'blockwork',
+      name: 'Blockwork',
+      category: 'masonry',
+      density: 1800,
+    });
+    await doc.execute('core.createContainer', { id: 'site', kind: 'site', name: 'Site' });
+    await doc.execute('core.createContainer', {
+      id: 'l1',
+      kind: 'level',
+      name: 'Level 1',
+      parentId: 'site',
+      elevation: 0,
+    });
+    await doc.execute('core.createStyle', {
+      id: 'EXT',
+      name: 'EXT',
+      typeId: 'core.wall.v1',
+      layers: [
+        { name: 'structure', materialId: 'blockwork', thickness: 200, discipline: 'structural' },
+      ],
+    });
+    const wall = async (): Promise<string> =>
+      (
+        await doc.execute('core.createElement', {
+          typeId: 'core.wall.v1',
+          styleId: 'EXT',
+          containerId: 'l1',
+          params: { length: 6000, height: 3000 },
+        })
+      ).changes[0]!.id;
+
+    const top = await wall();
+    const hostWall = await wall();
+    const group = await wall();
+    await doc.execute('core.setElementMetadata', { elementId: hostWall, parentElementId: top });
+    await doc.execute('core.setElementMetadata', { elementId: group, parentElementId: top });
+
+    const structure = doc.partsOf(hostWall)!.find((p) => p.name === 'structure')!;
+    const face = structure.refs.find((r) => r.includes('/face/y-min'))!;
+    const win = (
+      await doc.execute('core.createElement', {
+        typeId: 'core.opening.v1',
+        hostId: hostWall,
+        hostRef: face,
+        containerId: 'l1',
+        params: { width: 1000, height: 1400, anchor: 'fixed', offsetU: 500, offsetV: 900 },
+      })
+    ).changes[0]!.id;
+    await doc.execute('core.setElementMetadata', { elementId: win, parentElementId: group });
+
+    // The premise: this document has no design options whatsoever.
+    expect(doc.scene.designOptions).toBeUndefined();
+    expect(Object.keys(doc.scene.elements)).toHaveLength(4);
+
+    const listed = doc.modelElements().map((m) => m.id);
+    expect(listed, 'the opening was hidden from every enumerating consumer').toContain(win);
+    expect(listed).toHaveLength(4);
+
+    // ⚠ AND IT WAS SILENT — the half that makes it dangerous. Neither diagnostic ever mentioned it.
+    expect(doc.brokenRefs()).toEqual([]);
+    expect(doc.unbuildable()).toEqual([]);
+  });
 });

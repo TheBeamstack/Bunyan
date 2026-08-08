@@ -553,6 +553,53 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 85 | 2026-08-06 | Zayd | the `hostId` edge, swept — the ancestry is a DAG and the walk called it a cycle
+
+- **CHANGED:** `packages/document/src/designoptions.ts` (**`isElementActive`'s traversal** — the conflated
+  `seen` set replaced by DFS colours; the docblock records why) · `tests/option-cascade-d67.test.ts`
+  (**NEW §7, +6**) · `open_rulings.md` (**Q19 extended to the `hostId` edge**) · and, reviewing PR #10:
+  `scripts/frozen-surface.mjs` + `.d.mts` (`baselineSnapshot`'s `today` → `at`) · `scripts/state.mjs` ·
+  `tests/state-risk-e2e.test.ts` (**+1**) · `tests/freeze-boundary.test.ts` · entry 83's `REVIEW:` line ·
+  `tests/frozen-surface.snapshot.json` (re-baselined) · entry **77 rotated** to `docs/history.md` §C.
+- **VERIFIED:** **729 green** across 85 files, all six gates, **real exit code 0**, real OCCT throughout.
+  Revert-verified twice: restoring the single `seen` set fails **4 of the 6 new tests**, the verb-driven
+  one at `modelElements()` **3 where 4 is correct**; restoring the clock-stamped date fails
+  `state-risk-e2e` at `expected '2026-08-06' to be '2026-08-05'`.
+- **FOUND:** ⚠⚠ **`isElementActive` MISREAD A SHARED ANCESTOR AS A CYCLE.** Two edges out of one node make
+  the ancestry a **DAG**, so the two routes upward can MEET — and one `seen` set was doing two jobs,
+  *"already judged"* (global) and *"on the current path"* (path-scoped). The second route in refused.
+  **Measured through four shipped verbs on a document with NO design options at all: `scene.elements` 4,
+  `modelElements()` 3, the opening absent from all SIX consumers, `brokenRefs()` and `unbuildable()` both
+  empty** — control with the routes pointed at different ancestors: 5 of 5. §5's both-edges test existed
+  but its two ancestors shared nothing, **so the shape that mattered was never built.** ⚠ **`hostId`
+  cannot dangle through the verbs** (`createElement`/`retargetReference` both `requireElement`; D39
+  cascades the hosted with the host) — **but a `.bnn` can, and it is silent**: 5 elements, `modelElements()`
+  3, both diagnostics `[]`. `brokenRefs` walks `hostedBy` from each ROOT, so an element whose host does not
+  exist is never anyone's child and is never examined ⇒ **Q19 needs a reconciliation covering BOTH edges.**
+  ⚠ **Six consumers, not five** — `joins.ts` has three. ⚠ **And reviewing PR #10: Entry 84's cross-field
+  date check was sound while the WRITER fed it two sources** — the entry from the §7 parse, the date from
+  `new Date()` — so any rebaseline outside the entry's own calendar day wrote a baseline its own gate
+  rejects. `state-risk-e2e`'s own fixture reproduced it every day but one, and nothing had looked.
+- **OWES:** Owner: ⚠⚠ **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** — one declaration moved
+  (`designoptions.ts :: function isElementActive`), baseline re-generated in-PR at entry 85. **Q19 still
+  needs its ruling and now spans both edges; Q17a still blocks; Q11/Q12 unchanged.** Amer: **PR #11 is
+  yours to review and merge** — left untouched on the owner's instruction. **Q18 is still yours.**
+- **RISK:** contract-touching
+- **FULL:** `handoff/zayd/2026-08-06-e85-hostid-sweep.md`
+- **REVIEW:** Reviewed by **Entry 86** (Amer, a later session); full record in PR #12's comment.
+  **APPROVED, NOT MERGED — `contract-touching`, so it is the owner's.** Item 1(a) reproduced to the
+  number (**4 RED**, the verb-driven one at `[…(3)]` where 4 is correct). ⚠⚠ **Item 1(b), the cycle hunt
+  this entry asked for, came back EMPTY across ten shapes** — a cycle entered from outside, self-loops on
+  either edge and both, a diamond whose shared ancestor is itself in a cycle (short and long), **the
+  cycle reachable only down the edge explored SECOND (both orders)**, and a 5000-deep chain. All refuse
+  and all terminate. The structural reason the colours hold: **a node on a cycle can never be blackened**,
+  because reaching it always re-enters it while still grey. Item 2: `cascadeOf` re-derived and **sound —
+  for a different reason than "the same code done right"**: it computes a reachable SET, where a re-visit
+  is idempotent, so one meaning is all `seen` needs; the conflation is only possible when a visited-set
+  decides a boolean about the current walk. Item 4: the `hostId` writer count **taken independently from
+  `argsSchema` — exactly two verbs**, `core.createElement` and `core.retargetReference`, both
+  `requireElement` the host. **No defect found.**
+
 ### 84 | 2026-08-06 | Amer | alignment guides ship — and the guide is the first candidate that owns NOTHING
 
 - **CHANGED:** `apps/web` only. **`tool/align.ts` NEW** (`alignmentGuides` · `guideCandidates` ·
@@ -845,57 +892,6 @@ is maintenance and does NOT get an entry of its own.**
   stopped one file short — `useToolController.ts`'s header still drew `SnapGateway`/`PreviewLayer`, and
   neither has ever existed. **689 green, 82 files, six gates, exit 0.**
 
-### 79 | 2026-08-05 | Zayd | the emsdk image is pinned by digest — and the artifact now names its own compiler (Q14)
-
-- **CHANGED:** `tools/kernel-build/toolchain.json` (**NEW** — one machine-readable pin: OCCT version,
-  emsdk image + **digest**, emcc version + commit, derived `buildId`; read by the recipe AND the tests) ·
-  `README.md` (all five `emscripten/emsdk:latest` sites → `"$EMSDK"`; "Pinned toolchain" rewritten — it
-  claimed a pin it did not have) · `probe.sh` + `current_state.md` §6 (the pasteable commands) ·
-  `tools/kernel-build/src/kernel.cpp` (**`toolchainId()`** + `<emscripten/version.h>`,
-  `<Standard_Version.hxx>`, the binding) · **the WASM relinked on the pinned digest** (+139 B) + its
-  `.d.ts` · `packages/kernel-occt/src/kernel.ts` (**`createOcctKernel` REFUSES a module whose
-  `toolchainId()` disagrees with `OCCT_BUILD_ID`**; `artifactBuildId()` on `OcctKernel`) ·
-  `scripts/reseed-paths.mjs` (`toolchain.json` gated — it names the COMPILER) ·
-  `tests/kernel-build-pin.test.ts` (**NEW, 6 tests**) · `tests/reseed-gate.test.ts` (+1) · goldens
-  re-seeded · `open_rulings.md` (**Q14 STRUCK**). No schema bump, no frozen byte.
-- **VERIFIED:** **661 green** across 82 files, all six gates, **real exit code 0**, real OCCT throughout.
-  **Revert-verified 4 ways, each watched RED:** the pre-Entry-79 artifact → `wasm.toolchainId is not a
-  function`; `OCCT_BUILD_ID` set to `…6.0.5` → `[INTERNAL] Kernel artifact mismatch` in two suites;
-  `:latest` put back → the guard names the exact code block; the gate path removed → RED.
-- **FOUND:** ⚠⚠ **THE TAG HAD ALREADY MOVED — Q14 WAS A LIVE DEFECT, NOT A HYPOTHETICAL.** The artifact
-  was linked by `sha256:644883f5…` = **emsdk 6.0.2**; `:latest` today is `sha256:76a44fff…` = **6.0.5**,
-  three releases on. Following the README verbatim relinks with a compiler `OCCT_BUILD_ID` does not name
-  and **all four tests asserting it stay green**. ⚠ The only reason Entry 77's rebuild was not already
-  wrong is that `docker run` does not re-pull a cached tag — a coincidence, not a control. ⚠⚠ **AND
-  "READ IT BACK FROM THE ARTIFACT" WAS IMPOSSIBLE, NOT MERELY UNDONE:** the shipped `.wasm` had **11
-  sections, ZERO custom sections and not one version string in 14.7 MB** (`-O3` strips `producers`), so
-  no test could have caught it even in principle. The id is now composed from `OCC_VERSION_COMPLETE` +
-  `__EMSCRIPTEN_*__` — compile-time macros, greppable in the binary. ⚠⚠ **THE PIN IS PROVEN, NOT
-  ASSERTED: relinking the unmodified source on the digest reproduced the committed artifact BYTE FOR
-  BYTE** (wasm `819ff12c…`, js `fc5b0421…`, `cmp` clean, ~75 s). ⚠ `OCC_VERSION_STRING` is **"7.9"**,
-  not "7.9.3" (`OCC_VERSION_COMPLETE` is) — the obvious spelling ships a plausible wrong id. ⚠
-  `__EMSCRIPTEN_MAJOR__` is **not predefined** and the lowercase form is `#pragma clang deprecated`. ⚠
-  **The re-seed diff is ONE `seededAt` LINE again** — second entry running ⇒ Q16.
-- **OWES:** Owner: **nothing — `RISK: additive`, so the REVIEWING agent merges this.** Q15/Q16/Q17 and
-  Q11/Q12 stand as recorded; Q16 gained a second worked example. Amer: `createOcctKernel` can now
-  **reject at construction** on an artifact/constant mismatch — it fires in the browser too, and only on
-  a broken build.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-05-emsdk-digest-pin.md`
-- **REVIEW:** **REVIEWED + MERGED 2026-08-05 by the Entry-80 session** (Amer, a later session — the
-  protocol holding for a fifth entry); full record in PR #6's comment. Item 1 executed: `OCCT_BUILD_ID` →
-  `…6.0.5` went RED in **both** suites with the refusal firing from `createOcctKernel`. Independently
-  corroborated the load-bearing claim the entry did not make — the id is **one NUL-terminated literal at
-  offset 13,109,054** of the shipped `.wasm`, so nothing on the TypeScript side can have put it there.
-  ⚠ **ONE FINDING, PROVEN AND FIXED ON THE BRANCH: the backward sweep stopped one file short of `NOTICE`,**
-  whose §1 asserted all four of the things this entry made false (the mutable tag, the non-reproducible
-  rebuild, *"not a value read back out of the artifact"*, and *"that pin is open as a ruling"*) — in the
-  LGPL 2.1 §6 attribution, the one document here with a reader outside this repo. 4 tests, all watched RED.
-  ⚠ Correction: the byte-for-byte relink was against the artifact as committed **before** this entry
-  (`819ff12c…` = main's wasm, re-measured); what ships is that source +`toolchainId()`, 14 682 327 →
-  14 682 466 B. `NOTICE` now states the two separately.
-
-
 ---
 
 ## §8 — Generated
@@ -904,17 +900,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **84 (Amer, 2026-08-06)** |
-| branch · tip · tree | `amer/2026-08-06-alignment-guides` · `73bcdac` · dirty |
-| open PRs | #12 zayd/2026-08-06-e85-hostid-sweep |
-| suite | **730 green** · 85 files · 231 suites |
+| **newest entry** | **85 (Zayd, 2026-08-06)** |
+| branch · tip · tree | `zayd/2026-08-06-e85-hostid-sweep` · `38c153c` · clean |
+| open PRs | #13 amer/2026-08-07-move-tool-corner-drag · #12 zayd/2026-08-06-e85-hostid-sweep |
+| suite | **744 green** · 86 files · 233 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 7 files changed, 440 insertions(+), 186 deletions(-) (7 files) |
-| docs budget | current_state 75.7/96.0 KB · §7 29.9/32.0 KB · abstracts 6/10 · bodies 29 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/designoptions.ts :: function isElementActive · baseline REWRITTEN this session |
+| diff vs origin/main | 7 files changed, 512 insertions(+), 89 deletions(-) (7 files) |
+| docs budget | current_state 77.8/96.0 KB · §7 31.9/32.0 KB · abstracts 6/10 · bodies 31 |
 
-_Generated 2026-08-06 by `pnpm state`._
+_Generated 2026-08-08 by `pnpm state`._
 
 <!-- END GENERATED -->
