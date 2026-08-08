@@ -553,6 +553,52 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 89 | 2026-08-08 | Amer | the gizmo ships — and the corner-drag was matching two coordinates out of three
+
+- **CHANGED:** `apps/web` + one line of `scripts/prompt-sync.mjs`. **`tool/handles.ts` NEW**
+  (`baselineHandles` · `handleAt` · `HANDLE_HIT_RADIUS_PX`; PURE, projection injected) ·
+  **`tool/handles.test.ts` NEW (+10)** · `tool/drag.ts` (**the level fix**, `DragTarget.containerId`;
+  `endpointOf` EXPORTED; two docblock corrections) · `tool/drag.test.ts` (**+3**) ·
+  `render/ViewportCanvas.tsx` (the gesture: `handles`/`onHandleDrop`, `resolveAt`, pointer capture) ·
+  `render/Viewport.ts` (**`setDragHandles`** instanced + **`setControlsEnabled`**) · `App.tsx`
+  (`dragTargets`/`dragHandles`/`onHandleDrop` — one `transactionId` per gesture) ·
+  `edit/agentRefresh.test.ts` (**+1 arity**) · `scripts/prompt-sync.mjs` (**`Amer_Prompt.md` GATED**) ·
+  `tests/prompt-sync.test.ts` (**+1**) · and, merging PR #13: `current_state.md`, `docs/history.md` §C
+  (**84 and 83 rotated**), `open_rulings.md`. **No frozen byte, no verb, no schema bump.**
+- **VERIFIED:** **804 green** across 90 files, six gates, real exit code 0. Revert-verified: the level
+  fix (`expected ['g1','g2','u1','u2'] to deeply equal ['g1','g2']`) and, on PR #13, the `options`
+  forward — now **2 RED** where it was 1, because the arity assertion closed the weak green.
+  ⚠⚠ **AND IN THE BROWSER, END TO END:** handle grabbed at `[4000,0]`, dragged to `[4500,500]` —
+  **0 kernel calls across 60 dragging `pointermove`s**, then TWO `core.setParams` under
+  `tx: corner-drag-1`, and **ONE undo reversed both**; the unselected PEER wall moved because it shares
+  the corner. **`pointermove` during a drag: median 0.5 ms, p95 1.3 ms** (idle 0.4 / 1.8) ⇒ the gizmo
+  costs nothing per frame. Camera projection of a fixed point **byte-identical before/during/after**
+  ⇒ orbit genuinely suppressed. Guides fire: aimed 6 mm off the y=0 line, **landed y exactly 0**.
+- **FOUND:** ⚠⚠ **`cornerDragPlan` MATCHED A CORNER IN 2 COORDINATES OF 3.** A D52 baseline is 2D **in
+  the LEVEL plane** — z comes from `elevationOf(containerId)` — so the wall directly upstairs shares a
+  ground-floor corner's x and y EXACTLY and was silently re-authored. Buildings stack; this is the
+  second storey, not an exotic shape. Fails in the feature's own style: edit applies, geometry right for
+  what was asked, both diagnostics `[]`, and the casualty is **what the gesture MEANT**. ⇒ **when a match
+  is a coordinate coincidence, ENUMERATE the coordinates.** ⚠ **`positioningOf` IS exported from
+  `@bunyan/document`** (since Entry 72) — Entry 86's *"not exported"* premise was FALSE (§1c-7); the
+  design survives on the sharper reason, that the app must not own the refusal GRAPH. ⚠⚠ **VITE HMR
+  GIVES YOU A STALE POINTER LISTENER AND IT LOOKS EXACTLY LIKE A BROKEN FEATURE** — listeners registered
+  in `useEffect(…,[render])` do not re-run, so after a hot edit they close over the OLD instance's refs;
+  three browser runs did nothing with a clean console and a hit-test distance I measured at **0.00 px**.
+  **HARD-RELOAD after editing viewport code before believing any browser result.** ⚠ Entry 86's probe
+  costs re-measured: steady-state refusal **0.2 ms** exact, accepted **29.6/29.4 vs 28.5 ms** — but the
+  **first-probe 1.6 ms did NOT reproduce (4.9 ms here)**; it measured JIT warm-up and should not have
+  been stated bare.
+- **OWES:** Owner: **Q20 still open** (which verbs deserve a generated ribbon button) · Q8 answered by
+  Entry 86, strike or confirm · Q11/Q12/Q13/Q17a/Q17b/Q17c/Q18/Q19 stand. **Q18 is still MINE and still
+  open.** Zayd: ⚠ **`Amer_Prompt.md` is now in `GATED`** — the call Entry 88 left me, taken; both seats'
+  prompts are enforced by one list. ⚠ **PR #16 (entry 90) was NOT reviewed by this session** — it
+  appeared after t=0 and is yours. ⚠ **§7 rotation was SPLIT to avoid a conflict: I rotated 84 and 83,
+  you rotate 82**, so §C reads 54–84 with 82 still in §7 until PR #16 lands.
+- **RISK:** additive
+- **FULL:** `handoff/amer/2026-08-08-e89-drag-handles.md`
+- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+
 ### 88 | 2026-08-08 | Zayd | the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
 
 - **CHANGED:** **`scripts/prompt-sync.mjs` + `.d.mts` NEW** (the gate: three git questions, no network) ·
@@ -823,16 +869,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **88 (Zayd, 2026-08-08)** |
-| branch · tip · tree | `zayd/2026-08-08-e88-prompt-sync-gate` · `0018acb` · dirty |
-| open PRs | #15 zayd/2026-08-08-e88-prompt-sync-gate · #13 amer/2026-08-07-move-tool-corner-drag |
-| suite | **776 green** · 88 files · 239 suites |
+| **newest entry** | **89 (Amer, 2026-08-08)** |
+| branch · tip · tree | `amer/2026-08-08-e89-drag-handles` · `2ab697d` · dirty |
+| open PRs | #16 zayd/2026-08-08-e90-d66-lazy-build |
+| suite | **804 green** · 90 files · 245 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 9 files changed, 1299 insertions(+), 142 deletions(-) (9 files) |
-| docs budget | current_state 77.3/96.0 KB · §7 31.4/32.0 KB · abstracts 6/10 · bodies 33 |
+| diff vs origin/main | 8 files changed, 536 insertions(+), 119 deletions(-) (8 files) |
+| docs budget | current_state 74.4/96.0 KB · §7 28.6/32.0 KB · abstracts 6/10 · bodies 35 |
 
 _Generated 2026-08-08 by `pnpm state`._
 

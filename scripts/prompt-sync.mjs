@@ -98,17 +98,25 @@
  *   nothing visible, and a prompt lands on main that no session put there. **This is the CI half's job**,
  *   and it is the case the `HEAD_REF` fix below exists for.
  *
- * ⚠ **`Amer_Prompt.md` IS DELIBERATELY NOT GATED.** The mechanism is identical and Entry 87 warned Amer
- * about it, but Amer's loop is Amer's, that file has one writer and it is not this seat, and PR #13 is
- * open **right now** with `Amer_Prompt.md` still travelling inside it — so switching this on unilaterally
- * would fail a reviewed PR over somebody else's protocol. Adding it is one entry in `GATED` below, and
- * it is Amer's call to make. (Entry 88.)
+ * ⚠ **`Amer_Prompt.md` WAS DELIBERATELY NOT GATED, AND ENTRY 89 (AMER) HAS NOW ADDED IT.** Entry 88 left
+ * it out for a reason that was exactly right at the time: the mechanism is identical and Entry 87 had
+ * warned Amer about it, but PR #13 was open **right then** with `Amer_Prompt.md` still travelling inside
+ * it, so switching this on unilaterally would have failed a reviewed PR over somebody else's protocol.
+ * ⇒ Entry 89 merged PR #13, restored that file to main's bytes as part of the merge (the gate's own
+ * failure mode, hit on the one file the gate did not yet cover), and took the call it was left. **Both
+ * seats' prompts are now gated by one list, and the loop step both prompts share is enforced once.**
  */
 
 import { execFileSync } from 'node:child_process';
 
-/** The prompt files this gate governs. ⚠ `Amer_Prompt.md` is Amer's to add — see the header. */
-export const GATED = ['Zayd_Prompt.md'];
+/**
+ * The prompt files this gate governs — **both seats, one list** (Entry 89 added Amer's; see the header).
+ *
+ * ⚠ The two skips are what make one list safe for two loops running in parallel: a branch that does not
+ * write a given prompt skips on question 1, so Zayd's PR is never judged on `Amer_Prompt.md` and Amer's
+ * is never judged on `Zayd_Prompt.md`. The gate is per-FILE, not per-seat.
+ */
+export const GATED = ['Zayd_Prompt.md', 'Amer_Prompt.md'];
 
 const git = (args, cwd) =>
   execFileSync('git', args, { encoding: 'utf8', cwd, stdio: ['ignore', 'pipe', 'pipe'] }).trim();

@@ -392,6 +392,18 @@ describe('§2 — the failure it exists for, constructed', () => {
 });
 
 describe('§3 — the live gate', () => {
+  /**
+   * ⚠⚠ BOTH SEATS' PROMPTS ARE GATED, AND THIS IS THE ONLY THING THAT SAYS SO. The live gate below
+   * iterates `GATED`, so it passes just as green with one entry as with two — dropping a file would
+   * silently un-gate a loop step rather than fail anything. Entry 88 shipped the gate with only
+   * `Zayd_Prompt.md`, deliberately and correctly (PR #13 was open with `Amer_Prompt.md` inside it);
+   * Entry 89 merged that PR and added Amer's. **The membership is the claim, so the membership is what
+   * is asserted.**
+   */
+  it('⚠⚠ GATES BOTH PROMPTS — dropping either would un-gate a loop step and fail nothing else', () => {
+    expect([...GATED].sort()).toEqual(['Amer_Prompt.md', 'Zayd_Prompt.md']);
+  });
+
   it('every gated prompt file matches main', () => {
     const main = mainRef(process.env, process.cwd());
     // ⚠ `headRef`, NOT `HEAD` — in CI `HEAD` is a merge commit that CONTAINS main, and the gate would

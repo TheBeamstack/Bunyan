@@ -34,10 +34,12 @@ import {
 } from './storage/documentStorage';
 import type { IndexedDbStore } from './storage/indexeddb';
 import { ViewportCanvas } from './render/ViewportCanvas';
-import type { PointerSample } from './render/ViewportCanvas';
+import type { HandleDrop, PointerSample } from './render/ViewportCanvas';
 import type { RenderPart, PickResult } from './render/Viewport';
 import { useToolController } from './tool/useToolController';
 import { TOOLS } from './tool/tools';
+import { cornerDragPlan, type DragTarget } from './tool/drag';
+import { baselineHandles, type DragHandle } from './tool/handles';
 import {
   EMPTY_FILTER,
   isPartVisible,
@@ -55,6 +57,7 @@ import { withUiRefresh } from './edit/agentRefresh';
 import {
   Autosave,
   describeCommands,
+  elevationOf,
   saveBnn,
   type BrokenReference,
   type CommandDescriptor,
@@ -84,6 +87,17 @@ const HOVER_COLOR = 0x8fd0ff;
  * ⚠ `core.array` refuses by design, so a button for it is a control that cannot work.
  */
 const RIBBON_WITHHELD: ReadonlySet<string> = new Set(['core.array']);
+
+/**
+ * One id per gesture, monotonic for the life of the tab.
+ *
+ * ⚠ A COUNTER RATHER THAN A CLOCK OR A RANDOM, and it matters: `transactionId` groups CONSECUTIVE edits
+ * (`UndoStack.takeUndoGroup`), so two gestures must never collide — and `Date.now()` collides outright
+ * for two drags inside the same millisecond, which a fast corner-drag can produce. Uniqueness is the
+ * whole requirement; there is nothing to read in the value.
+ */
+let gestureSeq = 0;
+const nextGestureId = (): number => ++gestureSeq;
 
 type Status =
   | { readonly kind: 'booting' }
@@ -436,6 +450,73 @@ export function App() {
     return { element, type };
   }, [app, selectedId, version]);
 
+  /**
+   * ⚠⚠ THE DRAG TARGETS — every element the corner-drag may touch, read as AUTHORED FACTS and not
+   * classified here (`drag.ts`'s header: the app proposes, the document disposes).
+   *
+   * It is the whole scene rather than the selection, and that asymmetry is the corner-drag itself: the
+   * HANDLES are minted from the selection (identity comes from what the user selected), but the PEERS
+   * are found by coordinate across everything on the same Level — dragging one wall of three and leaving
+   * its neighbours behind does not move a corner, it opens one.
+   */
+  const dragTargets = useMemo<readonly DragTarget[]>(() => {
+    if (app === null) return [];
+    return Object.values(app.doc.scene.elements).map((element) => ({
+      elementId: element.id,
+      params: element.params,
+      ...(element.hostId === undefined ? {} : { hostId: element.hostId }),
+      ...(element.containerId === undefined ? {} : { containerId: element.containerId }),
+    }));
+  }, [app, version]);
+
+  /**
+   * The gizmo: one grab handle per baseline endpoint of the SELECTION.
+   *
+   * ⚠ The z is the LEVEL's elevation, never 0 — a D52 baseline is 2D in the Level plane, so a first-floor
+   * wall's handles belong 3 m up. Getting this wrong stacks every storey's gizmo on the ground.
+   */
+  const dragHandles = useMemo<readonly DragHandle[]>(() => {
+    if (app === null || selection.size === 0) return [];
+    const scene = app.doc.scene;
+    return baselineHandles(
+      dragTargets.filter((t) => selection.has(t.elementId)),
+      (target) => elevationOf(scene, scene.elements[target.elementId]?.containerId),
+    );
+  }, [app, dragTargets, selection, version]);
+
+  /**
+   * ⚠⚠ A CORNER-DRAG COMMITS AS **ONE** UNDO, AND THAT ID IS THE FEATURE (D23, owner-ruled Q5).
+   *
+   * `cornerDragPlan` returns one `core.setParams` per wall sharing the corner; every one of them goes
+   * through `dispatch` under a SINGLE `transactionId`, so three walls dragged together are three edits
+   * and exactly one `Ctrl+Z`. ⚠ The half-undone state this prevents is not untidy — it is a corner left
+   * OPEN, a model the user never authored that the join resolver will faithfully resolve. Entry 86
+   * measured it, and it only works at all because the same entry fixed `withUiRefresh`, which was
+   * silently discarding this very argument.
+   *
+   * ⚠ SEQUENTIAL, not `Promise.all`: `transactionId` groups CONSECUTIVE edits, so interleaving them
+   * with another actor's would split the group. And it stops on the first refusal rather than pressing
+   * on — half a corner committed is the exact state the transaction exists to prevent.
+   */
+  const onHandleDrop = useCallback(
+    ({ handle, to }: HandleDrop): void => {
+      const plan = cornerDragPlan(
+        dragTargets,
+        { elementId: handle.elementId, end: handle.end },
+        to,
+      );
+      if (plan === null) return; // the corner did not move, or the endpoint is gone
+      const transactionId = `corner-drag-${nextGestureId()}`;
+      void (async () => {
+        for (const command of plan.commands) {
+          const edit = await dispatch(command.commandId, command.args as Params, { transactionId });
+          if (edit === null) return;
+        }
+      })();
+    },
+    [dragTargets, dispatch],
+  );
+
   // Quantities for the selected element — measured from the B-Rep (async), refreshed on every edit.
   useEffect(() => {
     if (app === null || selected === null) {
@@ -658,8 +739,10 @@ export function App() {
             previewFrom={tool.previewFrom}
             snapTo={tool.snapTo}
             authoring={tool.authoring}
+            handles={dragHandles}
             onPick={onPick}
             onPointerSample={onPointerSample}
+            onHandleDrop={onHandleDrop}
           />
         )}
         {/* The tool status line (design §2/§6) — the prompt for the input being collected, and the

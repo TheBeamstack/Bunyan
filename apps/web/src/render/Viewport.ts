@@ -105,6 +105,14 @@ export class Viewport {
   readonly #snapMarker: THREE.Mesh;
   /** The dashed alignment guides (design §4.3) — one `LineSegments` for however many are showing. */
   readonly #guideLines: THREE.LineSegments;
+  /**
+   * The DRAG HANDLES (design §9) — one instanced mesh for every grabbable baseline endpoint.
+   *
+   * ⚠ It is in `#preview` with everything else, which is what makes it unpickable and unsnappable. A
+   * handle that could be snapped to would let the gizmo attract the very drag it is performing, and a
+   * handle that could be PICKED would select the element again on the click that grabs it.
+   */
+  readonly #handleMarkers: THREE.InstancedMesh;
 
   /** Lazily-built Tier-1 index over `#drawn`; dropped whenever the drawn set changes. */
   #snapIndex: SnapIndex | null = null;
@@ -183,9 +191,25 @@ export class Viewport {
     this.#guideLines.visible = false;
     this.#guideLines.frustumCulled = false;
 
+    // ⚠ INSTANCED, and the reason is the corner-drag's own arithmetic: a selection of N walls is 2N
+    // handles, and a mesh each would put the gizmo on the wrong side of the batching rewrite that
+    // closed the draw-call axis (Entry 63). One object, `count` set per update. `MAX_DRAG_HANDLES` is
+    // the allocation, not a policy — `setDragHandles` says out loud when it truncates.
+    this.#handleMarkers = new THREE.InstancedMesh(
+      new THREE.SphereGeometry(60, 10, 8),
+      new THREE.MeshBasicMaterial({ color: 0x4aa3ff, depthTest: false, transparent: true }),
+      MAX_DRAG_HANDLES,
+    );
+    this.#handleMarkers.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    this.#handleMarkers.renderOrder = 1001;
+    this.#handleMarkers.count = 0;
+    this.#handleMarkers.visible = false;
+    this.#handleMarkers.frustumCulled = false;
+
     this.#preview.add(this.#guideLines);
     this.#preview.add(this.#previewLine);
     this.#preview.add(this.#snapMarker);
+    this.#preview.add(this.#handleMarkers);
     this.#scene.add(this.#preview);
 
     this.#renderer.setAnimationLoop(this.#tick);
@@ -429,6 +453,49 @@ export class Viewport {
     this.#previewLine.visible = true;
   }
 
+  /**
+   * Draw a grab handle at each world point, or clear them with `null`/an empty list. Overlay only.
+   *
+   * ⚠ THE HIT TEST IS NOT HERE. `handleAt` (`tool/handles.ts`) decides what the cursor has hold of, in
+   * screen pixels, through the injected projection — so the gizmo's behaviour is asserted headlessly and
+   * this method is GL only. Keeping the two apart is what stops "which handle did I grab?" from becoming
+   * a browser-only claim that only one machine in the project can ever re-run.
+   *
+   * ⚠ It returns how many it DREW. Past `MAX_DRAG_HANDLES` the rest are dropped, and a silent truncation
+   * would be a gizmo that is simply missing on a large selection — the caller reports the number.
+   */
+  setDragHandles(points: readonly Vec3[] | null): number {
+    if (this.#disposed) return 0;
+    if (points === null || points.length === 0) {
+      this.#handleMarkers.count = 0;
+      this.#handleMarkers.visible = false;
+      return 0;
+    }
+    const drawn = Math.min(points.length, MAX_DRAG_HANDLES);
+    const matrix = new THREE.Matrix4();
+    for (let i = 0; i < drawn; i++) {
+      const p = points[i]!;
+      this.#handleMarkers.setMatrixAt(i, matrix.makeTranslation(p[0], p[1], p[2]));
+    }
+    this.#handleMarkers.count = drawn;
+    this.#handleMarkers.instanceMatrix.needsUpdate = true;
+    this.#handleMarkers.visible = true;
+    return drawn;
+  }
+
+  /**
+   * Turn the orbit controls off for the duration of a gesture, and on again after.
+   *
+   * ⚠⚠ WITHOUT THIS THE GIZMO IS UNUSABLE AND IT LOOKS LIKE A DIFFERENT BUG. `OrbitControls` is bound to
+   * the same canvas and treats a held drag as an orbit, so dragging a handle spins the camera while the
+   * handle appears to follow the cursor — the wall ends up somewhere the user never aimed, and the
+   * obvious suspect is the drag maths rather than the camera.
+   */
+  setControlsEnabled(enabled: boolean): void {
+    if (this.#disposed) return;
+    this.#controls.enabled = enabled;
+  }
+
   /** Show the snap marker at a world point, or hide it with `null`. Overlay only. */
   setSnapMarker(point: Vec3 | null): void {
     if (this.#disposed) return;
@@ -495,6 +562,8 @@ export class Viewport {
     (this.#guideLines.material as THREE.Material).dispose();
     this.#snapMarker.geometry.dispose();
     (this.#snapMarker.material as THREE.Material).dispose();
+    this.#handleMarkers.dispose();
+    (this.#handleMarkers.material as THREE.Material).dispose();
     this.#snapIndex = null;
     this.#drawn.clear();
     this.#controls.dispose();
@@ -509,6 +578,13 @@ export class Viewport {
  * failure mode is a snap that just "doesn't work sometimes", which is the hardest kind to report.
  */
 const SNAP_SEARCH_RADIUS_MM = 3000;
+
+/**
+ * How many drag handles the instanced mesh is allocated for. A selection of N walls is 2N handles, so
+ * this is 128 walls' worth — far past what a human selects to drag by a corner, and one buffer either
+ * way. ⚠ `setDragHandles` RETURNS what it drew rather than truncating quietly.
+ */
+const MAX_DRAG_HANDLES = 256;
 
 /**
  * World-space radius for gathering ALIGNMENT references (mm) — and it is deliberately five times the

@@ -267,7 +267,15 @@ function baselineTranslatePlan(target: DragTarget, by: Vec3): DragPlan | null {
   };
 }
 
-function endpointOf(target: DragTarget | null, end: BaselineEnd): Baseline2D | null {
+/**
+ * One authored baseline endpoint, or `null` if the element has none the app could read.
+ *
+ * ⚠ EXPORTED SO THERE IS EXACTLY ONE ANSWER TO *"what is an authored endpoint?"* — `handles.ts` mints a
+ * grab handle per endpoint and had its own copy of this for one commit. Two readers drift, and this one
+ * drifts silently: a stricter handle reader means a gizmo that is simply MISSING on some wall, which
+ * reads as "the gizmo is flaky" rather than as a disagreement about what counts as a baseline.
+ */
+export function endpointOf(target: DragTarget | null, end: BaselineEnd): Baseline2D | null {
   if (target === null) return null;
   return vec2(target.params?.[end]);
 }
