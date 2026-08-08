@@ -60,13 +60,25 @@
  * not — which is exactly what 10(a) creates.
  *
  * ⚠ **WHY `BASE_REF` AND NOT `origin/main`.** In CI the gate reads the base **SHA** the workflow already
- * passes to the re-seed gate (`github.event.pull_request.base.sha`), never a ref name. `origin/main` is
- * a ref whose presence in `actions/checkout`'s working copy **this box cannot measure**, and Entry 73's
- * whole lesson is what happens when a gate depends on an unmeasured property of the CI checkout — the
- * re-seed gate quietly never ran for 73 entries because of exactly that. A SHA that CI hands us needs no
- * ref to exist and no network. Locally there is no `BASE_REF`, so `origin/main` is used and its absence
+ * passes to the re-seed gate (`github.event.pull_request.base.sha`), never a ref name. ⚠ `origin/main`
+ * turns out to exist there too — checkout fetches `+refs/heads/*:refs/remotes/origin/*` under
+ * `fetch-depth: 0`, **measured on this gate's first CI run**, correcting what this comment claimed was
+ * unmeasurable from the dev box. The SHA is kept anyway: it needs no ref to exist at all, and Entry 73's
+ * lesson is what happens when a gate depends on a property of the CI checkout nobody checked. Locally there is no `BASE_REF`, so `origin/main` is used and its absence
  * is a skip, not a failure. **Cost: `git show origin/main:Zayd_Prompt.md` × 100 = 185 ms — 1.85 ms a
  * call, and it is a local object read, so it works offline.**
+ *
+ * ⚠⚠ **WHERE EACH HALF ACTUALLY EARNS ITS KEEP — measured, and not what I assumed when I started.**
+ * There are two kinds of drift and they are caught in different places:
+ *
+ * - **Drift on the line 10(a) pushed** (the classic: `pnpm state` rerun rewrites the tree line). Main
+ *   and the branch have both edited that line since diverging, so the merge **conflicts** — GitHub
+ *   cannot build `refs/pull/N/merge` and the PR is already visibly unmergeable. **The LOCAL run is what
+ *   helps here**, because it fails at step 7 with the `git checkout` fix instead of at merge time with
+ *   `GraphQL: Pull Request has merge conflicts`.
+ * - **Drift git can auto-merge** (an append, or an edit elsewhere in the file after 10(a)). No conflict,
+ *   nothing visible, and a prompt lands on main that no session put there. **This is the CI half's job**,
+ *   and it is the case the `HEAD_REF` fix below exists for.
  *
  * ⚠ **`Amer_Prompt.md` IS DELIBERATELY NOT GATED.** The mechanism is identical and Entry 87 warned Amer
  * about it, but Amer's loop is Amer's, that file has one writer and it is not this seat, and PR #13 is
@@ -129,6 +141,39 @@ export function mainRef(env = process.env, cwd) {
 }
 
 /**
+ * ⚠⚠ **WHICH COMMIT IS "THE BRANCH"? IN CI IT IS *NOT* `HEAD`, AND GETTING THIS WRONG SILENTLY DISABLES
+ * THE WHOLE GATE.** On a `pull_request` event `actions/checkout` checks out `refs/pull/N/merge` — a
+ * MERGE COMMIT of the branch into the base:
+ *
+ * ```
+ * git checkout --progress --force refs/remotes/pull/15/merge
+ * HEAD is now at 7fd391f Merge 4a9cd10… into b96c3a3…
+ * ```
+ *
+ * Measured from this gate's own first CI run. That merge commit **contains main by construction**, so
+ * question 2 below (`main ⊆ branch`) is true for every PR and the gate skips **every time, in the one
+ * place it was built for** — green, silent, useless. Entry 73's disease, arrived at from a third
+ * direction, and it survived a green CI run before being caught by reading the log rather than the
+ * check mark.
+ *
+ * ⇒ CI passes the PR's real head SHA (`github.event.pull_request.head.sha`) and the gate uses it.
+ * Locally there is no `HEAD_REF` and `HEAD` is already the branch tip.
+ */
+export function headRef(env = process.env, cwd) {
+  const head = env['HEAD_REF'];
+  if (head) {
+    if (!resolves(head, cwd)) {
+      throw new Error(
+        `prompt-sync gate: HEAD_REF="${head}" does not resolve in this checkout.\n` +
+          `Same rule as BASE_REF: do NOT skip here — see mainRef above.`,
+      );
+    }
+    return head;
+  }
+  return 'HEAD';
+}
+
+/**
  * The verdict for ONE file. `{ ok: true, skipped: <why> }` when the comparison is not yet meaningful,
  * `{ ok: true }` when it is and they match, `{ ok: false, … }` when they do not.
  */
@@ -162,7 +207,19 @@ export function promptSync(file, { main, head = 'HEAD', cwd } = {}) {
   }
 
   // 3 · Now — and only now — they must be byte-identical.
-  const drift = git(['diff', main, head, '--', file], cwd);
+  //
+  // ⚠⚠ AGAINST THE WORKING TREE WHEN WE CAN, NOT MERELY AGAINST `HEAD`. The drift is CREATED by
+  // `pnpm state` at step 8, which leaves it UNCOMMITTED — and gate six runs right after. Diffing
+  // `main..HEAD` there compares two clean commits, reports nothing, and the gate first speaks up one
+  // commit too late. Caught on this gate's own session: `pnpm state` drifted the prompt, `git diff
+  // origin/main --` showed it, and `docs:check` said 42 passed. Omitting the second ref makes `git
+  // diff` compare against the WORKING TREE, which is the state the session can still fix for free.
+  // ⚠ Only when `head` is the default: an explicit ref (CI's `HEAD_REF`, or a test) means "compare
+  // these two commits", and a dirty tree must not leak into that answer.
+  const drift =
+    head === 'HEAD'
+      ? git(['diff', main, '--', file], cwd)
+      : git(['diff', main, head, '--', file], cwd);
   if (drift === '') return { ok: true };
   return { ok: false, file, main, drift };
 }

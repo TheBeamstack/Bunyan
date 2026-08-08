@@ -2,7 +2,7 @@
 
 **Zayd · dev box (headless) · 2026-08-08 · `RISK: additive`**
 
-`pnpm verify`: **771 green · 88 files · six gates · real exit code 0**, real OCCT throughout.
+`pnpm verify`: **774 green · 88 files · six gates · real exit code 0**, real OCCT throughout.
 
 TASK was in three parts and all three landed: **review and merge PR #14** (Entry 87's own, on the owner's
 authorisation), **review PR #13 without merging it** (Amer's, on the owner's routing), and then **build
@@ -218,6 +218,67 @@ BASE_REF=deadbeefdeadbeef  →  {"ok":true,"skipped":"no BASE_REF and no origin/
 the precise condition under which the re-seed gate reported green for 73 entries without executing once.
 A gate that turns itself off when its input is broken is worse than no gate, because it reports success.
 It now **throws** and names the shallow clone. Revert-verified.
+
+### ⚠⚠ 2c(i) · The second one, and it SURVIVED A GREEN CI RUN
+
+The gate went green on its own first CI run. **It had not run.** `actions/checkout` on a `pull_request`
+checks out `refs/pull/N/merge`:
+
+```
+git checkout --progress --force refs/remotes/pull/15/merge
+HEAD is now at 7fd391f Merge 4a9cd10… into b96c3a3…
+```
+
+That merge commit **contains main by construction**, so question 2 (`main ⊆ branch`) is true for every PR
+and the gate skipped — green, silent, useless, in the one place it was built for. **Entry 73's disease
+from a third direction**, and the check mark said SUCCESS. I only found it by reading the log for the
+words `prompt-sync` rather than trusting the tick.
+
+⇒ CI now passes `pull_request.head.sha` (**not** `github.sha`, which *is* the merge commit), the gate has
+a `headRef`, and a test builds the merge commit and asserts that the wrong input skips while the right one
+looks. ⚠ The re-seed gate's `HEAD_REF: github.sha` is **correct and unchanged** — it diffs `base...head`
+with three dots, for which the merge commit gives the right answer.
+
+⚠ **And measuring that forced an honest correction to what the gate is FOR.** There are two kinds of
+drift, caught in different places:
+
+| Drift | Merges? | Who catches it |
+| --- | --- | --- |
+| the same line 10(a) pushed (`pnpm state` rerun) | **conflicts** — GitHub cannot build the merge ref, PR already unmergeable | **the LOCAL run**, which names the fix at step 7 instead of `GraphQL: Pull Request has merge conflicts` at merge time |
+| an append / an edit elsewhere after 10(a) | **cleanly** — invisible everywhere | **CI**, and only with the `HEAD_REF` fix |
+
+I had assumed the CI half was the whole point. It is half the point, and not the half I expected.
+
+### ⚠⚠ 2c(ii) · The third one — and the gate found it by failing on its own session
+
+Question 3 diffed `main..HEAD`: two **commits**. But the drift is *created* by `pnpm state` at step 8 and
+sits **uncommitted** while gate six runs right after it. So on this very session:
+
+```
+$ git diff --stat origin/main -- Zayd_Prompt.md
+ Zayd_Prompt.md | 2 +-          ← a real, live drift
+$ pnpm docs:check
+      Tests  42 passed (42)     ← the gate built for exactly this said nothing
+```
+
+Omitting the second ref makes `git diff` compare against the **working tree**, which is the state the
+session can still fix for free. With that, re-run:
+
+```
+× §3 — the live gate > every gated prompt file matches main
+  → Zayd_Prompt.md has drifted from origin/main.
+    FIX:  git checkout origin/main -- Zayd_Prompt.md && pnpm docs:check && git commit
+```
+
+**It caught the real bug, on itself, in the wild, and printed the fix — which I then ran.** That is the
+end-to-end verification I could not have constructed; the session handed it to me.
+
+⚠ An **explicit** head (CI's `HEAD_REF`, or a test) still compares two commits, because a dirty tree must
+not leak into that answer. Pinned both ways.
+
+⇒ **Three defects in this one gate, and all three were the same shape: a SKIP that reported green.**
+A gate is not code that checks a condition; it is code that must *refuse to stay silent*, and the failure
+mode is never a wrong answer — it is no answer, wearing a tick.
 
 ### 2d · Revert-verification — four ways, separately
 

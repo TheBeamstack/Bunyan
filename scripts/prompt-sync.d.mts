@@ -26,6 +26,12 @@ export declare function contains(ancestor: string, descendant: string, cwd?: str
 /** `BASE_REF` in CI, `origin/main` locally, `undefined` when neither is available (a skip). */
 export declare function mainRef(env?: NodeJS.ProcessEnv, cwd?: string): string | undefined;
 
+/**
+ * The PR's real head SHA (`HEAD_REF`) or `HEAD`. ⚠ On a `pull_request` event CI checks out a MERGE
+ * commit, which contains main — so using `HEAD` there disables the gate. Throws on an unresolvable ref.
+ */
+export declare function headRef(env?: NodeJS.ProcessEnv, cwd?: string): string;
+
 /** The verdict for ONE file. See the `.mjs` header for the three questions it asks, in order. */
 export declare function promptSync(
   file: string,

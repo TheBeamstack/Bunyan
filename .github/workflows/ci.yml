@@ -58,6 +58,9 @@ jobs:
       # Scaffolded here so it is impossible to add geometry later and quietly skip the gate.
       - name: Re-seed gate
         run: node scripts/check-reseed.mjs
+        # ⚠ Unchanged by entry 88. This gate diffs `base...head` (THREE dots, a merge-base diff), for
+        # which `github.sha` — the merge commit on a pull_request — gives the right answer. The
+        # prompt-sync gate below needs the PR's real head instead, and says why there.
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
           HEAD_REF: ${{ github.sha }}
@@ -82,10 +85,17 @@ jobs:
         # main's once loop step 10(a) has pushed it — the invariant `pnpm state` silently breaks, which
         # GitHub then reports as the unrecognisable "Pull Request has merge conflicts".
         #
-        # It reads the same `pull_request.base.sha` the re-seed gate reads, and NOT `origin/main`,
-        # because whether that ref exists in `actions/checkout`'s working copy is a property of the CI
-        # checkout that the dev box cannot measure — and a gate resting on an unmeasured property of
-        # this checkout is precisely how the re-seed gate above never executed for 73 entries.
-        # A SHA needs no ref to exist. Absent (a `push` to main), the gate skips.
+        # It reads the same `pull_request.base.sha` the re-seed gate reads, rather than `origin/main`.
+        # ⚠ MEASURED since: `origin/main` DOES exist here — checkout fetches
+        # `+refs/heads/*:refs/remotes/origin/*` under `fetch-depth: 0`. The SHA is still preferred,
+        # because it needs no ref to exist at all, and a gate resting on an unmeasured property of this
+        # checkout is precisely how the re-seed gate above never executed for 73 entries.
+        # Absent (a `push` to main), the gate skips.
+        #
+        # ⚠⚠ `HEAD_REF` IS `pull_request.head.sha`, **NOT** `github.sha`. On a pull_request the checked-out
+        # HEAD is `refs/pull/N/merge` — a merge commit that CONTAINS main — so the gate's "no conflict is
+        # possible" skip would fire on every PR and the check would be green and useless. Measured on its
+        # own first CI run: `HEAD is now at 7fd391f Merge 4a9cd10 into b96c3a3`.
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
+          HEAD_REF: ${{ github.event.pull_request.head.sha }}

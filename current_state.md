@@ -556,35 +556,35 @@ is maintenance and does NOT get an entry of its own.**
 ### 88 | 2026-08-08 | Zayd | the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
 
 - **CHANGED:** **`scripts/prompt-sync.mjs` + `.d.mts` NEW** (the gate: three git questions, no network) ·
-  **`tests/prompt-sync.test.ts` NEW (+9)** · `package.json` (`docs:check` runs it — gate six is now three
+  **`tests/prompt-sync.test.ts` NEW (+12)** · `package.json` (`docs:check` runs it — gate six is now three
   files) · `.github/workflows/ci.yml` (`BASE_REF` on the docs step, the same sha the re-seed gate reads) ·
   `eslint.config.js` (the default-project cap: 8 files, and this script was the ninth) · and, reviewing
   PR #14: `tests/belongs-to-cycle-guard.test.ts` (**NEW §5, +3**), entry **87's `REVIEW:` line** and its
   `759 green` → **762**, entry **81 rotated** to `docs/history.md` §C (§C now 54–81).
-- **VERIFIED:** **771 green** across 88 files, all six gates, **real exit code 0**. Revert-verified **four
+- **VERIFIED:** **774 green** across 88 files, all six gates, **real exit code 0**. Revert-verified **four
   ways, separately**: drop skip 1 ⇒ **2 RED**, drop skip 2 ⇒ **2 RED**, make the comparison always pass ⇒
-  **1 RED**, make an unresolvable `BASE_REF` skip instead of throw ⇒ **1 RED**.
+  **1 RED**, make an unresolvable `BASE_REF` skip instead of throw ⇒ **1 RED**. 
 - **FOUND:** ⚠⚠ **THE GATE'S DIFFICULTY IS NOT THE COMPARISON, IT IS KNOWING WHEN THE COMPARISON IS
-  MEANINGFUL — AND A NAIVE `git diff origin/main -- Zayd_Prompt.md` IS WRONG IN THREE OF THE FOUR STATES
-  THIS REPO HAS ACTUALLY BEEN IN.** TASK asked *"what exactly must match — the whole file or only FRESH?"*
-  **Neither: there is no region of the file that is always equal.** A branch legitimately owns a new
-  `§2 TASK`/`NEW` before step 10(a), and `pnpm state` legitimately rewrites FRESH at step 8, also before
-  10(a). **The invariant is about a MOMENT, not a region** — byte-identity is required from 10(a) onward.
-  ⇒ two skips, each measured against real commits: *does this branch AUTHOR the file?*
-  (`git diff <merge-base> <head>` — what spares Amer, whose branch differs from main's copy through no
-  act of his) and *is main CONTAINED in the branch?* (`merge-base --is-ancestor` ⇒ a fast-forward ⇒ no
-  conflict is possible). ⚠⚠ **The second was WRONG TWICE and both wrong versions passed the four pinned
-  states**: it began as `git rev-list <main> ^<head>` — the 10(a) push's signature — which a **REBASE**
-  defeats, leaving the gate skipping while reporting a reason that had become a lie. Measured, the
-  mid-session and rebased states are the SAME situation (`main ⊆ branch`, `git merge` reports no
-  conflict), so it is one condition with one true reason.
-  ⚠ **Q2 (can `docs:check` see `origin/main`?) is answered by SIDESTEPPING it:** the gate reads the base
-  **SHA** CI already passes to the re-seed gate, so no ref need exist and nothing is fetched
-  (`git show origin/main:…` costs **1.85 ms**, local object read, offline — but CI does not use it).
-  ⚠⚠ **AND THE BUG I ALMOST SHIPPED, CAUGHT BY THIS REPO'S OWN HISTORY:** my first `mainRef` returned
-  `undefined` — a SKIP — when `BASE_REF` was set but unresolvable. **That is the Entry-73 disease exactly**
-  (the re-seed gate reported green for 73 entries because its unresolvable ref took the skip branch).
-  It now THROWS and names the shallow checkout.
+  MEANINGFUL — A NAIVE `git diff origin/main -- Zayd_Prompt.md` IS WRONG IN THREE OF THE FOUR STATES THIS
+  REPO HAS BEEN IN.** TASK asked *"the whole file, or only FRESH?"* — **neither: no region of the file is
+  always equal.** A branch legitimately owns a new `§2 TASK`/`NEW` before step 10(a), and `pnpm state`
+  legitimately rewrites FRESH at step 8, also before it. **The invariant is a MOMENT, not a region.** ⇒
+  two skips, both measured against real commits: *does this branch AUTHOR the file?* (spares Amer) and
+  *is main CONTAINED in it?* (`merge-base --is-ancestor` ⇒ fast-forward ⇒ no conflict possible).
+  ⚠ **Q2 (can `docs:check` see `origin/main`?) is SIDESTEPPED** — CI reads the base SHA it already passes
+  the re-seed gate. (`origin/main` does exist in CI; measured after the fact. `git show` costs 1.85 ms.)
+  ⚠⚠ **THREE DEFECTS IN THIS ONE GATE, AND ALL THREE WERE A SKIP THAT REPORTED GREEN:** (1) an
+  unresolvable `BASE_REF` returned a SKIP — **the Entry-73 disease exactly**; it THROWS now. (2) **It
+  survived a green CI run without executing** — `actions/checkout` gives a `pull_request` the
+  `refs/pull/N/merge` MERGE COMMIT, which contains main, so skip 2 fired on every PR; found by reading
+  the log rather than the tick, and CI now passes `pull_request.head.sha`. (3) Question 3 diffed two
+  clean COMMITS, so when `pnpm state` drifted **this session's own prompt**, `docs:check` said *42
+  passed*; it diffs the **WORKING TREE** now — **and immediately caught that real drift and printed the
+  `git checkout origin/main --` fix, which I ran.** ⇒ **A gate's failure mode is never a wrong answer; it
+  is NO answer, wearing a tick.** ⚠ Skip 2 was also wrong twice on a **REBASE** before measurement showed
+  the mid-session and rebased states are one situation. ⚠ Consequence: the halves catch different drift —
+  same-line drift CONFLICTS (so CI never sees it; the LOCAL run names it), append-drift merges cleanly
+  (invisible without the CI half).
 - **OWES:** Owner: **nothing new** — `RISK: additive`, so the next session merges this. **Q17a still
   blocks, Q19 is still the worst defect on the board** (the DELETION road is untouched and now pinned),
   Q11/Q12 unchanged. Amer: ⚠⚠ **DO NOT ROTATE ENTRY 80 — Entry 87's advice is void; 79/80/81 are already
@@ -893,14 +893,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **88 (Zayd, 2026-08-08)** |
-| branch · tip · tree | `zayd/2026-08-08-e88-prompt-sync-gate` · `eb74f43` · dirty |
-| open PRs | #13 amer/2026-08-07-move-tool-corner-drag |
-| suite | **771 green** · 88 files · 239 suites |
+| branch · tip · tree | `zayd/2026-08-08-e88-prompt-sync-gate` · `4a9cd10` · dirty |
+| open PRs | #15 zayd/2026-08-08-e88-prompt-sync-gate · #13 amer/2026-08-07-move-tool-corner-drag |
+| suite | **774 green** · 88 files · 239 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 197 insertions(+), 142 deletions(-) (5 files) |
+| diff vs origin/main | 9 files changed, 1111 insertions(+), 142 deletions(-) (9 files) |
 | docs budget | current_state 76.8/96.0 KB · §7 31.0/32.0 KB · abstracts 6/10 · bodies 33 |
 
 _Generated 2026-08-08 by `pnpm state`._

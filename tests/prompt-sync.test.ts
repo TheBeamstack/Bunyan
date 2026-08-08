@@ -16,7 +16,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, describe, expect, it } from 'vitest';
-import { GATED, explain, mainRef, promptSync, resolves } from '../scripts/prompt-sync.mjs';
+import { GATED, explain, headRef, mainRef, promptSync, resolves } from '../scripts/prompt-sync.mjs';
 
 const git = (args: string[], cwd?: string): string =>
   execFileSync('git', args, { encoding: 'utf8', cwd, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -168,14 +168,129 @@ describe('§2 — the failure it exists for, constructed', () => {
 
     run('checkout', '-q', 'main');
     expect(() => run('merge', '--no-commit', '--no-ff', 'zayd/entry-2')).not.toThrow();
+    run('merge', '--abort'); // ⚠ leave no half-merge behind — the next test uses this repo
+  });
+
+  it("⚠⚠ CI's MERGE COMMIT must not be used as the branch — it contains main, so the gate would skip", () => {
+    // Measured on this gate's own first CI run: `actions/checkout` on a `pull_request` checks out
+    // `refs/pull/N/merge` and reports `HEAD is now at 7fd391f Merge 4a9cd10 into b96c3a3`. That commit
+    // contains main by construction, so question 2 fires and the gate is green and useless — the exact
+    // Entry-73 shape, reached from a third direction. The workflow therefore passes
+    // `pull_request.head.sha`, NOT `github.sha`. This test is what stops that being undone.
+    //
+    // ⚠ Its own repo: the test above ends with the branch REBASED, which would mask this entirely.
+    const fresh = mkdtempSync(join(tmpdir(), 'bunyan-prompt-sync-ci-'));
+    try {
+      const run = (...args: string[]) => git(args, fresh);
+      run('init', '-q', '-b', 'main');
+      run('config', 'user.email', 'gate@test');
+      run('config', 'user.name', 'gate');
+      const prompt = join(fresh, 'Zayd_Prompt.md');
+
+      // ⚠ A realistic shape: a FRESH block the handoff rewrites, and a tail it does not.
+      const TAIL = 'TASK: the standing task\nNEW: the standing lessons\n';
+      writeFileSync(prompt, `FRESH: ENTRY 1\nTree: \`abc\`\n${TAIL}`);
+      run('add', '-A');
+      run('commit', '-qm', 'entry 1');
+
+      run('checkout', '-q', '-b', 'zayd/entry-2');
+      writeFileSync(prompt, `FRESH: ENTRY 2\nTree: \`def\`\n${TAIL}`);
+      run('commit', '-qam', 'entry 2 work');
+
+      run('checkout', '-q', 'main'); // step 10(a) — the SAME bytes go to main
+      run('checkout', 'zayd/entry-2', '--', 'Zayd_Prompt.md');
+      run('commit', '-qam', 'Zayd_Prompt: hand off');
+      const main = run('rev-parse', 'HEAD');
+
+      // ⚠⚠ DRIFT THAT GIT CAN AUTO-MERGE, AND THAT DISTINCTION IS WHY THE CI HALF MATTERS AT ALL.
+      // If the branch rewrites the SAME line 10(a) pushed (the classic `pnpm state` rerun), main and
+      // the branch have both edited it since diverging, the merge CONFLICTS, GitHub cannot build
+      // `refs/pull/N/merge`, and the PR is already visibly unmergeable — measured while writing this
+      // test, and it is why the drift case above is the LOCAL half's job. What CI can still be wrong
+      // about is drift git merges cleanly: an APPEND after 10(a), which lands a prompt on main that
+      // no session ever put there.
+      run('checkout', '-q', 'zayd/entry-2');
+      writeFileSync(prompt, `FRESH: ENTRY 2\nTree: \`def\`\n${TAIL}NOTE: appended after 10(a)\n`);
+      run('commit', '-qam', 'a late append — auto-mergeable, and still drift');
+      const realBranchTip = run('rev-parse', 'HEAD');
+
+      run('checkout', '-q', 'main');
+      run('merge', '-q', '--no-ff', '-m', 'Merge pull request', 'zayd/entry-2');
+      const ciMergeCommit = run('rev-parse', 'HEAD');
+
+      // ⚠ `github.sha` — the merge commit. It SKIPS, and the drift sails straight through.
+      const wrong = promptSync('Zayd_Prompt.md', { main, head: ciMergeCommit, cwd: fresh });
+      expect(wrong.ok).toBe(true);
+      expect(wrong.skipped).toMatch(/no conflict is possible/);
+
+      // ⚠ `pull_request.head.sha` — the real branch tip. It LOOKS, and it CATCHES.
+      const right = promptSync('Zayd_Prompt.md', { main, head: realBranchTip, cwd: fresh });
+      expect(right.skipped).toBeUndefined();
+      expect(right.ok).toBe(false);
+    } finally {
+      rmSync(fresh, { recursive: true, force: true });
+    }
+  });
+
+  it('⚠⚠ UNCOMMITTED drift is caught too — that is the moment `pnpm state` creates it', () => {
+    // The local half's whole value is failing at step 8, where the fix is free. `pnpm state` leaves the
+    // drift in the WORKING TREE, so a `main..HEAD` comparison sees two clean commits and says nothing.
+    // ⚠ Not hypothetical: this gate passed 42/42 on its own session while `git diff origin/main --`
+    // showed a real one-line drift. Omitting the second ref is the fix.
+    const fresh = mkdtempSync(join(tmpdir(), 'bunyan-prompt-sync-wt-'));
+    try {
+      const run = (...args: string[]) => git(args, fresh);
+      run('init', '-q', '-b', 'main');
+      run('config', 'user.email', 'gate@test');
+      run('config', 'user.name', 'gate');
+      const prompt = join(fresh, 'Zayd_Prompt.md');
+      writeFileSync(prompt, 'FRESH: ENTRY 1\n');
+      run('add', '-A');
+      run('commit', '-qm', 'entry 1');
+
+      run('checkout', '-q', '-b', 'zayd/entry-2');
+      writeFileSync(prompt, 'FRESH: ENTRY 2\nTree: `def`\n');
+      run('commit', '-qam', 'entry 2 work');
+      run('checkout', '-q', 'main'); // 10(a)
+      run('checkout', 'zayd/entry-2', '--', 'Zayd_Prompt.md');
+      run('commit', '-qam', 'hand off');
+      const main = run('rev-parse', 'HEAD');
+      run('checkout', '-q', 'zayd/entry-2');
+
+      // Committed state is clean; the gate looks and passes.
+      expect(promptSync('Zayd_Prompt.md', { main, cwd: fresh })).toEqual({ ok: true });
+
+      // `pnpm state` runs and leaves the drift UNCOMMITTED.
+      writeFileSync(prompt, 'FRESH: ENTRY 2\nTree: `ghi`\n');
+      const v = promptSync('Zayd_Prompt.md', { main, cwd: fresh });
+      expect(v.ok).toBe(false);
+      expect(v.drift).toContain('Tree');
+
+      // ⚠ …but an EXPLICIT head means "compare these two commits", and a dirty tree must not leak in.
+      const tip = run('rev-parse', 'HEAD');
+      expect(promptSync('Zayd_Prompt.md', { main, head: tip, cwd: fresh })).toEqual({ ok: true });
+    } finally {
+      rmSync(fresh, { recursive: true, force: true });
+    }
+  });
+
+  it('headRef prefers HEAD_REF, falls back to HEAD, and throws on an unresolvable one', () => {
+    const here = process.cwd();
+    expect(headRef({}, here)).toBe('HEAD');
+    const sha = git(['rev-parse', 'HEAD']);
+    expect(headRef({ HEAD_REF: sha }, here)).toBe(sha);
+    expect(() => headRef({ HEAD_REF: 'deadbeefdeadbeef' }, here)).toThrow(/does not resolve/);
   });
 });
 
 describe('§3 — the live gate', () => {
   it('every gated prompt file matches main', () => {
     const main = mainRef(process.env, process.cwd());
+    // ⚠ `headRef`, NOT `HEAD` — in CI `HEAD` is a merge commit that CONTAINS main, and the gate would
+    // skip every PR while reporting green. See `prompt-sync.mjs`'s header; this line is the whole fix.
+    const head = headRef(process.env, process.cwd());
     for (const file of GATED) {
-      const v = promptSync(file, { main, cwd: process.cwd() });
+      const v = promptSync(file, { main, head, cwd: process.cwd() });
       expect(v.ok, v.ok ? '' : explain(v)).toBe(true);
     }
   });
