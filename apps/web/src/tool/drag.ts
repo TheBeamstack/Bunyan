@@ -28,6 +28,14 @@
  * own test"*. A second copy is a copy that drifts, and it would drift silently: the wrong verb on a
  * baseline wall does not throw, it moves the solid and leaves the derivations behind.
  *
+ * ⚠⚠ AND STATE THE ALTERNATIVE HONESTLY, BECAUSE THE ENTRY-86 HAND-OFF DID NOT: **`positioningOf` IS
+ * exported from `@bunyan/document`** (via `index.ts`, since Entry 72), so *"the app cannot reach it"*
+ * was never the argument and Entry 89's review struck that premise. Calling it would tell this file the
+ * positioning KIND — and it would still have to encode, in the app, which VERB each kind is authored
+ * by. That mapping is `positioningRefusal`'s, it is the thing that actually decides, and re-stating it
+ * here is the same silent drift one step further along. ⇒ probe-and-route survives the correction, on
+ * the sharper reason: the app must not own the refusal GRAPH, not merely the classifier.
+ *
  * ⇒ So this file proposes, in the order the engine's own refusal messages name, and the caller asks
  * `doc.execute(id, args, { dryRun: true })` which one the document will actually accept. That is D42's
  * stated purpose — *"a UI highlights the offender; an agent reads it and RE-PLANS"* — and it costs ONE
@@ -46,7 +54,7 @@
  */
 
 import type { Vec3 } from '@bunyan/protocol';
-import type { ElementId } from '@bunyan/document';
+import type { ContainerId, ElementId } from '@bunyan/document';
 
 /** One command a plan would issue. The same shape `Tool.commit` returns, so the executor is unchanged. */
 export interface PlannedCommand {
@@ -80,6 +88,17 @@ export interface DragTarget {
   readonly params: Readonly<Record<string, unknown>> | null;
   /** Present when the element is hosted. Read from the scene row, never inferred. */
   readonly hostId?: ElementId;
+  /**
+   * ⚠⚠ THE ELEMENT'S CONTAINER, AND IT IS NOT OPTIONAL DECORATION — IT IS THE THIRD COORDINATE.
+   *
+   * A D52 baseline is **2D, in the Level plane**: `start`/`end` carry x and y, and the Z comes from
+   * `elevationOf(scene, containerId)`. So `[4000, 0]` on the ground floor and `[4000, 0]` on the first
+   * floor are the SAME 2D point and a DIFFERENT corner — which is the ordinary case, because a
+   * building's walls stack. A corner-drag matching on the 2D coordinate alone rebuilds the floor above.
+   * Read it from the scene row (`element.containerId`) and pass it; `undefined` on BOTH sides means the
+   * same container (the root), which is how the demo scene is authored.
+   */
+  readonly containerId?: ContainerId;
 }
 
 /**
@@ -136,6 +155,13 @@ export function dragPlans(target: DragTarget, by: Vec3): DragPlan[] {
  * junction. So the peers are found by COORDINATE (within `CORNER_TOLERANCE_MM`) and moved in the same
  * gesture, under one id.
  *
+ * ⚠⚠ AND THE MATCH IS PER-CONTAINER, WHICH IS NOT A REFINEMENT — IT IS THE MISSING THIRD COORDINATE.
+ * `start`/`end` are 2D in the Level plane, so a wall directly above shares the corner's x and y exactly.
+ * Matching on the 2D point alone moves it too, and nothing errors: the edit applies, the geometry is
+ * right for what was asked, both diagnostics stay empty, and the user who dragged a corner on the ground
+ * floor has silently re-authored the first. (Found reviewing Entry 86 — the same shape as Entry 86's own
+ * finding, where the casualty was not correctness but what the gesture MEANT.)
+ *
  * ⚠ Peers are matched on the authored baseline endpoints and nothing else — no `ref`, no snap identity.
  * A snapped guide point carries NO `ref` by construction (`align.ts`), so a drag that needed identity
  * from the snap would be reading a field that is absent exactly when the user has aimed most carefully.
@@ -149,12 +175,16 @@ export function cornerDragPlan(
   grabbed: { readonly elementId: ElementId; readonly end: BaselineEnd },
   to: Baseline2D,
 ): DragPlan | null {
-  const anchor = endpointOf(find(walls, grabbed.elementId), grabbed.end);
+  const grabbedWall = find(walls, grabbed.elementId);
+  const anchor = endpointOf(grabbedWall, grabbed.end);
   if (anchor === null) return null;
   if (distance2D(anchor, to) < CORNER_TOLERANCE_MM) return null; // a drag that moved nothing
 
   const commands: PlannedCommand[] = [];
   for (const wall of walls) {
+    // ⚠ The container is the third coordinate — see `DragTarget.containerId`. Absent on both sides is
+    // the SAME container (the root), never two unknowns that happen to look alike.
+    if (wall.containerId !== grabbedWall?.containerId) continue;
     for (const end of ['start', 'end'] as const) {
       const point = endpointOf(wall, end);
       if (point === null) continue;
@@ -192,9 +222,14 @@ function hostedPlan(target: DragTarget, by: Vec3): DragPlan | null {
 
   // ⚠ THE DELTA IS IN WORLD mm AND `offsetU` IS ALONG THE HOST — they are different frames, and this
   // planner does NOT have the host's baseline, so it cannot convert. It proposes the horizontal
-  // magnitude along U and the world z along V, which is exact for a wall running along the drag and
-  // an over-estimate otherwise. ⇒ the caller resolves U against the host's authored baseline before
-  // committing (the opening tool already does that projection, `tools.ts`), and this is a PROPOSAL.
+  // magnitude along U and the world z along V.
+  // ⚠⚠ AND `Math.hypot` IS UNSIGNED, WHICH IS NOT AN OVER-ESTIMATE — IT IS A LOST DIRECTION (measured
+  // in Entry 87's review of this file, and this comment used to claim "over-estimate"). Two exactly
+  // OPPOSITE drags — `[+300,+400,+50]` and `[-300,-400,+50]` — both propose `offsetU 1500`, so a door
+  // dragged left travels right. Note `offsetV` takes `by[2]` SIGNED, so the two axes of this one
+  // function disagree about whether direction survives. ⇒ the caller MUST resolve U against the host's
+  // authored baseline before committing (the opening tool already does that projection, `tools.ts`) —
+  // that projection is where the sign comes back, and it is why this is a PROPOSAL and not a command.
   return {
     positioning: 'host',
     commands: [

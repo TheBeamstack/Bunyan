@@ -123,6 +123,10 @@ describe('withUiRefresh — an agent edit refreshes the view like a human edit (
     const wrapped = withUiRefresh(agent, () => {});
 
     await wrapped.execute('core.setParams', {});
+    // ⚠⚠ ARITY is the observable that separates "forwarded `undefined`" from "never passed a third
+    // argument at all" — both read `undefined`, so this test was GREEN under the very defect above it
+    // until Entry 87's review measured it. A wrapper that drops the argument calls through with TWO.
+    expect(seen[0]).toHaveLength(3);
     expect(seen[0]?.[2]).toBeUndefined();
   });
 });

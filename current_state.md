@@ -553,6 +553,59 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### 87 | 2026-08-08 | Zayd | a belongs-to CYCLE is authorable by two shipped verbs — and it erases the element silently
+
+- **CHANGED:** `packages/document/src/designoptions.ts` (**`wouldCloseBelongsToCycle` NEW** — the authoring
+  guard `isElementActive` always needed, walking BOTH edges) · `packages/document/src/commands.ts`
+  (`core.retargetReference` and `core.setElementMetadata` now REFUSE a cycle) ·
+  **`tests/belongs-to-cycle-guard.test.ts` NEW (+14, **+3 more from Entry 88's review — §5**)** ·
+  `tests/option-cascade-d67.test.ts` (**NEW §8** —
+  the differential fuzz, +1) · `open_rulings.md` (Q19 gains its pin) · `tests/frozen-surface.snapshot.json`
+  (re-baselined) · entry **85's `REVIEW:` line** · entry **80 rotated** to `docs/history.md` §C · and,
+  reviewing PR #12 and PR #13: `current_state.md`, `docs/history.md`.
+- **VERIFIED:** **762 green** across 87 files, all six gates, **real exit code 0**, real OCCT throughout
+  (759 as authored; **+3 from Entry 88's review**). Revert-verified **twice, separately**: dropping the
+  `hostId` guard fails **3** (`promise resolved "{ …(7) }" instead of rejecting`), dropping the
+  `parentElementId` guard fails **1** — **both re-executed by Entry 88, not taken on trust.**
+- **FOUND:** ⚠⚠ **`core.retargetReference { elementId: w, hostId: w }` IS ACCEPTED, AND THE WALL VANISHES.**
+  Entry 85 closed `hostId` on the grounds that both writers `requireElement` — true, and the wrong
+  question: **`requireElement` proves the target EXISTS, never that it is not the element itself or
+  something leading back to it.** A reference that resolves can still LOOP, and a loop is not a broken
+  reference but an ERASED element. Measured through shipped verbs, no design options, no `.bnn`:
+  `scene.elements` **1**, `modelElements()` **0**, `brokenRefs()` **[]**, `unbuildable()` **[]**. ⚠ The
+  same hole on `parentElementId` via `core.setElementMetadata`, and that one is worse —
+  `projectQuantities()` returns **0 rows carrying `basis: 'exact'`**, domain rule 15's failure mode from
+  a one-line verb call. ⚠ **A `hostId`-only guard would not have closed it**: `A.hostId=B` then
+  `B.parentElementId=A` is refused by neither single-edge check and `isElementActive` excludes both ⇒
+  **the guard's edge set must be the EXCLUSION rule's.** ⚠⚠ **AND THE ASYMMETRY IS UNPINNED: making
+  `cascadeOf` walk both edges — a real change to what a delete destroys — breaks ZERO behavioural tests**
+  (`1 failed | 757 passed`, and the one failure is the freeze HASH, which sees text, not meaning). A Q19
+  ruling could land, change `core.deleteElement`, and go green. **Pinned now, and the pin is designed to
+  fail when Q19 lands.** ⚠ `cascadeOf` itself is CLEAN — one `seen` set is right because it computes a
+  reachable SET, where re-arrival is idempotent; and **`rebuilt` is complete for a reason the command
+  hides**: `deleteElement` passes `[element.hostId]`, and the EXECUTOR overwrites it with `affected`
+  (counted: 3 ids where the command's hint was `[]`).
+- **OWES:** Owner: ⚠⚠ **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** — one ADDED export
+  (`wouldCloseBelongsToCycle`); the two `execute` bodies did NOT move the surface. **Q19 still needs its
+  ruling** and is now pinned by a test that will fail when it arrives; **Q17a still blocks**; Q11/Q12
+  unchanged. Amer: **PR #13 was reviewed, NOT merged** (owner's instruction) — findings in its comment;
+  ⚠ **your merge of main WILL overflow §7's byte budget, rotate entry 81.** **Q18 and Q20 are yours.**
+- **RISK:** contract-touching
+- **FULL:** `handoff/zayd/2026-08-08-e87-belongs-to-cycle-guard.md`
+- **REVIEW:** **Entry 88 (Zayd, 2026-08-08) — reviewed and MERGED** on the owner's authorisation.
+  Item 1 re-executed **both** ways (3 RED, 1 RED). ⚠ **The over-refusal hunt this entry asked for is
+  ANSWERED BY MEASUREMENT, not by five examples:** a differential fuzz over **20 000 acyclic graphs /
+  100 000 queries** against two oracles sharing no code with the guard (independent reachability, and
+  `isElementActive` on the edit APPLIED) — **43 667 refused / 56 333 allowed, ZERO disagreements**.
+  **No legitimate authoring act is refused.** Shipped as §5, with the sibling case §3 lacked. ⚠ COST
+  answered too: **0.17 µs/call** on a 10 000-element flat model, 1.7 ms on a 10 000-DEEP chain no
+  building has. ⚠ **Backward sweep: FOUR write sites of `hostId`/`parentElementId` exist, not two** —
+  `createElement` and `copy` are structurally immune (a freshly minted ULID cannot be anyone's
+  ancestor), so the two guarded are the whole set. ⚠ ONE finding, and it is correct-by-design, now
+  pinned in §5: the guard proves *"no NEW cycle through this element"*, **not** *"the element is active
+  afterwards"* — attaching to an already-cyclic subtree is allowed, exactly as attaching to a broken
+  ancestor is.
+
 ### 86 | 2026-08-07 | Amer | the corner-drag, and the wrapper that was eating D23's transaction
 
 - **CHANGED:** `apps/web` only. **`tool/drag.ts` NEW** (`dragPlans` · `cornerDragPlan` ·
@@ -586,16 +639,80 @@ is maintenance and does NOT get an entry of its own.**
   classify**: duplicating `positioningOf` in the app would be a second copy of the engine's own
   `baselineOf` test, and it would drift silently.
 - **OWES:** Owner: **Q20 NEW** (which verbs deserve a generated ribbon button, given some refuse by
-  design) · **Q8 is answered above — strike or confirm**. ⚠ **PR #12 (entry 85, Zayd) is
-  `contract-touching` and still needs YOUR merge**; reviewed this session, no defect found, full record
-  in its comment. Q11/Q12/Q13/Q17a/Q17b/Q17c/Q18/Q19 stand. Zayd: ⚠ **the D23 transaction was never
-  actually reaching the document through `window.bunyan`** — any agent-side work that assumed grouping
-  worked was running without it.
+  design) · **Q8 is answered above — strike or confirm**. Q11/Q12/Q13/Q17a/Q17b/Q17c/Q18/Q19 stand.
+  Zayd: ⚠ **the D23 transaction was never actually reaching the document through `window.bunyan`** —
+  any agent-side work that assumed grouping worked was running without it.
 - **RISK:** additive
 - **FULL:** `handoff/amer/2026-08-07-move-tool-corner-drag.md`
-- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
-  ⚠ **The GL gizmo did NOT ship** — the planner, the corner-drag grouping and the transaction did.
-  Stated in §4 of the body rather than glossed; next session builds the handles on top.
+- **REVIEW:** Reviewed by **Entry 87 + Entry 88** (Zayd) and **MERGED by Entry 89** (Amer, a later
+  session). Item 1 re-executed **three times** (Zayd twice, Amer once) — RED at
+  `expected undefined to deeply equal { transactionId: 'gesture-7' }`. **THREE defects found and all
+  three FIXED on the branch before merge:** ⚠⚠ **(1) `cornerDragPlan` matched peers on the 2D corner
+  ALONE — a D52 baseline is 2D in the LEVEL plane, so the wall directly upstairs shares x and y exactly
+  and was silently re-authored** (Entry 89; `DragTarget.containerId` is the missing third coordinate;
+  RED at `expected ['g1','g2','u1','u2'] to deeply equal ['g1','g2']`); **(2) the ABSENT-options test
+  was WEAK GREEN** — `toBeUndefined()` cannot separate *forwarded `undefined`* from *never passed*, and
+  it passed under the reverted wrapper; **ARITY is the observable** (Zayd wrote it, Amer pasted it);
+  **(3) `hostedPlan`'s `Math.hypot` is UNSIGNED** — two opposite drags propose an identical `offsetU`,
+  so the docblock's *"over-estimate"* mis-described a **wrong-direction** error. ⚠ And one CLAIM vs CODE
+  correction: **`positioningOf` IS exported from `@bunyan/document`** (since Entry 72), so the prompt's
+  *"not exported"* premise was false — the design survives on the sharper reason, that the app would
+  still have to re-encode the refusal GRAPH. ⚠ **The GL gizmo did NOT ship** — the planner, the
+  corner-drag grouping and the transaction did; Entry 89 built the handles on top.
+
+### 85 | 2026-08-06 | Zayd | the `hostId` edge, swept — the ancestry is a DAG and the walk called it a cycle
+
+- **CHANGED:** `packages/document/src/designoptions.ts` (**`isElementActive`'s traversal** — the conflated
+  `seen` set replaced by DFS colours; the docblock records why) · `tests/option-cascade-d67.test.ts`
+  (**NEW §7, +6**) · `open_rulings.md` (**Q19 extended to the `hostId` edge**) · and, reviewing PR #10:
+  `scripts/frozen-surface.mjs` + `.d.mts` (`baselineSnapshot`'s `today` → `at`) · `scripts/state.mjs` ·
+  `tests/state-risk-e2e.test.ts` (**+1**) · `tests/freeze-boundary.test.ts` · entry 83's `REVIEW:` line ·
+  `tests/frozen-surface.snapshot.json` (re-baselined) · entry **77 rotated** to `docs/history.md` §C.
+- **VERIFIED:** **729 green** across 85 files, all six gates, **real exit code 0**, real OCCT throughout.
+  Revert-verified twice: restoring the single `seen` set fails **4 of the 6 new tests**, the verb-driven
+  one at `modelElements()` **3 where 4 is correct**; restoring the clock-stamped date fails
+  `state-risk-e2e` at `expected '2026-08-06' to be '2026-08-05'`.
+- **FOUND:** ⚠⚠ **`isElementActive` MISREAD A SHARED ANCESTOR AS A CYCLE.** Two edges out of one node make
+  the ancestry a **DAG**, so the two routes upward can MEET — and one `seen` set was doing two jobs,
+  *"already judged"* (global) and *"on the current path"* (path-scoped). The second route in refused.
+  **Measured through four shipped verbs on a document with NO design options at all: `scene.elements` 4,
+  `modelElements()` 3, the opening absent from all SIX consumers, `brokenRefs()` and `unbuildable()` both
+  empty** — control with the routes pointed at different ancestors: 5 of 5. §5's both-edges test existed
+  but its two ancestors shared nothing, **so the shape that mattered was never built.** ⚠ **`hostId`
+  cannot dangle through the verbs** (`createElement`/`retargetReference` both `requireElement`; D39
+  cascades the hosted with the host) — **but a `.bnn` can, and it is silent**: 5 elements, `modelElements()`
+  3, both diagnostics `[]`. `brokenRefs` walks `hostedBy` from each ROOT, so an element whose host does not
+  exist is never anyone's child and is never examined ⇒ **Q19 needs a reconciliation covering BOTH edges.**
+  ⚠ **Six consumers, not five** — `joins.ts` has three. ⚠ **And reviewing PR #10: Entry 84's cross-field
+  date check was sound while the WRITER fed it two sources** — the entry from the §7 parse, the date from
+  `new Date()` — so any rebaseline outside the entry's own calendar day wrote a baseline its own gate
+  rejects. `state-risk-e2e`'s own fixture reproduced it every day but one, and nothing had looked.
+- **OWES:** Owner: ⚠⚠ **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** — one declaration moved
+  (`designoptions.ts :: function isElementActive`), baseline re-generated in-PR at entry 85. **Q19 still
+  needs its ruling and now spans both edges; Q17a still blocks; Q11/Q12 unchanged.** Amer: **PR #11 is
+  yours to review and merge** — left untouched on the owner's instruction. **Q18 is still yours.**
+- **RISK:** contract-touching
+- **FULL:** `handoff/zayd/2026-08-06-e85-hostid-sweep.md`
+- **REVIEW:** Reviewed by **Entry 86** (Amer, a later session); full record in PR #12's comment.
+  **APPROVED, NOT MERGED — `contract-touching`, so it is the owner's.** Item 1(a) reproduced to the
+  number (**4 RED**, the verb-driven one at `[…(3)]` where 4 is correct). ⚠⚠ **Item 1(b), the cycle hunt
+  this entry asked for, came back EMPTY across ten shapes** — a cycle entered from outside, self-loops on
+  either edge and both, a diamond whose shared ancestor is itself in a cycle (short and long), **the
+  cycle reachable only down the edge explored SECOND (both orders)**, and a 5000-deep chain. All refuse
+  and all terminate. The structural reason the colours hold: **a node on a cycle can never be blackened**,
+  because reaching it always re-enters it while still grey. Item 2: `cascadeOf` re-derived and **sound —
+  for a different reason than "the same code done right"**: it computes a reachable SET, where a re-visit
+  is idempotent, so one meaning is all `seen` needs; the conflation is only possible when a visited-set
+  decides a boolean about the current walk. Item 4: the `hostId` writer count **taken independently from
+  `argsSchema` — exactly two verbs**, `core.createElement` and `core.retargetReference`, both
+  `requireElement` the host. **No defect found.** ⇒ **Re-reviewed and MERGED by Entry 87** on the owner's
+  explicit authorisation (PR #12's comment). Item 1(a) reproduced a third time; **1(b) answered by a
+  DIFFERENTIAL FUZZ rather than a shape list** — an independent closure/Kahn reference vs the colours
+  over **20 000 random graphs, ~90 000 queries, zero disagreements**, and revert-verified to fail on the
+  old code within ~200 trials. ⚠⚠ **Every disagreement the old code produces is `got false, want true`:
+  the defect could only ever OVER-refuse, which is the strongest available answer to *"what does it now
+  accept that it should not?"* — nothing.** ⚠ The merge cost a forced §7 rotation: 85 and 84 were each
+  under the byte budget and their MERGE was 35 981/32 768 (entry 79 rotated out).
 
 ### 84 | 2026-08-06 | Amer | alignment guides ship — and the guide is the first candidate that owns NOTHING
 
@@ -775,120 +892,6 @@ is maintenance and does NOT get an entry of its own.**
   the only thing that would ever hold the 50% measurement down, and it lives inside a unit Q17a blocks** —
   so the defect has no committed test and has now been hand-derived twice.
 
-### 81 | 2026-08-05 | Zayd | the two gates that failed OPEN are closed — and one of them had never run (Q15, Q16)
-
-- **CHANGED:** `scripts/docs-state.mjs` (**`riskVerdict`** — `{risk, label, detail}`; re-baselining is a
-  QUALIFIER, never an answer) · `scripts/frozen-surface.mjs` (**`baselineSnapshot`** — every owned field
-  COMPUTED) · `scripts/state.mjs` (the diff is measured against the PREVIOUS baseline; the rebaseline
-  WRITE moved below the §7 parse so it has an entry number to record) ·
-  `tests/frozen-surface.snapshot.json` (`_baselinedAtEntry` **72 → 77**, the entry `git log` says wrote
-  it) · **`scripts/reseed-payload.mjs` NEW** (`payloadHash` with `seededAt` excluded, `goldenValuesMoved`,
-  the `Re-seed-unchanged: <reason>` trailer) · `scripts/check-reseed.mjs` (compares the golden PAYLOAD
-  across `base…head`, read from git) · `tests/freeze-boundary.test.ts` (+7) · `tests/reseed-gate.test.ts`
-  (+7) · **`tests/reseed-gate-e2e.test.ts` NEW (+6)** · `open_rulings.md` (Q15 + Q16 **STRUCK**, on Q14's
-  precedent — tooling, no contract, reversible in one commit). **No frozen byte, no schema bump.**
-  ⚠ **+ THE REVIEW'S FIX (Entry 82's session, on this branch):** `scripts/state.mjs` measures the verdict
-  against the baseline **at the merge base**, read from git · **`tests/state-risk-e2e.test.ts` NEW (+6)**.
-- **VERIFIED:** **709 green** across 83 files, six gates, real exit code 0 as authored; **715 across 84
-  files** after the review's fix. **Revert-verified 5 ways,
-  each watched RED**: the old `risk = 'additive'` override (`expected 'additive' to be
-  'contract-touching'`); `baselineSnapshot` without the entry (`the stale 72 survived the write`);
-  `payloadHash` keeping the clock (2 red); a bare trailer accepted (`expected '' to be null`); and the
-  pre-Q16 gate body — **3 e2e tests red**. Plus the committed `72` itself (`expected 72 to be 77`).
-- **FOUND:** ⚠⚠ **A SOURCE-TEXT "IS IT WIRED?" ASSERTION PROVES THE CALL IS WRITTEN, NOT THAT IT RUNS.**
-  Reverting the gate's body to its pre-Q16 form left the unit tests green **and both grep-the-source
-  wiring assertions green**, because the reverted gate still CONTAINED the calls — below an early
-  `process.exit(0)`. Only the end-to-end test went red. ⇒ where the artifact can be executed, EXECUTE it:
-  `reseed-gate-e2e.test.ts` builds a throwaway git repo, commits the four scenarios and asserts the EXIT
-  CODE, which is the only thing CI reads. That path had never run in 73 entries (Entry 73).
-  ⚠⚠ **BOTH DEFECTS FAILED OPEN, AND THAT IS WHAT AN UNTESTED GATE DRIFTS TOWARDS** — a gate is written
-  by someone who wants their own PR to pass. `--rebaseline`'s label was *technically* true and wrong
-  because **the only PR that ever runs it is a PR that moved the frozen surface**: the exception clause
-  covered the whole population. ⇒ **ask what a check's population actually is.** ⚠ The confirmation had
-  to cost a SENTENCE or it would be the timestamp again — an env var is set once in a workflow and true
-  forever; a trailer with a reason lands in the history beside the diff it excuses, and a bare
-  `Re-seed-unchanged:` does not match. ⚠ Weak-green caught in my own test: *"a bumped `seededAt` is not a
-  re-seed"* also passes if the hash strips TOO MUCH, so both directions are asserted.
-- **OWES:** Owner: **nothing new.** 🟡 OPEN is now **Q4–Q13, Q17, Q18** — Q15/Q16 struck as BUILT, and
-  the 🔴 BLOCKING table is EMPTY for a fourth session. Amer: the `contract-touching (re-baselined)` label
-  has been produced by tests, never yet by a real `--rebaseline` run — **the next contract-touching PR is
-  its first live use; read the label it prints.** ⚠ And Entry 80's review is in this session too: PR #7
-  merged after one finding was fixed on its branch (the document layer accepted a non-face `hostRef`);
-  **Q18 — the cut-face half — is still yours and still open.**
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-05-q15-q16.md`
-- **REVIEW:** **Reviewed by Zayd (later session, 2026-08-06) — all seven items; MERGED (`additive`,
-  `surface` byte-identical to main, six gates green).** Item 1 re-executed: the pre-Q16 gate body put
-  back ⇒ **3 e2e RED**, unit file 14/14 green including its wiring grep. ⚠⚠ **ONE REAL DEFECT, PROVEN
-  AND FIXED ON THIS BRANCH — Q15's fix held for exactly ONE invocation.** The verdict was measured
-  against the working-tree baseline `--rebaseline` had just rewritten, so the next plain `pnpm state`
-  printed `RISK: additive` again on the same PR — and that is the run whose output survives into §8 and
-  `FRESH`. `state.mjs` now measures against the baseline **at the merge base**, read from git;
-  `tests/state-risk-e2e.test.ts` EXECUTES the generator (revert-verified RED, while
-  `freeze-boundary.test.ts` stayed 10/10 green — §3a's lesson landing on §3a's own author). ⚠ One of
-  those greps asserted the argument list verbatim, so it **failed on the fix and passed on the bug**;
-  loosened. ⚠ Number corrected: `reseed-gate.test.ts` is **+7**, not +6. ⚠ One non-blocking opinion in
-  the body §7e: the `Re-seed-unchanged:` trailer means *silence is no longer a pass, and any sentence
-  is* — `REVIEW.md` item 4 already covers it, no eighth checklist item proposed. Full write-up:
-  `handoff/zayd/2026-08-05-q15-q16.md` §7.
-
-### 80 | 2026-08-05 | Amer | the opening tool ships — one click on a face is a hosted door, and `snapTo` was decorative
-
-- **CHANGED:** `apps/web/src/tool/tools.ts` (**`OPENING_TOOL`** — one input, commits `core.createElement`
-  with `{hostId, hostRef}`; `offsetU` projected onto the host's AUTHORED baseline, `offsetV` from the face
-  centre, both clamped to fit; declines a non-face ref) · `toolMachine.ts` (**`CollectedInput`** — a
-  session now carries what a click LANDED ON, not only where it was; **`ToolContext.paramsOf`**) ·
-  `snap.ts` (**`faceCandidate`** — per-frame, from the ray hit; **`chooseSnap(…, allow)`**) ·
-  `useToolController.ts` (`snapTo` published; ref+element carried from the snap, never from the pick) ·
-  `render/pick.ts` (**`PickResult.point`**) · `Viewport.ts` · `ViewportCanvas.tsx` (pick BEFORE snap) ·
-  `App.tsx` · `scaffold/seed.ts` · **`scripts/docs-state.mjs` + `state.mjs` + `docs-state.d.mts`** (the
-  CRLF fix + **`newestAbstract` refuses an empty parse** + `state` writes back in the file's OWN line
-  ending, so step 8 stops undoing step 7) · `tests/docs-budget.test.ts` (+4) ·
-  `open_rulings.md` (**Q18 NEW**) · §5 rows 1–2 corrected. **No frozen byte, no schema bump.**
-- **VERIFIED:** **688 green** across 82 files, six gates, real exit code 0 — **and gate six had never run here**
-  (see FOUND). Revert-verified **6 ways, each watched RED**: baseline projection → x-only (the +y wall
-  test); `offsetU` measured from the face centre (3 fail); `hostRef` hand-rebuilt instead of carried;
-  `parseAbstracts` back to `split('\n')` (7 fail); and my own no-`\r` test strengthened after it passed
-  vacuously under its own revert. **Browser (the split's other half):** one click → `state: 'valid'`,
-  `parts: [leaf, frame]`, quantities off the B-Rep (leaf 64 000 000 mm³, frame 85 550 000 mm³, mass "—"),
-  console-error-free boot on a fresh tab.
-- **FOUND:** ⚠⚠ **`InputSpec.snapTo` WAS DECORATIVE FOR THREE ENTRIES — DECLARED, TYPED, DOCUMENTED, AND
-  READ BY NOTHING.** `SNAP_PRIORITY` ranks `endpoint`/`midpoint` ABOVE `face`, and an endpoint candidate
-  carries the **EDGE's** ref — so pointing near a corner hosted the door on an edge. `core.createElement`
-  ACCEPTS it, the build throws, and the element lands **`state: 'failed'`, `parts: []`, with NO banner, NO
-  console error, and `unbuildable()` AND `brokenRefs()` both EMPTY.** Measured: **1 of 2 placements**.
-  Found by USING it (§1b), not by reading — the code says `snapTo: ['face']` and looks correct.
-  ⚠⚠ **GATE SIX HAS NEVER RUN ON AMER'S BOX SINCE THE 2026-07-31 MIGRATION.** `core.autocrlf=true` ⇒ 920
-  CRLF pairs in `current_state.md`; `parseAbstracts` split on `\n`, leaving `\r`, and its heading regex
-  ends `\| (.+)$` — JS `.` does not match `\r`. **Zero abstracts, five tests red, CI green.** ⚠ **The
-  silent half is worse than the red half:** `pnpm state` took the same `[]` through `reduce(…, null)` and
-  would have written **`(none)`** into §8 and **`ENTRY ?`** into the FRESH block that step 10(a) pushes
-  STRAIGHT TO MAIN. `.prettierrc` already carries `endOfLine:"auto"` for exactly this box — the parser
-  missed that memo. ⚠ **A second opening on the same wall comes back `broken-ref`** (the pick correctly
-  hands over a face of the wall AS CUT, `…structure~opening-X/face/cut(…)`) ⇒ **Q18**, not guessed at.
-  ⚠ My own test fixture invented the token format (`|` for `/`) and nothing noticed until the new guard
-  DECODED it — §1c-9 in miniature. ⚠ `offsetU` must come off the D52 baseline, not the picked face: on a
-  straight demo wall the wrong one is indistinguishable, and on the +y wall it is 450 instead of 1200.
-- **OWES:** Owner: **Q18 (NEW)** — what may a hosted void host on; Q11/Q12/Q13/Q15/Q16/Q17 stand.
-  ⚠ **Q13 is now cheaper than when it was filed: this session ran on its OWN GitHub account**
-  (`narutousomaki741`), so branch protection would no longer block every merge. Zayd: nothing owed, but
-  two things are yours — `snapTo`'s fix is app-side only, and **Q18's real fix belongs in the document
-  layer** (the app can only parse tokens, which it must not).
-- **RISK:** additive
-- **FULL:** `handoff/amer/2026-08-05-opening-tool.md`
-- **REVIEW:** ✅ Zayd, 2026-08-05 (Entry 81's step 3) — reviewed against `REVIEW.md` and MERGED
-  (`additive`, freeze-boundary green, CI green). Item 1 executed TWICE: the baseline projection → x-only
-  went RED at **450 vs 1200**, and `parseAbstracts` → `split('\n')` went RED — **3 tests here, not the 7
-  claimed**, because on an LF box only the synthetic-CRLF trio can fail (the claim holds on a CRLF tree;
-  the number is box-dependent and the entry does not say so). ⚠ **ONE FINDING, PROVEN AND FIXED ON THE
-  BRANCH — and it is the "yours" this entry named:** the app-side face guard left the DOCUMENT layer
-  unguarded, so an opening hosted on an EDGE token (which IS in `part.refs`) still landed `state: failed`
-  with `brokenRefs()` AND `unbuildable()` both empty — reproduced headlessly, verbatim. `build.ts` now
-  answers a non-face `hostRef` with a **BROKEN REF**, the same visible, retargetable state its missing-face
-  sibling has had all along (`document-openings.test.ts`, watched RED). ⚠ Second, free: the phantom sweep
-  stopped one file short — `useToolController.ts`'s header still drew `SnapGateway`/`PreviewLayer`, and
-  neither has ever existed. **689 green, 82 files, six gates, exit 0.**
-
 ---
 
 ## §8 — Generated
@@ -897,17 +900,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **86 (Amer, 2026-08-07)** |
-| branch · tip · tree | `amer/2026-08-07-move-tool-corner-drag` · `a1a82e0` · dirty |
-| open PRs | #12 zayd/2026-08-06-e85-hostid-sweep |
-| suite | **753 green** · 87 files · 236 suites |
+| **newest entry** | **87 (Zayd, 2026-08-08)** |
+| branch · tip · tree | `amer/2026-08-07-move-tool-corner-drag` · `8dcc932` · dirty |
+| open PRs | #16 zayd/2026-08-08-e90-d66-lazy-build · #13 amer/2026-08-07-move-tool-corner-drag |
+| suite | **780 green** · 88 files · 238 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 7 files changed, 195 insertions(+), 68 deletions(-) (7 files) |
-| docs budget | current_state 77.1/96.0 KB · §7 31.3/32.0 KB · abstracts 6/10 · bodies 31 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 2 declaration(s) moved — packages/document/src/designoptions.ts :: function isElementActive, packages/document/src/designoptions.ts :: function wouldCloseBelongsToCycle · baseline REWRITTEN this session |
+| diff vs origin/main | 18 files changed, 2687 insertions(+), 473 deletions(-) (18 files) |
+| docs budget | current_state 77.7/96.0 KB · §7 31.7/32.0 KB · abstracts 6/10 · bodies 33 |
 
-_Generated 2026-08-07 by `pnpm state`._
+_Generated 2026-08-08 by `pnpm state`._
 
 <!-- END GENERATED -->
