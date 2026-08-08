@@ -77,3 +77,15 @@ jobs:
       #   false-negative generator, and this repo has been bitten by exactly that.
       - name: Handoff docs + freeze boundary
         run: pnpm docs:check
+        # ⚠⚠ THE PROMPT-SYNC GATE NEEDS THE BASE SHA, AND FOR ENTRY 73's REASON.
+        # `tests/prompt-sync.test.ts` asserts that `Zayd_Prompt.md` on the branch is byte-identical to
+        # main's once loop step 10(a) has pushed it — the invariant `pnpm state` silently breaks, which
+        # GitHub then reports as the unrecognisable "Pull Request has merge conflicts".
+        #
+        # It reads the same `pull_request.base.sha` the re-seed gate reads, and NOT `origin/main`,
+        # because whether that ref exists in `actions/checkout`'s working copy is a property of the CI
+        # checkout that the dev box cannot measure — and a gate resting on an unmeasured property of
+        # this checkout is precisely how the re-seed gate above never executed for 73 entries.
+        # A SHA needs no ref to exist. Absent (a `push` to main), the gate skips.
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha }}
