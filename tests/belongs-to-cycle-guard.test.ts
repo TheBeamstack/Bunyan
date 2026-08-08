@@ -46,7 +46,7 @@ import {
   isElementActive,
   wouldCloseBelongsToCycle,
 } from '@bunyan/document';
-import type { OptionScope } from '@bunyan/document';
+import type { ElementId, OptionScope, OptionedElement } from '@bunyan/document';
 import { FIXTURE_TYPES } from './fixtures/bim-types.js';
 
 describe('the belongs-to cycle — authorable, silent, and now refused', () => {
@@ -378,4 +378,130 @@ describe('the belongs-to cycle — authorable, silent, and now refused', () => {
     expect(edit.rebuilt).toContain(w); // the hole is gone; the wall must re-cut
     expect(Object.keys(doc.scene.elements)).toEqual([w]);
   }, 60_000);
+
+  /* ============================================================================================
+   * §5 — ENTRY 88'S REVIEW: IS §3 THE WHOLE POPULATION?
+   *
+   * ⚠⚠ §3 is five hand-picked graphs, and "the guard does not over-refuse" is a claim about a
+   * POPULATION, which five examples cannot discharge. This section answers it by MEASUREMENT, in the
+   * form Entry 85 used on `isElementActive` (`option-cascade-d67.test.ts` §8): a differential fuzz
+   * against two oracles that share no code with the guard.
+   * ========================================================================================= */
+
+  it('⚠ SIBLINGS: retargeting onto your own sibling under a shared ancestor is LEGAL, both edges', () => {
+    // The case §3 did not build, and the one a user reaches second (after the self-loop).
+    const sameEdge: OptionScope = {
+      elements: { a: { id: 'a', hostId: 'p' }, b: { id: 'b', hostId: 'p' }, p: { id: 'p' } },
+    };
+    expect(wouldCloseBelongsToCycle(sameEdge, 'a', 'b')).toBe(false);
+    expect(wouldCloseBelongsToCycle(sameEdge, 'b', 'a')).toBe(false);
+
+    // …and MIXED, where a single-edge guard would have had nothing to say either way.
+    const mixed: OptionScope = {
+      elements: {
+        a: { id: 'a', hostId: 'p' },
+        b: { id: 'b', parentElementId: 'p' },
+        p: { id: 'p' },
+      },
+    };
+    expect(wouldCloseBelongsToCycle(mixed, 'a', 'b')).toBe(false);
+    expect(wouldCloseBelongsToCycle(mixed, 'b', 'a')).toBe(false);
+  });
+
+  it('⚠⚠ DIFFERENTIAL FUZZ — 20 000 graphs, 100 000 queries, guard === "this edit erases the element"', () => {
+    // Deterministic LCG, so a disagreement is reproducible from the seed alone.
+    let s = 20260808;
+    const rnd = (n: number): number => {
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      return s % n;
+    };
+
+    /** ORACLE 1 — reachability, written independently of the guard: is `target` on any cycle? */
+    const onACycle = (scope: OptionScope, target: ElementId): boolean => {
+      const stack = [target];
+      const seen = new Set<ElementId>();
+      while (stack.length > 0) {
+        const node = scope.elements[stack.pop()!];
+        if (node === undefined) continue;
+        for (const next of [node.hostId, node.parentElementId]) {
+          if (next === undefined || seen.has(next)) continue;
+          if (next === target) return true;
+          seen.add(next);
+          stack.push(next);
+        }
+      }
+      return false;
+    };
+
+    // ⚠ SPARSE AND DEEP ON PURPOSE. A dense 8-node graph made 99.8% of queries a refusal — which tests
+    // over-refusal hard and under-refusal barely at all. Both verdicts must be well populated, or
+    // "zero disagreements" is a statement about one half of the guard.
+    const N = 14;
+    const ids = Array.from({ length: N }, (_, i) => `e${i}`);
+    let refused = 0;
+    let allowed = 0;
+    const disagreements: string[] = [];
+
+    for (let g = 0; g < 20_000; g++) {
+      // Acyclic by construction — an edge always points at a strictly LOWER index, drawn from the
+      // nearest three, which makes a deep narrow DAG rather than a near-total order.
+      const elements: Record<string, OptionedElement> = {};
+      for (let i = 0; i < N; i++) {
+        const near = (): ElementId => ids[i - 1 - rnd(Math.min(i, 3))]!;
+        elements[ids[i]!] = {
+          id: ids[i]!,
+          ...(i > 0 && rnd(2) === 0 ? { hostId: near() } : {}),
+          ...(i > 0 && rnd(3) === 0 ? { parentElementId: near() } : {}),
+        };
+      }
+      const base: OptionScope = { elements };
+
+      for (let q = 0; q < 5; q++) {
+        const e = ids[rnd(N)]!;
+        const a = ids[rnd(N)]!;
+        const edge = rnd(2) === 0 ? 'hostId' : 'parentElementId';
+        const guard = wouldCloseBelongsToCycle(base, e, a);
+        if (guard) refused++;
+        else allowed++;
+
+        // ⚠ The oracles read the edit APPLIED, not the guard's opinion of it.
+        const mutated: OptionScope = {
+          elements: { ...elements, [e]: { ...elements[e]!, [edge]: a } },
+        };
+        // ORACLE 2 — the product-level consequence. With no design options and no broken refs, an
+        // element is inactive iff its belongs-to closure contains a cycle. THIS is what the guard is
+        // for, and it shares no line of code with it.
+        const erased = !isElementActive(mutated.elements[e]!, mutated);
+        if (guard !== onACycle(mutated, e) || guard !== erased) {
+          disagreements.push(`${e} -${edge}-> ${a} guard=${guard} erased=${erased}`);
+        }
+      }
+    }
+
+    expect(disagreements).toEqual([]);
+    // ⚠ WITHOUT THESE TWO THE TEST PASSES WHILE ITS TITLE IS FALSE (checklist item 6): a fuzz that
+    // only ever refuses proves nothing about over-refusal, and vice versa. Measured: 43 667 / 56 333.
+    expect(refused).toBeGreaterThan(20_000);
+    expect(allowed).toBeGreaterThan(20_000);
+  });
+
+  it('⚠ AND THE ONE DIVERGENCE — the guard proves "no NEW cycle", not "the element is active after"', () => {
+    // A pre-existing cycle can no longer be AUTHORED, but D43 round-trips an unknown `.bnn` verbatim,
+    // so a legacy document can still carry one. Attaching to it is ALLOWED — correctly: the cycle is
+    // not this edit's doing, and refusing would block the repair. But the element is inactive at once.
+    const elements = {
+      a: { id: 'a', hostId: 'b' },
+      b: { id: 'b', hostId: 'a' },
+      fresh: { id: 'fresh' },
+    } satisfies Record<string, OptionedElement>;
+    expect(wouldCloseBelongsToCycle({ elements }, 'fresh', 'a')).toBe(false);
+
+    const after: OptionScope = { elements: { ...elements, fresh: { id: 'fresh', hostId: 'a' } } };
+    expect(isElementActive(after.elements['fresh']!, after)).toBe(false);
+
+    // ⚠ This is NOT a hole in the guard — it is the ordinary inactive-ancestor rule, and a BROKEN
+    // ancestor (which the guard also allows, §3) already erases exactly the same way.
+    const broken: OptionScope = { elements: { x: { id: 'x', hostId: 'gone' } } };
+    expect(isElementActive(broken.elements['x']!, broken)).toBe(false);
+  });
 });

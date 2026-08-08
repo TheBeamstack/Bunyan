@@ -4,6 +4,14 @@
 
 `pnpm verify`: **759 green · 87 files · six gates · real exit code 0**, real OCCT throughout.
 
+> **⚠ ENTRY 88'S REVIEW AMENDED THIS BRANCH — the number above is now 762.** Item 1 was re-executed both
+> ways (3 RED / 1 RED). The over-refusal question this entry left open ("is §3 the whole population?") is
+> **answered by measurement** and shipped as `tests/belongs-to-cycle-guard.test.ts` §5: a differential
+> fuzz, **20 000 acyclic graphs · 100 000 queries · 43 667 refused / 56 333 allowed · zero
+> disagreements** against two oracles that share no code with the guard. **No legitimate authoring act is
+> refused, and the cost is 0.17 µs/call on a 10 000-element model.** The full review is in the PR comment
+> and in entry 87's `REVIEW:` line.
+
 TASK was *"sweep the other walk: `cascadeOf`"*, with three questions and an instruction to distrust Entry
 85's own answers about it. **`cascadeOf` came back clean on all three.** The sweep found its defect one
 layer up, in the verbs that write the edges `cascadeOf` walks.

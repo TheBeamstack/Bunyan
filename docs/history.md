@@ -303,10 +303,67 @@ project._
 
 ---
 
-## §C — Entries 54–80 — the full bodies now live in `handoff/`
+## §C — Entries 54–81 — the full bodies now live in `handoff/`
 
 ⚠ **There is no entry 78.** It was a REVIEW-ONLY session (PR #5) that wrote no abstract of
 its own; its findings are in entry 77's `REVIEW:` line above. The gap is real, not a loss.
+
+### 81 | 2026-08-05 | Zayd | the two gates that failed OPEN are closed — and one of them had never run (Q15, Q16)
+
+- **CHANGED:** `scripts/docs-state.mjs` (**`riskVerdict`** — `{risk, label, detail}`; re-baselining is a
+  QUALIFIER, never an answer) · `scripts/frozen-surface.mjs` (**`baselineSnapshot`** — every owned field
+  COMPUTED) · `scripts/state.mjs` (the diff is measured against the PREVIOUS baseline; the rebaseline
+  WRITE moved below the §7 parse so it has an entry number to record) ·
+  `tests/frozen-surface.snapshot.json` (`_baselinedAtEntry` **72 → 77**, the entry `git log` says wrote
+  it) · **`scripts/reseed-payload.mjs` NEW** (`payloadHash` with `seededAt` excluded, `goldenValuesMoved`,
+  the `Re-seed-unchanged: <reason>` trailer) · `scripts/check-reseed.mjs` (compares the golden PAYLOAD
+  across `base…head`, read from git) · `tests/freeze-boundary.test.ts` (+7) · `tests/reseed-gate.test.ts`
+  (+7) · **`tests/reseed-gate-e2e.test.ts` NEW (+6)** · `open_rulings.md` (Q15 + Q16 **STRUCK**, on Q14's
+  precedent — tooling, no contract, reversible in one commit). **No frozen byte, no schema bump.**
+  ⚠ **+ THE REVIEW'S FIX (Entry 82's session, on this branch):** `scripts/state.mjs` measures the verdict
+  against the baseline **at the merge base**, read from git · **`tests/state-risk-e2e.test.ts` NEW (+6)**.
+- **VERIFIED:** **709 green** across 83 files, six gates, real exit code 0 as authored; **715 across 84
+  files** after the review's fix. **Revert-verified 5 ways,
+  each watched RED**: the old `risk = 'additive'` override (`expected 'additive' to be
+  'contract-touching'`); `baselineSnapshot` without the entry (`the stale 72 survived the write`);
+  `payloadHash` keeping the clock (2 red); a bare trailer accepted (`expected '' to be null`); and the
+  pre-Q16 gate body — **3 e2e tests red**. Plus the committed `72` itself (`expected 72 to be 77`).
+- **FOUND:** ⚠⚠ **A SOURCE-TEXT "IS IT WIRED?" ASSERTION PROVES THE CALL IS WRITTEN, NOT THAT IT RUNS.**
+  Reverting the gate's body to its pre-Q16 form left the unit tests green **and both grep-the-source
+  wiring assertions green**, because the reverted gate still CONTAINED the calls — below an early
+  `process.exit(0)`. Only the end-to-end test went red. ⇒ where the artifact can be executed, EXECUTE it:
+  `reseed-gate-e2e.test.ts` builds a throwaway git repo, commits the four scenarios and asserts the EXIT
+  CODE, which is the only thing CI reads. That path had never run in 73 entries (Entry 73).
+  ⚠⚠ **BOTH DEFECTS FAILED OPEN, AND THAT IS WHAT AN UNTESTED GATE DRIFTS TOWARDS** — a gate is written
+  by someone who wants their own PR to pass. `--rebaseline`'s label was *technically* true and wrong
+  because **the only PR that ever runs it is a PR that moved the frozen surface**: the exception clause
+  covered the whole population. ⇒ **ask what a check's population actually is.** ⚠ The confirmation had
+  to cost a SENTENCE or it would be the timestamp again — an env var is set once in a workflow and true
+  forever; a trailer with a reason lands in the history beside the diff it excuses, and a bare
+  `Re-seed-unchanged:` does not match. ⚠ Weak-green caught in my own test: *"a bumped `seededAt` is not a
+  re-seed"* also passes if the hash strips TOO MUCH, so both directions are asserted.
+- **OWES:** Owner: **nothing new.** 🟡 OPEN is now **Q4–Q13, Q17, Q18** — Q15/Q16 struck as BUILT, and
+  the 🔴 BLOCKING table is EMPTY for a fourth session. Amer: the `contract-touching (re-baselined)` label
+  has been produced by tests, never yet by a real `--rebaseline` run — **the next contract-touching PR is
+  its first live use; read the label it prints.** ⚠ And Entry 80's review is in this session too: PR #7
+  merged after one finding was fixed on its branch (the document layer accepted a non-face `hostRef`);
+  **Q18 — the cut-face half — is still yours and still open.**
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-05-q15-q16.md`
+- **REVIEW:** **Reviewed by Zayd (later session, 2026-08-06) — all seven items; MERGED (`additive`,
+  `surface` byte-identical to main, six gates green).** Item 1 re-executed: the pre-Q16 gate body put
+  back ⇒ **3 e2e RED**, unit file 14/14 green including its wiring grep. ⚠⚠ **ONE REAL DEFECT, PROVEN
+  AND FIXED ON THIS BRANCH — Q15's fix held for exactly ONE invocation.** The verdict was measured
+  against the working-tree baseline `--rebaseline` had just rewritten, so the next plain `pnpm state`
+  printed `RISK: additive` again on the same PR — and that is the run whose output survives into §8 and
+  `FRESH`. `state.mjs` now measures against the baseline **at the merge base**, read from git;
+  `tests/state-risk-e2e.test.ts` EXECUTES the generator (revert-verified RED, while
+  `freeze-boundary.test.ts` stayed 10/10 green — §3a's lesson landing on §3a's own author). ⚠ One of
+  those greps asserted the argument list verbatim, so it **failed on the fix and passed on the bug**;
+  loosened. ⚠ Number corrected: `reseed-gate.test.ts` is **+7**, not +6. ⚠ One non-blocking opinion in
+  the body §7e: the `Re-seed-unchanged:` trailer means *silence is no longer a pass, and any sentence
+  is* — `REVIEW.md` item 4 already covers it, no eighth checklist item proposed. Full write-up:
+  `handoff/zayd/2026-08-05-q15-q16.md` §7.
 
 ### 80 | 2026-08-05 | Amer | the opening tool ships — one click on a face is a hosted door, and `snapTo` was decorative
 

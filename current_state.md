@@ -558,13 +558,15 @@ is maintenance and does NOT get an entry of its own.**
 - **CHANGED:** `packages/document/src/designoptions.ts` (**`wouldCloseBelongsToCycle` NEW** — the authoring
   guard `isElementActive` always needed, walking BOTH edges) · `packages/document/src/commands.ts`
   (`core.retargetReference` and `core.setElementMetadata` now REFUSE a cycle) ·
-  **`tests/belongs-to-cycle-guard.test.ts` NEW (+14)** · `tests/option-cascade-d67.test.ts` (**NEW §8** —
+  **`tests/belongs-to-cycle-guard.test.ts` NEW (+14, **+3 more from Entry 88's review — §5**)** ·
+  `tests/option-cascade-d67.test.ts` (**NEW §8** —
   the differential fuzz, +1) · `open_rulings.md` (Q19 gains its pin) · `tests/frozen-surface.snapshot.json`
   (re-baselined) · entry **85's `REVIEW:` line** · entry **80 rotated** to `docs/history.md` §C · and,
   reviewing PR #12 and PR #13: `current_state.md`, `docs/history.md`.
-- **VERIFIED:** **759 green** across 87 files, all six gates, **real exit code 0**, real OCCT throughout.
-  Revert-verified **twice, separately**: dropping the `hostId` guard fails **3** (`promise resolved
-  "{ …(7) }" instead of rejecting`), dropping the `parentElementId` guard fails **1**.
+- **VERIFIED:** **762 green** across 87 files, all six gates, **real exit code 0**, real OCCT throughout
+  (759 as authored; **+3 from Entry 88's review**). Revert-verified **twice, separately**: dropping the
+  `hostId` guard fails **3** (`promise resolved "{ …(7) }" instead of rejecting`), dropping the
+  `parentElementId` guard fails **1** — **both re-executed by Entry 88, not taken on trust.**
 - **FOUND:** ⚠⚠ **`core.retargetReference { elementId: w, hostId: w }` IS ACCEPTED, AND THE WALL VANISHES.**
   Entry 85 closed `hostId` on the grounds that both writers `requireElement` — true, and the wrong
   question: **`requireElement` proves the target EXISTS, never that it is not the element itself or
@@ -590,7 +592,19 @@ is maintenance and does NOT get an entry of its own.**
   ⚠ **your merge of main WILL overflow §7's byte budget, rotate entry 81.** **Q18 and Q20 are yours.**
 - **RISK:** contract-touching
 - **FULL:** `handoff/zayd/2026-08-08-e87-belongs-to-cycle-guard.md`
-- **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+- **REVIEW:** **Entry 88 (Zayd, 2026-08-08) — reviewed and MERGED** on the owner's authorisation.
+  Item 1 re-executed **both** ways (3 RED, 1 RED). ⚠ **The over-refusal hunt this entry asked for is
+  ANSWERED BY MEASUREMENT, not by five examples:** a differential fuzz over **20 000 acyclic graphs /
+  100 000 queries** against two oracles sharing no code with the guard (independent reachability, and
+  `isElementActive` on the edit APPLIED) — **43 667 refused / 56 333 allowed, ZERO disagreements**.
+  **No legitimate authoring act is refused.** Shipped as §5, with the sibling case §3 lacked. ⚠ COST
+  answered too: **0.17 µs/call** on a 10 000-element flat model, 1.7 ms on a 10 000-DEEP chain no
+  building has. ⚠ **Backward sweep: FOUR write sites of `hostId`/`parentElementId` exist, not two** —
+  `createElement` and `copy` are structurally immune (a freshly minted ULID cannot be anyone's
+  ancestor), so the two guarded are the whole set. ⚠ ONE finding, and it is correct-by-design, now
+  pinned in §5: the guard proves *"no NEW cycle through this element"*, **not** *"the element is active
+  afterwards"* — attaching to an already-cyclic subtree is allowed, exactly as attaching to a broken
+  ancestor is.
 
 ### 85 | 2026-08-06 | Zayd | the `hostId` edge, swept — the ancestry is a DAG and the walk called it a cycle
 
@@ -824,63 +838,6 @@ is maintenance and does NOT get an entry of its own.**
   the only thing that would ever hold the 50% measurement down, and it lives inside a unit Q17a blocks** —
   so the defect has no committed test and has now been hand-derived twice.
 
-### 81 | 2026-08-05 | Zayd | the two gates that failed OPEN are closed — and one of them had never run (Q15, Q16)
-
-- **CHANGED:** `scripts/docs-state.mjs` (**`riskVerdict`** — `{risk, label, detail}`; re-baselining is a
-  QUALIFIER, never an answer) · `scripts/frozen-surface.mjs` (**`baselineSnapshot`** — every owned field
-  COMPUTED) · `scripts/state.mjs` (the diff is measured against the PREVIOUS baseline; the rebaseline
-  WRITE moved below the §7 parse so it has an entry number to record) ·
-  `tests/frozen-surface.snapshot.json` (`_baselinedAtEntry` **72 → 77**, the entry `git log` says wrote
-  it) · **`scripts/reseed-payload.mjs` NEW** (`payloadHash` with `seededAt` excluded, `goldenValuesMoved`,
-  the `Re-seed-unchanged: <reason>` trailer) · `scripts/check-reseed.mjs` (compares the golden PAYLOAD
-  across `base…head`, read from git) · `tests/freeze-boundary.test.ts` (+7) · `tests/reseed-gate.test.ts`
-  (+7) · **`tests/reseed-gate-e2e.test.ts` NEW (+6)** · `open_rulings.md` (Q15 + Q16 **STRUCK**, on Q14's
-  precedent — tooling, no contract, reversible in one commit). **No frozen byte, no schema bump.**
-  ⚠ **+ THE REVIEW'S FIX (Entry 82's session, on this branch):** `scripts/state.mjs` measures the verdict
-  against the baseline **at the merge base**, read from git · **`tests/state-risk-e2e.test.ts` NEW (+6)**.
-- **VERIFIED:** **709 green** across 83 files, six gates, real exit code 0 as authored; **715 across 84
-  files** after the review's fix. **Revert-verified 5 ways,
-  each watched RED**: the old `risk = 'additive'` override (`expected 'additive' to be
-  'contract-touching'`); `baselineSnapshot` without the entry (`the stale 72 survived the write`);
-  `payloadHash` keeping the clock (2 red); a bare trailer accepted (`expected '' to be null`); and the
-  pre-Q16 gate body — **3 e2e tests red**. Plus the committed `72` itself (`expected 72 to be 77`).
-- **FOUND:** ⚠⚠ **A SOURCE-TEXT "IS IT WIRED?" ASSERTION PROVES THE CALL IS WRITTEN, NOT THAT IT RUNS.**
-  Reverting the gate's body to its pre-Q16 form left the unit tests green **and both grep-the-source
-  wiring assertions green**, because the reverted gate still CONTAINED the calls — below an early
-  `process.exit(0)`. Only the end-to-end test went red. ⇒ where the artifact can be executed, EXECUTE it:
-  `reseed-gate-e2e.test.ts` builds a throwaway git repo, commits the four scenarios and asserts the EXIT
-  CODE, which is the only thing CI reads. That path had never run in 73 entries (Entry 73).
-  ⚠⚠ **BOTH DEFECTS FAILED OPEN, AND THAT IS WHAT AN UNTESTED GATE DRIFTS TOWARDS** — a gate is written
-  by someone who wants their own PR to pass. `--rebaseline`'s label was *technically* true and wrong
-  because **the only PR that ever runs it is a PR that moved the frozen surface**: the exception clause
-  covered the whole population. ⇒ **ask what a check's population actually is.** ⚠ The confirmation had
-  to cost a SENTENCE or it would be the timestamp again — an env var is set once in a workflow and true
-  forever; a trailer with a reason lands in the history beside the diff it excuses, and a bare
-  `Re-seed-unchanged:` does not match. ⚠ Weak-green caught in my own test: *"a bumped `seededAt` is not a
-  re-seed"* also passes if the hash strips TOO MUCH, so both directions are asserted.
-- **OWES:** Owner: **nothing new.** 🟡 OPEN is now **Q4–Q13, Q17, Q18** — Q15/Q16 struck as BUILT, and
-  the 🔴 BLOCKING table is EMPTY for a fourth session. Amer: the `contract-touching (re-baselined)` label
-  has been produced by tests, never yet by a real `--rebaseline` run — **the next contract-touching PR is
-  its first live use; read the label it prints.** ⚠ And Entry 80's review is in this session too: PR #7
-  merged after one finding was fixed on its branch (the document layer accepted a non-face `hostRef`);
-  **Q18 — the cut-face half — is still yours and still open.**
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-05-q15-q16.md`
-- **REVIEW:** **Reviewed by Zayd (later session, 2026-08-06) — all seven items; MERGED (`additive`,
-  `surface` byte-identical to main, six gates green).** Item 1 re-executed: the pre-Q16 gate body put
-  back ⇒ **3 e2e RED**, unit file 14/14 green including its wiring grep. ⚠⚠ **ONE REAL DEFECT, PROVEN
-  AND FIXED ON THIS BRANCH — Q15's fix held for exactly ONE invocation.** The verdict was measured
-  against the working-tree baseline `--rebaseline` had just rewritten, so the next plain `pnpm state`
-  printed `RISK: additive` again on the same PR — and that is the run whose output survives into §8 and
-  `FRESH`. `state.mjs` now measures against the baseline **at the merge base**, read from git;
-  `tests/state-risk-e2e.test.ts` EXECUTES the generator (revert-verified RED, while
-  `freeze-boundary.test.ts` stayed 10/10 green — §3a's lesson landing on §3a's own author). ⚠ One of
-  those greps asserted the argument list verbatim, so it **failed on the fix and passed on the bug**;
-  loosened. ⚠ Number corrected: `reseed-gate.test.ts` is **+7**, not +6. ⚠ One non-blocking opinion in
-  the body §7e: the `Re-seed-unchanged:` trailer means *silence is no longer a pass, and any sentence
-  is* — `REVIEW.md` item 4 already covers it, no eighth checklist item proposed. Full write-up:
-  `handoff/zayd/2026-08-05-q15-q16.md` §7.
-
 ---
 
 ## §8 — Generated
@@ -890,15 +847,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **87 (Zayd, 2026-08-08)** |
-| branch · tip · tree | `zayd/2026-08-08-e87-cascadeof-sweep` · `958658d` · dirty |
-| open PRs | #13 amer/2026-08-07-move-tool-corner-drag |
-| suite | **759 green** · 87 files · 235 suites |
+| branch · tip · tree | `zayd/2026-08-08-e87-cascadeof-sweep` · `714447d` · dirty |
+| open PRs | #14 zayd/2026-08-08-e87-cascadeof-sweep · #13 amer/2026-08-07-move-tool-corner-drag |
+| suite | **762 green** · 87 files · 235 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/designoptions.ts :: function wouldCloseBelongsToCycle · baseline REWRITTEN this session |
-| diff vs origin/main | 8 files changed, 358 insertions(+), 94 deletions(-) (8 files) |
-| docs budget | current_state 76.7/96.0 KB · §7 30.8/32.0 KB · abstracts 6/10 · bodies 32 |
+| diff vs origin/main | 10 files changed, 1307 insertions(+), 286 deletions(-) (10 files) |
+| docs budget | current_state 72.7/96.0 KB · §7 26.9/32.0 KB · abstracts 5/10 · bodies 32 |
 
 _Generated 2026-08-08 by `pnpm state`._
 
