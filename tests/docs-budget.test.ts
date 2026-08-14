@@ -157,7 +157,7 @@ describe('every §7 abstract is well formed', () => {
    * dirty"* sweeps were caught, and it converts a silent lapse into a loud one.
    */
   it('⚠⚠ only the NEWEST entry may be AWAITING REVIEW — the author never merges their own', () => {
-    const newest = abstracts.reduce((a, b) => (a.n > b.n ? a : b));
+    const newest = newestAbstract(abstracts);
     for (const a of abstracts) {
       if (a.n === newest.n) continue;
       const review = reviewText(a);
@@ -235,19 +235,15 @@ describe('the generated blocks are present and current', () => {
     // The one place the generator and the hand-written section can disagree. If they do, someone
     // hand-edited §8 or added an abstract without re-running `pnpm state`.
     const g = generatedBlock(src, MARKERS.state.begin, MARKERS.state.end)!;
-    const newest = abstracts.reduce((a, b) => (a.n > b.n ? a : b));
-    expect(g.body, `§8 does not name entry ${newest.n} as newest — run \`pnpm state\`.`).toContain(
-      `${newest.n} (${newest.agent}`,
+    const newest = newestAbstract(abstracts);
+    expect(g.body, `§8 does not name entry ${newest.id} as newest — run \`pnpm state\`.`).toContain(
+      `${newest.id} (${newest.seat}`,
     );
   });
 
-  it('both prompts still carry their FRESH markers', () => {
-    for (const f of ['Amer_Prompt.md', 'Zayd_Prompt.md']) {
-      const p = readFileSync(join(ROOT, f), 'utf8');
-      expect(p, `${f} lost its FRESH markers`).toContain(MARKERS.fresh.begin);
-      expect(p).toContain(MARKERS.fresh.end);
-    }
-  });
+  // ⚠⚠ SUPERSEDED 2026-08-14 (D82, Entry 91): 'both prompts still carry their FRESH markers' is
+  // retired along with the §2 DYNAMIC block it guarded. Prompts are stateless now — see
+  // `current_state.md §1d` and `AGENTS.md` for what replaced the mechanism this test protected.
 });
 
 describe('the doc tree is intact', () => {
