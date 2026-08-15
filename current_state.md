@@ -399,7 +399,11 @@ AND geometry from `scene.json` alone · **D19 is a MACHINE check** · the model 
   That second half is a separate, owner-gated unit with real design surface (what INVALIDATES a cache).
   ⚠⚠ **The measured payoff is 2.07×, not an order of magnitude** — recommendation on the desk: **do not
   wire it for v1.0.0** (`open_rulings.md` Q6).
-- **No 2D views** — the plan/section unit is designed and **blocked on rulings Q1–Q3** (`open_rulings.md`).
+- ✅ **2D views SHIP — the plan/section unit landed in Entry 77** (D81, PR #5; `tests/plan-section.test.ts`,
+  `views` in `scene.ts`). ⚠ **This row said "blocked on rulings Q1–Q3" until Entry 91 corrected it** — Q1–Q3
+  were ruled 2026-08-03 and BUILT two days later, and this line plus `§5`'s Zayd row 1 both outlived that by
+  fourteen entries. The ruling was recorded in `open_rulings.md` ✅ RULED and in `§5`'s ✅ CLOSED list; what
+  nobody re-read was the two places still phrased as _waiting_ for it.
 - **No IFC import** (P6; the op is reserved).
 - ✅ **`LICENSE`/CLA/attribution — DONE (Entry 74), and going public is no longer blocked BY THE REPO.**
   AGPL-3.0 verbatim · `NOTICE` (OCCT's exception is CONDITIONAL on a prominent notice, and we ship its
@@ -463,12 +467,13 @@ ruling"* — with a machine holding the line afterwards.
 
 ### Zayd (kernel / document / headless)
 
-1. **The plan + section** (`docs/design/P5_step6C_plan_section_design.md` §8) — **the moment Q1–Q3 are
-   ruled, and not before**: Q1 decides the SHAPE of the unit, so building first is building the wrong
-   thing. ⚠ Read §5's test table BEFORE writing the fixture — every criterion has a way to pass while
-   FALSE, and the top one is a one-plain-wall fixture. It must carry a curtain wall, an opening and a
-   design option. ⚠ The `views` promotion is Entry 68's verbatim **including its correction — no
-   `emptyScene()` entry.**
+1. ✅ **DONE (Entry 77) — THE PLAN + SECTION UNIT** (`docs/design/P5_step6C_plan_section_design.md`, D81).
+   Ships `mode:'cut'` only; `SectionCurve.nodeId?` and `ParamField.refTo`'s four members are reserved.
+   ⚠ **This row read "the moment Q1–Q3 are ruled, and not before" until Entry 91 corrected it**, fourteen
+   entries after the unit merged — see `§3`'s matching correction. The durable lesson is the one worth
+   keeping: the fixture carries **a curtain wall, an opening and a design option**, because §5's test table
+   names, per criterion, how a one-plain-wall fixture passes while the criterion is false.
+   **What is genuinely open in this area is now `docs/BACKLOG.md`, not this list.**
 2. ✅ **DONE (Entry 74) — the going-public housekeeping.** `LICENSE` AGPL-3.0, `CLA.md`, `NOTICE` +
    `licenses/`, and the `license` field in all ten manifests. What is left is not repo work: **Q11
    (`<LEGAL ENTITY>`) and Q12 (a lawyer's read of the CLA)**, both owner-only, both blocking the first
@@ -618,6 +623,37 @@ first, then the body. **Open a full body only when an abstract line touches your
 exceeds budget. When it does: move the oldest abstracts' summaries into `docs/history.md`, **after
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
+
+### STEWARD-scaffolding — the five-seat scaffolding, finished: CI, the labels, and a backlog that is mostly blocked — 2026-08-15 — seat: brahim
+
+- **CHANGED:** **`scripts/reserved-classes.mjs` + `.d.mts` NEW** (the three owner-gated classes of
+  `AGENTS.md §5`, detected mechanically → `needs-operator/*` labels) · **`scripts/pr-ready.mjs` +
+  `.d.mts` NEW** (title routes + `MERGEABLE`, polled) · **`tests/protocol/reserved-classes.test.ts` (+9)
+  and `pr-ready.test.ts` (+8) NEW** · `seats.mjs` gained `PR_TITLE_RE`/`titleRoutes` and
+  `agent-finish.mjs` now calls it (one regex, two callers) · `.github/workflows/ci.yml` gained a
+  `pr-shape` job and the `docs:check` step was RENAMED to name the protocol suite it already ran ·
+  **`docs/RUNBOOK.md` NEW** (labels, branch protection, what is deliberately absent) ·
+  **`docs/BACKLOG.md` decomposed — T-001…T-011** · `open_rulings.md` Q13 rewritten with a measurement ·
+  `AGENTS.md §5` points at the labels (still exactly 200 lines) · `current_state.md §3`/`§5` corrected.
+  ⚠ Covers TWO sessions: Phases A/B (`f984e89`, the pc) built the mechanics; this one finished them.
+- **VERIFIED:** `pnpm verify` green end to end on the box. The new suites are **executed, not grepped** —
+  each builds a real fixture git history and asserts the verdict. `pnpm docs:check` measured at
+  **6 files / 69 tests** BEFORE any change, which is what proved `tests/protocol/` was already in CI.
+  Labels confirmed present on the repository by `gh api …/labels`.
+- **FOUND:** ⚠⚠ **Branch protection is impossible on this repository — `403 Upgrade to GitHub Pro or make
+  this repository public`, on BOTH the protection and rulesets APIs.** Private repo, free plan; the token
+  is `ADMIN`. Q13's account objection is satisfied and a plan objection replaced it. ⚠ **And
+  `current_state.md` said the plan/section unit was BLOCKED in two places while three others said it
+  SHIPPED** — Q1–Q3 ruled 2026-08-03, built in Entry 77, PR #5 merged, verified against the artifact
+  before either line was touched. Both rows were phrased _"blocked on a ruling"_: the status nobody
+  re-reads once the ruling lands somewhere else. Fourteen entries.
+- **OWES:** the **owner** — rulings on **Q17a, Q17c, Q18, Q19** (four rows, four blocked tasks) and the
+  **public / Pro / neither** call on Q13. `hmdnah` — **PR #16** (Entry 90, box). `khalihlna` — **PR #17**
+  (Entry 89, pc). ⚠ **The next act on both machines is a REVIEW, not a claim**, and beyond **T-004**
+  nothing is `ready` for `box`.
+- **RISK:** additive
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
+- **REVIEW:** pending — `STEWARD:` PR, this branch.
 
 ### 88 | 2026-08-08 | Zayd | the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
 

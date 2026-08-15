@@ -169,12 +169,12 @@ form — same heading level. Entries 1–90 keep their original heading, never r
 
 ## 5. Owner-gated — three classes, and only three
 
-Everything else merges on an approving cross-account review and green CI. These need the owner:
+Everything else merges on an approving cross-account review and green CI. CI labels each of these
+`needs-operator/*` mechanically (`scripts/reserved-classes.mjs`; `docs/RUNBOOK.md`). They need the owner:
 
 1. **`RISK: contract-touching`** — any diff `tests/freeze-boundary.test.ts` flags against the frozen
    surface. Decided by a machine, not by a reviewer's judgement; the reviewer approves, the owner merges.
-2. **A `logic_spec`-style legal/contractual figure** — today this is exactly `CLA.md`'s `<LEGAL ENTITY>`
-   placeholder (`open_rulings.md` Q11/Q12). Never invent one.
+2. **A legal/contractual figure** — today exactly `CLA.md`'s `<LEGAL ENTITY>` (`open_rulings.md` Q11/Q12).
 3. **The P5 freeze itself** — the one irreversible act. Once it happens, `tests/frozen-surface.snapshot.json`
    may not move without an owner ruling, full stop.
 

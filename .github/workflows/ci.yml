@@ -78,7 +78,12 @@ jobs:
       #
       # ⚠ `pnpm verify` runs this too: a local gate that is a strict SUBSET of CI is a
       #   false-negative generator, and this repo has been bitten by exactly that.
-      - name: Handoff docs + freeze boundary
+      #
+      # ⚠ RENAMED AT ENTRY 91. `docs:check` also runs `tests/protocol/` now — the seat registry, the
+      # machine gate, dependency closure, the claim/finish scripts and the two gates below. That was
+      # true the moment `package.json`'s `docs:check` grew the path; the step name saying otherwise is
+      # how a suite ends up running for months while everyone believes it needs wiring.
+      - name: Handoff docs + freeze boundary + seat protocol
         run: pnpm docs:check
         # ⚠⚠ THE PROMPT-SYNC GATE NEEDS THE BASE SHA, AND FOR ENTRY 73's REASON.
         # `tests/prompt-sync.test.ts` asserts that `Zayd_Prompt.md` on the branch is byte-identical to
@@ -99,3 +104,61 @@ jobs:
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
           HEAD_REF: ${{ github.event.pull_request.head.sha }}
+
+  # ─────────────────────────────────────────────────────────────────────────────────────────────
+  # PR SHAPE + RESERVED-CLASS ROUTING (Entry 91, D82).
+  #
+  # A SEPARATE JOB, and for two reasons rather than tidiness:
+  #   * it needs `pull-requests: write` to label, and the verify job must NOT carry a write token
+  #     just to run tests;
+  #   * it is meaningless on a `push` to main — there is no PR to shape-check or label — so it is
+  #     gated on the event instead of skipping itself halfway through.
+  #
+  # ⚠ NO `pnpm install`. Both scripts import only Node builtins plus this repo's own `scripts/*.mjs`.
+  # A job that installs a workspace to run two files is a job that goes red when a dependency does.
+  # ─────────────────────────────────────────────────────────────────────────────────────────────
+  pr-shape:
+    name: PR shape · reserved classes
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      # ⚠⚠ `fetch-depth: 0` IS LOAD-BEARING HERE TOO, for the same reason it is above: the reserved
+      # class scan reads the frozen-surface baseline out of the BASE ref (`git show <base>:…`), which
+      # a depth-1 clone does not contain. Its absence would not fail loudly — `git show` would come
+      # back empty, the scan would fall back to the working-tree baseline, and it would measure the
+      # surface against a file this very PR may have rewritten. That is Q15's defect, reincarnated in
+      # a new script, and it would report `additive` on exactly the PRs that must not be.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The title must route (`T-nnn: ` / `STEWARD: `) and GitHub must report the PR MERGEABLE.
+      # `agent-finish.mjs` already refuses to PRINT a non-routing title — this asks the PR that
+      # actually got opened, because `--fill`, a hand-typed title and `gh pr edit --title` all reach
+      # GitHub without passing through that script.
+      - name: PR title routes · mergeable
+        run: node scripts/pr-ready.mjs --pr "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # The three owner-gated classes of AGENTS.md §5, decided mechanically and written on as
+      # `needs-operator/*` labels. It does not block — the owner merges these, and a red check on the
+      # owner's own PR is noise they learn to click past. It DOES fail if it cannot apply the label
+      # it decided on: a labeller that silently no-ops is indistinguishable from an additive PR.
+      #
+      # ⚠ `--base` is `pull_request.base.sha`, matching the re-seed gate above. The checked-out HEAD
+      # on a pull_request is the MERGE RESULT, which is the right tree to measure.
+      - name: Reserved-class labelling
+        run: |
+          node scripts/reserved-classes.mjs \
+            --base "${{ github.event.pull_request.base.sha }}" \
+            --pr "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

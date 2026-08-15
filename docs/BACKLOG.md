@@ -78,9 +78,271 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 
 ## Backlog
 
-| ID  | Status | Task | Area | Machine | Risk | Depends on |
-| --- | ------ | ---- | ---- | ------- | ---- | ---------- |
+> **⚠ Decomposed 2026-08-15, Entry 91's second steward turn. READ THIS BEFORE READING THE TABLE — the
+> shape of it is the finding.** Only four rows are `ready`, three of them `pc`, and that is not a gap in
+> the decomposition. **Almost everything left in v1.0.0 is waiting on one of two things**, neither of
+> which a builder can clear: **four owner rulings** (`open_rulings.md` Q17a, Q17c, Q18, Q19 — every one
+> of them a silent-under-report defect measured through the shipped verbs), and **two open PRs that
+> predate this system** (#16 Entry 90's D66 lazy-build design, #17 Entry 89's gizmo + corner-drag).
+>
+> ⚠⚠ **THE NEXT ACT ON BOTH MACHINES IS A REVIEW, NOT A CLAIM.** PRs #16 and #17 carry `Entry N` titles,
+> not `T-nnn:` ones — they are reviewed through `agent-start.mjs --review` off the open-PR list, which is
+> what `docs/prompts/*-orchestrator.md` step 4 does anyway, and they need no row here. Rows that wait on
+> them say so in `blocked-by:` rather than in `depends-on:`, because `depends-on:` is the **mechanical**
+> field (`scripts/seats.mjs`'s `canClaim` closes over it, and it can only close over a `T-nnn`).
+>
+> **Nothing from `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is decomposed here** —
+> `instantiate`, MT (D8), WebGPU, the PWA/Cloudflare deploy, the File System Access adapter. They are
+> post-freeze by ruling, and the freeze has not happened. Decomposing them now would put rows nobody may
+> claim above rows somebody must.
+
+| ID    | Status  | Task                                                       | Area     | Machine | Risk   | Depends on |
+| ----- | ------- | ---------------------------------------------------------- | -------- | ------- | ------ | ---------- |
+| T-001 | ready   | The perpendicular-foot snap candidate                      | apps-web | pc      | normal | —          |
+| T-002 | ready   | The two-candidate-line intersection snap                   | apps-web | pc      | normal | T-001      |
+| T-003 | ready   | The in-app open-source licences screen                     | apps-web | pc      | normal | —          |
+| T-004 | ready   | Does per-element build cost stay flat from 54 to 10,000?   | document | box     | normal | —          |
+| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built | document | box     | normal | —          |
+| T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint       | apps-web | pc      | normal | T-005      |
+| T-007 | blocked | Q17c — a dangling `designOptionId` becomes a broken ref    | document | box     | normal | —          |
+| T-008 | blocked | Q19 — the belongs-to deletion reconciliation               | document | box     | high   | —          |
+| T-009 | blocked | Q18 — a hosted void may only host on its host's base part  | document | box     | high   | —          |
+| T-010 | blocked | Q18 — two doors on one wall, confirmed in the browser      | apps-web | pc      | normal | T-009      |
+| T-011 | blocked | Q17a — `scene.designOptions` becomes a `SceneCollection`   | document | box     | high   | —          |
+
+---
+
+### T-001 — The perpendicular-foot snap candidate
+
+The `'perpendicular'` snap kind, which `SnapKind` already declares and nothing produces.
+
+- implements: `docs/design/P4.5_interaction_model_design.md` §4.3 (snap kinds, Tier-1 candidates) ·
+  its Q3-ruled priority order `endpoint > intersection > midpoint > grid > perpendicular/extension >
+face-plane > free point`
+- verify: `pnpm verify`
+- done-when:
+  - `tool/align.ts` produces a perpendicular-foot candidate from the gesture anchor to a reference edge;
+  - it sorts at the Q3-ruled position — **asserted against the ruled order, not against observed output**;
+  - ⚠ it carries **no `ref`/`elementId`**, exactly as Entry 84 ruled for the guide: a point reached
+    perpendicular to a reference is on no sub-shape, so a hosted-void tool must decline it;
+  - **no `SnapKind` is added** — `'perpendicular'` is already declared, so this moves no frozen byte;
+  - revert-verified in the real browser: candidate off ⇒ the raw ground point, on ⇒ the foot.
+- depends-on: —
+- area: apps-web · machine: **pc** · risk: **normal**
+
+### T-002 — The two-candidate-line intersection snap
+
+The second of the two derived kinds §4.3 lists and Entry 84 did not build.
+
+- implements: `docs/design/P4.5_interaction_model_design.md` §4.3 · the same identity rule T-001 applies
+- verify: `pnpm verify`
+- done-when:
+  - the intersection of two candidate lines is produced as an `'intersection'` candidate;
+  - ⚠ it owns nothing either — same rule as T-001, and for the same reason;
+  - it sorts directly below `endpoint` per the Q3 order;
+  - revert-verified in the real browser.
+- depends-on: T-001
+- area: apps-web · machine: **pc** · risk: **normal**
+
+> ⚠ **T-002 depends on T-001 for sequencing, not for logic.** Both land in `tool/align.ts`, a small
+> module; two seats in it at once is a merge conflict bought for no parallelism, since both are `pc` and
+> one seat runs there.
+
+### T-003 — The in-app open-source licences screen
+
+`current_state.md §5` records this as unbuilt and Amer's, in the middle of a row that is otherwise ✅ DONE
+— which is how it has stayed invisible since Entry 74.
+
+- implements: `NOTICE` · `licenses/` · `docs/decisions.md` D15 (AGPL-3.0 + commercial)
+- verify: `pnpm verify`
+- done-when:
+  - a reachable screen in `apps/web` renders `NOTICE` and the `licenses/` texts;
+  - ⚠ **OCCT's exception is CONDITIONAL on a prominent notice and we ship its binary** — the screen is
+    the discharge of that condition, so OCCT's text is present, not summarised;
+  - console-error-free boot with the screen open, verified in the real browser;
+  - ⚠ it touches **nothing** in `CLA.md` — Q11/Q12 are owner-gated and this task must not appear to
+    answer them.
+- depends-on: —
+- area: apps-web · machine: **pc** · risk: **normal**
+
+### T-004 — Does per-element build cost stay flat from 54 to 10,000?
+
+Entry 90 measured D66's lazy build on **54 elements** and said so explicitly: _"flatness at 54 is not
+flatness at 10,000."_ D48's target is 10,000+ and is BINDING, so the extrapolation is the number that
+decides whether lazy build helps at the size that matters.
+
+- implements: `docs/decisions.md` D66 · `current_state.md §1a` (the four-axis scale numbers) ·
+  `tests/document-heap-scale.test.ts` — **its least-squares approach is the pattern to copy**, per
+  Entry 90's own note
+- verify: `pnpm test -- document-heap-scale` and `pnpm verify`
+- done-when:
+  - build cost is measured across at least three element counts, not two, and fitted;
+  - the fit is reported as a number in the entry, with the method — **a claim with no method is not
+    done** (`AGENTS.md §4.4`);
+  - ⚠ if it is **not** flat, that is the result and it is written down as the result. This task is a
+    measurement, and a measurement that may only come back one way is not one;
+  - `current_state.md §1a`'s cold-load row is updated with what was measured — ⚠ **and not
+    re-coloured**, which Entry 90 flagged in advance as the thing a later session would get wrong.
+- depends-on: —
+- area: document · machine: **box** · risk: **normal**
+
+> ⚠ **This row is `ready` and the other D66 rows are not, deliberately.** It names only things that are
+> on `main` today (`D66`, `§1a`, `document-heap-scale.test.ts`). T-005/T-006 name a design document that
+> is still on PR #16.
+
+### T-005 — D66 §3c — force-on-measure, and whether `save` reads built state
+
+The half of D66 that Entry 90 named _"the part that must not be forgotten"_: every aggregate that
+quantifies over the model must build what it is about to report, or declare it.
+
+- implements: `docs/design/P5_step9_D66_lazy_build_design.md` §3c (FORCE vs DECLARE) · `§2` (the
+  prediction that was wrong) · `docs/decisions.md` D66
+- verify: `pnpm verify`
+- done-when:
+  - ⚠ **the unmeasured claim is measured FIRST:** does `save` read built state at all? Entry 90 wrote
+    _"it should not — it writes the recipe — but that is a claim, not a measurement"_ and asked the next
+    session to check before relying on the paragraph. Do that before choosing anything;
+  - FORCE or DECLARE is chosen per aggregate (`projectQuantities`, schedules, the Clean Delta, `save`)
+    and the choice is justified against the measurement above;
+  - ⚠ **`save` is not a design call** — a save that silently omits unbuilt elements is data loss, not a
+    reporting shortfall. If the measurement says `save` touches built state, it FORCES;
+  - a test that fails in the absence of the fix, revert-verified.
+- depends-on: —
+- blocked-by: **PR #16** (Entry 90) must merge — `implements:` names a design document that is on that
+  branch and not on `main`. `brahim`'s merged-PR sweep promotes this row.
+- area: document · machine: **box** · risk: **normal**
+
+### T-006 — D66 §3a/b — the keep-live set and a lazy first paint
+
+- implements: `docs/design/P5_step9_D66_lazy_build_design.md` §3a (the keep-live set) · §3b (first paint
+  = `rebuildOnly(visible)`)
+- verify: `pnpm verify`
+- done-when:
+  - the keep-live set is computed from camera/selection/viewport and is **never persisted** — ⚠
+    persisting it violates recipe-is-truth exactly as persisting a mesh would (`AGENTS.md §4.1`);
+  - first paint calls `rebuildOnly(visible)`, ordered by container: the camera's level, then outward;
+  - **no new API, and no frozen byte moves** — `rebuildOnly` already ships and `releaseShape` is frozen;
+  - the first-paint improvement is measured **in the real browser**, on this machine, and reported as a
+    number against Entry 90's 64.5% deferrable figure;
+  - ⚠ eviction is **not** built here — §3d rules it unnecessary at the measured 0.31 GB heap
+    (_"build lazily; evict later, or never"_).
+- depends-on: T-005
+- blocked-by: **PR #16** (Entry 90), as T-005.
+- area: apps-web · machine: **pc** · risk: **normal**
+
+### T-007 — Q17c — a dangling `designOptionId` becomes a broken reference
+
+- implements: `open_rulings.md` **Q17c** · `docs/design/P5_step6D_design_options_crud_design.md` ·
+  `isElementActive`'s own comment (_"a BROKEN REFERENCE, not a licence to include it … a future body
+  surfaces it (domain rule 3)"_ — **that body was never written**)
+- verify: `pnpm verify`
+- done-when:
+  - a dangling `designOptionId` is reported by `brokenRefs()`, which today returns `[]` for it;
+  - a test reproduces the silence first — the document accepting a reference it cannot resolve while
+    `brokenRefs()` and `unbuildable()` both come back EMPTY — then the fix, revert-verified;
+  - ⚠ it **refuses nothing and permits nothing**. Q17c is the one piece that is additive AND
+    direction-neutral; widening it into a refusal would pre-empt Q17b.
+- depends-on: —
+- blocked-by: **an owner ruling on `open_rulings.md` Q17c.**
+- area: document · machine: **box** · risk: **normal**
+
+### T-008 — Q19 — the belongs-to deletion reconciliation
+
+⚠⚠ The worst-measured defect open: **a document can report ZERO total volume with `basis: 'exact'` and
+every diagnostic empty**, reached by deleting a parent element. Needs no reserved-arg misuse.
+
+- implements: `open_rulings.md` **Q19** (all three reconciliations, and Entry 85's `hostId` half) ·
+  `docs/decisions.md` D39 (cascade) and D67 (exclusion) — ⚠ **both owner-ruled, and the gap between them
+  is the defect**
+- verify: `pnpm verify`
+- done-when:
+  - the reconciliation the owner ruled is implemented — (a) cascade, (b) refuse, (c) surface — and no
+    other;
+  - ⚠ **BOTH edges are covered**, `parentElementId` AND `hostId`. Entry 85 found the same hole on
+    `hostId` with a narrower population; a reconciliation covering one _fixes half the defect_;
+  - ⚠ `tests/belongs-to-cycle-guard.test.ts` **is supposed to fail when this lands** — it pins D39
+    cascading `hostId` only. Come past it deliberately, and update it in the same PR;
+  - the zero-volume walk is reproduced as a red test first, then closed.
+- depends-on: —
+- blocked-by: **an owner ruling on `open_rulings.md` Q19** — (a), (b) or (c).
+- area: document · machine: **box** · risk: **high**
+
+> `risk: high` because it edits the cascade walk and the exclusion predicate — `AGENTS.md §4.7`'s sweep
+> class, and `docs/BACKLOG.md`'s own auto-`high` list names the `dependency.ts` invalidator.
+
+### T-009 — Q18 — a hosted void may only host on its host's base part
+
+The second door placed on a wall by clicking comes back `broken-ref`, because the pick hands the tool a
+face of the wall _as already cut_.
+
+- implements: `open_rulings.md` **Q18** · `docs/decisions.md` D12 (opening anchoring), D51
+  (refuse-or-retarget)
+- verify: `pnpm verify`
+- done-when:
+  - the rule is enforced **where the meaning lives** — the document layer, which knows which node is a
+    base part. ⚠ **Not in the tool**: every fix available to `apps/web` is a token-parse, and _"ids are
+    opaque — never parse them"_ is standing;
+  - ⚠ it is **not tool-specific** — an agent calling `core.createElement` with the same ref gets the
+    same broken element, so the test goes through the verb, not through the gesture;
+  - revert-verified headlessly on the document layer.
+- depends-on: —
+- blocked-by: **an owner ruling on `open_rulings.md` Q18** (the rule, or the louder `core.createElement`
+  refusal it names as second-cheapest).
+- area: document · machine: **box** · risk: **high**
+
+### T-010 — Q18 — two doors on one wall, confirmed in the browser
+
+- implements: `open_rulings.md` **Q18** · T-009's document-layer rule
+- verify: `pnpm verify`, plus the gesture in the real browser
+- done-when:
+  - click 1 and **click 2** on the same wall both come back `state: 'valid'` with `parts: [leaf, frame]`;
+  - console-error-free boot;
+  - ⚠ measured **in the browser on this machine** — `AGENTS.md §4.9`: only `amer`/`khalihlna` may report
+    this as passing.
+- depends-on: T-009
+- area: apps-web · machine: **pc** · risk: **normal**
+
+> ⚠ **Split from T-009 on purpose.** _"A `done-when:` list that mixes machines is a task that needs
+> splitting"_ — the rule lives in the document layer (box) and the gesture is only checkable in a browser
+> (pc). One row would have let a box seat tick a criterion it physically could not run.
+
+### T-011 — Q17a — `scene.designOptions` becomes a `SceneCollection`
+
+⚠⚠ `RISK: contract-touching` **before it is written** — `type SceneCollection` is a watched declaration,
+so the owner merges this one as well as ruling it.
+
+- implements: `open_rulings.md` **Q17a** (the BLOCKING row) ·
+  `docs/design/P5_step6D_design_options_crud_design.md` §1 (the walk), §3 (data-additive YES,
+  freeze-additive NO) · `docs/decisions.md` D65, D79 (materialise-on-first-authoring)
+- verify: `pnpm verify`
+- done-when:
+  - `core.createDesignOption`/`update`/`delete` ship, and 0-of-40-commands-can-author-an-option is closed;
+  - ⚠ **D79's materialise-on-first-authoring trick transfers verbatim** — no `emptyScene()` entry, **no
+    `SCENE_SCHEMA_VERSION` bump**, and a document with no options stays **byte-identical**;
+  - ⚠ the edge is **not** the "nothing" `schedules`/`views` declared — an option edit changes which walls
+    the join resolver can see (D68's ambiguity flip), so a "nothing" here reproduces D68 from the
+    authoring side;
+  - the compiler's `TS2345` in `dependency.ts`'s exhaustive switch is closed (Entry 33's mechanism);
+  - the 50% under-report walk is reproduced red first, then closed.
+- depends-on: —
+- blocked-by: **an owner ruling on `open_rulings.md` Q17a** — the one row in 🔴 BLOCKING.
+- area: document · machine: **box** · risk: **high**
 
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
+
+- **2026-08-15, Entry 91 — `current_state.md` said the plan/section unit was BLOCKED in two places while
+  three others said it SHIPPED.** `§3`'s _"No 2D views — blocked on rulings Q1–Q3"_ and `§5`'s
+  _"the plan+section — the moment Q1–Q3 are ruled, and not before"_ both survived the unit actually
+  landing in Entry 77 (PR #5, merged; `tests/plan-section.test.ts`, 10 tests; `views` in `scene.ts`),
+  which `§5`'s own ✅ CLOSED list and `open_rulings.md`'s ✅ RULED section both record correctly.
+  **Fixed in this turn** per `AGENTS.md §3` row 1 (a doc that contradicts itself is fixed, not coded
+  around). ⚠ Worth noticing as a class: the stale rows were the ones phrased as _"blocked on a
+  ruling"_ — a status nobody re-reads once the ruling arrives, because the ruling gets recorded
+  somewhere else.
+- **2026-08-15, Entry 91 — `scripts/state.mjs --rebaseline` crashes if `tests/` does not exist.** It
+  `writeFileSync`s the snapshot with no `mkdir`. Harmless in this repo (the directory always exists) and
+  only reachable from a bare fixture, so it is recorded rather than fixed —
+  `tests/protocol/reserved-classes.test.ts` works around it exactly as `fixture.mjs` works around
+  `buildSurface` having no existence guard.

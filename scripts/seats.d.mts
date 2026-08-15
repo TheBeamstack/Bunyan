@@ -18,6 +18,12 @@ export declare function machineOf(root: string, seat: string): SeatRow['machine'
 export declare function accountOf(root: string, seat: string): string;
 export declare function promptOf(root: string, seat: string): string;
 
+/** `T-nnn: ` / `STEWARD: ` — the only two routable PR-title prefixes (`AGENTS.md §1.3`). */
+export declare const PR_TITLE_RE: RegExp;
+
+/** `true` when a PR title carries a routable `T-nnn:` / `STEWARD:` prefix. */
+export declare function titleRoutes(title: string | undefined): boolean;
+
 /** The command/path of a real browser found on this machine, or `null`. */
 export declare function browserCmd(env?: NodeJS.ProcessEnv): string | null;
 

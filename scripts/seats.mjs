@@ -88,6 +88,25 @@ export const machineOf = (root, seat) => seatRow(root, seat).machine;
 export const accountOf = (root, seat) => seatRow(root, seat).account;
 export const promptOf = (root, seat) => seatRow(root, seat).prompt;
 
+// ------------------------------------------------------------------------------------------ PR title --
+
+/**
+ * A PR title routes only if it names the unit it belongs to. `T-nnn: …` is a task turn, `STEWARD: …`
+ * is a steward turn carrying no task (`AGENTS.md §1.3`).
+ *
+ * ⚠ THIS LIVES HERE BECAUSE TWO THINGS ASK THE QUESTION. `agent-finish.mjs` refuses to print a
+ * `gh pr create` line for a title that does not route, and CI re-asks on the PR that actually got
+ * opened — because the finish script's answer only binds a seat that RAN it, and `--fill` or a
+ * hand-typed title reaches GitHub without ever passing through it. Two copies of the regex would be
+ * two gates that can disagree, which is the defect `seats.mjs` itself exists to avoid (see the header).
+ */
+export const PR_TITLE_RE = /^(T-\d{3}: |STEWARD: )/;
+
+/** `true` when a PR title carries a routable `T-nnn:` / `STEWARD:` prefix. */
+export function titleRoutes(title) {
+  return PR_TITLE_RE.test(title ?? '');
+}
+
 // -------------------------------------------------------------------------------------------- browser --
 
 /**

@@ -434,7 +434,9 @@ export function main(argv = process.argv.slice(2)) {
       ? `STEWARD: ${task.replace(/^STEWARD[-:]?\s*/, '')}`
       : `STEWARD: ${task}`;
   }
-  if (!/^(T-\d{3}: |STEWARD: )/.test(title))
+  // ⚠ The same predicate CI re-asks on the opened PR (`scripts/pr-ready.mjs`) — one regex, in
+  // `seats.mjs`, because a second copy is a second gate that can disagree.
+  if (!seats.titleRoutes(title))
     die(`the PR title '${title}' does not route — reviewer routing has nothing to key on.`);
 
   git(['add', '-A'], root);
