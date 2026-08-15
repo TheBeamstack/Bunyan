@@ -11,7 +11,7 @@
 Flat, monotonic, **allocated once and never reused** — the `PM-nnn`/`INV-nn` lesson mdo's own decisions
 record applied to tasks: a stable id is never renumbered even when a task is re-sequenced, split, or
 deferred, because re-planning must never invalidate a branch name, a PR title, or a `depends-on:`
-reference. Branch: `task/T-014-versioned-entity-pattern`.
+reference. Branch: `task/T-nnn-<slug>`.
 
 ## What makes a task READY
 
@@ -35,7 +35,9 @@ All of the below, or it is not ready and **must not be claimed** — fix the ent
    persistent naming (D1), the kernel identity cache (D29), the frozen surface itself, or the invalidator
    in `dependency.ts` (the class of defect `current_state.md §1c-8`'s sweep ledger keeps finding).
    `risk: high` **or** a mechanically-detected `RISK: contract-touching` (`tests/freeze-boundary.test.ts`)
-   both make `scripts/agent-finish.mjs` write `NEXT TURN: REVIEW ONLY`, naming the resolved reviewer seat;
+   both make `scripts/agent-finish.mjs` write `NEXT TURN: REVIEW ONLY`, naming the resolved reviewer seat.
+   ⚠ They differ in what happens next: `risk: high` buys a **two-step review** (D88, `REVIEW.md`),
+   `contract-touching` buys the **owner's merge** (`AGENTS.md §5`);
 9. small enough to reach a green `pnpm verify` in one turn.
 
 ### `machine:` — the one that is safety-critical
@@ -80,8 +82,8 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 
 > **Decomposed 2026-08-15 (Entry 91); the four owner rulings landed the same day.** Q17a, Q17c, Q18 and
 > Q19 are ruled (**D83**–**D86**), so **T-007, T-008, T-009 and T-011 are `ready`** — three of them
-> `risk: high`, which means a solo review that stops the loop for the owner, and T-011 is
-> `contract-touching`, so the owner merges it as well. **T-010** still waits on T-009; **T-005** and
+> `risk: high`, which means a two-step review that never batches (D88), and T-011 is
+> `contract-touching`, so the owner merges that one. **T-010** still waits on T-009; **T-005** and
 > **T-006** still wait on PR **#16**.
 >
 > ⚠ **#16 and #17 predate `T-nnn` and get no row** — they are claimed via `agent-start.mjs --review` off
@@ -93,21 +95,22 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 > `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is not decomposed here — the freeze has not
 > happened, and rows nobody may claim bury rows somebody must.
 
-| ID    | Status  | Task                                                        | Area     | Machine | Risk   | Depends on |
-| ----- | ------- | ----------------------------------------------------------- | -------- | ------- | ------ | ---------- |
-| T-001 | ready   | The perpendicular-foot snap candidate                       | apps-web | pc      | normal | —          |
-| T-002 | ready   | The two-candidate-line intersection snap                    | apps-web | pc      | normal | T-001      |
-| T-003 | ready   | The in-app open-source licences screen                      | apps-web | pc      | normal | —          |
-| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?    | document | box     | normal | —          |
-| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built  | document | box     | normal | —          |
-| T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint        | apps-web | pc      | normal | T-005      |
-| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref     | document | box     | normal | —          |
-| T-008 | ready   | Q19 — the belongs-to deletion reconciliation                | document | box     | high   | —          |
-| T-009 | ready   | Q18 — a hosted void may only host on its host's base part   | document | box     | high   | —          |
-| T-010 | blocked | Q18 — two doors on one wall, confirmed in the browser       | apps-web | pc      | normal | T-009      |
-| T-011 | ready   | Q17a — `scene.designOptions` becomes a `SceneCollection`    | document | box     | high   | —          |
-| T-012 | ready   | `--review` routes a PR whose title carries no `T-nnn`       | infra    | box     | high   | —          |
-| T-013 | ready   | The seat identity guard — `gh api user` must match the seat | infra    | box     | high   | —          |
+| ID    | Status  | Task                                                          | Area     | Machine | Risk   | Depends on |
+| ----- | ------- | ------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
+| T-001 | ready   | The perpendicular-foot snap candidate                         | apps-web | pc      | normal | —          |
+| T-002 | ready   | The two-candidate-line intersection snap                      | apps-web | pc      | normal | T-001      |
+| T-003 | ready   | The in-app open-source licences screen                        | apps-web | pc      | normal | —          |
+| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?      | document | box     | normal | —          |
+| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built    | document | box     | normal | —          |
+| T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint          | apps-web | pc      | normal | T-005      |
+| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref       | document | box     | normal | —          |
+| T-008 | ready   | Q19 — the belongs-to deletion reconciliation                  | document | box     | high   | —          |
+| T-009 | ready   | Q18 — a hosted void may only host on its host's base part     | document | box     | high   | —          |
+| T-010 | blocked | Q18 — two doors on one wall, confirmed in the browser         | apps-web | pc      | normal | T-009      |
+| T-011 | ready   | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
+| T-012 | ready   | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
+| T-013 | ready   | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
+| T-014 | ready   | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
 
 ---
 
@@ -374,6 +377,31 @@ for a repo admin. A seat that has just been refused a review can still merge.
 > `risk: high` — with Q13 ruled _neither public nor Pro_ (D87), branch protection is unavailable, so this
 > guard is the **only** thing preventing a self-approving merge.
 
+### T-014 — `--review` must read the task's `risk:`, not only the frozen surface
+
+⚠⚠ Measured 2026-08-15 on **T-008** (`risk: high`, mechanically `RISK: additive`): `agent-finish.mjs
+--review` flipped the row to `done` and printed `gh pr review 23 --approve && gh pr merge 23 --squash`
+for a PR that had had one review turn of the two D88 requires. The reviewer corrected the row by hand.
+
+- implements: `docs/decisions.md` **D88** · `AGENTS.md` §1.2 · `REVIEW.md` §"Two steps" ·
+  `scripts/agent-finish.mjs`'s `--review` path
+- verify: `pnpm verify`
+- done-when:
+  - `--review` resolves the claimed task's `risk:` field from `docs/BACKLOG.md` and takes a `--step 1|2`,
+    refusing a `risk: high` PR that names no step;
+  - on step 1 the row stays `review`, no approve/merge command is printed, and the `NEXT TURN: REVIEW
+ONLY` banner is **left standing** — it is what routes step 2;
+  - on step 2 the row goes `done` and the two commands print as they do today;
+  - a `risk: normal` PR is unchanged, and `--step` on one is refused rather than ignored;
+  - ⚠ **an unreadable or absent `risk:` field is a REFUSAL, never a default to `normal`** — the same skip
+    that `T-013` guards against, and the shape Entry 88 shipped three of;
+  - revert-verified on the step-1 path: with the fix removed, a `risk: high` step 1 stamps `done` again.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — this is the gate that decides whether other gates run. ⚠ Its own review runs under the
+> **old** script, so step 1 must check the row's status by hand.
+
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
@@ -415,3 +443,17 @@ _(unplanned findings land here — never claimed in the same turn that found the
   writer in PR #20 by `hmdnah`**: `setRowStatus` is hoisted, exported and repads to the width it found,
   with a case in `tests/protocol/agent-finish.test.ts`. ⚠ Repadding the one branch would not have held —
   the same writer stamps `done` at the end of a review turn and would have re-broken it the other way.
+- **2026-08-15 — D88's "a proven defect goes back to the builder on the existing claim" has no scripted
+  route.** `agent-start.mjs` refuses a named task whose row is not `ready` (line 517), `seats.readyFor`
+  enumerates `ready` rows only, and a claim whose status is `finished — PR open, awaiting review` is
+  refused as _"not an incomplete turn to continue"_ (line 576) — so a builder cannot re-enter a row left
+  at `review`. A builder that reaches the branch by hand then finishes on the non-`--review` path, which
+  prints a `gh pr create` line for a PR that is already open. ⚠ Not covered by `T-014`, whose
+  `done-when:` items are all on the `--review` path.
+- **2026-08-15 — the `NEXT TURN: REVIEW ONLY` banner cannot route a review turn.** `agent-finish.mjs`
+  writes it into the task branch's `current_state.md` and clears it there on the `--review` run, while
+  `agent-start.mjs` reads it after `git checkout main` — so it has never existed on `main`
+  (`git log -S` over `origin/main -- current_state.md` returns nothing) and routing comes from the PR
+  title via `reviewerFor`. ⚠ `T-014`'s second `done-when:` rests on the banner being _"what routes step
+  2"_, which it is not; leaving it standing on the branch changes nothing until the banner reaches a
+  session that starts on `main`.

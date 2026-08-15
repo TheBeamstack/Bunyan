@@ -45,10 +45,15 @@ and report — never force it.
 routed to `khalihlna` (`node scripts/seats.mjs reviewer-for <T-nnn>` per PR, or the `RISK:` line each
 carries).
 
-- **Any one is `risk: high` or `RISK: contract-touching`:** a **dedicated** `khalihlna` subagent, alone,
-  this cycle. Mechanical pre-review only (revert, red — **in the real browser**, restore, green, check
-  against the spec sections named); **must not merge or approve for merge**. Collect its report,
-  **stop the loop**, hand it to the operator, wait for explicit approval.
+- **Any one is `RISK: contract-touching`:** a **dedicated** `khalihlna` subagent, alone, this cycle. It
+  reviews and approves (revert, red — **in the real browser**, restore, green, check against the spec
+  sections named) but **must not merge**. Collect its report, **stop the loop**, hand it to the
+  operator, wait for them to merge.
+- **Any one is `risk: high`:** a **dedicated** `khalihlna` subagent, alone, this cycle, for **one step
+  of the two-step review** (D88, `REVIEW.md`). Tell the subagent which step it is running; step 1 posts
+  a report and does not approve, step 2 reads step 1's report and merges on green CI. The loop does not
+  stop for either — `risk: high` is not owner-gated. Run the two steps in **separate cycles**. If step 1
+  proves a defect, it goes back to `amer` on the same branch and existing claim before step 2 runs.
 - **All additive, `risk: normal`:** spawn **one** `khalihlna` subagent for the whole batch, same
   claim→re-execute→approve→merge→finish loop as `brahim`'s own §4c describes, capped at **4 PRs** per
   batch. `REVIEW.md` item 1 is mandatory on every single one, re-executed **in the browser** — a
@@ -97,8 +102,8 @@ Use the Agent tool. Keep the prompt short and self-contained:
 
 - Never decide what is `ready`, sweep a dependency, or override a task's `machine:`/`risk:`. That is
   `brahim`'s act, done on the box; you only read the result.
-- Never let a subagent merge a `risk: high`/`contract-touching` PR without the operator's relayed
-  approval.
+- Never let a subagent merge a `contract-touching` PR without the operator's relayed approval, or a
+  `risk: high` PR before its step 2 (D88).
 - Never resolve a `## BLOCKED` entry yourself.
 - Never hand-edit `current_state.md`'s `§0b`/`§8` blocks.
 - Never report a browser-only claim (rendering, interaction, a console-error-free boot) as passing
