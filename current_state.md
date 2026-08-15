@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
-| role | steward |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-two-step-high-risk-review` |
 | branch | `brahim/2026-08-15-two-step-high-risk-review` |
@@ -991,15 +991,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-two-step-high-risk-review (hmdnah, 2026-08-15)** |
-| branch · tip · tree | `brahim/2026-08-15-two-step-high-risk-review` · `206b9fa` · dirty |
+| branch · tip · tree | `brahim/2026-08-15-two-step-high-risk-review` · `29388c4` · clean |
 | open PRs | #24 brahim/2026-08-15-two-step-high-risk-review · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | ⚠⚠ 835/836 passing — **1 FAILING** |
+| suite | **836 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 237 insertions(+), 54 deletions(-) (8 files) |
-| docs budget | current_state 83.3/96.0 KB · §7 31.3/32.0 KB · abstracts 10/10 · bodies 41 |
+| diff vs origin/main | 9 files changed, 346 insertions(+), 56 deletions(-) (9 files) |
+| docs budget | current_state 83.4/96.0 KB · §7 31.3/32.0 KB · abstracts 10/10 · bodies 41 |
 
 _Generated 2026-08-15 by `pnpm state`._
 
