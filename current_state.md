@@ -637,20 +637,21 @@ is maintenance and does NOT get an entry of its own.**
   `expect(fit.slope).toBeGreaterThan(0)` — `-0.0000015`, a coin flip on noise; with the count asserted it
   is RED in 2.9 s naming `scale 1: solids built by the cold load: expected +0 to be 62`, green restored
   in 58.4 s. **(b)** Reverting the repad turned `agent-finish.test.ts` RED on `| T-001 | review   |`, the
-  byte CI rejected. Harness re-run twice: **43.45** and **41.93 ms/element**, R² 0.9995/0.9988, **7.24**
-  and **6.99 min** projected.
+  byte CI rejected. Harness re-run twice: **43.45** and **41.93 ms/element**, **7.24** and **6.99 min**
+  projected.
 - **FOUND:** The verdict stands — flat across 39–273 elements, ~7 min at 10,000 — but two claims under it
   did not. ⚠⚠ **The harness could not tell a cold load that built the whole building from one that built
   nothing:** `geometryOf(id)?.state` is `undefined` for an element never built and `undefined !==
   'failed'`, and `brokenRefs()` returns a **stored scene field** rather than a re-derivation, so both
   passed on an empty measurement. ⚠ `§1a`'s _"smallest model prices ~5% **high**"_ is backwards — 39
   elements price 38.8–39.6 ms/el against 41.8–44.0 at the larger sizes in all four runs, so the marginals
-  **fall** with size and the warmup cause predicts the opposite sign. Both survive the conclusion: a
-  cheap smallest model is still not superlinearity.
-- **OWES:** `amer` — `unverified here: the same cold load inside a real browser tab`, carried forward
-  untouched; this box is headless. `brahim` — the flatness verdict is still **printed, not asserted**, so
-  a superlinear regression passes this file; four runs put the marginal spread at 5.9–16.8%, the number a
-  ratio gate would have to clear.
+  **fall** with size and the warmup cause predicts the opposite sign. Neither unseats the conclusion.
+- **OWES:** ⚠⚠ **the owner — #20 is approved on the evidence but UNMERGEABLE from here:** the box holds
+  only `Davidian-Abdo`, the account that opened it, so GitHub refused the approval and the row stays
+  `review`. `docs/BACKLOG.md` `## Discovered` carries it; the fix is a credential, not code. `amer` —
+  `unverified here: the same cold load inside a real browser tab`, carried forward untouched. `brahim` —
+  the flatness verdict is still **printed, not asserted**; four runs put the marginal spread at
+  5.9–16.8%, the number a ratio gate would have to clear.
 - **RISK:** additive
 - **FULL:** `handoff/hmdnah/2026-08-15-T-004-review.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
@@ -683,14 +684,10 @@ is maintenance and does NOT get an entry of its own.**
   regression would still pass this file. ⚠ The projection is a **37× extrapolation** from 273 elements.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-15-T-004-build-cost-flatness.md`
-- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED and MERGED**, `RISK: additive`, on
-  the crossed account. The measurement reproduced twice here (43.45 and 41.93 ms/element, 7.24 and
-  6.99 min projected). ⚠⚠ **Two defects fixed on the branch:** the harness passed while the cold load
-  built **nothing** (`geometryOf(id)?.state` is `undefined` for an element never built, and
-  `undefined !== 'failed'`), leaving the sign of a noise-level slope as its only guard — it now counts
-  the solids the cold context actually built; and §1a's *"smallest model prices ~5% **high**"* is
-  backwards in all four runs, so the row now reads **low** and drops the warmup cause, which predicts
-  the opposite sign. Full record: `handoff/hmdnah/2026-08-15-T-004-review.md`.
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED on the evidence, `RISK: additive`,
+  two defects fixed on the branch — but NOT MERGED and not approved on GitHub:** the box holds only the
+  account that opened this PR, so the approval was refused and merging from it would be the Entry 74
+  self-merge. The entry above is the record.
 
 ### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
 
@@ -988,15 +985,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-004 (hmdnah, 2026-08-15)** |
-| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `5e8d6f0` · clean |
+| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `45ffbed` · dirty |
 | open PRs | #20 task/T-004-does-per-element-build-cost-stay-flat-fr · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
 | suite | **833 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 822 insertions(+), 23 deletions(-) (8 files) |
-| docs budget | current_state 84.0/96.0 KB · §7 32.0/32.0 KB · abstracts 8/10 · bodies 37 |
+| diff vs origin/main | 8 files changed, 858 insertions(+), 23 deletions(-) (8 files) |
+| docs budget | current_state 83.8/96.0 KB · §7 31.7/32.0 KB · abstracts 8/10 · bodies 37 |
 
 _Generated 2026-08-15 by `pnpm state`._
 

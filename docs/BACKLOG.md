@@ -93,7 +93,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-001 | ready   | The perpendicular-foot snap candidate                      | apps-web | pc      | normal | —          |
 | T-002 | ready   | The two-candidate-line intersection snap                   | apps-web | pc      | normal | T-001      |
 | T-003 | ready   | The in-app open-source licences screen                     | apps-web | pc      | normal | —          |
-| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?   | document | box     | normal | —          |
+| T-004 | review  | Does per-element build cost stay flat from 54 to 10,000?   | document | box     | normal | —          |
 | T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built | document | box     | normal | —          |
 | T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint       | apps-web | pc      | normal | T-005      |
 | T-007 | blocked | Q17c — a dangling `designOptionId` becomes a broken ref    | document | box     | normal | —          |
@@ -333,6 +333,16 @@ _(unplanned findings land here — never claimed in the same turn that found the
   (`zayd/…` ⇒ box ⇒ `hmdnah`, `amer/…` ⇒ pc ⇒ `khalihlna`), which derives the reviewer from the machine
   the work was executed on rather than from the title. ⚠⚠ **That is safety-critical routing, so it is a
   `STEWARD:` PR carrying a test, not a direct commit** — recorded here, not claimed this turn.
+- **2026-08-15 — ⚠⚠ `hmdnah` HAS NO GITHUB CREDENTIAL ON THE BOX, so the crossed-account approval
+  `AGENTS.md §0` is built on does not exist here.** `gh auth status` lists exactly one account,
+  `Davidian-Abdo` — the account `zayd` authors from — and `narutousomaki741` is present only as a git
+  `user.name`/`user.email` (`@example.com`), which is authorship, never GitHub identity. Measured on
+  **PR #20**: `gh pr review 20 --approve` returned
+  `GraphQL: Review Can not approve your own pull request`. ⚠ GitHub's own refusal is the only thing that
+  caught it; `gh pr merge` is **not** similarly blocked for a repo admin, so the next reviewer turn that
+  does not check first will land the Entry 74 self-merge (`AGENTS.md §6`) believing it is a crossed
+  approval. ⚠ It went unnoticed because #18/#19 were merged by the owner and no reviewer seat had yet
+  reached the approve step. The fix is a credential, not code — recorded here, not claimed this turn.
 - **2026-08-15 — `agent-finish.mjs`'s `ready`→`review` status flip fails `format:check`, so every builder
   turn opens a red PR.** The longer word goes into a cell padded for `ready`, leaving one trailing space
   that `prettier --check` — CI step 3 — rejects; nothing else in the diff is at fault. Measured on **PR
