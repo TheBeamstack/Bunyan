@@ -22,7 +22,7 @@
  * ```
  *
  * **One verb call turns a real wall into zero rows wearing the `exact` badge.** That is domain rule 15's
- * failure mode and `open_rulings.md` Q19's silent erasure, arriving by a third road — and unlike Q19 it
+ * failure mode and D83's silent erasure, arriving by a third road — and unlike D83 it
  * needs no ruling, because no authoring intent maps to *"a wall hosted on itself."* It is a precondition,
  * refused at the door, exactly as `requireElement` refuses a host that is not there.
  *
@@ -299,6 +299,15 @@ describe('the belongs-to cycle — authorable, silent, and now refused', () => {
     } as unknown as Parameters<typeof cascadeOf>[0];
     expect(cascadeOf(scene, 'a').map((e) => e.id)).toEqual(['b']);
     expect(cascadeOf(scene, 'b').map((e) => e.id)).toEqual(['a']);
+
+    // …and the MIXED cycle, which is the one a single-edge walk cannot even see (D83).
+    const mixed = {
+      elements: {
+        a: { id: 'a', hostId: 'b' },
+        b: { id: 'b', parentElementId: 'a' },
+      },
+    } as unknown as Parameters<typeof cascadeOf>[0];
+    expect(cascadeOf(mixed, 'a').map((e) => e.id)).toEqual(['b']);
   });
 
   it('⚠⚠ `rebuilt` is COMPLETE, and not for the reason the command suggests — the EXECUTOR overrides it', async () => {
@@ -330,43 +339,35 @@ describe('the belongs-to cycle — authorable, silent, and now refused', () => {
   }, 120_000);
 
   /**
-   * ⚠⚠ THE PIN THAT DID NOT EXIST — AND ITS ABSENCE WAS MEASURED, NOT SUSPECTED.
+   * ⚠⚠ THE TWO WALKS SHARE ONE EDGE SET (D83, owner-ruled 2026-08-15), AND THIS IS WHERE THAT IS
+   * ASSERTED. `cascadeOf` decides what a delete destroys; `isElementActive` decides what a consumer
+   * counts. An element the second excludes and the first spares is a row in `scene.elements` that
+   * nothing can see — which is what a `hostId`-only cascade left behind on the `parentElementId` edge.
    *
-   * D39 cascades `hostId`; the D67 exclusion rule walks `hostId` **and** `parentElementId`. Whichever way
-   * `open_rulings.md` **Q19** is ruled, ONE of those two walks changes edge set. So: **would the suite
-   * notice?** Measured by making `cascadeOf` walk both edges and running everything:
-   *
-   * ```
-   * Test Files  1 failed | 86 passed (87)
-   *      Tests  1 failed | 757 passed (758)
-   *   × the frozen surface > has not moved since the baseline
-   * ```
-   *
-   * **ZERO behavioural tests.** The single failure is the freeze-boundary HASH, which notices that the
-   * declaration TEXT changed — not that the delete cascade changed meaning. ⇒ a Q19 ruling could land,
-   * change what `core.deleteElement` destroys, and go green. This test is the pin: it asserts TODAY's
-   * edge set, so the ruling has to come past it deliberately. **It is SUPPOSED to fail when Q19 lands.**
+   * The behaviour through the shipped verbs, and the surfacing half of the same ruling, are
+   * `tests/belongs-to-deletion-d83.test.ts`; this asserts the agreement itself, on the two functions.
    */
-  it('⚠⚠ D39 cascades `hostId` ONLY — a child by `parentElementId` SURVIVES its parent (pins Q19)', async () => {
-    const doc = await seeded();
-    const parent = await wall(doc);
-    const child = await wall(doc, 4000);
-    await doc.execute('core.setElementMetadata', { elementId: child, parentElementId: parent });
+  it('⚠⚠ `cascadeOf` and `isElementActive` walk the SAME belongs-to edges', () => {
+    const elements: Record<string, OptionedElement> = {
+      root: { id: 'root' },
+      hosted: { id: 'hosted', hostId: 'root' },
+      member: { id: 'member', parentElementId: 'root' },
+      outsider: { id: 'outsider' },
+    };
+    const scene = { elements } as unknown as Parameters<typeof cascadeOf>[0];
 
-    const edit = await doc.execute('core.deleteElement', { elementId: parent });
-
-    expect(edit.changes).toHaveLength(1); // the parent, and ONLY the parent
-    expect(Object.keys(doc.scene.elements)).toEqual([child]);
-    expect(doc.scene.elements[child]?.parentElementId).toBe(parent);
-
-    // ⚠ …and THIS is why Q19 exists: the survivor is in `scene.elements` and in nothing else, with both
-    // diagnostics empty. The row is live and wrong, and it is a RULING, not a body decision.
-    const scope: OptionScope = { elements: doc.scene.elements };
-    expect(isElementActive(doc.scene.elements[child]!, scope)).toBe(false);
-    expect(doc.modelElements()).toHaveLength(0);
-    expect(doc.brokenRefs()).toHaveLength(0);
-    expect(doc.unbuildable()).toHaveLength(0);
-  }, 120_000);
+    // Everything the cascade takes is everything the exclusion rule would lose when `root` goes.
+    expect(
+      cascadeOf(scene, 'root')
+        .map((e) => e.id)
+        .sort(),
+    ).toEqual(['hosted', 'member']);
+    const survivors: OptionScope = { elements: { outsider: elements['outsider']! } };
+    for (const id of ['hosted', 'member']) {
+      expect(isElementActive(elements[id]!, survivors)).toBe(false);
+    }
+    expect(isElementActive(elements['outsider']!, survivors)).toBe(true);
+  });
 
   it('deleting a HOSTED element rebuilds the surviving host — the one host a cascade leaves behind', async () => {
     const doc = await seeded();

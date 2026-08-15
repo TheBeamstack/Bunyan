@@ -30,7 +30,7 @@
  */
 
 import type { SectionCurve } from '@bunyan/protocol';
-import type { BrokenReference, ElementId, Part } from './entities.js';
+import type { BrokenReference, Element, ElementId, Part } from './entities.js';
 import { containerCode, modelElements } from './enumerate.js';
 import type {
   EnumerateOptions,
@@ -299,13 +299,17 @@ export class DocumentContext {
 
   /**
    * ⚠ TWO PRODUCERS, AND ONLY ONE OF THEM IS STORED. `scene.brokenRefs` carries what the last rebuild
-   * measured against real geometry (an opening whose host face no longer resolves); the referential half
-   * below is derived here, on every call, because it is a pure fact about `scene.elements` and needs no
-   * build to be true. Staging it into `scene.brokenRefs` instead would leave a stale entry on every
-   * element whose assembly the next partial rebuild does not touch.
+   * measured against real geometry (an opening whose host face no longer resolves); the referential
+   * classes below are derived here, on every call, because each is a pure fact about `scene.elements`
+   * and needs no build to be true. Staging them into `scene.brokenRefs` instead would leave a stale
+   * entry on every element whose assembly the next partial rebuild does not touch.
    */
   brokenRefs(): readonly BrokenReference[] {
-    return [...this.#scene.brokenRefs, ...danglingDesignOptionRefs(this.#scene)];
+    return [
+      ...this.#scene.brokenRefs,
+      ...danglingDesignOptionRefs(this.#scene),
+      ...danglingAncestorRefs(this.#scene),
+    ];
   }
 
   /**
@@ -1319,6 +1323,38 @@ function danglingDesignOptionRefs(scene: Scene): readonly BrokenReference[] {
       hostId: element.id,
       reason: `the design option "${optionId}" is not defined in this document, so this element is excluded from every enumerating consumer`,
     });
+  }
+  return out;
+}
+
+/**
+ * ⚠⚠ **AN ANCESTOR THAT IS NAMED AND ABSENT** — D83's (c) half (Q19, owner-ruled 2026-08-15).
+ * `isElementActive` excludes an element whose `hostId` or `parentElementId` names no element here, and
+ * that exclusion was the document's only reaction: measured before this landed, such an element sat in
+ * `scene.elements` and appeared in `modelElements()`, every schedule and the project roll-up nowhere,
+ * with `brokenRefs()` and `unbuildable()` both empty.
+ *
+ * ⚠ The delete road is closed by the cascade (`cascadeOf`), so what reaches here is a document written
+ * elsewhere — a `.bnn` under D43, an agent assembling a scene. On the `hostId` edge the element is not
+ * even built, because `affectedAssemblies` drops an assembly root that is not in the scene.
+ *
+ * ⚠ The edge set is the exclusion rule's, deliberately: a class this reported over one edge would leave
+ * the other edge silent, which is the shape of the defect D83 closes.
+ */
+function danglingAncestorRefs(scene: Scene): readonly BrokenReference[] {
+  const out: BrokenReference[] = [];
+  const check = (element: Element, edge: string, ancestorId: ElementId | undefined): void => {
+    if (ancestorId === undefined || scene.elements[ancestorId] !== undefined) return;
+    out.push({
+      elementId: element.id,
+      ref: ancestorId,
+      hostId: ancestorId,
+      reason: `its ${edge} names "${ancestorId}", which is not an element in this document, so this element is excluded from every enumerating consumer`,
+    });
+  };
+  for (const element of Object.values(scene.elements)) {
+    check(element, 'hostId', element.hostId);
+    check(element, 'parentElementId', element.parentElementId);
   }
   return out;
 }

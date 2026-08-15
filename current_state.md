@@ -627,6 +627,42 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-008 — the cascade and the exclusion rule now walk one belongs-to edge set — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `packages/document/src/commands.ts` (`cascadeOf` walks **`belongsTo` NEW** — both edges;
+  `core.deleteElement`'s agent-visible description; two stale comment blocks) ·
+  `packages/document/src/document.ts` (**`danglingAncestorRefs` NEW**, unioned into `brokenRefs()` beside
+  T-007's) · `packages/document/src/designoptions.ts` (comments only) ·
+  **`tests/belongs-to-deletion-d83.test.ts` NEW (+7)** · `tests/belongs-to-cycle-guard.test.ts` (the Q19
+  pin replaced by the property it protected; the mixed cycle added) · `docs/contracts/V1.0.0_spec.md`
+  (D39 gains `AMENDED BY D83`) · `docs/contracts/core_logic.md` (domain rule 3's third class) ·
+  `docs/decisions.md` (D83's BUILT note). No frozen byte, no verb, no schema bump, `argsSchema` unmoved.
+- **VERIFIED:** **843 green** across 95 files, all six gates, real exit code 0, real OCCT throughout;
+  `freeze-boundary` green ⇒ the frozen surface has not moved. **Revert-verified each half separately**:
+  `belongsTo` → `hostedBy` is **6 RED** (`expected [ 'wall-…' ] to deeply equal [ …(2) ]`), dropping
+  `danglingAncestorRefs` is **3 RED** (`expected [] to have a length of 1 but got +0`).
+- **FOUND:** ⚠⚠ **The whole suite noticed the new cascade in exactly ONE place** — `1 failed | 842
+  passed` before the pin was updated, and the failure is the pin D83 wrote to fail. ⚠ `hostedBy` stays
+  `hostId`-only because it answers the ASSEMBLY question, and the other four call sites are geometric:
+  `core.copy`'s refusal list is the only arguable one and it is right as it stands, because it exists for
+  the `hostRef` token a copy would have to rewrite (D51/D1) and a `parentElementId` is not inside a token.
+  ⚠ `rebuilt` needed nothing — `dependency.ts` pushes `before.hostId`, so a cascaded member re-cuts the
+  surviving wall it was hosted on, measured on the wall's volume rather than assumed. ⚠ On the `hostId`
+  edge a dangling ancestor means the element is **not built at all** (`affectedAssemblies` drops a root
+  that is not in the scene), so `geometryOf` is `undefined` and `unbuildable()` lists registration
+  failures only — the document said nothing whatever about it before. ⚠ `brokenRefs()` on a
+  hand-assembled 10,000-element scene: **2.78 → 5.81 ms/call**, and **5.70 ms/call with all 10,000
+  broken**, so the added pass is flat in the number of findings.
+- **OWES:** `hmdnah` — this PR; the two reverts above are the ones to re-execute. `amer` — ⚠ `App.tsx`'s
+  Problems-panel hint (*"hosted on a sub-shape that no longer resolves. Retarget them manually"*) is now
+  wrong for two of the three classes: T-007's option entry is hosted on nothing, and an ancestor entry
+  names a host that is gone rather than a face that moved. `unverified here: how the panel reads with
+  those entries in it — khalihlna to confirm`. `brahim` — D83's (a) half is ruled **on the condition that
+  groups stay a v1.0.x reservation**; if group authoring ships, this returns to the owner.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-008-belongs-to-deletion.md`
+- **REVIEW:** pending — `hmdnah`, this PR.
+
 ### T-007 — a dangling `designOptionId` is a broken reference, derived rather than stored — 2026-08-15 — seat: zayd
 
 - **CHANGED:** `packages/document/src/document.ts` (**`danglingDesignOptionRefs` NEW**; `brokenRefs()`
@@ -944,16 +980,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-007 (zayd, 2026-08-15)** |
-| branch · tip · tree | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` · `082dc18` · clean |
-| open PRs | #22 task/T-007-q17c-a-dangling-designoptionid-becomes-a · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **836 green** · 94 files · 264 suites |
+| **newest entry** | **T-008 (zayd, 2026-08-15)** |
+| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `850e285` · dirty |
+| open PRs | #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| suite | **843 green** · 95 files · 266 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 11 files changed, 520 insertions(+), 129 deletions(-) (11 files) |
-| docs budget | current_state 79.6/96.0 KB · §7 27.6/32.0 KB · abstracts 8/10 · bodies 39 |
+| diff vs origin/main | 8 files changed, 169 insertions(+), 78 deletions(-) (8 files) |
+| docs budget | current_state 82.7/96.0 KB · §7 30.8/32.0 KB · abstracts 9/10 · bodies 40 |
 
 _Generated 2026-08-15 by `pnpm state`._
 
