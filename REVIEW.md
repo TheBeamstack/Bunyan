@@ -35,8 +35,13 @@ them (D88). It is not owner-gated — step 2 merges it like any other PR.
 Step 2 reads step 1's report and does not re-run it — the split is the point. It does re-confirm item 7's
 `needs-operator/*` check immediately before merging, because that is the gate it is about to cross.
 
-⚠ **A defect either step proves goes back to the builder**, on the branch and the existing `§0b` claim,
-and step 2 reviews what the fix left behind. The row stays `review` throughout; no new claim is made.
+**Which step you are running is the PR's `review/step-1` label**, applied when step 1 finishes (`T-014`).
+The `NEXT TURN: REVIEW ONLY` banner does not route this: it is written into the task branch and read
+after `git checkout main`, where it has never appeared.
+
+⚠ **A defect either step proves goes back to the builder**, through `agent-start.mjs --continue <T-nnn>`
+(`T-015`), on the branch and the existing `§0b` claim. The row stays `review` throughout, no new claim is
+made, and step 2 reviews what the fix left behind.
 
 Both steps are the same seat, because a cross-account second reviewer does not exist for a box builder PR
 — `zayd` opens on `davidian-abdo` and `khalihlna` holds that account, so GitHub refuses its approval.

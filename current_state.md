@@ -113,11 +113,11 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| role | reviewer |
+| seat | `brahim` |
+| role | steward |
 | machine | box |
-| task | `STEWARD-two-step-high-risk-review` |
-| branch | `brahim/2026-08-15-two-step-high-risk-review` |
+| task | `STEWARD-step-routing-and-continue` |
+| branch | `brahim/2026-08-15-step-routing-and-continue` |
 | claimed-at | 2026-08-15T09:38:01Z |
 | status | finished — PR open, awaiting review |
 
@@ -627,6 +627,34 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### STEWARD-step-routing-and-continue — D88 asserted two mechanisms no script implements — 2026-08-15 — seat: brahim
+
+- **CHANGED:** `docs/decisions.md` (**D88 amended**) · `docs/BACKLOG.md` (T-014's second `done-when:`
+  moved off the banner onto the label; **T-015** NEW; both `## Discovered` entries closed) · `REVIEW.md`
+  §"Two steps". `AGENTS.md` untouched — §1.2 already points at `REVIEW.md`, and it is at its line cap.
+- **VERIFIED:** `pnpm verify` green. The banner finding was re-checked before amending: the only two
+  `NEXT TURN: REVIEW ONLY` hits on `main` are prose inside §7 abstracts.
+- **FOUND:** Reviewing PR #24 proved both of D88's mechanisms absent. ⚠⚠ **The `NEXT TURN: REVIEW ONLY`
+  banner has never existed on `main`** — it is written into the task branch and read after
+  `git checkout main`, and routing has always come from the PR title via `reviewerFor`. ⚠ **A builder
+  cannot re-enter its own branch either:** `agent-start.mjs` refuses a row that is not `ready` and a claim
+  already marked finished. Owner ruled a **`review/step-1` label** for the first and **`--continue`** for
+  the second, over a fifth status value and over parsing step 1's comment.
+- **OWES:** `zayd` — **T-015** first (T-008 is blocked on it by owner ruling), then **T-014**. `hmdnah` —
+  T-008 step 2 after the fix, ⚠ **routed by hand**, since its step 1 predates the label. Not yet filed:
+  `tests/docs-budget.test.ts`'s newest-first check sorts the positional numbers it was handed, so it
+  passes while the order is wrong.
+- **RISK:** additive
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-step-routing-and-continue.md`
+- **REVIEW:** `hmdnah`, 2026-08-15 — **approval withheld**, one blocking finding, fixed on this branch
+  before re-review. ⚠⚠ **T-015's seat gate had been written against the `§0b` baton, which names the last
+  seat to FINISH rather than the builder** — `agent-finish.mjs` rewrites it on the `--review` path too,
+  so T-008's reads `hmdnah`/reviewer against a claim commit reading `zayd`. As written it admitted the
+  reviewer and refused the builder in every intended invocation. The criterion now derives the seat from
+  the task row (`builderFor`, symmetric with `reviewerFor`), and a second criterion that read the row
+  status from `main` — where the `review` flip has not landed — now reads it from the PR's branch. The
+  baton defect itself is recorded in `## Discovered`, unfixed.
+
 ### STEWARD-two-step-high-risk-review — review: D88 is sound, and two orchestrator files still called `risk: high` owner-gated — 2026-08-15 — seat: hmdnah
 
 - **CHANGED:** `docs/prompts/light-brahim-orchestrator.md` §4 and `## Never` — the pc twin of the §4c
@@ -928,60 +956,6 @@ is maintenance and does NOT get an entry of its own.**
   afterwards"* — attaching to an already-cyclic subtree is allowed, exactly as attaching to a broken
   ancestor is.
 
-### 86 | 2026-08-07 | Amer | the corner-drag, and the wrapper that was eating D23's transaction
-
-- **CHANGED:** `apps/web` only. **`tool/drag.ts` NEW** (`dragPlans` · `cornerDragPlan` ·
-  `cornerPeerCount`; PURE, no `DocumentContext`) · **`tool/drag.test.ts` NEW (+13)** ·
-  `edit/agentRefresh.ts` (**the fix**) · `edit/agentRefresh.test.ts` (**+2**) · `App.tsx`
-  (`RIBBON_WITHHELD` — `core.array` refuses by design, so its generated button is a control that cannot
-  work) · `current_state.md` · `docs/history.md` §C · `open_rulings.md` (Q8 answered, Q20 NEW).
-  **No frozen byte, no verb, no schema bump, no `packages/` file.**
-- **VERIFIED:** **753 green** across 87 files, six gates, real exit code 0. Revert-verified on the fix
-  (drop `options` again ⇒ RED, `expected undefined to deeply equal { transactionId: 'gesture-7' }`).
-  ⚠⚠ **AND IN THE BROWSER, BEFORE AND AFTER, ON THE REAL DEMO SCENE:** two `core.setParams` under ONE
-  `transactionId`, then one undo — **before:** `w1.end=[4500,500]` `w2.start=[4000,0]` (two undos
-  needed); **after:** both back, and one redo restores both. Control: the same edits with NO
-  `transactionId` behaved IDENTICALLY to the broken case, which is what proved it was the wrapper.
-- **FOUND:** ⚠⚠ **`withUiRefresh` WAS DROPPING `ExecuteOptions` — `execute` was declared
-  `(command, args)`, so `transactionId` never reached the document and D23's corner-drag undid ONE EDIT
-  AT A TIME.** Nothing failed: every edit applied, geometry right, both diagnostics `[]`. The casualty
-  was undo GRANULARITY — and the half-undone state of a corner-drag is a corner left **OPEN**, a model
-  the user never authored that the join resolver will faithfully resolve. **The document layer is
-  clean** — `agent.ts:178` forwards, `document.ts:396` stamps, `:416` pushes, `takeUndoGroup` groups
-  (pinned headlessly); it was four missing characters in `apps/web`. ⇒ **The four existing tests were
-  good tests that all asserted what the wrapper ADDS and none what it must not TAKE AWAY. For a
-  wrapper, assert the ARGUMENTS ARRIVE — the variadic tail is where things vanish silently.**
-  ⚠⚠ **Q8 ANSWERED: the refusal is RIGHT and must not be relaxed** (a placement beside a D52 baseline
-  moves the solid and leaves the join resolver, room solver and billed length at the old baseline —
-  a silent wrong schedule), **but the demo scene contains NOTHING `core.move` accepts** — both walls
-  REFUSED. ⇒ the hostility is in rendering a refusing verb as a generic ribbon button, not in the rule
-  (⇒ **Q20**). ⚠ **Measured correction to the dry run's reputation:** a REFUSED probe costs **1.6 ms
-  then 0.2 ms**, not ~100 ms — `checkPositioning` refuses BEFORE any geometry is staged; an ACCEPTED
-  one costs 28.5 ms. That is what makes probe-and-route affordable. ⚠ The planner therefore **does not
-  classify**: duplicating `positioningOf` in the app would be a second copy of the engine's own
-  `baselineOf` test, and it would drift silently.
-- **OWES:** Owner: **Q20 NEW** (which verbs deserve a generated ribbon button, given some refuse by
-  design) · **Q8 is answered above — strike or confirm**. Q11/Q12/Q13/Q17a/Q17b/Q17c/Q18/Q19 stand.
-  Zayd: ⚠ **the D23 transaction was never actually reaching the document through `window.bunyan`** —
-  any agent-side work that assumed grouping worked was running without it.
-- **RISK:** additive
-- **FULL:** `handoff/amer/2026-08-07-move-tool-corner-drag.md`
-- **REVIEW:** Reviewed by **Entry 87 + Entry 88** (Zayd) and **MERGED by Entry 89** (Amer, a later
-  session). Item 1 re-executed **three times** (Zayd twice, Amer once) — RED at
-  `expected undefined to deeply equal { transactionId: 'gesture-7' }`. **THREE defects found and all
-  three FIXED on the branch before merge:** ⚠⚠ **(1) `cornerDragPlan` matched peers on the 2D corner
-  ALONE — a D52 baseline is 2D in the LEVEL plane, so the wall directly upstairs shares x and y exactly
-  and was silently re-authored** (Entry 89; `DragTarget.containerId` is the missing third coordinate;
-  RED at `expected ['g1','g2','u1','u2'] to deeply equal ['g1','g2']`); **(2) the ABSENT-options test
-  was WEAK GREEN** — `toBeUndefined()` cannot separate *forwarded `undefined`* from *never passed*, and
-  it passed under the reverted wrapper; **ARITY is the observable** (Zayd wrote it, Amer pasted it);
-  **(3) `hostedPlan`'s `Math.hypot` is UNSIGNED** — two opposite drags propose an identical `offsetU`,
-  so the docblock's *"over-estimate"* mis-described a **wrong-direction** error. ⚠ And one CLAIM vs CODE
-  correction: **`positioningOf` IS exported from `@bunyan/document`** (since Entry 72), so the prompt's
-  *"not exported"* premise was false — the design survives on the sharper reason, that the app would
-  still have to re-encode the refusal GRAPH. ⚠ **The GL gizmo did NOT ship** — the planner, the
-  corner-drag grouping and the transaction did; Entry 89 built the handles on top.
-
 ---
 
 ## §8 — Generated
@@ -990,16 +964,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **STEWARD-two-step-high-risk-review (hmdnah, 2026-08-15)** |
-| branch · tip · tree | `brahim/2026-08-15-two-step-high-risk-review` · `29388c4` · clean |
-| open PRs | #24 brahim/2026-08-15-two-step-high-risk-review · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| **newest entry** | **STEWARD-step-routing-and-continue (brahim, 2026-08-15)** |
+| branch · tip · tree | `brahim/2026-08-15-step-routing-and-continue` · `ca176c2` · clean |
+| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
 | suite | **836 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 9 files changed, 346 insertions(+), 56 deletions(-) (9 files) |
-| docs budget | current_state 83.4/96.0 KB · §7 31.3/32.0 KB · abstracts 10/10 · bodies 41 |
+| diff vs origin/main | 6 files changed, 182 insertions(+), 68 deletions(-) (6 files) |
+| docs budget | current_state 80.2/96.0 KB · §7 28.1/32.0 KB · abstracts 10/10 · bodies 42 |
 
 _Generated 2026-08-15 by `pnpm state`._
 

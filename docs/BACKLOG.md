@@ -83,14 +83,15 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 > **Decomposed 2026-08-15 (Entry 91); the four owner rulings landed the same day.** Q17a, Q17c, Q18 and
 > Q19 are ruled (**D83**–**D86**), so **T-007, T-008, T-009 and T-011 are `ready`** — three of them
 > `risk: high`, which means a two-step review that never batches (D88), and T-011 is
-> `contract-touching`, so the owner merges that one. **T-010** still waits on T-009; **T-005** and
-> **T-006** still wait on PR **#16**.
+> `contract-touching`, so the owner merges that one. **T-010** still waits on T-009; **T-005** now waits on
+> **T-018**.
 >
-> ⚠ **#16 and #17 predate `T-nnn` and get no row** — they are claimed via `agent-start.mjs --review` off
-> the open-PR list. Rows waiting on them use `blocked-by:`, not `depends-on:`, which `canClaim` reads
-> mechanically and can only close over a `T-nnn`. ⚠⚠ **That claim is not true of the script yet** — see
-> the `## Discovered` entry: `--review` only routes a PR whose title carries a `T-nnn`, so both are
-> currently unclaimable by any reviewer seat.
+> ⚠ **PRs #16 and #17 predated `T-nnn` and were closed, 2026-08-15, by owner ruling** — both were stale
+> enough against `main` (real merge conflicts, #17's including a modify/delete conflict on the
+> `scripts/prompt-sync.mjs` D82 removed) that rebasing meant re-litigating design choices `main` has since
+> moved past. Their work is re-decomposed fresh as **T-018** (D66 lazy-build design + measurement) and
+> **T-019** (the move-tool gizmo + corner-drag), against current `main` rather than ported from either
+> branch.
 >
 > `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is not decomposed here — the freeze has not
 > happened, and rows nobody may claim bury rows somebody must.
@@ -101,7 +102,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-002 | ready   | The two-candidate-line intersection snap                      | apps-web | pc      | normal | T-001      |
 | T-003 | ready   | The in-app open-source licences screen                        | apps-web | pc      | normal | —          |
 | T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?      | document | box     | normal | —          |
-| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built    | document | box     | normal | —          |
+| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built    | document | box     | normal | T-018      |
 | T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint          | apps-web | pc      | normal | T-005      |
 | T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref       | document | box     | normal | —          |
 | T-008 | ready   | Q19 — the belongs-to deletion reconciliation                  | document | box     | high   | —          |
@@ -111,6 +112,11 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-012 | ready   | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
 | T-013 | ready   | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
 | T-014 | ready   | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
+| T-015 | ready   | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
+| T-016 | ready   | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |
+| T-017 | ready   | `docs-budget.test.ts`'s newest-first check verifies itself    | infra    | box     | normal | —          |
+| T-018 | ready   | D66's lazy-build design doc + measurement, reproduced         | document | box     | normal | —          |
+| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`      | apps-web | pc      | normal | —          |
 
 ---
 
@@ -197,17 +203,15 @@ quantifies over the model must build what it is about to report, or declare it.
   prediction that was wrong) · `docs/decisions.md` D66
 - verify: `pnpm verify`
 - done-when:
-  - ⚠ **the unmeasured claim is measured FIRST:** does `save` read built state at all? Entry 90 wrote
-    _"it should not — it writes the recipe — but that is a claim, not a measurement"_ and asked the next
+  - ⚠ **the unmeasured claim is measured FIRST:** does `save` read built state at all? T-018's design doc
+    says _"it should not — it writes the recipe — but that is a claim, not a measurement"_ and asks this
     session to check before relying on the paragraph. Do that before choosing anything;
   - FORCE or DECLARE is chosen per aggregate (`projectQuantities`, schedules, the Clean Delta, `save`)
     and the choice is justified against the measurement above;
   - ⚠ **`save` is not a design call** — a save that silently omits unbuilt elements is data loss, not a
     reporting shortfall. If the measurement says `save` touches built state, it FORCES;
   - a test that fails in the absence of the fix, revert-verified.
-- depends-on: —
-- blocked-by: **PR #16** (Entry 90) must merge — `implements:` names a design document that is on that
-  branch and not on `main`. `brahim`'s merged-PR sweep promotes this row.
+- depends-on: T-018
 - area: document · machine: **box** · risk: **normal**
 
 ### T-006 — D66 §3a/b — the keep-live set and a lazy first paint
@@ -221,11 +225,10 @@ quantifies over the model must build what it is about to report, or declare it.
   - first paint calls `rebuildOnly(visible)`, ordered by container: the camera's level, then outward;
   - **no new API, and no frozen byte moves** — `rebuildOnly` already ships and `releaseShape` is frozen;
   - the first-paint improvement is measured **in the real browser**, on this machine, and reported as a
-    number against Entry 90's 64.5% deferrable figure;
+    number against T-018's deferrable-fraction figure;
   - ⚠ eviction is **not** built here — §3d rules it unnecessary at the measured 0.31 GB heap
     (_"build lazily; evict later, or never"_).
 - depends-on: T-005
-- blocked-by: **PR #16** (Entry 90), as T-005.
 - area: apps-web · machine: **pc** · risk: **normal**
 
 ### T-007 — Q17c — a dangling `designOptionId` becomes a broken reference
@@ -330,16 +333,21 @@ so the owner merges this one as well as ruling it.
 
 ### T-012 — `--review` routes a PR whose title carries no `T-nnn`
 
-`scripts/agent-start.mjs` calls `reviewerFor` only when the PR title matches `^T-\d{3}`, so PRs **#16**
-and **#17** print `reviewer: ?` and are unclaimable by any reviewer seat. This backlog's own header note
-says they are claimed off the open-PR list, which the script does not implement.
+`scripts/agent-start.mjs --review` calls `reviewerFor` only when the PR title matches `^T-\d{3}` (line 395) — narrower than `seats.mjs`'s own `titleRoutes`/`PR_TITLE_RE`, which also accepts `STEWARD: `.
+**Every `STEWARD:`-titled PR recurs into this gap, not only the two PRs that first found it** — PR #25
+needed `hmdnah` to hand-claim it twice, because a steward turn is never a `T-nnn`, and a steward turn is
+the routine case, not an edge case (`AGENTS.md §1.3`). #16 and #17 predate the scaffolding that enforces
+`titleRoutes` at PR-creation time (`793a1f0`) and were closed, 2026-08-15, stale enough (real conflicts
+against `main`) that the owner chose re-decomposition over rebasing through this mechanism (T-018,
+T-019) — they no longer motivate the fix; recurring `STEWARD:` review-routing does.
 
 - implements: `AGENTS.md` §0 (identity is role + machine) and §1.2 (review is routed by machine) ·
   `scripts/seats.mjs`'s `reviewerFor`/`machineOf` · this file's `## Discovered` entry of 2026-08-15
 - verify: `pnpm verify`
 - done-when:
   - a PR with no `T-nnn` in its title routes to the reviewer on **the machine its work was executed on**,
-    derived from the branch's seat prefix (`zayd/…` ⇒ box ⇒ `hmdnah`, `amer/…` ⇒ pc ⇒ `khalihlna`);
+    derived from the branch's seat prefix (`zayd/…` ⇒ box ⇒ `hmdnah`, `amer/…` ⇒ pc ⇒ `khalihlna`,
+    `brahim/…` ⇒ box ⇒ `hmdnah`) — this is the `STEWARD:` case, not only the legacy one;
   - ⚠ **the fallback derives the machine, never widens it** — a browser-only PR must not become claimable
     by a headless seat, which is the failure `machine:` exists to prevent;
   - a branch prefix naming no known seat routes to nobody and says so, rather than defaulting;
@@ -389,8 +397,12 @@ for a PR that had had one review turn of the two D88 requires. The reviewer corr
 - done-when:
   - `--review` resolves the claimed task's `risk:` field from `docs/BACKLOG.md` and takes a `--step 1|2`,
     refusing a `risk: high` PR that names no step;
-  - on step 1 the row stays `review`, no approve/merge command is printed, and the `NEXT TURN: REVIEW
-ONLY` banner is **left standing** — it is what routes step 2;
+  - on step 1 the row stays `review`, no approve/merge command is printed, and the PR gets a
+    **`review/step-1` label** — that label is what routes step 2 (D88 as amended);
+  - `agent-start.mjs --review` reads the label and tells the reviewer which step it is running, refusing
+    to guess when a `risk: high` PR carries none;
+  - ⚠ **the label is created if absent** — `gh pr edit --add-label` fails on a label the repo does not
+    define, and `review/step-1` does not exist today;
   - on step 2 the row goes `done` and the two commands print as they do today;
   - a `risk: normal` PR is unchanged, and `--step` on one is refused rather than ignored;
   - ⚠ **an unreadable or absent `risk:` field is a REFUSAL, never a default to `normal`** — the same skip
@@ -402,6 +414,135 @@ ONLY` banner is **left standing** — it is what routes step 2;
 > `risk: high` — this is the gate that decides whether other gates run. ⚠ Its own review runs under the
 > **old** script, so step 1 must check the row's status by hand.
 
+### T-015 — `agent-start.mjs --continue <T-nnn>` — the branch returns to its builder
+
+D88 says a defect either review step proves goes back to the builder on the existing `§0b` claim. Nothing
+implements it: `agent-start.mjs` refuses a named task whose row is not `ready`, `seats.readyFor`
+enumerates `ready` rows only, and a claim reading `finished — PR open, awaiting review` is refused as
+_"not an incomplete turn to continue"_.
+
+- implements: `docs/decisions.md` **D88** (as amended) · `REVIEW.md` §"Two steps" ·
+  `scripts/agent-start.mjs`'s claim path · `scripts/seats.mjs`'s `canClaim`
+- verify: `pnpm verify`
+- done-when:
+  - `--continue <T-nnn>` checks the task's branch out and leaves the row at `review`;
+  - ⚠⚠ **the admitted seat is DERIVED from the task row, never read from the `§0b` baton** — a new
+    `builderFor(root, taskId)` in `seats.mjs`, symmetric with `reviewerFor`: resolve the task's
+    `machine:`, then `registry.find(r => r.role === 'builder' && r.machine === m)`, with the same `any`
+    fallback shape `reviewerFor` already carries. Not `area:` — this file's own definition of that field
+    (above) says it is a reading-profile hint, never a claim filter, and hardcoding `apps-web ⇒ amer,
+else zayd` would diverge from `canClaim`'s machine gate the moment a row's `area:` and `machine:`
+    disagree. **Measured 2026-08-15: the baton names the last seat to FINISH, not the builder** — T-008's
+    reads `seat: hmdnah / role: reviewer` while its claim commit reads `claim: T-008 by zayd (box)`,
+    because `agent-finish.mjs` rewrites the baton on the `--review` path too. A gate on the baton admits
+    the reviewer and refuses the builder in every intended invocation;
+  - ⚠ **it refuses for any other seat** — `--continue` must not become a second door onto work someone
+    else is holding;
+  - **it requires an open PR whose title names the task, and reads the row status from that PR's
+    branch** — the `ready`→`review` flip lives on the unmerged branch, so a gate reading the working tree
+    after `git checkout main` reads `ready` and refuses every real case;
+  - the finish path prints no `gh pr create` line when the PR is already open — it prints the PR's own
+    URL instead;
+  - ⚠ **`--continue` never widens what a plain claim may take** — revert-verified that a `ready` row
+    belonging to another seat is still refused through both doors;
+  - revert-verified: without the fix, resuming a finished claim on a `review` row is refused.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> ⚠ **T-008 is waiting on this** — its two review defects go back to `zayd` through this route, by owner
+> ruling, rather than being fixed off-protocol first.
+
+### T-016 — `§0b`'s baton carries the builder separately from the current holder
+
+Owner ruling 2026-08-15: fix the baton itself, not only route around it (T-015). `current_state.md §0b`
+names only the seat that finished the CURRENT turn — after any review turn that is the reviewer, and the
+builder's identity survives only in the claim commit message, never in `§0b` (`## Discovered`,
+2026-08-15).
+
+- implements: `current_state.md §0b` · `scripts/agent-finish.mjs`'s baton-write step
+- verify: `pnpm verify`
+- done-when:
+  - the baton block carries a `builder` field distinct from `seat`/`role`, written once at the claim
+    (`agent-start.mjs`) and never overwritten by a later `--review` finish;
+  - `agent-finish.mjs`'s `--review` path updates `seat`/`role`/`status` and leaves `builder` as the
+    claiming turn wrote it;
+  - a plain (non-`--review`) finish sets `builder` to the finishing seat, matching a first-time build's
+    current behaviour;
+  - revert-verified: without the fix, a review-turn finish on a fixture reproduces the measured defect —
+    `builder` overwritten with the reviewer's seat.
+- depends-on: T-015
+- area: infra · machine: **box** · risk: **high**
+
+> Sequenced after T-015 because both write `agent-finish.mjs`'s baton step; running them in parallel
+> branches would conflict there.
+
+### T-017 — `docs-budget.test.ts`'s "newest-first" check verifies its own construction, not order
+
+`parseAbstracts` assigns `n = 1000 - i` to every new-scheme (`T-nnn`/`STEWARD-slug`) entry by its
+position in the walk alone (`docs-state.mjs`, "SYNTHETIC SORT KEYS"). `docs-budget.test.ts`'s "numbers
+entries uniquely and monotonically" case then asserts those same positionally-derived numbers are
+descending — true by construction, whatever §7's real order is. Not filed until now
+(`current_state.md`, 2026-08-15).
+
+- implements: `tests/docs-budget.test.ts`'s "numbers entries uniquely and monotonically" case
+- verify: `pnpm verify`
+- done-when:
+  - the newest-first check compares an independently-authored signal — each entry's own `date:` field —
+    never the positional `n` derived from the same walk;
+  - two same-date entries pass in either relative order — the field has day granularity, not enough to
+    order same-day entries;
+  - revert-verified: a fixture with an out-of-date-order new-scheme entry (an older date above a newer
+    one) fails the check today's version passes.
+- depends-on: —
+- area: infra · machine: **box** · risk: **normal**
+
+### T-018 — D66's lazy-build design doc + measurement, reproduced against `main`
+
+`docs/design/P5_step9_D66_lazy_build_design.md` and `tests/d66-lazy-build-measure.test.ts` existed only on
+closed PR #16 (14 commits stale, real conflicts) and never landed on `main`. `T-005`/`T-006` both
+`implements:` this doc.
+
+- implements: `docs/decisions.md` D66 · `current_state.md §1a`'s open cold-load row
+- verify: `pnpm verify`
+- done-when:
+  - the design doc answers, measured fresh against `main` rather than ported from the closed PR: what
+    fraction of a cold load is FORCED vs. deferrable; whether a partially-built document agrees with a
+    fully-built one on `nodeId`s/`refs`/quantities, including across a join (a wall whose corner partner
+    is never built — `resolveJoins` must read the recipe, never the built set, or the doc says so and why
+    that is unsafe); whether the build half needs a new API, or `rebuildOnly` already suffices;
+  - the measurement instrument is a committed test file, not a one-off script;
+  - §3a (keep-live set) / §3b (first paint) / §3c (force vs. declare) are each named as a section T-005
+    and T-006 can cite by number;
+  - revert-verified: the instrument's identity-comparison assertion fails if `Part.node` is read instead
+    of `Part.refs` — a weak-green shape the closed PR's own review caught once already, worth keeping as
+    a tripwire.
+- depends-on: —
+- area: document · machine: **box** · risk: **normal**
+
+### T-019 — The move-tool gizmo + corner-drag, redone against `main`
+
+Baseline-endpoint handles and single-corner drag (D80's move verbs, `unbuildable`-checked and
+`transactionId`-atomic) shipped on closed PR #17 (9 commits stale, conflicts with the prompt-sync removal
+D82 made). `current_state.md §5` (Amer, item 3) still names this open.
+
+- implements: `docs/decisions.md` D80 · `docs/design/P4.5_interaction_model_design.md` ·
+  `current_state.md §5` (Amer, item 3)
+- verify: `pnpm verify` (headless half) + a browser run (the gesture, undo, orbit-suppression)
+- done-when:
+  - `baselineHandles` mints one handle per authored endpoint of the selection, pure (projection injected,
+    asserted headlessly);
+  - a corner-drag matches peers by the **full authored position, not a 2D coincidence** — two stacked
+    walls sharing an x/y at different `containerId`s must not move together, a named regression case (the
+    closed PR's own two-out-of-three-coordinates defect);
+  - both endpoints move under **one `transactionId`**, one undo;
+  - `brokenRefs()`/`unbuildable()` stay empty through drag, drop and undo;
+  - browser-measured: `changeFeed()` growth during a drag is zero (no kernel call mid-gesture); a fixed
+    world point's screen projection is byte-identical before/during/after (orbit suppression);
+  - ⚠ **out of scope, named so it is not assumed shipped:** whole-element drag (`dragPlans()` + `dryRun`
+    probe-and-route) is not wired to any gesture here — a later task.
+- depends-on: —
+- area: apps-web · machine: **pc** · risk: **normal**
+
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
@@ -411,6 +552,15 @@ _(unplanned findings land here — never claimed in the same turn that found the
   "blocked on a ruling" go stale because the ruling gets recorded elsewhere.
 - **2026-08-15 — `scripts/state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync`
   with no `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
+- **2026-08-15 — ⚠⚠ the `§0b` baton names the last seat to FINISH, not the seat that claimed.**
+  `agent-finish.mjs` rewrites it with the finishing seat on the `--review` path too, so a reviewed branch
+  ends up claiming its reviewer built it: T-008's baton reads `seat: hmdnah / role: reviewer` while
+  `git log` reads `claim: T-008 by zayd (box)`. After any review turn, the builder's identity survives
+  only in the claim commit message, not in `§0b`. Found reviewing PR #25, where a `T-015` criterion had
+  been written against the baton and would have admitted the reviewer while refusing the builder. ⚠
+  **`T-015` now derives the
+  seat from the task row instead**, which routes around this rather than fixing it; whether the baton
+  should carry the builder separately from the current holder is a steward decision not yet taken.
 - **2026-08-15 — `agent-start.mjs --review` cannot route a PR whose title carries no `T-nnn`, so neither
   open PR is claimable by any reviewer seat.** Measured: `--seat hmdnah --review` prints
   `reviewer: ?` for both #16 and #17 and stops at _"No open PR routes to this seat"_, because
@@ -449,11 +599,14 @@ _(unplanned findings land here — never claimed in the same turn that found the
   refused as _"not an incomplete turn to continue"_ (line 576) — so a builder cannot re-enter a row left
   at `review`. A builder that reaches the branch by hand then finishes on the non-`--review` path, which
   prints a `gh pr create` line for a PR that is already open. ⚠ Not covered by `T-014`, whose
-  `done-when:` items are all on the `--review` path.
+  `done-when:` items are all on the `--review` path. ✅ **RULED 2026-08-15 — `D88` as amended: the route
+  is `agent-start.mjs --continue <T-nnn>`, promoted to `T-015`.** T-008 waits for it.
 - **2026-08-15 — the `NEXT TURN: REVIEW ONLY` banner cannot route a review turn.** `agent-finish.mjs`
   writes it into the task branch's `current_state.md` and clears it there on the `--review` run, while
   `agent-start.mjs` reads it after `git checkout main` — so it has never existed on `main`
   (`git log -S` over `origin/main -- current_state.md` returns nothing) and routing comes from the PR
   title via `reviewerFor`. ⚠ `T-014`'s second `done-when:` rests on the banner being _"what routes step
   2"_, which it is not; leaving it standing on the branch changes nothing until the banner reaches a
-  session that starts on `main`.
+  session that starts on `main`. ✅ **RULED 2026-08-15 — `D88` as amended: a `review/step-1` PR label
+  routes step 2, and `T-014`'s criterion is rewritten to it.** The banner keeps its existing job of
+  telling the next session on that branch that the turn is review-only.
