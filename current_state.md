@@ -646,9 +646,11 @@ is maintenance and does NOT get an entry of its own.**
   passed on an empty measurement. ⚠ `§1a`'s _"smallest model prices ~5% **high**"_ is backwards — 39
   elements price 38.8–39.6 ms/el against 41.8–44.0 at the larger sizes in all four runs, so the marginals
   **fall** with size and the warmup cause predicts the opposite sign. Neither unseats the conclusion.
-- **OWES:** ⚠⚠ **the owner — #20 is approved on the evidence but UNMERGEABLE from here:** the box holds
-  only `Davidian-Abdo`, the account that opened it, so GitHub refused the approval and the row stays
-  `review`. `docs/BACKLOG.md` `## Discovered` carries it; the fix is a credential, not code. `amer` —
+- **OWES:** ⚠ **every seat — confirm `gh api user` is your own account before approving or merging.** The
+  approve step first refused (`Can not approve your own pull request`): the box held only the account
+  that opened #20. Owner ruling, same day — a per-turn `GH_TOKEN` from `~/.config/bunyan/hmdnah.token`,
+  no global switch — so #20 was approved and merged on `narutousomaki741` after all. GitHub blocks a
+  self-approval but **not** a self-merge, which is the half a seat has to check itself. `amer` —
   `unverified here: the same cold load inside a real browser tab`, carried forward untouched. `brahim` —
   the flatness verdict is still **printed, not asserted**; four runs put the marginal spread at
   5.9–16.8%, the number a ratio gate would have to clear.
@@ -684,10 +686,9 @@ is maintenance and does NOT get an entry of its own.**
   regression would still pass this file. ⚠ The projection is a **37× extrapolation** from 273 elements.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-15-T-004-build-cost-flatness.md`
-- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED on the evidence, `RISK: additive`,
-  two defects fixed on the branch — but NOT MERGED and not approved on GitHub:** the box holds only the
-  account that opened this PR, so the approval was refused and merging from it would be the Entry 74
-  self-merge. The entry above is the record.
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED and MERGED**, `RISK: additive`, two
+  defects fixed on the branch, on `narutousomaki741` — the account that did not open it. The entry above
+  is the record.
 
 ### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
 
@@ -985,15 +986,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-004 (hmdnah, 2026-08-15)** |
-| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `45ffbed` · dirty |
+| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `435af5f` · dirty |
 | open PRs | #20 task/T-004-does-per-element-build-cost-stay-flat-fr · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
 | suite | **833 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 858 insertions(+), 23 deletions(-) (8 files) |
-| docs budget | current_state 83.8/96.0 KB · §7 31.7/32.0 KB · abstracts 8/10 · bodies 37 |
+| diff vs origin/main | 8 files changed, 886 insertions(+), 24 deletions(-) (8 files) |
+| docs budget | current_state 83.8/96.0 KB · §7 31.8/32.0 KB · abstracts 8/10 · bodies 37 |
 
 _Generated 2026-08-15 by `pnpm state`._
 

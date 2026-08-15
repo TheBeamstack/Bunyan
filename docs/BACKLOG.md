@@ -342,10 +342,17 @@ _(unplanned findings land here — never claimed in the same turn that found the
   caught it; `gh pr merge` is **not** similarly blocked for a repo admin, so the next reviewer turn that
   does not check first will land the Entry 74 self-merge (`AGENTS.md §6`) believing it is a crossed
   approval. ⚠ It went unnoticed because #18/#19 were merged by the owner and no reviewer seat had yet
-  reached the approve step. The fix is a credential, not code — recorded here, not claimed this turn.
+  reached the approve step. **RESOLVED same day by owner ruling — env-scoped, not a global
+  `gh auth switch`:** a `narutousomaki741` PAT lives at `~/.config/bunyan/hmdnah.token` (mode 600) and a
+  seat exports `GH_TOKEN=$(cat …)` for its own turn, so the box's default identity stays
+  `Davidian-Abdo` and each seat's account is chosen per turn rather than left global. #20 was approved
+  and merged under it. ⚠ The durable rule this leaves: **a reviewer confirms `gh api user` is its own
+  seat's account before approving or merging** — GitHub blocks a self-approval but not a self-merge.
 - **2026-08-15 — `agent-finish.mjs`'s `ready`→`review` status flip fails `format:check`, so every builder
   turn opens a red PR.** The longer word goes into a cell padded for `ready`, leaving one trailing space
   that `prettier --check` — CI step 3 — rejects; nothing else in the diff is at fault. Measured on **PR
   #20**, the first task row the script has ever flipped: `pnpm verify` was green in the finish run and CI
   failed naming `docs/BACKLOG.md` alone. ⚠ The fix belongs in the writer — re-align the row, or format the
-  file it just edited — not in each branch, and not by widening the committed column.
+  file it just edited — not in each branch, and not by widening the committed column. **FIXED in PR #20**
+  by `hmdnah`: `setRowStatus` is hoisted, exported, and repads to the width it found
+  (`tests/protocol/agent-finish.test.ts`).
