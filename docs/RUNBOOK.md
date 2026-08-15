@@ -36,6 +36,32 @@ supersedes `open_rulings.md` Q13's original objection — a second account now e
 **public, Pro, or neither**. ⚠ Going public invites the first external PR, and Q11/Q12 (`CLA.md`'s
 counterparty and a lawyer's read) are unruled.
 
+⚠⚠ **RULED 2026-08-15 — NEITHER (D87).** The repository stays private and unprotected, so **nothing on
+GitHub's side refuses a self-approving merge**. The `agent-start.mjs` identity guard (`T-013`) is the
+only enforcement. ⚠ **Q11 must be answered before this is revisited** — an unnamed CLA counterparty is
+safe only while nothing external can arrive.
+
+## Seat credentials
+
+**Ruled 2026-08-15 (D87): env-scoped, never `gh auth switch`.** A seat whose GitHub account is not the
+box default reads a token file for its turn:
+
+```bash
+export GH_TOKEN=$(cat ~/.config/bunyan/hmdnah.token)
+```
+
+The file is `~/.config/bunyan/<seat>.token`, mode **600**, and lives outside the repo. With `GH_TOKEN`
+unset the identity is the box default (`Davidian-Abdo`), which is what `zayd` and `brahim` want.
+
+⚠ **`gh auth switch` is rejected**: the active account is global in `hosts.yml`, and this box runs
+`zayd`, `hmdnah` and `brahim`, so a concurrent seat would inherit whichever identity was switched to
+last. ⚠⚠ **Verify before any write call** — `gh api user --jq .login` must equal the seat's account from
+`node scripts/seats.mjs account <seat>`. A silent fallback to the default identity is a self-approval,
+which is why `T-013` makes this a refusal rather than a convention.
+
+The token needs scope `repo` (classic), or Contents read/write + Pull requests read/write + Metadata
+read (fine-grained, scoped to this repository). The account must already be a collaborator with `push`.
+
 Run this the day either changes:
 
 ```bash
