@@ -181,7 +181,7 @@ All four axes now have a number. **Two are closed; two remain open and are named
 | **WASM heap** | ✅ **FITS** — 16.2 KB/live-solid, dead-linear ⇒ **0.31 GB at 10k**, inside a tab (Entry 29, re-measured Entry 54). |
 | **Draw calls / frame time** | ✅ **CLOSED (Entry 63)** — renderer batching: **~30,700 draw calls → 2** at the 10k target (606 ms → ~10–14 ms; 1.6 → ~80 fps). |
 | **Edit latency** | ✅ incremental edit ~23 ms compute, **FLAT vs scale**; the ~570 ms post-edit render went with the batching rewrite. |
-| **Cold load** | ⚠ **OPEN — ~3 min at the 10k target, STILL UNUSABLE.** The D29 cache buys **2.07×** (24.86 → 12.00 ms/solid), not an order of magnitude. The levers that could close it are `instantiate` (RESERVED), lazy build/eviction (D66 — additive) and MT (D8, ruled v1.0.x). |
+| **Cold load** | ⚠ **OPEN — ~3 min at the 10k target, STILL UNUSABLE.** The D29 cache buys **2.07×** (24.86 → 12.00 ms/solid), not an order of magnitude. ⚠⚠ **PER-ELEMENT BUILD COST IS FLAT, MEASURED (T-004, `tests/document-build-cost-scale.test.ts`): 43.2–43.8 ms/element marginal, ordinary least squares of cold-load ms on element count over four sizes (39/117/195/273 elements), R² ≥ 0.9996, intercept within ±140 ms of zero, two runs 1.3% apart.** The local marginals run 41.5–45.6 ms per additional element — a spread of 5.9% and 9.2% on the two runs — and the only systematic deviation is the smallest model pricing ~5% **high**, which is the opposite direction from superlinearity. ⇒ **~7.2–7.3 min uncached at 10,000 elements**, the same order as D66's 6.35 min and, divided by the cache's measured 2.07×, **3.5 min** against the ~3 min this row already carries. ⚠ The range measured is 39–273 elements and the target is 10,000, so the projection is a 37× extrapolation that the flat marginals entitle rather than prove. The levers that could close it are `instantiate` (RESERVED), lazy build/eviction (D66 — additive) and MT (D8, ruled v1.0.x). |
 | **Join resolution** | ✅ **CLOSED (D73)** — the O(N²) scan is an O(N) spatial index: **4757.7 ms → 27.2 ms at 1984 walls**, per-wall cost FLAT (14–17 µs) from 1k to 10k. |
 
 ⚠ *Verification is most of a cached load's cost — re-measuring every sub-shape to prove the tokens belong
@@ -627,6 +627,35 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-004 — per-element build cost is flat from 39 to 273 elements, and 10,000 projects to 7.2 min — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `tests/document-build-cost-scale.test.ts` **NEW (+1)** — four sizes of the reference
+  building (1/3/5/7 storeys), each on a fresh OCCT kernel, timing `rebuildAll()` on a context cold-loaded
+  from `.bnn`. `current_state.md §1a`'s cold-load row carries the measurement and is **not re-coloured**.
+- **VERIFIED:** `pnpm verify` green. Two full runs of the harness: slope **43.81** and **43.24
+  ms/element**, 1.3% apart, R² 0.9998 / 0.9996, intercept within ±140 ms of zero on an 11.7 s total. Local
+  marginals 41.5–45.6 ms per additional element, spread 5.9% and 9.2%. ⇒ **7.30 / 7.21 min projected at
+  10,000 elements, uncached.**
+- **FOUND:** Per-element build cost **is** flat across 39–273 elements, so Entry 90's 64.5% deferrable
+  figure is worth that same fraction of the cold load at the target — about 4.7 of the projected 7.3 min,
+  leaving 2.6 min, which is still not a load time. Two estimators were needed, not one: a least-squares
+  line has a slope whether or not the data is a line, so the flatness verdict is read off the local finite
+  differences and the fit's R² is only its witness. The 7.2 min uncached reaches D66's 6.35 min from a
+  different direction, and at the cache's measured 2.07× it is 3.5 min against the ~3 min `§1a` already
+  carried. The one
+  systematic deviation is the smallest model pricing ~5% **high**, the opposite direction from
+  superlinearity. Authoring's marginal is 43.1 ms/element against the cold load's 43.8, so command
+  dispatch is not a measurable share of authoring at this scale.
+- **OWES:** `hmdnah` — this PR; there is no fix to revert, so the re-run is the check and the harness
+  reproduced to 1.3% here. `amer` — `unverified here: the same cold load inside a real browser tab`; every
+  number above is Node on the box, as `§1a`'s existing cold-load numbers already are. `brahim` — a call on
+  whether the flatness verdict should become a ratio assertion on the marginal spread, which would be
+  immune to absolute machine speed; it is printed and not asserted today, so a later superlinear
+  regression would still pass this file. ⚠ The projection is a **37× extrapolation** from 273 elements.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-004-build-cost-flatness.md`
+- **REVIEW:** AWAITING REVIEW
+
 ### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
 
 - **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
@@ -922,16 +951,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **STEWARD-scaffolding (brahim, 2026-08-15)** |
-| branch · tip · tree | `brahim/2026-08-14-establish-five-seat-scaffolding` · `0a3779d` · clean |
+| **newest entry** | **T-004 (zayd, 2026-08-15)** |
+| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `cbe5ff0` · dirty |
 | open PRs | #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **827 green** · 93 files · 260 suites |
+| suite | ⚠⚠ 831/832 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 45 files changed, 5020 insertions(+), 1529 deletions(-) (45 files) |
-| docs budget | current_state 77.1/96.0 KB · §7 26.5/32.0 KB · abstracts 6/10 · bodies 35 |
+| diff vs origin/main | 1 file changed, 36 insertions(+), 7 deletions(-) (1 files) |
+| docs budget | current_state 80.5/96.0 KB · §7 28.9/32.0 KB · abstracts 7/10 · bodies 36 |
 
 _Generated 2026-08-15 by `pnpm state`._
 
