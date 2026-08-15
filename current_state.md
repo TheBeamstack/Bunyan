@@ -630,8 +630,12 @@ is maintenance and does NOT get an entry of its own.**
 ### STEWARD-step-routing-and-continue — D88 asserted two mechanisms no script implements — 2026-08-15 — seat: brahim
 
 - **CHANGED:** `docs/decisions.md` (**D88 amended**) · `docs/BACKLOG.md` (T-014's second `done-when:`
-  moved off the banner onto the label; **T-015** NEW; both `## Discovered` entries closed) · `REVIEW.md`
-  §"Two steps". `AGENTS.md` untouched — §1.2 already points at `REVIEW.md`, and it is at its line cap.
+  moved off the banner onto the label; **T-015** NEW, then fixed twice on review — `builderFor` now
+  derives from `machine:`, not `area:`; **T-016**, **T-017**, **T-018**, **T-019** NEW; T-012 reframed
+  around recurring `STEWARD:` PRs rather than #16/#17; both original `## Discovered` entries closed) ·
+  `REVIEW.md` §"Two steps". PRs **#16** and **#17** closed (owner ruling: stale, real conflicts against
+  `main`; their work re-decomposed as T-018/T-019 instead of rebased). `AGENTS.md` untouched — §1.2
+  already points at `REVIEW.md`, and it is at its line cap.
 - **VERIFIED:** `pnpm verify` green. The banner finding was re-checked before amending: the only two
   `NEXT TURN: REVIEW ONLY` hits on `main` are prose inside §7 abstracts.
 - **FOUND:** Reviewing PR #24 proved both of D88's mechanisms absent. ⚠⚠ **The `NEXT TURN: REVIEW ONLY`
@@ -640,10 +644,9 @@ is maintenance and does NOT get an entry of its own.**
   cannot re-enter its own branch either:** `agent-start.mjs` refuses a row that is not `ready` and a claim
   already marked finished. Owner ruled a **`review/step-1` label** for the first and **`--continue`** for
   the second, over a fifth status value and over parsing step 1's comment.
-- **OWES:** `zayd` — **T-015** first (T-008 is blocked on it by owner ruling), then **T-014**. `hmdnah` —
-  T-008 step 2 after the fix, ⚠ **routed by hand**, since its step 1 predates the label. Not yet filed:
-  `tests/docs-budget.test.ts`'s newest-first check sorts the positional numbers it was handed, so it
-  passes while the order is wrong.
+- **OWES:** `zayd` — **T-015** first (T-008 is blocked on it by owner ruling), then **T-014**, **T-016**
+  (depends-on T-015), **T-018**. `amer` — **T-019**. `hmdnah` — T-008 step 2 after the fix, ⚠ **routed by
+  hand**, since its step 1 predates the label.
 - **RISK:** additive
 - **FULL:** `handoff/brahim/2026-08-15-STEWARD-step-routing-and-continue.md`
 - **REVIEW:** `hmdnah`, 2026-08-15 — **approval withheld**, one blocking finding, fixed on this branch
@@ -653,7 +656,11 @@ is maintenance and does NOT get an entry of its own.**
   reviewer and refused the builder in every intended invocation. The criterion now derives the seat from
   the task row (`builderFor`, symmetric with `reviewerFor`), and a second criterion that read the row
   status from `main` — where the `review` flip has not landed — now reads it from the PR's branch. The
-  baton defect itself is recorded in `## Discovered`, unfixed.
+  baton defect itself is recorded in `## Discovered`; owner ruling took it up as **T-016**.
+  **`hmdnah`, 2026-08-15 — APPROVED and MERGED** (`30ca130`), `RISK: additive`, after a second round found
+  `builderFor` still keyed on `area:` (fixed) and a misattributed `AGENTS.md §0b` citation (dropped —
+  that block is `current_state.md`'s). CI stayed red on both rounds from an unrelated GitHub Actions
+  billing failure; merged on green local `pnpm verify` (836+91), per the same precedent as PR #24.
 
 ### STEWARD-two-step-high-risk-review — review: D88 is sound, and two orchestrator files still called `risk: high` owner-gated — 2026-08-15 — seat: hmdnah
 
