@@ -21,13 +21,29 @@ export default tseslint.config(
       parserOptions: {
         projectService: {
           // Build/config/CI scripts live outside the typecheck projects.
-          allowDefaultProject: ['vitest.config.ts', 'eslint.config.js', 'scripts/*.mjs'],
+          //
+          // ⚠ A `.d.mts` belongs here ONLY WHEN NOTHING under `tests/**/*.ts` imports its sibling
+          // `.mjs` — once something does, the project service finds it THROUGH that import, and
+          // listing it here too is a conflict ("included by allowDefaultProject but also found in the
+          // project service"). `docs-state.d.mts`/`frozen-surface.d.mts`/`seats.d.mts` are all reached
+          // this way (`tests/docs-budget.test.ts`, `tests/freeze-boundary.test.ts`,
+          // `tests/protocol/seats.test.ts`). `agent-start.d.mts` is not — nothing under `tests/**`
+          // imports `agent-start.mjs` directly, since `agent-start.test.ts` exercises it by SPAWNING
+          // it, not importing it (see that file's own header for why) — so it needs listing here.
+          allowDefaultProject: [
+            'vitest.config.ts',
+            'eslint.config.js',
+            'scripts/*.mjs',
+            'scripts/agent-start.d.mts',
+            'tests/protocol/*.mjs',
+          ],
           // ⚠ typescript-eslint caps the default project at EIGHT files and then fails the lint with
-          // an error about its own internals, not about your code. `scripts/*.mjs` (7) plus the two
-          // config files is 9, so entry 88's `prompt-sync.mjs` was the one that tipped it over.
-          // Raised rather than worked around: these are small, and the alternative is excluding a
-          // gate script from type-aware linting — which is the opposite of what a gate wants.
-          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 20,
+          // an error about its own internals, not about your code. Entry 88's `prompt-sync.mjs` was
+          // the first to tip it over; Entry 91's new scripts and the protocol-test fixture are the
+          // second round of the same growth. Raised rather than worked around: these are small, and
+          // the alternative is excluding a gate script from type-aware linting — the opposite of what
+          // a gate wants.
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 30,
         },
         tsconfigRootDir: import.meta.dirname,
       },
@@ -57,8 +73,11 @@ export default tseslint.config(
     },
   },
   {
-    // CI scripts run under Node, not in the browser.
-    files: ['scripts/**/*.mjs'],
+    // CI scripts run under Node, not in the browser. The protocol-test fixture (tests/protocol/*.mjs)
+    // is the same shape for the same reason — plain JS, no build step, spawned/imported by the tests
+    // that exercise it — so it shares the rule-offs below rather than fighting type-aware linting on
+    // code TypeScript necessarily infers `any` for.
+    files: ['scripts/**/*.mjs', 'tests/protocol/*.mjs'],
     languageOptions: {
       globals: { process: 'readonly', console: 'readonly' },
     },

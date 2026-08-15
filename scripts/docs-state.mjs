@@ -80,6 +80,17 @@ export function section7(src) {
  * `endOfLine: "auto"` precisely so `format:check` is green on both. A parser that only reads LF is
  * the same assumption, unstated.
  */
+// ⚠⚠ TWO HEADING SCHEMES, LIVE AT ONCE, AND THAT IS DELIBERATE (D82; AGENTS.md).
+// Entries 1-90 keep the legacy `### N | date | agent | headline` heading verbatim — never rewritten,
+// per AGENTS.md's own cutover note. Entry 91 onward (the five-seat protocol) writes
+// `### T-nnn — title — date — seat: seat` for a builder/reviewer turn, or
+// `### STEWARD-<slug> — title — date — seat: seat` for a steward turn that names no task.
+// Both schemes coexist inside §7's newest-10 window for as long as any legacy entry has not yet
+// rotated out, so the parser must read either without the caller having to know which it got.
+const LEGACY_HEADING = /^### (\d+) \| (\d{4}-\d{2}-\d{2}) \| (\w+) \| (.+)$/;
+const NEW_HEADING =
+  /^### (T-\d{3}|STEWARD-[a-z0-9-]+) — (.+) — (\d{4}-\d{2}-\d{2}) — seat: ([a-z]+)$/;
+
 export function parseAbstracts(src) {
   const sec = section7(src);
   const lines = sec.split(/\r?\n/);
@@ -87,18 +98,37 @@ export function parseAbstracts(src) {
   let cur = null;
   let open = null; // the field whose bullet we are still inside
   for (const line of lines) {
-    const h = line.match(/^### (\d+) \| (\d{4}-\d{2}-\d{2}) \| (\w+) \| (.+)$/);
-    if (h) {
+    const legacy = line.match(LEGACY_HEADING);
+    const fresh = !legacy && line.match(NEW_HEADING);
+    if (legacy || fresh) {
       if (cur) out.push(cur);
-      cur = {
-        n: +h[1],
-        date: h[2],
-        agent: h[3],
-        headline: h[4].trim(),
-        fields: {},
-        fieldsFull: {},
-        raw: '',
-      };
+      cur = legacy
+        ? {
+            id: legacy[1],
+            n: +legacy[1],
+            scheme: 'legacy',
+            date: legacy[2],
+            agent: legacy[3],
+            seat: legacy[3],
+            headline: legacy[4].trim(),
+            fields: {},
+            fieldsFull: {},
+            raw: '',
+          }
+        : {
+            id: fresh[1],
+            // ⚠ Assigned once every heading in §7 has been seen — see below. `null` here is a
+            // mid-parse placeholder, never a value a caller reads.
+            n: null,
+            scheme: 'T',
+            date: fresh[3],
+            agent: fresh[4],
+            seat: fresh[4],
+            headline: fresh[2].trim(),
+            fields: {},
+            fieldsFull: {},
+            raw: '',
+          };
       open = null;
       continue;
     }
@@ -118,6 +148,20 @@ export function parseAbstracts(src) {
     else if (open) open = null;
   }
   if (cur) out.push(cur);
+
+  // ⚠⚠ SYNTHETIC SORT KEYS FOR THE NEW SCHEME, CHOSEN SO EVERY EXISTING `.n`-BASED CALLER KEEPS
+  // WORKING UNCHANGED. `T-nnn`/`STEWARD-<slug>` carry no comparable number of their own — a steward
+  // turn has no task id at all, and task numbers are not guaranteed to increase turn-over-turn once
+  // both builders and the steward mint entries independently. What IS guaranteed, by construction, is
+  // array order: entries are always prepended (see `docs-budget.test.ts`'s own "newest-first" gate),
+  // so the earliest new-scheme entry encountered while walking top-to-bottom is the newest one. `1000`
+  // is not tuned to "usually" clear the legacy numbers — §7 holds at most `BUDGET.maxAbstracts` (10)
+  // entries at once, so no legacy number can ever coexist with a new-scheme one within a few hundred
+  // of it, let alone a thousand.
+  const newOnes = out.filter((a) => a.n === null);
+  newOnes.forEach((a, i) => {
+    a.n = 1000 - i;
+  });
   return out;
 }
 

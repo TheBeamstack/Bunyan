@@ -1,0 +1,259 @@
+#!/usr/bin/env node
+/**
+ * scripts/reserved-classes.mjs — labels a PR with the owner-gated classes it falls into
+ * (`AGENTS.md §5`), so the routing is on the PR rather than in a reviewer's memory of §8's RISK row.
+ *
+ *   contract-touching  the frozen surface moved — via `riskVerdict()`/`diffSurface()`, the same
+ *                      functions `pnpm state` calls, so label and §8 cannot disagree
+ *   legal-figure       `CLA.md` changed (`open_rulings.md` Q11/Q12)
+ *   freeze             `tests/frozen-surface.snapshot.json` was re-baselined
+ *
+ * ⚠ `freeze` and `contract-touching` are independent: a re-baseline can leave the surface matching its
+ * new baseline, so a PR may carry either alone.
+ *
+ * ⚠ It routes, it does not block — the owner merges these. It DOES exit 1 when it cannot apply a label
+ * it decided on, because a silent no-op is indistinguishable from an additive PR.
+ *
+ * CLI
+ *   node scripts/reserved-classes.mjs                       report against origin/main, label nothing
+ *   node scripts/reserved-classes.mjs --pr 42               …and sync the labels on PR 42
+ *   node scripts/reserved-classes.mjs --base <sha>          explicit base (CI passes the PR's base)
+ *   node scripts/reserved-classes.mjs --json                machine-readable, for a caller
+ *   node scripts/reserved-classes.mjs --root DIR            run against DIR (tests)
+ */
+import { existsSync, readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { buildSurface, diffSurface } from './frozen-surface.mjs';
+import { riskVerdict } from './docs-state.mjs';
+
+const SELF_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+const SNAP_REL = 'tests/frozen-surface.snapshot.json';
+const CLA_REL = 'CLA.md';
+
+/**
+ * The three, in `AGENTS.md §5` order. `label` is the GitHub label this writes; `id` is what a caller
+ * matches on. ⚠ The label namespace is `needs-operator/` and not `owner/` because the loop prompts
+ * call the human the OPERATOR throughout (`docs/prompts/*-orchestrator.md`) — one word for one role.
+ */
+export const RESERVED_CLASSES = [
+  {
+    id: 'contract-touching',
+    label: 'needs-operator/contract-touching',
+    color: 'B60205',
+    description: 'The frozen surface moved — the owner merges this, not the reviewing seat.',
+  },
+  {
+    id: 'legal-figure',
+    label: 'needs-operator/legal-figure',
+    color: 'D93F0B',
+    description: 'Touches CLA.md — a legal/contractual figure is never invented by a seat.',
+  },
+  {
+    id: 'freeze',
+    label: 'needs-operator/freeze',
+    color: '5319E7',
+    description: 'Re-baselines the frozen surface — the P5 freeze itself.',
+  },
+];
+
+const byId = (id) => RESERVED_CLASSES.find((c) => c.id === id);
+
+function sh(cmd, args, cwd, fallback = null) {
+  try {
+    // ⚠ stderr is DISCARDED, and only here. Every call site treats a failure as "the thing is not
+    // there" and falls back — `git show <base>:<snapshot>` on a repo that has never been baselined is
+    // the ordinary case, not an error, and letting git's `fatal: path … does not exist` through would
+    // print a scary line under a green check. The VERDICT is never silent; only git's noise is.
+    return execFileSync(cmd, args, {
+      cwd,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return fallback;
+  }
+}
+
+/** Files changed between `base` and the working tree, via a merge-base (three-dot) diff. */
+function changedFiles(root, base) {
+  const out = sh('git', ['diff', '--name-only', `${base}...HEAD`], root);
+  // A dirty working tree is the LOCAL case (a seat running this before it commits). CI's tree is
+  // clean, so this adds nothing there and costs nothing.
+  const dirty = sh('git', ['diff', '--name-only', 'HEAD'], root, '') ?? '';
+  return [...new Set([...(out ?? '').split('\n'), ...dirty.split('\n')].filter(Boolean))];
+}
+
+function parseSnapshot(text) {
+  try {
+    const s = JSON.parse(text);
+    return s && typeof s.surface === 'object' && s.surface !== null ? s : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Detect every reserved class this diff falls into.
+ *
+ * Returns `{ base, classes, detail }` — `classes` is a list of ids, `detail` maps each id to the
+ * sentence a human needs to see. An empty `classes` means the PR is additive and merges on a
+ * cross-account approval, which is the ordinary case.
+ */
+export function detectReservedClasses(root = SELF_ROOT, { base } = {}) {
+  const baseRef =
+    base || sh('git', ['merge-base', 'origin/main', 'HEAD'], root, '') || 'origin/main';
+  const detail = {};
+  const classes = [];
+
+  // ── contract-touching ───────────────────────────────────────────────────────────────────────
+  // ⚠ Measured against the baseline AS IT EXISTS ON THE BASE, read from git — `state.mjs`'s Q15
+  // correction, for the identical reason: a working-tree baseline that this PR just rewrote would be
+  // measured against itself and report `additive` on the one kind of PR that must not be.
+  const current = buildSurface(root);
+  const baseSnap = parseSnapshot(sh('git', ['show', `${baseRef}:${SNAP_REL}`], root, '') ?? '');
+  const snapPath = join(root, SNAP_REL);
+  const workingSnap = existsSync(snapPath) ? parseSnapshot(readFileSync(snapPath, 'utf8')) : null;
+  const against = baseSnap ?? workingSnap;
+  const moved = [];
+  if (against) {
+    const d = diffSurface(against.surface, current);
+    moved.push(...d.changed, ...d.removed, ...d.added);
+  }
+  const verdict = riskVerdict(moved);
+  if (verdict.risk === 'contract-touching') {
+    classes.push('contract-touching');
+    detail['contract-touching'] = verdict.detail;
+  }
+
+  // ── legal-figure and freeze — both are "did this path change?" ──────────────────────────────
+  const changed = changedFiles(root, baseRef);
+  if (changed.includes(CLA_REL)) {
+    // ⚠ Reported at two strengths, and flagged at BOTH. `AGENTS.md §5.2` names the placeholder, so a
+    // diff that moves it is the class exactly; but the class is "a legal/contractual figure" and the
+    // cost of missing one is the one cost this repo cannot undo — `open_rulings.md` Q11/Q12's own
+    // ledger: *"a merged contribution cannot be un-merged, and a defective grant cannot be cured
+    // retroactively."* Over-labelling a typo fix costs the owner one click. Under-labelling costs the
+    // licence. So: any CLA.md change flags, and the detail says which kind it is.
+    const placeholders = (src) => (src.match(/<LEGAL ENTITY>/g) ?? []).length;
+    const beforeCount = placeholders(sh('git', ['show', `${baseRef}:${CLA_REL}`], root, '') ?? '');
+    const afterCount = placeholders(
+      existsSync(join(root, CLA_REL)) ? readFileSync(join(root, CLA_REL), 'utf8') : '',
+    );
+    classes.push('legal-figure');
+    detail['legal-figure'] =
+      beforeCount === afterCount
+        ? `CLA.md changed (the <LEGAL ENTITY> placeholder still appears ${afterCount}× — the figure itself is unmoved)`
+        : `CLA.md's <LEGAL ENTITY> placeholder count moved ${beforeCount} → ${afterCount} — the legal figure itself is being set`;
+  }
+  if (changed.includes(SNAP_REL)) {
+    classes.push('freeze');
+    detail['freeze'] =
+      `${SNAP_REL} was re-baselined — after P5 this may not move without an owner ruling`;
+  }
+
+  return { base: baseRef, classes, detail };
+}
+
+// ------------------------------------------------------------------------------------ labelling --
+
+/**
+ * Make the PR's `needs-operator/*` labels equal `want`, exactly — adding what is missing and
+ * REMOVING what no longer applies.
+ *
+ * ⚠ THE REMOVAL HALF IS THE ONE THAT MATTERS. A PR is amended: a seat drops the widened declaration,
+ * pushes, and the surface is additive again. Add-only labelling would leave the PR routed to the
+ * owner forever, and the owner would eventually learn that the label means nothing — a stale gate is
+ * indistinguishable from no gate, only slower.
+ *
+ * Throws when `gh` cannot apply the change. That is the failure this whole step is worth having.
+ */
+export function syncLabels(root, pr, want) {
+  const owned = RESERVED_CLASSES.map((c) => c.label);
+  const raw = sh('gh', ['pr', 'view', String(pr), '--json', 'labels'], root);
+  if (raw === null) {
+    throw new Error(
+      `gh could not read PR ${pr}. Is \`gh\` authenticated, and does the token carry \`repo\`?`,
+    );
+  }
+  const have = (JSON.parse(raw).labels ?? []).map((l) => l.name).filter((n) => owned.includes(n));
+  const add = want.filter((l) => !have.includes(l));
+  const remove = have.filter((l) => !want.includes(l));
+  if (!add.length && !remove.length) return { add, remove };
+
+  const args = ['pr', 'edit', String(pr)];
+  for (const l of add) args.push('--add-label', l);
+  for (const l of remove) args.push('--remove-label', l);
+  try {
+    execFileSync('gh', args, { cwd: root, encoding: 'utf8' });
+  } catch (e) {
+    throw new Error(
+      `could not apply labels to PR ${pr}: ${e.message}\n` +
+        `  Do the three labels exist on this repository? Create them with:\n` +
+        RESERVED_CLASSES.map(
+          (c) =>
+            `    gh label create ${c.label} --color ${c.color} --description ${JSON.stringify(c.description)}`,
+        ).join('\n') +
+        `\n  (docs/RUNBOOK.md §Reserved-class labels)`,
+    );
+  }
+  return { add, remove };
+}
+
+// ------------------------------------------------------------------------------------- dispatch --
+
+export function main(argv = process.argv.slice(2)) {
+  let root = SELF_ROOT;
+  let base;
+  let pr;
+  let asJson = false;
+  for (let i = 0; i < argv.length; i++) {
+    const t = argv[i];
+    if (t === '--root') root = argv[++i];
+    else if (t === '--base') base = argv[++i];
+    else if (t === '--pr') pr = argv[++i];
+    else if (t === '--json') asJson = true;
+    else {
+      console.error(`reserved-classes.mjs: unknown flag '${t}'`);
+      process.exit(2);
+    }
+  }
+
+  const result = detectReservedClasses(root, { base });
+  if (asJson) {
+    console.log(JSON.stringify(result, null, 2));
+  } else {
+    console.log(`Reserved-class scan — base ${result.base}`);
+    if (!result.classes.length) {
+      console.log('  none — RISK: additive, merges on a cross-account approval (AGENTS.md §5).');
+    } else {
+      for (const id of result.classes) {
+        console.log(`  ⚠ ${byId(id).label}`);
+        console.log(`      ${result.detail[id]}`);
+      }
+      console.log('');
+      console.log('  ⇒ OWNER-GATED. The reviewing seat approves; the owner merges (AGENTS.md §5).');
+    }
+  }
+
+  if (pr) {
+    const want = result.classes.map((id) => byId(id).label);
+    let moved;
+    try {
+      moved = syncLabels(root, pr, want);
+    } catch (e) {
+      console.error(`\n✖ ${e.message}`);
+      process.exit(1);
+    }
+    if (moved.add.length) console.log(`  + labelled: ${moved.add.join(', ')}`);
+    if (moved.remove.length)
+      console.log(`  - removed (no longer applies): ${moved.remove.join(', ')}`);
+    if (!moved.add.length && !moved.remove.length) console.log('  labels already correct.');
+  }
+}
+
+if (process.argv[1]?.replace(/\\/g, '/').endsWith('scripts/reserved-classes.mjs')) {
+  main();
+}

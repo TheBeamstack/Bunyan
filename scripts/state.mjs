@@ -4,7 +4,8 @@
  *
  * ⚠⚠ WHY. Before 2026-07-31 every one of these was typed by hand into prose and could drift silently:
  * `613 green` · `all five gates 0` · `21 ops + 3 reserved` · `51 types · 39 commands · 1 codec · 0 views`
- * · `SCENE_SCHEMA_VERSION 2` · the FRESH entry number in BOTH prompt files.
+ * · `SCENE_SCHEMA_VERSION 2` · the FRESH entry number in both prompt files (that last one, ⚠ AS OF
+ * ENTRY 91, no longer exists — see below).
  *
  * The `registries` line matters most. Counting what is actually registered — **51 types, 39 commands,
  * 1 codec (inside a test), 0 views** — is what exposed domain rule 5 as half-false: two of the four
@@ -12,16 +13,37 @@
  * been discharged on the assumption that they did. That count happened ONCE, during a sweep. Now it
  * happens every session.
  *
- * ⚠ WHAT IT WRITES, AND NOTHING ELSE:
- *   - `current_state.md`  §8, between the GENERATED markers
- *   - `<Agent>_Prompt.md` §2 FRESH block, for the RUNNING agent only — never the other's.
- *     (One writer per file. Two parallel sessions used to overwrite each other's FRESH silently.)
+ * ⚠ WHAT IT WRITES, AND NOTHING ELSE: `current_state.md` §8, between the GENERATED markers.
+ *
+ * ⚠⚠ SUPERSEDED 2026-08-14 (D82, Entry 91): this used to ALSO rewrite `<Agent>_Prompt.md`'s §2 FRESH
+ * block, for the running agent only. Prompt files are now fully stateless (`docs/BACKLOG.md` is the
+ * only "what's next" source), so there is nothing left to write there — `scripts/agent-start.mjs`'s
+ * measured-vs-claimed refusal answers "am I current?" instead, which is a script REFUSING a turn on
+ * disagreement rather than a session reading a number and deciding whether to trust it.
  *
  * Usage:
- *   pnpm state                 infer the agent from the git branch (zayd/… or amer/…)
- *   pnpm state --agent zayd    say it explicitly
+ *   pnpm state                 measure and write §8
+ *   pnpm state --check-only    measure, compare against the COMMITTED §8, exit 1 on disagreement.
+ *                              Writes nothing — this is what `agent-start.mjs` runs (Entry 91).
  *   pnpm state --rebaseline    ALSO rewrite the frozen-surface baseline. ⚠ OWNER-GATED after the
- *                              freeze: re-baselining is what the freeze forbids.
+ *                              freeze: re-baselining is what the freeze forbids. Incompatible with
+ *                              `--check-only`, which never writes.
+ *
+ * ⚠⚠ WHAT `--check-only` EXCUSES, AND WHY THOSE FIVE ROWS ONLY (Entry 91). §8 is compared row for
+ * row EXCEPT `branch · tip · tree` (describes WHERE the measurement was taken, not what it found —
+ * changes on every commit by construction), `open PRs` and `diff vs origin/main` (relative to a
+ * moving target — other PRs open and close, and `origin/main` advances, with no change to THIS
+ * commit's own content), `suite` (`.vitest-summary.json` is gitignored, so a fresh checkout has
+ * either a stale local artifact or none at all — it is a point-in-time report, not a reproducible fact
+ * of the committed tree), and `docs budget` (SELF-REFERENTIAL: its `current_state` figure is
+ * `size('current_state.md')`, read from disk BEFORE this run's own §8 write lands there — so the
+ * figure a write pass embeds always describes the file's size one generation before the write that
+ * embeds it, and a second, independent measurement pass a moment later correctly sees a different,
+ * larger number. Found BY this gate, on its own first real exercise — nothing before `--check-only`
+ * existed had ever compared a committed block against a fresh one closely enough to notice). Every
+ * other row is computed by static inspection of committed source alone (regex counts, the
+ * frozen-surface hash) and is therefore held to full agreement — a row that drifts there is either
+ * real drift or a hand-edited block, and both are exactly what this gate is for.
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 // ⚠ Imported explicitly rather than taken as a global: `eslint` does not declare Node globals for
@@ -38,14 +60,21 @@ import {
   MARKERS,
   BUDGET,
   entryBodies,
+  generatedBlock,
 } from './docs-state.mjs';
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const SELF_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const argv = process.argv.slice(2);
 const flag = (name) => {
   const i = argv.indexOf(`--${name}`);
   return i >= 0 ? (argv[i + 1]?.startsWith('--') ? true : (argv[i + 1] ?? true)) : undefined;
 };
+const checkOnly = flag('check-only') !== undefined;
+// ⚠ `--root` exists for the SAME reason `agent-start.sh --root` exists in mdo: a test cannot assert
+// "the refusal fires on a mismatched block" against the live repository, only against a throwaway
+// fixture tree. Nothing it enables weakens a check — every path below still runs in full against
+// whatever root it was given.
+const ROOT = flag('root') && typeof flag('root') === 'string' ? flag('root') : SELF_ROOT;
 
 const sh = (cmd, fallback = '') => {
   try {
@@ -184,7 +213,7 @@ const baselineRewritten =
   baseSnap !== null &&
   workingSnap !== null &&
   Object.values(diffSurface(baseSnap.surface, workingSnap.surface)).some((l) => l.length > 0);
-const rebaselining = flag('rebaseline') !== undefined;
+const rebaselining = flag('rebaseline') !== undefined && !checkOnly;
 const {
   risk,
   label: riskLabel,
@@ -243,14 +272,11 @@ const kb = (n) => (n / 1024).toFixed(1);
 const csLf = committed(cs);
 const sec7Len = csLf.slice(csLf.indexOf('## §7'), csLf.indexOf('## §8')).length;
 
-const agent = (flag('agent') || (branch.startsWith('amer/') ? 'amer' : 'zayd')).toString();
-const AgentName = agent[0].toUpperCase() + agent.slice(1);
-
 // ── write §8 ─────────────────────────────────────────────────────────────────────────────────────
 const generated = `
 | | |
 | --- | --- |
-| **newest entry** | **${newest.n} (${newest.agent}, ${newest.date})** |
+| **newest entry** | **${newest.id} (${newest.seat}, ${newest.date})** |
 | branch · tip · tree | \`${branch}\` · \`${tip}\` · ${dirty} |
 | open PRs | ${prLine} |
 | suite | ${testLine} |
@@ -269,6 +295,44 @@ if (!cs.includes(m.begin) || !cs.includes(m.end)) {
   console.error('✖ current_state.md is missing its GENERATED markers.');
   process.exit(1);
 }
+
+if (checkOnly) {
+  // ⚠ Row-for-row against the COMMITTED block, excusing exactly the four rows the header names.
+  // A table row is `| label | value |` — normalise by dropping the excused labels and trailing
+  // whitespace, never by re-deriving structure the file itself already gives us.
+  const EXCUSED = [
+    'branch · tip · tree',
+    'open PRs',
+    'suite',
+    'diff vs origin/main',
+    'docs budget',
+  ];
+  const norm = (block) =>
+    block
+      .split(/\r?\n/)
+      .map((l) => l.replace(/\s+$/, ''))
+      .filter((l) => l.startsWith('|') && !EXCUSED.some((label) => l.startsWith(`| ${label} `)))
+      .join('\n');
+  const claimedBlock = generatedBlock(cs, m.begin, m.end);
+  const claimed = claimedBlock ? norm(claimedBlock.body) : null;
+  const measured = norm(generated);
+  if (claimed === null || claimed !== measured) {
+    console.error('✖ MEASURED STATE DISAGREES WITH CLAIMED STATE — refusing.\n');
+    console.error('  claimed (committed §8):');
+    console.error((claimed ?? '  (no generated block at all)').replace(/^/gm, '    '));
+    console.error('\n  measured (right now):');
+    console.error(measured.replace(/^/gm, '    '));
+    console.error(
+      '\n  The repository is the authority, not the prose. Either the previous turn did not run\n' +
+        '  `pnpm state` before committing, or someone hand-edited the generated block.\n' +
+        '  Resolve by:  pnpm state   (rewrites the block from reality), then re-read `current_state.md`.',
+    );
+    process.exit(1);
+  }
+  console.log('✔ measured state matches claimed state.');
+  process.exit(0);
+}
+
 cs =
   cs.slice(0, cs.indexOf(m.begin) + m.begin.length) +
   '\n' +
@@ -277,42 +341,17 @@ cs =
   cs.slice(cs.indexOf(m.end));
 writeFileSync(csPath, withFileEol(readFileSync(csPath, 'utf8'), cs));
 
-// ── write THIS agent's FRESH, and only this agent's ──────────────────────────────────────────────
-const promptPath = join(ROOT, `${AgentName}_Prompt.md`);
-if (existsSync(promptPath)) {
-  let p = readFileSync(promptPath, 'utf8');
-  const f = MARKERS.fresh;
-  if (p.includes(f.begin) && p.includes(f.end)) {
-    const fresh = `
-\`\`\`
-FRESH:  Newest entry in \`current_state.md\` §7 = **ENTRY ${newest.n}**
-        (${newest.agent}, ${newest.date}) — ${newest.headline}
+// ⚠⚠ THERE IS NO FRESH BLOCK TO WRITE, AS OF ENTRY 91 (D82's stateless-prompt decision).
+// Every prompt file is now the four static facts only — no §2 DYNAMIC block, no per-agent FRESH
+// marker, no "which entry is main on" tracking here. That question is answered by
+// `scripts/agent-start.mjs`'s measured-vs-claimed refusal instead: it re-measures the repository and
+// refuses to start a turn on any disagreement with what `current_state.md`'s own §8 claims, which is
+// a strictly stronger guarantee than a session eyeballing a FRESH number and deciding whether to
+// trust it. `MARKERS.fresh` stays exported (harmless, currently unused) rather than deleted outright,
+// so a reader of `docs-state.mjs` mid-migration can still see what the retired mechanism looked like.
 
-        ⇒ After \`git pull\`: §8's "newest entry" == ${newest.n}  ⇒ you are current, start TASK.
-          HIGHER than ${newest.n} ⇒ the other agent has merged: read every abstract after
-          ${newest.n} before starting, and re-check that TASK is still the right thing to do.
-
-        ⚠⚠ THIS LINE NEVER PINS A COMMIT HASH, AND CANNOT. A commit's SHA is a hash of its own
-        content, so any hash written in this file can only ever name an EARLIER commit than the
-        one carrying it. A hash match is a check that CANNOT PASS. **The entry number is the
-        check** — it moves only when real work lands. (Git answers "what is the tip?"; this
-        answers "am I behind?", which git cannot.)
-
-        Tree at generation: \`${branch}\` · \`${tip}\` · ${dirty} · RISK: ${riskLabel}
-\`\`\`
-`;
-    p =
-      p.slice(0, p.indexOf(f.begin) + f.begin.length) +
-      '\n' +
-      fresh +
-      '\n' +
-      p.slice(p.indexOf(f.end));
-    writeFileSync(promptPath, withFileEol(readFileSync(promptPath, 'utf8'), p));
-  }
-}
-
-console.log(`✔ current_state.md §8 and ${AgentName}_Prompt.md FRESH regenerated.`);
-console.log(`  newest entry ${newest.n} · RISK: ${riskLabel} · ${testLine}`);
+console.log(`✔ current_state.md §8 regenerated.`);
+console.log(`  newest entry ${newest.id} (${newest.seat}) · RISK: ${riskLabel} · ${testLine}`);
 if (risk === 'contract-touching') {
   console.log('  ⚠⚠ contract-touching ⇒ the OWNER merges this PR, not the reviewing agent.');
 }

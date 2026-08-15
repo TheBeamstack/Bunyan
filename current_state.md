@@ -1,24 +1,26 @@
 # Bunyan — `current_state.md`
 
-**What this file is.** The **cross-session, cross-agent, cross-machine handoff log** for Bunyan. It lives
-in the repo and travels with the code between the local PC (Amer) and the Hetzner dev box (Zayd), per
-`cross_projects_policy.md` §9.
+**What this file is.** The **cross-session, cross-seat, cross-machine handoff log** for Bunyan. It lives
+in the repo and travels with the code between the local PC (`amer`, `khalihlna`) and the Hetzner dev box
+(`zayd`, `hmdnah`, `brahim`), per `cross_projects_policy.md` §9.
 
-**Why it exists.** So the next agent does **not** re-derive context, does **not** make false assumptions
+**Why it exists.** So the next seat does **not** re-derive context, does **not** make false assumptions
 about what is built, and does **not** redo verified work.
 
-**⚠ IT IS READ IN FULL, BY BOTH AGENTS, ON EVERY SESSION — so its length is a cost paid on every run.**
+**⚠ IT IS READ IN FULL, BY EVERY SEAT, ON EVERY SESSION — so its length is a cost paid on every run.**
 That is why it is now a **router with a hot core** rather than an archive. It carries what you need to act
 accurately; everything else is one hop away and named below.
 
 | If you need… | Go to |
 | --- | --- |
-| the full text of a ruling (D1–D80) | **`docs/decisions.md`** |
-| the session that earned a ruling — with its measurements | **`handoff/<agent>/`** (newest 10) or **`docs/history.md`** (older) |
+| the full text of a ruling (D1–D82) | **`docs/decisions.md`** |
+| who am I, and what may I claim? | **`AGENTS.md`** + `docs/seats/README.md` + `<Seat>_Prompt.md` |
+| what is ready to claim, and what depends on what | **`docs/BACKLOG.md`** |
+| the session that earned a ruling — with its measurements | **`handoff/<seat>/`** (newest 10) or **`docs/history.md`** (older) |
 | *"why is this shaped this way?"* · *"has this been tried?"* | **`docs/history.md`** |
 | what the domain MEANS | **`docs/contracts/core_logic.md`** |
 | how it is BUILT (layers, protocol, registries) | **`docs/contracts/architecture.md`** |
-| what SHIPS first (scope, D1–D39) | **`docs/contracts/V1.0.0_spec.md`** |
+| what SHIPS first (scope, D1–D66) | **`docs/contracts/V1.0.0_spec.md`** |
 | the phases, exit criteria, and **THE FREEZE GATE** | **`docs/contracts/v1.0.0_imp_plan.md`** |
 | what the owner still owes a decision on | **`open_rulings.md`** |
 | how to review a PR | **`REVIEW.md`** |
@@ -75,16 +77,60 @@ truth for the B-Rep; meshes and 2D views are disposable. Everything else follows
 **never a geometric index.** It is assigned when an op runs and propagated forward, never recovered by
 matching geometry afterwards.
 
-**Actors** — roles are by *environment*, not seniority:
+**Actors** — roles are by *environment*, not seniority. **Adopted 2026-08-14 (D82):** the two agents became
+five seats, with review moved onto an account the matching builder does not hold — see `AGENTS.md`.
 
-| Actor | Where | Owns |
-| --- | --- | --- |
-| **Architect** (the owner/human) | — | Contracts, scope, AEC correctness, merge arbitration. **All contract changes are owner-gated**, and the owner merges any PR whose `RISK` is `contract-touching`. |
-| **Amer** (agent) | Local PC, **real browser** | Browser hot path: three.js/WebGPU, tessellation consumer + picking, React shell, ribbon/property panels, persistence adapters, service worker/PWA, `window.bunyan` wiring. |
-| **Zayd** (agent) | Hetzner dev box, **headless** | Kernel: OCCT WASM builds, worker API, naming resolver, regression harness + offline golden seeding, IFC importer, CI, release pipeline. **And the document model — `@bunyan/document`, `@bunyan/types`, `@bunyan/sketch-solver`.** |
+| Seat | Role | Where | GitHub account | Owns |
+| --- | --- | --- | --- | --- |
+| **Architect** (the owner/human) | — | — | — | Contracts, scope, AEC correctness, merge arbitration. **All contract changes are owner-gated**, and the owner merges any PR whose `RISK` is `contract-touching`. |
+| **brahim** (agent) | steward/orchestrator | Hetzner dev box | `davidian-abdo` | Backlog readiness, sequencing, spec integrity, `docs/decisions.md`, closing the loop between turns. **Never builds.** |
+| **Amer** (agent) | builder | Local PC, **real browser** | `narutousomaki741` | Browser hot path: three.js/WebGPU, tessellation consumer + picking, React shell, ribbon/property panels, persistence adapters, service worker/PWA, `window.bunyan` wiring. |
+| **khalihlna** (agent) | reviewer | Local PC, **real browser** | `davidian-abdo` | Review of anything only a browser can verify — `apps/web` PRs, re-executed, not merely read. |
+| **Zayd** (agent) | builder | Hetzner dev box, **headless** | `davidian-abdo` | Kernel: OCCT WASM builds, worker API, naming resolver, regression harness + offline golden seeding, IFC importer, CI, release pipeline. **And the document model — `@bunyan/document`, `@bunyan/types`, `@bunyan/sketch-solver`.** |
+| **hmdnah** (agent) | reviewer | Hetzner dev box, **headless** | `narutousomaki741` | Adversarial review of box-verifiable claims — kernel, document model, CI. |
 
 Also read the box-local `../cross_projects_policy.md` and `../last_session_work.md` **if you are on the dev
 box** (they are not in this repo and do not travel).
+
+### §0b — Live claim (this branch) — NEW at Entry 91
+
+**The claim is pushed before work begins**, ported from mdo's ADR-0007 Δ8. Before Entry 91 there was no
+claim mechanism at all — two builders coordinated purely through `TASK`/`FRESH` prose and an ordinary git
+conflict on §7 if they ever collided. With five seats and two machines that is no longer good enough: an
+unpushed claim is invisible across machines, and two sessions can start the same `T-nnn`.
+
+This block is the claim on **this branch only**; the full picture across every live branch is
+
+```
+git ls-remote --heads origin 'refs/heads/task/*'
+```
+
+which `scripts/agent-start.mjs` prints and reads (each branch's own `current_state.md` carries its own
+copy of this block) before deciding what a builder may claim. `scripts/agent-finish.mjs` writes the final
+`status` line and pushes it as the last act of a turn.
+
+<!-- BEGIN BATON — written by agent-start.mjs; pushed before work begins -->
+
+| Field | Value |
+|---|---|
+| seat | `brahim` |
+| role | steward |
+| machine | box |
+| task | `STEWARD-scaffolding` |
+| branch | `brahim/2026-08-14-establish-five-seat-scaffolding` |
+| claimed-at | 2026-08-15T02:01:38.728Z |
+| status | finished — PR open, awaiting review |
+
+<!-- END BATON -->
+
+## BLOCKED
+
+*(none)*
+
+<!-- Judged with HTML comments and blank lines REMOVED, so a note explaining this gate cannot itself
+     trip it (the mdo lesson, ported rather than rediscovered). Prose counts: write `*(none)*` and
+     nothing else, or record a real block. A `## BLOCKED` entry stops BOTH orchestrator loops — the
+     mechanism this is for, not a general-purpose notes field. -->
 
 ### §0a — DISTANCE TO FREEZE ≠ DISTANCE TO REVIT (read this before you feel "almost done")
 
@@ -226,6 +272,33 @@ repealed D1.
 > `tests/units-rule7.test.ts`. Full per-rule detail: `docs/contracts/core_logic.md` §8 (each rule carries
 > its own sweep note) and `docs/history.md`.
 
+### §1d — Tooling/process traps, carried forward from the retired §2 DYNAMIC blocks (Entry 91)
+
+Every prompt file lost its `NEW` section at Entry 91 (D82: prompts are now fully stateless — see
+`AGENTS.md`). Nothing in it was deleted from the record: the full original text is permanently in
+`handoff/zayd/` and `handoff/amer/`'s existing bodies, exactly as any other entry's detail already is.
+What follows is the small subset that was genuinely a **general, durable** lesson rather than a note
+about code at one commit — the same "hot core vs. archive" split this file already applies everywhere.
+
+- **A gate's hard part is the SKIP, not the check** — a check that disables itself on a broken input
+  reports green, which is worse than no gate. For every skip branch, ask which broken state also takes
+  it, and grep the run log for the gate's own name — a green tick means the job exited 0, not that your
+  step ran.
+- **Ask what a validator PROVES, not what it is FOR.** *"Both writers require the host"* proves the
+  target exists, never that it is not the element itself — a reference that resolves can still loop.
+- **Vite HMR hands you a stale pointer listener, and it looks exactly like a broken feature.** A
+  `useEffect` with a narrow dependency array does not re-run on a hot update, so a closure can keep
+  referencing a previous component instance's refs. Hard-reload after any edit to viewport/interaction
+  code before trusting a browser result — a hot update is not a fresh app.
+- **React batches; a handler that closes over state reads a stale value.** Read live values from a ref,
+  not from a closed-over variable, in anything that fires across a render boundary.
+- **Never re-introduce a sweep whose cost is set by query VOLUME rather than by what an index holds** —
+  the same shape on both sides of the D19 boundary: `SnapIndex.near()` (apps/web) and the join spatial
+  index (D73, kernel side) were the same defect, found independently, twice.
+- **A measurement is pinned to a commit; a follow-up commit un-measures it.** Re-run the numbers in a
+  PR body after any follow-up commit before quoting them again — a stale figure that was honest when
+  written is a live defect once anything downstream of it has changed.
+
 ---
 
 ## §2 — Contract status (get this wrong and you break the build model)
@@ -334,7 +407,8 @@ AND geometry from `scene.json` alone · **D19 is a MACHINE check** · the model 
   That second half is a separate, owner-gated unit with real design surface (what INVALIDATES a cache).
   ⚠⚠ **The measured payoff is 2.07×, not an order of magnitude** — recommendation on the desk: **do not
   wire it for v1.0.0** (`open_rulings.md` Q6).
-- **No 2D views** — the plan/section unit is designed and **blocked on rulings Q1–Q3** (`open_rulings.md`).
+- ✅ **2D views SHIP — the plan/section unit landed in Entry 77** (D81, PR #5;
+  `tests/plan-section.test.ts`, `views` in `scene.ts`).
 - **No IFC import** (P6; the op is reserved).
 - ✅ **`LICENSE`/CLA/attribution — DONE (Entry 74), and going public is no longer blocked BY THE REPO.**
   AGPL-3.0 verbatim · `NOTICE` (OCCT's exception is CONDITIONAL on a prominent notice, and we ship its
@@ -379,6 +453,7 @@ AND geometry from `scene.json` alone · **D19 is a MACHINE check** · the model 
 | D41 | **`core.issueRevision` is a Command.** | D66 | The 4-axis scale measurement. The heap-eviction hook needs **nothing reserved** — additive by construction. |
 | D42 | Rule 4 is ALL-OR-NOTHING + a universal `dryRun`; `planDelete()` DELETED. | D67–D77 | **The backward-sweep rulings** — nine dirty rules found and fixed. Each is a separate ruling; see `docs/decisions.md`. |
 | D43 | An unknown OR FUTURE type: the document OPENS, the element is `failed`+visible+PRESERVED VERBATIM. | D78–D80 | The schedules body · the schedule CRUD · **the five move verbs + `transactionId` atomicity.** |
+| D81 | The plan/section unit ships `mode:'cut'` only; `SectionCurve.nodeId?` and `ParamField.refTo`'s four members are reserved. | D82 | **THE BUILD MODEL BECOMES FIVE SEATS** — `brahim`/`zayd`/`hmdnah`/`amer`/`khalihlna`, crossed GitHub accounts, `T-nnn` succeeds `Entry N` going forward. See `AGENTS.md`. |
 
 ---
 
@@ -397,12 +472,11 @@ ruling"* — with a machine holding the line afterwards.
 
 ### Zayd (kernel / document / headless)
 
-1. **The plan + section** (`docs/design/P5_step6C_plan_section_design.md` §8) — **the moment Q1–Q3 are
-   ruled, and not before**: Q1 decides the SHAPE of the unit, so building first is building the wrong
-   thing. ⚠ Read §5's test table BEFORE writing the fixture — every criterion has a way to pass while
-   FALSE, and the top one is a one-plain-wall fixture. It must carry a curtain wall, an opening and a
-   design option. ⚠ The `views` promotion is Entry 68's verbatim **including its correction — no
-   `emptyScene()` entry.**
+1. ✅ **DONE (Entry 77) — THE PLAN + SECTION UNIT** (`docs/design/P5_step6C_plan_section_design.md`, D81).
+   Ships `mode:'cut'` only; `SectionCurve.nodeId?` and `ParamField.refTo`'s four members are reserved.
+   ⚠ Its fixture carries a curtain wall, an opening and a design option — §5's test table names, per
+   criterion, how a one-plain-wall fixture passes while the criterion is false. Open work is now
+   `docs/BACKLOG.md`.
 2. ✅ **DONE (Entry 74) — the going-public housekeeping.** `LICENSE` AGPL-3.0, `CLA.md`, `NOTICE` +
    `licenses/`, and the `license` field in all ten manifests. What is left is not repo work: **Q11
    (`<LEGAL ENTITY>`) and Q12 (a lawyer's read of the CLA)**, both owner-only, both blocking the first
@@ -552,6 +626,31 @@ first, then the body. **Open a full body only when an abstract line touches your
 exceeds budget. When it does: move the oldest abstracts' summaries into `docs/history.md`, **after
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
+
+### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
+
+- **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
+  `needs-operator/*` labels; PR title routing + `MERGEABLE`), run by a new `pr-shape` CI job ·
+  `tests/protocol/{reserved-classes,pr-ready}.test.ts` NEW (+17) · `seats.mjs` gained
+  `PR_TITLE_RE`/`titleRoutes`, called by `agent-finish.mjs` · `docs/RUNBOOK.md` NEW ·
+  `docs/BACKLOG.md` decomposed (T-001…T-011) · `AGENTS.md §7` NEW — the owner's writing standard,
+  binding on every seat and subagent · `REVIEW.md`, `docs/seats/README.md` and `Brahim_Prompt.md`
+  corrected where they still described the pre-D82 model · `open_rulings.md` Q13 rewritten.
+  Covers two sessions: `f984e89` built the mechanics on the pc, this one finished them.
+- **VERIFIED:** `pnpm verify` green. The new suites execute against real fixture git histories rather
+  than grepping the scripts. `pnpm docs:check` measured at 6 files / 69 tests **before** any change,
+  which is what proved `tests/protocol/` was already wired into CI.
+- **FOUND:** Branch protection is unavailable on this repository — `403 Upgrade to GitHub Pro or make
+  this repository public` on both the protection and rulesets APIs, with an `ADMIN` token; Q13's
+  account objection is satisfied and a plan objection replaced it. `current_state.md §3`/`§5` called
+  the plan/section unit blocked on Q1–Q3 after it shipped in Entry 77. `REVIEW.md` still taught the
+  pre-D82 self-review loop, and `docs/seats/README.md` still described the retired `§2 DYNAMIC` block
+  under a heading saying it carried no state.
+- **OWES:** the owner — rulings on Q17a, Q17c, Q18, Q19, and the public/Pro/neither call on Q13.
+  `hmdnah` — PR #16. `khalihlna` — PR #17. Beyond T-004 nothing is `ready` for box.
+- **RISK:** additive
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
+- **REVIEW:** pending — `STEWARD:` PR, this branch.
 
 ### 88 | 2026-08-08 | Zayd | the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
 
@@ -823,17 +922,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **88 (Zayd, 2026-08-08)** |
-| branch · tip · tree | `zayd/2026-08-08-e88-prompt-sync-gate` · `0018acb` · dirty |
-| open PRs | #15 zayd/2026-08-08-e88-prompt-sync-gate · #13 amer/2026-08-07-move-tool-corner-drag |
-| suite | **776 green** · 88 files · 239 suites |
+| **newest entry** | **STEWARD-scaffolding (brahim, 2026-08-15)** |
+| branch · tip · tree | `brahim/2026-08-14-establish-five-seat-scaffolding` · `0a3779d` · clean |
+| open PRs | #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| suite | **827 green** · 93 files · 260 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 9 files changed, 1299 insertions(+), 142 deletions(-) (9 files) |
-| docs budget | current_state 77.3/96.0 KB · §7 31.4/32.0 KB · abstracts 6/10 · bodies 33 |
+| diff vs origin/main | 45 files changed, 5020 insertions(+), 1529 deletions(-) (45 files) |
+| docs budget | current_state 77.1/96.0 KB · §7 26.5/32.0 KB · abstracts 6/10 · bodies 35 |
 
-_Generated 2026-08-08 by `pnpm state`._
+_Generated 2026-08-15 by `pnpm state`._
 
 <!-- END GENERATED -->

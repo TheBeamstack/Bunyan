@@ -23,7 +23,7 @@
     "format:check": "prettier --check .",
     "reseed:check": "node scripts/check-reseed.mjs",
     "state": "node scripts/state.mjs",
-    "docs:check": "vitest run tests/docs-budget.test.ts tests/freeze-boundary.test.ts tests/prompt-sync.test.ts",
+    "docs:check": "vitest run tests/docs-budget.test.ts tests/freeze-boundary.test.ts tests/protocol",
     "verify": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm reseed:check && pnpm docs:check"
   },
   "devDependencies": {

@@ -1,16 +1,13 @@
 # `REVIEW.md` — the per-PR review checklist
 
-**When you use this.** Step 3 of the session loop: after `git pull`, before your own work. **Every PR gets
-reviewed — the other agent's, and your own if you were the last to run.** A fresh session has genuinely
-lost the author's working state, which is what makes a self-review worth doing at all.
+**When you use this.** You are `hmdnah` or `khalihlna`, `node scripts/agent-start.mjs --seat <you>
+--review` has checked out a PR, and this checklist is your whole turn. You claim no task
+(`AGENTS.md §1.2`).
 
-⚠⚠ **AND THAT SENTENCE IS THE WHOLE RULE, SO READ IT AS A CONSTRAINT AND NOT AS A COURTESY: "your own"
-MEANS AN ENTRY FROM A PREVIOUS SESSION. You never review — or merge — a PR you opened in the session
-you are still in.** There is no lost working state to recover, so there is no review; there is only an
-author agreeing with themselves. **Entry 74 opened its PR and merged it minutes later**, and is on
-`main` unread by any second party as a result. If you are about to merge something you wrote today,
-that is the bug. Push it, write `⚠ AWAITING REVIEW — this is the open PR` in its `REVIEW:` line, and
-stop — the next session merges it. `docs:check` now fails the build if that marker is left stale.
+**Self-review does not exist here.** A builder's reviewer is a different seat on the account the author
+does not hold, so GitHub itself refuses the Entry 74 self-merge this file used to guard against by
+instruction. ⚠ If you can merge something you wrote, something upstream is misconfigured — stop and say
+so.
 
 **What this is not.** This is the **per-PR** checklist — roughly the cost of a coffee. For a **phase-level
 adversarial review** (the seven hunts, hours of work, the instrument that produced `review_P4.md`'s
@@ -38,13 +35,13 @@ it goes RED. Paste the failure output.**
 > assertion."_ Until this checklist existed, **every `revert-verified N ways` was a claim no second party
 > had ever executed.** This item is what makes the rule externally true instead of self-attested.
 
-⚠ **MANDATORY on a self-review too.** No substitution, no exception.
+⚠ **MANDATORY on every PR, including each PR of a batch** — one proven harness does not discharge the
+next PR's claim.
 
-⚠ **The one NAMED exception:** a **browser-only measurement** (draw calls, frame time, a
-console-error-free boot) cannot be re-run on the headless dev box. Do **not** tick this item — write
-`unverified here: <claim> — Amer to confirm` into the PR and into the entry's `REVIEW:` line. **If that
-claim blocks your own task, tell the owner to run Amer now.** Everything with logic in it is
-headless-verified by Amer's own verification split, so this exception is narrower than it looks.
+⚠ **One exception, and it is `hmdnah`'s alone:** a browser-only measurement cannot be re-run on the
+headless box, so write `unverified here: <claim> — khalihlna to confirm` instead of ticking it.
+**`khalihlna` has no such exception** — it has a real browser, which is why `machine: pc` PRs route
+there (`node scripts/seats.mjs reviewer-for <T-nnn>`).
 
 ### 2. BACKWARD SWEEP
 
@@ -89,9 +86,15 @@ For each new test: **what would it take for that test to pass while its own titl
 Confirm `pnpm state`'s verdict matches the diff.
 
 - **`RISK: additive`** — no frozen byte, no `SCENE_SCHEMA_VERSION` bump, no field on a frozen shape.
-  **You merge it** (with an approving review and green CI).
+  **You approve and merge it, on your own account** — which is never the account that opened it
+  (`docs/seats/README.md`). `scripts/agent-finish.mjs --review` prints the exact two commands.
 - **`RISK: contract-touching`** — `tests/freeze-boundary.test.ts` has failed and named the exact field.
-  **Approve, then tell the owner it needs their merge.** Do not merge it yourself.
+  **Approve, then tell the owner it needs their merge.** Do not merge it yourself, and note that the
+  backlog row stays `review` until the owner actually merges — `brahim`'s sweep flips it, not you.
+
+⚠ CI's `pr-shape` job labels the three owner-gated classes (`AGENTS.md §5`) from the same `riskVerdict`
+`pnpm state` uses. **Any `needs-operator/*` label ⇒ you do not merge.** Confirm the job ran: "no label"
+and "the labeller never executed" look identical from here.
 
 ---
 

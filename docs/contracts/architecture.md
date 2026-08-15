@@ -346,11 +346,24 @@ CI runs the WASM build only; **the OCCT-native Python oracle (`cadquery-ocp`) is
 
 ## 12. Actor topology (build-time architecture)
 
-| Actor | Environment | Owns |
-|---|---|---|
-| **Architect** (human) | — | Contracts, scope, AEC correctness, merge arbitration |
-| **Amer** (agent) | Local PC (real browser) | Browser hot path: rendering, tessellation-consumer + provenance, section-cut views, TSL, React shell, ribbon/property-panel generation, commands/undo, persistence, service worker/PWA |
-| **Zayd** (agent) | Hetzner CX23 (headless) | Kernel: the OCCT→WASM build **and the kernel's C++ op set** (`kernel.cpp` — the kernel *is* C++), worker API, naming resolver, regression harness + offline seeding, IFC importer (IfcOpenShell, linked against our OCCT), CI, Cloudflare release pipeline |
+**⚠ Superseded 2026-08-14 (D82).** Five seats, not two agents — the builders' environments and ownership
+are unchanged; review moved to an account the matching builder does not hold, and a fifth seat closes the
+loop between turns. Full protocol: `AGENTS.md`. Registry: `docs/seats/README.md`.
+
+| Seat | Role | Environment | GitHub account | Owns |
+|---|---|---|---|---|
+| **Architect** (human) | owner | — | — | Contracts, scope, AEC correctness, merge arbitration |
+| **brahim** (agent) | steward/orchestrator | Hetzner CX23 (headless) | `davidian-abdo` | Backlog readiness, sequencing, spec integrity, `docs/decisions.md`. **Never builds.** Decides which seat closes the loop next. |
+| **Amer** (agent) | builder | Local PC (real browser) | `narutousomaki741` | Browser hot path: rendering, tessellation-consumer + provenance, section-cut views, TSL, React shell, ribbon/property-panel generation, commands/undo, persistence, service worker/PWA |
+| **khalihlna** (agent) | reviewer | Local PC (real browser) | `davidian-abdo` | Review of anything only a browser can verify, re-executed rather than read |
+| **Zayd** (agent) | builder | Hetzner CX23 (headless) | `davidian-abdo` | Kernel: the OCCT→WASM build **and the kernel's C++ op set** (`kernel.cpp` — the kernel *is* C++), worker API, naming resolver, regression harness + offline seeding, IFC importer (IfcOpenShell, linked against our OCCT), CI, Cloudflare release pipeline |
+| **hmdnah** (agent) | reviewer | Hetzner CX23 (headless) | `narutousomaki741` | Adversarial review of box-verifiable claims, re-executed rather than read |
+
+**Why crossed accounts, not one per machine:** a same-account reviewer can never produce a real GitHub
+approval on its own builder's PR, and "the other seat on this machine" is still that account if accounts
+followed the box/pc split. The account instead follows the *review relationship* — `zayd`/`khalihlna` share
+`davidian-abdo`, `amer`/`hmdnah` share `narutousomaki741` — so every builder's reviewer sits on the account
+that builder does not, regardless of which physical machine either runs on.
 
 The **six registries** (D33 added Material + Section, 2026-07-13) are the seams between actors. ⚠ **Six, not seven** *(corrected 2026-07-13, P3 correction plan §1[7f])*: four documents said "seven", counting the **persistent-naming resolver** — but that is **not a registry of the document layer at all.** It lives in the **kernel** (`@bunyan/kernel-occt/src/naming.ts`), behind the `GeometryGateway`, and registering it in the document would put a naming component inside the very layer D19 exists to keep clear of the kernel. The six are: **BIM Object Type · Command · File-Format Codec · View/Representation · Material Library · Section Catalogue.** To avoid Amer idling on the Zayd-heavy P1→P2→P3 critical path, Zayd publishes a **protocol-conformant kernel mock** early so the shell is built in parallel. Contract-freeze is split (decision D13): protocol first, type contracts after Wall+Opening validate them.
 

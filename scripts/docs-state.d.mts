@@ -23,9 +23,21 @@ export declare const MARKERS: {
 
 /** One parsed §7 abstract. */
 export interface EntryAbstract {
+  /** Legacy entries: the bare number as written (`"88"`). New-scheme: `"T-091"` or `"STEWARD-<slug>"`. */
+  id: string;
+  /**
+   * A comparable sort key — legacy entries keep their real number; new-scheme entries (which carry no
+   * comparable number of their own) get a synthetic one assigned from §7's own newest-first array
+   * order, always higher than any legacy number that can coexist with them. Never render this to a
+   * human — render `id`.
+   */
   n: number;
+  /** `'legacy' | 'T'` — which heading form produced this entry. */
+  scheme: 'legacy' | 'T';
   date: string;
+  /** Alias of `seat`, kept for every pre-existing call site that reads `.agent`. */
   agent: string;
+  seat: string;
   headline: string;
   /** Each field's FIRST PHYSICAL LINE only — what the schema checks live on. */
   fields: Record<string, string>;
