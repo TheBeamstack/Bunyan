@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
-| role | builder |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
 | task | `T-008` |
 | branch | `task/T-008-q19-the-belongs-to-deletion-reconciliati` |
@@ -967,25 +967,20 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-008` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-008 (hmdnah, 2026-08-15)** |
-| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `e887c79` · dirty |
+| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `8cbfeeb` · clean |
 | open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | ⚠⚠ 842/843 passing — **1 FAILING** |
+| suite | **843 green** · 95 files · 266 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 12 files changed, 634 insertions(+), 134 deletions(-) (12 files) |
+| diff vs origin/main | 13 files changed, 771 insertions(+), 134 deletions(-) (13 files) |
 | docs budget | current_state 82.3/96.0 KB · §7 29.9/32.0 KB · abstracts 9/10 · bodies 41 |
 
 _Generated 2026-08-15 by `pnpm state`._
