@@ -420,11 +420,15 @@ _"not an incomplete turn to continue"_.
 - done-when:
   - `--continue <T-nnn>` checks the task's branch out and leaves the row at `review`;
   - ⚠⚠ **the admitted seat is DERIVED from the task row, never read from the `§0b` baton** — a new
-    `builderFor(root, taskId)` in `seats.mjs`, symmetric with `reviewerFor` and reading `area:`
-    (`apps-web` ⇒ `amer`, else `zayd`). **Measured 2026-08-15: the baton names the last seat to FINISH,
-    not the builder** — T-008's reads `seat: hmdnah / role: reviewer` while its claim commit reads
-    `claim: T-008 by zayd (box)`, because `agent-finish.mjs` rewrites the baton on the `--review` path
-    too. A gate on the baton admits the reviewer and refuses the builder in every intended invocation;
+    `builderFor(root, taskId)` in `seats.mjs`, symmetric with `reviewerFor`: resolve the task's
+    `machine:`, then `registry.find(r => r.role === 'builder' && r.machine === m)`, with the same `any`
+    fallback shape `reviewerFor` already carries. Not `area:` — this file's own definition of that field
+    (above) says it is a reading-profile hint, never a claim filter, and hardcoding `apps-web ⇒ amer,
+else zayd` would diverge from `canClaim`'s machine gate the moment a row's `area:` and `machine:`
+    disagree. **Measured 2026-08-15: the baton names the last seat to FINISH, not the builder** — T-008's
+    reads `seat: hmdnah / role: reviewer` while its claim commit reads `claim: T-008 by zayd (box)`,
+    because `agent-finish.mjs` rewrites the baton on the `--review` path too. A gate on the baton admits
+    the reviewer and refuses the builder in every intended invocation;
   - ⚠ **it refuses for any other seat** — `--continue` must not become a second door onto work someone
     else is holding;
   - **it requires an open PR whose title names the task, and reads the row status from that PR's
@@ -453,10 +457,10 @@ _(unplanned findings land here — never claimed in the same turn that found the
 - **2026-08-15 — ⚠⚠ the `§0b` baton names the last seat to FINISH, not the seat that claimed.**
   `agent-finish.mjs` rewrites it with the finishing seat on the `--review` path too, so a reviewed branch
   ends up claiming its reviewer built it: T-008's baton reads `seat: hmdnah / role: reviewer` while
-  `git log` reads `claim: T-008 by zayd (box)`. ⚠ `AGENTS.md §0b` calls the claim "the single source of
-  truth about who is working", and after any review turn it is not — the builder's identity survives only
-  in the claim commit message. Found reviewing PR #25, where a `T-015` criterion had been written against
-  the baton and would have admitted the reviewer while refusing the builder. ⚠ **`T-015` now derives the
+  `git log` reads `claim: T-008 by zayd (box)`. After any review turn, the builder's identity survives
+  only in the claim commit message, not in `§0b`. Found reviewing PR #25, where a `T-015` criterion had
+  been written against the baton and would have admitted the reviewer while refusing the builder. ⚠
+  **`T-015` now derives the
   seat from the task row instead**, which routes around this rather than fixing it; whether the baton
   should carry the builder separately from the current holder is a steward decision not yet taken.
 - **2026-08-15 — `agent-start.mjs --review` cannot route a PR whose title carries no `T-nnn`, so neither
