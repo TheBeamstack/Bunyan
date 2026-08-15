@@ -443,3 +443,17 @@ _(unplanned findings land here — never claimed in the same turn that found the
   writer in PR #20 by `hmdnah`**: `setRowStatus` is hoisted, exported and repads to the width it found,
   with a case in `tests/protocol/agent-finish.test.ts`. ⚠ Repadding the one branch would not have held —
   the same writer stamps `done` at the end of a review turn and would have re-broken it the other way.
+- **2026-08-15 — D88's "a proven defect goes back to the builder on the existing claim" has no scripted
+  route.** `agent-start.mjs` refuses a named task whose row is not `ready` (line 517), `seats.readyFor`
+  enumerates `ready` rows only, and a claim whose status is `finished — PR open, awaiting review` is
+  refused as _"not an incomplete turn to continue"_ (line 576) — so a builder cannot re-enter a row left
+  at `review`. A builder that reaches the branch by hand then finishes on the non-`--review` path, which
+  prints a `gh pr create` line for a PR that is already open. ⚠ Not covered by `T-014`, whose
+  `done-when:` items are all on the `--review` path.
+- **2026-08-15 — the `NEXT TURN: REVIEW ONLY` banner cannot route a review turn.** `agent-finish.mjs`
+  writes it into the task branch's `current_state.md` and clears it there on the `--review` run, while
+  `agent-start.mjs` reads it after `git checkout main` — so it has never existed on `main`
+  (`git log -S` over `origin/main -- current_state.md` returns nothing) and routing comes from the PR
+  title via `reviewerFor`. ⚠ `T-014`'s second `done-when:` rests on the banner being _"what routes step
+  2"_, which it is not; leaving it standing on the branch changes nothing until the banner reaches a
+  session that starts on `main`.

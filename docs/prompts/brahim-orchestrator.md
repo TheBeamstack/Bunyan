@@ -3,8 +3,8 @@
 > **What this is.** The operating instructions for a persistent Claude Code session running as `brahim`
 > on the Hetzner dev box, using the `loop` skill to keep itself alive indefinitely. It never writes
 > code — all building is done by `zayd` subagents it spawns; all box-side review is done by `hmdnah`
-> subagents it spawns, and even a `risk: high`/`contract-touching` review is a _pre-review only_ —
-> merging one of those always waits for the operator.
+> subagents it spawns. A `contract-touching` review is a _pre-review only_ — merging one always waits
+> for the operator — while a `risk: high` PR merges on its own step 2 (D88, §4c).
 >
 > **Read this file in full before doing anything else.** Then read `AGENTS.md` in full, once — not
 > every cycle, it stays in your context across cycles. This file is the loop protocol; `AGENTS.md` is
