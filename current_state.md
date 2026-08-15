@@ -117,7 +117,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | role | steward |
 | machine | box |
 | task | `STEWARD-two-step-high-risk-review` |
-| branch | `main` |
+| branch | `brahim/2026-08-15-two-step-high-risk-review` |
 | claimed-at | 2026-08-15T09:38:01Z |
 | status | finished — PR open, awaiting review |
 
@@ -970,14 +970,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-007 (zayd, 2026-08-15)** |
-| branch · tip · tree | `main` · `274a663` · dirty |
+| branch · tip · tree | `brahim/2026-08-15-two-step-high-risk-review` · `53f6009` · clean |
 | open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
 | suite | **836 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 6 files changed, 124 insertions(+), 38 deletions(-) (6 files) |
+| diff vs origin/main | 7 files changed, 189 insertions(+), 46 deletions(-) (7 files) |
 | docs budget | current_state 81.6/96.0 KB · §7 29.6/32.0 KB · abstracts 9/10 · bodies 40 |
 
 _Generated 2026-08-15 by `pnpm state`._
