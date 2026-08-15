@@ -113,13 +113,13 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| role | reviewer |
+| seat | `zayd` |
+| role | builder |
 | machine | box |
-| task | `T-004` |
-| branch | `task/T-004-does-per-element-build-cost-stay-flat-fr` |
-| claimed-at | 2026-08-15T02:28:52Z |
-| status | finished — PR open, awaiting review |
+| task | `T-007` |
+| branch | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` |
+| claimed-at | 2026-08-15T09:38:01Z |
+| status | working |
 
 <!-- END BATON -->
 
