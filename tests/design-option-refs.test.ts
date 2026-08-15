@@ -21,6 +21,10 @@
  *
  * ⚠ Per the design doc's §5 criterion 8, this DRIVES the verbs. A source-grep for the shared call is a
  * proxy for execution (Entry 81's lesson) and would pass on a file that imports it and never calls it.
+ *
+ * ⚠ §4 is the THIRD door — `core.createElement`'s own `designOptionId`, which accepts an id the other two
+ * refuse and excludes the element from every enumerating consumer. D86 makes that exclusion visible in
+ * `brokenRefs()` and changes nothing else; unlike the collapse above, it DOES fail in its absence.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -206,5 +210,92 @@ describe('the design-option referential check — one predicate, two throws', ()
       designOptionIds: ['opt-b'],
     });
     expect(doc.scene.views?.[view.changes[0]!.id]?.designOptionIds).toEqual(['opt-b']);
+  }, 120000);
+
+  /* ============================================================================================
+   * §4 — THE THIRD DOOR: `core.createElement`'s OWN TAG, SURFACED (D86 / Q17c, owner-ruled 2026-08-15).
+   *
+   * ⚠⚠ The other two doors REFUSE an unresolvable selection. This one ACCEPTS an unresolvable tag and
+   * excludes the element from every enumerating consumer — which is correct (excluding it is what stops
+   * the double-count) and which was SILENT: `brokenRefs()` and `unbuildable()` both came back empty on a
+   * document missing 50.0% of its volume (design doc §1.4).
+   *
+   * ⚠ D86 surfaces and nothing else. Q17b — whether the door should refuse instead — is ruled OUT, so
+   * every assertion here that the element is still created, still built and still excluded is as
+   * load-bearing as the one that it is now reported.
+   * ========================================================================================= */
+
+  const taggedWall = async (doc: DocumentContext, designOptionId: string): Promise<string> =>
+    (
+      await doc.execute('core.createElement', {
+        typeId: wallType.id,
+        params: { start: [0, 0], end: [6000, 0], thickness: 200, height: 3000 },
+        designOptionId,
+      })
+    ).changes[0]!.id;
+
+  it('⚠⚠ a dangling `designOptionId` is a BROKEN REFERENCE — accepted, built, excluded, and REPORTED', async () => {
+    const doc = newDoc(); // no catalogue at all: the document every command has ever produced
+    const wall = await taggedWall(doc, 'ghost');
+
+    // The door still accepts, and the element still builds. D86 refuses nothing.
+    expect(doc.scene.elements[wall]?.designOptionId).toBe('ghost');
+    expect(doc.partsOf(wall)?.length).toBeGreaterThan(0);
+    expect(doc.unbuildable()).toEqual([]);
+
+    // The exclusion is unchanged — this is the half D86 must NOT move, or it pre-empts Q17b.
+    expect(doc.modelElements().map((e) => e.id)).not.toContain(wall);
+
+    const broken = doc.brokenRefs();
+    expect(broken).toHaveLength(1);
+    expect(broken[0]?.elementId).toBe(wall);
+    expect(broken[0]?.ref).toBe('ghost');
+    expect(broken[0]?.reason).toContain('ghost');
+  }, 120000);
+
+  it('⚠ …and it reports NOTHING when the tag resolves, or when there is no tag', async () => {
+    // Without this, a body that reported every element, or every tagged element, would pass above.
+    const resolvable = seeded();
+    const tagged = await taggedWall(resolvable, 'opt-a');
+    expect(resolvable.brokenRefs()).toEqual([]);
+    expect(resolvable.modelElements().map((e) => e.id)).toContain(tagged);
+
+    const untagged = newDoc();
+    await untagged.execute('core.createElement', {
+      typeId: wallType.id,
+      params: { start: [0, 0], end: [6000, 0], thickness: 200, height: 3000 },
+    });
+    expect(untagged.brokenRefs()).toEqual([]);
+  }, 120000);
+
+  it('⚠ it is derived from the scene, so it needs no verb and does not displace a built one', () => {
+    // The `.bnn`/hand-assembled population D43 exists for: nothing here was authored through a command,
+    // and the entry the last rebuild measured against real geometry is still there beside the new one.
+    const stored = {
+      elementId: 'wall-stored',
+      ref: 'wall-stored/structure/face/lateral.1',
+      hostId: 'wall-stored',
+      reason: 'measured by a rebuild',
+    };
+    const scene: Scene = {
+      ...emptyScene(),
+      elements: {
+        'wall-stored': {
+          id: 'wall-stored',
+          typeId: wallType.id,
+          typeVersion: wallType.version,
+          name: 'W',
+          params: { start: [0, 0], end: [6000, 0], thickness: 200, height: 3000 },
+          classification: wallType.defaultClassification,
+          designOptionId: 'ghost',
+        },
+      },
+      brokenRefs: [stored],
+    };
+
+    expect(newDoc(scene).brokenRefs()).toEqual([
+      stored,
+      expect.objectContaining({ elementId: 'wall-stored', ref: 'ghost' }),
+    ]);
   }, 120000);
 });

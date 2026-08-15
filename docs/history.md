@@ -308,10 +308,7 @@ project._
 ⚠ **There is no entry 78.** It was a REVIEW-ONLY session (PR #5) that wrote no abstract of
 its own; its findings are in entry 77's `REVIEW:` line above. The gap is real, not a loss.
 
-⚠ **Entry 82 is the one gap here that is NOT permanent — it is still in `current_state.md` §7,
-and Entry 90 rotates it.** Two sessions ran in parallel and the byte budget bit both: Entry 89
-rotated **84 and 83** to land Entry 86's merge, Entry 90 rotated **82**, and neither could rotate
-the other's without a conflict over the same lines. When 90 lands, 54–84 is contiguous.
+54–84 is contiguous.
 
 ### 84 | 2026-08-06 | Amer | alignment guides ship — and the guide is the first candidate that owns NOTHING
 
@@ -439,6 +436,57 @@ the other's without a conflict over the same lines. When 90 lands, 54–84 is co
   rebaseline outside the entry's own calendar day wrote a baseline its own gate rejects** (a session
   crossing UTC midnight; Amer's `+0100` box before 01:00). Proven by running the real generator in
   `state-risk-e2e`; fixed by stamping the entry's date. **723 green, exit 0. MERGED on owner authority.**
+
+### 82 | 2026-08-06 | Zayd | the design-options question, walked — the two doors are a 50% silent under-report (Q17)
+
+- **CHANGED:** **`docs/design/P5_step6D_design_options_crud_design.md` NEW** — the Q17 walk: the gap
+  measured through the shipped verbs, the promotion's real cost, the CRUD's shape, the dependency edge, an
+  8-row test plan each with its weak-green, and §7's three questions · `open_rulings.md` (**Q17 REPLACED by
+  Q17a/Q17b/Q17c**, and **Q17a moved to 🔴 BLOCKING**, empty for five sessions) · `current_state.md` (this
+  abstract; **Entry 75 rotated out**, already in `docs/history.md` §C) · plus **Entry 81's review, fixed on
+  its branch**: `scripts/state.mjs` (the verdict is measured against the baseline **at the merge base**,
+  read from git) + **`tests/state-risk-e2e.test.ts` NEW (+6)**. **No code in `packages/`, no frozen byte,
+  no verb, no schema bump.**
+- **VERIFIED:** **715 green** across 84 files, six gates, real exit code 0. Q17's numbers driven through
+  `DocumentContext` + `CORE_COMMANDS` against the real OCCT kernel, not quoted. Entry 81's fix
+  **revert-verified**: restore its `state.mjs` and `state-risk-e2e` goes RED (`the verdict was erased by
+  re-baselining`) **while `freeze-boundary.test.ts` stays 10/10 green**. Its item 1 re-executed: the
+  pre-Q16 gate body ⇒ **3 e2e RED**, unit file 14/14 green.
+- **FOUND:** ⚠⚠ **Q17 IS NOT A SYMMETRY COMPLAINT — IT IS A 50.0% SILENT UNDER-REPORT WEARING
+  `basis: 'exact'`, ON A DOCUMENT WITH NO DESIGN OPTIONS AT ALL.** 0 of 40 verbs can author an option, so
+  `scene.designOptions` is always absent; `core.createElement` accepts a `designOptionId` naming nothing;
+  `isElementActive` then excludes that element from every enumerating consumer. Two identical walls, one
+  tagged ⇒ `scene.elements` **2**, `modelElements()` **1**, a whole-model schedule **1 row and
+  3 600 000 000 mm³ where 7 200 000 000 is correct** — `unmeasured: []`, `brokenRefs()` `[]`,
+  `unbuildable()` `[]`. **D65's own named failure mode INVERTED** (it predicted 2.0000× over; what ships is
+  0.5000× under) and §1c-8's ledger exactly: the consumer rule landed 07-23, the authoring arg 07-24, and
+  nobody swept the door against the rule. ⚠⚠ **AND "IS IT ADDITIVE?" HAS TWO ANSWERS THAT PART COMPANY:**
+  data-additive **YES** (D79's trick transfers verbatim — no schema bump, byte-identical documents),
+  freeze-additive **NO** — measured, the gate names `scene.ts :: type SceneCollection`, one of 21 watched
+  declarations there. Saying "additive" without saying which is how a contract-touching PR gets
+  agent-merged. ⚠ The `dependency.ts` edge is **not** the "nothing" `schedules`/`views` declared: an option
+  edit changes what the join resolver sees (D68's ambiguity flip) from the authoring side. ⚠ And the Q17
+  row was wrong about the code — `checkDesignOptions` is **not** shared with `core.createView`, which has
+  its own second copy in `view.ts` (rule 10). **A row in the owner's queue is a claim about the code.**
+- **OWES:** Owner: ⚠⚠ **🔴 BLOCKING IS NO LONGER EMPTY — `Q17a`** (promote `designOptions` +
+  the CRUD; contract-touching, so the owner also merges it). 🟡 OPEN: **Q4–Q13, Q17b, Q17c, Q18**.
+  `Q17b` is the stopgap direction (shut vs open — deliberately not chosen); `Q17c` is the one additive,
+  direction-neutral piece (make a dangling `designOptionId` a broken ref, so the number above stops being
+  silent). Amer: **Q18 is still yours** — the cut-face half of what a hosted void may host on; Entry 81
+  fixed only the edge half.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-06-q17-designoptions.md`
+- **REVIEW:** ✅ Reviewed by **Entry 83** (Zayd, 2026-08-06) against all 7 items — **APPROVED, no defect
+  found**; merged by the owner (the harness classifier refused `gh pr merge` again — see Entry 83). Item 1
+  **executed**: reverting `state.mjs:175` to `const against = workingSnap` drove `state-risk-e2e` RED on
+  *"the verdict was erased by re-baselining"* **while `freeze-boundary` stayed 10/10 GREEN** — the gate that
+  decides RISK cannot see this defect, only the e2e that EXECUTES the generator. Item 4 the one that
+  mattered: §1's numbers were re-derived from a fresh harness after the original was deleted, and **every
+  row of §1.4 reproduced exactly**, both failure codes and all four empty diagnostics included. §3.2 and
+  §3.3 re-measured too — `CHANGED (1) scene.ts :: type SceneCollection`, one `TS2345` at
+  `dependency.ts:177`. ⚠ Item 6 found the one real gap and it is not this PR's to close: **§5 criterion 6 is
+  the only thing that would ever hold the 50% measurement down, and it lives inside a unit Q17a blocks** —
+  so the defect has no committed test and has now been hand-derived twice.
 
 ### 81 | 2026-08-05 | Zayd | the two gates that failed OPEN are closed — and one of them had never run (Q15, Q16)
 

@@ -627,6 +627,41 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-007 — a dangling `designOptionId` is a broken reference, derived rather than stored — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `packages/document/src/document.ts` (**`danglingDesignOptionRefs` NEW**; `brokenRefs()`
+  returns the stored geometry-derived list plus it) · `packages/document/src/designoptions.ts` (comments
+  only — `ownTagActive` and the file header name the body instead of promising it) ·
+  `tests/design-option-refs.test.ts` (**§4 NEW, +3**) · `tests/option-cascade-d67.test.ts` and
+  `tests/model-enumeration.test.ts` (one fixture assertion each, §6 below) · **Entry 82 rotated** to
+  `docs/history.md` §C, which is now contiguous over 54–84. No frozen byte, no verb, no schema bump.
+- **VERIFIED:** **836 green** across 94 files, all six gates, real exit code 0, real OCCT throughout;
+  `freeze-boundary` green ⇒ the frozen surface has not moved. **Revert-verified**: return `brokenRefs()`
+  to `this.#scene.brokenRefs` and `design-option-refs` goes **2 RED** — `expected [] to have a length of
+  1 but got +0`, which is the silence itself.
+- **FOUND:** ⚠ **It is derived at the query, not staged into `scene.brokenRefs`.** `#stage` re-derives
+  that field only for the assemblies it rebuilds, so an entry staged there goes stale on every element
+  whose assembly the next partial rebuild does not touch — D74's defect in a population whose subject is
+  not even a rebuild root. A dangling tag is a pure fact about `scene.elements`, so reading it is cheaper
+  than teaching the staging filter to tell two producers apart, and D74's one-producer invariant on
+  `scene.brokenRefs` stays intact. ⚠ `hostId` is the element's own id: the reference is hosted on
+  nothing, and widening the watched `interface BrokenReference` would make a diagnostic field
+  contract-touching — no consumer reads it. ⚠⚠ **The backward sweep (invariant 7) cost six tests in two
+  files, all one shape:** `option-cascade-d67` and `model-enumeration` tag elements and supply the
+  catalogue as a consumer OVERRIDE, which is the only road while `scene.designOptions` has no authoring
+  verb, and both assert `brokenRefs()` empty to mean *"no window lost its host face"*. Each now filters
+  the option ids instead. ⇒ **until the catalogue CRUD lands (D85, T-011), every tagged element on this
+  product is a broken reference** — D86 reporting the truth, not a false positive.
+- **OWES:** `hmdnah` — this PR; the revert above is the one to re-execute. `amer` — ⚠ `App.tsx`'s
+  Problems panel hints *"these elements are hosted on a sub-shape that no longer resolves. Retarget them
+  manually"*, which is now wrong for an option entry: it is hosted on nothing and
+  `core.retargetReference` cannot heal it. `unverified here: how the panel reads with an option entry in
+  it — khalihlna to confirm`. `brahim` — D86's row still reads ✅ RULED and this builds it; T-008's (c)
+  half extends this union rather than adding a second surfacing path.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-007-dangling-design-option-ref.md`
+- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.**
+
 ### T-004 — review: the flatness result holds, and the harness passed while building nothing — 2026-08-15 — seat: hmdnah
 
 - **CHANGED:** `tests/document-build-cost-scale.test.ts` — the cold load's built solids are counted and
@@ -926,57 +961,6 @@ is maintenance and does NOT get an entry of its own.**
   accept that it should not?"* — nothing.** ⚠ The merge cost a forced §7 rotation: 85 and 84 were each
   under the byte budget and their MERGE was 35 981/32 768 (entry 79 rotated out).
 
-### 82 | 2026-08-06 | Zayd | the design-options question, walked — the two doors are a 50% silent under-report (Q17)
-
-- **CHANGED:** **`docs/design/P5_step6D_design_options_crud_design.md` NEW** — the Q17 walk: the gap
-  measured through the shipped verbs, the promotion's real cost, the CRUD's shape, the dependency edge, an
-  8-row test plan each with its weak-green, and §7's three questions · `open_rulings.md` (**Q17 REPLACED by
-  Q17a/Q17b/Q17c**, and **Q17a moved to 🔴 BLOCKING**, empty for five sessions) · `current_state.md` (this
-  abstract; **Entry 75 rotated out**, already in `docs/history.md` §C) · plus **Entry 81's review, fixed on
-  its branch**: `scripts/state.mjs` (the verdict is measured against the baseline **at the merge base**,
-  read from git) + **`tests/state-risk-e2e.test.ts` NEW (+6)**. **No code in `packages/`, no frozen byte,
-  no verb, no schema bump.**
-- **VERIFIED:** **715 green** across 84 files, six gates, real exit code 0. Q17's numbers driven through
-  `DocumentContext` + `CORE_COMMANDS` against the real OCCT kernel, not quoted. Entry 81's fix
-  **revert-verified**: restore its `state.mjs` and `state-risk-e2e` goes RED (`the verdict was erased by
-  re-baselining`) **while `freeze-boundary.test.ts` stays 10/10 green**. Its item 1 re-executed: the
-  pre-Q16 gate body ⇒ **3 e2e RED**, unit file 14/14 green.
-- **FOUND:** ⚠⚠ **Q17 IS NOT A SYMMETRY COMPLAINT — IT IS A 50.0% SILENT UNDER-REPORT WEARING
-  `basis: 'exact'`, ON A DOCUMENT WITH NO DESIGN OPTIONS AT ALL.** 0 of 40 verbs can author an option, so
-  `scene.designOptions` is always absent; `core.createElement` accepts a `designOptionId` naming nothing;
-  `isElementActive` then excludes that element from every enumerating consumer. Two identical walls, one
-  tagged ⇒ `scene.elements` **2**, `modelElements()` **1**, a whole-model schedule **1 row and
-  3 600 000 000 mm³ where 7 200 000 000 is correct** — `unmeasured: []`, `brokenRefs()` `[]`,
-  `unbuildable()` `[]`. **D65's own named failure mode INVERTED** (it predicted 2.0000× over; what ships is
-  0.5000× under) and §1c-8's ledger exactly: the consumer rule landed 07-23, the authoring arg 07-24, and
-  nobody swept the door against the rule. ⚠⚠ **AND "IS IT ADDITIVE?" HAS TWO ANSWERS THAT PART COMPANY:**
-  data-additive **YES** (D79's trick transfers verbatim — no schema bump, byte-identical documents),
-  freeze-additive **NO** — measured, the gate names `scene.ts :: type SceneCollection`, one of 21 watched
-  declarations there. Saying "additive" without saying which is how a contract-touching PR gets
-  agent-merged. ⚠ The `dependency.ts` edge is **not** the "nothing" `schedules`/`views` declared: an option
-  edit changes what the join resolver sees (D68's ambiguity flip) from the authoring side. ⚠ And the Q17
-  row was wrong about the code — `checkDesignOptions` is **not** shared with `core.createView`, which has
-  its own second copy in `view.ts` (rule 10). **A row in the owner's queue is a claim about the code.**
-- **OWES:** Owner: ⚠⚠ **🔴 BLOCKING IS NO LONGER EMPTY — `Q17a`** (promote `designOptions` +
-  the CRUD; contract-touching, so the owner also merges it). 🟡 OPEN: **Q4–Q13, Q17b, Q17c, Q18**.
-  `Q17b` is the stopgap direction (shut vs open — deliberately not chosen); `Q17c` is the one additive,
-  direction-neutral piece (make a dangling `designOptionId` a broken ref, so the number above stops being
-  silent). Amer: **Q18 is still yours** — the cut-face half of what a hosted void may host on; Entry 81
-  fixed only the edge half.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-06-q17-designoptions.md`
-- **REVIEW:** ✅ Reviewed by **Entry 83** (Zayd, 2026-08-06) against all 7 items — **APPROVED, no defect
-  found**; merged by the owner (the harness classifier refused `gh pr merge` again — see Entry 83). Item 1
-  **executed**: reverting `state.mjs:175` to `const against = workingSnap` drove `state-risk-e2e` RED on
-  *"the verdict was erased by re-baselining"* **while `freeze-boundary` stayed 10/10 GREEN** — the gate that
-  decides RISK cannot see this defect, only the e2e that EXECUTES the generator. Item 4 the one that
-  mattered: §1's numbers were re-derived from a fresh harness after the original was deleted, and **every
-  row of §1.4 reproduced exactly**, both failure codes and all four empty diagnostics included. §3.2 and
-  §3.3 re-measured too — `CHANGED (1) scene.ts :: type SceneCollection`, one `TS2345` at
-  `dependency.ts:177`. ⚠ Item 6 found the one real gap and it is not this PR's to close: **§5 criterion 6 is
-  the only thing that would ever hold the 50% measurement down, and it lives inside a unit Q17a blocks** —
-  so the defect has no committed test and has now been hand-derived twice.
-
 ---
 
 ## §8 — Generated
@@ -985,16 +969,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-004 (hmdnah, 2026-08-15)** |
-| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `2e4e6fc` · clean |
-| open PRs | #21 brahim/2026-08-15-record-owner-rulings · #20 task/T-004-does-per-element-build-cost-stay-flat-fr · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **833 green** · 94 files · 264 suites |
+| **newest entry** | **T-007 (zayd, 2026-08-15)** |
+| branch · tip · tree | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` · `d93a6ba` · dirty |
+| open PRs | #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| suite | **836 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 886 insertions(+), 24 deletions(-) (8 files) |
-| docs budget | current_state 83.8/96.0 KB · §7 31.8/32.0 KB · abstracts 8/10 · bodies 37 |
+| diff vs origin/main | 7 files changed, 239 insertions(+), 68 deletions(-) (7 files) |
+| docs budget | current_state 82.2/96.0 KB · §7 30.2/32.0 KB · abstracts 8/10 · bodies 38 |
 
 _Generated 2026-08-15 by `pnpm state`._
 
