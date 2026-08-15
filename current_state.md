@@ -116,10 +116,10 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | seat | `zayd` |
 | role | builder |
 | machine | box |
-| task | `T-012` |
-| branch | `task/T-012-review-routes-a-pr-whose-title-carries-n` |
-| claimed-at | 2026-08-16T16:04:24Z |
-| status | finished — PR open, awaiting review |
+| task | `T-009` |
+| branch | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` |
+| claimed-at | 2026-08-15T23:12:03Z |
+| status | working |
 
 <!-- END BATON -->
 
