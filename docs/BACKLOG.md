@@ -83,14 +83,15 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 > **Decomposed 2026-08-15 (Entry 91); the four owner rulings landed the same day.** Q17a, Q17c, Q18 and
 > Q19 are ruled (**D83**–**D86**), so **T-007, T-008, T-009 and T-011 are `ready`** — three of them
 > `risk: high`, which means a two-step review that never batches (D88), and T-011 is
-> `contract-touching`, so the owner merges that one. **T-010** still waits on T-009; **T-005** and
-> **T-006** still wait on PR **#16**.
+> `contract-touching`, so the owner merges that one. **T-010** still waits on T-009; **T-005** now waits on
+> **T-018**.
 >
-> ⚠ **#16 and #17 predate `T-nnn` and get no row.** Both are now stale enough against `main` (real merge
-> conflicts, not only an unclaimable-by-`--review` title) that the owner is merging them as a one-time
-> exception, 2026-08-15, rather than through T-012's mechanism — see T-012's own note. Rows waiting on
-> them use `blocked-by:`, not `depends-on:`, which `canClaim` reads mechanically and can only close over a
-> `T-nnn`.
+> ⚠ **PRs #16 and #17 predated `T-nnn` and were closed, 2026-08-15, by owner ruling** — both were stale
+> enough against `main` (real merge conflicts, #17's including a modify/delete conflict on the
+> `scripts/prompt-sync.mjs` D82 removed) that rebasing meant re-litigating design choices `main` has since
+> moved past. Their work is re-decomposed fresh as **T-018** (D66 lazy-build design + measurement) and
+> **T-019** (the move-tool gizmo + corner-drag), against current `main` rather than ported from either
+> branch.
 >
 > `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is not decomposed here — the freeze has not
 > happened, and rows nobody may claim bury rows somebody must.
@@ -101,7 +102,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-002 | ready   | The two-candidate-line intersection snap                      | apps-web | pc      | normal | T-001      |
 | T-003 | ready   | The in-app open-source licences screen                        | apps-web | pc      | normal | —          |
 | T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?      | document | box     | normal | —          |
-| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built    | document | box     | normal | —          |
+| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built    | document | box     | normal | T-018      |
 | T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint          | apps-web | pc      | normal | T-005      |
 | T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref       | document | box     | normal | —          |
 | T-008 | ready   | Q19 — the belongs-to deletion reconciliation                  | document | box     | high   | —          |
@@ -114,6 +115,8 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-015 | ready   | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
 | T-016 | ready   | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |
 | T-017 | ready   | `docs-budget.test.ts`'s newest-first check verifies itself    | infra    | box     | normal | —          |
+| T-018 | ready   | D66's lazy-build design doc + measurement, reproduced         | document | box     | normal | —          |
+| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`      | apps-web | pc      | normal | —          |
 
 ---
 
@@ -200,17 +203,15 @@ quantifies over the model must build what it is about to report, or declare it.
   prediction that was wrong) · `docs/decisions.md` D66
 - verify: `pnpm verify`
 - done-when:
-  - ⚠ **the unmeasured claim is measured FIRST:** does `save` read built state at all? Entry 90 wrote
-    _"it should not — it writes the recipe — but that is a claim, not a measurement"_ and asked the next
+  - ⚠ **the unmeasured claim is measured FIRST:** does `save` read built state at all? T-018's design doc
+    says _"it should not — it writes the recipe — but that is a claim, not a measurement"_ and asks this
     session to check before relying on the paragraph. Do that before choosing anything;
   - FORCE or DECLARE is chosen per aggregate (`projectQuantities`, schedules, the Clean Delta, `save`)
     and the choice is justified against the measurement above;
   - ⚠ **`save` is not a design call** — a save that silently omits unbuilt elements is data loss, not a
     reporting shortfall. If the measurement says `save` touches built state, it FORCES;
   - a test that fails in the absence of the fix, revert-verified.
-- depends-on: —
-- blocked-by: **PR #16** (Entry 90) must merge — `implements:` names a design document that is on that
-  branch and not on `main`. `brahim`'s merged-PR sweep promotes this row.
+- depends-on: T-018
 - area: document · machine: **box** · risk: **normal**
 
 ### T-006 — D66 §3a/b — the keep-live set and a lazy first paint
@@ -224,11 +225,10 @@ quantifies over the model must build what it is about to report, or declare it.
   - first paint calls `rebuildOnly(visible)`, ordered by container: the camera's level, then outward;
   - **no new API, and no frozen byte moves** — `rebuildOnly` already ships and `releaseShape` is frozen;
   - the first-paint improvement is measured **in the real browser**, on this machine, and reported as a
-    number against Entry 90's 64.5% deferrable figure;
+    number against T-018's deferrable-fraction figure;
   - ⚠ eviction is **not** built here — §3d rules it unnecessary at the measured 0.31 GB heap
     (_"build lazily; evict later, or never"_).
 - depends-on: T-005
-- blocked-by: **PR #16** (Entry 90), as T-005.
 - area: apps-web · machine: **pc** · risk: **normal**
 
 ### T-007 — Q17c — a dangling `designOptionId` becomes a broken reference
@@ -337,9 +337,9 @@ so the owner merges this one as well as ruling it.
 **Every `STEWARD:`-titled PR recurs into this gap, not only the two PRs that first found it** — PR #25
 needed `hmdnah` to hand-claim it twice, because a steward turn is never a `T-nnn`, and a steward turn is
 the routine case, not an edge case (`AGENTS.md §1.3`). #16 and #17 predate the scaffolding that enforces
-`titleRoutes` at PR-creation time (`793a1f0`) and are now stale enough (real conflicts against `main`)
-that the owner is merging them as a one-time exception rather than through this mechanism — they no
-longer motivate the fix; recurring `STEWARD:` review-routing does.
+`titleRoutes` at PR-creation time (`793a1f0`) and were closed, 2026-08-15, stale enough (real conflicts
+against `main`) that the owner chose re-decomposition over rebasing through this mechanism (T-018,
+T-019) — they no longer motivate the fix; recurring `STEWARD:` review-routing does.
 
 - implements: `AGENTS.md` §0 (identity is role + machine) and §1.2 (review is routed by machine) ·
   `scripts/seats.mjs`'s `reviewerFor`/`machineOf` · this file's `## Discovered` entry of 2026-08-15
@@ -495,6 +495,53 @@ descending — true by construction, whatever §7's real order is. Not filed unt
     one) fails the check today's version passes.
 - depends-on: —
 - area: infra · machine: **box** · risk: **normal**
+
+### T-018 — D66's lazy-build design doc + measurement, reproduced against `main`
+
+`docs/design/P5_step9_D66_lazy_build_design.md` and `tests/d66-lazy-build-measure.test.ts` existed only on
+closed PR #16 (14 commits stale, real conflicts) and never landed on `main`. `T-005`/`T-006` both
+`implements:` this doc.
+
+- implements: `docs/decisions.md` D66 · `current_state.md §1a`'s open cold-load row
+- verify: `pnpm verify`
+- done-when:
+  - the design doc answers, measured fresh against `main` rather than ported from the closed PR: what
+    fraction of a cold load is FORCED vs. deferrable; whether a partially-built document agrees with a
+    fully-built one on `nodeId`s/`refs`/quantities, including across a join (a wall whose corner partner
+    is never built — `resolveJoins` must read the recipe, never the built set, or the doc says so and why
+    that is unsafe); whether the build half needs a new API, or `rebuildOnly` already suffices;
+  - the measurement instrument is a committed test file, not a one-off script;
+  - §3a (keep-live set) / §3b (first paint) / §3c (force vs. declare) are each named as a section T-005
+    and T-006 can cite by number;
+  - revert-verified: the instrument's identity-comparison assertion fails if `Part.node` is read instead
+    of `Part.refs` — a weak-green shape the closed PR's own review caught once already, worth keeping as
+    a tripwire.
+- depends-on: —
+- area: document · machine: **box** · risk: **normal**
+
+### T-019 — The move-tool gizmo + corner-drag, redone against `main`
+
+Baseline-endpoint handles and single-corner drag (D80's move verbs, `unbuildable`-checked and
+`transactionId`-atomic) shipped on closed PR #17 (9 commits stale, conflicts with the prompt-sync removal
+D82 made). `current_state.md §5` (Amer, item 3) still names this open.
+
+- implements: `docs/decisions.md` D80 · `docs/design/P4.5_interaction_model_design.md` ·
+  `current_state.md §5` (Amer, item 3)
+- verify: `pnpm verify` (headless half) + a browser run (the gesture, undo, orbit-suppression)
+- done-when:
+  - `baselineHandles` mints one handle per authored endpoint of the selection, pure (projection injected,
+    asserted headlessly);
+  - a corner-drag matches peers by the **full authored position, not a 2D coincidence** — two stacked
+    walls sharing an x/y at different `containerId`s must not move together, a named regression case (the
+    closed PR's own two-out-of-three-coordinates defect);
+  - both endpoints move under **one `transactionId`**, one undo;
+  - `brokenRefs()`/`unbuildable()` stay empty through drag, drop and undo;
+  - browser-measured: `changeFeed()` growth during a drag is zero (no kernel call mid-gesture); a fixed
+    world point's screen projection is byte-identical before/during/after (orbit suppression);
+  - ⚠ **out of scope, named so it is not assumed shipped:** whole-element drag (`dragPlans()` + `dryRun`
+    probe-and-route) is not wired to any gesture here — a later task.
+- depends-on: —
+- area: apps-web · machine: **pc** · risk: **normal**
 
 ## Discovered
 
