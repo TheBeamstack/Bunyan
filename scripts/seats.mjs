@@ -209,7 +209,7 @@ export function taskField(backlogSrc, taskId, field) {
 
 /** A task's status cell from the BACKLOG's own summary table (`| T-nnn | <status> | … |`). */
 export function rowStatus(backlogSrc, taskId) {
-  const m = backlogSrc.match(new RegExp(`^\\| ${taskId} \\| ([a-z-]+) \\|`, 'm'));
+  const m = backlogSrc.match(new RegExp(`^\\|\\s*${taskId}\\s*\\|\\s*([a-z-]+)\\s*\\|`, 'm'));
   return m ? m[1] : undefined;
 }
 
@@ -307,7 +307,7 @@ export function canClaim(root, seat, taskId, env = process.env) {
 /** Ready task ids this seat can satisfy, in `docs/BACKLOG.md`'s own order. */
 export function readyFor(root, seat, env = process.env) {
   const backlog = readBacklog(root);
-  const ids = [...backlog.matchAll(/^\| (T-\d{3}) \| ready \|/gm)].map((m) => m[1]);
+  const ids = [...backlog.matchAll(/^\|\s*(T-\d{3})\s*\|\s*ready\s*\|/gm)].map((m) => m[1]);
   return ids.filter((id) => canClaim(root, seat, id, env).ok);
 }
 

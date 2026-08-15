@@ -35,10 +35,16 @@ const SEATS_TABLE = `# Seats — the registry
 `;
 
 function backlogSrc(rows) {
+  // ⚠ PADDED, because prettier pads every markdown table to its widest cell and `docs/BACKLOG.md` is
+  // formatted. An unpadded fixture is a table shape the real file never has — which is how the status
+  // regexes shipped matching `| ready |` while the committed file said `| ready   |`.
+  const pad = (v, w) => String(v).padEnd(w);
+  const w = (f, min) => Math.max(min, ...rows.map((r) => String(r[f] ?? '—').length));
+  const [wi, ws] = [w('id', 2), w('status', 6)];
   const table = rows
     .map(
       (r) =>
-        `| ${r.id} | ${r.status} | ${r.title} | ${r.area} | ${r.machine} | ${r.risk} | ${r.dependsOn ?? '—'} |`,
+        `| ${pad(r.id, wi)} | ${pad(r.status, ws)} | ${r.title} | ${r.area} | ${r.machine} | ${r.risk} | ${r.dependsOn ?? '—'} |`,
     )
     .join('\n');
   const entries = rows

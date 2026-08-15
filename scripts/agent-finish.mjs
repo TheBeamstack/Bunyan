@@ -238,7 +238,7 @@ export function main(argv = process.argv.slice(2)) {
   /** Rewrites `| T-nnn | <old> | …` to `| T-nnn | <next> | …` in docs/BACKLOG.md. */
   function setRowStatus(taskId, next) {
     const src = readFileSync(backlogPath, 'utf8');
-    const re = new RegExp(`^(\\| ${taskId} \\| )[a-z-]+( \\|)`, 'm');
+    const re = new RegExp(`^(\\|\\s*${taskId}\\s*\\| )[a-z-]+(\\s*\\|)`, 'm');
     if (!re.test(src)) die(`${taskId} has no summary-table row in docs/BACKLOG.md to update.`);
     writeFileSync(backlogPath, src.replace(re, `$1${next}$2`));
   }

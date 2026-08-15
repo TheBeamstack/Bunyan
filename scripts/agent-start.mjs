@@ -511,7 +511,10 @@ export function main(argv = process.argv.slice(2)) {
   if (wantTask) {
     if (!new RegExp(`^### ${wantTask} `, 'm').test(backlog))
       die(`${wantTask} has no entry in docs/BACKLOG.md.`);
-    if (!new RegExp(`^\\| ${wantTask} \\| ready \\|`, 'm').test(backlog)) {
+    // ⚠ Whitespace-tolerant: prettier pads every table cell to its column's widest value, so a
+    // committed row reads `| T-001 | ready   |`. A strict single-space match reports every row
+    // un-ready and nothing is ever claimable.
+    if (seats.rowStatus(backlog, wantTask) !== 'ready') {
       die(`${wantTask} is not 'ready' in docs/BACKLOG.md. Readiness is the steward's act.`);
     }
     const v = seats.canClaim(root, seat, wantTask);
