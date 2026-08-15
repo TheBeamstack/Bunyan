@@ -6,17 +6,10 @@ _parametric recipe_, and meshes/2D views are disposable projections of it. **The
 invariant:** B-Rep is the source of truth; the parametric recipe is the source of truth for the B-Rep;
 meshes and 2D views are disposable. Everything else follows from it.
 
-**State:** not here — read `current_state.md`, which is the router with the hot core, and is read in full,
-every session, by whichever seat is running.
+**State:** not here — `current_state.md` is the router, read in full every session.
 
-**Adopted 2026-08-14, brahim's first steward turn (D82; Entry 91).** This file, the five-seat registry,
-`docs/BACKLOG.md`, the three new seat prompts, and `scripts/{seats,agent-start,agent-finish}.mjs` all
-landed together — the identity layer and the mechanics that enforce it, in the same turn, rather than a
-protocol written down and trusted to prose. Nothing that already worked was rebuilt: `REVIEW.md`'s lens
-checklist, `open_rulings.md`, the frozen-surface auto-classifier, `docs/decisions.md`'s `D`-numbering, the
-`§1c` trap list and the whole engineering method stay exactly as they were. What was missing was the
-coordination layer around them — see `docs/decisions.md` entry **D82** for the reasoning and the defects
-this closes.
+**Adopted 2026-08-14 (D82).** The five-seat protocol and the scripts enforcing it; reasoning in
+`docs/decisions.md` **D82**.
 
 ## 0. Who you are — before anything else
 
@@ -32,14 +25,8 @@ field, your reading list from its `implements:` field. There are **no work-area 
 | `amer`      | builder  | pc (local, real browser) | `narutousomaki741` | `apps/web` — rendering, tools, ribbon/property panels, persistence adapters, `window.bunyan`                                     |
 | `khalihlna` | reviewer | pc (local, real browser) | `davidian-abdo`    | review of anything only a browser can verify — `apps/web` PRs                                                                    |
 
-**The GitHub accounts are deliberately crossed, not assigned per machine.** `zayd` (box) and `khalihlna`
-(pc) share `davidian-abdo`; `amer` (pc) and `hmdnah` (box) share `narutousomaki741`. The pairing that
-matters is never same-machine — it is _builder vs. the seat that reviews that builder's work_ — and on
-that pairing the accounts always differ. `hmdnah` reviewing a `zayd` PR is therefore a genuine
-different-account approval, and so is `khalihlna` reviewing an `amer` PR, even though each pair sits on
-the same physical machine. This is a real improvement over the single-account self-review Bunyan ran under
-through Entry 90 (`docs/design/handoff_system_design.md` §§3, 7 — the Entry 74/75 self-merge incident) —
-GitHub's own self-approval refusal now backs the rule instead of a checklist item substituting for it.
+**Accounts are crossed so that every builder's reviewer is on the other account**, which is what makes
+`gh pr review --approve` a real second party. Rationale: `docs/seats/README.md`.
 
 Say who you are at session start — the owner's prompt is one line: _"read and follow `<Seat>_Prompt.md`."_
 Your four-fact prompt is `<Seat>_Prompt.md` at the repo root (`Brahim_Prompt.md`, `Zayd_Prompt.md`,
@@ -86,11 +73,9 @@ who cannot re-execute a browser claim.
 
 ### 1.3 Steward/orchestrator — `brahim`
 
-**Never builds. Closes the loop.** With four seats each running one turn and no seat able to see past its
-own session, nothing threads them into a cycle unless something does that on purpose — that is `brahim`'s
-job, and the reason a fifth seat exists rather than `zayd`/`amer` planning their own succession (the
-coupling `docs/design/handoff_system_design.md` found expensive). A `brahim` turn **decides what is
-`ready`** and which `machine:` it needs, and keeps `docs/decisions.md`/`open_rulings.md` honest. **Seats
+**Never builds. Closes the loop** — no other seat can see past its own session, so a fifth seat threads
+them rather than builders planning their own succession. A `brahim` turn **decides what is `ready`** and
+which `machine:` it needs, and keeps `docs/decisions.md`/`open_rulings.md` honest. **Seats
 decide what they take**; the steward never claims on another seat's behalf. A pure bookkeeping act
 (flipping a `blocked` row to `ready`) is a direct commit to `main`; decomposition or a spec fix is a
 `STEWARD:`-titled PR, reviewed by whoever runs next.
@@ -194,7 +179,22 @@ Everything else merges on an approving cross-account review and green CI. CI lab
   left in either to write. What the other seat needs to know travels in the entry's `OWES:` field and the
   PR it reviews.
 
-## 7. Keeping this file true
+## 7. How you write — binding on every seat, and on any subagent a seat spawns
+
+Owner ruling, 2026-08-15. Applies to comments, docs, entries, PR bodies and commit messages alike.
+
+1. **One sentence per point.** What fits in a sentence is written as one sentence, not spread over a
+   paragraph for emphasis.
+2. **Say it once, in one file.** A fact lives in exactly one place; everywhere else points at it. Repeating
+   a rationale across files is how two copies drift into disagreeing.
+3. **No narration.** Record what is true now. A change's history belongs in the entry and the commit, not
+   in the file it changed — no "this used to say", "for fourteen entries", "and I predicted it wrong".
+4. **No overstatement.** State the finding at its actual size; drop the emphasis that inflates it.
+5. **Explain only what is non-obvious.** A comment earns its place by saying something the code does not.
+   ⚠ Existing `⚠⚠` blocks that record a _measured_ trap are exempt — they are the load-bearing exception,
+   not the template.
+
+## 8. Keeping this file true
 
 **Maintained, not frozen.** When a protocol step or an invariant changes, update it in the same PR as the
 change. Hard cap **200 lines**; if something new must go in, something else becomes a pointer.

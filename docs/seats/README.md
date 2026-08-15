@@ -55,8 +55,7 @@ corrected rather than silently assumed a second time.
 Set out in full in `AGENTS.md §1`. In one line each:
 
 - **builder** — claim one `ready` task, **push the claim before any work**, build it, open a PR, stop.
-  ⚠ **Does NOT review anything, including the PR sitting open at t=0** — that was the pre-D82 shape and it
-  is `hmdnah`'s/`khalihlna`'s job now (`AGENTS.md §1.1`).
+  ⚠ Reviews nothing, including the PR open at t=0 — that is the reviewer seat's job (`AGENTS.md §1.1`).
 - **reviewer** — claims **no task**; claims the open PR, and re-executes its claim (revert the fix, paste
   the red output) before anything else. Must therefore sit on a machine that can run it.
 - **steward** — never builds. Owns readiness, `machine:` assignment, sequencing, spec integrity,
@@ -77,12 +76,3 @@ place is a fact that stays true; a fact copied five times is a fact that drifts 
 | _Am I current?_          | `scripts/agent-start.mjs`'s measured-vs-claimed refusal — it measures the repo  |
 | _Who is working now?_    | `current_state.md §0b`, the live claim, pushed before work begins               |
 | _What did I just learn?_ | the entry's `§7` abstract + `handoff/<seat>/` body; durable traps go to `§1d`   |
-
-⚠⚠ **THIS SECTION DESCRIBED THE OPPOSITE UNTIL 2026-08-15, AND THE HEADING WAS ALREADY RIGHT.** It said
-each prompt held _"plus a `§2 DYNAMIC` block that the seat itself rewrites every session
-(`FRESH`/`TASK`/`NEW`)"_ — under a heading reading _"Why these files carry no state"_ — for the whole of
-D82's first session, because the block was retired in the same turn that wrote this file and the
-paragraph was carried over from the prompt it was describing. **It is the registry**: `seats.mjs` parses
-the table above it and `AGENTS.md §0` defers to it, so a stale paragraph here is read by every seat.
-The correction is Entry 91's, and the class is worth more than the instance — **the prose next to a
-change is the part that survives it.**

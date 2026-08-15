@@ -121,7 +121,7 @@ describe('freeze — the baseline itself moved', () => {
     fx = baselinedFixture();
     branchWith(fx.dir, 'task/T-005-freeze', () => {
       const p = join(fx.dir, SNAP);
-      const snap = JSON.parse(readFileSync(p, 'utf8'));
+      const snap = JSON.parse(readFileSync(p, 'utf8')) as Record<string, unknown>;
       snap._baselinedAtEntry = 999;
       writeFileSync(p, JSON.stringify(snap, null, 2) + '\n');
     });

@@ -399,11 +399,8 @@ AND geometry from `scene.json` alone · **D19 is a MACHINE check** · the model 
   That second half is a separate, owner-gated unit with real design surface (what INVALIDATES a cache).
   ⚠⚠ **The measured payoff is 2.07×, not an order of magnitude** — recommendation on the desk: **do not
   wire it for v1.0.0** (`open_rulings.md` Q6).
-- ✅ **2D views SHIP — the plan/section unit landed in Entry 77** (D81, PR #5; `tests/plan-section.test.ts`,
-  `views` in `scene.ts`). ⚠ **This row said "blocked on rulings Q1–Q3" until Entry 91 corrected it** — Q1–Q3
-  were ruled 2026-08-03 and BUILT two days later, and this line plus `§5`'s Zayd row 1 both outlived that by
-  fourteen entries. The ruling was recorded in `open_rulings.md` ✅ RULED and in `§5`'s ✅ CLOSED list; what
-  nobody re-read was the two places still phrased as _waiting_ for it.
+- ✅ **2D views SHIP — the plan/section unit landed in Entry 77** (D81, PR #5;
+  `tests/plan-section.test.ts`, `views` in `scene.ts`).
 - **No IFC import** (P6; the op is reserved).
 - ✅ **`LICENSE`/CLA/attribution — DONE (Entry 74), and going public is no longer blocked BY THE REPO.**
   AGPL-3.0 verbatim · `NOTICE` (OCCT's exception is CONDITIONAL on a prominent notice, and we ship its
@@ -469,11 +466,9 @@ ruling"* — with a machine holding the line afterwards.
 
 1. ✅ **DONE (Entry 77) — THE PLAN + SECTION UNIT** (`docs/design/P5_step6C_plan_section_design.md`, D81).
    Ships `mode:'cut'` only; `SectionCurve.nodeId?` and `ParamField.refTo`'s four members are reserved.
-   ⚠ **This row read "the moment Q1–Q3 are ruled, and not before" until Entry 91 corrected it**, fourteen
-   entries after the unit merged — see `§3`'s matching correction. The durable lesson is the one worth
-   keeping: the fixture carries **a curtain wall, an opening and a design option**, because §5's test table
-   names, per criterion, how a one-plain-wall fixture passes while the criterion is false.
-   **What is genuinely open in this area is now `docs/BACKLOG.md`, not this list.**
+   ⚠ Its fixture carries a curtain wall, an opening and a design option — §5's test table names, per
+   criterion, how a one-plain-wall fixture passes while the criterion is false. Open work is now
+   `docs/BACKLOG.md`.
 2. ✅ **DONE (Entry 74) — the going-public housekeeping.** `LICENSE` AGPL-3.0, `CLA.md`, `NOTICE` +
    `licenses/`, and the `license` field in all ten manifests. What is left is not repo work: **Q11
    (`<LEGAL ENTITY>`) and Q12 (a lawyer's read of the CLA)**, both owner-only, both blocking the first
@@ -624,33 +619,27 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
-### STEWARD-scaffolding — the five-seat scaffolding, finished: CI, the labels, and a backlog that is mostly blocked — 2026-08-15 — seat: brahim
+### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
 
-- **CHANGED:** **`scripts/reserved-classes.mjs` + `.d.mts` NEW** (the three owner-gated classes of
-  `AGENTS.md §5`, detected mechanically → `needs-operator/*` labels) · **`scripts/pr-ready.mjs` +
-  `.d.mts` NEW** (title routes + `MERGEABLE`, polled) · **`tests/protocol/reserved-classes.test.ts` (+9)
-  and `pr-ready.test.ts` (+8) NEW** · `seats.mjs` gained `PR_TITLE_RE`/`titleRoutes` and
-  `agent-finish.mjs` now calls it (one regex, two callers) · `.github/workflows/ci.yml` gained a
-  `pr-shape` job and the `docs:check` step was RENAMED to name the protocol suite it already ran ·
-  **`docs/RUNBOOK.md` NEW** (labels, branch protection, what is deliberately absent) ·
-  **`docs/BACKLOG.md` decomposed — T-001…T-011** · `open_rulings.md` Q13 rewritten with a measurement ·
-  `AGENTS.md §5` points at the labels (still exactly 200 lines) · `current_state.md §3`/`§5` corrected.
-  ⚠ Covers TWO sessions: Phases A/B (`f984e89`, the pc) built the mechanics; this one finished them.
-- **VERIFIED:** `pnpm verify` green end to end on the box. The new suites are **executed, not grepped** —
-  each builds a real fixture git history and asserts the verdict. `pnpm docs:check` measured at
-  **6 files / 69 tests** BEFORE any change, which is what proved `tests/protocol/` was already in CI.
-  Labels confirmed present on the repository by `gh api …/labels`.
-- **FOUND:** ⚠⚠ **Branch protection is impossible on this repository — `403 Upgrade to GitHub Pro or make
-  this repository public`, on BOTH the protection and rulesets APIs.** Private repo, free plan; the token
-  is `ADMIN`. Q13's account objection is satisfied and a plan objection replaced it. ⚠ **And
-  `current_state.md` said the plan/section unit was BLOCKED in two places while three others said it
-  SHIPPED** — Q1–Q3 ruled 2026-08-03, built in Entry 77, PR #5 merged, verified against the artifact
-  before either line was touched. Both rows were phrased _"blocked on a ruling"_: the status nobody
-  re-reads once the ruling lands somewhere else. Fourteen entries.
-- **OWES:** the **owner** — rulings on **Q17a, Q17c, Q18, Q19** (four rows, four blocked tasks) and the
-  **public / Pro / neither** call on Q13. `hmdnah` — **PR #16** (Entry 90, box). `khalihlna` — **PR #17**
-  (Entry 89, pc). ⚠ **The next act on both machines is a REVIEW, not a claim**, and beyond **T-004**
-  nothing is `ready` for `box`.
+- **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
+  `needs-operator/*` labels; PR title routing + `MERGEABLE`), run by a new `pr-shape` CI job ·
+  `tests/protocol/{reserved-classes,pr-ready}.test.ts` NEW (+17) · `seats.mjs` gained
+  `PR_TITLE_RE`/`titleRoutes`, called by `agent-finish.mjs` · `docs/RUNBOOK.md` NEW ·
+  `docs/BACKLOG.md` decomposed (T-001…T-011) · `AGENTS.md §7` NEW — the owner's writing standard,
+  binding on every seat and subagent · `REVIEW.md`, `docs/seats/README.md` and `Brahim_Prompt.md`
+  corrected where they still described the pre-D82 model · `open_rulings.md` Q13 rewritten.
+  Covers two sessions: `f984e89` built the mechanics on the pc, this one finished them.
+- **VERIFIED:** `pnpm verify` green. The new suites execute against real fixture git histories rather
+  than grepping the scripts. `pnpm docs:check` measured at 6 files / 69 tests **before** any change,
+  which is what proved `tests/protocol/` was already wired into CI.
+- **FOUND:** Branch protection is unavailable on this repository — `403 Upgrade to GitHub Pro or make
+  this repository public` on both the protection and rulesets APIs, with an `ADMIN` token; Q13's
+  account objection is satisfied and a plan objection replaced it. `current_state.md §3`/`§5` called
+  the plan/section unit blocked on Q1–Q3 after it shipped in Entry 77. `REVIEW.md` still taught the
+  pre-D82 self-review loop, and `docs/seats/README.md` still described the retired `§2 DYNAMIC` block
+  under a heading saying it carried no state.
+- **OWES:** the owner — rulings on Q17a, Q17c, Q18, Q19, and the public/Pro/neither call on Q13.
+  `hmdnah` — PR #16. `khalihlna` — PR #17. Beyond T-004 nothing is `ready` for box.
 - **RISK:** additive
 - **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
 - **REVIEW:** pending — `STEWARD:` PR, this branch.
@@ -925,17 +914,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **88 (Zayd, 2026-08-08)** |
-| branch · tip · tree | `brahim/2026-08-14-establish-five-seat-scaffolding` · `35aab87` · dirty |
+| **newest entry** | **STEWARD-scaffolding (brahim, 2026-08-15)** |
+| branch · tip · tree | `brahim/2026-08-14-establish-five-seat-scaffolding` · `9b8b4b6` · dirty |
 | open PRs | #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **805 green** · 90 files · 245 suites |
+| suite | **810 green** · 91 files · 251 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 16 files changed, 456 insertions(+), 1483 deletions(-) (16 files) |
-| docs budget | current_state 75.1/96.0 KB · §7 24.6/32.0 KB · abstracts 5/10 · bodies 34 |
+| diff vs origin/main | 45 files changed, 5019 insertions(+), 1528 deletions(-) (45 files) |
+| docs budget | current_state 77.0/96.0 KB · §7 26.5/32.0 KB · abstracts 6/10 · bodies 35 |
 
-_Generated 2026-08-14 by `pnpm state`._
+_Generated 2026-08-15 by `pnpm state`._
 
 <!-- END GENERATED -->

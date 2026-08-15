@@ -1,26 +1,15 @@
 #!/usr/bin/env node
 /**
- * scripts/pr-ready.mjs — is this PR shaped like something a reviewer can pick up? (Entry 91, D82)
+ * scripts/pr-ready.mjs — checks the opened PR's title routes (`T-nnn: ` / `STEWARD: `) and that GitHub
+ * reports it MERGEABLE.
  *
- * Two questions, both of which used to be answered by whoever opened the PR remembering:
+ * ⚠ `agent-finish.mjs` already refuses to PRINT a non-routing title, but that binds only a seat that
+ * ran it; `--fill`, a hand-typed title and `gh pr edit --title` all reach GitHub without it. The regex
+ * is `seats.mjs`'s `PR_TITLE_RE` so the two cannot disagree.
  *
- *   1. DOES THE TITLE ROUTE?  `T-nnn: …` or `STEWARD: …` (`AGENTS.md §1.3`). `agent-finish.mjs`
- *      already refuses to PRINT a `gh pr create` line for a title that does not route — but its
- *      answer only binds a seat that ran it and then pasted what it printed. `--fill` titles the PR
- *      from the branch slug, a hand-typed title never passes through the script at all, and
- *      `gh pr edit --title` can change it AFTERWARDS. This asks on the PR that actually exists.
- *      ⚠ ONE regex, imported from `seats.mjs` — see `PR_TITLE_RE` there for why it is not local.
- *
- *   2. IS IT ACTUALLY MERGEABLE?  `gh pr view --json mergeable` must report `MERGEABLE`. A PR whose
- *      base has moved under it reports `CONFLICTING`, and GitHub's own words for that state are the
- *      unrecognisable *"Pull Request has merge conflicts"* — Entry 73 lost a session to exactly that
- *      sentence. Saying it in CI, in the repo's own vocabulary, costs one API call.
- *
- * ⚠⚠ `mergeable` IS COMPUTED ASYNCHRONOUSLY AND STARTS AS `UNKNOWN`. GitHub kicks off a background
- * merge test when the PR changes, and every field is `UNKNOWN` until it finishes — so a check that
- * reads the value once, on a push, reads `UNKNOWN` most of the time. Treating `UNKNOWN` as a pass
- * makes the gate decorative; treating it as a failure makes CI flaky on a PR that is perfectly fine.
- * Neither is acceptable, so this POLLS (a few short waits) and only decides on a settled value.
+ * ⚠⚠ `mergeable` is computed asynchronously and starts as `UNKNOWN`, so a single read on a push is
+ * usually `UNKNOWN`. Passing on it makes the gate decorative and failing on it makes CI flaky — this
+ * polls and reports `UNKNOWN` as its own outcome ("re-run the job"), never as either verdict.
  *
  * CLI
  *   node scripts/pr-ready.mjs --pr 42

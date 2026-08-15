@@ -78,23 +78,15 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 
 ## Backlog
 
-> **⚠ Decomposed 2026-08-15, Entry 91's second steward turn. READ THIS BEFORE READING THE TABLE — the
-> shape of it is the finding.** Only four rows are `ready`, three of them `pc`, and that is not a gap in
-> the decomposition. **Almost everything left in v1.0.0 is waiting on one of two things**, neither of
-> which a builder can clear: **four owner rulings** (`open_rulings.md` Q17a, Q17c, Q18, Q19 — every one
-> of them a silent-under-report defect measured through the shipped verbs), and **two open PRs that
-> predate this system** (#16 Entry 90's D66 lazy-build design, #17 Entry 89's gizmo + corner-drag).
+> **Decomposed 2026-08-15 (Entry 91).** Four rows are `ready`; the rest wait on four owner rulings
+> (`open_rulings.md` Q17a, Q17c, Q18, Q19) or on PRs **#16** (D66 design) and **#17** (gizmo).
 >
-> ⚠⚠ **THE NEXT ACT ON BOTH MACHINES IS A REVIEW, NOT A CLAIM.** PRs #16 and #17 carry `Entry N` titles,
-> not `T-nnn:` ones — they are reviewed through `agent-start.mjs --review` off the open-PR list, which is
-> what `docs/prompts/*-orchestrator.md` step 4 does anyway, and they need no row here. Rows that wait on
-> them say so in `blocked-by:` rather than in `depends-on:`, because `depends-on:` is the **mechanical**
-> field (`scripts/seats.mjs`'s `canClaim` closes over it, and it can only close over a `T-nnn`).
+> ⚠ **#16 and #17 predate `T-nnn` and get no row** — they are claimed via `agent-start.mjs --review` off
+> the open-PR list. Rows waiting on them use `blocked-by:`, not `depends-on:`, which `canClaim` reads
+> mechanically and can only close over a `T-nnn`.
 >
-> **Nothing from `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is decomposed here** —
-> `instantiate`, MT (D8), WebGPU, the PWA/Cloudflare deploy, the File System Access adapter. They are
-> post-freeze by ruling, and the freeze has not happened. Decomposing them now would put rows nobody may
-> claim above rows somebody must.
+> `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is not decomposed here — the freeze has not
+> happened, and rows nobody may claim bury rows somebody must.
 
 | ID    | Status  | Task                                                       | Area     | Machine | Risk   | Depends on |
 | ----- | ------- | ---------------------------------------------------------- | -------- | ------- | ------ | ---------- |
@@ -144,9 +136,7 @@ The second of the two derived kinds §4.3 lists and Entry 84 did not build.
 - depends-on: T-001
 - area: apps-web · machine: **pc** · risk: **normal**
 
-> ⚠ **T-002 depends on T-001 for sequencing, not for logic.** Both land in `tool/align.ts`, a small
-> module; two seats in it at once is a merge conflict bought for no parallelism, since both are `pc` and
-> one seat runs there.
+> ⚠ T-002 depends on T-001 for sequencing, not logic — both land in `tool/align.ts`.
 
 ### T-003 — The in-app open-source licences screen
 
@@ -186,9 +176,7 @@ decides whether lazy build helps at the size that matters.
 - depends-on: —
 - area: document · machine: **box** · risk: **normal**
 
-> ⚠ **This row is `ready` and the other D66 rows are not, deliberately.** It names only things that are
-> on `main` today (`D66`, `§1a`, `document-heap-scale.test.ts`). T-005/T-006 name a design document that
-> is still on PR #16.
+> ⚠ Ready where T-005/T-006 are not: this names only what is on `main` today.
 
 ### T-005 — D66 §3c — force-on-measure, and whether `save` reads built state
 
@@ -267,8 +255,7 @@ every diagnostic empty**, reached by deleting a parent element. Needs no reserve
 - blocked-by: **an owner ruling on `open_rulings.md` Q19** — (a), (b) or (c).
 - area: document · machine: **box** · risk: **high**
 
-> `risk: high` because it edits the cascade walk and the exclusion predicate — `AGENTS.md §4.7`'s sweep
-> class, and `docs/BACKLOG.md`'s own auto-`high` list names the `dependency.ts` invalidator.
+> `risk: high` — it edits the cascade walk and the exclusion predicate (the auto-`high` list above).
 
 ### T-009 — Q18 — a hosted void may only host on its host's base part
 
@@ -302,9 +289,8 @@ face of the wall _as already cut_.
 - depends-on: T-009
 - area: apps-web · machine: **pc** · risk: **normal**
 
-> ⚠ **Split from T-009 on purpose.** _"A `done-when:` list that mixes machines is a task that needs
-> splitting"_ — the rule lives in the document layer (box) and the gesture is only checkable in a browser
-> (pc). One row would have let a box seat tick a criterion it physically could not run.
+> ⚠ Split from T-009 because the rule is headless (box) and the gesture is browser-only (pc); one row
+> would let a box seat tick a criterion it cannot run.
 
 ### T-011 — Q17a — `scene.designOptions` becomes a `SceneCollection`
 
@@ -332,17 +318,8 @@ so the owner merges this one as well as ruling it.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
-- **2026-08-15, Entry 91 — `current_state.md` said the plan/section unit was BLOCKED in two places while
-  three others said it SHIPPED.** `§3`'s _"No 2D views — blocked on rulings Q1–Q3"_ and `§5`'s
-  _"the plan+section — the moment Q1–Q3 are ruled, and not before"_ both survived the unit actually
-  landing in Entry 77 (PR #5, merged; `tests/plan-section.test.ts`, 10 tests; `views` in `scene.ts`),
-  which `§5`'s own ✅ CLOSED list and `open_rulings.md`'s ✅ RULED section both record correctly.
-  **Fixed in this turn** per `AGENTS.md §3` row 1 (a doc that contradicts itself is fixed, not coded
-  around). ⚠ Worth noticing as a class: the stale rows were the ones phrased as _"blocked on a
-  ruling"_ — a status nobody re-reads once the ruling arrives, because the ruling gets recorded
-  somewhere else.
-- **2026-08-15, Entry 91 — `scripts/state.mjs --rebaseline` crashes if `tests/` does not exist.** It
-  `writeFileSync`s the snapshot with no `mkdir`. Harmless in this repo (the directory always exists) and
-  only reachable from a bare fixture, so it is recorded rather than fixed —
-  `tests/protocol/reserved-classes.test.ts` works around it exactly as `fixture.mjs` works around
-  `buildSurface` having no existence guard.
+- **2026-08-15 — `current_state.md §3`/`§5` called the plan/section unit blocked on Q1–Q3 after it
+  shipped** (Entry 77, PR #5; `tests/plan-section.test.ts`). Fixed this turn. ⚠ The class: rows phrased
+  "blocked on a ruling" go stale because the ruling gets recorded elsewhere.
+- **2026-08-15 — `scripts/state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync`
+  with no `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.

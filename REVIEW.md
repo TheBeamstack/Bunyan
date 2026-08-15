@@ -1,29 +1,13 @@
 # `REVIEW.md` — the per-PR review checklist
 
-**When you use this.** You are `hmdnah` or `khalihlna`, you have run
-`node scripts/agent-start.mjs --seat <you> --review`, and it has checked out a PR. **This checklist is
-your whole turn.** You claim no task (`AGENTS.md §1.2`).
+**When you use this.** You are `hmdnah` or `khalihlna`, `node scripts/agent-start.mjs --seat <you>
+--review` has checked out a PR, and this checklist is your whole turn. You claim no task
+(`AGENTS.md §1.2`).
 
-⚠⚠ **REWRITTEN 2026-08-15 (D82, Entry 91). READ THIS PARAGRAPH IF YOU REMEMBER THE OLD ONE.** Until
-Entry 91 this file opened with _"Step 3 of the session loop: after `git pull`, before your own work.
-Every PR gets reviewed — the other agent's, **and your own if you were the last to run**"_ — and then
-spent a paragraph fencing off the self-review case that sentence created. **All of that is gone,
-because the thing it managed is gone.** Review is no longer an act a builder performs before its own
-work (`AGENTS.md §1.1`); it is a seat, on a machine, holding **the GitHub account the author does not
-hold** (`docs/seats/README.md`). A `zayd` PR is reviewed by `hmdnah`; an `amer` PR by `khalihlna`.
-There is no self-review left to permit, discourage, or carve exceptions into.
-
-**What that changes about this checklist: almost nothing, and that is the point.** Every item below was
-written against defects found in this codebase, not against the process that surrounded them. What
-changed is who ticks them and with what authority — the seven items are unaltered.
-
-**The Entry 74 failure this arrangement exists to prevent, kept because the reason must outlive the
-fix.** Entry 74 opened its PR and merged it minutes later, unread by any second party, and is on `main`
-that way. The old rule against it was a sentence in this file that the author had to remember while
-holding the only account that could merge. It is now a **structural** refusal: GitHub will not let an
-account approve its own PR, and the accounts are crossed precisely so that the reviewer's is never the
-author's. ⚠ **A rule enforced by the platform is not a rule you may stop understanding** — if you ever
-find yourself able to merge something you wrote, something upstream is misconfigured. Stop and say so.
+**Self-review does not exist here.** A builder's reviewer is a different seat on the account the author
+does not hold, so GitHub itself refuses the Entry 74 self-merge this file used to guard against by
+instruction. ⚠ If you can merge something you wrote, something upstream is misconfigured — stop and say
+so.
 
 **What this is not.** This is the **per-PR** checklist — roughly the cost of a coffee. For a **phase-level
 adversarial review** (the seven hunts, hours of work, the instrument that produced `review_P4.md`'s
@@ -51,20 +35,13 @@ it goes RED. Paste the failure output.**
 > assertion."_ Until this checklist existed, **every `revert-verified N ways` was a claim no second party
 > had ever executed.** This item is what makes the rule externally true instead of self-attested.
 
-⚠ **MANDATORY on every PR, including every PR of a batch.** A batched review turn
-(`docs/prompts/brahim-orchestrator.md` §4c) never skips this item on one PR because the others already
-proved the harness works — each PR is its own claim.
+⚠ **MANDATORY on every PR, including each PR of a batch** — one proven harness does not discharge the
+next PR's claim.
 
-⚠ **The one NAMED exception, and it is now MUCH narrower than it used to be:** a **browser-only
-measurement** (draw calls, frame time, a console-error-free boot) cannot be re-run on the headless box.
-That exception belongs to **`hmdnah` only** — write `unverified here: <claim> — khalihlna to confirm`
-into the PR and the entry's `REVIEW:` line, and do not tick the item.
-
-⚠⚠ **`khalihlna` HAS NO SUCH EXCEPTION.** It runs on the pc, with a real browser, which is the entire
-reason the seat exists. A rendering or interaction claim reasoned about instead of rendered is the
-unexecuted spec this arrangement was built to catch — and a `machine: pc` PR routes to `khalihlna`
-precisely so that nobody is ever asked to review a claim they cannot execute
-(`node scripts/seats.mjs reviewer-for <T-nnn>` resolves it).
+⚠ **One exception, and it is `hmdnah`'s alone:** a browser-only measurement cannot be re-run on the
+headless box, so write `unverified here: <claim> — khalihlna to confirm` instead of ticking it.
+**`khalihlna` has no such exception** — it has a real browser, which is why `machine: pc` PRs route
+there (`node scripts/seats.mjs reviewer-for <T-nnn>`).
 
 ### 2. BACKWARD SWEEP
 
@@ -115,13 +92,9 @@ Confirm `pnpm state`'s verdict matches the diff.
   **Approve, then tell the owner it needs their merge.** Do not merge it yourself, and note that the
   backlog row stays `review` until the owner actually merges — `brahim`'s sweep flips it, not you.
 
-⚠ **CI has already decided this and put it on the PR.** The `needs-operator/*` labels
-(`scripts/reserved-classes.mjs`) are written by the `pr-shape` job from the same `riskVerdict` that
-`pnpm state` uses, so the label and `§8`'s `RISK:` row cannot disagree. **Three labels, three
-owner-gated classes** (`AGENTS.md §5`): `contract-touching`, `legal-figure` (a `CLA.md` change),
-`freeze` (a re-baselined snapshot). ⚠ **Any one of them present ⇒ you do not merge.** An unlabelled PR
-is the ordinary additive case — but confirm the job actually ran, because "no label" and "the labeller
-never executed" look identical from here.
+⚠ CI's `pr-shape` job labels the three owner-gated classes (`AGENTS.md §5`) from the same `riskVerdict`
+`pnpm state` uses. **Any `needs-operator/*` label ⇒ you do not merge.** Confirm the job ran: "no label"
+and "the labeller never executed" look identical from here.
 
 ---
 
