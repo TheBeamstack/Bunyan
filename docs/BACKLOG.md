@@ -111,6 +111,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-012 | ready   | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
 | T-013 | ready   | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
 | T-014 | ready   | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
+| T-015 | ready   | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
 
 ---
 
@@ -389,8 +390,10 @@ for a PR that had had one review turn of the two D88 requires. The reviewer corr
 - done-when:
   - `--review` resolves the claimed task's `risk:` field from `docs/BACKLOG.md` and takes a `--step 1|2`,
     refusing a `risk: high` PR that names no step;
-  - on step 1 the row stays `review`, no approve/merge command is printed, and the `NEXT TURN: REVIEW
-ONLY` banner is **left standing** — it is what routes step 2;
+  - on step 1 the row stays `review`, no approve/merge command is printed, and the PR gets a
+    **`review/step-1` label** — that label is what routes step 2 (D88 as amended);
+  - `agent-start.mjs --review` reads the label and tells the reviewer which step it is running, refusing
+    to guess when a `risk: high` PR carries none;
   - on step 2 the row goes `done` and the two commands print as they do today;
   - a `risk: normal` PR is unchanged, and `--step` on one is refused rather than ignored;
   - ⚠ **an unreadable or absent `risk:` field is a REFUSAL, never a default to `normal`** — the same skip
@@ -401,6 +404,33 @@ ONLY` banner is **left standing** — it is what routes step 2;
 
 > `risk: high` — this is the gate that decides whether other gates run. ⚠ Its own review runs under the
 > **old** script, so step 1 must check the row's status by hand.
+
+### T-015 — `agent-start.mjs --continue <T-nnn>` — the branch returns to its builder
+
+D88 says a defect either review step proves goes back to the builder on the existing `§0b` claim. Nothing
+implements it: `agent-start.mjs` refuses a named task whose row is not `ready`, `seats.readyFor`
+enumerates `ready` rows only, and a claim reading `finished — PR open, awaiting review` is refused as
+_"not an incomplete turn to continue"_.
+
+- implements: `docs/decisions.md` **D88** (as amended) · `REVIEW.md` §"Two steps" ·
+  `scripts/agent-start.mjs`'s claim path · `scripts/seats.mjs`'s `canClaim`
+- verify: `pnpm verify`
+- done-when:
+  - `--continue <T-nnn>` resumes a `review` row whose `§0b` claim names **this seat**, checking the task
+    branch out and leaving the row at `review`;
+  - ⚠ **it refuses for any other seat** — a claim is the one answer about who is working (`AGENTS.md
+§0b`), and a resume that ignores it puts a second answer in the repo;
+  - it refuses a row that is not `review`, and refuses when no PR is open for the branch;
+  - the finish path prints no `gh pr create` line when the PR is already open — it prints the PR's own
+    URL instead;
+  - ⚠ **`--continue` never widens what a plain claim may take** — revert-verified that a `ready` row
+    belonging to another seat is still refused through both doors;
+  - revert-verified: without the fix, resuming a finished claim on a `review` row is refused.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> ⚠ **T-008 is waiting on this** — its two review defects go back to `zayd` through this route, by owner
+> ruling, rather than being fixed off-protocol first.
 
 ## Discovered
 
@@ -449,11 +479,14 @@ _(unplanned findings land here — never claimed in the same turn that found the
   refused as _"not an incomplete turn to continue"_ (line 576) — so a builder cannot re-enter a row left
   at `review`. A builder that reaches the branch by hand then finishes on the non-`--review` path, which
   prints a `gh pr create` line for a PR that is already open. ⚠ Not covered by `T-014`, whose
-  `done-when:` items are all on the `--review` path.
+  `done-when:` items are all on the `--review` path. ✅ **RULED 2026-08-15 — `D88` as amended: the route
+  is `agent-start.mjs --continue <T-nnn>`, promoted to `T-015`.** T-008 waits for it.
 - **2026-08-15 — the `NEXT TURN: REVIEW ONLY` banner cannot route a review turn.** `agent-finish.mjs`
   writes it into the task branch's `current_state.md` and clears it there on the `--review` run, while
   `agent-start.mjs` reads it after `git checkout main` — so it has never existed on `main`
   (`git log -S` over `origin/main -- current_state.md` returns nothing) and routing comes from the PR
   title via `reviewerFor`. ⚠ `T-014`'s second `done-when:` rests on the banner being _"what routes step
   2"_, which it is not; leaving it standing on the branch changes nothing until the banner reaches a
-  session that starts on `main`.
+  session that starts on `main`. ✅ **RULED 2026-08-15 — `D88` as amended: a `review/step-1` PR label
+  routes step 2, and `T-014`'s criterion is rewritten to it.** The banner keeps its existing job of
+  telling the next session on that branch that the turn is review-only.
