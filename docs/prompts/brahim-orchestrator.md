@@ -70,11 +70,17 @@ Read every open PR routed to `hmdnah` (`node scripts/seats.mjs reviewer-for <T-n
 each PR's own `RISK:` line — `tests/freeze-boundary.test.ts`'s verdict is what actually decides, a
 task's own `risk: high` field is the OTHER trigger, and either one alone means solo).
 
-- **Any one of them is `risk: high` or `RISK: contract-touching`:** that PR gets a **dedicated** `hmdnah`
-  subagent, alone, this cycle. It does the mechanical pre-review only (revert, red, restore, green,
-  check against the spec sections named) and **must not merge or approve for merge** — collect its
-  report, **stop the loop**, hand the report to the operator, wait for explicit approval. Do not also
-  spawn it against any other PR in the same turn; a `risk: high` review is one task, not a queue.
+- **Any one of them is `RISK: contract-touching`:** that PR gets a **dedicated** `hmdnah` subagent,
+  alone, this cycle. It reviews and approves but **must not merge** — collect its report, **stop the
+  loop**, hand the report to the operator, wait for them to merge. Do not also spawn it against any
+  other PR in the same turn.
+- **Any one of them is `risk: high`:** that PR gets a **dedicated** `hmdnah` subagent, alone, this cycle,
+  for **one step of the two-step review** (D88, `REVIEW.md`). Tell the subagent which step it is running;
+  step 1 posts a report and does not approve, step 2 reads step 1's report and merges on green CI. The
+  loop does not stop for either — `risk: high` is not owner-gated. Run the two steps in **separate
+  cycles**, never one subagent doing both, since the session boundary is what makes step 2 independent.
+  If step 1 proves a defect, spawn a `zayd` subagent to fix it on the same branch and existing claim
+  before step 2 runs; the backlog row stays `review` throughout.
 - **All of them are additive, `risk: normal`:** spawn **one** `hmdnah` subagent for the whole batch —
   give it every PR number in the prompt, and instruct it to work through them in the same session:
   `agent-start.mjs --seat hmdnah --review` claims the first, re-execute + check + approve + merge
@@ -124,8 +130,8 @@ it (a summary can drift from the source; the file is the source):
 
 ## Never
 
-- Never let a subagent merge a `risk: high` or `contract-touching` PR without the operator's approval
-  having been explicitly relayed back to you first.
+- Never let a subagent merge a `contract-touching` PR without the operator's approval having been
+  explicitly relayed back to you first, or a `risk: high` PR before its step 2 (D88).
 - Never resolve a `## BLOCKED` entry yourself.
 - Never hand-edit `current_state.md`'s `§0b`/`§8` blocks — only the scripts touch those, inside a
   subagent's own turn.

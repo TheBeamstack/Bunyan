@@ -113,11 +113,11 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| role | reviewer |
+| seat | `brahim` |
+| role | steward |
 | machine | box |
-| task | `T-007` |
-| branch | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` |
+| task | `STEWARD-two-step-high-risk-review` |
+| branch | `main` |
 | claimed-at | 2026-08-15T09:38:01Z |
 | status | finished — PR open, awaiting review |
 
@@ -754,6 +754,31 @@ is maintenance and does NOT get an entry of its own.**
   defects fixed on the branch, on `narutousomaki741` — the account that did not open it. The entry above
   is the record.
 
+### STEWARD-two-step-high-risk-review — `risk: high` takes two review turns, not the owner's merge — 2026-08-15 — seat: brahim
+
+- **CHANGED:** `docs/decisions.md` (**D88** NEW) · `AGENTS.md` §1.2 (the rule) and §5 (`risk: high` named
+  as not owner-gated) · `REVIEW.md` (a `Two steps` section; item 7 warns that only step 2 merges) ·
+  `docs/prompts/brahim-orchestrator.md` §4c (`contract-touching` still stops the loop, `risk: high` no
+  longer does) · `docs/BACKLOG.md` (READY criterion 8; **T-014** NEW). No `packages/`, no `apps/web`, no
+  script or test touched.
+- **VERIFIED:** `pnpm verify` green. `AGENTS.md` held at its 200-line cap by turning the §1.3 loop
+  paragraph and the §2 abstract-heading note into pointers — both already said it in full in
+  `docs/prompts/*` and D82.
+- **FOUND:** Three files gave three answers about what `risk: high` meant — `agent-finish.mjs` wrote
+  `NEXT TURN: REVIEW ONLY`, the orchestrator treated it as owner-gated, and `AGENTS.md §5`, which defines
+  owner-gated, never listed it. ⚠ **A cross-account second reviewer does not exist for a box builder PR:**
+  `zayd` opens on `davidian-abdo` and `khalihlna` holds that same account, so GitHub refuses its approval
+  — the two steps are therefore the same seat in separate sessions, and independence comes from the
+  session boundary. The owner declined rearranging seat accounts to buy a second approver.
+- **OWES:** `zayd` — **T-014** (`--review` reads the frozen surface and never the task's `risk:`, so it
+  stamps a `risk: high` row `done` after step 1; measured on T-008), and the two T-008 review defects,
+  which go back to the existing claim on that branch rather than a new row. `hmdnah` — T-008 step 2,
+  after the fix. The `## Discovered` entry recording the `--review` defect is on the T-008 branch and is
+  closed there, not here.
+- **RISK:** additive
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-two-step-high-risk-review.md`
+- **REVIEW:** pending — `STEWARD:` PR, this branch.
+
 ### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
 
 - **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
@@ -945,15 +970,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-007 (zayd, 2026-08-15)** |
-| branch · tip · tree | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` · `082dc18` · clean |
-| open PRs | #22 task/T-007-q17c-a-dangling-designoptionid-becomes-a · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| branch · tip · tree | `main` · `274a663` · dirty |
+| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
 | suite | **836 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 11 files changed, 520 insertions(+), 129 deletions(-) (11 files) |
-| docs budget | current_state 79.6/96.0 KB · §7 27.6/32.0 KB · abstracts 8/10 · bodies 39 |
+| diff vs origin/main | 6 files changed, 124 insertions(+), 38 deletions(-) (6 files) |
+| docs budget | current_state 81.6/96.0 KB · §7 29.6/32.0 KB · abstracts 9/10 · bodies 40 |
 
 _Generated 2026-08-15 by `pnpm state`._
 

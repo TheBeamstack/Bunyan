@@ -22,6 +22,30 @@ with diff size; reading does not.
 
 ---
 
+## Two steps, when the task is `risk: high`
+
+A `risk: high` row gets **two** review turns, in separate sessions, and the checklist below splits between
+them (D88). It is not owner-gated — step 2 merges it like any other PR.
+
+| Turn       | Items      | Ends with                                                                 |
+| ---------- | ---------- | ------------------------------------------------------------------------- |
+| **Step 1** | 1, 4, 5, 7 | A posted report. **No approval, no merge**, and the row stays `review`.   |
+| **Step 2** | 2, 3, 6    | Approve and merge on green CI, after reconciling against step 1's report. |
+
+Step 2 reads step 1's report and does not re-run it — the split is the point. It does re-confirm item 7's
+`needs-operator/*` check immediately before merging, because that is the gate it is about to cross.
+
+⚠ **A defect either step proves goes back to the builder**, on the branch and the existing `§0b` claim,
+and step 2 reviews what the fix left behind. The row stays `review` throughout; no new claim is made.
+
+Both steps are the same seat, because a cross-account second reviewer does not exist for a box builder PR
+— `zayd` opens on `davidian-abdo` and `khalihlna` holds that account, so GitHub refuses its approval.
+Independence comes from the session boundary: step 2 starts with no memory of step 1.
+
+Everything else takes **one** review turn, running the whole checklist.
+
+---
+
 ## The checklist
 
 Tick each item, or state why it does not apply. Paste the result into the PR.
@@ -88,6 +112,8 @@ Confirm `pnpm state`'s verdict matches the diff.
 - **`RISK: additive`** — no frozen byte, no `SCENE_SCHEMA_VERSION` bump, no field on a frozen shape.
   **You approve and merge it, on your own account** — which is never the account that opened it
   (`docs/seats/README.md`). `scripts/agent-finish.mjs --review` prints the exact two commands.
+  ⚠ **On a `risk: high` task, only step 2 does** — the script prints them for step 1 too, and is wrong to
+  (`T-014`).
 - **`RISK: contract-touching`** — `tests/freeze-boundary.test.ts` has failed and named the exact field.
   **Approve, then tell the owner it needs their merge.** Do not merge it yourself, and note that the
   backlog row stays `review` until the owner actually merges — `brahim`'s sweep flips it, not you.
