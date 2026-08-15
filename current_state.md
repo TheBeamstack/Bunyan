@@ -646,7 +646,14 @@ is maintenance and does NOT get an entry of its own.**
   passes while the order is wrong.
 - **RISK:** additive
 - **FULL:** `handoff/brahim/2026-08-15-STEWARD-step-routing-and-continue.md`
-- **REVIEW:** pending — `STEWARD:` PR, this branch.
+- **REVIEW:** `hmdnah`, 2026-08-15 — **approval withheld**, one blocking finding, fixed on this branch
+  before re-review. ⚠⚠ **T-015's seat gate had been written against the `§0b` baton, which names the last
+  seat to FINISH rather than the builder** — `agent-finish.mjs` rewrites it on the `--review` path too,
+  so T-008's reads `hmdnah`/reviewer against a claim commit reading `zayd`. As written it admitted the
+  reviewer and refused the builder in every intended invocation. The criterion now derives the seat from
+  the task row (`builderFor`, symmetric with `reviewerFor`), and a second criterion that read the row
+  status from `main` — where the `review` flip has not landed — now reads it from the PR's branch. The
+  baton defect itself is recorded in `## Discovered`, unfixed.
 
 ### STEWARD-two-step-high-risk-review — review: D88 is sound, and two orchestrator files still called `risk: high` owner-gated — 2026-08-15 — seat: hmdnah
 

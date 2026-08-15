@@ -394,6 +394,8 @@ for a PR that had had one review turn of the two D88 requires. The reviewer corr
     **`review/step-1` label** — that label is what routes step 2 (D88 as amended);
   - `agent-start.mjs --review` reads the label and tells the reviewer which step it is running, refusing
     to guess when a `risk: high` PR carries none;
+  - ⚠ **the label is created if absent** — `gh pr edit --add-label` fails on a label the repo does not
+    define, and `review/step-1` does not exist today;
   - on step 2 the row goes `done` and the two commands print as they do today;
   - a `risk: normal` PR is unchanged, and `--step` on one is refused rather than ignored;
   - ⚠ **an unreadable or absent `risk:` field is a REFUSAL, never a default to `normal`** — the same skip
@@ -416,11 +418,18 @@ _"not an incomplete turn to continue"_.
   `scripts/agent-start.mjs`'s claim path · `scripts/seats.mjs`'s `canClaim`
 - verify: `pnpm verify`
 - done-when:
-  - `--continue <T-nnn>` resumes a `review` row whose `§0b` claim names **this seat**, checking the task
-    branch out and leaving the row at `review`;
-  - ⚠ **it refuses for any other seat** — a claim is the one answer about who is working (`AGENTS.md
-§0b`), and a resume that ignores it puts a second answer in the repo;
-  - it refuses a row that is not `review`, and refuses when no PR is open for the branch;
+  - `--continue <T-nnn>` checks the task's branch out and leaves the row at `review`;
+  - ⚠⚠ **the admitted seat is DERIVED from the task row, never read from the `§0b` baton** — a new
+    `builderFor(root, taskId)` in `seats.mjs`, symmetric with `reviewerFor` and reading `area:`
+    (`apps-web` ⇒ `amer`, else `zayd`). **Measured 2026-08-15: the baton names the last seat to FINISH,
+    not the builder** — T-008's reads `seat: hmdnah / role: reviewer` while its claim commit reads
+    `claim: T-008 by zayd (box)`, because `agent-finish.mjs` rewrites the baton on the `--review` path
+    too. A gate on the baton admits the reviewer and refuses the builder in every intended invocation;
+  - ⚠ **it refuses for any other seat** — `--continue` must not become a second door onto work someone
+    else is holding;
+  - **it requires an open PR whose title names the task, and reads the row status from that PR's
+    branch** — the `ready`→`review` flip lives on the unmerged branch, so a gate reading the working tree
+    after `git checkout main` reads `ready` and refuses every real case;
   - the finish path prints no `gh pr create` line when the PR is already open — it prints the PR's own
     URL instead;
   - ⚠ **`--continue` never widens what a plain claim may take** — revert-verified that a `ready` row
@@ -441,6 +450,15 @@ _(unplanned findings land here — never claimed in the same turn that found the
   "blocked on a ruling" go stale because the ruling gets recorded elsewhere.
 - **2026-08-15 — `scripts/state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync`
   with no `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
+- **2026-08-15 — ⚠⚠ the `§0b` baton names the last seat to FINISH, not the seat that claimed.**
+  `agent-finish.mjs` rewrites it with the finishing seat on the `--review` path too, so a reviewed branch
+  ends up claiming its reviewer built it: T-008's baton reads `seat: hmdnah / role: reviewer` while
+  `git log` reads `claim: T-008 by zayd (box)`. ⚠ `AGENTS.md §0b` calls the claim "the single source of
+  truth about who is working", and after any review turn it is not — the builder's identity survives only
+  in the claim commit message. Found reviewing PR #25, where a `T-015` criterion had been written against
+  the baton and would have admitted the reviewer while refusing the builder. ⚠ **`T-015` now derives the
+  seat from the task row instead**, which routes around this rather than fixing it; whether the baton
+  should carry the builder separately from the current holder is a steward decision not yet taken.
 - **2026-08-15 — `agent-start.mjs --review` cannot route a PR whose title carries no `T-nnn`, so neither
   open PR is claimable by any reviewer seat.** Measured: `--seat hmdnah --review` prints
   `reviewer: ?` for both #16 and #17 and stops at _"No open PR routes to this seat"_, because
