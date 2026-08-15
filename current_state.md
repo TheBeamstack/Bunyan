@@ -181,7 +181,7 @@ All four axes now have a number. **Two are closed; two remain open and are named
 | **WASM heap** | ✅ **FITS** — 16.2 KB/live-solid, dead-linear ⇒ **0.31 GB at 10k**, inside a tab (Entry 29, re-measured Entry 54). |
 | **Draw calls / frame time** | ✅ **CLOSED (Entry 63)** — renderer batching: **~30,700 draw calls → 2** at the 10k target (606 ms → ~10–14 ms; 1.6 → ~80 fps). |
 | **Edit latency** | ✅ incremental edit ~23 ms compute, **FLAT vs scale**; the ~570 ms post-edit render went with the batching rewrite. |
-| **Cold load** | ⚠ **OPEN — ~3 min at the 10k target, STILL UNUSABLE.** The D29 cache buys **2.07×** (24.86 → 12.00 ms/solid), not an order of magnitude. ⚠⚠ **PER-ELEMENT BUILD COST IS FLAT, MEASURED (T-004, `tests/document-build-cost-scale.test.ts`): 43.2–43.8 ms/element marginal, ordinary least squares of cold-load ms on element count over four sizes (39/117/195/273 elements), R² ≥ 0.9996, intercept within ±140 ms of zero, two runs 1.3% apart.** The local marginals run 41.5–45.6 ms per additional element — a spread of 5.9% and 9.2% on the two runs — and the only systematic deviation is the smallest model pricing ~5% **high**, which is the opposite direction from superlinearity. ⇒ **~7.2–7.3 min uncached at 10,000 elements**, the same order as D66's 6.35 min and, divided by the cache's measured 2.07×, **3.5 min** against the ~3 min this row already carries. ⚠ The range measured is 39–273 elements and the target is 10,000, so the projection is a 37× extrapolation that the flat marginals entitle rather than prove. The levers that could close it are `instantiate` (RESERVED), lazy build/eviction (D66 — additive) and MT (D8, ruled v1.0.x). |
+| **Cold load** | ⚠ **OPEN — ~3 min at the 10k target, STILL UNUSABLE.** The D29 cache buys **2.07×** (24.86 → 12.00 ms/solid), not an order of magnitude. ⚠⚠ **PER-ELEMENT BUILD COST IS FLAT, MEASURED (T-004, `tests/document-build-cost-scale.test.ts`): 41.9–43.8 ms/element marginal, ordinary least squares of cold-load ms on element count over four sizes (39/117/195/273 elements), R² ≥ 0.9988, intercept within ±140 ms of zero, four runs — two by `zayd`, two re-run by `hmdnah` in review — spanning 4.5%.** The local marginals run 39.6–46.3 ms per additional element, a spread of 5.9–16.8% across the runs, and the only systematic deviation is the smallest model pricing ~5–10% **low** per element (38.8–39.6 ms/el at 39 elements against 41.8–44.0 ms/el at the three larger sizes, in all four runs). That lifts the first local marginal above the other two, so the marginals **fall** slightly with size — the opposite direction from superlinearity. Its cause is not measured. ⇒ **~7.2–7.3 min uncached at 10,000 elements**, the same order as D66's 6.35 min and, divided by the cache's measured 2.07×, **3.5 min** against the ~3 min this row already carries. ⚠ The range measured is 39–273 elements and the target is 10,000, so the projection is a 37× extrapolation that the flat marginals entitle rather than prove. The levers that could close it are `instantiate` (RESERVED), lazy build/eviction (D66 — additive) and MT (D8, ruled v1.0.x). |
 | **Join resolution** | ✅ **CLOSED (D73)** — the O(N²) scan is an O(N) spatial index: **4757.7 ms → 27.2 ms at 1984 walls**, per-wall cost FLAT (14–17 µs) from 1k to 10k. |
 
 ⚠ *Verification is most of a cached load's cost — re-measuring every sub-shape to prove the tokens belong
@@ -627,6 +627,34 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-004 — review: the flatness result holds, and the harness passed while building nothing — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** `tests/document-build-cost-scale.test.ts` — the cold load's built solids are counted and
+  required to equal the authored count. `scripts/agent-finish.mjs` — `setRowStatus` hoisted, exported and
+  **repadded** (+ `scripts/agent-finish.d.mts` NEW, + a case in `tests/protocol/agent-finish.test.ts`).
+  `§1a` + the T-004 body — the smallest-model deviation's direction.
+- **VERIFIED:** `REVIEW.md` item 1, twice. **(a)** Removing `cold.rebuildAll()` went RED only at
+  `expect(fit.slope).toBeGreaterThan(0)` — `-0.0000015`, a coin flip on noise; with the count asserted it
+  is RED in 2.9 s naming `scale 1: solids built by the cold load: expected +0 to be 62`, green restored
+  in 58.4 s. **(b)** Reverting the repad turned `agent-finish.test.ts` RED on `| T-001 | review   |`, the
+  byte CI rejected. Harness re-run twice: **43.45** and **41.93 ms/element**, R² 0.9995/0.9988, **7.24**
+  and **6.99 min** projected.
+- **FOUND:** The verdict stands — flat across 39–273 elements, ~7 min at 10,000 — but two claims under it
+  did not. ⚠⚠ **The harness could not tell a cold load that built the whole building from one that built
+  nothing:** `geometryOf(id)?.state` is `undefined` for an element never built and `undefined !==
+  'failed'`, and `brokenRefs()` returns a **stored scene field** rather than a re-derivation, so both
+  passed on an empty measurement. ⚠ `§1a`'s _"smallest model prices ~5% **high**"_ is backwards — 39
+  elements price 38.8–39.6 ms/el against 41.8–44.0 at the larger sizes in all four runs, so the marginals
+  **fall** with size and the warmup cause predicts the opposite sign. Both survive the conclusion: a
+  cheap smallest model is still not superlinearity.
+- **OWES:** `amer` — `unverified here: the same cold load inside a real browser tab`, carried forward
+  untouched; this box is headless. `brahim` — the flatness verdict is still **printed, not asserted**, so
+  a superlinear regression passes this file; four runs put the marginal spread at 5.9–16.8%, the number a
+  ratio gate would have to clear.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-T-004-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
+
 ### T-004 — per-element build cost is flat from 39 to 273 elements, and 10,000 projects to 7.2 min — 2026-08-15 — seat: zayd
 
 - **CHANGED:** `tests/document-build-cost-scale.test.ts` **NEW (+1)** — four sizes of the reference
@@ -643,8 +671,9 @@ is maintenance and does NOT get an entry of its own.**
   differences and the fit's R² is only its witness. The 7.2 min uncached reaches D66's 6.35 min from a
   different direction, and at the cache's measured 2.07× it is 3.5 min against the ~3 min `§1a` already
   carried. The one
-  systematic deviation is the smallest model pricing ~5% **high**, the opposite direction from
-  superlinearity. Authoring's marginal is 43.1 ms/element against the cold load's 43.8, so command
+  systematic deviation is the smallest model pricing ~5–10% **low** per element, which makes the
+  marginals fall slightly with size — the opposite direction from superlinearity. Authoring's
+  marginal is 43.1 ms/element against the cold load's 43.8, so command
   dispatch is not a measurable share of authoring at this scale.
 - **OWES:** `hmdnah` — this PR; there is no fix to revert, so the re-run is the check and the harness
   reproduced to 1.3% here. `amer` — `unverified here: the same cold load inside a real browser tab`; every
@@ -654,7 +683,14 @@ is maintenance and does NOT get an entry of its own.**
   regression would still pass this file. ⚠ The projection is a **37× extrapolation** from 273 elements.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-15-T-004-build-cost-flatness.md`
-- **REVIEW:** AWAITING REVIEW
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED and MERGED**, `RISK: additive`, on
+  the crossed account. The measurement reproduced twice here (43.45 and 41.93 ms/element, 7.24 and
+  6.99 min projected). ⚠⚠ **Two defects fixed on the branch:** the harness passed while the cold load
+  built **nothing** (`geometryOf(id)?.state` is `undefined` for an element never built, and
+  `undefined !== 'failed'`), leaving the sign of a noise-level slope as its only guard — it now counts
+  the solids the cold context actually built; and §1a's *"smallest model prices ~5% **high**"* is
+  backwards in all four runs, so the row now reads **low** and drops the warmup cause, which predicts
+  the opposite sign. Full record: `handoff/hmdnah/2026-08-15-T-004-review.md`.
 
 ### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
 
@@ -951,16 +987,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-004 (zayd, 2026-08-15)** |
-| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `fce98bd` · clean |
-| open PRs | #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| **newest entry** | **T-004 (hmdnah, 2026-08-15)** |
+| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `ab26378` · dirty |
+| open PRs | #20 task/T-004-does-per-element-build-cost-stay-flat-fr · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
 | suite | **832 green** · 94 files · 263 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 3 files changed, 567 insertions(+), 12 deletions(-) (3 files) |
-| docs budget | current_state 80.5/96.0 KB · §7 28.9/32.0 KB · abstracts 7/10 · bodies 36 |
+| diff vs origin/main | 6 files changed, 670 insertions(+), 22 deletions(-) (6 files) |
+| docs budget | current_state 84.2/96.0 KB · §7 32.1/32.0 KB · abstracts 8/10 · bodies 37 |
 
 _Generated 2026-08-15 by `pnpm state`._
 

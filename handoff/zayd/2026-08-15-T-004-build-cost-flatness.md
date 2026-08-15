@@ -74,10 +74,12 @@ Local marginals, ms per additional element:
 1.3% across runs and the intercept is within ±140 ms of zero on a total of 11.7 s, which is the signature
 of a cost that is purely per-element with no fixed part worth naming.
 
-The one systematic deviation is that the smallest model prices about 5% **high** in both runs. That is the
-opposite direction from superlinearity, and the plausible cause is per-process warmup landing entirely
-inside the shortest measurement. It is not evidence of a cost that grows with size, and no claim here
-rests on it.
+The one systematic deviation is that the smallest model prices about 5–10% **low** per element — 38.8 and
+39.2/39.6 ms/el at 39 elements against 41.8–44.0 at the three larger sizes, in all four runs including
+`hmdnah`'s two. Because the 39-element point sits below the line, the first local marginal (39 → 117) is
+the highest in every run and the marginals fall slightly with size. That is the opposite direction from
+superlinearity, so no claim here rests on it, and its cause is not measured — per-process warmup would
+push the shortest measurement **high**, which is not what the runs show.
 
 ## 5. What it means for the 10,000 target
 

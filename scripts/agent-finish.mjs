@@ -48,6 +48,26 @@ function tryGit(args, cwd) {
   }
 }
 
+/**
+ * Rewrites `| T-nnn | <old> | …` to `| T-nnn | <next> | …` in docs/BACKLOG.md.
+ *
+ * ⚠⚠ IT REPADS THE CELL, because `format:check` is CI step 3 and the status words are different
+ * lengths. Writing the word alone and keeping the old cell's trailing spaces changes the column's
+ * width, `prettier --check` rejects the file, and the PR opens red on a diff the author never wrote —
+ * measured on PR #20, where `ready`→`review` left one trailing space and CI failed naming
+ * `docs/BACKLOG.md` alone. The committed column width is preserved rather than recomputed: every
+ * status value fits inside the widest of them (`blocked`), so the table never needs to change shape.
+ */
+export function setRowStatus(backlogPath, taskId, next) {
+  const src = readFileSync(backlogPath, 'utf8');
+  const re = new RegExp(`^(\\|\\s*${taskId}\\s*\\| )([a-z-]+)( *)(\\|)`, 'm');
+  const m = src.match(re);
+  if (!m) die(`${taskId} has no summary-table row in docs/BACKLOG.md to update.`);
+  const width = m[2].length + m[3].length;
+  const padded = next + ' '.repeat(Math.max(1, width - next.length));
+  writeFileSync(backlogPath, src.replace(re, `$1${padded}$4`));
+}
+
 function parseArgs(argv) {
   const a = {
     seat: process.env.BUNYAN_SEAT ?? '',
@@ -235,14 +255,6 @@ export function main(argv = process.argv.slice(2)) {
 
   const backlogPath = join(root, 'docs/BACKLOG.md');
 
-  /** Rewrites `| T-nnn | <old> | …` to `| T-nnn | <next> | …` in docs/BACKLOG.md. */
-  function setRowStatus(taskId, next) {
-    const src = readFileSync(backlogPath, 'utf8');
-    const re = new RegExp(`^(\\|\\s*${taskId}\\s*\\| )[a-z-]+(\\s*\\|)`, 'm');
-    if (!re.test(src)) die(`${taskId} has no summary-table row in docs/BACKLOG.md to update.`);
-    writeFileSync(backlogPath, src.replace(re, `$1${next}$2`));
-  }
-
   if (isTask && !review) {
     if (!incomplete) {
       // ⚠⚠ MECHANICALLY SET, NOT HAND-EDITED. A builder finishing a task moves its row `ready` →
@@ -250,7 +262,7 @@ export function main(argv = process.argv.slice(2)) {
       // own §"Status values"). Only a reviewer's `--review` run (additive) or brahim's merged-PR sweep
       // (the contract-touching backstop) ever writes `done` — a dependency is satisfied by `done`
       // alone, so a builder cannot accidentally satisfy someone else's `depends-on:` by finishing.
-      setRowStatus(task, 'review');
+      setRowStatus(backlogPath, task, 'review');
       console.log("   ✓ backlog status → review (a reviewer's merge is what makes it done)");
     } else {
       console.log(
@@ -289,7 +301,7 @@ export function main(argv = process.argv.slice(2)) {
     reviewContractTouching = surfaceRow?.[1] === 'contract-touching';
     if (isTask) {
       if (!reviewContractTouching) {
-        setRowStatus(task, 'done');
+        setRowStatus(backlogPath, task, 'done');
         console.log(`   ✓ backlog status → done (${task} merges immediately after this turn)`);
       } else {
         console.log(

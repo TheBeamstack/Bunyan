@@ -296,6 +296,16 @@ async function measureScale(storeys: number): Promise<ScalePoint> {
     expect(cold.brokenRefs(), `scale ${String(storeys)}: broken refs after cold load`).toHaveLength(
       0,
     );
+    // ⚠ COUNT THE SOLIDS THE COLD CONTEXT ACTUALLY BUILT, and require the authored count. A
+    // per-element `state !== 'failed'` check cannot do this job: `geometryOf` returns `undefined`
+    // for an element that was never built at all, and `undefined !== 'failed'` passes — so a cold
+    // load that built NOTHING satisfied it, leaving the sign of a noise-level slope as the only
+    // thing standing between this harness and timing an empty measurement.
+    const coldSolids = Object.keys(cold.scene.elements).reduce(
+      (total, id) => total + (cold.partsOf(id)?.length ?? 0),
+      0,
+    );
+    expect(coldSolids, `scale ${String(storeys)}: solids built by the cold load`).toBe(solids);
     for (const id of Object.keys(cold.scene.elements)) {
       expect(
         cold.geometryOf(id)?.state,
