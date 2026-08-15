@@ -78,29 +78,36 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 
 ## Backlog
 
-> **Decomposed 2026-08-15 (Entry 91).** Four rows are `ready`; the rest wait on four owner rulings
-> (`open_rulings.md` Q17a, Q17c, Q18, Q19) or on PRs **#16** (D66 design) and **#17** (gizmo).
+> **Decomposed 2026-08-15 (Entry 91); the four owner rulings landed the same day.** Q17a, Q17c, Q18 and
+> Q19 are ruled (**D83**–**D86**), so **T-007, T-008, T-009 and T-011 are `ready`** — three of them
+> `risk: high`, which means a solo review that stops the loop for the owner, and T-011 is
+> `contract-touching`, so the owner merges it as well. **T-010** still waits on T-009; **T-005** and
+> **T-006** still wait on PR **#16**.
 >
 > ⚠ **#16 and #17 predate `T-nnn` and get no row** — they are claimed via `agent-start.mjs --review` off
 > the open-PR list. Rows waiting on them use `blocked-by:`, not `depends-on:`, which `canClaim` reads
-> mechanically and can only close over a `T-nnn`.
+> mechanically and can only close over a `T-nnn`. ⚠⚠ **That claim is not true of the script yet** — see
+> the `## Discovered` entry: `--review` only routes a PR whose title carries a `T-nnn`, so both are
+> currently unclaimable by any reviewer seat.
 >
 > `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is not decomposed here — the freeze has not
 > happened, and rows nobody may claim bury rows somebody must.
 
-| ID    | Status  | Task                                                       | Area     | Machine | Risk   | Depends on |
-| ----- | ------- | ---------------------------------------------------------- | -------- | ------- | ------ | ---------- |
-| T-001 | ready   | The perpendicular-foot snap candidate                      | apps-web | pc      | normal | —          |
-| T-002 | ready   | The two-candidate-line intersection snap                   | apps-web | pc      | normal | T-001      |
-| T-003 | ready   | The in-app open-source licences screen                     | apps-web | pc      | normal | —          |
-| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?   | document | box     | normal | —          |
-| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built | document | box     | normal | —          |
-| T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint       | apps-web | pc      | normal | T-005      |
-| T-007 | blocked | Q17c — a dangling `designOptionId` becomes a broken ref    | document | box     | normal | —          |
-| T-008 | blocked | Q19 — the belongs-to deletion reconciliation               | document | box     | high   | —          |
-| T-009 | blocked | Q18 — a hosted void may only host on its host's base part  | document | box     | high   | —          |
-| T-010 | blocked | Q18 — two doors on one wall, confirmed in the browser      | apps-web | pc      | normal | T-009      |
-| T-011 | blocked | Q17a — `scene.designOptions` becomes a `SceneCollection`   | document | box     | high   | —          |
+| ID    | Status  | Task                                                        | Area     | Machine | Risk   | Depends on |
+| ----- | ------- | ----------------------------------------------------------- | -------- | ------- | ------ | ---------- |
+| T-001 | ready   | The perpendicular-foot snap candidate                       | apps-web | pc      | normal | —          |
+| T-002 | ready   | The two-candidate-line intersection snap                    | apps-web | pc      | normal | T-001      |
+| T-003 | ready   | The in-app open-source licences screen                      | apps-web | pc      | normal | —          |
+| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?    | document | box     | normal | —          |
+| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built  | document | box     | normal | —          |
+| T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint        | apps-web | pc      | normal | T-005      |
+| T-007 | ready   | Q17c — a dangling `designOptionId` becomes a broken ref     | document | box     | normal | —          |
+| T-008 | ready   | Q19 — the belongs-to deletion reconciliation                | document | box     | high   | —          |
+| T-009 | ready   | Q18 — a hosted void may only host on its host's base part   | document | box     | high   | —          |
+| T-010 | blocked | Q18 — two doors on one wall, confirmed in the browser       | apps-web | pc      | normal | T-009      |
+| T-011 | ready   | Q17a — `scene.designOptions` becomes a `SceneCollection`    | document | box     | high   | —          |
+| T-012 | ready   | `--review` routes a PR whose title carries no `T-nnn`       | infra    | box     | high   | —          |
+| T-013 | ready   | The seat identity guard — `gh api user` must match the seat | infra    | box     | high   | —          |
 
 ---
 
@@ -231,7 +238,9 @@ quantifies over the model must build what it is about to report, or declare it.
   - ⚠ it **refuses nothing and permits nothing**. Q17c is the one piece that is additive AND
     direction-neutral; widening it into a refusal would pre-empt Q17b.
 - depends-on: —
-- blocked-by: **an owner ruling on `open_rulings.md` Q17c.**
+- ✅ **RULED 2026-08-15 — `D86`, as recommended.** ⚠ **D83's (c) half is the same body** — T-008 builds it
+  over the `hostId`/`parentElementId` edges and this row builds it over `designOptionId`; whichever lands
+  second reuses the first's surfacing path rather than adding a second one.
 - area: document · machine: **box** · risk: **normal**
 
 ### T-008 — Q19 — the belongs-to deletion reconciliation
@@ -239,20 +248,22 @@ quantifies over the model must build what it is about to report, or declare it.
 ⚠⚠ The worst-measured defect open: **a document can report ZERO total volume with `basis: 'exact'` and
 every diagnostic empty**, reached by deleting a parent element. Needs no reserved-arg misuse.
 
-- implements: `open_rulings.md` **Q19** (all three reconciliations, and Entry 85's `hostId` half) ·
-  `docs/decisions.md` D39 (cascade) and D67 (exclusion) — ⚠ **both owner-ruled, and the gap between them
-  is the defect**
+- implements: `docs/decisions.md` **D83** (the ruling) · D39 (cascade) and D67 (exclusion) — ⚠ **both
+  owner-ruled, and the gap between them is the defect** · Entry 85's `hostId` half
 - verify: `pnpm verify`
 - done-when:
-  - the reconciliation the owner ruled is implemented — (a) cascade, (b) refuse, (c) surface — and no
-    other;
+  - **(a) cascade** — `cascadeOf` extends to the `parentElementId` edge, so deleting a parent deletes its
+    members;
+  - **(c) surface** — a dangling ancestor becomes a visible broken reference; ⚠ **(b) refuse is ruled
+    OUT** and must not be built, so `core.deleteElement`'s `argsSchema` does not move;
   - ⚠ **BOTH edges are covered**, `parentElementId` AND `hostId`. Entry 85 found the same hole on
     `hostId` with a narrower population; a reconciliation covering one _fixes half the defect_;
   - ⚠ `tests/belongs-to-cycle-guard.test.ts` **is supposed to fail when this lands** — it pins D39
     cascading `hostId` only. Come past it deliberately, and update it in the same PR;
   - the zero-volume walk is reproduced as a red test first, then closed.
 - depends-on: —
-- blocked-by: **an owner ruling on `open_rulings.md` Q19** — (a), (b) or (c).
+- ✅ **RULED 2026-08-15 — `D83`, (a) + (c) as recommended.** ⚠ (a) is ruled **on the condition that groups
+  stay a v1.0.x reservation**; if group authoring ever ships, this comes back to the owner.
 - area: document · machine: **box** · risk: **high**
 
 > `risk: high` — it edits the cascade walk and the exclusion predicate (the auto-`high` list above).
@@ -262,8 +273,7 @@ every diagnostic empty**, reached by deleting a parent element. Needs no reserve
 The second door placed on a wall by clicking comes back `broken-ref`, because the pick hands the tool a
 face of the wall _as already cut_.
 
-- implements: `open_rulings.md` **Q18** · `docs/decisions.md` D12 (opening anchoring), D51
-  (refuse-or-retarget)
+- implements: `docs/decisions.md` **D84** (the ruling) · D12 (opening anchoring), D51 (refuse-or-retarget)
 - verify: `pnpm verify`
 - done-when:
   - the rule is enforced **where the meaning lives** — the document layer, which knows which node is a
@@ -273,8 +283,8 @@ face of the wall _as already cut_.
     same broken element, so the test goes through the verb, not through the gesture;
   - revert-verified headlessly on the document layer.
 - depends-on: —
-- blocked-by: **an owner ruling on `open_rulings.md` Q18** (the rule, or the louder `core.createElement`
-  refusal it names as second-cheapest).
+- ✅ **RULED 2026-08-15 — `D84`, as recommended: the document-layer rule.** ⚠ The louder
+  `core.createElement` refusal was the named alternative and is **not** what was ruled — do not build it.
 - area: document · machine: **box** · risk: **high**
 
 ### T-010 — Q18 — two doors on one wall, confirmed in the browser
@@ -297,7 +307,7 @@ face of the wall _as already cut_.
 ⚠⚠ `RISK: contract-touching` **before it is written** — `type SceneCollection` is a watched declaration,
 so the owner merges this one as well as ruling it.
 
-- implements: `open_rulings.md` **Q17a** (the BLOCKING row) ·
+- implements: `docs/decisions.md` **D85** (the ruling) ·
   `docs/design/P5_step6D_design_options_crud_design.md` §1 (the walk), §3 (data-additive YES,
   freeze-additive NO) · `docs/decisions.md` D65, D79 (materialise-on-first-authoring)
 - verify: `pnpm verify`
@@ -311,8 +321,58 @@ so the owner merges this one as well as ruling it.
   - the compiler's `TS2345` in `dependency.ts`'s exhaustive switch is closed (Entry 33's mechanism);
   - the 50% under-report walk is reproduced red first, then closed.
 - depends-on: —
-- blocked-by: **an owner ruling on `open_rulings.md` Q17a** — the one row in 🔴 BLOCKING.
+- ✅ **RULED 2026-08-15 — `D85`, as recommended: ship the unit.** ⚠ Ruling it did **not** make it
+  mergeable by a seat — it is still `RISK: contract-touching`, so the owner merges the PR too.
 - area: document · machine: **box** · risk: **high**
+
+### T-012 — `--review` routes a PR whose title carries no `T-nnn`
+
+`scripts/agent-start.mjs` calls `reviewerFor` only when the PR title matches `^T-\d{3}`, so PRs **#16**
+and **#17** print `reviewer: ?` and are unclaimable by any reviewer seat. This backlog's own header note
+says they are claimed off the open-PR list, which the script does not implement.
+
+- implements: `AGENTS.md` §0 (identity is role + machine) and §1.2 (review is routed by machine) ·
+  `scripts/seats.mjs`'s `reviewerFor`/`machineOf` · this file's `## Discovered` entry of 2026-08-15
+- verify: `pnpm verify`
+- done-when:
+  - a PR with no `T-nnn` in its title routes to the reviewer on **the machine its work was executed on**,
+    derived from the branch's seat prefix (`zayd/…` ⇒ box ⇒ `hmdnah`, `amer/…` ⇒ pc ⇒ `khalihlna`);
+  - ⚠ **the fallback derives the machine, never widens it** — a browser-only PR must not become claimable
+    by a headless seat, which is the failure `machine:` exists to prevent;
+  - a branch prefix naming no known seat routes to nobody and says so, rather than defaulting;
+  - ⚠ a `T-nnn` in the title still wins — the fallback is only for its absence;
+  - tested against real fixture git histories, as `tests/protocol/` already does, not by grepping the
+    script;
+  - revert-verified: without the fix, a fixture PR titled without a `T-nnn` routes to nobody.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — it decides which machine reviews a claim, which `Brahim_Prompt.md` names the
+> safety-critical act.
+
+### T-013 — The seat identity guard — `gh api user` must match the seat
+
+⚠⚠ Measured 2026-08-15: `gh` on box held only `Davidian-Abdo`, so `hmdnah` could not approve at all —
+GitHub refused with _"Can not approve your own pull request"_ — while `gh pr merge` was **not** blocked
+for a repo admin. A seat that has just been refused a review can still merge.
+
+- implements: `docs/decisions.md` **D87** · `AGENTS.md` §0 (crossed accounts) and §6 (the author never
+  merges their own entry) · `scripts/seats.mjs`'s `accountOf`
+- verify: `pnpm verify`
+- done-when:
+  - `scripts/agent-start.mjs` resolves `gh api user --jq .login` and **refuses the turn** when it does not
+    equal `accountOf(seat)`;
+  - ⚠ the refusal names both accounts — a guard that says only "wrong account" sends the reader to the
+    wrong file;
+  - ⚠ **an unresolvable identity is a REFUSAL, never a skip** — `current_state.md §1d`'s standing lesson
+    that a gate's hard part is the skip, and Entry 88 shipped three defects of exactly this shape;
+  - the per-seat token file convention is documented in `docs/RUNBOOK.md`, with the file mode;
+  - revert-verified: with the guard removed, a fixture seat carrying the wrong account starts its turn.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — with Q13 ruled _neither public nor Pro_ (D87), branch protection is unavailable, so this
+> guard is the **only** thing preventing a self-approving merge.
 
 ## Discovered
 
@@ -332,7 +392,7 @@ _(unplanned findings land here — never claimed in the same turn that found the
   has yet claimed a `T-nnn`-less PR. The mechanical fallback available is the branch's seat prefix
   (`zayd/…` ⇒ box ⇒ `hmdnah`, `amer/…` ⇒ pc ⇒ `khalihlna`), which derives the reviewer from the machine
   the work was executed on rather than from the title. ⚠⚠ **That is safety-critical routing, so it is a
-  `STEWARD:` PR carrying a test, not a direct commit** — recorded here, not claimed this turn.
+  `STEWARD:` PR carrying a test, not a direct commit** — ✅ **promoted to `T-012`, 2026-08-15.**
 - **2026-08-15 — ⚠⚠ `hmdnah` HAS NO GITHUB CREDENTIAL ON THE BOX, so the crossed-account approval
   `AGENTS.md §0` is built on does not exist here.** `gh auth status` lists exactly one account,
   `Davidian-Abdo` — the account `zayd` authors from — and `narutousomaki741` is present only as a git
@@ -342,17 +402,16 @@ _(unplanned findings land here — never claimed in the same turn that found the
   caught it; `gh pr merge` is **not** similarly blocked for a repo admin, so the next reviewer turn that
   does not check first will land the Entry 74 self-merge (`AGENTS.md §6`) believing it is a crossed
   approval. ⚠ It went unnoticed because #18/#19 were merged by the owner and no reviewer seat had yet
-  reached the approve step. **RESOLVED same day by owner ruling — env-scoped, not a global
-  `gh auth switch`:** a `narutousomaki741` PAT lives at `~/.config/bunyan/hmdnah.token` (mode 600) and a
-  seat exports `GH_TOKEN=$(cat …)` for its own turn, so the box's default identity stays
-  `Davidian-Abdo` and each seat's account is chosen per turn rather than left global. #20 was approved
-  and merged under it. ⚠ The durable rule this leaves: **a reviewer confirms `gh api user` is its own
-  seat's account before approving or merging** — GitHub blocks a self-approval but not a self-merge.
+  reached the approve step. ✅ **RESOLVED same day by owner ruling — `D87`**, which is where the
+  credential model is recorded;
+  the durable rule it leaves is `T-013`: **a seat confirms `gh api user` is its own account before
+  approving or merging**, because GitHub blocks a self-approval but **not** a self-merge.
 - **2026-08-15 — `agent-finish.mjs`'s `ready`→`review` status flip fails `format:check`, so every builder
   turn opens a red PR.** The longer word goes into a cell padded for `ready`, leaving one trailing space
   that `prettier --check` — CI step 3 — rejects; nothing else in the diff is at fault. Measured on **PR
   #20**, the first task row the script has ever flipped: `pnpm verify` was green in the finish run and CI
   failed naming `docs/BACKLOG.md` alone. ⚠ The fix belongs in the writer — re-align the row, or format the
-  file it just edited — not in each branch, and not by widening the committed column. **FIXED in PR #20**
-  by `hmdnah`: `setRowStatus` is hoisted, exported, and repads to the width it found
-  (`tests/protocol/agent-finish.test.ts`).
+  file it just edited — not in each branch, and not by widening the committed column. ✅ **FIXED at the
+  writer in PR #20 by `hmdnah`**: `setRowStatus` is hoisted, exported and repads to the width it found,
+  with a case in `tests/protocol/agent-finish.test.ts`. ⚠ Repadding the one branch would not have held —
+  the same writer stamps `done` at the end of a review turn and would have re-broken it the other way.
