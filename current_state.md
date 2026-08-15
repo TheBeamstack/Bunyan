@@ -627,6 +627,46 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-008 — review: the reconciliation holds, and the surfacing pass double-reports one element — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing the owner is
+  deciding on. `docs/BACKLOG.md` `## Discovered` gains the `agent-finish.mjs --review` finding below, and
+  T-008's row is held at `review` against that script's own flip. Entry **86 rotated** to
+  `docs/history.md` §C, now contiguous over 54–86.
+- **VERIFIED:** ⚠ **Item 1 re-executed twice, by two sessions, the second not inheriting the first's
+  result.** `belongsTo` → `hostedBy` in `cascadeOf` is **6 RED**, and the split reproduces exactly: **2**
+  in `belongs-to-cycle-guard.test.ts` (`cascadeOf` terminates on a cycle; `cascadeOf` and
+  `isElementActive` walk the same edges) and **4** in `belongs-to-deletion-d83.test.ts`. Dropping
+  `danglingAncestorRefs` from `brokenRefs()` is **3 RED**, all `expected [] to have a length of 1 but got
+  +0`. Both restored ⇒ **24/24 green** across the two files. `pnpm verify` green, **843 across 95 files**,
+  real exit code 0. `pr-shape` **ran** (`PR shape · reserved classes` SUCCESS) and applied no
+  `needs-operator/*` label.
+- **FOUND:** The verdict holds and both defects reproduce, measured rather than read. ⚠⚠
+  **`brokenRefs()` emits two entries identical in `elementId` and `ref`** when one element's `hostId` and
+  `parentElementId` name the same missing id — `danglingAncestorRefs` checks the edges independently, so
+  they differ only in `reason`. Measured through the shipped verbs (a door hosted in a wall, then
+  `core.setElementMetadata { parentElementId: <that wall> }`, then the wall dropped): **2 entries, 1
+  distinct `` `${b.elementId}:${b.ref}` `` — the key `App.tsx:1096` lists on.** ⚠ **The edit label was not
+  swept with the cascade:** deleting a parent whose member is joined by `parentElementId` alone yields
+  `"Delete Wall and 1 hosted element(s)"`, and the label is journalled (D40). ⚠ Recorded, not proved
+  harmful: `BrokenReference.hostId` is `ancestorId` here against T-007's `element.id` one day earlier, and
+  `ancestorId` is by construction absent from `scene.elements`; `agent.ts:218` projects
+  `{elementId, ref, reason}` and `App.tsx` reads neither, so no consumer resolves it today. ⚠ `cascadeOf`
+  has exactly one production consumer (`deleteElementCommand`) and `brokenRefs()` exactly two
+  (`agent.ts`'s projection, `App.tsx`'s Problems panel), and no verb gates on either.
+- **OWES:** the owner — **T-008 is `risk: high`, so this is a pre-review: NOT approved, NOT merged.** The
+  two defects are the decision. `brahim` — ⚠⚠ `agent-finish.mjs --review` reads the frozen-surface verdict
+  and never the task's `risk:` field, so it stamps a `risk: high` row `done` and prints
+  `gh pr review 23 --approve && gh pr merge 23 --squash`; the row is corrected back to `review` here and
+  the finding is in `docs/BACKLOG.md`'s `## Discovered`. ⚠ The box's default `gh` identity is still
+  `Davidian-Abdo` — `agent-start.mjs`'s own claim comment on #23 was posted from it, twice; the findings
+  comment used `GH_TOKEN=$(cat ~/.config/bunyan/hmdnah.token)` and resolves to `narutousomaki741`. `T-013`
+  is the guard. `amer`/`khalihlna` —
+  `unverified here: the Problems panel's hint text and the duplicate-key row — khalihlna to confirm`.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-T-008-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
+
 ### T-008 — the cascade and the exclusion rule now walk one belongs-to edge set — 2026-08-15 — seat: zayd
 
 - **CHANGED:** `packages/document/src/commands.ts` (`cascadeOf` walks **`belongsTo` NEW** — both edges;
@@ -923,60 +963,6 @@ is maintenance and does NOT get an entry of its own.**
   afterwards"* — attaching to an already-cyclic subtree is allowed, exactly as attaching to a broken
   ancestor is.
 
-### 86 | 2026-08-07 | Amer | the corner-drag, and the wrapper that was eating D23's transaction
-
-- **CHANGED:** `apps/web` only. **`tool/drag.ts` NEW** (`dragPlans` · `cornerDragPlan` ·
-  `cornerPeerCount`; PURE, no `DocumentContext`) · **`tool/drag.test.ts` NEW (+13)** ·
-  `edit/agentRefresh.ts` (**the fix**) · `edit/agentRefresh.test.ts` (**+2**) · `App.tsx`
-  (`RIBBON_WITHHELD` — `core.array` refuses by design, so its generated button is a control that cannot
-  work) · `current_state.md` · `docs/history.md` §C · `open_rulings.md` (Q8 answered, Q20 NEW).
-  **No frozen byte, no verb, no schema bump, no `packages/` file.**
-- **VERIFIED:** **753 green** across 87 files, six gates, real exit code 0. Revert-verified on the fix
-  (drop `options` again ⇒ RED, `expected undefined to deeply equal { transactionId: 'gesture-7' }`).
-  ⚠⚠ **AND IN THE BROWSER, BEFORE AND AFTER, ON THE REAL DEMO SCENE:** two `core.setParams` under ONE
-  `transactionId`, then one undo — **before:** `w1.end=[4500,500]` `w2.start=[4000,0]` (two undos
-  needed); **after:** both back, and one redo restores both. Control: the same edits with NO
-  `transactionId` behaved IDENTICALLY to the broken case, which is what proved it was the wrapper.
-- **FOUND:** ⚠⚠ **`withUiRefresh` WAS DROPPING `ExecuteOptions` — `execute` was declared
-  `(command, args)`, so `transactionId` never reached the document and D23's corner-drag undid ONE EDIT
-  AT A TIME.** Nothing failed: every edit applied, geometry right, both diagnostics `[]`. The casualty
-  was undo GRANULARITY — and the half-undone state of a corner-drag is a corner left **OPEN**, a model
-  the user never authored that the join resolver will faithfully resolve. **The document layer is
-  clean** — `agent.ts:178` forwards, `document.ts:396` stamps, `:416` pushes, `takeUndoGroup` groups
-  (pinned headlessly); it was four missing characters in `apps/web`. ⇒ **The four existing tests were
-  good tests that all asserted what the wrapper ADDS and none what it must not TAKE AWAY. For a
-  wrapper, assert the ARGUMENTS ARRIVE — the variadic tail is where things vanish silently.**
-  ⚠⚠ **Q8 ANSWERED: the refusal is RIGHT and must not be relaxed** (a placement beside a D52 baseline
-  moves the solid and leaves the join resolver, room solver and billed length at the old baseline —
-  a silent wrong schedule), **but the demo scene contains NOTHING `core.move` accepts** — both walls
-  REFUSED. ⇒ the hostility is in rendering a refusing verb as a generic ribbon button, not in the rule
-  (⇒ **Q20**). ⚠ **Measured correction to the dry run's reputation:** a REFUSED probe costs **1.6 ms
-  then 0.2 ms**, not ~100 ms — `checkPositioning` refuses BEFORE any geometry is staged; an ACCEPTED
-  one costs 28.5 ms. That is what makes probe-and-route affordable. ⚠ The planner therefore **does not
-  classify**: duplicating `positioningOf` in the app would be a second copy of the engine's own
-  `baselineOf` test, and it would drift silently.
-- **OWES:** Owner: **Q20 NEW** (which verbs deserve a generated ribbon button, given some refuse by
-  design) · **Q8 is answered above — strike or confirm**. Q11/Q12/Q13/Q17a/Q17b/Q17c/Q18/Q19 stand.
-  Zayd: ⚠ **the D23 transaction was never actually reaching the document through `window.bunyan`** —
-  any agent-side work that assumed grouping worked was running without it.
-- **RISK:** additive
-- **FULL:** `handoff/amer/2026-08-07-move-tool-corner-drag.md`
-- **REVIEW:** Reviewed by **Entry 87 + Entry 88** (Zayd) and **MERGED by Entry 89** (Amer, a later
-  session). Item 1 re-executed **three times** (Zayd twice, Amer once) — RED at
-  `expected undefined to deeply equal { transactionId: 'gesture-7' }`. **THREE defects found and all
-  three FIXED on the branch before merge:** ⚠⚠ **(1) `cornerDragPlan` matched peers on the 2D corner
-  ALONE — a D52 baseline is 2D in the LEVEL plane, so the wall directly upstairs shares x and y exactly
-  and was silently re-authored** (Entry 89; `DragTarget.containerId` is the missing third coordinate;
-  RED at `expected ['g1','g2','u1','u2'] to deeply equal ['g1','g2']`); **(2) the ABSENT-options test
-  was WEAK GREEN** — `toBeUndefined()` cannot separate *forwarded `undefined`* from *never passed*, and
-  it passed under the reverted wrapper; **ARITY is the observable** (Zayd wrote it, Amer pasted it);
-  **(3) `hostedPlan`'s `Math.hypot` is UNSIGNED** — two opposite drags propose an identical `offsetU`,
-  so the docblock's *"over-estimate"* mis-described a **wrong-direction** error. ⚠ And one CLAIM vs CODE
-  correction: **`positioningOf` IS exported from `@bunyan/document`** (since Entry 72), so the prompt's
-  *"not exported"* premise was false — the design survives on the sharper reason, that the app would
-  still have to re-encode the refusal GRAPH. ⚠ **The GL gizmo did NOT ship** — the planner, the
-  corner-drag grouping and the transaction did; Entry 89 built the handles on top.
-
 ---
 
 ## §8 — Generated
@@ -991,16 +977,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-008 (zayd, 2026-08-15)** |
-| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `b8bf8ea` · clean |
-| open PRs | #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **843 green** · 95 files · 266 suites |
+| **newest entry** | **T-008 (hmdnah, 2026-08-15)** |
+| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `e887c79` · dirty |
+| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| suite | ⚠⚠ 842/843 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 10 files changed, 516 insertions(+), 78 deletions(-) (10 files) |
-| docs budget | current_state 82.7/96.0 KB · §7 30.8/32.0 KB · abstracts 9/10 · bodies 40 |
+| diff vs origin/main | 12 files changed, 634 insertions(+), 134 deletions(-) (12 files) |
+| docs budget | current_state 82.3/96.0 KB · §7 29.9/32.0 KB · abstracts 9/10 · bodies 41 |
 
 _Generated 2026-08-15 by `pnpm state`._
 
