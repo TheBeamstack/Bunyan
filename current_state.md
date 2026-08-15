@@ -986,8 +986,8 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-004 (hmdnah, 2026-08-15)** |
-| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `435af5f` · dirty |
-| open PRs | #20 task/T-004-does-per-element-build-cost-stay-flat-fr · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `2e4e6fc` · clean |
+| open PRs | #21 brahim/2026-08-15-record-owner-rulings · #20 task/T-004-does-per-element-build-cost-stay-flat-fr · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
 | suite | **833 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
