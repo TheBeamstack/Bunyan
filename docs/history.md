@@ -303,12 +303,66 @@ project._
 
 ---
 
-## §C — Entries 54–84 — the full bodies now live in `handoff/`
+## §C — Entries 54–85 — the full bodies now live in `handoff/`
 
 ⚠ **There is no entry 78.** It was a REVIEW-ONLY session (PR #5) that wrote no abstract of
 its own; its findings are in entry 77's `REVIEW:` line above. The gap is real, not a loss.
 
-54–84 is contiguous.
+54–85 is contiguous.
+
+### 85 | 2026-08-06 | Zayd | the `hostId` edge, swept — the ancestry is a DAG and the walk called it a cycle
+
+- **CHANGED:** `packages/document/src/designoptions.ts` (**`isElementActive`'s traversal** — the conflated
+  `seen` set replaced by DFS colours; the docblock records why) · `tests/option-cascade-d67.test.ts`
+  (**NEW §7, +6**) · `open_rulings.md` (**Q19 extended to the `hostId` edge**) · and, reviewing PR #10:
+  `scripts/frozen-surface.mjs` + `.d.mts` (`baselineSnapshot`'s `today` → `at`) · `scripts/state.mjs` ·
+  `tests/state-risk-e2e.test.ts` (**+1**) · `tests/freeze-boundary.test.ts` · entry 83's `REVIEW:` line ·
+  `tests/frozen-surface.snapshot.json` (re-baselined) · entry **77 rotated** to `docs/history.md` §C.
+- **VERIFIED:** **729 green** across 85 files, all six gates, **real exit code 0**, real OCCT throughout.
+  Revert-verified twice: restoring the single `seen` set fails **4 of the 6 new tests**, the verb-driven
+  one at `modelElements()` **3 where 4 is correct**; restoring the clock-stamped date fails
+  `state-risk-e2e` at `expected '2026-08-06' to be '2026-08-05'`.
+- **FOUND:** ⚠⚠ **`isElementActive` MISREAD A SHARED ANCESTOR AS A CYCLE.** Two edges out of one node make
+  the ancestry a **DAG**, so the two routes upward can MEET — and one `seen` set was doing two jobs,
+  *"already judged"* (global) and *"on the current path"* (path-scoped). The second route in refused.
+  **Measured through four shipped verbs on a document with NO design options at all: `scene.elements` 4,
+  `modelElements()` 3, the opening absent from all SIX consumers, `brokenRefs()` and `unbuildable()` both
+  empty** — control with the routes pointed at different ancestors: 5 of 5. §5's both-edges test existed
+  but its two ancestors shared nothing, **so the shape that mattered was never built.** ⚠ **`hostId`
+  cannot dangle through the verbs** (`createElement`/`retargetReference` both `requireElement`; D39
+  cascades the hosted with the host) — **but a `.bnn` can, and it is silent**: 5 elements, `modelElements()`
+  3, both diagnostics `[]`. `brokenRefs` walks `hostedBy` from each ROOT, so an element whose host does not
+  exist is never anyone's child and is never examined ⇒ **Q19 needs a reconciliation covering BOTH edges.**
+  ⚠ **Six consumers, not five** — `joins.ts` has three. ⚠ **And reviewing PR #10: Entry 84's cross-field
+  date check was sound while the WRITER fed it two sources** — the entry from the §7 parse, the date from
+  `new Date()` — so any rebaseline outside the entry's own calendar day wrote a baseline its own gate
+  rejects. `state-risk-e2e`'s own fixture reproduced it every day but one, and nothing had looked.
+- **OWES:** Owner: ⚠⚠ **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** — one declaration moved
+  (`designoptions.ts :: function isElementActive`), baseline re-generated in-PR at entry 85. **Q19 still
+  needs its ruling and now spans both edges; Q17a still blocks; Q11/Q12 unchanged.** Amer: **PR #11 is
+  yours to review and merge** — left untouched on the owner's instruction. **Q18 is still yours.**
+- **RISK:** contract-touching
+- **FULL:** `handoff/zayd/2026-08-06-e85-hostid-sweep.md`
+- **REVIEW:** Reviewed by **Entry 86** (Amer, a later session); full record in PR #12's comment.
+  **APPROVED, NOT MERGED — `contract-touching`, so it is the owner's.** Item 1(a) reproduced to the
+  number (**4 RED**, the verb-driven one at `[…(3)]` where 4 is correct). ⚠⚠ **Item 1(b), the cycle hunt
+  this entry asked for, came back EMPTY across ten shapes** — a cycle entered from outside, self-loops on
+  either edge and both, a diamond whose shared ancestor is itself in a cycle (short and long), **the
+  cycle reachable only down the edge explored SECOND (both orders)**, and a 5000-deep chain. All refuse
+  and all terminate. The structural reason the colours hold: **a node on a cycle can never be blackened**,
+  because reaching it always re-enters it while still grey. Item 2: `cascadeOf` re-derived and **sound —
+  for a different reason than "the same code done right"**: it computes a reachable SET, where a re-visit
+  is idempotent, so one meaning is all `seen` needs; the conflation is only possible when a visited-set
+  decides a boolean about the current walk. Item 4: the `hostId` writer count **taken independently from
+  `argsSchema` — exactly two verbs**, `core.createElement` and `core.retargetReference`, both
+  `requireElement` the host. **No defect found.** ⇒ **Re-reviewed and MERGED by Entry 87** on the owner's
+  explicit authorisation (PR #12's comment). Item 1(a) reproduced a third time; **1(b) answered by a
+  DIFFERENTIAL FUZZ rather than a shape list** — an independent closure/Kahn reference vs the colours
+  over **20 000 random graphs, ~90 000 queries, zero disagreements**, and revert-verified to fail on the
+  old code within ~200 trials. ⚠⚠ **Every disagreement the old code produces is `got false, want true`:
+  the defect could only ever OVER-refuse, which is the strongest available answer to *"what does it now
+  accept that it should not?"* — nothing.** ⚠ The merge cost a forced §7 rotation: 85 and 84 were each
+  under the byte budget and their MERGE was 35 981/32 768 (entry 79 rotated out).
 
 ### 84 | 2026-08-06 | Amer | alignment guides ship — and the guide is the first candidate that owns NOTHING
 
