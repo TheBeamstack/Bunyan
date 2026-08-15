@@ -323,3 +323,13 @@ _(unplanned findings land here — never claimed in the same turn that found the
   "blocked on a ruling" go stale because the ruling gets recorded elsewhere.
 - **2026-08-15 — `scripts/state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync`
   with no `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
+- **2026-08-15 — `agent-start.mjs --review` cannot route a PR whose title carries no `T-nnn`, so neither
+  open PR is claimable by any reviewer seat.** Measured: `--seat hmdnah --review` prints
+  `reviewer: ?` for both #16 and #17 and stops at _"No open PR routes to this seat"_, because
+  `reviewerFor` is only called when `^T-\d{3}` matches the title. ⚠ The note at the head of this backlog
+  says these two "are claimed via `agent-start.mjs --review` off the open-PR list", which the script does
+  not implement. ⚠ It went unnoticed because PRs #18 and #19 were merged by the owner, so no reviewer seat
+  has yet claimed a `T-nnn`-less PR. The mechanical fallback available is the branch's seat prefix
+  (`zayd/…` ⇒ box ⇒ `hmdnah`, `amer/…` ⇒ pc ⇒ `khalihlna`), which derives the reviewer from the machine
+  the work was executed on rather than from the title. ⚠⚠ **That is safety-critical routing, so it is a
+  `STEWARD:` PR carrying a test, not a direct commit** — recorded here, not claimed this turn.
