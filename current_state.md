@@ -113,12 +113,12 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
-| role | steward |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
-| task | `STEWARD-scaffolding` |
-| branch | `brahim/2026-08-14-establish-five-seat-scaffolding` |
-| claimed-at | 2026-08-15T02:01:38.728Z |
+| task | `T-004` |
+| branch | `task/T-004-does-per-element-build-cost-stay-flat-fr` |
+| claimed-at | 2026-08-15T02:28:52Z |
 | status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
@@ -181,7 +181,7 @@ All four axes now have a number. **Two are closed; two remain open and are named
 | **WASM heap** | ✅ **FITS** — 16.2 KB/live-solid, dead-linear ⇒ **0.31 GB at 10k**, inside a tab (Entry 29, re-measured Entry 54). |
 | **Draw calls / frame time** | ✅ **CLOSED (Entry 63)** — renderer batching: **~30,700 draw calls → 2** at the 10k target (606 ms → ~10–14 ms; 1.6 → ~80 fps). |
 | **Edit latency** | ✅ incremental edit ~23 ms compute, **FLAT vs scale**; the ~570 ms post-edit render went with the batching rewrite. |
-| **Cold load** | ⚠ **OPEN — ~3 min at the 10k target, STILL UNUSABLE.** The D29 cache buys **2.07×** (24.86 → 12.00 ms/solid), not an order of magnitude. The levers that could close it are `instantiate` (RESERVED), lazy build/eviction (D66 — additive) and MT (D8, ruled v1.0.x). |
+| **Cold load** | ⚠ **OPEN — ~3 min at the 10k target, STILL UNUSABLE.** The D29 cache buys **2.07×** (24.86 → 12.00 ms/solid), not an order of magnitude. ⚠⚠ **PER-ELEMENT BUILD COST IS FLAT, MEASURED (T-004, `tests/document-build-cost-scale.test.ts`): 41.9–43.8 ms/element marginal, ordinary least squares of cold-load ms on element count over four sizes (39/117/195/273 elements), R² ≥ 0.9988, intercept within ±140 ms of zero, four runs — two by `zayd`, two re-run by `hmdnah` in review — spanning 4.5%.** The local marginals run 39.6–46.3 ms per additional element, a spread of 5.9–16.8% across the runs, and the only systematic deviation is the smallest model pricing ~5–10% **low** per element (38.8–39.6 ms/el at 39 elements against 41.8–44.0 ms/el at the three larger sizes, in all four runs). That lifts the first local marginal above the other two, so the marginals **fall** slightly with size — the opposite direction from superlinearity. Its cause is not measured. ⇒ **~7.2–7.3 min uncached at 10,000 elements**, the same order as D66's 6.35 min and, divided by the cache's measured 2.07×, **3.5 min** against the ~3 min this row already carries. ⚠ The range measured is 39–273 elements and the target is 10,000, so the projection is a 37× extrapolation that the flat marginals entitle rather than prove. The levers that could close it are `instantiate` (RESERVED), lazy build/eviction (D66 — additive) and MT (D8, ruled v1.0.x). |
 | **Join resolution** | ✅ **CLOSED (D73)** — the O(N²) scan is an O(N) spatial index: **4757.7 ms → 27.2 ms at 1984 walls**, per-wall cost FLAT (14–17 µs) from 1k to 10k. |
 
 ⚠ *Verification is most of a cached load's cost — re-measuring every sub-shape to prove the tokens belong
@@ -627,6 +627,69 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-004 — review: the flatness result holds, and the harness passed while building nothing — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** `tests/document-build-cost-scale.test.ts` — the cold load's built solids are counted and
+  required to equal the authored count. `scripts/agent-finish.mjs` — `setRowStatus` hoisted, exported and
+  **repadded** (+ `scripts/agent-finish.d.mts` NEW, + a case in `tests/protocol/agent-finish.test.ts`).
+  `§1a` + the T-004 body — the smallest-model deviation's direction.
+- **VERIFIED:** `REVIEW.md` item 1, twice. **(a)** Removing `cold.rebuildAll()` went RED only at
+  `expect(fit.slope).toBeGreaterThan(0)` — `-0.0000015`, a coin flip on noise; with the count asserted it
+  is RED in 2.9 s naming `scale 1: solids built by the cold load: expected +0 to be 62`, green restored
+  in 58.4 s. **(b)** Reverting the repad turned `agent-finish.test.ts` RED on `| T-001 | review   |`, the
+  byte CI rejected. Harness re-run twice: **43.45** and **41.93 ms/element**, **7.24** and **6.99 min**
+  projected.
+- **FOUND:** The verdict stands — flat across 39–273 elements, ~7 min at 10,000 — but two claims under it
+  did not. ⚠⚠ **The harness could not tell a cold load that built the whole building from one that built
+  nothing:** `geometryOf(id)?.state` is `undefined` for an element never built and `undefined !==
+  'failed'`, and `brokenRefs()` returns a **stored scene field** rather than a re-derivation, so both
+  passed on an empty measurement. ⚠ `§1a`'s _"smallest model prices ~5% **high**"_ is backwards — 39
+  elements price 38.8–39.6 ms/el against 41.8–44.0 at the larger sizes in all four runs, so the marginals
+  **fall** with size and the warmup cause predicts the opposite sign. Neither unseats the conclusion.
+- **OWES:** ⚠ **every seat — confirm `gh api user` is your own account before approving or merging.** The
+  approve step first refused (`Can not approve your own pull request`): the box held only the account
+  that opened #20. Owner ruling, same day — a per-turn `GH_TOKEN` from `~/.config/bunyan/hmdnah.token`,
+  no global switch — so #20 was approved and merged on `narutousomaki741` after all. GitHub blocks a
+  self-approval but **not** a self-merge, which is the half a seat has to check itself. `amer` —
+  `unverified here: the same cold load inside a real browser tab`, carried forward untouched. `brahim` —
+  the flatness verdict is still **printed, not asserted**; four runs put the marginal spread at
+  5.9–16.8%, the number a ratio gate would have to clear.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-T-004-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
+
+### T-004 — per-element build cost is flat from 39 to 273 elements, and 10,000 projects to 7.2 min — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `tests/document-build-cost-scale.test.ts` **NEW (+1)** — four sizes of the reference
+  building (1/3/5/7 storeys), each on a fresh OCCT kernel, timing `rebuildAll()` on a context cold-loaded
+  from `.bnn`. `current_state.md §1a`'s cold-load row carries the measurement and is **not re-coloured**.
+- **VERIFIED:** `pnpm verify` green. Two full runs of the harness: slope **43.81** and **43.24
+  ms/element**, 1.3% apart, R² 0.9998 / 0.9996, intercept within ±140 ms of zero on an 11.7 s total. Local
+  marginals 41.5–45.6 ms per additional element, spread 5.9% and 9.2%. ⇒ **7.30 / 7.21 min projected at
+  10,000 elements, uncached.**
+- **FOUND:** Per-element build cost **is** flat across 39–273 elements, so Entry 90's 64.5% deferrable
+  figure is worth that same fraction of the cold load at the target — about 4.7 of the projected 7.3 min,
+  leaving 2.6 min, which is still not a load time. Two estimators were needed, not one: a least-squares
+  line has a slope whether or not the data is a line, so the flatness verdict is read off the local finite
+  differences and the fit's R² is only its witness. The 7.2 min uncached reaches D66's 6.35 min from a
+  different direction, and at the cache's measured 2.07× it is 3.5 min against the ~3 min `§1a` already
+  carried. The one
+  systematic deviation is the smallest model pricing ~5–10% **low** per element, which makes the
+  marginals fall slightly with size — the opposite direction from superlinearity. Authoring's
+  marginal is 43.1 ms/element against the cold load's 43.8, so command
+  dispatch is not a measurable share of authoring at this scale.
+- **OWES:** `hmdnah` — this PR; there is no fix to revert, so the re-run is the check and the harness
+  reproduced to 1.3% here. `amer` — `unverified here: the same cold load inside a real browser tab`; every
+  number above is Node on the box, as `§1a`'s existing cold-load numbers already are. `brahim` — a call on
+  whether the flatness verdict should become a ratio assertion on the marginal spread, which would be
+  immune to absolute machine speed; it is printed and not asserted today, so a later superlinear
+  regression would still pass this file. ⚠ The projection is a **37× extrapolation** from 273 elements.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-004-build-cost-flatness.md`
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED and MERGED**, `RISK: additive`, two
+  defects fixed on the branch, on `narutousomaki741` — the account that did not open it. The entry above
+  is the record.
+
 ### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
 
 - **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
@@ -922,16 +985,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **STEWARD-scaffolding (brahim, 2026-08-15)** |
-| branch · tip · tree | `brahim/2026-08-14-establish-five-seat-scaffolding` · `0a3779d` · clean |
-| open PRs | #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **827 green** · 93 files · 260 suites |
+| **newest entry** | **T-004 (hmdnah, 2026-08-15)** |
+| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `2e4e6fc` · clean |
+| open PRs | #21 brahim/2026-08-15-record-owner-rulings · #20 task/T-004-does-per-element-build-cost-stay-flat-fr · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| suite | **833 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 45 files changed, 5020 insertions(+), 1529 deletions(-) (45 files) |
-| docs budget | current_state 77.1/96.0 KB · §7 26.5/32.0 KB · abstracts 6/10 · bodies 35 |
+| diff vs origin/main | 8 files changed, 886 insertions(+), 24 deletions(-) (8 files) |
+| docs budget | current_state 83.8/96.0 KB · §7 31.8/32.0 KB · abstracts 8/10 · bodies 37 |
 
 _Generated 2026-08-15 by `pnpm state`._
 

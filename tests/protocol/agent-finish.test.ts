@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { makeFixture } from './fixture.mjs';
+import { setRowStatus } from '../../scripts/agent-finish.mjs';
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const AGENT_FINISH = join(REPO, 'scripts/agent-finish.mjs');
@@ -134,5 +135,36 @@ describe('the machine gate, AT TICK TIME — not only at claim time', () => {
     ]);
     const r = run(['--root', fx.dir, '--seat', 'zayd', 'T-001']);
     expect(r.out).toMatch(/✓ machine gate: T-001 is machine: any, seat is on box/);
+  });
+});
+
+describe('the status flip keeps the table formatted — `format:check` is CI step 3', () => {
+  // The status words are different lengths, so writing one over another without repadding changes
+  // the column's width and `prettier --check` rejects the file. It opened PR #20 red on a diff its
+  // author never wrote, which is why this is asserted on the writer rather than fixed per branch.
+  function table(): string {
+    return [
+      '| id    | status  | title |',
+      '| ----- | ------- | ----- |',
+      '| T-001 | ready   | x     |',
+      '| T-002 | blocked | y     |',
+      '',
+    ].join('\n');
+  }
+
+  it('repads `ready` → `review` → `done` so every row stays the same width', () => {
+    fx = makeFixture();
+    const p = join(fx.dir, 'docs/BACKLOG.md');
+    writeFileSync(p, table());
+
+    setRowStatus(p, 'T-001', 'review');
+    expect(readFileSync(p, 'utf8')).toContain('| T-001 | review  | x     |');
+
+    setRowStatus(p, 'T-001', 'done');
+    expect(readFileSync(p, 'utf8')).toContain('| T-001 | done    | x     |');
+
+    // The real gate: every row of the table is still the same length as its header.
+    const lines = readFileSync(p, 'utf8').trimEnd().split('\n');
+    for (const line of lines) expect(line).toHaveLength(lines[0]!.length);
   });
 });
