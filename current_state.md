@@ -111,7 +111,15 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 <!-- BEGIN BATON — written by agent-start.mjs; pushed before work begins -->
 
-*(no live claim on this branch)*
+| Field | Value |
+|---|---|
+| seat | `brahim` |
+| role | steward |
+| machine | box |
+| task | `STEWARD-scaffolding` |
+| branch | `brahim/2026-08-14-establish-five-seat-scaffolding` |
+| claimed-at | 2026-08-15T02:01:38.728Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -915,15 +923,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-scaffolding (brahim, 2026-08-15)** |
-| branch · tip · tree | `brahim/2026-08-14-establish-five-seat-scaffolding` · `9b8b4b6` · dirty |
+| branch · tip · tree | `brahim/2026-08-14-establish-five-seat-scaffolding` · `0a3779d` · clean |
 | open PRs | #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **810 green** · 91 files · 251 suites |
+| suite | **827 green** · 93 files · 260 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 45 files changed, 5019 insertions(+), 1528 deletions(-) (45 files) |
-| docs budget | current_state 77.0/96.0 KB · §7 26.5/32.0 KB · abstracts 6/10 · bodies 35 |
+| diff vs origin/main | 45 files changed, 5020 insertions(+), 1529 deletions(-) (45 files) |
+| docs budget | current_state 77.1/96.0 KB · §7 26.5/32.0 KB · abstracts 6/10 · bodies 35 |
 
 _Generated 2026-08-15 by `pnpm state`._
 
