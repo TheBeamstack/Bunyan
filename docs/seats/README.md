@@ -54,7 +54,9 @@ corrected rather than silently assumed a second time.
 
 Set out in full in `AGENTS.md §1`. In one line each:
 
-- **builder** — review the PR found at t=0, claim one `ready` task, push the claim, build it, open a PR.
+- **builder** — claim one `ready` task, **push the claim before any work**, build it, open a PR, stop.
+  ⚠ **Does NOT review anything, including the PR sitting open at t=0** — that was the pre-D82 shape and it
+  is `hmdnah`'s/`khalihlna`'s job now (`AGENTS.md §1.1`).
 - **reviewer** — claims **no task**; claims the open PR, and re-executes its claim (revert the fix, paste
   the red output) before anything else. Must therefore sit on a machine that can run it.
 - **steward** — never builds. Owns readiness, `machine:` assignment, sequencing, spec integrity,
@@ -62,8 +64,25 @@ Set out in full in `AGENTS.md §1`. In one line each:
 
 ## Why these files carry no state
 
-Each prompt at the repo root holds a handful of standing facts — name, role, machine, GitHub account, and
-what that machine cannot verify — plus a `§2 DYNAMIC` block that the seat itself rewrites every session
-(`FRESH`/`TASK`/`NEW`). The shared mechanics of a turn live in `AGENTS.md §1`, once, so five prompts do not
-carry five copies of the same loop. This mirrors why `current_state.md`'s hot core stays small: a fact
-that lives in one place is a fact that stays true; a fact copied five times is a fact that drifts once.
+Each prompt at the repo root holds a handful of **standing facts** — name, role, machine, GitHub account,
+and what that machine cannot verify — and nothing else. The shared mechanics of a turn live in
+`AGENTS.md §1`, once, so five prompts do not carry five copies of the same loop. A fact that lives in one
+place is a fact that stays true; a fact copied five times is a fact that drifts once.
+
+**Where the state went instead:**
+
+| Question                 | Answered by                                                                     |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| _What is next?_          | `docs/BACKLOG.md` — the only source, and its `ready` rows are the steward's act |
+| _Am I current?_          | `scripts/agent-start.mjs`'s measured-vs-claimed refusal — it measures the repo  |
+| _Who is working now?_    | `current_state.md §0b`, the live claim, pushed before work begins               |
+| _What did I just learn?_ | the entry's `§7` abstract + `handoff/<seat>/` body; durable traps go to `§1d`   |
+
+⚠⚠ **THIS SECTION DESCRIBED THE OPPOSITE UNTIL 2026-08-15, AND THE HEADING WAS ALREADY RIGHT.** It said
+each prompt held _"plus a `§2 DYNAMIC` block that the seat itself rewrites every session
+(`FRESH`/`TASK`/`NEW`)"_ — under a heading reading _"Why these files carry no state"_ — for the whole of
+D82's first session, because the block was retired in the same turn that wrote this file and the
+paragraph was carried over from the prompt it was describing. **It is the registry**: `seats.mjs` parses
+the table above it and `AGENTS.md §0` defers to it, so a stale paragraph here is read by every seat.
+The correction is Entry 91's, and the class is worth more than the instance — **the prose next to a
+change is the part that survives it.**

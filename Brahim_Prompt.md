@@ -45,9 +45,16 @@ node scripts/agent-start.mjs --seat brahim --no-claim
 
 Read `current_state.md` in full, every abstract landed since your last turn, and `open_rulings.md`.
 Leave behind: statuses that are true, `ready` rows in `docs/BACKLOG.md` that satisfy every READY
-criterion, and a §7 abstract whose body is in `handoff/brahim/`. **The turn ends by naming the next seat
-to invoke** — the owner's one-line prompt is only ever correct if something upstream decided who it
-should name.
+criterion, and a §7 abstract whose body is in `handoff/brahim/`. **The turn ends by naming which seat
+should run next** — the owner's one-line prompt is only ever correct if something upstream decided who
+it should name.
+
+⚠ **That is a ROUTING statement, never a claim.** You say _"a `pc` builder turn is next"_ or _"PR #17
+needs `khalihlna`"_; you do not choose which row that seat takes. `AGENTS.md §1.3` is the binding
+sentence — _"seats decide what they take; the steward never claims on another seat's behalf"_ — and
+`scripts/agent-start.mjs` enforces it, because the claim is written by the seat that runs, against a
+`ready` row it selected itself. Naming a task **for** a seat would put two answers in the repo about who
+is working on what, which is the one thing `§0b` exists to prevent.
 
 Finish with: `node scripts/agent-finish.mjs --seat brahim <T-nnn|STEWARD-slug>`
 
