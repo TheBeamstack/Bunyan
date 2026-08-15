@@ -113,13 +113,13 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| role | reviewer |
+| seat | `zayd` |
+| role | builder |
 | machine | box |
-| task | `T-007` |
-| branch | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` |
-| claimed-at | 2026-08-15T09:38:01Z |
-| status | finished — PR open, awaiting review |
+| task | `T-008` |
+| branch | `task/T-008-q19-the-belongs-to-deletion-reconciliati` |
+| claimed-at | 2026-08-15T14:02:55Z |
+| status | working |
 
 <!-- END BATON -->
 
