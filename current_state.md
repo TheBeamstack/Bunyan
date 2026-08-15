@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
-| role | builder |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
 | task | `T-004` |
 | branch | `task/T-004-does-per-element-build-cost-stay-flat-fr` |
@@ -988,15 +988,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-004 (hmdnah, 2026-08-15)** |
-| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `ab26378` · dirty |
+| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `5e8d6f0` · clean |
 | open PRs | #20 task/T-004-does-per-element-build-cost-stay-flat-fr · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **832 green** · 94 files · 263 suites |
+| suite | **833 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 6 files changed, 670 insertions(+), 22 deletions(-) (6 files) |
-| docs budget | current_state 84.2/96.0 KB · §7 32.1/32.0 KB · abstracts 8/10 · bodies 37 |
+| diff vs origin/main | 8 files changed, 822 insertions(+), 23 deletions(-) (8 files) |
+| docs budget | current_state 84.0/96.0 KB · §7 32.0/32.0 KB · abstracts 8/10 · bodies 37 |
 
 _Generated 2026-08-15 by `pnpm state`._
 
