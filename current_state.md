@@ -661,7 +661,12 @@ is maintenance and does NOT get an entry of its own.**
   groups stay a v1.0.x reservation**; if group authoring ships, this returns to the owner.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-15-T-008-belongs-to-deletion.md`
-- **REVIEW:** pending — `hmdnah`, this PR.
+- **REVIEW:** `hmdnah`, 2026-08-15, PR #23 — **pre-review only, NOT approved and NOT merged**, because
+  `risk: high` is an owner gate independent of the mechanical `RISK: additive`. Both reverts re-executed:
+  **6 RED** and **3 RED** as claimed, restored 24/24, full suite **843/843**, `freeze-boundary` green. Two
+  non-blocking defects — `brokenRefs()` emits two entries identical in `elementId` and `ref` when one
+  element's two edges name the same missing id (the key `App.tsx` lists on), and the edit label still says
+  *"N hosted element(s)"* for members. Findings in full: the PR comment.
 
 ### T-007 — a dangling `designOptionId` is a broken reference, derived rather than stored — 2026-08-15 — seat: zayd
 

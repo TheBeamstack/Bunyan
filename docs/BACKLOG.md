@@ -406,6 +406,17 @@ _(unplanned findings land here — never claimed in the same turn that found the
   credential model is recorded;
   the durable rule it leaves is `T-013`: **a seat confirms `gh api user` is its own account before
   approving or merging**, because GitHub blocks a self-approval but **not** a self-merge.
+- **2026-08-15 — ⚠⚠ `agent-finish.mjs --review` reads the frozen surface and never the task's `risk:`
+  field, so a `risk: high` task is stamped `done` and its reviewer is told to merge it.** The two gates
+  disagree by construction: the builder half writes `NEXT TURN: REVIEW ONLY` on `risk: high` **or**
+  `contract-touching`, while the review half holds the row at `review` for `contract-touching` alone.
+  Measured on **T-008** (`risk: high`, mechanically `RISK: additive`, no `needs-operator/*` label): the
+  finish run flipped the row to `done` and printed
+  `gh pr review 23 --approve && gh pr merge 23 --squash`, for a PR the owner merges. ⚠ The row was
+  corrected back to `review` in the same turn, which is the evidence rather than the fix. ⚠ The fix
+  belongs in the writer and must honour **the stricter of the two** — `AGENTS.md §5` lists three
+  owner-gated classes and `risk: high` is not one of them, so either the field stops implying an owner
+  gate or `§5` gains it; that part is the owner's call, not the script's.
 - **2026-08-15 — `agent-finish.mjs`'s `ready`→`review` status flip fails `format:check`, so every builder
   turn opens a red PR.** The longer word goes into a cell padded for `ready`, leaving one trailing space
   that `prettier --check` — CI step 3 — rejects; nothing else in the diff is at fault. Measured on **PR
