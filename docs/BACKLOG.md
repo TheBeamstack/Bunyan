@@ -86,11 +86,11 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 > `contract-touching`, so the owner merges that one. **T-010** still waits on T-009; **T-005** and
 > **T-006** still wait on PR **#16**.
 >
-> ⚠ **#16 and #17 predate `T-nnn` and get no row** — they are claimed via `agent-start.mjs --review` off
-> the open-PR list. Rows waiting on them use `blocked-by:`, not `depends-on:`, which `canClaim` reads
-> mechanically and can only close over a `T-nnn`. ⚠⚠ **That claim is not true of the script yet** — see
-> the `## Discovered` entry: `--review` only routes a PR whose title carries a `T-nnn`, so both are
-> currently unclaimable by any reviewer seat.
+> ⚠ **#16 and #17 predate `T-nnn` and get no row.** Both are now stale enough against `main` (real merge
+> conflicts, not only an unclaimable-by-`--review` title) that the owner is merging them as a one-time
+> exception, 2026-08-15, rather than through T-012's mechanism — see T-012's own note. Rows waiting on
+> them use `blocked-by:`, not `depends-on:`, which `canClaim` reads mechanically and can only close over a
+> `T-nnn`.
 >
 > `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is not decomposed here — the freeze has not
 > happened, and rows nobody may claim bury rows somebody must.
@@ -112,6 +112,8 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-013 | ready   | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
 | T-014 | ready   | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
 | T-015 | ready   | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
+| T-016 | ready   | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |
+| T-017 | ready   | `docs-budget.test.ts`'s newest-first check verifies itself    | infra    | box     | normal | —          |
 
 ---
 
@@ -331,16 +333,21 @@ so the owner merges this one as well as ruling it.
 
 ### T-012 — `--review` routes a PR whose title carries no `T-nnn`
 
-`scripts/agent-start.mjs` calls `reviewerFor` only when the PR title matches `^T-\d{3}`, so PRs **#16**
-and **#17** print `reviewer: ?` and are unclaimable by any reviewer seat. This backlog's own header note
-says they are claimed off the open-PR list, which the script does not implement.
+`scripts/agent-start.mjs --review` calls `reviewerFor` only when the PR title matches `^T-\d{3}` (line 395) — narrower than `seats.mjs`'s own `titleRoutes`/`PR_TITLE_RE`, which also accepts `STEWARD: `.
+**Every `STEWARD:`-titled PR recurs into this gap, not only the two PRs that first found it** — PR #25
+needed `hmdnah` to hand-claim it twice, because a steward turn is never a `T-nnn`, and a steward turn is
+the routine case, not an edge case (`AGENTS.md §1.3`). #16 and #17 predate the scaffolding that enforces
+`titleRoutes` at PR-creation time (`793a1f0`) and are now stale enough (real conflicts against `main`)
+that the owner is merging them as a one-time exception rather than through this mechanism — they no
+longer motivate the fix; recurring `STEWARD:` review-routing does.
 
 - implements: `AGENTS.md` §0 (identity is role + machine) and §1.2 (review is routed by machine) ·
   `scripts/seats.mjs`'s `reviewerFor`/`machineOf` · this file's `## Discovered` entry of 2026-08-15
 - verify: `pnpm verify`
 - done-when:
   - a PR with no `T-nnn` in its title routes to the reviewer on **the machine its work was executed on**,
-    derived from the branch's seat prefix (`zayd/…` ⇒ box ⇒ `hmdnah`, `amer/…` ⇒ pc ⇒ `khalihlna`);
+    derived from the branch's seat prefix (`zayd/…` ⇒ box ⇒ `hmdnah`, `amer/…` ⇒ pc ⇒ `khalihlna`,
+    `brahim/…` ⇒ box ⇒ `hmdnah`) — this is the `STEWARD:` case, not only the legacy one;
   - ⚠ **the fallback derives the machine, never widens it** — a browser-only PR must not become claimable
     by a headless seat, which is the failure `machine:` exists to prevent;
   - a branch prefix naming no known seat routes to nobody and says so, rather than defaulting;
@@ -444,6 +451,50 @@ else zayd` would diverge from `canClaim`'s machine gate the moment a row's `area
 
 > ⚠ **T-008 is waiting on this** — its two review defects go back to `zayd` through this route, by owner
 > ruling, rather than being fixed off-protocol first.
+
+### T-016 — `§0b`'s baton carries the builder separately from the current holder
+
+Owner ruling 2026-08-15: fix the baton itself, not only route around it (T-015). `current_state.md §0b`
+names only the seat that finished the CURRENT turn — after any review turn that is the reviewer, and the
+builder's identity survives only in the claim commit message, never in `§0b` (`## Discovered`,
+2026-08-15).
+
+- implements: `current_state.md §0b` · `scripts/agent-finish.mjs`'s baton-write step
+- verify: `pnpm verify`
+- done-when:
+  - the baton block carries a `builder` field distinct from `seat`/`role`, written once at the claim
+    (`agent-start.mjs`) and never overwritten by a later `--review` finish;
+  - `agent-finish.mjs`'s `--review` path updates `seat`/`role`/`status` and leaves `builder` as the
+    claiming turn wrote it;
+  - a plain (non-`--review`) finish sets `builder` to the finishing seat, matching a first-time build's
+    current behaviour;
+  - revert-verified: without the fix, a review-turn finish on a fixture reproduces the measured defect —
+    `builder` overwritten with the reviewer's seat.
+- depends-on: T-015
+- area: infra · machine: **box** · risk: **high**
+
+> Sequenced after T-015 because both write `agent-finish.mjs`'s baton step; running them in parallel
+> branches would conflict there.
+
+### T-017 — `docs-budget.test.ts`'s "newest-first" check verifies its own construction, not order
+
+`parseAbstracts` assigns `n = 1000 - i` to every new-scheme (`T-nnn`/`STEWARD-slug`) entry by its
+position in the walk alone (`docs-state.mjs`, "SYNTHETIC SORT KEYS"). `docs-budget.test.ts`'s "numbers
+entries uniquely and monotonically" case then asserts those same positionally-derived numbers are
+descending — true by construction, whatever §7's real order is. Not filed until now
+(`current_state.md`, 2026-08-15).
+
+- implements: `tests/docs-budget.test.ts`'s "numbers entries uniquely and monotonically" case
+- verify: `pnpm verify`
+- done-when:
+  - the newest-first check compares an independently-authored signal — each entry's own `date:` field —
+    never the positional `n` derived from the same walk;
+  - two same-date entries pass in either relative order — the field has day granularity, not enough to
+    order same-day entries;
+  - revert-verified: a fixture with an out-of-date-order new-scheme entry (an older date above a newer
+    one) fails the check today's version passes.
+- depends-on: —
+- area: infra · machine: **box** · risk: **normal**
 
 ## Discovered
 
