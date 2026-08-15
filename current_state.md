@@ -113,13 +113,13 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
-| role | steward |
+| seat | `zayd` |
+| role | builder |
 | machine | box |
-| task | `STEWARD-scaffolding` |
-| branch | `brahim/2026-08-14-establish-five-seat-scaffolding` |
-| claimed-at | 2026-08-15T02:01:38.728Z |
-| status | finished — PR open, awaiting review |
+| task | `T-004` |
+| branch | `task/T-004-does-per-element-build-cost-stay-flat-fr` |
+| claimed-at | 2026-08-15T02:28:52Z |
+| status | working |
 
 <!-- END BATON -->
 
