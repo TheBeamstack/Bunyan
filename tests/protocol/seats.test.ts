@@ -4,13 +4,18 @@
  * — see `agent-start.test.ts`'s header for why the split).
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   canClaim,
+  dependsOn,
   machineOf,
   readRegistry,
   readyFor,
   reviewerFor,
   roleOf,
+  rowStatus,
+  taskField,
 } from '../../scripts/seats.mjs';
 import { makeFixture } from './fixture.mjs';
 
@@ -214,5 +219,51 @@ describe('reviewer routing — a pc claim needs a pc reviewer', () => {
   it("`machine: any` routes to the reviewer sharing the FINISHING seat's machine", () => {
     expect(reviewerFor(fx.dir, 'box', 'zayd')).toEqual({ seat: 'hmdnah', solo: false });
     expect(reviewerFor(fx.dir, 'pc', 'amer')).toEqual({ seat: 'khalihlna', solo: false });
+  });
+});
+
+/**
+ * ⚠ Against the COMMITTED `docs/BACKLOG.md`, not a fixture. The fixture emitted unpadded table rows
+ * while prettier pads every real row to its widest cell, so `readyFor`/`rowStatus` shipped matching
+ * `| ready |` against a file that says `| ready   |` — green everywhere, zero rows claimable in the
+ * live repo. A fixture can only test the shape it builds; this reads the shape that exists.
+ */
+describe('the real docs/BACKLOG.md, as prettier formats it', () => {
+  const root = process.cwd();
+  const backlog = readFileSync(join(root, 'docs/BACKLOG.md'), 'utf8');
+  const ids = [...backlog.matchAll(/^### (T-\d{3}) — /gm)]
+    .map((m) => m[1])
+    .filter((id): id is string => id !== undefined);
+
+  it('has task entries to parse at all', () => {
+    expect(ids.length).toBeGreaterThan(0);
+  });
+
+  it('resolves a status for every task, from the padded summary table', () => {
+    for (const id of ids) {
+      expect(rowStatus(backlog, id), `${id} has no parseable status cell`).toMatch(
+        /^(blocked|ready|review|done)$/,
+      );
+    }
+  });
+
+  it('exposes every ready row to at least one seat', () => {
+    const ready = ids.filter((id) => rowStatus(backlog, id) === 'ready');
+    expect(ready.length, 'no ready rows — the loop would idle forever').toBeGreaterThan(0);
+    const reachable = new Set([
+      ...readyFor(root, 'zayd'),
+      ...readyFor(root, 'amer', { ...process.env, BUNYAN_BROWSER_CMD: process.execPath }),
+    ]);
+    for (const id of ready) {
+      const blockedByDep = dependsOn(backlog, id).some((d) => rowStatus(backlog, d) !== 'done');
+      if (!blockedByDep)
+        expect(reachable.has(id), `${id} is ready but no seat can claim it`).toBe(true);
+    }
+  });
+
+  it('gives every task a machine a seat can satisfy', () => {
+    for (const id of ids) {
+      expect(taskField(backlog, id, 'machine'), `${id} has no machine:`).toMatch(/^(any|box|pc)$/);
+    }
   });
 });
