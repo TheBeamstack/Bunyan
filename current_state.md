@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
-| role | builder |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
 | task | `T-007` |
 | branch | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` |
@@ -945,15 +945,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-007 (zayd, 2026-08-15)** |
-| branch · tip · tree | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` · `847547f` · clean |
-| open PRs | #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| branch · tip · tree | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` · `082dc18` · clean |
+| open PRs | #22 task/T-007-q17c-a-dangling-designoptionid-becomes-a · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
 | suite | **836 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 338 insertions(+), 74 deletions(-) (8 files) |
-| docs budget | current_state 82.1/96.0 KB · §7 30.2/32.0 KB · abstracts 8/10 · bodies 38 |
+| diff vs origin/main | 11 files changed, 520 insertions(+), 129 deletions(-) (11 files) |
+| docs budget | current_state 79.6/96.0 KB · §7 27.6/32.0 KB · abstracts 8/10 · bodies 39 |
 
 _Generated 2026-08-15 by `pnpm state`._
 
