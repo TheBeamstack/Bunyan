@@ -394,7 +394,10 @@ describe('the model enumeration query — `scene.elements` is not the model', ()
 
     await scheme('opt-a', 1); // the chosen scheme
     await scheme('opt-b', 3); // the scheme nobody builds
-    expect(doc.brokenRefs()).toHaveLength(0);
+    // ⚠ Filtered rather than zero because of D86 — the catalogue is supplied by the consumer below, not
+    // stored in the scene, so the document cannot resolve either wall's tag and reports both. What this
+    // line asserts is unchanged: no window lost its host face. (`tests/design-option-refs.test.ts` §4.)
+    expect(doc.brokenRefs().filter((b) => b.ref !== 'opt-a' && b.ref !== 'opt-b')).toHaveLength(0);
 
     // ⚠ Only the WALLS carry the tag — the natural authoring act, and the only one Revit asks for.
     // The windows belong to their scheme by being HOSTED in it, which is the edge D65 did not walk.

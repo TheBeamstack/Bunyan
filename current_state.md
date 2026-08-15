@@ -116,9 +116,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | seat | `hmdnah` |
 | role | reviewer |
 | machine | box |
-| task | `T-004` |
-| branch | `task/T-004-does-per-element-build-cost-stay-flat-fr` |
-| claimed-at | 2026-08-15T02:28:52Z |
+| task | `T-007` |
+| branch | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` |
+| claimed-at | 2026-08-15T09:38:01Z |
 | status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
@@ -627,6 +627,70 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-007 — a dangling `designOptionId` is a broken reference, derived rather than stored — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `packages/document/src/document.ts` (**`danglingDesignOptionRefs` NEW**; `brokenRefs()`
+  returns the stored geometry-derived list plus it) · `packages/document/src/designoptions.ts` (comments
+  only — `ownTagActive` and the file header name the body instead of promising it) ·
+  `tests/design-option-refs.test.ts` (**§4 NEW, +3**) · `tests/option-cascade-d67.test.ts` and
+  `tests/model-enumeration.test.ts` (one fixture assertion each, §6 below) · **Entry 82 rotated** to
+  `docs/history.md` §C, which is now contiguous over 54–84. No frozen byte, no verb, no schema bump.
+- **VERIFIED:** **836 green** across 94 files, all six gates, real exit code 0, real OCCT throughout;
+  `freeze-boundary` green ⇒ the frozen surface has not moved. **Revert-verified**: return `brokenRefs()`
+  to `this.#scene.brokenRefs` and `design-option-refs` goes **2 RED** — `expected [] to have a length of
+  1 but got +0`, which is the silence itself.
+- **FOUND:** ⚠ **It is derived at the query, not staged into `scene.brokenRefs`.** `#stage` re-derives
+  that field only for the assemblies it rebuilds, so an entry staged there goes stale on every element
+  whose assembly the next partial rebuild does not touch — D74's defect in a population whose subject is
+  not even a rebuild root. A dangling tag is a pure fact about `scene.elements`, so reading it is cheaper
+  than teaching the staging filter to tell two producers apart, and D74's one-producer invariant on
+  `scene.brokenRefs` stays intact. ⚠ `hostId` is the element's own id: the reference is hosted on
+  nothing, and widening the watched `interface BrokenReference` would make a diagnostic field
+  contract-touching — no consumer reads it. ⚠⚠ **The backward sweep (invariant 7) cost six tests in two
+  files, all one shape:** `option-cascade-d67` and `model-enumeration` tag elements and supply the
+  catalogue as a consumer OVERRIDE, which is the only road while `scene.designOptions` has no authoring
+  verb, and both assert `brokenRefs()` empty to mean *"no window lost its host face"*. Each now filters
+  the option ids instead. ⇒ **until the catalogue CRUD lands (D85, T-011), every tagged element on this
+  product is a broken reference** — D86 reporting the truth, not a false positive.
+- **OWES:** `hmdnah` — this PR; the revert above is the one to re-execute. `amer` — ⚠ `App.tsx`'s
+  Problems panel hints *"these elements are hosted on a sub-shape that no longer resolves. Retarget them
+  manually"*, which is now wrong for an option entry: it is hosted on nothing and
+  `core.retargetReference` cannot heal it. `unverified here: how the panel reads with an option entry in
+  it — khalihlna to confirm`. `brahim` — D86's row still reads ✅ RULED and this builds it; T-008's (c)
+  half extends this union rather than adding a second surfacing path.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-007-dangling-design-option-ref.md`
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #22) — APPROVED and MERGED**, `RISK: additive`, on
+  `narutousomaki741` — the account that did not open it. Item 1 re-executed twice (2 RED both times); the
+  six-test sweep re-executed and its filter proven to hide nothing. One contract-doc fix on the branch;
+  no defect found in the code. The entry above is the record.
+
+### T-007 — review: the derivation is right, and domain rule 3's text had not been widened to admit it — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** `docs/contracts/core_logic.md` — domain rule 3 gains the second broken-reference class ·
+  **Entry 85 rotated** to `docs/history.md` §C, now contiguous over 54–85. The code is merged as authored.
+- **VERIFIED:** `pnpm verify` green, **836 across 94 files**, real exit code 0. Item 1 re-executed twice:
+  `brokenRefs()` returned to `this.#scene.brokenRefs` is **2 RED** (`expected [] to have a length of 1 but
+  got +0`), restored **8/8 green**. The sweep re-executed: both files' original `toHaveLength(0)` gives
+  **6 failed | 25 passed**, and printing the lists shows exactly the two tagged walls per fixture and no
+  masked host-face entry. `brokenRefs()` timed on a hand-assembled 10,000-element scene: **3.288 ms/call
+  with one tag, 3.822 ms/call with all 10,000** — one call site, in a `useMemo` keyed on document version.
+- **FOUND:** ⚠⚠ **The new broken reference is not retargetable by any verb** — `core.createElement` is the
+  only writer of `designOptionId` — which is what rule 3's own D74 note forbids (*"a refusal nobody can act
+  on … a lie about the model's state"*). It survives that test only because it is **derived and never
+  stored**: it enters no `.bnn` and clears the moment the option resolves, so deriving at the query is
+  load-bearing for rule 3 and not only for staleness. The contract recorded one class and the code now
+  ships two, so rule 3 gained the sentence (`AGENTS.md §3` row 1). ⚠ Staging it instead would have gone
+  stale exactly as claimed: `#stage` keeps any entry whose element's assembly is not a rebuild root, so a
+  wall's entry would outlive the `core.createDesignOption` that resolves its tag.
+- **OWES:** `amer` — the `App.tsx` Problems-panel hint the entry above already names;
+  `unverified here: how the panel reads with an option entry in it — khalihlna to confirm`. `brahim` —
+  T-008 is now the next box row, and D86's *"build them together"* note means its (c) half extends this
+  union rather than opening a second surfacing path.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-T-007-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry above.
+
 ### T-004 — review: the flatness result holds, and the harness passed while building nothing — 2026-08-15 — seat: hmdnah
 
 - **CHANGED:** `tests/document-build-cost-scale.test.ts` — the cold load's built solids are counted and
@@ -872,111 +936,6 @@ is maintenance and does NOT get an entry of its own.**
   still have to re-encode the refusal GRAPH. ⚠ **The GL gizmo did NOT ship** — the planner, the
   corner-drag grouping and the transaction did; Entry 89 built the handles on top.
 
-### 85 | 2026-08-06 | Zayd | the `hostId` edge, swept — the ancestry is a DAG and the walk called it a cycle
-
-- **CHANGED:** `packages/document/src/designoptions.ts` (**`isElementActive`'s traversal** — the conflated
-  `seen` set replaced by DFS colours; the docblock records why) · `tests/option-cascade-d67.test.ts`
-  (**NEW §7, +6**) · `open_rulings.md` (**Q19 extended to the `hostId` edge**) · and, reviewing PR #10:
-  `scripts/frozen-surface.mjs` + `.d.mts` (`baselineSnapshot`'s `today` → `at`) · `scripts/state.mjs` ·
-  `tests/state-risk-e2e.test.ts` (**+1**) · `tests/freeze-boundary.test.ts` · entry 83's `REVIEW:` line ·
-  `tests/frozen-surface.snapshot.json` (re-baselined) · entry **77 rotated** to `docs/history.md` §C.
-- **VERIFIED:** **729 green** across 85 files, all six gates, **real exit code 0**, real OCCT throughout.
-  Revert-verified twice: restoring the single `seen` set fails **4 of the 6 new tests**, the verb-driven
-  one at `modelElements()` **3 where 4 is correct**; restoring the clock-stamped date fails
-  `state-risk-e2e` at `expected '2026-08-06' to be '2026-08-05'`.
-- **FOUND:** ⚠⚠ **`isElementActive` MISREAD A SHARED ANCESTOR AS A CYCLE.** Two edges out of one node make
-  the ancestry a **DAG**, so the two routes upward can MEET — and one `seen` set was doing two jobs,
-  *"already judged"* (global) and *"on the current path"* (path-scoped). The second route in refused.
-  **Measured through four shipped verbs on a document with NO design options at all: `scene.elements` 4,
-  `modelElements()` 3, the opening absent from all SIX consumers, `brokenRefs()` and `unbuildable()` both
-  empty** — control with the routes pointed at different ancestors: 5 of 5. §5's both-edges test existed
-  but its two ancestors shared nothing, **so the shape that mattered was never built.** ⚠ **`hostId`
-  cannot dangle through the verbs** (`createElement`/`retargetReference` both `requireElement`; D39
-  cascades the hosted with the host) — **but a `.bnn` can, and it is silent**: 5 elements, `modelElements()`
-  3, both diagnostics `[]`. `brokenRefs` walks `hostedBy` from each ROOT, so an element whose host does not
-  exist is never anyone's child and is never examined ⇒ **Q19 needs a reconciliation covering BOTH edges.**
-  ⚠ **Six consumers, not five** — `joins.ts` has three. ⚠ **And reviewing PR #10: Entry 84's cross-field
-  date check was sound while the WRITER fed it two sources** — the entry from the §7 parse, the date from
-  `new Date()` — so any rebaseline outside the entry's own calendar day wrote a baseline its own gate
-  rejects. `state-risk-e2e`'s own fixture reproduced it every day but one, and nothing had looked.
-- **OWES:** Owner: ⚠⚠ **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** — one declaration moved
-  (`designoptions.ts :: function isElementActive`), baseline re-generated in-PR at entry 85. **Q19 still
-  needs its ruling and now spans both edges; Q17a still blocks; Q11/Q12 unchanged.** Amer: **PR #11 is
-  yours to review and merge** — left untouched on the owner's instruction. **Q18 is still yours.**
-- **RISK:** contract-touching
-- **FULL:** `handoff/zayd/2026-08-06-e85-hostid-sweep.md`
-- **REVIEW:** Reviewed by **Entry 86** (Amer, a later session); full record in PR #12's comment.
-  **APPROVED, NOT MERGED — `contract-touching`, so it is the owner's.** Item 1(a) reproduced to the
-  number (**4 RED**, the verb-driven one at `[…(3)]` where 4 is correct). ⚠⚠ **Item 1(b), the cycle hunt
-  this entry asked for, came back EMPTY across ten shapes** — a cycle entered from outside, self-loops on
-  either edge and both, a diamond whose shared ancestor is itself in a cycle (short and long), **the
-  cycle reachable only down the edge explored SECOND (both orders)**, and a 5000-deep chain. All refuse
-  and all terminate. The structural reason the colours hold: **a node on a cycle can never be blackened**,
-  because reaching it always re-enters it while still grey. Item 2: `cascadeOf` re-derived and **sound —
-  for a different reason than "the same code done right"**: it computes a reachable SET, where a re-visit
-  is idempotent, so one meaning is all `seen` needs; the conflation is only possible when a visited-set
-  decides a boolean about the current walk. Item 4: the `hostId` writer count **taken independently from
-  `argsSchema` — exactly two verbs**, `core.createElement` and `core.retargetReference`, both
-  `requireElement` the host. **No defect found.** ⇒ **Re-reviewed and MERGED by Entry 87** on the owner's
-  explicit authorisation (PR #12's comment). Item 1(a) reproduced a third time; **1(b) answered by a
-  DIFFERENTIAL FUZZ rather than a shape list** — an independent closure/Kahn reference vs the colours
-  over **20 000 random graphs, ~90 000 queries, zero disagreements**, and revert-verified to fail on the
-  old code within ~200 trials. ⚠⚠ **Every disagreement the old code produces is `got false, want true`:
-  the defect could only ever OVER-refuse, which is the strongest available answer to *"what does it now
-  accept that it should not?"* — nothing.** ⚠ The merge cost a forced §7 rotation: 85 and 84 were each
-  under the byte budget and their MERGE was 35 981/32 768 (entry 79 rotated out).
-
-### 82 | 2026-08-06 | Zayd | the design-options question, walked — the two doors are a 50% silent under-report (Q17)
-
-- **CHANGED:** **`docs/design/P5_step6D_design_options_crud_design.md` NEW** — the Q17 walk: the gap
-  measured through the shipped verbs, the promotion's real cost, the CRUD's shape, the dependency edge, an
-  8-row test plan each with its weak-green, and §7's three questions · `open_rulings.md` (**Q17 REPLACED by
-  Q17a/Q17b/Q17c**, and **Q17a moved to 🔴 BLOCKING**, empty for five sessions) · `current_state.md` (this
-  abstract; **Entry 75 rotated out**, already in `docs/history.md` §C) · plus **Entry 81's review, fixed on
-  its branch**: `scripts/state.mjs` (the verdict is measured against the baseline **at the merge base**,
-  read from git) + **`tests/state-risk-e2e.test.ts` NEW (+6)**. **No code in `packages/`, no frozen byte,
-  no verb, no schema bump.**
-- **VERIFIED:** **715 green** across 84 files, six gates, real exit code 0. Q17's numbers driven through
-  `DocumentContext` + `CORE_COMMANDS` against the real OCCT kernel, not quoted. Entry 81's fix
-  **revert-verified**: restore its `state.mjs` and `state-risk-e2e` goes RED (`the verdict was erased by
-  re-baselining`) **while `freeze-boundary.test.ts` stays 10/10 green**. Its item 1 re-executed: the
-  pre-Q16 gate body ⇒ **3 e2e RED**, unit file 14/14 green.
-- **FOUND:** ⚠⚠ **Q17 IS NOT A SYMMETRY COMPLAINT — IT IS A 50.0% SILENT UNDER-REPORT WEARING
-  `basis: 'exact'`, ON A DOCUMENT WITH NO DESIGN OPTIONS AT ALL.** 0 of 40 verbs can author an option, so
-  `scene.designOptions` is always absent; `core.createElement` accepts a `designOptionId` naming nothing;
-  `isElementActive` then excludes that element from every enumerating consumer. Two identical walls, one
-  tagged ⇒ `scene.elements` **2**, `modelElements()` **1**, a whole-model schedule **1 row and
-  3 600 000 000 mm³ where 7 200 000 000 is correct** — `unmeasured: []`, `brokenRefs()` `[]`,
-  `unbuildable()` `[]`. **D65's own named failure mode INVERTED** (it predicted 2.0000× over; what ships is
-  0.5000× under) and §1c-8's ledger exactly: the consumer rule landed 07-23, the authoring arg 07-24, and
-  nobody swept the door against the rule. ⚠⚠ **AND "IS IT ADDITIVE?" HAS TWO ANSWERS THAT PART COMPANY:**
-  data-additive **YES** (D79's trick transfers verbatim — no schema bump, byte-identical documents),
-  freeze-additive **NO** — measured, the gate names `scene.ts :: type SceneCollection`, one of 21 watched
-  declarations there. Saying "additive" without saying which is how a contract-touching PR gets
-  agent-merged. ⚠ The `dependency.ts` edge is **not** the "nothing" `schedules`/`views` declared: an option
-  edit changes what the join resolver sees (D68's ambiguity flip) from the authoring side. ⚠ And the Q17
-  row was wrong about the code — `checkDesignOptions` is **not** shared with `core.createView`, which has
-  its own second copy in `view.ts` (rule 10). **A row in the owner's queue is a claim about the code.**
-- **OWES:** Owner: ⚠⚠ **🔴 BLOCKING IS NO LONGER EMPTY — `Q17a`** (promote `designOptions` +
-  the CRUD; contract-touching, so the owner also merges it). 🟡 OPEN: **Q4–Q13, Q17b, Q17c, Q18**.
-  `Q17b` is the stopgap direction (shut vs open — deliberately not chosen); `Q17c` is the one additive,
-  direction-neutral piece (make a dangling `designOptionId` a broken ref, so the number above stops being
-  silent). Amer: **Q18 is still yours** — the cut-face half of what a hosted void may host on; Entry 81
-  fixed only the edge half.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-06-q17-designoptions.md`
-- **REVIEW:** ✅ Reviewed by **Entry 83** (Zayd, 2026-08-06) against all 7 items — **APPROVED, no defect
-  found**; merged by the owner (the harness classifier refused `gh pr merge` again — see Entry 83). Item 1
-  **executed**: reverting `state.mjs:175` to `const against = workingSnap` drove `state-risk-e2e` RED on
-  *"the verdict was erased by re-baselining"* **while `freeze-boundary` stayed 10/10 GREEN** — the gate that
-  decides RISK cannot see this defect, only the e2e that EXECUTES the generator. Item 4 the one that
-  mattered: §1's numbers were re-derived from a fresh harness after the original was deleted, and **every
-  row of §1.4 reproduced exactly**, both failure codes and all four empty diagnostics included. §3.2 and
-  §3.3 re-measured too — `CHANGED (1) scene.ts :: type SceneCollection`, one `TS2345` at
-  `dependency.ts:177`. ⚠ Item 6 found the one real gap and it is not this PR's to close: **§5 criterion 6 is
-  the only thing that would ever hold the 50% measurement down, and it lives inside a unit Q17a blocks** —
-  so the defect has no committed test and has now been hand-derived twice.
-
 ---
 
 ## §8 — Generated
@@ -985,16 +944,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-004 (hmdnah, 2026-08-15)** |
-| branch · tip · tree | `task/T-004-does-per-element-build-cost-stay-flat-fr` · `2e4e6fc` · clean |
-| open PRs | #21 brahim/2026-08-15-record-owner-rulings · #20 task/T-004-does-per-element-build-cost-stay-flat-fr · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **833 green** · 94 files · 264 suites |
+| **newest entry** | **T-007 (zayd, 2026-08-15)** |
+| branch · tip · tree | `task/T-007-q17c-a-dangling-designoptionid-becomes-a` · `082dc18` · clean |
+| open PRs | #22 task/T-007-q17c-a-dangling-designoptionid-becomes-a · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
+| suite | **836 green** · 94 files · 264 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 886 insertions(+), 24 deletions(-) (8 files) |
-| docs budget | current_state 83.8/96.0 KB · §7 31.8/32.0 KB · abstracts 8/10 · bodies 37 |
+| diff vs origin/main | 11 files changed, 520 insertions(+), 129 deletions(-) (11 files) |
+| docs budget | current_state 79.6/96.0 KB · §7 27.6/32.0 KB · abstracts 8/10 · bodies 39 |
 
 _Generated 2026-08-15 by `pnpm state`._
 

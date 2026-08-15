@@ -41,9 +41,10 @@
  * `basis: 'exact'`, with `brokenRefs()` and `unbuildable()` both empty. **D65's own named failure mode,
  * arriving inverted:** it predicted 2.0000× over; what ships is 0.5000× under.
  *
- * ⇒ The invariant is NOT vacuous, the reservation is reachable, and the *"a future body surfaces it"*
- * half of `ownTagActive` was never written. `open_rulings.md` **Q17a/Q17b/Q17c**; the walk is
- * `docs/design/P5_step6D_design_options_crud_design.md`.
+ * ⇒ The invariant is NOT vacuous and the reservation is reachable. `ownTagActive`'s surfacing half is
+ * built (D86 — `danglingDesignOptionRefs` in `document.ts`), and the exclusion itself is unchanged; the
+ * catalogue CRUD that would let a document resolve the tag is `docs/BACKLOG.md` **T-011** (D85). The walk
+ * is `docs/design/P5_step6D_design_options_crud_design.md`.
  */
 
 import type { ElementId } from './entities.js';
@@ -130,7 +131,8 @@ function ownTagActive(
   if (optionId === undefined) return true; // main model — shared by every option
   const option = options?.[optionId];
   // ⚠ An element naming an option the document does not define is a BROKEN REFERENCE, not a licence to
-  // include it: including it would double-count. Excluded, and a future body surfaces it (domain rule 3).
+  // include it: including it would double-count. Excluded here, and reported by `doc.brokenRefs()` —
+  // `danglingDesignOptionRefs` in `document.ts` is that body (domain rule 3, D86).
   if (option === undefined) return false;
   const chosen = active[option.setName];
   return chosen === undefined ? option.isPrimary : chosen === optionId;

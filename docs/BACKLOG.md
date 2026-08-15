@@ -101,7 +101,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?    | document | box     | normal | —          |
 | T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built  | document | box     | normal | —          |
 | T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint        | apps-web | pc      | normal | T-005      |
-| T-007 | ready   | Q17c — a dangling `designOptionId` becomes a broken ref     | document | box     | normal | —          |
+| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref     | document | box     | normal | —          |
 | T-008 | ready   | Q19 — the belongs-to deletion reconciliation                | document | box     | high   | —          |
 | T-009 | ready   | Q18 — a hosted void may only host on its host's base part   | document | box     | high   | —          |
 | T-010 | blocked | Q18 — two doors on one wall, confirmed in the browser       | apps-web | pc      | normal | T-009      |

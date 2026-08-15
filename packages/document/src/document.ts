@@ -54,6 +54,7 @@ import type { ElementBounds, UnprojectedElement, ViewResult } from './view.js';
 import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
 import { dependents } from './dependency.js';
+import { unresolvedDesignOptions } from './designoptions.js';
 import type { ElementGeometry } from './build.js';
 import { CommandFailure } from './commands.js';
 import type { Command, CommandContext } from './commands.js';
@@ -296,8 +297,15 @@ export class DocumentContext {
     return this.#revision;
   }
 
+  /**
+   * ⚠ TWO PRODUCERS, AND ONLY ONE OF THEM IS STORED. `scene.brokenRefs` carries what the last rebuild
+   * measured against real geometry (an opening whose host face no longer resolves); the referential half
+   * below is derived here, on every call, because it is a pure fact about `scene.elements` and needs no
+   * build to be true. Staging it into `scene.brokenRefs` instead would leave a stale entry on every
+   * element whose assembly the next partial rebuild does not touch.
+   */
   brokenRefs(): readonly BrokenReference[] {
-    return this.#scene.brokenRefs;
+    return [...this.#scene.brokenRefs, ...danglingDesignOptionRefs(this.#scene)];
   }
 
   /**
@@ -1282,6 +1290,37 @@ export class DocumentContext {
       await this.#geometry.request('releaseShape', { handle });
     }
   }
+}
+
+/**
+ * ⚠⚠ **THE BODY `isElementActive` NAMES AND NOBODY HAD WRITTEN** — D86 (Q17c), owner-ruled 2026-08-15.
+ * `ownTagActive` excludes an element whose `designOptionId` names no option in this document, calling it
+ * *"a BROKEN REFERENCE … a future body surfaces it (domain rule 3)"*. This is that body.
+ *
+ * ⚠ It surfaces and does nothing else: the element still builds, `quantities()` still measures it, and
+ * every enumerating consumer still excludes it exactly as before. What changes is that the exclusion is
+ * no longer silent — measured before this landed, a tagged wall on a document with no option catalogue
+ * cost 50.0% of the model's volume with `brokenRefs()` and `unbuildable()` both empty (design doc §1.4).
+ *
+ * ⚠ `hostId` is the element's own id because the reference is not hosted on anything: `BrokenReference`
+ * freezes at P5 and widening it to say so would move the frozen surface for a diagnostic field.
+ */
+function danglingDesignOptionRefs(scene: Scene): readonly BrokenReference[] {
+  const out: BrokenReference[] = [];
+  for (const element of Object.values(scene.elements)) {
+    const optionId = element.designOptionId;
+    if (optionId === undefined) continue;
+    // The same predicate the schedule and view doors resolve their selections with (D68 — one rule, one
+    // description), so a third door cannot drift from the other two about what "resolves" means.
+    if (unresolvedDesignOptions(scene, [optionId]).length === 0) continue;
+    out.push({
+      elementId: element.id,
+      ref: optionId,
+      hostId: element.id,
+      reason: `the design option "${optionId}" is not defined in this document, so this element is excluded from every enumerating consumer`,
+    });
+  }
+  return out;
 }
 
 /** Every handle in a staged build — what a rejection or a dry run must hand back to the heap. */
