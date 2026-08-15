@@ -333,3 +333,9 @@ _(unplanned findings land here — never claimed in the same turn that found the
   (`zayd/…` ⇒ box ⇒ `hmdnah`, `amer/…` ⇒ pc ⇒ `khalihlna`), which derives the reviewer from the machine
   the work was executed on rather than from the title. ⚠⚠ **That is safety-critical routing, so it is a
   `STEWARD:` PR carrying a test, not a direct commit** — recorded here, not claimed this turn.
+- **2026-08-15 — `agent-finish.mjs`'s `ready`→`review` status flip fails `format:check`, so every builder
+  turn opens a red PR.** The longer word goes into a cell padded for `ready`, leaving one trailing space
+  that `prettier --check` — CI step 3 — rejects; nothing else in the diff is at fault. Measured on **PR
+  #20**, the first task row the script has ever flipped: `pnpm verify` was green in the finish run and CI
+  failed naming `docs/BACKLOG.md` alone. ⚠ The fix belongs in the writer — re-align the row, or format the
+  file it just edited — not in each branch, and not by widening the committed column.
