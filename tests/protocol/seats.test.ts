@@ -7,14 +7,20 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
+  builderFor,
   canClaim,
   dependsOn,
   machineOf,
   readRegistry,
   readyFor,
   reviewerFor,
+  reviewFlipsToDone,
+  reviewStepFor,
+  reviewStepGate,
   roleOf,
   rowStatus,
+  STEP1_LABEL,
+  STEP1_LABEL_DESCRIPTION,
   taskField,
 } from '../../scripts/seats.mjs';
 import { makeFixture } from './fixture.mjs';
@@ -223,6 +229,62 @@ describe('reviewer routing — a pc claim needs a pc reviewer', () => {
 });
 
 /**
+ * `builderFor` — the `--continue` admission gate (T-015, D88). Symmetric with `reviewerFor` above,
+ * but it must resolve from the task's `machine:` field ALONE: the §0b baton on a finished branch names
+ * whichever seat last ran `agent-finish.mjs` there, which is the REVIEWER on the `--review` path, not
+ * the builder `--continue` must admit.
+ */
+describe('builder routing — derived from machine:, never a baton', () => {
+  beforeEach(() => {
+    fx = makeFixture([
+      {
+        id: 'T-001',
+        status: 'ready',
+        title: 'box work',
+        area: 'kernel',
+        machine: 'box',
+        risk: 'normal',
+      },
+      {
+        id: 'T-002',
+        status: 'ready',
+        title: 'pc work',
+        area: 'apps-web',
+        machine: 'pc',
+        risk: 'normal',
+      },
+    ]);
+  });
+
+  it('a box task is owned by the box builder', () => {
+    expect(builderFor(fx.dir, 'T-001')).toEqual({ seat: 'zayd' });
+  });
+
+  it('a pc task is owned by the pc builder, never the box one', () => {
+    expect(builderFor(fx.dir, 'T-002')).toEqual({ seat: 'amer' });
+  });
+
+  it("`machine: any` resolves to the builder sharing the FINISHING seat's machine, else box", () => {
+    fx = makeFixture([
+      {
+        id: 'T-003',
+        status: 'ready',
+        title: 'either work',
+        area: 'infra',
+        machine: 'any',
+        risk: 'normal',
+      },
+    ]);
+    expect(builderFor(fx.dir, 'T-003', 'amer')).toEqual({ seat: 'amer' });
+    expect(builderFor(fx.dir, 'T-003')).toEqual({ seat: 'zayd' });
+  });
+
+  it('throws for a task with no machine: field', () => {
+    expect(() => builderFor(fx.dir, 'T-999')).toThrow(/no 'machine:' field/);
+  });
+});
+
+/**
  * ⚠ Against the COMMITTED `docs/BACKLOG.md`, not a fixture. The fixture emitted unpadded table rows
  * while prettier pads every real row to its widest cell, so `readyFor`/`rowStatus` shipped matching
  * `| ready |` against a file that says `| ready   |` — green everywhere, zero rows claimable in the
@@ -265,5 +327,96 @@ describe('the real docs/BACKLOG.md, as prettier formats it', () => {
     for (const id of ids) {
       expect(taskField(backlog, id, 'machine'), `${id} has no machine:`).toMatch(/^(any|box|pc)$/);
     }
+  });
+});
+
+describe('the two-step review gate (D88, T-014)', () => {
+  describe('reviewStepFor — which of the two turns a risk: high PR is on', () => {
+    it('is null for anything but risk: high — one ordinary review turn', () => {
+      expect(reviewStepFor('normal', [])).toBeNull();
+      expect(reviewStepFor(undefined, [])).toBeNull();
+      expect(reviewStepFor('high', [STEP1_LABEL])).not.toBeNull();
+    });
+
+    it('is step 1 when the PR carries no review/step-1 label yet', () => {
+      expect(reviewStepFor('high', [])).toBe(1);
+      expect(reviewStepFor('high', ['unrelated-label'])).toBe(1);
+    });
+
+    it('is step 2 once the review/step-1 label is on the PR', () => {
+      expect(reviewStepFor('high', [STEP1_LABEL])).toBe(2);
+      expect(reviewStepFor('high', ['unrelated-label', STEP1_LABEL])).toBe(2);
+    });
+  });
+
+  describe('reviewStepGate — is `--step N` legal for this risk', () => {
+    it('refuses an unreadable/absent risk, never defaulting to normal', () => {
+      const v = reviewStepGate(undefined, null);
+      expect(v.ok).toBe(false);
+      expect(v.reason).toMatch(/no readable 'risk:' field/);
+    });
+
+    it('refuses risk: high with no --step', () => {
+      const v = reviewStepGate('high', null);
+      expect(v.ok).toBe(false);
+      expect(v.reason).toMatch(/requires --step 1 or --step 2/);
+    });
+
+    it('accepts risk: high with --step 1 or --step 2', () => {
+      expect(reviewStepGate('high', 1).ok).toBe(true);
+      expect(reviewStepGate('high', 2).ok).toBe(true);
+    });
+
+    it('refuses risk: high with an out-of-range step', () => {
+      expect(reviewStepGate('high', 3).ok).toBe(false);
+    });
+
+    it('refuses --step on a risk: normal (or any non-high) task', () => {
+      const v = reviewStepGate('normal', 1);
+      expect(v.ok).toBe(false);
+      expect(v.reason).toMatch(/only risk: high uses a two-step review/);
+    });
+
+    it('accepts risk: normal with no --step — unchanged from before T-014', () => {
+      expect(reviewStepGate('normal', null).ok).toBe(true);
+    });
+  });
+
+  describe('reviewFlipsToDone — the exact decision T-014 exists to correct', () => {
+    it('risk: high step 1 does NOT flip to done — the T-008/PR #23 defect this task closes', () => {
+      expect(reviewFlipsToDone('high', 1, false)).toBe(false);
+    });
+
+    it('risk: high step 2 DOES flip to done', () => {
+      expect(reviewFlipsToDone('high', 2, false)).toBe(true);
+    });
+
+    it('risk: normal flips to done regardless of step — unchanged from before T-014', () => {
+      expect(reviewFlipsToDone('normal', null, false)).toBe(true);
+    });
+
+    it('contract-touching never flips, at any risk/step', () => {
+      expect(reviewFlipsToDone('high', 2, true)).toBe(false);
+      expect(reviewFlipsToDone('normal', null, true)).toBe(false);
+    });
+
+    it('REVERT-VERIFIED: the pre-T-014 formula stamps a risk: high step 1 `done` — this is the bug', () => {
+      // `agent-finish.mjs --review` used to flip the row on `!contractTouching` alone, with no notion
+      // of steps at all — exactly what shipped in PR #23 and had to be corrected by hand.
+      const preT014Formula = (_risk: string, _step: number | null, contractTouching: boolean) =>
+        !contractTouching;
+      expect(preT014Formula('high', 1, false)).toBe(true); // RED: the old code stamps 'done'
+      expect(reviewFlipsToDone('high', 1, false)).toBe(false); // GREEN: the fix leaves it 'review'
+    });
+  });
+
+  // Regression for a defect hmdnah's step-2 review of T-014 (PR #28) found by actually running the
+  // mechanism against GitHub's real API: `gh label create --description` refuses anything over 100
+  // characters, so `agent-finish.mjs --step 1` could never create `review/step-1` on a repo where it
+  // does not already exist — the exact state of every FIRST risk: high review. Proven live: the
+  // unshortened description was 104 characters and `gh label create` returned "description is too
+  // long (maximum is 100 characters)".
+  it("STEP1_LABEL_DESCRIPTION fits GitHub's 100-character label description limit", () => {
+    expect(STEP1_LABEL_DESCRIPTION.length).toBeLessThanOrEqual(100);
   });
 });

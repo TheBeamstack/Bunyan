@@ -454,6 +454,7 @@ AND geometry from `scene.json` alone · **D19 is a MACHINE check** · the model 
 | D42 | Rule 4 is ALL-OR-NOTHING + a universal `dryRun`; `planDelete()` DELETED. | D67–D77 | **The backward-sweep rulings** — nine dirty rules found and fixed. Each is a separate ruling; see `docs/decisions.md`. |
 | D43 | An unknown OR FUTURE type: the document OPENS, the element is `failed`+visible+PRESERVED VERBATIM. | D78–D80 | The schedules body · the schedule CRUD · **the five move verbs + `transactionId` atomicity.** |
 | D81 | The plan/section unit ships `mode:'cut'` only; `SectionCurve.nodeId?` and `ParamField.refTo`'s four members are reserved. | D82 | **THE BUILD MODEL BECOMES FIVE SEATS** — `brahim`/`zayd`/`hmdnah`/`amer`/`khalihlna`, crossed GitHub accounts, `T-nnn` succeeds `Entry N` going forward. See `AGENTS.md`. |
+| D83–D88 | Q19 cascade+surface · Q18 host-face rule · Q17a designOptions CRUD (contract-touching) · Q17c broken ref · seat credentials env-scoped (D87) · `risk: high` two-step review (D88). One-line index not yet backfilled per-row; full text in `docs/decisions.md`. | D89 | **CI runs on a self-hosted runner** (`bunyan-oracle-runner`) while the repo stays private — GitHub-hosted minutes exhausted, going public blocked on Q11. |
 
 ---
 
@@ -724,265 +725,244 @@ is maintenance and does NOT get an entry of its own.**
   element's two edges name the same missing id (the key `App.tsx` lists on), and the edit label still says
   *"N hosted element(s)"* for members. Findings in full: the PR comment.
 
-### T-007 — a dangling `designOptionId` is a broken reference, derived rather than stored — 2026-08-15 — seat: zayd
+### T-014 — review (step 2): the mechanism's first live exercise found two real defects and two wrong claims — 2026-08-16 — seat: hmdnah
 
-- **CHANGED:** `packages/document/src/document.ts` (**`danglingDesignOptionRefs` NEW**; `brokenRefs()`
-  returns the stored geometry-derived list plus it) · `packages/document/src/designoptions.ts` (comments
-  only — `ownTagActive` and the file header name the body instead of promising it) ·
-  `tests/design-option-refs.test.ts` (**§4 NEW, +3**) · `tests/option-cascade-d67.test.ts` and
-  `tests/model-enumeration.test.ts` (one fixture assertion each, §6 below) · **Entry 82 rotated** to
-  `docs/history.md` §C, which is now contiguous over 54–84. No frozen byte, no verb, no schema bump.
-- **VERIFIED:** **836 green** across 94 files, all six gates, real exit code 0, real OCCT throughout;
-  `freeze-boundary` green ⇒ the frozen surface has not moved. **Revert-verified**: return `brokenRefs()`
-  to `this.#scene.brokenRefs` and `design-option-refs` goes **2 RED** — `expected [] to have a length of
-  1 but got +0`, which is the silence itself.
-- **FOUND:** ⚠ **It is derived at the query, not staged into `scene.brokenRefs`.** `#stage` re-derives
-  that field only for the assemblies it rebuilds, so an entry staged there goes stale on every element
-  whose assembly the next partial rebuild does not touch — D74's defect in a population whose subject is
-  not even a rebuild root. A dangling tag is a pure fact about `scene.elements`, so reading it is cheaper
-  than teaching the staging filter to tell two producers apart, and D74's one-producer invariant on
-  `scene.brokenRefs` stays intact. ⚠ `hostId` is the element's own id: the reference is hosted on
-  nothing, and widening the watched `interface BrokenReference` would make a diagnostic field
-  contract-touching — no consumer reads it. ⚠⚠ **The backward sweep (invariant 7) cost six tests in two
-  files, all one shape:** `option-cascade-d67` and `model-enumeration` tag elements and supply the
-  catalogue as a consumer OVERRIDE, which is the only road while `scene.designOptions` has no authoring
-  verb, and both assert `brokenRefs()` empty to mean *"no window lost its host face"*. Each now filters
-  the option ids instead. ⇒ **until the catalogue CRUD lands (D85, T-011), every tagged element on this
-  product is a broken reference** — D86 reporting the truth, not a false positive.
-- **OWES:** `hmdnah` — this PR; the revert above is the one to re-execute. `amer` — ⚠ `App.tsx`'s
-  Problems panel hints *"these elements are hosted on a sub-shape that no longer resolves. Retarget them
-  manually"*, which is now wrong for an option entry: it is hosted on nothing and
-  `core.retargetReference` cannot heal it. `unverified here: how the panel reads with an option entry in
-  it — khalihlna to confirm`. `brahim` — D86's row still reads ✅ RULED and this builds it; T-008's (c)
-  half extends this union rather than adding a second surfacing path.
+- **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL_DESCRIPTION` fixed** — was 104 characters, GitHub caps a
+  label description at 100, so `gh label create` for `review/step-1` died on any repo where the label did
+  not already exist, which is every FIRST `risk: high` review; shortened to 79, same meaning) ·
+  `scripts/agent-start.mjs` (**`resolveReviewStep` NEW**, extracted — the reviewer branch's pure
+  risk+labels → step decision, same reason `findTaskPR` is pulled out) · `scripts/agent-start.d.mts` (the
+  new export declared) · `tests/protocol/seats.test.ts` (+1: pins `STEP1_LABEL_DESCRIPTION`'s length) ·
+  `tests/protocol/agent-start.test.ts` (+5: `resolveReviewStep`) · `current_state.md`'s own T-014 §7 entry
+  and `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md` (the wrong "+19" corrected to the real +14) ·
+  `docs/history.md` §E (the oldest §7 abstract, T-004/zayd, rolled off to stay within the 10-abstract cap
+  this new entry pushed over — its durable lesson already lives in `§1a`, unchanged by the roll). No
+  frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, **874/874** across 94 files, `docs:check` **129/129**. **Revert-
+  verified two ways, both against the real defect this turn found, not only a unit assertion:** (1)
+  `git show main:tests/protocol/seats.test.ts \| grep -c 'it('` → 23, HEAD → 37, 37−23=**14**, not the
+  claimed 19; (2) the label-description bug — `gh label edit review/step-1 --description "<original
+  104-char string>"` against the real GitHub API returns `HTTP 422 … description is too long (maximum is
+  100 characters)`; the shortened 79-char string succeeds. New regression test pins the length so this
+  cannot regress silently (the fixture suite cannot exercise the real `gh` call).
+- **FOUND:** Ran the mechanism live (`agent-start.mjs --seat hmdnah --review`) rather than only reading
+  code — it reported STEP 1, not step 2, though step 1's report was already posted. Cause: the
+  `review/step-1` label was never applied, because `agent-finish.mjs --review --step 1`'s `gh label
+  create` call — the only code path that ever creates it — cannot succeed while the description exceeds
+  GitHub's 100-character cap. Fixed above; applied the corrected label to PR #28 by hand (same two `gh`
+  calls the fixed finish script now makes) since step 1's actual review content was already on record and
+  reconciled. **Item 2 (backward sweep):** `reviewFlipsToDone`/`reviewStepFor`/`reviewStepGate` each have
+  exactly one production call site; no second, un-migrated `!contractTouching` instance found anywhere
+  (`scripts/state.mjs:355`'s reference is an advisory `console.log`, not a flip decision). **Item 3 (new
+  kind of thing):** `review/step-1`'s three consumers enumerated (`agent-finish.mjs` creates/reads it,
+  `agent-start.mjs` reads it) plus the one real invalidator candidate, `reserved-classes.mjs`'s
+  `syncLabels` — confirmed its `owned`/`have`/`want` are filtered to the three `needs-operator/*` labels
+  only, so it structurally cannot touch `review/step-1`; no third silent consumer found. **Item 6 (weak
+  green):** all new tests, including this turn's, assert exact values or exact spawned output, not loose
+  substrings; one honest residual gap noted, not fixed — `resolveReviewStep`'s wiring into `main()`'s
+  console output is still not spawn-tested end-to-end (would need a faked `gh` on `PATH`; no such
+  infrastructure exists in this test file, judged out of scope for one turn).
+- **OWES:** `brahim` — a `T-nnn`-worthy follow-up: nothing detects a mismatch between "step 1 posted its
+  report" and "step 1's finish command actually ran and applied the label" except a human (or reviewer)
+  re-running `agent-start.mjs --review` and noticing it still says STEP 1 — which is exactly how this
+  turn found the bug. `agent-finish.mjs` does `die()` loudly if `gh label create` fails for a reason other
+  than "already exists" (that part is not silent), but nothing requires step 1 to run the finish command
+  at all, and nothing else ever applies the label. Worth a harder integration check (a faked-`gh` spawn
+  test covering the full reviewer-branch wiring, not just `resolveReviewStep`'s pure slice) before the
+  next `risk: high` PR relies on this unattended.
 - **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-15-T-007-dangling-design-option-ref.md`
-- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #22) — APPROVED and MERGED**, `RISK: additive`, on
-  `narutousomaki741` — the account that did not open it. Item 1 re-executed twice (2 RED both times); the
-  six-test sweep re-executed and its filter proven to hide nothing. One contract-doc fix on the branch;
-  no defect found in the code. The entry above is the record.
+- **FULL:** `handoff/hmdnah/2026-08-16-T-014-review-step2.md`
+- **REVIEW:** n/a — this IS step 2 of the review turn (D88, `AGENTS.md §1.2`); the verdict is on the entry
+  above.
 
-### T-007 — review: the derivation is right, and domain rule 3's text had not been widened to admit it — 2026-08-15 — seat: hmdnah
+### T-014 — `--review` must read the task's `risk:`, not only the frozen surface — 2026-08-16 — seat: zayd
 
-- **CHANGED:** `docs/contracts/core_logic.md` — domain rule 3 gains the second broken-reference class ·
-  **Entry 85 rotated** to `docs/history.md` §C, now contiguous over 54–85. The code is merged as authored.
-- **VERIFIED:** `pnpm verify` green, **836 across 94 files**, real exit code 0. Item 1 re-executed twice:
-  `brokenRefs()` returned to `this.#scene.brokenRefs` is **2 RED** (`expected [] to have a length of 1 but
-  got +0`), restored **8/8 green**. The sweep re-executed: both files' original `toHaveLength(0)` gives
-  **6 failed | 25 passed**, and printing the lists shows exactly the two tagged walls per fixture and no
-  masked host-face entry. `brokenRefs()` timed on a hand-assembled 10,000-element scene: **3.288 ms/call
-  with one tag, 3.822 ms/call with all 10,000** — one call site, in a `useMemo` keyed on document version.
-- **FOUND:** ⚠⚠ **The new broken reference is not retargetable by any verb** — `core.createElement` is the
-  only writer of `designOptionId` — which is what rule 3's own D74 note forbids (*"a refusal nobody can act
-  on … a lie about the model's state"*). It survives that test only because it is **derived and never
-  stored**: it enters no `.bnn` and clears the moment the option resolves, so deriving at the query is
-  load-bearing for rule 3 and not only for staleness. The contract recorded one class and the code now
-  ships two, so rule 3 gained the sentence (`AGENTS.md §3` row 1). ⚠ Staging it instead would have gone
-  stale exactly as claimed: `#stage` keeps any entry whose element's assembly is not a rebuild root, so a
-  wall's entry would outlive the `core.createDesignOption` that resolves its tag.
-- **OWES:** `amer` — the `App.tsx` Problems-panel hint the entry above already names;
-  `unverified here: how the panel reads with an option entry in it — khalihlna to confirm`. `brahim` —
-  T-008 is now the next box row, and D86's *"build them together"* note means its (c) half extends this
-  union rather than opening a second surfacing path.
+- **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL`/`STEP1_LABEL_COLOR`/`STEP1_LABEL_DESCRIPTION`,
+  `reviewStepFor`, `reviewStepGate`, `reviewFlipsToDone` NEW** — the two-step routing/legality/flip
+  decisions, pure) · `scripts/agent-finish.mjs` (**`--step 1|2` NEW**; a pre-`pnpm verify` gate resolving
+  a review's `risk:` and validating `--step` against it; step 1 creates-if-absent and applies the
+  `review/step-1` label, no row flip, no approve/merge printed; step 2 refuses unless that label is
+  confirmed present, then flips via `reviewFlipsToDone`) · `scripts/agent-start.mjs` (the reviewer branch
+  resolves `risk:` + the claimed PR's labels via `reviewStepFor`, prints which step and the exact finish
+  command with `--step N`, refuses rather than guesses on an unreadable label/risk) ·
+  `scripts/seats.d.mts` (the four new exports declared) · `tests/protocol/seats.test.ts` (+14: the three
+  pure functions, including a revert-verification pair) · `tests/protocol/agent-finish.test.ts` (+7: the
+  new gate). No frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0 — **868/868** across 94 files, `docs:check`'s own subset
+  **123/123** across 8; `freeze-boundary` green ⇒ frozen surface unmoved (confirmed separately:
+  `reserved-classes.mjs --base origin/main` → `none — RISK: additive`). **Revert-verified:** `seats.mjs`'s
+  `reviewFlipsToDone` reverted to the pre-fix `!contractTouching` formula → `pnpm vitest run
+  tests/protocol/seats.test.ts -t reviewFlipsToDone` went **2 RED** (`expected true to be false`,
+  reproducing T-008/PR #23's own defect: a `risk: high` step 1 stamps `done`); restored → **5/5 green**.
+- **FOUND:** `AGENTS.md §1.2` and `REVIEW.md`'s "Two steps" section already specified this mechanism in
+  full before any code existed — this PR implements a written spec, not a design decision. ⚠ The
+  `gh`-touching halves (label create, `--add-label`, the label-presence read) are not exercised by the
+  fixture suite, same limitation `reserved-classes.mjs`'s own `syncLabels` already accepts: a throwaway
+  local bare `origin` has no real PR for `gh` to ask about. The pure decision functions are directly
+  tested instead; the plumbing gets its first live exercise on this very PR's own review, since `T-014`
+  is itself `risk: high`.
+- **OWES:** `hmdnah` — this PR (step 1 first, D88; the live exercise of the label-creation path). Also
+  `T-008`/PR #23: its step 1 predates this mechanism and ran by hand, so `review/step-1` needs applying
+  to it **manually** before `--review --step 2` will route; detail in the handoff body.
 - **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-15-T-007-review.md`
+- **FULL:** `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md`
+- **REVIEW:** Reviewed by `hmdnah` (2026-08-16, PR #28, two-step D88) — **APPROVED and MERGED**,
+  `RISK: additive`, on `narutousomaki741` — the account that did not open it. Step 1 posted a report (no
+  merge); step 2 fixed three defects on the branch (two documentation-accuracy issues step 1 found, plus
+  one live-exercise code defect step 2 found: `STEP1_LABEL_DESCRIPTION` exceeded GitHub's 100-character
+  label-description limit, so `review/step-1` could never be created on a fresh repo). The entry above is
+  the record.
+
+### T-015 — review: the fix holds, backward sweep and weak-green clean — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** Nothing on this branch — no defect proven. The code is merged as fixed by the second
+  `zayd` turn (commit `2798b2c`).
+- **VERIFIED:** `pnpm verify` green, **847/847**, exit 0, `tests/freeze-boundary.test.ts` green ⇒ frozen
+  surface unmoved. **Reconciled step 1's fix myself rather than trusting the report:** `git diff 902e827
+  2798b2c` shows exactly one production line changed
+  (`scripts/agent-start.mjs:400`, `seats.builderFor(root, continueTask)` → `..., seat)`) plus one new
+  test. Reverted that line by hand and re-ran `tests/protocol/agent-start.test.ts`: **1 failed | 16
+  skipped**, `✖ T-001's builder is 'zayd', not 'amer'.` — reproduces step 1's finding exactly. Restored:
+  **17/17** in that file.
+- **FOUND:** No new blocking finding. **Item 2 (backward sweep):** `builderFor` has one production call
+  site, now fixed; every `reviewerFor` call site checked — `agent-finish.mjs:324`/`:475` both pass
+  `seat`, `agent-start.mjs:507` passes `undefined` deliberately (the pre-existing reviewer-routing
+  *display* loop, not an admission gate, unmodified by this PR) — no second instance of the missing-arg
+  shape. **Item 3 (new kind of thing):** the `--continue` door and `builderFor` are the new entity;
+  `agent-finish.mjs`'s `existingPR` check does not key on the entry path, so nothing else needed
+  enumerating. Two non-blocking opinions recorded in the PR comment (duplicate PR-title regex in the
+  display loop; the pre-existing `--limit 10` cap on `gh pr list`). **Item 6 (weak green):** the new
+  regression test infers admission success indirectly (failing one gate later, at "No open PR"); checked
+  a hypothetical alternate bug (raw `finishingSeat` used as machine instead of `machineOf`) and confirmed
+  it would also fail the test's second assertion via a different message — not fooled by that class
+  either. Test is not weak.
+- **OWES:** nothing new. `brahim` — T-016 (depends-on T-015) is now unblocked.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-015-review.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry above.
 
-### T-004 — review: the flatness result holds, and the harness passed while building nothing — 2026-08-15 — seat: hmdnah
+### T-015 — `agent-start.mjs --continue <T-nnn>` — the branch returns to its builder — 2026-08-16 — seat: zayd
 
-- **CHANGED:** `tests/document-build-cost-scale.test.ts` — the cold load's built solids are counted and
-  required to equal the authored count. `scripts/agent-finish.mjs` — `setRowStatus` hoisted, exported and
-  **repadded** (+ `scripts/agent-finish.d.mts` NEW, + a case in `tests/protocol/agent-finish.test.ts`).
-  `§1a` + the T-004 body — the smallest-model deviation's direction.
-- **VERIFIED:** `REVIEW.md` item 1, twice. **(a)** Removing `cold.rebuildAll()` went RED only at
-  `expect(fit.slope).toBeGreaterThan(0)` — `-0.0000015`, a coin flip on noise; with the count asserted it
-  is RED in 2.9 s naming `scale 1: solids built by the cold load: expected +0 to be 62`, green restored
-  in 58.4 s. **(b)** Reverting the repad turned `agent-finish.test.ts` RED on `| T-001 | review   |`, the
-  byte CI rejected. Harness re-run twice: **43.45** and **41.93 ms/element**, **7.24** and **6.99 min**
-  projected.
-- **FOUND:** The verdict stands — flat across 39–273 elements, ~7 min at 10,000 — but two claims under it
-  did not. ⚠⚠ **The harness could not tell a cold load that built the whole building from one that built
-  nothing:** `geometryOf(id)?.state` is `undefined` for an element never built and `undefined !==
-  'failed'`, and `brokenRefs()` returns a **stored scene field** rather than a re-derivation, so both
-  passed on an empty measurement. ⚠ `§1a`'s _"smallest model prices ~5% **high**"_ is backwards — 39
-  elements price 38.8–39.6 ms/el against 41.8–44.0 at the larger sizes in all four runs, so the marginals
-  **fall** with size and the warmup cause predicts the opposite sign. Neither unseats the conclusion.
-- **OWES:** ⚠ **every seat — confirm `gh api user` is your own account before approving or merging.** The
-  approve step first refused (`Can not approve your own pull request`): the box held only the account
-  that opened #20. Owner ruling, same day — a per-turn `GH_TOKEN` from `~/.config/bunyan/hmdnah.token`,
-  no global switch — so #20 was approved and merged on `narutousomaki741` after all. GitHub blocks a
-  self-approval but **not** a self-merge, which is the half a seat has to check itself. `amer` —
-  `unverified here: the same cold load inside a real browser tab`, carried forward untouched. `brahim` —
-  the flatness verdict is still **printed, not asserted**; four runs put the marginal spread at
-  5.9–16.8%, the number a ratio gate would have to clear.
+- **CHANGED:** `scripts/seats.mjs` (**`builderFor` NEW**, symmetric with `reviewerFor` — resolves a
+  task's own `machine:` field to its builder seat, never the `§0b` baton; `builder-for` CLI dispatch) ·
+  `scripts/agent-start.mjs` (**`--continue <T-nnn>` NEW** — role/seat/open-PR/row-status gates, then a
+  fetch+checkout of the PR's own branch, no new claim written; **`findTaskPR` NEW**, exported) ·
+  `scripts/agent-finish.mjs` (prints an already-open PR's URL instead of `gh pr create` when finishing a
+  `--continue`d branch) · `scripts/{seats,agent-start}.d.mts` (the new exports declared) ·
+  `tests/protocol/seats.test.ts` (`builderFor` suite, +4) · `tests/protocol/agent-start.test.ts`
+  (`findTaskPR` +2, `--continue` refusals +4). No frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, all six gates, `tests/freeze-boundary.test.ts` green ⇒ the frozen
+  surface has not moved. **Revert-verified:** `git stash` on the five source/type files (tests left in
+  place) took the new suite **10 RED** of 39 — `builderFor is not a function`, `unknown argument
+  '--continue'`, `findTaskPR is not a function` — `git stash pop` restored **39/39 green**.
+- **FOUND:** ⚠ Confirms `builderFor` must key on `machine:`: the admitted seat has to be DERIVED from
+  the task row, because a `--review` finish rewrites the `§0b` baton to name the REVIEWER — measured
+  again here against T-008's live branch (baton reads `hmdnah`/reviewer, its claim commit reads `zayd`).
+  ⚠ Confirms the second `done-when:` too: T-008's row on `main` still reads `ready` today, three sessions
+  after its `review` flip landed on its own unmerged branch — a gate reading `main` after `git checkout`
+  would refuse every real `--continue` call, so the row status is read via `git show
+  origin/<branch>:docs/BACKLOG.md` instead.
+- **OWES:** `hmdnah` — this PR's step-1 review (`risk: high`, D88's two-step route). ⚠ **The success
+  path — checking out a real PR's branch and reading `review` off it, and `agent-finish.mjs`'s new
+  `existingPR` branch — is not covered by an automated test.** Both need a `gh`-backed GitHub PR; this
+  repo's test fixtures build a throwaway *local* bare `origin`, against which `gh pr list` returns
+  nothing — the same limitation the existing suite already accepts for `--review`'s own `gh pr
+  checkout`/`gh pr comment` calls. `zayd` — T-008 still additionally waits on T-014 (unbuilt) per D88's
+  "T-008 waits for both" — this PR alone does not unblock it.
 - **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-15-T-004-review.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
+- **FULL:** `handoff/zayd/2026-08-16-T-015-continue-mechanism.md`
+- **REVIEW:** **Step 1** (`hmdnah`, 2026-08-16) — **approval withheld**, one blocking finding
+  (PR comment #5305288044): the `--continue` admission gate called `seats.builderFor(root, continueTask)`
+  with no `finishingSeat`, so `machine: any` always resolved to `zayd`/`box`. Fixed on this branch by a
+  second `zayd` turn via `agent-start.mjs --continue T-015` (no new claim), commit `2798b2c` — one
+  production line, one regression test. **Step 2** (`hmdnah`, 2026-08-16) — **APPROVED and MERGED**,
+  `RISK: additive`, on `narutousomaki741`, after independently reverting the fix and reproducing the RED
+  step 1 found. See the review entry below for the record.
 
-### T-004 — per-element build cost is flat from 39 to 273 elements, and 10,000 projects to 7.2 min — 2026-08-15 — seat: zayd
+### STEWARD-step-routing-and-continue — D88 asserted two mechanisms no script implements — 2026-08-15 — seat: brahim
 
-- **CHANGED:** `tests/document-build-cost-scale.test.ts` **NEW (+1)** — four sizes of the reference
-  building (1/3/5/7 storeys), each on a fresh OCCT kernel, timing `rebuildAll()` on a context cold-loaded
-  from `.bnn`. `current_state.md §1a`'s cold-load row carries the measurement and is **not re-coloured**.
-- **VERIFIED:** `pnpm verify` green. Two full runs of the harness: slope **43.81** and **43.24
-  ms/element**, 1.3% apart, R² 0.9998 / 0.9996, intercept within ±140 ms of zero on an 11.7 s total. Local
-  marginals 41.5–45.6 ms per additional element, spread 5.9% and 9.2%. ⇒ **7.30 / 7.21 min projected at
-  10,000 elements, uncached.**
-- **FOUND:** Per-element build cost **is** flat across 39–273 elements, so Entry 90's 64.5% deferrable
-  figure is worth that same fraction of the cold load at the target — about 4.7 of the projected 7.3 min,
-  leaving 2.6 min, which is still not a load time. Two estimators were needed, not one: a least-squares
-  line has a slope whether or not the data is a line, so the flatness verdict is read off the local finite
-  differences and the fit's R² is only its witness. The 7.2 min uncached reaches D66's 6.35 min from a
-  different direction, and at the cache's measured 2.07× it is 3.5 min against the ~3 min `§1a` already
-  carried. The one
-  systematic deviation is the smallest model pricing ~5–10% **low** per element, which makes the
-  marginals fall slightly with size — the opposite direction from superlinearity. Authoring's
-  marginal is 43.1 ms/element against the cold load's 43.8, so command
-  dispatch is not a measurable share of authoring at this scale.
-- **OWES:** `hmdnah` — this PR; there is no fix to revert, so the re-run is the check and the harness
-  reproduced to 1.3% here. `amer` — `unverified here: the same cold load inside a real browser tab`; every
-  number above is Node on the box, as `§1a`'s existing cold-load numbers already are. `brahim` — a call on
-  whether the flatness verdict should become a ratio assertion on the marginal spread, which would be
-  immune to absolute machine speed; it is printed and not asserted today, so a later superlinear
-  regression would still pass this file. ⚠ The projection is a **37× extrapolation** from 273 elements.
+- **CHANGED:** `docs/decisions.md` (**D88 amended**) · `docs/BACKLOG.md` (T-014's second `done-when:`
+  moved off the banner onto the label; **T-015** NEW, then fixed twice on review — `builderFor` now
+  derives from `machine:`, not `area:`; **T-016**, **T-017**, **T-018**, **T-019** NEW; T-012 reframed
+  around recurring `STEWARD:` PRs rather than #16/#17; both original `## Discovered` entries closed) ·
+  `REVIEW.md` §"Two steps". PRs **#16** and **#17** closed (owner ruling: stale, real conflicts against
+  `main`; their work re-decomposed as T-018/T-019 instead of rebased). `AGENTS.md` untouched — §1.2
+  already points at `REVIEW.md`, and it is at its line cap.
+- **VERIFIED:** `pnpm verify` green. The banner finding was re-checked before amending: the only two
+  `NEXT TURN: REVIEW ONLY` hits on `main` are prose inside §7 abstracts.
+- **FOUND:** Reviewing PR #24 proved both of D88's mechanisms absent. ⚠⚠ **The `NEXT TURN: REVIEW ONLY`
+  banner has never existed on `main`** — it is written into the task branch and read after
+  `git checkout main`, and routing has always come from the PR title via `reviewerFor`. ⚠ **A builder
+  cannot re-enter its own branch either:** `agent-start.mjs` refuses a row that is not `ready` and a claim
+  already marked finished. Owner ruled a **`review/step-1` label** for the first and **`--continue`** for
+  the second, over a fifth status value and over parsing step 1's comment.
+- **OWES:** `zayd` — **T-015** first (T-008 is blocked on it by owner ruling), then **T-014**, **T-016**
+  (depends-on T-015), **T-018**. `amer` — **T-019**. `hmdnah` — T-008 step 2 after the fix, ⚠ **routed by
+  hand**, since its step 1 predates the label.
 - **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-15-T-004-build-cost-flatness.md`
-- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED and MERGED**, `RISK: additive`, two
-  defects fixed on the branch, on `narutousomaki741` — the account that did not open it. The entry above
-  is the record.
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-step-routing-and-continue.md`
+- **REVIEW:** `hmdnah`, 2026-08-15 — **approval withheld**, one blocking finding, fixed on this branch
+  before re-review. ⚠⚠ **T-015's seat gate had been written against the `§0b` baton, which names the last
+  seat to FINISH rather than the builder** — `agent-finish.mjs` rewrites it on the `--review` path too,
+  so T-008's reads `hmdnah`/reviewer against a claim commit reading `zayd`. As written it admitted the
+  reviewer and refused the builder in every intended invocation. The criterion now derives the seat from
+  the task row (`builderFor`, symmetric with `reviewerFor`), and a second criterion that read the row
+  status from `main` — where the `review` flip has not landed — now reads it from the PR's branch. The
+  baton defect itself is recorded in `## Discovered`; owner ruling took it up as **T-016**.
+  **`hmdnah`, 2026-08-15 — APPROVED and MERGED** (`30ca130`), `RISK: additive`, after a second round found
+  `builderFor` still keyed on `area:` (fixed) and a misattributed `AGENTS.md §0b` citation (dropped —
+  that block is `current_state.md`'s). CI stayed red on both rounds from an unrelated GitHub Actions
+  billing failure; merged on green local `pnpm verify` (836+91), per the same precedent as PR #24.
 
-### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
+### STEWARD-two-step-high-risk-review — review: D88 is sound, and two orchestrator files still called `risk: high` owner-gated — 2026-08-15 — seat: hmdnah
 
-- **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
-  `needs-operator/*` labels; PR title routing + `MERGEABLE`), run by a new `pr-shape` CI job ·
-  `tests/protocol/{reserved-classes,pr-ready}.test.ts` NEW (+17) · `seats.mjs` gained
-  `PR_TITLE_RE`/`titleRoutes`, called by `agent-finish.mjs` · `docs/RUNBOOK.md` NEW ·
-  `docs/BACKLOG.md` decomposed (T-001…T-011) · `AGENTS.md §7` NEW — the owner's writing standard,
-  binding on every seat and subagent · `REVIEW.md`, `docs/seats/README.md` and `Brahim_Prompt.md`
-  corrected where they still described the pre-D82 model · `open_rulings.md` Q13 rewritten.
-  Covers two sessions: `f984e89` built the mechanics on the pc, this one finished them.
-- **VERIFIED:** `pnpm verify` green. The new suites execute against real fixture git histories rather
-  than grepping the scripts. `pnpm docs:check` measured at 6 files / 69 tests **before** any change,
-  which is what proved `tests/protocol/` was already wired into CI.
-- **FOUND:** Branch protection is unavailable on this repository — `403 Upgrade to GitHub Pro or make
-  this repository public` on both the protection and rulesets APIs, with an `ADMIN` token; Q13's
-  account objection is satisfied and a plan objection replaced it. `current_state.md §3`/`§5` called
-  the plan/section unit blocked on Q1–Q3 after it shipped in Entry 77. `REVIEW.md` still taught the
-  pre-D82 self-review loop, and `docs/seats/README.md` still described the retired `§2 DYNAMIC` block
-  under a heading saying it carried no state.
-- **OWES:** the owner — rulings on Q17a, Q17c, Q18, Q19, and the public/Pro/neither call on Q13.
-  `hmdnah` — PR #16. `khalihlna` — PR #17. Beyond T-004 nothing is `ready` for box.
+- **CHANGED:** `docs/prompts/light-brahim-orchestrator.md` §4 and `## Never` — the pc twin of the §4c
+  this PR rewrote, unswept, still sending every `risk: high` PR to the operator ·
+  `docs/prompts/brahim-orchestrator.md`'s header, which contradicted its own §4c · `docs/BACKLOG.md`
+  `## Discovered` (two findings) · §7 order (the new abstract was not prepended, so §8's `newest entry`
+  named `T-007`).
+- **VERIFIED:** `pnpm verify` green. `scripts/reserved-classes.mjs` labels the three owner-gated classes
+  and never reads a task's `risk:`, so `AGENTS.md §5`'s new sentence matches the labeller; `pr-shape`
+  ran here and applied no `needs-operator/*` label.
+- **FOUND:** Two steps D88 describes that the scripts refuse — a builder cannot re-enter a row left at
+  `review` (`agent-start.mjs` takes `ready` rows only, and a `finished` claim is not resumable), and the
+  `NEXT TURN: REVIEW ONLY` banner cannot route step 2 because it is written on the branch and read from
+  `main`. ⚠ Neither is covered by `T-014`, whose `done-when:` items are all on the `--review` path.
+- **OWES:** `brahim` — the two `## Discovered` findings, and `T-014`'s second `done-when:`, whose premise
+  is false. `hmdnah` — T-008 step 2, once its fix lands.
 - **RISK:** additive
-- **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
-- **REVIEW:** pending — `STEWARD:` PR, this branch.
+- **FULL:** `handoff/hmdnah/2026-08-15-STEWARD-two-step-high-risk-review-review.md`
+- **REVIEW:** this is the review — **APPROVED and MERGED**, `RISK: additive`, on `narutousomaki741`.
 
-### 88 | 2026-08-08 | Zayd | the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
+### STEWARD-two-step-high-risk-review — `risk: high` takes two review turns, not the owner's merge — 2026-08-15 — seat: brahim
 
-- **CHANGED:** **`scripts/prompt-sync.mjs` + `.d.mts` NEW** (the gate: three git questions, no network) ·
-  **`tests/prompt-sync.test.ts` NEW (+12)** · `package.json` (`docs:check` runs it — gate six is now three
-  files) · `.github/workflows/ci.yml` (`BASE_REF` on the docs step, the same sha the re-seed gate reads) ·
-  `eslint.config.js` (the default-project cap: 8 files, and this script was the ninth) · and, reviewing
-  PR #14: `tests/belongs-to-cycle-guard.test.ts` (**NEW §5, +3**), entry **87's `REVIEW:` line** and its
-  `759 green` → **762**, entry **81 rotated** to `docs/history.md` §C (§C now 54–81).
-- **VERIFIED:** **776 green** across 88 files, all six gates, **real exit code 0**. Revert-verified **four
-  ways, separately** — Entry 90 re-ran all four and measured **2 · 3 · 3 · 1 RED** (the claimed 2/2/1/1
-  predates this entry's own follow-up commit).
-- **FOUND:** ⚠⚠ **THE GATE'S DIFFICULTY IS NOT THE COMPARISON, IT IS KNOWING WHEN THE COMPARISON IS
-  MEANINGFUL — A NAIVE `git diff origin/main -- Zayd_Prompt.md` IS WRONG IN THREE OF THE FOUR STATES THIS
-  REPO HAS BEEN IN.** TASK asked *"the whole file, or only FRESH?"* — **neither: no region of the file is
-  always equal.** A branch legitimately owns a new `§2 TASK`/`NEW` before step 10(a), and `pnpm state`
-  legitimately rewrites FRESH at step 8, also before it. **The invariant is a MOMENT, not a region.** ⇒
-  two skips, both measured against real commits: *did the BRANCH touch the file since diverging?* (spares
-  Amer) and *did MAIN?* — ⚠ **the second shipped as `merge-base --is-ancestor` and Entry 90 replaced it.**
-  ⚠ **Q2 (can `docs:check` see `origin/main`?) is SIDESTEPPED** — CI reads the base SHA it already passes
-  the re-seed gate. (`origin/main` does exist in CI; measured after the fact. `git show` costs 1.85 ms.)
-  ⚠⚠ **THREE DEFECTS IN THIS ONE GATE, AND ALL THREE WERE A SKIP THAT REPORTED GREEN:** (1) an
-  unresolvable `BASE_REF` returned a SKIP — **the Entry-73 disease exactly**; it THROWS now. (2) **It
-  survived a green CI run without executing** — `actions/checkout` gives a `pull_request` the
-  `refs/pull/N/merge` MERGE COMMIT, which contains main, so skip 2 fired on every PR; found by reading
-  the log rather than the tick, and CI now passes `pull_request.head.sha`. (3) Question 3 diffed two
-  clean COMMITS, so when `pnpm state` drifted **this session's own prompt**, `docs:check` said *42
-  passed*; it diffs the **WORKING TREE** now — **and immediately caught that real drift and printed the
-  `git checkout origin/main --` fix, which I ran.** ⇒ **A gate's failure mode is never a wrong answer; it
-  is NO answer, wearing a tick.** ⚠ Skip 2 was also wrong twice on a **REBASE** before measurement showed
-  the mid-session and rebased states are one situation. ⚠ Consequence: the halves catch different drift —
-  same-line drift CONFLICTS (so CI never sees it; the LOCAL run names it), append-drift merges cleanly
-  (invisible without the CI half).
-- **OWES:** Owner: **nothing new** — `RISK: additive`, so the next session merges this. **Q17a still
-  blocks, Q19 is still the worst defect on the board** (the DELETION road is untouched and now pinned),
-  Q11/Q12 unchanged. Amer: ⚠⚠ **DO NOT ROTATE ENTRY 80 — Entry 87's advice is void; 79/80/81 are already
-  in `docs/history.md`. ROTATE ENTRY 82 INSTEAD, and only because THIS entry exists.** Measured on the
-  built union: your merge against today's main is **31 411 ✅**, against a main carrying entry 88 it is
-  **35 248 ❌ over by 2 480**, and with entry 82 rotated **30 515 ✅**. Entry 88 is `additive` so it
-  merges first — plan on the rotation. ⚠ **I was on both sides of this gate in one session.**
-  ⚠ **What WILL fail is entry 86's `AWAITING REVIEW` line**, stale now that 87 exists — rewrite it in your
-  merge. ⚠ **`Amer_Prompt.md` is deliberately NOT in `GATED`**; adding it is one line and it is your call.
-  **Q18 and Q20 are yours.**
+- **CHANGED:** `docs/decisions.md` (**D88** NEW) · `AGENTS.md` §1.2 (the rule) and §5 (`risk: high` named
+  as not owner-gated) · `REVIEW.md` (a `Two steps` section; item 7 warns that only step 2 merges) ·
+  `docs/prompts/brahim-orchestrator.md` §4c (`contract-touching` still stops the loop, `risk: high` no
+  longer does) · `docs/BACKLOG.md` (READY criterion 8; **T-014** NEW). No `packages/`, no `apps/web`, no
+  script or test touched.
+- **VERIFIED:** `pnpm verify` green. `AGENTS.md` held at its 200-line cap by turning the §1.3 loop
+  paragraph and the §2 abstract-heading note into pointers — both already said it in full in
+  `docs/prompts/*` and D82.
+- **FOUND:** Three files gave three answers about what `risk: high` meant — `agent-finish.mjs` wrote
+  `NEXT TURN: REVIEW ONLY`, the orchestrator treated it as owner-gated, and `AGENTS.md §5`, which defines
+  owner-gated, never listed it. ⚠ **A cross-account second reviewer does not exist for a box builder PR:**
+  `zayd` opens on `davidian-abdo` and `khalihlna` holds that same account, so GitHub refuses its approval
+  — the two steps are therefore the same seat in separate sessions, and independence comes from the
+  session boundary. The owner declined rearranging seat accounts to buy a second approver.
+- **OWES:** `zayd` — **T-014** (`--review` reads the frozen surface and never the task's `risk:`, so it
+  stamps a `risk: high` row `done` after step 1; measured on T-008), and the two T-008 review defects,
+  which go back to the existing claim on that branch rather than a new row. `hmdnah` — T-008 step 2,
+  after the fix. The `## Discovered` entry recording the `--review` defect is on the T-008 branch and is
+  closed there, not here.
 - **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-08-e88-prompt-sync-gate.md`
-- **REVIEW:** **Entry 90 (Zayd) — reviewed, AMENDED, MERGED.** ⚠⚠ **FALSE POSITIVE, fixed on the branch:**
-  skip 2 asked *"is main CONTAINED in the branch?"* — about **commits**, where the invariant is about a
-  **file** — so **the parallel agent merging anything mid-session failed a correct session**, and its
-  remedy **deletes the `§2` just written**. Now `git diff <merge-base> <main> -- <file>`. **+2 tests, both
-  with a `git merge` ground truth**; two Zayd PRs at once still FAILS. Full: PR #15.
-
-### 87 | 2026-08-08 | Zayd | a belongs-to CYCLE is authorable by two shipped verbs — and it erases the element silently
-
-- **CHANGED:** `packages/document/src/designoptions.ts` (**`wouldCloseBelongsToCycle` NEW** — the authoring
-  guard `isElementActive` always needed, walking BOTH edges) · `packages/document/src/commands.ts`
-  (`core.retargetReference` and `core.setElementMetadata` now REFUSE a cycle) ·
-  **`tests/belongs-to-cycle-guard.test.ts` NEW (+14, **+3 more from Entry 88's review — §5**)** ·
-  `tests/option-cascade-d67.test.ts` (**NEW §8** —
-  the differential fuzz, +1) · `open_rulings.md` (Q19 gains its pin) · `tests/frozen-surface.snapshot.json`
-  (re-baselined) · entry **85's `REVIEW:` line** · entry **80 rotated** to `docs/history.md` §C · and,
-  reviewing PR #12 and PR #13: `current_state.md`, `docs/history.md`.
-- **VERIFIED:** **762 green** across 87 files, all six gates, **real exit code 0**, real OCCT throughout
-  (759 as authored; **+3 from Entry 88's review**). Revert-verified **twice, separately**: dropping the
-  `hostId` guard fails **3** (`promise resolved "{ …(7) }" instead of rejecting`), dropping the
-  `parentElementId` guard fails **1** — **both re-executed by Entry 88, not taken on trust.**
-- **FOUND:** ⚠⚠ **`core.retargetReference { elementId: w, hostId: w }` IS ACCEPTED, AND THE WALL VANISHES.**
-  Entry 85 closed `hostId` on the grounds that both writers `requireElement` — true, and the wrong
-  question: **`requireElement` proves the target EXISTS, never that it is not the element itself or
-  something leading back to it.** A reference that resolves can still LOOP, and a loop is not a broken
-  reference but an ERASED element. Measured through shipped verbs, no design options, no `.bnn`:
-  `scene.elements` **1**, `modelElements()` **0**, `brokenRefs()` **[]**, `unbuildable()` **[]**. ⚠ The
-  same hole on `parentElementId` via `core.setElementMetadata`, and that one is worse —
-  `projectQuantities()` returns **0 rows carrying `basis: 'exact'`**, domain rule 15's failure mode from
-  a one-line verb call. ⚠ **A `hostId`-only guard would not have closed it**: `A.hostId=B` then
-  `B.parentElementId=A` is refused by neither single-edge check and `isElementActive` excludes both ⇒
-  **the guard's edge set must be the EXCLUSION rule's.** ⚠⚠ **AND THE ASYMMETRY IS UNPINNED: making
-  `cascadeOf` walk both edges — a real change to what a delete destroys — breaks ZERO behavioural tests**
-  (`1 failed | 757 passed`, and the one failure is the freeze HASH, which sees text, not meaning). A Q19
-  ruling could land, change `core.deleteElement`, and go green. **Pinned now, and the pin is designed to
-  fail when Q19 lands.** ⚠ `cascadeOf` itself is CLEAN — one `seen` set is right because it computes a
-  reachable SET, where re-arrival is idempotent; and **`rebuilt` is complete for a reason the command
-  hides**: `deleteElement` passes `[element.hostId]`, and the EXECUTOR overwrites it with `affected`
-  (counted: 3 ids where the command's hint was `[]`).
-- **OWES:** Owner: ⚠⚠ **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** — one ADDED export
-  (`wouldCloseBelongsToCycle`); the two `execute` bodies did NOT move the surface. **Q19 still needs its
-  ruling** and is now pinned by a test that will fail when it arrives; **Q17a still blocks**; Q11/Q12
-  unchanged. Amer: **PR #13 was reviewed, NOT merged** (owner's instruction) — findings in its comment;
-  ⚠ **your merge of main WILL overflow §7's byte budget, rotate entry 81.** **Q18 and Q20 are yours.**
-- **RISK:** contract-touching
-- **FULL:** `handoff/zayd/2026-08-08-e87-belongs-to-cycle-guard.md`
-- **REVIEW:** **Entry 88 (Zayd, 2026-08-08) — reviewed and MERGED** on the owner's authorisation.
-  Item 1 re-executed **both** ways (3 RED, 1 RED). ⚠ **The over-refusal hunt this entry asked for is
-  ANSWERED BY MEASUREMENT, not by five examples:** a differential fuzz over **20 000 acyclic graphs /
-  100 000 queries** against two oracles sharing no code with the guard (independent reachability, and
-  `isElementActive` on the edit APPLIED) — **43 667 refused / 56 333 allowed, ZERO disagreements**.
-  **No legitimate authoring act is refused.** Shipped as §5, with the sibling case §3 lacked. ⚠ COST
-  answered too: **0.17 µs/call** on a 10 000-element flat model, 1.7 ms on a 10 000-DEEP chain no
-  building has. ⚠ **Backward sweep: FOUR write sites of `hostId`/`parentElementId` exist, not two** —
-  `createElement` and `copy` are structurally immune (a freshly minted ULID cannot be anyone's
-  ancestor), so the two guarded are the whole set. ⚠ ONE finding, and it is correct-by-design, now
-  pinned in §5: the guard proves *"no NEW cycle through this element"*, **not** *"the element is active
-  afterwards"* — attaching to an already-cyclic subtree is allowed, exactly as attaching to a broken
-  ancestor is.
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-two-step-high-risk-review.md`
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #24) — APPROVED and MERGED**, `RISK: additive`, two
+  unswept documents fixed on the branch. The entry above is the record.
 
 ---
 
 ## §8 — Generated
-
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
@@ -996,8 +976,8 @@ is maintenance and does NOT get an entry of its own.**
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 829 insertions(+), 133 deletions(-) (13 files) |
-| docs budget | current_state 83.1/96.0 KB · §7 31.1/32.0 KB · abstracts 10/10 · bodies 42 |
+| diff vs origin/main | placeholder — regenerated by `pnpm state` below |
+| docs budget | placeholder — regenerated by `pnpm state` below |
 
 _Generated 2026-08-16 by `pnpm state`._
 

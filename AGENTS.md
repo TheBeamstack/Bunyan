@@ -69,7 +69,10 @@ which is never the account that opened it (§0). `RISK: contract-touching` → a
 needs their merge. Either way, rewrite that entry's `REVIEW:` line before you do anything else.
 
 This is why review is routed by machine: a `pc` task's review goes to `khalihlna`, **never** to `hmdnah`,
-who cannot re-execute a browser claim.
+who cannot re-execute a browser claim. **And a `risk: high` task takes two review turns** (D88,
+`REVIEW.md`): step 1 is mechanical and does not approve, step 2 is adversarial and merges — same seat,
+separate sessions, and a defect step 1 proves goes back to the builder on the existing claim with the row
+still `review`. `risk: high` is not owner-gated (§5).
 
 ### 1.3 Steward/orchestrator — `brahim`
 
@@ -80,14 +83,11 @@ decide what they take**; the steward never claims on another seat's behalf. A pu
 (flipping a `blocked` row to `ready`) is a direct commit to `main`; decomposition or a spec fix is a
 `STEWARD:`-titled PR, reviewed by whoever runs next.
 
-**The default mode is not the owner invoking a steward turn per cycle.** It is two persistent sessions,
-one per machine, each running the `loop` skill so it keeps itself alive: `brahim` on box (decides
-readiness, spawns `zayd`/`hmdnah`) and `light_brahim` on pc (decides nothing, spawns `amer`/`khalihlna`
-from what `brahim` already committed). Full instructions, including the dependency-closure and
-review-batching policy (small `RISK: additive` PRs may review together; `risk: high`/`contract-touching`
-never batches): `docs/prompts/brahim-orchestrator.md` and `docs/prompts/light-brahim-orchestrator.md`.
-Start either by opening a session on that machine and saying _"read `docs/prompts/<file>.md` in full and
-begin exactly as it instructs."_ `touch docs/.loop-stop` halts both loops at their next cycle boundary.
+**The default mode is two persistent sessions**, one per machine, each running the `loop` skill:
+`brahim` on box (decides readiness, spawns `zayd`/`hmdnah`) and `light_brahim` on pc (decides nothing,
+spawns `amer`/`khalihlna` from what `brahim` already committed). Their full protocol, including the
+dependency-closure and review-batching policy, is `docs/prompts/brahim-orchestrator.md` and
+`docs/prompts/light-brahim-orchestrator.md`; `touch docs/.loop-stop` halts both at the next cycle.
 
 ## 2. What you read, and when _(do not read everything)_
 
@@ -109,8 +109,7 @@ say so in your entry — never let a plan or a status file silently contradict t
 
 **What you leave:** an abstract in `current_state.md §7` (the eight mandatory fields) and its full body at
 `handoff/<seat>/<date>-<slug>.md`. **An abstract's heading is `### T-nnn — <title> — <date> — seat:
-<seat>`** (or `### STEWARD-<slug> — …`, no task), replacing the legacy `### N | date | agent | headline`
-form — same heading level. Entries 1–90 keep their original heading, never renumbered or rewritten.
+<seat>`**, or `### STEWARD-<slug> — …` for a turn with no task; entries 1–90 keep theirs (D82).
 
 ## 3. Escalation — four cases, four answers
 
@@ -154,7 +153,8 @@ form — same heading level. Entries 1–90 keep their original heading, never r
 
 ## 5. Owner-gated — three classes, and only three
 
-Everything else merges on an approving cross-account review and green CI. CI labels each of these
+Everything else merges on an approving cross-account review and green CI — including `risk: high`, which
+buys a second review turn (§1.2) rather than the owner's merge. CI labels each of these
 `needs-operator/*` mechanically (`scripts/reserved-classes.mjs`; `docs/RUNBOOK.md`). They need the owner:
 
 1. **`RISK: contract-touching`** — any diff `tests/freeze-boundary.test.ts` flags against the frozen

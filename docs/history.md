@@ -31,12 +31,18 @@ git history**, on the commit that wrote it (`git log --follow current_state.md`)
 
 ## THE ROTATION RULE (binding — this is how the two files stay in balance)
 
-**Whenever `current_state.md` holds MORE THAN 20 entries, the agent that notices it compacts:**
+**§7's own budget is the current authority — a BYTE budget, not a count** (`current_state.md` §7's own
+header; `BUDGET.maxAbstracts` in `scripts/docs-state.mjs` caps the count side at 10). The "more than 20,
+keep 15" numbers this section used to state were superseded when the budget became byte-based and were
+never updated here — fixed in place rather than left disagreeing with the file that actually governs it.
 
-1. Keep the **newest 15** entries in `current_state.md` §7, in full.
-2. **Summarize each older entry into this file**, appended in order, keeping: its number, date, agent,
-   headline, the measured numbers, the decisions it took (with D-numbers), and anything a future agent
-   would otherwise re-derive. Drop only the session bookkeeping (verify counts, box notes, commit hashes).
+**Whenever `current_state.md` §7 is at or over its budget, the agent that notices it compacts:**
+
+1. Keep the newest abstracts §7's budget allows, in full.
+2. **Summarize each older entry into this file**, appended in order, keeping: its id (a legacy number, or
+   its `T-nnn`/`STEWARD-slug` identity post-D82), date, agent, headline, the measured numbers, the
+   decisions it took (with D-numbers), and anything a future agent would otherwise re-derive. Drop only
+   the session bookkeeping (verify counts, box notes, commit hashes).
 3. Before dropping an entry, **check its durable lessons are already in `current_state.md` §1–§5.** If one
    is not, promote it there first — _the summary here is a pointer, and §1–§5 is where a rule actually
    binds._
@@ -303,12 +309,115 @@ project._
 
 ---
 
-## §C — Entries 54–86 — the full bodies now live in `handoff/`
+## §C — Entries 54–88 — the full bodies now live in `handoff/`
 
 ⚠ **There is no entry 78.** It was a REVIEW-ONLY session (PR #5) that wrote no abstract of
 its own; its findings are in entry 77's `REVIEW:` line above. The gap is real, not a loss.
 
-54–86 is contiguous.
+54–88 is contiguous.
+
+### 88 | 2026-08-08 | Zayd | the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
+
+- **CHANGED:** **`scripts/prompt-sync.mjs` + `.d.mts` NEW** (the gate: three git questions, no network) ·
+  **`tests/prompt-sync.test.ts` NEW (+12)** · `package.json` (`docs:check` runs it — gate six is now three
+  files) · `.github/workflows/ci.yml` (`BASE_REF` on the docs step, the same sha the re-seed gate reads) ·
+  `eslint.config.js` (the default-project cap: 8 files, and this script was the ninth) · and, reviewing
+  PR #14: `tests/belongs-to-cycle-guard.test.ts` (**NEW §5, +3**), entry **87's `REVIEW:` line** and its
+  `759 green` → **762**, entry **81 rotated** to `docs/history.md` §C (§C now 54–81).
+- **VERIFIED:** **776 green** across 88 files, all six gates, **real exit code 0**. Revert-verified **four
+  ways, separately** — Entry 90 re-ran all four and measured **2 · 3 · 3 · 1 RED** (the claimed 2/2/1/1
+  predates this entry's own follow-up commit).
+- **FOUND:** ⚠⚠ **THE GATE'S DIFFICULTY IS NOT THE COMPARISON, IT IS KNOWING WHEN THE COMPARISON IS
+  MEANINGFUL — A NAIVE `git diff origin/main -- Zayd_Prompt.md` IS WRONG IN THREE OF THE FOUR STATES THIS
+  REPO HAS BEEN IN.** TASK asked *"the whole file, or only FRESH?"* — **neither: no region of the file is
+  always equal.** A branch legitimately owns a new `§2 TASK`/`NEW` before step 10(a), and `pnpm state`
+  legitimately rewrites FRESH at step 8, also before it. **The invariant is a MOMENT, not a region.** ⇒
+  two skips, both measured against real commits: *did the BRANCH touch the file since diverging?* (spares
+  Amer) and *did MAIN?* — ⚠ **the second shipped as `merge-base --is-ancestor` and Entry 90 replaced it.**
+  ⚠ **Q2 (can `docs:check` see `origin/main`?) is SIDESTEPPED** — CI reads the base SHA it already passes
+  the re-seed gate. (`origin/main` does exist in CI; measured after the fact. `git show` costs 1.85 ms.)
+  ⚠⚠ **THREE DEFECTS IN THIS ONE GATE, AND ALL THREE WERE A SKIP THAT REPORTED GREEN:** (1) an
+  unresolvable `BASE_REF` returned a SKIP — **the Entry-73 disease exactly**; it THROWS now. (2) **It
+  survived a green CI run without executing** — `actions/checkout` gives a `pull_request` the
+  `refs/pull/N/merge` MERGE COMMIT, which contains main, so skip 2 fired on every PR; found by reading
+  the log rather than the tick, and CI now passes `pull_request.head.sha`. (3) Question 3 diffed two
+  clean COMMITS, so when `pnpm state` drifted **this session's own prompt**, `docs:check` said *42
+  passed*; it diffs the **WORKING TREE** now — **and immediately caught that real drift and printed the
+  `git checkout origin/main --` fix, which I ran.** ⇒ **A gate's failure mode is never a wrong answer; it
+  is NO answer, wearing a tick.** ⚠ Skip 2 was also wrong twice on a **REBASE** before measurement showed
+  the mid-session and rebased states are one situation. ⚠ Consequence: the halves catch different drift —
+  same-line drift CONFLICTS (so CI never sees it; the LOCAL run names it), append-drift merges cleanly
+  (invisible without the CI half).
+- **OWES:** Owner: **nothing new** — `RISK: additive`, so the next session merges this. **Q17a still
+  blocks, Q19 is still the worst defect on the board** (the DELETION road is untouched and now pinned),
+  Q11/Q12 unchanged. Amer: ⚠⚠ **DO NOT ROTATE ENTRY 80 — Entry 87's advice is void; 79/80/81 are already
+  in `docs/history.md`. ROTATE ENTRY 82 INSTEAD, and only because THIS entry exists.** Measured on the
+  built union: your merge against today's main is **31 411 ✅**, against a main carrying entry 88 it is
+  **35 248 ❌ over by 2 480**, and with entry 82 rotated **30 515 ✅**. Entry 88 is `additive` so it
+  merges first — plan on the rotation. ⚠ **I was on both sides of this gate in one session.**
+  ⚠ **What WILL fail is entry 86's `AWAITING REVIEW` line**, stale now that 87 exists — rewrite it in your
+  merge. ⚠ **`Amer_Prompt.md` is deliberately NOT in `GATED`**; adding it is one line and it is your call.
+  **Q18 and Q20 are yours.**
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-08-e88-prompt-sync-gate.md`
+- **REVIEW:** **Entry 90 (Zayd) — reviewed, AMENDED, MERGED.** ⚠⚠ **FALSE POSITIVE, fixed on the branch:**
+  skip 2 asked *"is main CONTAINED in the branch?"* — about **commits**, where the invariant is about a
+  **file** — so **the parallel agent merging anything mid-session failed a correct session**, and its
+  remedy **deletes the `§2` just written**. Now `git diff <merge-base> <main> -- <file>`. **+2 tests, both
+  with a `git merge` ground truth**; two Zayd PRs at once still FAILS. Full: PR #15.
+
+### 87 | 2026-08-08 | Zayd | a belongs-to CYCLE is authorable by two shipped verbs — and it erases the element silently
+
+- **CHANGED:** `packages/document/src/designoptions.ts` (**`wouldCloseBelongsToCycle` NEW** — the authoring
+  guard `isElementActive` always needed, walking BOTH edges) · `packages/document/src/commands.ts`
+  (`core.retargetReference` and `core.setElementMetadata` now REFUSE a cycle) ·
+  **`tests/belongs-to-cycle-guard.test.ts` NEW (+14, **+3 more from Entry 88's review — §5**)** ·
+  `tests/option-cascade-d67.test.ts` (**NEW §8** —
+  the differential fuzz, +1) · `open_rulings.md` (Q19 gains its pin) · `tests/frozen-surface.snapshot.json`
+  (re-baselined) · entry **85's `REVIEW:` line** · entry **80 rotated** to `docs/history.md` §C · and,
+  reviewing PR #12 and PR #13: `current_state.md`, `docs/history.md`.
+- **VERIFIED:** **762 green** across 87 files, all six gates, **real exit code 0**, real OCCT throughout
+  (759 as authored; **+3 from Entry 88's review**). Revert-verified **twice, separately**: dropping the
+  `hostId` guard fails **3** (`promise resolved "{ …(7) }" instead of rejecting`), dropping the
+  `parentElementId` guard fails **1** — **both re-executed by Entry 88, not taken on trust.**
+- **FOUND:** ⚠⚠ **`core.retargetReference { elementId: w, hostId: w }` IS ACCEPTED, AND THE WALL VANISHES.**
+  Entry 85 closed `hostId` on the grounds that both writers `requireElement` — true, and the wrong
+  question: **`requireElement` proves the target EXISTS, never that it is not the element itself or
+  something leading back to it.** A reference that resolves can still LOOP, and a loop is not a broken
+  reference but an ERASED element. Measured through shipped verbs, no design options, no `.bnn`:
+  `scene.elements` **1**, `modelElements()` **0**, `brokenRefs()` **[]**, `unbuildable()` **[]**. ⚠ The
+  same hole on `parentElementId` via `core.setElementMetadata`, and that one is worse —
+  `projectQuantities()` returns **0 rows carrying `basis: 'exact'`**, domain rule 15's failure mode from
+  a one-line verb call. ⚠ **A `hostId`-only guard would not have closed it**: `A.hostId=B` then
+  `B.parentElementId=A` is refused by neither single-edge check and `isElementActive` excludes both ⇒
+  **the guard's edge set must be the EXCLUSION rule's.** ⚠⚠ **AND THE ASYMMETRY IS UNPINNED: making
+  `cascadeOf` walk both edges — a real change to what a delete destroys — breaks ZERO behavioural tests**
+  (`1 failed | 757 passed`, and the one failure is the freeze HASH, which sees text, not meaning). A Q19
+  ruling could land, change `core.deleteElement`, and go green. **Pinned now, and the pin is designed to
+  fail when Q19 lands.** ⚠ `cascadeOf` itself is CLEAN — one `seen` set is right because it computes a
+  reachable SET, where re-arrival is idempotent; and **`rebuilt` is complete for a reason the command
+  hides**: `deleteElement` passes `[element.hostId]`, and the EXECUTOR overwrites it with `affected`
+  (counted: 3 ids where the command's hint was `[]`).
+- **OWES:** Owner: ⚠⚠ **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** — one ADDED export
+  (`wouldCloseBelongsToCycle`); the two `execute` bodies did NOT move the surface. **Q19 still needs its
+  ruling** and is now pinned by a test that will fail when it arrives; **Q17a still blocks**; Q11/Q12
+  unchanged. Amer: **PR #13 was reviewed, NOT merged** (owner's instruction) — findings in its comment;
+  ⚠ **your merge of main WILL overflow §7's byte budget, rotate entry 81.** **Q18 and Q20 are yours.**
+- **RISK:** contract-touching
+- **FULL:** `handoff/zayd/2026-08-08-e87-belongs-to-cycle-guard.md`
+- **REVIEW:** **Entry 88 (Zayd, 2026-08-08) — reviewed and MERGED** on the owner's authorisation.
+  Item 1 re-executed **both** ways (3 RED, 1 RED). ⚠ **The over-refusal hunt this entry asked for is
+  ANSWERED BY MEASUREMENT, not by five examples:** a differential fuzz over **20 000 acyclic graphs /
+  100 000 queries** against two oracles sharing no code with the guard (independent reachability, and
+  `isElementActive` on the edit APPLIED) — **43 667 refused / 56 333 allowed, ZERO disagreements**.
+  **No legitimate authoring act is refused.** Shipped as §5, with the sibling case §3 lacked. ⚠ COST
+  answered too: **0.17 µs/call** on a 10 000-element flat model, 1.7 ms on a 10 000-DEEP chain no
+  building has. ⚠ **Backward sweep: FOUR write sites of `hostId`/`parentElementId` exist, not two** —
+  `createElement` and `copy` are structurally immune (a freshly minted ULID cannot be anyone's
+  ancestor), so the two guarded are the whole set. ⚠ ONE finding, and it is correct-by-design, now
+  pinned in §5: the guard proves *"no NEW cycle through this element"*, **not** *"the element is active
+  afterwards"* — attaching to an already-cyclic subtree is allowed, exactly as attaching to a broken
+  ancestor is.
 
 ### 86 | 2026-08-07 | Amer | the corner-drag, and the wrapper that was eating D23's transaction
 
@@ -1209,5 +1318,166 @@ because it records *how the freeze question moved* — which sweep was taken ins
 > solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
 > the real D52 Wall pulled forward into `@bunyan/types`).** ⚠⚠ THE ANTI-FUSE RULE HELD (a join reshapes only
 > the cap; side faces keep their tokens, D26). The types (steps 4–5) + MVP gates are also DONE (Entries 44–45).
+
+---
+
+## §E — post-D82 turns (`T-nnn` / `STEWARD-slug`, no more sequential numbers) — full bodies in `handoff/`
+
+Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after D82 (2026-08-14, Entry 91) is
+titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
+same as `current_state.md` §7.
+
+### T-007 — a dangling `designOptionId` is a broken reference, derived rather than stored — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `packages/document/src/document.ts` (**`danglingDesignOptionRefs` NEW**; `brokenRefs()`
+  returns the stored geometry-derived list plus it) · `packages/document/src/designoptions.ts` (comments
+  only — `ownTagActive` and the file header name the body instead of promising it) ·
+  `tests/design-option-refs.test.ts` (**§4 NEW, +3**) · `tests/option-cascade-d67.test.ts` and
+  `tests/model-enumeration.test.ts` (one fixture assertion each, §6 below) · **Entry 82 rotated** to
+  `docs/history.md` §C, which is now contiguous over 54–84. No frozen byte, no verb, no schema bump.
+- **VERIFIED:** **836 green** across 94 files, all six gates, real exit code 0, real OCCT throughout;
+  `freeze-boundary` green ⇒ the frozen surface has not moved. **Revert-verified**: return `brokenRefs()`
+  to `this.#scene.brokenRefs` and `design-option-refs` goes **2 RED** — `expected [] to have a length of
+  1 but got +0`, which is the silence itself.
+- **FOUND:** ⚠ **It is derived at the query, not staged into `scene.brokenRefs`.** `#stage` re-derives
+  that field only for the assemblies it rebuilds, so an entry staged there goes stale on every element
+  whose assembly the next partial rebuild does not touch — D74's defect in a population whose subject is
+  not even a rebuild root. A dangling tag is a pure fact about `scene.elements`, so reading it is cheaper
+  than teaching the staging filter to tell two producers apart, and D74's one-producer invariant on
+  `scene.brokenRefs` stays intact. ⚠ `hostId` is the element's own id: the reference is hosted on
+  nothing, and widening the watched `interface BrokenReference` would make a diagnostic field
+  contract-touching — no consumer reads it. ⚠⚠ **The backward sweep (invariant 7) cost six tests in two
+  files, all one shape:** `option-cascade-d67` and `model-enumeration` tag elements and supply the
+  catalogue as a consumer OVERRIDE, which is the only road while `scene.designOptions` has no authoring
+  verb, and both assert `brokenRefs()` empty to mean *"no window lost its host face"*. Each now filters
+  the option ids instead. ⇒ **until the catalogue CRUD lands (D85, T-011), every tagged element on this
+  product is a broken reference** — D86 reporting the truth, not a false positive.
+- **OWES:** `hmdnah` — this PR; the revert above is the one to re-execute. `amer` — ⚠ `App.tsx`'s
+  Problems panel hints *"these elements are hosted on a sub-shape that no longer resolves. Retarget them
+  manually"*, which is now wrong for an option entry: it is hosted on nothing and
+  `core.retargetReference` cannot heal it. `unverified here: how the panel reads with an option entry in
+  it — khalihlna to confirm`. `brahim` — D86's row still reads ✅ RULED and this builds it; T-008's (c)
+  half extends this union rather than adding a second surfacing path.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-007-dangling-design-option-ref.md`
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #22) — APPROVED and MERGED**, `RISK: additive`, on
+  `narutousomaki741` — the account that did not open it. Item 1 re-executed twice (2 RED both times); the
+  six-test sweep re-executed and its filter proven to hide nothing. One contract-doc fix on the branch;
+  no defect found in the code. The entry above is the record.
+
+### T-007 — review: the derivation is right, and domain rule 3's text had not been widened to admit it — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** `docs/contracts/core_logic.md` — domain rule 3 gains the second broken-reference class ·
+  **Entry 85 rotated** to `docs/history.md` §C, now contiguous over 54–85. The code is merged as authored.
+- **VERIFIED:** `pnpm verify` green, **836 across 94 files**, real exit code 0. Item 1 re-executed twice:
+  `brokenRefs()` returned to `this.#scene.brokenRefs` is **2 RED** (`expected [] to have a length of 1 but
+  got +0`), restored **8/8 green**. The sweep re-executed: both files' original `toHaveLength(0)` gives
+  **6 failed | 25 passed**, and printing the lists shows exactly the two tagged walls per fixture and no
+  masked host-face entry. `brokenRefs()` timed on a hand-assembled 10,000-element scene: **3.288 ms/call
+  with one tag, 3.822 ms/call with all 10,000** — one call site, in a `useMemo` keyed on document version.
+- **FOUND:** ⚠⚠ **The new broken reference is not retargetable by any verb** — `core.createElement` is the
+  only writer of `designOptionId` — which is what rule 3's own D74 note forbids (*"a refusal nobody can act
+  on … a lie about the model's state"*). It survives that test only because it is **derived and never
+  stored**: it enters no `.bnn` and clears the moment the option resolves, so deriving at the query is
+  load-bearing for rule 3 and not only for staleness. The contract recorded one class and the code now
+  ships two, so rule 3 gained the sentence (`AGENTS.md §3` row 1). ⚠ Staging it instead would have gone
+  stale exactly as claimed: `#stage` keeps any entry whose element's assembly is not a rebuild root, so a
+  wall's entry would outlive the `core.createDesignOption` that resolves its tag.
+- **OWES:** `amer` — the `App.tsx` Problems-panel hint the entry above already names;
+  `unverified here: how the panel reads with an option entry in it — khalihlna to confirm`. `brahim` —
+  T-008 is now the next box row, and D86's *"build them together"* note means its (c) half extends this
+  union rather than opening a second surfacing path.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-T-007-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry above.
+
+### T-004 — review: the flatness result holds, and the harness passed while building nothing — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** `tests/document-build-cost-scale.test.ts` — the cold load's built solids are counted and
+  required to equal the authored count. `scripts/agent-finish.mjs` — `setRowStatus` hoisted, exported and
+  **repadded** (+ `scripts/agent-finish.d.mts` NEW, + a case in `tests/protocol/agent-finish.test.ts`).
+  `§1a` + the T-004 body — the smallest-model deviation's direction.
+- **VERIFIED:** `REVIEW.md` item 1, twice. **(a)** Removing `cold.rebuildAll()` went RED only at
+  `expect(fit.slope).toBeGreaterThan(0)` — `-0.0000015`, a coin flip on noise; with the count asserted it
+  is RED in 2.9 s naming `scale 1: solids built by the cold load: expected +0 to be 62`, green restored
+  in 58.4 s. **(b)** Reverting the repad turned `agent-finish.test.ts` RED on `| T-001 | review   |`, the
+  byte CI rejected. Harness re-run twice: **43.45** and **41.93 ms/element**, **7.24** and **6.99 min**
+  projected.
+- **FOUND:** The verdict stands — flat across 39–273 elements, ~7 min at 10,000 — but two claims under it
+  did not. ⚠⚠ **The harness could not tell a cold load that built the whole building from one that built
+  nothing:** `geometryOf(id)?.state` is `undefined` for an element never built and `undefined !==
+  'failed'`, and `brokenRefs()` returns a **stored scene field** rather than a re-derivation, so both
+  passed on an empty measurement. ⚠ `§1a`'s _"smallest model prices ~5% **high**"_ is backwards — 39
+  elements price 38.8–39.6 ms/el against 41.8–44.0 at the larger sizes in all four runs, so the marginals
+  **fall** with size and the warmup cause predicts the opposite sign. Neither unseats the conclusion.
+- **OWES:** ⚠ **every seat — confirm `gh api user` is your own account before approving or merging.** The
+  approve step first refused (`Can not approve your own pull request`): the box held only the account
+  that opened #20. Owner ruling, same day — a per-turn `GH_TOKEN` from `~/.config/bunyan/hmdnah.token`,
+  no global switch — so #20 was approved and merged on `narutousomaki741` after all. GitHub blocks a
+  self-approval but **not** a self-merge, which is the half a seat has to check itself. `amer` —
+  `unverified here: the same cold load inside a real browser tab`, carried forward untouched. `brahim` —
+  the flatness verdict is still **printed, not asserted**; four runs put the marginal spread at
+  5.9–16.8%, the number a ratio gate would have to clear.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-T-004-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
+
+### T-004 — per-element build cost is flat from 39 to 273 elements, and 10,000 projects to 7.2 min — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `tests/document-build-cost-scale.test.ts` **NEW (+1)** — four sizes of the reference
+  building (1/3/5/7 storeys), each on a fresh OCCT kernel, timing `rebuildAll()` on a context cold-loaded
+  from `.bnn`. `current_state.md §1a`'s cold-load row carries the measurement and is **not re-coloured**.
+- **VERIFIED:** `pnpm verify` green. Two full runs of the harness: slope **43.81** and **43.24
+  ms/element**, 1.3% apart, R² 0.9998 / 0.9996, intercept within ±140 ms of zero on an 11.7 s total. Local
+  marginals 41.5–45.6 ms per additional element, spread 5.9% and 9.2%. ⇒ **7.30 / 7.21 min projected at
+  10,000 elements, uncached.**
+- **FOUND:** Per-element build cost **is** flat across 39–273 elements, so Entry 90's 64.5% deferrable
+  figure is worth that same fraction of the cold load at the target — about 4.7 of the projected 7.3 min,
+  leaving 2.6 min, which is still not a load time. Two estimators were needed, not one: a least-squares
+  line has a slope whether or not the data is a line, so the flatness verdict is read off the local finite
+  differences and the fit's R² is only its witness. The 7.2 min uncached reaches D66's 6.35 min from a
+  different direction, and at the cache's measured 2.07× it is 3.5 min against the ~3 min `§1a` already
+  carried. The one
+  systematic deviation is the smallest model pricing ~5–10% **low** per element, which makes the
+  marginals fall slightly with size — the opposite direction from superlinearity. Authoring's
+  marginal is 43.1 ms/element against the cold load's 43.8, so command
+  dispatch is not a measurable share of authoring at this scale.
+- **OWES:** `hmdnah` — this PR; there is no fix to revert, so the re-run is the check and the harness
+  reproduced to 1.3% here. `amer` — `unverified here: the same cold load inside a real browser tab`; every
+  number above is Node on the box, as `§1a`'s existing cold-load numbers already are. `brahim` — a call on
+  whether the flatness verdict should become a ratio assertion on the marginal spread, which would be
+  immune to absolute machine speed; it is printed and not asserted today, so a later superlinear
+  regression would still pass this file. ⚠ The projection is a **37× extrapolation** from 273 elements.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-004-build-cost-flatness.md`
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED and MERGED**, `RISK: additive`, two
+  defects fixed on the branch, on `narutousomaki741` — the account that did not open it. The entry above
+  is the record.
+
+### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
+
+- **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
+  `needs-operator/*` labels; PR title routing + `MERGEABLE`), run by a new `pr-shape` CI job ·
+  `tests/protocol/{reserved-classes,pr-ready}.test.ts` NEW (+17) · `seats.mjs` gained
+  `PR_TITLE_RE`/`titleRoutes`, called by `agent-finish.mjs` · `docs/RUNBOOK.md` NEW ·
+  `docs/BACKLOG.md` decomposed (T-001…T-011) · `AGENTS.md §7` NEW — the owner's writing standard,
+  binding on every seat and subagent · `REVIEW.md`, `docs/seats/README.md` and `Brahim_Prompt.md`
+  corrected where they still described the pre-D82 model · `open_rulings.md` Q13 rewritten.
+  Covers two sessions: `f984e89` built the mechanics on the pc, this one finished them.
+- **VERIFIED:** `pnpm verify` green. The new suites execute against real fixture git histories rather
+  than grepping the scripts. `pnpm docs:check` measured at 6 files / 69 tests **before** any change,
+  which is what proved `tests/protocol/` was already wired into CI.
+- **FOUND:** Branch protection is unavailable on this repository — `403 Upgrade to GitHub Pro or make
+  this repository public` on both the protection and rulesets APIs, with an `ADMIN` token; Q13's
+  account objection is satisfied and a plan objection replaced it (ruled D87). `current_state.md §3`/`§5`
+  called the plan/section unit blocked on Q1–Q3 after it shipped in Entry 77. `REVIEW.md` still taught
+  the pre-D82 self-review loop, and `docs/seats/README.md` still described the retired `§2 DYNAMIC`
+  block under a heading saying it carried no state — both fixed on this branch.
+- **OWES:** the owner — rulings on Q17a, Q17c, Q18, Q19, and the public/Pro/neither call on Q13 (later
+  ruled D87). `hmdnah` — PR #16. `khalihlna` — PR #17. Beyond T-004 nothing was `ready` for box.
+- **RISK:** additive
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
+- **REVIEW:** Reviewed and merged (`STEWARD:` PR, this branch) — the account/PR bookkeeping is not
+  preserved here; see the handoff body and `docs/decisions.md` D87 for what it settled.
 
 

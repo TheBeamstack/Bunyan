@@ -26,6 +26,7 @@
  *   seats.mjs task-field <T-nnn> <field>  machine | area | risk, read from the backlog entry
  *   seats.mjs can-claim <seat> <T-nnn>    exit 0 may claim, 1 may not — prints the reason
  *   seats.mjs ready-for <seat>            ready task ids this seat can satisfy, backlog order
+ *   seats.mjs builder-for <T-nnn> [finishing-seat]   the seat that OWNS a task, from machine: alone
  *   seats.mjs reviewer-for <T-nnn|box|pc|any> [finishing-seat]
  */
 import { readFileSync, existsSync } from 'node:fs';
@@ -220,6 +221,74 @@ export function dependsOn(backlogSrc, taskId) {
   return [...raw.matchAll(/T-\d{3}/g)].map((m) => m[0]);
 }
 
+// -------------------------------------------------------------------------- D88 two-step review (T-014) --
+
+/** The label that routes a `risk: high` task's second review turn. Applied by `agent-finish.mjs --review
+ * --step 1` when step 1 finishes; read by `agent-start.mjs --review` to tell the reviewer which step it
+ * is running. It does not exist on a fresh repo — the applying side creates it before adding it. */
+export const STEP1_LABEL = 'review/step-1';
+export const STEP1_LABEL_COLOR = '0E8A16';
+// ⚠⚠ GitHub caps a label's description at 100 characters and `gh label create` refuses anything
+// longer — measured live (T-014, PR #28): the original 104-character wording died on the very first
+// repo where this label did not already exist, which is every FIRST risk: high review ever run.
+export const STEP1_LABEL_DESCRIPTION =
+  'Step 1 (mechanical) review is done — step 2 (adversarial) may run (D88, T-014).';
+
+/**
+ * Which of D88's two review turns a `risk: high` task is on, given the open PR's own label names —
+ * `null` for anything else (one ordinary review turn). Pure and gh-free so the routing decision is
+ * testable without a real PR: every caller resolves `labelNames` itself, from `gh pr view --json labels`.
+ */
+export function reviewStepFor(risk, labelNames) {
+  if (risk !== 'high') return null;
+  return labelNames.includes(STEP1_LABEL) ? 2 : 1;
+}
+
+/**
+ * Whether `--review --step N` is legal for a task carrying `risk`. `{ ok, reason }`, mirroring
+ * `canClaim`'s shape. ⚠ **An unreadable/absent `risk` is ALWAYS a refusal, never a default to
+ * 'normal'** — the same skip `T-013` guards against, the shape Entry 88 shipped three of. `step` is
+ * `null` when `--step` was not given.
+ */
+export function reviewStepGate(risk, step) {
+  if (!risk) {
+    return {
+      ok: false,
+      reason: `no readable 'risk:' field in docs/BACKLOG.md — refusing rather than defaulting to normal.`,
+    };
+  }
+  if (risk === 'high') {
+    if (step !== 1 && step !== 2) {
+      return {
+        ok: false,
+        reason: `risk: high requires --step 1 or --step 2 (D88's two-step review, REVIEW.md §"Two steps").`,
+      };
+    }
+  } else if (step) {
+    return {
+      ok: false,
+      reason: `risk: ${risk} — --step is refused; only risk: high uses a two-step review.`,
+    };
+  }
+  return { ok: true };
+}
+
+/**
+ * Whether a `--review` finish should flip the backlog row to `done` — the exact decision `T-014`
+ * exists to correct. Before this fix the row flipped whenever the diff was not `contract-touching`,
+ * with no notion of steps at all: a `risk: high` PR reached `done` after ONE of its two required
+ * review turns (measured on T-008/PR #23). Pure so the defect and its fix are both directly testable
+ * without spawning `gh` — flip the formula in a test to see the bug this closes.
+ *
+ * `contractTouching` keeps the row `review` regardless of risk, same as before this task: that PR
+ * waits on the owner's own merge timing, never a reviewer's.
+ */
+export function reviewFlipsToDone(risk, step, contractTouching) {
+  if (contractTouching) return false;
+  if (risk === 'high') return step === 2;
+  return true;
+}
+
 function readBacklog(root) {
   const path = join(root, 'docs/BACKLOG.md');
   if (!existsSync(path)) {
@@ -346,6 +415,33 @@ export function reviewerFor(root, taskOrMachine, finishingSeat) {
   return { seat: builder.seat, solo: true };
 }
 
+/**
+ * The BUILDER who owns a task, derived from the task's own `machine:` field alone — NEVER from a
+ * branch's §0b baton, which records the last seat to FINISH a turn there, and a `--review` finish
+ * rewrites that baton to name the REVIEWER (measured 2026-08-15 against T-008: its baton reads
+ * `seat: hmdnah / role: reviewer` while its own claim commit reads `claim: T-008 by zayd (box)`). A
+ * gate on the baton would admit the reviewer and refuse the builder in every real `--continue` call.
+ *
+ * Symmetric with `reviewerFor`: resolve the task's machine, then the registry's builder on it, with
+ * the same `any` fallback (the finishing seat's own machine when given, else `box`).
+ */
+export function builderFor(root, taskId, finishingSeat) {
+  const registry = readRegistry(root);
+  const backlog = readBacklog(root);
+  let m = taskField(backlog, taskId, 'machine');
+  if (!m) throw new Error(`${taskId} has no 'machine:' field`);
+  if (m === 'any') {
+    m = finishingSeat ? machineOf(root, finishingSeat) : 'box';
+  }
+  const builder = registry.find((r) => r.role === 'builder' && r.machine === m);
+  if (!builder) {
+    throw new Error(
+      `no builder registered for machine '${m}' — nobody can own ${taskId}'s branch on it.`,
+    );
+  }
+  return { seat: builder.seat };
+}
+
 // ------------------------------------------------------------------------------------------- dispatch --
 
 if (
@@ -402,6 +498,9 @@ if (
       }
       case 'ready-for':
         for (const id of readyFor(root, rest[0])) console.log(id);
+        break;
+      case 'builder-for':
+        console.log(builderFor(root, rest[0], rest[1]).seat);
         break;
       case 'reviewer-for': {
         const v = reviewerFor(root, rest[0], rest[1]);

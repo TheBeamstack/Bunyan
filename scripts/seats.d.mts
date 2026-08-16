@@ -40,6 +40,33 @@ export declare function rowStatus(backlogSrc: string, taskId: string): string | 
 /** The task ids a `depends-on:` field names — `[]` for none or the em-dash placeholder. */
 export declare function dependsOn(backlogSrc: string, taskId: string): string[];
 
+/** The label that routes a `risk: high` task's second D88 review turn (`T-014`). */
+export declare const STEP1_LABEL: string;
+export declare const STEP1_LABEL_COLOR: string;
+export declare const STEP1_LABEL_DESCRIPTION: string;
+
+/** Which of D88's two review turns a `risk: high` task is on, given the PR's own label names —
+ * `null` for anything else (one ordinary review turn). */
+export declare function reviewStepFor(risk: string | undefined, labelNames: string[]): 1 | 2 | null;
+
+export interface StepGateVerdict {
+  ok: boolean;
+  reason?: string;
+}
+/** Whether `--review --step N` is legal for a task carrying `risk`. `step` is whatever `--step` parsed
+ * to — including an out-of-range number, which this is what refuses it. */
+export declare function reviewStepGate(
+  risk: string | undefined,
+  step: number | null,
+): StepGateVerdict;
+
+/** Whether a `--review` finish should flip the backlog row to `done` (D88, `T-014`). */
+export declare function reviewFlipsToDone(
+  risk: string | undefined,
+  step: number | null,
+  contractTouching: boolean,
+): boolean;
+
 export interface ClaimVerdict {
   ok: boolean;
   reason?: string;
@@ -63,3 +90,13 @@ export declare function reviewerFor(
   taskOrMachine: string,
   finishingSeat?: string,
 ): ReviewerVerdict;
+
+export interface BuilderVerdict {
+  seat: string;
+}
+/** The seat that OWNS a task, derived from its `machine:` field alone — never the §0b baton. */
+export declare function builderFor(
+  root: string,
+  taskId: string,
+  finishingSeat?: string,
+): BuilderVerdict;
