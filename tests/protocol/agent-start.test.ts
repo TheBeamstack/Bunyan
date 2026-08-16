@@ -14,7 +14,13 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { makeFixture } from './fixture.mjs';
-import { findTaskPR, identityGate, resolveReviewStep } from '../../scripts/agent-start.mjs';
+import {
+  findTaskPR,
+  identityGate,
+  parseBaton,
+  renderBaton,
+  resolveReviewStep,
+} from '../../scripts/agent-start.mjs';
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const AGENT_START = join(REPO, 'scripts/agent-start.mjs');
@@ -300,6 +306,7 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
 
     const cs = readFileSync(join(fx.dir, 'current_state.md'), 'utf8');
     expect(cs).toMatch(/\| seat \| `zayd` \|/);
+    expect(cs).toMatch(/\| builder \| `zayd` \|/); // T-016: written once, at the claim
     expect(cs).toMatch(/\| task \| `T-001` \|/);
     expect(cs).toMatch(/\| status \| working \|/);
 
@@ -387,6 +394,39 @@ describe('findTaskPR — pure, no gh spawn needed', () => {
         'T-008',
       ),
     ).toBeNull();
+  });
+});
+
+describe('renderBaton/parseBaton — the `builder` field round-trips (T-016)', () => {
+  it('renders and re-parses a `builder` distinct from `seat`', () => {
+    const block = renderBaton({
+      seat: 'hmdnah',
+      role: 'reviewer',
+      machine: 'box',
+      task: 'T-016',
+      branch: 'task/T-016-x',
+      claimedAt: '2026-08-16T00:00:00Z',
+      status: 'finished — PR open, awaiting review',
+      builder: 'zayd',
+    });
+    expect(block).toMatch(/\| seat \| `hmdnah` \|/);
+    expect(block).toMatch(/\| builder \| `zayd` \|/);
+    const parsed = parseBaton(block);
+    expect(parsed?.seat).toBe('hmdnah');
+    expect(parsed?.builder).toBe('zayd');
+  });
+
+  it('falls back `builder` to `seat` when omitted — a pre-T-016 baton still renders', () => {
+    const block = renderBaton({
+      seat: 'zayd',
+      role: 'builder',
+      machine: 'box',
+      task: 'T-001',
+      branch: 'task/T-001-x',
+      claimedAt: '2026-08-16T00:00:00Z',
+      status: 'working',
+    });
+    expect(block).toMatch(/\| builder \| `zayd` \|/);
   });
 });
 
