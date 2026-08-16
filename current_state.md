@@ -628,6 +628,48 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-011 — Q17a — `scene.designOptions` becomes a `SceneCollection`, and its CRUD ships — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `packages/document/src/commands.ts` (`createDesignOptionCommand`/`updateDesignOptionCommand`/
+  `deleteDesignOptionCommand` NEW, registered in `CORE_COMMANDS`; `checkPrimaryInvariant`,
+  `designOptionReferrers` NEW) · `packages/document/src/scene.ts` (`SceneCollection` gains
+  `'designOptions'` — **contract-touching**) · `packages/document/src/dependency.ts` (`designOptions` case
+  NEW, closing the exhaustive switch's `TS2345`; `elementsTaggedIntoSet`/`belongsToDescendants` NEW) ·
+  `packages/document/src/bnn.ts` (`designOptions` joins the hostile-`.bnn` guarded-key list) ·
+  `packages/document/src/designoptions.ts` (header comment only — the CRUD is built) ·
+  `tests/design-option-crud.test.ts` NEW (+13) · `tests/frozen-surface.snapshot.json` re-baselined (one
+  declaration: `type SceneCollection`).
+- **VERIFIED:** `pnpm verify` green, foreground, real OCCT kernel, exit 0 — main suite **913 tests / 96
+  files**, `docs:check` **146 tests / 8 files**. `tests/freeze-boundary.test.ts` green because the baseline
+  was re-generated in this PR; the live diff against `origin/main`'s committed baseline is exactly the one
+  declaration the design doc predicted (§3.2). **Revert-verified:** `git stash` on the five touched
+  `packages/document/src/*.ts` files left **12 of 13** new tests RED (`unknown command
+  "core.createDesignOption"`) — the one survivor is the RED baseline case, which asserts the UNCHANGED
+  defect and is not supposed to move. `git stash pop` restored 13/13, `tests/design-option-refs.test.ts`'s
+  existing 8 unaffected.
+- **FOUND:** The measured defect closes exactly as the design doc's §1.4 predicted: two identical
+  6000×200×3000 walls, one tagged with a CRUD-minted id, both now count — `modelElements()` 2 of 2, a
+  whole-model schedule totals 7 200 000 000 mm³ (was 3 600 000 000), `brokenRefs()`/`unmeasured` both
+  empty. **New kind of thing, not in the design doc:** promoting an option to primary
+  (`updateDesignOption({isPrimary:true})`) must atomically demote the set's other primary in the SAME
+  edit, or swapping a set's primary deadlocks — demote-old-first leaves zero primaries (refused),
+  promote-new-first leaves two (refused too), and no ordering of two single-option calls ever succeeds.
+  `core.createDesignOption` deliberately does NOT auto-demote (an explicit `isPrimary:true` against an
+  existing primary is refused instead) — a brand-new row silently stealing an existing option's primacy
+  is not a gesture a create should perform, and keeping create strict is what keeps the "two explicit
+  primaries" refusal path testable at all. **Backward sweep** (invariant 7): grepped every
+  `'schedules'`/`'views'`-shaped list and every `SceneCollection` reference in `packages/document/src` and
+  `apps/web/src` — `bnn.ts`'s guard list was the only non-exhaustive-switch site; every exhaustive switch
+  is compiler-enforced, and `pnpm typecheck` was green throughout.
+- **OWES:** `hmdnah` — this PR's review; `risk: high` (BACKLOG row) ⇒ D88's two-step route, **and**
+  `RISK: contract-touching` ⇒ after both steps approve, the **owner** merges it, never the reviewing
+  agent.
+- **RISK:** contract-touching (re-baselined) — 1 declaration moved:
+  `packages/document/src/scene.ts :: type SceneCollection`, predicted and owner-ruled in advance (D85,
+  design doc §3.2).
+- **FULL:** `handoff/zayd/2026-08-16-T-011-design-option-crud.md`
+- **REVIEW:** pending — `hmdnah`, two-step review (D88); step 2 approves, the owner merges.
+
 ### T-012 — review (step 2): the fallback quantifies over the registry, and `reviewerForBranch` genuinely reuses `reviewerFor` — 2026-08-16 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
@@ -945,35 +987,6 @@ is maintenance and does NOT get an entry of its own.**
   label-description limit, so `review/step-1` could never be created on a fresh repo). The entry above is
   the record.
 
-### T-015 — review: the fix holds, backward sweep and weak-green clean — 2026-08-16 — seat: hmdnah
-
-- **CHANGED:** Nothing on this branch — no defect proven. The code is merged as fixed by the second
-  `zayd` turn (commit `2798b2c`).
-- **VERIFIED:** `pnpm verify` green, **847/847**, exit 0, `tests/freeze-boundary.test.ts` green ⇒ frozen
-  surface unmoved. **Reconciled step 1's fix myself rather than trusting the report:** `git diff 902e827
-  2798b2c` shows exactly one production line changed
-  (`scripts/agent-start.mjs:400`, `seats.builderFor(root, continueTask)` → `..., seat)`) plus one new
-  test. Reverted that line by hand and re-ran `tests/protocol/agent-start.test.ts`: **1 failed | 16
-  skipped**, `✖ T-001's builder is 'zayd', not 'amer'.` — reproduces step 1's finding exactly. Restored:
-  **17/17** in that file.
-- **FOUND:** No new blocking finding. **Item 2 (backward sweep):** `builderFor` has one production call
-  site, now fixed; every `reviewerFor` call site checked — `agent-finish.mjs:324`/`:475` both pass
-  `seat`, `agent-start.mjs:507` passes `undefined` deliberately (the pre-existing reviewer-routing
-  *display* loop, not an admission gate, unmodified by this PR) — no second instance of the missing-arg
-  shape. **Item 3 (new kind of thing):** the `--continue` door and `builderFor` are the new entity;
-  `agent-finish.mjs`'s `existingPR` check does not key on the entry path, so nothing else needed
-  enumerating. Two non-blocking opinions recorded in the PR comment (duplicate PR-title regex in the
-  display loop; the pre-existing `--limit 10` cap on `gh pr list`). **Item 6 (weak green):** the new
-  regression test infers admission success indirectly (failing one gate later, at "No open PR"); checked
-  a hypothetical alternate bug (raw `finishingSeat` used as machine instead of `machineOf`) and confirmed
-  it would also fail the test's second assertion via a different message — not fooled by that class
-  either. Test is not weak.
-- **OWES:** nothing new. `brahim` — T-016 (depends-on T-015) is now unblocked.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-16-T-015-review.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the build entry, now
-  rotated to `docs/history.md` §E.
-
 ---
 
 ## §8 — Generated
@@ -983,16 +996,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-012 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `main` · `f618020` · dirty |
-| open PRs | none — main is the tip of the work |
-| suite | **900 green** · 95 files · 281 suites |
+| **newest entry** | **T-011 (zayd, 2026-08-16)** |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `dbf4381` · dirty |
+| open PRs | #31 task/T-009-q18-a-hosted-void-may-only-host-on-its-h |
+| suite | **913 green** · 96 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
-| shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
+| shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 3 files changed, 81 insertions(+), 50 deletions(-) (3 files) |
-| docs budget | current_state 82.5/96.0 KB · §7 30.3/32.0 KB · abstracts 10/10 · bodies 53 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
+| diff vs origin/main | 8 files changed, 401 insertions(+), 58 deletions(-) (8 files) |
+| docs budget | current_state 84.0/96.0 KB · §7 31.6/32.0 KB · abstracts 10/10 · bodies 54 |
 
 _Generated 2026-08-16 by `pnpm state`._
 

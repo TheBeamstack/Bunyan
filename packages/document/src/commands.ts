@@ -57,6 +57,7 @@ import {
   withRotation,
   withTranslation,
 } from './placement.js';
+import type { DesignOption } from './designoptions.js';
 import { unresolvedDesignOptions, wouldCloseBelongsToCycle } from './designoptions.js';
 import { scheduleDefinitionIssues } from './schedule.js';
 import { viewDescriptorIssues } from './view.js';
@@ -683,8 +684,8 @@ export const createElementCommand: Command = {
         ? {}
         : { classifications: args['classifications'] as NonNullable<Element['classifications']> }),
       // ⚠ ROW Ⓕ (D62/D65) — the reserved MEP/design-option state, born WITH the element in this one edit.
-      // Shape-validated only: v1.0.0 has no `scene.systems`/`designOptions` CRUD to check an id against, and
-      // inventing referential validation against collections nothing can author yet would refuse every
+      // `systemId` is shape-validated only: v1.0.0 has no `scene.systems` CRUD to check it against, and
+      // inventing referential validation against a collection nothing can author yet would refuse every
       // legitimate call.
       //
       // ⚠⚠ THIS COMMENT USED TO END *"the integrity check lands WITH those bodies (Parity-C/F), like
@@ -695,9 +696,10 @@ export const createElementCommand: Command = {
       // not the precedent. Nor are the two refs below alike; the sweep separated them:
       //   • `systemId` — genuinely DORMANT. Zero readers: declared in `entities.ts`/`systems.ts`, written
       //     here, read by NOTHING that excludes, aggregates or publishes. Skipping its check costs nothing.
-      //   • `designOptionId` — NOT dormant, and skipping its check IS the 50.0% silent under-report Entry
-      //     82 measured: `isElementActive` then excludes the element from every enumerating consumer.
-      //     Q17a/Q17b/Q17c in `open_rulings.md`.
+      //   • `designOptionId` — NOT dormant, and skipping its check WAS the 50.0% silent under-report
+      //     Entry 82 measured. `scene.designOptions` has a CRUD now (T-011/D85), but this door still does
+      //     not check against it — owner-ruled (Q17b, `open_rulings.md`): D86 surfaces the dangling case
+      //     in `brokenRefs()` instead, so refusing here would pre-empt nothing Q17b did not already settle.
       ...(args['systemId'] === undefined ? {} : { systemId: text(args['systemId']) }),
       // ⚠ Cast via `unknown`: a `Connector`'s `at`/`direction` are fixed-length TUPLES, which do not
       // structurally overlap `ParamValue`'s open array — unlike `placement`, whose motions are plain
@@ -2594,6 +2596,227 @@ export const deleteViewCommand: Command = {
 };
 
 /* ================================================================================================
+ * THE DESIGN-OPTION CRUD (D85/Q17a — `P5_step6D_design_options_crud_design.md` §4)
+ *
+ * ⚠⚠ 0 OF 40 COMMANDS COULD AUTHOR AN OPTION BEFORE THIS. `core.createElement` has accepted a
+ * `designOptionId` since row Ⓕ (D65), and the schedule/view doors have refused an unresolvable one
+ * since the same row — but nothing could ever make one resolvable, so a document any user can build
+ * measured a **50.0% silent under-report** with `basis: 'exact'` and every diagnostic empty (design
+ * doc §1.4). This closes the gap the reservation left open.
+ *
+ * ⚠ THE PRIMARY INVARIANT IS ENFORCED HERE, NOT LEFT FOR A CONSUMER TO PAPER OVER
+ * (`designoptions.ts`'s own comment on `DesignOption.isPrimary`) — see `checkPrimaryInvariant` below.
+ * ============================================================================================= */
+
+const DESIGN_OPTION_SET_ARG: ParamField = {
+  kind: 'string',
+  label: 'Option set',
+  required: true,
+  description:
+    'The set this option belongs to — "Lobby scheme". Options sharing a set are mutually exclusive.',
+};
+
+/**
+ * Refuse a state where this option's `setName` would end up with anything other than exactly one
+ * primary. ⚠ VALIDATES THE MERGED RESULT (the `checkScheduleDefinition`/`checkViewDescriptor`
+ * discipline) — `candidate` is what THIS option would look like after the edit, `undefined` for a
+ * delete. `excludeId` drops the option's OWN prior row out of the sibling count, so it is not counted
+ * twice.
+ */
+function checkPrimaryInvariant(
+  scene: Scene,
+  setName: string,
+  excludeId: string,
+  candidate: DesignOption | undefined,
+): void {
+  const siblings = Object.values(scene.designOptions ?? {}).filter(
+    (o) => o.setName === setName && o.id !== excludeId,
+  );
+  const merged = candidate === undefined ? siblings : [...siblings, candidate];
+  if (merged.length === 0) return; // the last option in a set leaving — no primary left to keep
+  const primaries = merged.filter((o) => o.isPrimary).length;
+  if (primaries !== 1) {
+    throw new CommandFailure(
+      'REFUSED',
+      `option set "${setName}" would have ${primaries} primary option(s) — exactly one is required. ` +
+        (primaries === 0
+          ? 'core.updateDesignOption another one to isPrimary:true first.'
+          : 'demote the existing primary (isPrimary:false) first, or omit isPrimary to join non-primary.'),
+    );
+  }
+}
+
+/**
+ * Who would break if this design option were deleted — the D51 ladder (§4.2's second refusal).
+ *
+ * ⚠ EVERY RUNG IS REAL HERE, unlike D79's sheet case: `elements`, `views` and `schedules` are all
+ * writable, so `redirect` never has to refuse because nothing can retarget the collection it lives in.
+ */
+function designOptionReferrers(scene: Scene, optionId: string): readonly Referrer[] {
+  const out: Referrer[] = [];
+  for (const el of Object.values(scene.elements)) {
+    if (el.designOptionId !== optionId) continue;
+    out.push({
+      describe: `element "${el.id}" is tagged with design option "${optionId}"`,
+      retargetKey: optionId,
+      redirect: (to) => elementChange(el, { ...el, designOptionId: to }),
+    });
+  }
+  for (const view of Object.values(scene.views ?? {})) {
+    if (!(view.designOptionIds ?? []).includes(optionId)) continue;
+    out.push({
+      describe: `view "${view.id}" shows design option "${optionId}"`,
+      retargetKey: optionId,
+      redirect: (to) => ({
+        collection: 'views',
+        id: view.id,
+        before: view,
+        after: {
+          ...view,
+          designOptionIds: (view.designOptionIds ?? []).map((oid) => (oid === optionId ? to : oid)),
+        },
+      }),
+    });
+  }
+  for (const schedule of Object.values(scene.schedules ?? {})) {
+    if (!(schedule.designOptionIds ?? []).includes(optionId)) continue;
+    out.push({
+      describe: `schedule "${schedule.id}" shows design option "${optionId}"`,
+      retargetKey: optionId,
+      redirect: (to) => ({
+        collection: 'schedules',
+        id: schedule.id,
+        before: schedule,
+        after: {
+          ...schedule,
+          designOptionIds: (schedule.designOptionIds ?? []).map((oid) =>
+            oid === optionId ? to : oid,
+          ),
+        },
+      }),
+    });
+  }
+  return out;
+}
+
+export const createDesignOptionCommand: Command = {
+  id: 'core.createDesignOption',
+  label: 'Create design option',
+  description:
+    'Create a design alternative within a named set. The first option in a new set is primary by default; a later one joins non-primary unless told otherwise.',
+  argsSchema: {
+    setName: DESIGN_OPTION_SET_ARG,
+    name: { kind: 'string', label: 'Name', required: true },
+    isPrimary: {
+      kind: 'boolean',
+      label: 'Primary',
+      description:
+        "The set's default option. Absent ⇒ true for the set's first option, false otherwise.",
+    },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(createDesignOptionCommand, rawArgs);
+    // ⚠ MINTED, never caller-supplied (D44) — the schedule/view precedent verbatim: a name the user
+    // owns, no natural key.
+    const id = ctx.mintId('option');
+    const setName = text(args['setName']);
+    const existing = Object.values(ctx.scene.designOptions ?? {}).filter(
+      (o) => o.setName === setName,
+    );
+    const isPrimary =
+      args['isPrimary'] === undefined ? existing.length === 0 : args['isPrimary'] === true;
+    const option: DesignOption = { id, setName, name: text(args['name']), isPrimary };
+    checkPrimaryInvariant(ctx.scene, setName, id, option);
+    return ctx.edit(
+      `Create design option ${option.name}`,
+      [{ collection: 'designOptions', id, after: option }],
+      [],
+    );
+  },
+};
+
+export const updateDesignOptionCommand: Command = {
+  id: 'core.updateDesignOption',
+  label: 'Edit design option',
+  description:
+    'Rename a design option, or make it the primary one in its set (demoting whichever option was primary before). Absent args are left unchanged.',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'designOption', label: 'Design option', required: true },
+    name: { kind: 'string', label: 'Name' },
+    isPrimary: { kind: 'boolean', label: 'Primary' },
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(updateDesignOptionCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.designOptions?.[id];
+    if (before === undefined) {
+      throw new CommandFailure('NOT_FOUND', `unknown design option "${id}"`);
+    }
+    const after: DesignOption = {
+      ...before,
+      ...(args['name'] === undefined ? {} : { name: text(args['name']) }),
+      ...(args['isPrimary'] === undefined ? {} : { isPrimary: args['isPrimary'] === true }),
+    };
+    const changes: SceneChange[] = [];
+    if (after.isPrimary && !before.isPrimary) {
+      // ⚠⚠ PROMOTING TO PRIMARY DEMOTES THE SET'S OTHER PRIMARY, ATOMICALLY, AND THIS IS THE ONE PLACE
+      // THE CRUD DOES NOT JUST REFUSE. Without it, swapping a set's primary deadlocks: demoting the old
+      // one first leaves the set at zero primaries (refused), and promoting the new one first leaves it
+      // at two (also refused) — neither call is individually valid, and there is no single-option verb
+      // that could get there. Folded into ONE undoable edit, so "make B primary" is one call, one undo
+      // step, exactly the radio-button gesture a user or agent actually reaches for.
+      for (const sibling of Object.values(ctx.scene.designOptions ?? {})) {
+        if (sibling.id !== id && sibling.setName === before.setName && sibling.isPrimary) {
+          changes.push({
+            collection: 'designOptions',
+            id: sibling.id,
+            before: sibling,
+            after: { ...sibling, isPrimary: false },
+          });
+        }
+      }
+    } else {
+      // Every other transition (rename, explicit demotion, no-op) is refused rather than auto-fixed —
+      // demoting the sole primary with nothing promoted in the same call is an authoring defect, not a
+      // shape this verb should paper over (`designoptions.ts`'s own comment on `isPrimary`).
+      checkPrimaryInvariant(ctx.scene, before.setName, id, after);
+    }
+    changes.push({ collection: 'designOptions', id, before, after });
+    return ctx.edit(`Edit design option ${after.name}`, changes, []);
+  },
+};
+
+export const deleteDesignOptionCommand: Command = {
+  id: 'core.deleteDesignOption',
+  label: 'Delete design option',
+  description:
+    'Delete a design option. REFUSED if an element/view/schedule references it, unless retargetMap redirects the reference or acknowledge:true; also REFUSED if it is the set’s sole primary and other options remain (promote one first).',
+  argsSchema: {
+    id: { kind: 'ref', refTo: 'designOption', label: 'Design option', required: true },
+    ...GUARD_ARGS,
+  },
+  execute(ctx, rawArgs) {
+    const args = checkArgs(deleteDesignOptionCommand, rawArgs);
+    const id = text(args['id']);
+    const before = ctx.scene.designOptions?.[id];
+    if (before === undefined) {
+      throw new CommandFailure('NOT_FOUND', `unknown design option "${id}"`);
+    }
+    checkPrimaryInvariant(ctx.scene, before.setName, id, undefined);
+    const extra = guardReferences(
+      `design option "${id}"`,
+      designOptionReferrers(ctx.scene, id),
+      args,
+    );
+    return ctx.edit(
+      `Delete design option ${before.name}`,
+      [...extra, { collection: 'designOptions', id, before }],
+      [],
+    );
+  },
+};
+
+/* ================================================================================================
  * THE FIVE MOVE VERBS (P4.5 row ⓑ, owner-ruled Q4 2026-07-30 — `P4.5_interaction_model_design.md` §9)
  *
  * ⚠⚠ THE RULED SPLIT IS THE WHOLE UNIT, AND IT IS COUNTER-INTUITIVE: **an element whose position lives in
@@ -3031,6 +3254,10 @@ export const CORE_COMMANDS: readonly Command[] = [
   createViewCommand,
   updateViewCommand,
   deleteViewCommand,
+  // ⚠ D85/Q17a: the design-option CRUD — closes 0-of-40-commands-can-author-an-option.
+  createDesignOptionCommand,
+  updateDesignOptionCommand,
+  deleteDesignOptionCommand,
   // ⚠ P4.5 row ⓑ (owner-ruled Q4): the five move verbs. `core.array` is a RESERVED SHAPE that refuses —
   // registered so its `argsSchema` freezes with the contract, not so it can be called (see its comment).
   setPlacementCommand,

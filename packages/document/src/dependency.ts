@@ -28,6 +28,7 @@
 
 import type { Constraint, Element, ElementId } from './entities.js';
 import { isJoinConstraint } from './entities.js';
+import type { DesignOption } from './designoptions.js';
 import type { Scene, SceneChange, SceneCollection } from './scene.js';
 import {
   containerPath,
@@ -173,6 +174,23 @@ export function dependents(
       // slab or opening changes shape when a separator moves. The edge is declared here so the exhaustive
       // switch stays satisfied; the room-area invalidation lives with the solver, not in the rebuild graph.
       return [];
+    case 'designOptions': {
+      // EDGE: option-set → tagged elements → their host/parent descendants (D85/Q17a §4.3). ⚠ NOT a
+      // declared "nothing" — the `schedules`/`views` argument ("a projection reads the model, the model
+      // does not read the projection") does not transfer: the join resolver and room solver (D68) read the
+      // ACTIVE option selection WHILE BUILDING (`partnersAt`, `assembleRoomInput`), so changing which
+      // option in a set is primary — or deleting an option — changes which elements the miter/room
+      // computation can see, which changes a built B-Rep (the ambiguity flip).
+      //
+      // ⚠ THE CONSERVATIVE, D73-CONSISTENT FORM: re-stage every element tagged into the CHANGED option's
+      // set (its own active-ness may have flipped), plus everything hosted or parented on one of them
+      // (D67 — a descendant's active-ness is read off its ancestor's, `isElementActive`'s own traversal,
+      // just walked forward here instead of back). Over-naming costs a rebuild; under-naming leaves a
+      // stale solid (`wallsJoinedTo`'s own argument, and it points the same way here).
+      const option = (change.after ?? change.before) as DesignOption | undefined;
+      if (option === undefined) return [];
+      return belongsToDescendants(scene, elementsTaggedIntoSet(scene, option.setName));
+    }
     default:
       return assertNever(collection);
   }
@@ -205,6 +223,44 @@ function elementIdsWhere(
   return Object.values(scene.elements)
     .filter(predicate)
     .map((e) => e.id);
+}
+
+/** Every element whose OWN `designOptionId` names an option in this set — the seed of the option edge. */
+function elementsTaggedIntoSet(scene: Scene, setName: string): readonly ElementId[] {
+  const optionIds = new Set(
+    Object.values(scene.designOptions ?? {})
+      .filter((o) => o.setName === setName)
+      .map((o) => o.id),
+  );
+  if (optionIds.size === 0) return [];
+  return elementIdsWhere(
+    scene,
+    (e) => e.designOptionId !== undefined && optionIds.has(e.designOptionId),
+  );
+}
+
+/**
+ * `seedIds`, plus every element hosted or parented on one of them — TRANSITIVELY, and in EITHER order of
+ * discovery, since a fixpoint over `scene.elements` is order-independent (mirrors `isElementActive`'s own
+ * belongs-to traversal, walked forward instead of back — D67).
+ */
+function belongsToDescendants(scene: Scene, seedIds: readonly ElementId[]): readonly ElementId[] {
+  const result = new Set(seedIds);
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const el of Object.values(scene.elements)) {
+      if (result.has(el.id)) continue;
+      if (
+        (el.hostId !== undefined && result.has(el.hostId)) ||
+        (el.parentElementId !== undefined && result.has(el.parentElementId))
+      ) {
+        result.add(el.id);
+        grew = true;
+      }
+    }
+  }
+  return [...result];
 }
 
 /** Exhaustiveness guard — a new `SceneCollection` fails to compile until its edge is declared above. */

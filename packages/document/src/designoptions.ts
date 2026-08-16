@@ -42,9 +42,11 @@
  * arriving inverted:** it predicted 2.0000× over; what ships is 0.5000× under.
  *
  * ⇒ The invariant is NOT vacuous and the reservation is reachable. `ownTagActive`'s surfacing half is
- * built (D86 — `danglingDesignOptionRefs` in `document.ts`), and the exclusion itself is unchanged; the
- * catalogue CRUD that would let a document resolve the tag is `docs/BACKLOG.md` **T-011** (D85). The walk
- * is `docs/design/P5_step6D_design_options_crud_design.md`.
+ * built (D86 — `danglingDesignOptionRefs` in `document.ts`), and the exclusion itself is unchanged.
+ * **The catalogue CRUD is built too** (T-011/D85 — `core.createDesignOption`/`updateDesignOption`/
+ * `deleteDesignOption` in `commands.ts`), so a `designOptionId` a caller mints through
+ * `core.createDesignOption` now resolves and the 50.0% under-report closes through the shipped verbs
+ * alone. The walk is `docs/design/P5_step6D_design_options_crud_design.md`.
  */
 
 import type { ElementId } from './entities.js';
