@@ -118,7 +118,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | machine | box |
 | task | `T-009` |
 | branch | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` |
-| claimed-at | 2026-08-15T23:12:03Z |
+| claimed-at | 2026-08-16T19:23:08Z |
 | status | working |
 
 <!-- END BATON -->
