@@ -119,7 +119,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | task | `T-009` |
 | branch | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` |
 | claimed-at | 2026-08-16T19:23:08Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -977,20 +977,25 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
+## NEXT TURN: REVIEW ONLY
+
+`T-009` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
+
+**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-009 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` · `bf55ac4` · dirty |
+| branch · tip · tree | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` · `5cfc1f5` · clean |
 | open PRs | none — main is the tip of the work |
 | suite | **902 green** · 95 files · 281 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 4 files changed, 175 insertions(+), 38 deletions(-) (4 files) |
+| diff vs origin/main | 5 files changed, 311 insertions(+), 38 deletions(-) (5 files) |
 | docs budget | current_state 82.6/96.0 KB · §7 30.3/32.0 KB · abstracts 10/10 · bodies 54 |
 
 _Generated 2026-08-16 by `pnpm state`._
