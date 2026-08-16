@@ -113,13 +113,13 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| role | reviewer |
+| seat | `zayd` |
+| role | builder |
 | machine | box |
-| task | `T-015` |
-| branch | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` |
-| claimed-at | 2026-08-16T01:39:26Z |
-| status | finished — PR open, awaiting review |
+| task | `T-014` |
+| branch | `task/T-014-review-must-read-the-task-s-risk-not-onl` |
+| claimed-at | 2026-08-16T03:12:57Z |
+| status | working |
 
 <!-- END BATON -->
 
