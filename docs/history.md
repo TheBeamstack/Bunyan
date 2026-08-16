@@ -1327,6 +1327,38 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-004 — per-element build cost is flat from 39 to 273 elements, and 10,000 projects to 7.2 min — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `tests/document-build-cost-scale.test.ts` **NEW (+1)** — four sizes of the reference
+  building (1/3/5/7 storeys), each on a fresh OCCT kernel, timing `rebuildAll()` on a context cold-loaded
+  from `.bnn`. `current_state.md §1a`'s cold-load row carries the measurement and is **not re-coloured**.
+- **VERIFIED:** `pnpm verify` green. Two full runs of the harness: slope **43.81** and **43.24
+  ms/element**, 1.3% apart, R² 0.9998 / 0.9996, intercept within ±140 ms of zero on an 11.7 s total. Local
+  marginals 41.5–45.6 ms per additional element, spread 5.9% and 9.2%. ⇒ **7.30 / 7.21 min projected at
+  10,000 elements, uncached.**
+- **FOUND:** Per-element build cost **is** flat across 39–273 elements, so Entry 90's 64.5% deferrable
+  figure is worth that same fraction of the cold load at the target — about 4.7 of the projected 7.3 min,
+  leaving 2.6 min, which is still not a load time. Two estimators were needed, not one: a least-squares
+  line has a slope whether or not the data is a line, so the flatness verdict is read off the local finite
+  differences and the fit's R² is only its witness. The 7.2 min uncached reaches D66's 6.35 min from a
+  different direction, and at the cache's measured 2.07× it is 3.5 min against the ~3 min `§1a` already
+  carried. The one
+  systematic deviation is the smallest model pricing ~5–10% **low** per element, which makes the
+  marginals fall slightly with size — the opposite direction from superlinearity. Authoring's
+  marginal is 43.1 ms/element against the cold load's 43.8, so command
+  dispatch is not a measurable share of authoring at this scale.
+- **OWES:** `hmdnah` — this PR; there is no fix to revert, so the re-run is the check and the harness
+  reproduced to 1.3% here. `amer` — `unverified here: the same cold load inside a real browser tab`; every
+  number above is Node on the box, as `§1a`'s existing cold-load numbers already are. `brahim` — a call on
+  whether the flatness verdict should become a ratio assertion on the marginal spread, which would be
+  immune to absolute machine speed; it is printed and not asserted today, so a later superlinear
+  regression would still pass this file. ⚠ The projection is a **37× extrapolation** from 273 elements.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-004-build-cost-flatness.md`
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED and MERGED**, `RISK: additive`, two
+  defects fixed on the branch, on `narutousomaki741` — the account that did not open it. The entry above
+  is the record.
+
 ### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
 
 - **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
