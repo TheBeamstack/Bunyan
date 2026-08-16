@@ -110,7 +110,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-010 | blocked | Q18 — two doors on one wall, confirmed in the browser         | apps-web | pc      | normal | T-009      |
 | T-011 | ready   | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
 | T-012 | ready   | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
-| T-013 | ready   | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
+| T-013 | review  | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
 | T-014 | done    | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
 | T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
 | T-016 | ready   | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |

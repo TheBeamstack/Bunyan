@@ -1327,6 +1327,32 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### STEWARD-two-step-high-risk-review — `risk: high` takes two review turns, not the owner's merge — 2026-08-15 — seat: brahim
+
+- **CHANGED:** `docs/decisions.md` (**D88** NEW) · `AGENTS.md` §1.2 (the rule) and §5 (`risk: high` named
+  as not owner-gated) · `REVIEW.md` (a `Two steps` section; item 7 warns that only step 2 merges) ·
+  `docs/prompts/brahim-orchestrator.md` §4c (`contract-touching` still stops the loop, `risk: high` no
+  longer does) · `docs/BACKLOG.md` (READY criterion 8; **T-014** NEW). No `packages/`, no `apps/web`, no
+  script or test touched.
+- **VERIFIED:** `pnpm verify` green. `AGENTS.md` held at its 200-line cap by turning the §1.3 loop
+  paragraph and the §2 abstract-heading note into pointers — both already said it in full in
+  `docs/prompts/*` and D82.
+- **FOUND:** Three files gave three answers about what `risk: high` meant — `agent-finish.mjs` wrote
+  `NEXT TURN: REVIEW ONLY`, the orchestrator treated it as owner-gated, and `AGENTS.md §5`, which defines
+  owner-gated, never listed it. ⚠ **A cross-account second reviewer does not exist for a box builder PR:**
+  `zayd` opens on `davidian-abdo` and `khalihlna` holds that same account, so GitHub refuses its approval
+  — the two steps are therefore the same seat in separate sessions, and independence comes from the
+  session boundary. The owner declined rearranging seat accounts to buy a second approver.
+- **OWES:** `zayd` — **T-014** (`--review` reads the frozen surface and never the task's `risk:`, so it
+  stamps a `risk: high` row `done` after step 1; measured on T-008), and the two T-008 review defects,
+  which go back to the existing claim on that branch rather than a new row. `hmdnah` — T-008 step 2,
+  after the fix. The `## Discovered` entry recording the `--review` defect is on the T-008 branch and is
+  closed there, not here.
+- **RISK:** additive
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-two-step-high-risk-review.md`
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #24) — APPROVED and MERGED**, `RISK: additive`, two
+  unswept documents fixed on the branch. The entry above is the record.
+
 ### T-007 — a dangling `designOptionId` is a broken reference, derived rather than stored — 2026-08-15 — seat: zayd
 
 - **CHANGED:** `packages/document/src/document.ts` (**`danglingDesignOptionRefs` NEW**; `brokenRefs()`

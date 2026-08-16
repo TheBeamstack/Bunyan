@@ -48,3 +48,14 @@ export declare function resolveReviewStep(
   labels: string[] | null,
   prNumber: number,
 ): number | null;
+
+/**
+ * The identity guard (D87, T-013): whether `gh`'s own authenticated login matches this seat's account.
+ * `actualLogin` is `null` when it could not be resolved at all (gh missing/unauthenticated/offline) —
+ * that is a refusal, never a skip. Comparison is case-insensitive.
+ */
+export declare function identityGate(
+  seat: string,
+  expectedAccount: string,
+  actualLogin: string | null,
+): { ok: boolean; reason?: string };
