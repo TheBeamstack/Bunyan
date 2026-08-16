@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
-| role | builder |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
 | task | `T-008` |
 | branch | `task/T-008-q19-the-belongs-to-deletion-reconciliati` |
@@ -964,26 +964,21 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-008` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-008 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `bd2bfff` · clean |
+| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `2fd9282` · clean |
 | open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
 | suite | **883 green** · 95 files · 275 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 14 files changed, 945 insertions(+), 172 deletions(-) (14 files) |
-| docs budget | current_state 81.3/96.0 KB · §7 29.0/32.0 KB · abstracts 10/10 · bodies 49 |
+| diff vs origin/main | 14 files changed, 952 insertions(+), 173 deletions(-) (14 files) |
+| docs budget | current_state 81.6/96.0 KB · §7 29.0/32.0 KB · abstracts 10/10 · bodies 49 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
