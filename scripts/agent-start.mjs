@@ -603,13 +603,29 @@ export function main(argv = process.argv.slice(2)) {
       const tMatch = pr.title.match(/^T-\d{3}/);
       const id = tMatch ? tMatch[0] : null;
       let r = '?';
+      let note = '';
       try {
-        r = id ? seats.reviewerFor(root, id, undefined).seat : '?';
+        if (id) {
+          r = seats.reviewerFor(root, id, undefined).seat;
+        } else {
+          // No T-nnn in the title (T-012) — the routine `STEWARD:` case, not an edge case. Fall back
+          // to the branch's own seat prefix, which DERIVES the machine the work actually ran on and
+          // never widens it (`zayd/… ⇒ box`, `amer/… ⇒ pc`, `brahim/… ⇒ box`).
+          const fb = seats.reviewerForBranch(root, pr.headRefName, undefined);
+          if (fb.seat) {
+            r = fb.seat;
+          } else {
+            r = 'NOBODY';
+            note = ` — ${fb.reason}`;
+          }
+        }
       } catch {
         /* leave '?' */
       }
       const mark = r === seat ? ' → YOURS' : '';
-      console.log(`     PR #${pr.number}  ${id ?? '(no T-nnn in title)'}  reviewer: ${r}${mark}`);
+      console.log(
+        `     PR #${pr.number}  ${id ?? '(no T-nnn in title)'}  reviewer: ${r}${mark}${note}`,
+      );
       if (r === seat && !mine) mine = pr;
     }
     if (!mine) {
@@ -710,7 +726,9 @@ export function main(argv = process.argv.slice(2)) {
     );
     console.log('     and tell the owner it needs their merge.');
     console.log('');
-    console.log(`Finish with: node scripts/agent-finish.mjs --seat ${seat} <T-nnn> --review`);
+    console.log(
+      `Finish with: node scripts/agent-finish.mjs --seat ${seat} ${mineId ?? '<STEWARD-slug>'} --review`,
+    );
     return;
   }
 

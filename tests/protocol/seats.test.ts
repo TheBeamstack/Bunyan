@@ -14,11 +14,13 @@ import {
   readRegistry,
   readyFor,
   reviewerFor,
+  reviewerForBranch,
   reviewFlipsToDone,
   reviewStepFor,
   reviewStepGate,
   roleOf,
   rowStatus,
+  seatFromBranchPrefix,
   STEP1_LABEL,
   STEP1_LABEL_DESCRIPTION,
   taskField,
@@ -225,6 +227,83 @@ describe('reviewer routing — a pc claim needs a pc reviewer', () => {
   it("`machine: any` routes to the reviewer sharing the FINISHING seat's machine", () => {
     expect(reviewerFor(fx.dir, 'box', 'zayd')).toEqual({ seat: 'hmdnah', solo: false });
     expect(reviewerFor(fx.dir, 'pc', 'amer')).toEqual({ seat: 'khalihlna', solo: false });
+  });
+});
+
+/**
+ * Titleless-PR routing (T-012) — `agent-start.mjs --review`'s routing loop called `reviewerFor` only
+ * when the PR title matched `^T-\d{3}`, so every `STEWARD:` PR (which never carries one) fell through
+ * unrouted, requiring a hand-claim (PR #25, twice — `docs/BACKLOG.md`'s T-012 entry). The fix derives
+ * the machine from the branch's OWN seat prefix (`<seat>/<date>-<slug>`, the shape every real
+ * `STEWARD:` branch actually has — e.g. `brahim/2026-08-15-step-routing-and-continue`) rather than
+ * widening the gate.
+ */
+describe('titleless PR routing — the STEWARD case (T-012)', () => {
+  beforeEach(() => {
+    fx = makeFixture();
+  });
+
+  describe('seatFromBranchPrefix', () => {
+    it("reads the seat off a branch's own '<seat>/…' prefix", () => {
+      expect(seatFromBranchPrefix(fx.dir, 'zayd/2026-08-16-titleless-routing')).toBe('zayd');
+      expect(seatFromBranchPrefix(fx.dir, 'amer/2026-08-16-ribbon-fix')).toBe('amer');
+      expect(seatFromBranchPrefix(fx.dir, 'brahim/2026-08-15-step-routing-and-continue')).toBe(
+        'brahim',
+      );
+    });
+
+    it('is null for a prefix naming no registered seat — never guesses', () => {
+      expect(seatFromBranchPrefix(fx.dir, 'nobody/2026-08-16-x')).toBeNull();
+      expect(seatFromBranchPrefix(fx.dir, 'feature/x')).toBeNull();
+    });
+
+    it("a plain 'task/T-nnn-…' branch (always title-routed already) names no seat either", () => {
+      expect(seatFromBranchPrefix(fx.dir, 'task/T-012-review-routes-a-pr')).toBeNull();
+    });
+  });
+
+  describe('reviewerForBranch — DERIVES the machine, never widens it', () => {
+    it('a zayd/… branch (box) routes to the box reviewer, hmdnah', () => {
+      expect(reviewerForBranch(fx.dir, 'zayd/2026-08-16-titleless-routing')).toEqual({
+        seat: 'hmdnah',
+        solo: false,
+        reason: null,
+      });
+    });
+
+    it('an amer/… branch (pc) routes to the pc reviewer, khalihlna — NEVER the box one', () => {
+      expect(reviewerForBranch(fx.dir, 'amer/2026-08-16-ribbon-fix')).toEqual({
+        seat: 'khalihlna',
+        solo: false,
+        reason: null,
+      });
+    });
+
+    it('a brahim/… branch (box, per AGENTS.md §0) routes to hmdnah, same as a zayd/… one', () => {
+      expect(reviewerForBranch(fx.dir, 'brahim/2026-08-15-step-routing-and-continue')).toEqual({
+        seat: 'hmdnah',
+        solo: false,
+        reason: null,
+      });
+    });
+
+    it('a prefix naming no registered seat routes to NOBODY, explicitly, rather than defaulting', () => {
+      const v = reviewerForBranch(fx.dir, 'mystery/2026-08-16-x');
+      expect(v.seat).toBeNull();
+      expect(v.reason).toMatch(/names no registered seat.*routes to NOBODY/s);
+    });
+
+    it('REVERT-VERIFIED: title-only routing (the pre-T-012 gap) leaves a titleless PR unrouted', () => {
+      // `agent-start.mjs --review`'s old loop: `id ? reviewerFor(root, id, undefined).seat : '?'` —
+      // a title with no `T-nnn` always fell to '?', which matches no real seat, so the PR was never
+      // claimed by anyone (PR #25's actual failure mode).
+      const preT012Routing = (title: string) => {
+        const id = (title.match(/^T-\d{3}/) ?? [])[0];
+        return id ? reviewerFor(fx.dir, id, undefined).seat : '?';
+      };
+      expect(preT012Routing('STEWARD: CI runs on a self-hosted runner')).toBe('?'); // RED: unrouted
+      expect(reviewerForBranch(fx.dir, 'brahim/2026-08-16-self-hosted-runner').seat).toBe('hmdnah'); // GREEN
+    });
   });
 });
 

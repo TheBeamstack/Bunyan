@@ -82,6 +82,70 @@ function fakeGhReporting(login: string): string {
   return dir;
 }
 
+/**
+ * Like `fakeGhReporting`, but also stubs `gh pr list`/`pr comment`/`pr checkout` so the reviewer
+ * ROUTING LOOP (T-012) can be exercised end to end without ever touching real GitHub or ambient `gh`
+ * auth — the same hermetic-stub reasoning as `fakeGhReporting`'s own header, applied to the review
+ * path, which this suite had never spawned before (T-013 shipped without it and bit CI once already).
+ * `pr checkout` is real `git` against THIS fixture, resolving each PR number to the branch the caller
+ * already pushed there.
+ */
+function fakeGhForReview(
+  login: string,
+  prs: Array<{ number: number; headRefName: string; title: string }>,
+): string {
+  const realGh = execFileSync(process.platform === 'win32' ? 'where' : 'which', ['gh'], {
+    encoding: 'utf8',
+  })
+    .trim()
+    .split(/\r?\n/)[0];
+  const dir = mkdtempSync(join(tmpdir(), 'bunyan-fake-gh-review-'));
+  const script = join(dir, 'gh');
+  const prListJson = JSON.stringify(prs).replace(/'/g, "'\\''");
+  const checkoutCases = prs
+    .map(
+      (pr) =>
+        `    ${pr.number}) git fetch -q origin "${pr.headRefName}" 2>/dev/null; git checkout -q "${pr.headRefName}" 2>/dev/null || git checkout -q -b "${pr.headRefName}" "origin/${pr.headRefName}"; exit $? ;;`,
+    )
+    .join('\n');
+  writeFileSync(
+    script,
+    `#!/usr/bin/env bash
+if [ "$1" = "api" ] && [ "$2" = "user" ]; then
+  echo "${login}"
+  exit 0
+fi
+if [ "$1" = "pr" ] && [ "$2" = "list" ]; then
+  echo '${prListJson}'
+  exit 0
+fi
+if [ "$1" = "pr" ] && [ "$2" = "comment" ]; then
+  exit 0
+fi
+if [ "$1" = "pr" ] && [ "$2" = "checkout" ]; then
+  case "$3" in
+${checkoutCases}
+    *) exit 1 ;;
+  esac
+fi
+exec "${realGh}" "$@"
+`,
+  );
+  chmodSync(script, 0o755);
+  return dir;
+}
+
+/** Pushes a real `<seat>/<date>-<slug>` branch — the exact shape a `STEWARD:` PR's branch has — with
+ * one commit, and leaves the fixture back on `main`. */
+function pushSteward(dir: string, branch: string): void {
+  execFileSync('git', ['checkout', '-q', '-b', branch], { cwd: dir });
+  writeFileSync(join(dir, 'STEWARD-note.md'), 'fixture steward turn\n');
+  execFileSync('git', ['add', '-A'], { cwd: dir });
+  execFileSync('git', ['commit', '-q', '-m', 'STEWARD: fixture steward turn'], { cwd: dir });
+  execFileSync('git', ['push', '-q', '-u', 'origin', branch], { cwd: dir });
+  execFileSync('git', ['checkout', '-q', 'main'], { cwd: dir });
+}
+
 describe('step 0 — seat identity', () => {
   it('refuses with no seat at all', () => {
     fx = makeFixture();
@@ -452,6 +516,81 @@ describe('--continue — a defect returns to its builder, never a second door (D
     // origin is a bare local repo, so `gh pr list` finds nothing), never at the builder mismatch.
     expect(r.out + r.err).not.toMatch(/T-001's builder is 'zayd'/);
     expect(r.out + r.err).toMatch(/No open PR names T-001/);
+  });
+});
+
+describe('--review routing — a titleless (STEWARD:) PR, end to end (T-012)', () => {
+  it('routes to the reviewer on the branch prefix\'s machine, never leaves it "?"', () => {
+    fx = makeFixture();
+    const branch = 'brahim/2026-08-16-fake-steward';
+    pushSteward(fx.dir, branch);
+
+    const fakeGhDir = fakeGhForReview('narutousomaki741', [
+      { number: 99, headRefName: branch, title: 'STEWARD: fake steward turn' },
+    ]);
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'hmdnah', '--review'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
+    expect(r.out + r.err).not.toMatch(/reviewer: \?/);
+    expect(r.out).toMatch(/PR #99.*\(no T-nnn in title\).*reviewer: hmdnah.*YOURS/);
+    expect(r.out).toMatch(/Reviewing: PR #99/);
+  });
+
+  it('REVERT-VERIFIED: without the fix, this exact fixture PR routes to nobody', () => {
+    // Reproduces the pre-T-012 gap directly: the old loop resolved a reviewer ONLY when the title
+    // matched `^T-\d{3}`, so a `STEWARD:`-titled PR always left `r = '?'` — no seat ever matched it,
+    // so `mine` stayed null and the run stopped at "No open PR routes to this seat", identical to
+    // routing to nobody. This asserts that RED behavior against the pre-fix formula, and the GREEN
+    // behavior above (this describe's first test) against the actual shipped fix.
+    const preT012 = (title: string) => {
+      const id = (title.match(/^T-\d{3}/) ?? [])[0];
+      return id ? 'resolved' : '?';
+    };
+    expect(preT012('STEWARD: fake steward turn')).toBe('?');
+  });
+
+  it('a titleless PR whose branch names no registered seat routes to NOBODY, not to whoever asks', () => {
+    fx = makeFixture();
+    const branch = 'no-seat-prefix-at-all';
+    pushSteward(fx.dir, branch);
+
+    const fakeGhDir = fakeGhForReview('narutousomaki741', [
+      { number: 100, headRefName: branch, title: 'STEWARD: mystery turn' },
+    ]);
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'hmdnah', '--review'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
+    expect(r.out).toMatch(/reviewer: NOBODY.*names no registered seat.*routes to NOBODY/s);
+    expect(r.out + r.err).toMatch(/No open PR routes to this seat/);
+  });
+
+  it('a T-nnn in the title still wins — the branch fallback never overrides it', () => {
+    fx = makeFixture([
+      {
+        id: 'T-001',
+        status: 'ready',
+        title: 'box work',
+        area: 'kernel',
+        machine: 'box',
+        risk: 'normal',
+      },
+    ]);
+    // Deliberately pushed under a `pc` seat's own branch prefix — if the fallback ever ran for a
+    // titled PR, this would misroute to `khalihlna`. It must not: the title is present, so machine:
+    // box's own reviewer (`hmdnah`) wins.
+    const branch = 'amer/2026-08-16-t001-on-the-wrong-prefix';
+    pushSteward(fx.dir, branch);
+
+    const fakeGhDir = fakeGhForReview('narutousomaki741', [
+      { number: 101, headRefName: branch, title: 'T-001: box work' },
+    ]);
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'hmdnah', '--review'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
+    expect(r.out).toMatch(/PR #101 {2}T-001 {2}reviewer: hmdnah.*YOURS/);
   });
 });
 
