@@ -883,26 +883,21 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-011` (built by `zayd`) was flagged **contract-touching**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-011 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `15b7dfb` · dirty |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `7577d64` · clean |
 | open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | ⚠⚠ 911/913 passing — **2 FAILING** |
+| suite | **915 green** · 96 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 11 files changed, 1006 insertions(+), 146 deletions(-) (11 files) |
-| docs budget | current_state 78.4/96.0 KB · §7 25.7/32.0 KB · abstracts 9/10 · bodies 55 |
+| diff vs origin/main | 12 files changed, 1161 insertions(+), 176 deletions(-) (12 files) |
+| docs budget | current_state 74.3/96.0 KB · §7 21.7/32.0 KB · abstracts 8/10 · bodies 57 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
