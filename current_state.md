@@ -113,12 +113,12 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
-| role | builder |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
-| task | `T-012` |
-| branch | `task/T-012-review-routes-a-pr-whose-title-carries-n` |
-| claimed-at | 2026-08-16T16:04:24Z |
+| task | `T-009` |
+| branch | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` |
+| claimed-at | 2026-08-16T19:23:08Z |
 | status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
@@ -628,6 +628,60 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-009 — review (step 1, mechanical): the revert holds, and the fix's structural claims check out — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
+  Posted the findings as a PR comment on #31.
+- **VERIFIED:** Item 1, live: neutralised `requireHostFaceIsBasePart`'s guard
+  (`if (false && (...))`) and re-ran `tests/document-openings.test.ts` — **2 of 14 RED**, exactly the
+  two new D84 tests, both on `.rejects.toThrow(/own base part/)`; restored → **14/14 green**.
+  Independently re-ran the FULL suite (not from cache): **95 files/902 tests, all green**, matching
+  the handoff's own claim exactly. `tests/freeze-boundary.test.ts`: **12/12 green** locally,
+  `RISK: additive` confirmed via `pnpm state`.
+- **FOUND:** nothing that blocks. Read every structural claim the fix's legitimacy rests on against
+  the code (item 4) — `decodeSubShapeRef` is a real structured decode, `cutNodeId` is the sole `~`
+  writer, `checkNameSafe` already refuses `~` in authored names, `derivedRole` composes
+  `` `${opTag}(...)` `` and the cut boolean's own `opTag` is literally `'cut'`, both call sites are
+  ordered as described, and `hostRef` is written in exactly two guarded places (the one other site
+  only rewrites an already-valid ref's layer segment) — all confirmed. ⚠ **CI was still `pending` on
+  both jobs at review time and no `needs-operator/*` label was present yet** — per `REVIEW.md` item 7's
+  own warning, "no label" and "the labeller never executed" look identical from here, so this is
+  recorded unresolved, not as clearance.
+- **OWES:** `hmdnah` (a later session) — D88 step 2 on PR #31: items 2, 3, 6, reconciled against this
+  report, and re-confirming CI/the `needs-operator/*` label before merging.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-009-review-step1.md`
+- **REVIEW:** n/a — this IS step 1 of the review; step 2 (`hmdnah`, a separate session) approves and
+  merges.
+
+### T-009 — Q18: a hosted void may only host on its host's own base part — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `packages/document/src/commands.ts` (**`requireHostFaceIsBasePart` NEW**, private —
+  decodes `hostRef`, refuses if its `nodeId` contains `~` (`cutNodeId`'s own separator, the only code that
+  ever writes one) or its `role` starts with `cut(` (`derivedRole`'s own opTag); called from
+  `createElementCommand.execute` right after `hostId` is validated, and from
+  `retargetReferenceCommand.execute` right after the belongs-to-cycle guard — D51's "generalised to every
+  reference." `decodeSubShapeRef` import added). No frozen byte, no `packages/protocol`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/902 tests** main suite (real OCCT
+  WASM throughout), **8 files/146 tests** `docs:check`. `tests/freeze-boundary.test.ts` green ⇒
+  **RISK: additive**. **Revert-verified live:** neutralising the guard's condition left **2 of 14** tests
+  in `tests/document-openings.test.ts` RED (both new, `.rejects.toThrow` never threw); restored,
+  **14/14 green**.
+- **FOUND:** measured the actual trigger headlessly before writing the fix — an interior hole (a window
+  with a sill, `offsetV > 0`) leaves the host face's own token passed through UNCHANGED (`REL_INHERIT`),
+  so it does **not** reproduce the defect; a void whose boundary is COINCIDENT with an existing one
+  (`offsetV: 0`, touching the wall's own base) is what earns OCCT's "Modified" verdict and mints a
+  genuinely derived face token (`…structure~opening-…/face/cut(…z-min~0)#0`) — narrower than "any second
+  opening," and the fixture used in the new tests reproduces it on demand.
+- **OWES:** `hmdnah` — this PR's review; `risk: high` per the BACKLOG entry, so D88's two-step route
+  applies. `amer`/`khalihlna` — `T-010` (the browser confirmation this task is split from, `machine: pc`)
+  still needs the picking gesture itself to offer a valid face instead of a derived one; this PR only
+  gives the refusal a reason, not yet a replacement.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-009-hosted-void-base-part.md`
+- **REVIEW:** step 1 (mechanical, D88) complete — see `hmdnah`'s entry above, nothing found that
+  blocks. Step 2 (`hmdnah`, a separate session) pending — approves and merges on green CI.
+
 ### T-012 — review (step 2): the fallback quantifies over the registry, and `reviewerForBranch` genuinely reuses `reviewerFor` — 2026-08-16 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
@@ -907,73 +961,6 @@ is maintenance and does NOT get an entry of its own.**
 - **REVIEW:** n/a — this IS step 2 of the review turn (D88, `AGENTS.md §1.2`); the verdict is on the entry
   above.
 
-### T-014 — `--review` must read the task's `risk:`, not only the frozen surface — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL`/`STEP1_LABEL_COLOR`/`STEP1_LABEL_DESCRIPTION`,
-  `reviewStepFor`, `reviewStepGate`, `reviewFlipsToDone` NEW** — the two-step routing/legality/flip
-  decisions, pure) · `scripts/agent-finish.mjs` (**`--step 1|2` NEW**; a pre-`pnpm verify` gate resolving
-  a review's `risk:` and validating `--step` against it; step 1 creates-if-absent and applies the
-  `review/step-1` label, no row flip, no approve/merge printed; step 2 refuses unless that label is
-  confirmed present, then flips via `reviewFlipsToDone`) · `scripts/agent-start.mjs` (the reviewer branch
-  resolves `risk:` + the claimed PR's labels via `reviewStepFor`, prints which step and the exact finish
-  command with `--step N`, refuses rather than guesses on an unreadable label/risk) ·
-  `scripts/seats.d.mts` (the four new exports declared) · `tests/protocol/seats.test.ts` (+14: the three
-  pure functions, including a revert-verification pair) · `tests/protocol/agent-finish.test.ts` (+7: the
-  new gate). No frozen byte, no `packages/`, no `apps/web`.
-- **VERIFIED:** `pnpm verify` green, exit 0 — **868/868** across 94 files, `docs:check`'s own subset
-  **123/123** across 8; `freeze-boundary` green ⇒ frozen surface unmoved (confirmed separately:
-  `reserved-classes.mjs --base origin/main` → `none — RISK: additive`). **Revert-verified:** `seats.mjs`'s
-  `reviewFlipsToDone` reverted to the pre-fix `!contractTouching` formula → `pnpm vitest run
-  tests/protocol/seats.test.ts -t reviewFlipsToDone` went **2 RED** (`expected true to be false`,
-  reproducing T-008/PR #23's own defect: a `risk: high` step 1 stamps `done`); restored → **5/5 green**.
-- **FOUND:** `AGENTS.md §1.2` and `REVIEW.md`'s "Two steps" section already specified this mechanism in
-  full before any code existed — this PR implements a written spec, not a design decision. ⚠ The
-  `gh`-touching halves (label create, `--add-label`, the label-presence read) are not exercised by the
-  fixture suite, same limitation `reserved-classes.mjs`'s own `syncLabels` already accepts: a throwaway
-  local bare `origin` has no real PR for `gh` to ask about. The pure decision functions are directly
-  tested instead; the plumbing gets its first live exercise on this very PR's own review, since `T-014`
-  is itself `risk: high`.
-- **OWES:** `hmdnah` — this PR (step 1 first, D88; the live exercise of the label-creation path). Also
-  `T-008`/PR #23: its step 1 predates this mechanism and ran by hand, so `review/step-1` needs applying
-  to it **manually** before `--review --step 2` will route; detail in the handoff body.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md`
-- **REVIEW:** Reviewed by `hmdnah` (2026-08-16, PR #28, two-step D88) — **APPROVED and MERGED**,
-  `RISK: additive`, on `narutousomaki741` — the account that did not open it. Step 1 posted a report (no
-  merge); step 2 fixed three defects on the branch (two documentation-accuracy issues step 1 found, plus
-  one live-exercise code defect step 2 found: `STEP1_LABEL_DESCRIPTION` exceeded GitHub's 100-character
-  label-description limit, so `review/step-1` could never be created on a fresh repo). The entry above is
-  the record.
-
-### T-015 — review: the fix holds, backward sweep and weak-green clean — 2026-08-16 — seat: hmdnah
-
-- **CHANGED:** Nothing on this branch — no defect proven. The code is merged as fixed by the second
-  `zayd` turn (commit `2798b2c`).
-- **VERIFIED:** `pnpm verify` green, **847/847**, exit 0, `tests/freeze-boundary.test.ts` green ⇒ frozen
-  surface unmoved. **Reconciled step 1's fix myself rather than trusting the report:** `git diff 902e827
-  2798b2c` shows exactly one production line changed
-  (`scripts/agent-start.mjs:400`, `seats.builderFor(root, continueTask)` → `..., seat)`) plus one new
-  test. Reverted that line by hand and re-ran `tests/protocol/agent-start.test.ts`: **1 failed | 16
-  skipped**, `✖ T-001's builder is 'zayd', not 'amer'.` — reproduces step 1's finding exactly. Restored:
-  **17/17** in that file.
-- **FOUND:** No new blocking finding. **Item 2 (backward sweep):** `builderFor` has one production call
-  site, now fixed; every `reviewerFor` call site checked — `agent-finish.mjs:324`/`:475` both pass
-  `seat`, `agent-start.mjs:507` passes `undefined` deliberately (the pre-existing reviewer-routing
-  *display* loop, not an admission gate, unmodified by this PR) — no second instance of the missing-arg
-  shape. **Item 3 (new kind of thing):** the `--continue` door and `builderFor` are the new entity;
-  `agent-finish.mjs`'s `existingPR` check does not key on the entry path, so nothing else needed
-  enumerating. Two non-blocking opinions recorded in the PR comment (duplicate PR-title regex in the
-  display loop; the pre-existing `--limit 10` cap on `gh pr list`). **Item 6 (weak green):** the new
-  regression test infers admission success indirectly (failing one gate later, at "No open PR"); checked
-  a hypothetical alternate bug (raw `finishingSeat` used as machine instead of `machineOf`) and confirmed
-  it would also fail the test's second assertion via a different message — not fooled by that class
-  either. Test is not weak.
-- **OWES:** nothing new. `brahim` — T-016 (depends-on T-015) is now unblocked.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-16-T-015-review.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the build entry, now
-  rotated to `docs/history.md` §E.
-
 ---
 
 ## §8 — Generated
@@ -983,16 +970,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-012 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `main` · `f618020` · dirty |
-| open PRs | none — main is the tip of the work |
-| suite | **900 green** · 95 files · 281 suites |
+| **newest entry** | **T-009 (hmdnah, 2026-08-16)** |
+| branch · tip · tree | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` · `64272dc` · clean |
+| open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene · #31 task/T-009-q18-a-hosted-void-may-only-host-on-its-h |
+| suite | **902 green** · 95 files · 281 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 3 files changed, 81 insertions(+), 50 deletions(-) (3 files) |
-| docs budget | current_state 82.5/96.0 KB · §7 30.3/32.0 KB · abstracts 10/10 · bodies 53 |
+| diff vs origin/main | 7 files changed, 452 insertions(+), 79 deletions(-) (7 files) |
+| docs budget | current_state 81.3/96.0 KB · §7 29.0/32.0 KB · abstracts 10/10 · bodies 55 |
 
 _Generated 2026-08-16 by `pnpm state`._
 

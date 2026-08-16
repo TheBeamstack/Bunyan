@@ -106,7 +106,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint          | apps-web | pc      | normal | T-005      |
 | T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref       | document | box     | normal | —          |
 | T-008 | done    | Q19 — the belongs-to deletion reconciliation                  | document | box     | high   | —          |
-| T-009 | ready   | Q18 — a hosted void may only host on its host's base part     | document | box     | high   | —          |
+| T-009 | done    | Q18 — a hosted void may only host on its host's base part     | document | box     | high   | —          |
 | T-010 | blocked | Q18 — two doors on one wall, confirmed in the browser         | apps-web | pc      | normal | T-009      |
 | T-011 | ready   | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
 | T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
