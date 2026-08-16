@@ -397,7 +397,7 @@ export function main(argv = process.argv.slice(2)) {
     // builder in every real call (measured 2026-08-15 against T-008's own baton).
     let admitted;
     try {
-      admitted = seats.builderFor(root, continueTask);
+      admitted = seats.builderFor(root, continueTask, seat);
     } catch (e) {
       die(e.message);
     }

@@ -288,4 +288,27 @@ describe('--continue — a defect returns to its builder, never a second door (D
     expect(r.code).not.toBe(0);
     expect(r.err).toMatch(/--continue expects a T-nnn id/);
   });
+
+  it("a `machine: any` task admits the caller's OWN builder, never a hardcoded box default", () => {
+    // Regression for the defect hmdnah's step-1 review found in T-015 (PR #27): the admission gate
+    // called `seats.builderFor(root, continueTask)` with NO `finishingSeat`, so its `any` fallback
+    // ("finishing seat's machine when given, else box") always resolved to `zayd` — wrongly refusing
+    // `amer`, the real pc builder, exactly like the wrong-machine case below would if it weren't fixed.
+    fx = makeFixture([
+      {
+        id: 'T-001',
+        status: 'ready',
+        title: 'either-machine work',
+        area: 'infra',
+        machine: 'any',
+        risk: 'high',
+      },
+    ]);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'amer', '--continue', 'T-001']);
+    expect(r.code).not.toBe(0);
+    // Admission itself must succeed — the run fails one gate LATER, at "no open PR" (this fixture's
+    // origin is a bare local repo, so `gh pr list` finds nothing), never at the builder mismatch.
+    expect(r.out + r.err).not.toMatch(/T-001's builder is 'zayd'/);
+    expect(r.out + r.err).toMatch(/No open PR names T-001/);
+  });
 });
