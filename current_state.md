@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
-| role | builder |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
 | task | `T-011` |
 | branch | `task/T-011-q17a-scene-designoptions-becomes-a-scene` |
@@ -692,6 +692,60 @@ is maintenance and does NOT get an entry of its own.**
   design doc §3.2).
 - **FULL:** `handoff/zayd/2026-08-16-T-011-design-option-crud.md`
 - **REVIEW:** pending — `hmdnah`, two-step review (D88); step 2 approves, the owner merges.
+
+### T-009 — review (step 1, mechanical): the revert holds, and the fix's structural claims check out — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
+  Posted the findings as a PR comment on #31.
+- **VERIFIED:** Item 1, live: neutralised `requireHostFaceIsBasePart`'s guard
+  (`if (false && (...))`) and re-ran `tests/document-openings.test.ts` — **2 of 14 RED**, exactly the
+  two new D84 tests, both on `.rejects.toThrow(/own base part/)`; restored → **14/14 green**.
+  Independently re-ran the FULL suite (not from cache): **95 files/902 tests, all green**, matching
+  the handoff's own claim exactly. `tests/freeze-boundary.test.ts`: **12/12 green** locally,
+  `RISK: additive` confirmed via `pnpm state`.
+- **FOUND:** nothing that blocks. Read every structural claim the fix's legitimacy rests on against
+  the code (item 4) — `decodeSubShapeRef` is a real structured decode, `cutNodeId` is the sole `~`
+  writer, `checkNameSafe` already refuses `~` in authored names, `derivedRole` composes
+  `` `${opTag}(...)` `` and the cut boolean's own `opTag` is literally `'cut'`, both call sites are
+  ordered as described, and `hostRef` is written in exactly two guarded places (the one other site
+  only rewrites an already-valid ref's layer segment) — all confirmed. ⚠ **CI was still `pending` on
+  both jobs at review time and no `needs-operator/*` label was present yet** — per `REVIEW.md` item 7's
+  own warning, "no label" and "the labeller never executed" look identical from here, so this is
+  recorded unresolved, not as clearance.
+- **OWES:** `hmdnah` (a later session) — D88 step 2 on PR #31: items 2, 3, 6, reconciled against this
+  report, and re-confirming CI/the `needs-operator/*` label before merging.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-009-review-step1.md`
+- **REVIEW:** n/a — this IS step 1 of the review; step 2 (`hmdnah`, a separate session) approves and
+  merges.
+
+### T-009 — Q18: a hosted void may only host on its host's own base part — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `packages/document/src/commands.ts` (**`requireHostFaceIsBasePart` NEW**, private —
+  decodes `hostRef`, refuses if its `nodeId` contains `~` (`cutNodeId`'s own separator, the only code that
+  ever writes one) or its `role` starts with `cut(` (`derivedRole`'s own opTag); called from
+  `createElementCommand.execute` right after `hostId` is validated, and from
+  `retargetReferenceCommand.execute` right after the belongs-to-cycle guard — D51's "generalised to every
+  reference." `decodeSubShapeRef` import added). No frozen byte, no `packages/protocol`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/902 tests** main suite (real OCCT
+  WASM throughout), **8 files/146 tests** `docs:check`. `tests/freeze-boundary.test.ts` green ⇒
+  **RISK: additive**. **Revert-verified live:** neutralising the guard's condition left **2 of 14** tests
+  in `tests/document-openings.test.ts` RED (both new, `.rejects.toThrow` never threw); restored,
+  **14/14 green**.
+- **FOUND:** measured the actual trigger headlessly before writing the fix — an interior hole (a window
+  with a sill, `offsetV > 0`) leaves the host face's own token passed through UNCHANGED (`REL_INHERIT`),
+  so it does **not** reproduce the defect; a void whose boundary is COINCIDENT with an existing one
+  (`offsetV: 0`, touching the wall's own base) is what earns OCCT's "Modified" verdict and mints a
+  genuinely derived face token (`…structure~opening-…/face/cut(…z-min~0)#0`) — narrower than "any second
+  opening," and the fixture used in the new tests reproduces it on demand.
+- **OWES:** `hmdnah` — this PR's review; `risk: high` per the BACKLOG entry, so D88's two-step route
+  applies. `amer`/`khalihlna` — `T-010` (the browser confirmation this task is split from, `machine: pc`)
+  still needs the picking gesture itself to offer a valid face instead of a derived one; this PR only
+  gives the refusal a reason, not yet a replacement.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-009-hosted-void-base-part.md`
+- **REVIEW:** step 1 (mechanical, D88) complete — see `hmdnah`'s entry above, nothing found that
+  blocks. Step 2 (`hmdnah`, a separate session) pending — approves and merges on green CI.
 
 ### T-012 — review (step 2): the fallback quantifies over the registry, and `reviewerForBranch` genuinely reuses `reviewerFor` — 2026-08-16 — seat: hmdnah
 

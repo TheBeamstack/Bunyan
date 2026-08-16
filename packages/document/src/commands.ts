@@ -77,6 +77,7 @@ import { validateParams, withDefaults } from './schema.js';
 import type { UndoableEdit } from './undo.js';
 import type { ModelRevision } from './revision.js';
 import type { RigidMotion, Vec3 } from '@bunyan/protocol';
+import { decodeSubShapeRef } from '@bunyan/protocol';
 import { nextRevision } from './revision.js';
 
 /**
@@ -202,6 +203,33 @@ function checkNameSafe(name: string, what: string): void {
       'REFUSED',
       `${what} "${name}" contains one of "/", "#" or "~" — these are SubShapeRef / DAG-node ` +
         `separators, and a name carrying one could forge a reference to another element's face`,
+    );
+  }
+}
+
+/**
+ * ⚠⚠ D84 — A HOSTED VOID MAY ONLY HOST ON ITS HOST'S OWN BASE PART, never a face a cut already created
+ * or modified. `hostedBy`'s resolution (`build.ts`) matches `hostRef` against the host's BASE parts —
+ * built BEFORE any of its voids are cut — so a ref naming a face THE CUT ITSELF produced or touched can
+ * never resolve there; it is a silent `broken-ref`, discovered only at the next rebuild.
+ *
+ * ⚠ **Why this belongs here, not in `apps/web`:** `checkNameSafe` above already refuses `~` in every
+ * authored name, and `cutNodeId` (`geometry.ts`) is the ONLY code that ever writes one into a `nodeId`
+ * — so `~`'s presence is a STRUCTURAL fact this package owns and guarantees, not a parse of an opaque
+ * id. `apps/web` has no such guarantee about a string it did not mint; *ids are opaque — never parse
+ * them* stays standing there. `role` carries the same signal one operation later — `derivedRole`
+ * (`kernel-occt/naming.ts`) always writes `cut(...)` for a hosted void's own cut op — so both are
+ * checked; either is sufficient on its own to prove the face is not a base-part face.
+ */
+function requireHostFaceIsBasePart(hostId: ElementId, hostRef: string): void {
+  const decoded = decodeSubShapeRef(hostRef);
+  if (decoded === undefined) return; // an undecodable ref is a different concern — resolved as broken-ref at build.
+  if (decoded.nodeId.includes('~') || decoded.role.startsWith('cut(')) {
+    throw new CommandFailure(
+      'REFUSED',
+      `host face "${hostRef}" is not on "${hostId}"'s own base part — it was created or modified by ` +
+        `an existing cut through it (its ${decoded.nodeId.includes('~') ? 'node' : 'role'} carries the ` +
+        `cut's own marker). Pick a face of the host as it exists before any hosted void cuts it.`,
     );
   }
 }
@@ -628,6 +656,10 @@ export const createElementCommand: Command = {
 
     const hostId = args['hostId'] as string | undefined;
     if (hostId !== undefined) requireElement(ctx.scene, hostId);
+    const hostRefArg = args['hostRef'] as string | undefined;
+    if (hostId !== undefined && hostRefArg !== undefined) {
+      requireHostFaceIsBasePart(hostId, hostRefArg);
+    }
 
     // ⚠ THE LBS ADDRESS, AND IT WAS UNVALIDATED. `containerId` is the element's place in the spatial
     // tree (D35) — which IS Planitor's Location Breakdown Structure. A typo did not fail: `elevationOf`
@@ -1067,6 +1099,10 @@ export const retargetReferenceCommand: Command = {
           `show for it. Retarget onto an element outside that chain.`,
       );
     }
+    // D84, generalised (D51): retargeting a broken reference is the OTHER door onto a host face, and it
+    // is bound by the same rule createElement is — a new host face is refused if it is not the host's
+    // own base part, for exactly the reason above `requireHostFaceIsBasePart` explains.
+    requireHostFaceIsBasePart(host.id, text(args['hostRef']));
 
     const after: Element = { ...element, hostId: host.id, hostRef: text(args['hostRef']) };
     const rebuilt = [host.id];
