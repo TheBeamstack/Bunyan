@@ -100,3 +100,20 @@ export declare function builderFor(
   taskId: string,
   finishingSeat?: string,
 ): BuilderVerdict;
+
+/** The seat a branch's own `<seat>/…` prefix names, or `null` when it names no registered seat. */
+export declare function seatFromBranchPrefix(root: string, branchName: string): string | null;
+
+export interface BranchReviewerVerdict {
+  /** `null` when the branch prefix names no registered seat — routes to nobody, explicitly. */
+  seat: string | null;
+  solo: boolean;
+  reason: string | null;
+}
+/** Reviewer routing for a PR whose title carries no `T-nnn` (T-012) — derives the machine from the
+ * branch's own seat prefix, never widens it. */
+export declare function reviewerForBranch(
+  root: string,
+  branchName: string,
+  finishingSeat?: string,
+): BranchReviewerVerdict;

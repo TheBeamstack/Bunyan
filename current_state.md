@@ -628,6 +628,38 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-012 — `--review` routes a PR whose title carries no `T-nnn` — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `scripts/seats.mjs` (**`seatFromBranchPrefix` NEW**, exported — the seat a branch's own
+  `<seat>/…` prefix names; **`reviewerForBranch` NEW**, exported — for a titleless PR, resolves that
+  seat's `machineOf`, then hands it to the SAME `reviewerFor` a `T-nnn` PR already uses) ·
+  `scripts/agent-start.mjs` (the `--review` routing loop's `else` branch — no `T-nnn` — now calls
+  `reviewerForBranch(root, pr.headRefName, undefined)` instead of leaving `r = '?'`; prints `NOBODY` with
+  the reason when the prefix names no seat; the trailing `Finish with:` hint is STEWARD-aware) ·
+  `scripts/seats.d.mts` (both declared) · `tests/protocol/seats.test.ts` (+9, pure) ·
+  `tests/protocol/agent-start.test.ts` (`fakeGhForReview`/`pushSteward` NEW; +3, spawns the real CLI). No
+  frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` (foreground) green, all six gates — main suite **900 tests, 95 files**;
+  `docs:check` **146 tests, 8 files**. `tests/freeze-boundary.test.ts` green ⇒ frozen surface unmoved —
+  **RISK: additive**. **Revert-verified live:** `git stash` on the three source/type files left **10 of
+  77** protocol tests RED (`seatFromBranchPrefix`/`reviewerForBranch is not a function`, plus the new
+  end-to-end case); the end-to-end one reproduces the task's own `done-when:` literally — a real spawn of
+  `agent-start.mjs --review` against a fixture `STEWARD:`-titled PR on a real pushed branch printed
+  `reviewer: ?` and stopped at "No open PR routes to this seat." `git stash pop` restored 77/77 green.
+- **FOUND:** Closes a gap T-015's own handoff had flagged and left open (`gh pr
+  checkout`/`gh pr comment` were untested against a real PR, since this repo's fixture `origin` is a bare
+  local repo `gh pr list` returns nothing against) — the new `fakeGhForReview` stub answers `pr list` with
+  canned JSON and makes `pr checkout` a real `git checkout` of a branch the test itself pushed, hermetic
+  against ambient `gh` auth per today's earlier T-013 CI lesson (own `fakeGhReporting` `PATH` stand-in,
+  extended rather than duplicated). `agent-finish.mjs`'s own `reviewerFor` calls were never exposed to
+  this gap — they pass the finishing seat's own machine directly, never a parsed title — so needed no
+  change (backward sweep, invariant 7).
+- **OWES:** `hmdnah` — this PR's review; `risk: high` per the BACKLOG entry (safety-critical routing), so
+  D88's two-step route applies.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-012-titleless-pr-routing.md`
+- **REVIEW:** pending — `hmdnah`, two-step review (D88, risk: high).
+
 ### T-013 — review (step 2): the guard held, and CI's own failure-then-fix cycle proved the hermeticity fix genuine — 2026-08-16 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
@@ -953,16 +985,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-013 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `main` · `deaf267` · dirty |
+| **newest entry** | **T-012 (zayd, 2026-08-16)** |
+| branch · tip · tree | `task/T-012-review-routes-a-pr-whose-title-carries-n` · `bdfd7e2` · dirty |
 | open PRs | none — main is the tip of the work |
-| suite | **888 green** · 95 files · 277 suites |
+| suite | ⚠⚠ 899/900 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 3 files changed, 97 insertions(+), 74 deletions(-) (3 files) |
-| docs budget | current_state 80.2/96.0 KB · §7 28.0/32.0 KB · abstracts 9/10 · bodies 51 |
+| diff vs origin/main | 6 files changed, 332 insertions(+), 7 deletions(-) (6 files) |
+| docs budget | current_state 82.8/96.0 KB · §7 30.6/32.0 KB · abstracts 10/10 · bodies 52 |
 
 _Generated 2026-08-16 by `pnpm state`._
 

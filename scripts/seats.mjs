@@ -415,6 +415,46 @@ export function reviewerFor(root, taskOrMachine, finishingSeat) {
   return { seat: builder.seat, solo: true };
 }
 
+// ------------------------------------------------------------------- titleless PR routing (T-012) --
+
+/**
+ * The seat a branch's OWN prefix names — `<seat>/<date>-<slug>` for a `STEWARD:` turn
+ * (e.g. `brahim/2026-08-15-step-routing-and-continue`), never `task/T-nnn-…`, which always carries a
+ * `T-nnn` in its PR title and never reaches this path. `null` when the prefix names no registered seat
+ * — a typo, a fixture, or a branch shape this project has never used.
+ */
+export function seatFromBranchPrefix(root, branchName) {
+  const prefix = (branchName ?? '').split('/')[0];
+  return readRegistry(root).some((r) => r.seat === prefix) ? prefix : null;
+}
+
+/**
+ * Reviewer routing for a PR whose TITLE carries no `T-nnn` (T-012) — the `STEWARD:` case, which is the
+ * routine one (`AGENTS.md` §1.3), not an edge case: `agent-start.mjs --review`'s routing loop called
+ * `reviewerFor` only when the title matched `^T-\d{3}`, so every `STEWARD:` PR fell through unrouted
+ * (PR #25 needed `hmdnah` to hand-claim it twice).
+ *
+ * The fallback DERIVES the machine from the branch's own seat prefix (`zayd/… ⇒ box`, `amer/… ⇒ pc`,
+ * `brahim/… ⇒ box`) and hands it to the same `reviewerFor` a `T-nnn` PR uses — never widens it, so a
+ * browser-only PR can never become claimable by a headless seat. A branch prefix naming no registered
+ * seat routes to nobody, explicitly (`seat: null`, `reason` says why), rather than defaulting to a
+ * machine nothing on the branch proves the work ran on.
+ */
+export function reviewerForBranch(root, branchName, finishingSeat) {
+  const fromSeat = seatFromBranchPrefix(root, branchName);
+  if (!fromSeat) {
+    return {
+      seat: null,
+      solo: false,
+      reason:
+        `branch '${branchName}' names no registered seat as its prefix — routes to NOBODY. A ` +
+        `titleless PR must be traceable to the seat whose machine ran its work.`,
+    };
+  }
+  const m = machineOf(root, fromSeat);
+  return { ...reviewerFor(root, m, finishingSeat), reason: null };
+}
+
 /**
  * The BUILDER who owns a task, derived from the task's own `machine:` field alone — NEVER from a
  * branch's §0b baton, which records the last seat to FINISH a turn there, and a `--review` finish
