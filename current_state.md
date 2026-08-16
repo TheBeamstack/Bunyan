@@ -975,20 +975,26 @@ is maintenance and does NOT get an entry of its own.**
 
 **reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
+## NEXT TURN: REVIEW ONLY
+
+`T-013` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
+
+**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
+
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-013 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-013-the-seat-identity-guard-gh-api-user-must` · `594800a` · clean |
-| open PRs | none — main is the tip of the work |
+| branch · tip · tree | `task/T-013-the-seat-identity-guard-gh-api-user-must` · `b1ed6fe` · clean |
+| open PRs | #29 task/T-013-the-seat-identity-guard-gh-api-user-must |
 | suite | **888 green** · 95 files · 277 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 6 files changed, 388 insertions(+), 47 deletions(-) (6 files) |
-| docs budget | current_state 81.8/96.0 KB · §7 29.6/32.0 KB · abstracts 10/10 · bodies 50 |
+| diff vs origin/main | 7 files changed, 438 insertions(+), 57 deletions(-) (7 files) |
+| docs budget | current_state 82.1/96.0 KB · §7 29.6/32.0 KB · abstracts 10/10 · bodies 50 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
