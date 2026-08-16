@@ -116,10 +116,10 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | seat | `zayd` |
 | role | builder |
 | machine | box |
-| task | `T-012` |
-| branch | `task/T-012-review-routes-a-pr-whose-title-carries-n` |
-| claimed-at | 2026-08-16T16:04:24Z |
-| status | finished — PR open, awaiting review |
+| task | `T-011` |
+| branch | `task/T-011-q17a-scene-designoptions-becomes-a-scene` |
+| claimed-at | 2026-08-16T20:54:10Z |
+| status | working |
 
 <!-- END BATON -->
 
