@@ -12,7 +12,9 @@ concurrency:
 jobs:
   verify:
     name: typecheck · lint · geometry harness
-    runs-on: ubuntu-latest
+    # Self-hosted while the repo is private (owner ruling, 2026-08-15): GitHub-hosted minutes ran out
+    # and going public to get the public-repo free tier is blocked on the CLA counterparty (Q11).
+    runs-on: [self-hosted, bunyan-oracle]
     steps:
       # ⚠⚠ `fetch-depth: 0` IS LOAD-BEARING, AND ITS ABSENCE WAS INVISIBLE FOR 73 ENTRIES.
       # `actions/checkout` defaults to a SHALLOW clone (depth 1), which contains the merge commit and
@@ -120,7 +122,7 @@ jobs:
   pr-shape:
     name: PR shape · reserved classes
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, bunyan-oracle]
     permissions:
       contents: read
       pull-requests: write
