@@ -986,7 +986,7 @@ export const deleteElementCommand: Command = {
     return ctx.edit(
       doomed.length === 1
         ? `Delete ${type.label}`
-        : `Delete ${type.label} and ${doomed.length - 1} hosted element(s)`,
+        : `Delete ${type.label} and ${doomed.length - 1} other element(s)`,
       changes,
       rebuilt,
     );

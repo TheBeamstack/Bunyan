@@ -627,6 +627,22 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-008 — the two step-1 review defects, closed on the existing claim — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `document.ts` (`danglingAncestorRefs` groups both edges by the missing ancestor id, one
+  report per element, not per edge; `hostId` now `element.id`, matching T-007's convention) ·
+  `commands.ts` (`deleteElement`'s label: `"hosted element(s)"` → `"other element(s)"`) ·
+  `tests/belongs-to-deletion-d83.test.ts` (+2, through the shipped verbs).
+- **VERIFIED:** `pnpm verify` — **845/95, real OCCT, exit 0**; `freeze-boundary` green, `RISK: additive`
+  unmoved. Both fixes **revert-verified separately**, each 1 RED alone, both restored green.
+- **FOUND:** both defects reproduce exactly as both `hmdnah` reviews measured. `agent-start.mjs
+  --continue T-008` (T-015's first real use) worked as documented — no `gh pr checkout` by hand.
+- **OWES:** `hmdnah` — D88 step 2 on PR #23; both defects closed, `hostId` aligned too (free, unread).
+  `khalihlna` — the 2026-08-15 Problems-panel `unverified here` note stands; untouched this turn.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-008-review-defects-fixed.md`
+- **REVIEW:** pending — `hmdnah` step 2 (D88), same PR #23.
+
 ### T-008 — review: the reconciliation holds, and the surfacing pass double-reports one element — 2026-08-15 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing the owner is
@@ -972,17 +988,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-008 (hmdnah, 2026-08-15)** |
-| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `8cbfeeb` · clean |
-| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **843 green** · 95 files · 266 suites |
+| **newest entry** | **T-008 (zayd, 2026-08-16)** |
+| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `d5f167a` · dirty |
+| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
+| suite | ⚠⚠ 843/845 passing — **2 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 771 insertions(+), 134 deletions(-) (13 files) |
-| docs budget | current_state 82.3/96.0 KB · §7 29.9/32.0 KB · abstracts 9/10 · bodies 41 |
+| diff vs origin/main | 13 files changed, 829 insertions(+), 133 deletions(-) (13 files) |
+| docs budget | current_state 83.1/96.0 KB · §7 31.1/32.0 KB · abstracts 10/10 · bodies 42 |
 
-_Generated 2026-08-15 by `pnpm state`._
+_Generated 2026-08-16 by `pnpm state`._
 
 <!-- END GENERATED -->

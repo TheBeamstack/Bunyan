@@ -127,6 +127,20 @@ describe('D83 — a member may not outlive its parent, and a lost ancestor is vi
     expect(quantities.rows.map((r) => r.elementId)).toEqual([bystander]);
   }, 120_000);
 
+  it('⚠⚠ the edit label does not hard-code "hosted" for a belongs-to-only member', async () => {
+    // Two walls joined by `parentElementId` ALONE — no `hostId` edge anywhere in this pair, so a
+    // label that still says "hosted" is wrong for every member the D83 cascade widening added.
+    const doc = await seeded();
+    const parent = await wall(doc);
+    const member = await wall(doc, 4000);
+    await doc.execute('core.setElementMetadata', { elementId: member, parentElementId: parent });
+
+    const edit = await doc.execute('core.deleteElement', { elementId: parent });
+
+    expect(edit.changes.map((c) => c.id).sort()).toEqual([member, parent].sort());
+    expect(edit.label).not.toMatch(/hosted/);
+  }, 120_000);
+
   it('the cascade is TRANSITIVE ACROSS BOTH EDGES — a door in a wall in a group', async () => {
     const doc = await seeded();
     const parent = await wall(doc);
@@ -211,6 +225,24 @@ describe('D83 — a member may not outlive its parent, and a lost ancestor is vi
     // `unbuildable()` — which lists only registration failures — has nothing to say about it either.
     expect(reopened.geometryOf(door)).toBeUndefined();
     expect(reopened.unbuildable()).toHaveLength(0);
+
+    const broken = reopened.brokenRefs();
+    expect(broken).toHaveLength(1);
+    expect(broken[0]!.elementId).toBe(door);
+    expect(broken[0]!.ref).toBe(host);
+  }, 120_000);
+
+  it('⚠⚠ ONE missing ancestor named on BOTH edges reports ONCE, not twice', async () => {
+    // The two edges are checked independently, so a door whose `hostId` AND `parentElementId` both
+    // name the same missing wall must not yield two `BrokenReference`s differing only in `reason` —
+    // `App.tsx` keys its Problems list on `${elementId}:${ref}` alone, so a second entry collides.
+    const doc = await seeded();
+    const host = await wall(doc);
+    const door = await doorIn(doc, host);
+    await doc.execute('core.setElementMetadata', { elementId: door, parentElementId: host });
+
+    const reopened = newDoc(without(doc.scene, host));
+    await reopened.rebuildAll();
 
     const broken = reopened.brokenRefs();
     expect(broken).toHaveLength(1);

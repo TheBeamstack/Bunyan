@@ -30,7 +30,7 @@
  */
 
 import type { SectionCurve } from '@bunyan/protocol';
-import type { BrokenReference, Element, ElementId, Part } from './entities.js';
+import type { BrokenReference, ElementId, Part } from './entities.js';
 import { containerCode, modelElements } from './enumerate.js';
 import type {
   EnumerateOptions,
@@ -1340,21 +1340,37 @@ function danglingDesignOptionRefs(scene: Scene): readonly BrokenReference[] {
  *
  * ⚠ The edge set is the exclusion rule's, deliberately: a class this reported over one edge would leave
  * the other edge silent, which is the shape of the defect D83 closes.
+ *
+ * ⚠⚠ **THE TWO EDGES ARE CHECKED INDEPENDENTLY, BUT AN ELEMENT REPORTS ONCE, NOT PER EDGE.** An element
+ * whose `hostId` AND `parentElementId` both name the same missing id is ONE broken reference, not two —
+ * `App.tsx`'s Problems panel keys its list on `${elementId}:${ref}` alone, and a second entry differing
+ * only in `reason` collides on that key. Grouped by the missing ancestor id, not emitted per edge.
+ *
+ * ⚠ `hostId` is the element's own id, matching `danglingDesignOptionRefs` above (T-007's convention):
+ * the reference is not hosted on anything, and `ancestorId` is by construction absent from
+ * `scene.elements`, so it cannot serve as a host either.
  */
 function danglingAncestorRefs(scene: Scene): readonly BrokenReference[] {
   const out: BrokenReference[] = [];
-  const check = (element: Element, edge: string, ancestorId: ElementId | undefined): void => {
-    if (ancestorId === undefined || scene.elements[ancestorId] !== undefined) return;
-    out.push({
-      elementId: element.id,
-      ref: ancestorId,
-      hostId: ancestorId,
-      reason: `its ${edge} names "${ancestorId}", which is not an element in this document, so this element is excluded from every enumerating consumer`,
-    });
-  };
   for (const element of Object.values(scene.elements)) {
-    check(element, 'hostId', element.hostId);
-    check(element, 'parentElementId', element.parentElementId);
+    const edgesByAncestor = new Map<ElementId, string[]>();
+    for (const [edge, ancestorId] of [
+      ['hostId', element.hostId],
+      ['parentElementId', element.parentElementId],
+    ] as const) {
+      if (ancestorId === undefined || scene.elements[ancestorId] !== undefined) continue;
+      const edges = edgesByAncestor.get(ancestorId) ?? [];
+      edges.push(edge);
+      edgesByAncestor.set(ancestorId, edges);
+    }
+    for (const [ancestorId, edges] of edgesByAncestor) {
+      out.push({
+        elementId: element.id,
+        ref: ancestorId,
+        hostId: element.id,
+        reason: `its ${edges.join(' and ')} name${edges.length === 1 ? 's' : ''} "${ancestorId}", which is not an element in this document, so this element is excluded from every enumerating consumer`,
+      });
+    }
   }
   return out;
 }
