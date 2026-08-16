@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
-| role | builder |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
 | task | `T-014` |
 | branch | `task/T-014-review-must-read-the-task-s-risk-not-onl` |
@@ -962,18 +962,13 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-014` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-014 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `f10be02` · dirty |
+| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `31d5607` · clean |
 | open PRs | #28 task/T-014-review-must-read-the-task-s-risk-not-onl · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
 | suite | **874 green** · 94 files · 273 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
