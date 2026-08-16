@@ -638,7 +638,7 @@ is maintenance and does NOT get an entry of its own.**
   confirmed present, then flips via `reviewFlipsToDone`) · `scripts/agent-start.mjs` (the reviewer branch
   resolves `risk:` + the claimed PR's labels via `reviewStepFor`, prints which step and the exact finish
   command with `--step N`, refuses rather than guesses on an unreadable label/risk) ·
-  `scripts/seats.d.mts` (the four new exports declared) · `tests/protocol/seats.test.ts` (+19: the three
+  `scripts/seats.d.mts` (the four new exports declared) · `tests/protocol/seats.test.ts` (+14: the three
   pure functions, including a revert-verification pair) · `tests/protocol/agent-finish.test.ts` (+7: the
   new gate). No frozen byte, no `packages/`, no `apps/web`.
 - **VERIFIED:** `pnpm verify` green, exit 0 — **868/868** across 94 files, `docs:check`'s own subset
@@ -952,15 +952,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-014 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `2701f07` · clean |
-| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
-| suite | **868 green** · 94 files · 272 suites |
+| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `fc079a8` · dirty |
+| open PRs | #28 task/T-014-review-must-read-the-task-s-risk-not-onl · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
+| suite | **873 green** · 94 files · 273 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 9 files changed, 665 insertions(+), 47 deletions(-) (9 files) |
-| docs budget | current_state 79.0/96.0 KB · §7 26.8/32.0 KB · abstracts 10/10 · bodies 45 |
+| diff vs origin/main | 12 files changed, 732 insertions(+), 48 deletions(-) (12 files) |
+| docs budget | current_state 79.4/96.0 KB · §7 26.8/32.0 KB · abstracts 10/10 · bodies 45 |
 
 _Generated 2026-08-16 by `pnpm state`._
 

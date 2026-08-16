@@ -61,7 +61,8 @@ thing the owner has been doing manually for two review cycles, per the task's ow
 against these, and `tests/protocol/seats.test.ts` imports them directly).
 
 **Tests** — `tests/protocol/seats.test.ts`: a `reviewStepFor`/`reviewStepGate`/`reviewFlipsToDone` suite,
-19 cases, including the revert-verification pair described above. `tests/protocol/agent-finish.test.ts`:
+14 cases (3 `reviewStepFor` + 6 `reviewStepGate` + 5 `reviewFlipsToDone`), including the
+revert-verification pair described above. `tests/protocol/agent-finish.test.ts`:
 7 cases on the new pre-verify gate (invalid `--step`, `--step` without `--review`, `risk: high` with no
 step, `--step` on `risk: normal`, an unreadable `risk:` field, and the two legal shapes reaching the gate
 message). No `packages/`, no `apps/web`, no frozen byte.

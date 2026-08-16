@@ -194,6 +194,32 @@ export function findTaskPR(openPRs, taskId) {
   return openPRs.find((p) => (p.title.match(/^T-\d{3}/) ?? [])[0] === taskId) ?? null;
 }
 
+/**
+ * The two-step review routing decision (D88, T-014) — pure, given already-resolved inputs. `mineRisk`
+ * is `docs/BACKLOG.md`'s `risk:` for `mineId` (`undefined` when unreadable, never defaulted to
+ * `'normal'`); `labels` is the claimed PR's label names, or `null` when `gh pr view --json labels`
+ * could not be read. Returns `null` for a single-turn review (`risk` is not `'high'`), `1`/`2` for a
+ * two-step one, and throws rather than guesses on either input being unreadable. Kept separate from the
+ * `gh` call that produces `labels` so this exact refusal logic is unit-testable without spawning `gh` —
+ * the same reason `findTaskPR` above is pulled out.
+ */
+export function resolveReviewStep(mineId, mineRisk, labels, prNumber) {
+  if (mineId && !mineRisk) {
+    throw new Error(
+      `${mineId} has no readable 'risk:' field in docs/BACKLOG.md — refusing rather than defaulting ` +
+        `to normal.`,
+    );
+  }
+  if (mineRisk !== 'high') return null;
+  if (!labels) {
+    throw new Error(
+      `${mineId} is risk: high, but PR #${prNumber}'s labels could not be read — refusing to guess ` +
+        `which review step this is. Confirm 'gh' is authenticated and retry.`,
+    );
+  }
+  return seats.reviewStepFor(mineRisk, labels);
+}
+
 // =================================================================================================
 // MAIN — guarded so this module can also be imported (its exports above) without running the CLI.
 // =================================================================================================
@@ -557,34 +583,26 @@ export function main(argv = process.argv.slice(2)) {
         'risk',
       );
     }
-    if (mineId && !mineRisk) {
-      die(
-        `${mineId} has no readable 'risk:' field in docs/BACKLOG.md — refusing rather than defaulting ` +
-          `to normal.`,
-      );
-    }
+    let labels = null;
     if (mineRisk === 'high') {
-      let labels = null;
       try {
         labels = JSON.parse(
           execFileSync('gh', ['pr', 'view', String(mine.number), '--json', 'labels'], {
             cwd: root,
             encoding: 'utf8',
           }),
-        ).labels;
+        ).labels.map((l) => l.name);
       } catch {
         labels = null;
       }
-      if (!labels) {
-        die(
-          `${mineId} is risk: high, but PR #${mine.number}'s labels could not be read — refusing to ` +
-            `guess which review step this is. Confirm 'gh' is authenticated and retry.`,
-        );
-      }
-      const reviewStep = seats.reviewStepFor(
-        mineRisk,
-        labels.map((l) => l.name),
-      );
+    }
+    let reviewStep;
+    try {
+      reviewStep = resolveReviewStep(mineId, mineRisk, labels, mine.number);
+    } catch (e) {
+      die(e.message);
+    }
+    if (reviewStep) {
       console.log(
         `   ⚠ risk: high — TWO-STEP REVIEW (D88). You are running STEP ${reviewStep} of 2.`,
       );

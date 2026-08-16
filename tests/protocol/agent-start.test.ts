@@ -14,7 +14,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { makeFixture } from './fixture.mjs';
-import { findTaskPR } from '../../scripts/agent-start.mjs';
+import { findTaskPR, resolveReviewStep } from '../../scripts/agent-start.mjs';
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const AGENT_START = join(REPO, 'scripts/agent-start.mjs');
@@ -227,6 +227,36 @@ describe('findTaskPR — pure, no gh spawn needed', () => {
         'T-008',
       ),
     ).toBeNull();
+  });
+});
+
+describe('resolveReviewStep — pure, no gh spawn needed (D88, T-014)', () => {
+  // Regression for the gap hmdnah's step-1 review of T-014 (PR #28) found: `agent-start.mjs`'s new
+  // reviewer-branch risk/step routing had zero test coverage, including this pure, non-`gh` slice.
+
+  it('a risk: normal PR is a single-turn review — no step at all', () => {
+    expect(resolveReviewStep('T-001', 'normal', null, 28)).toBeNull();
+  });
+
+  it('risk: high with no review/step-1 label reports step 1', () => {
+    expect(resolveReviewStep('T-001', 'high', [], 28)).toBe(1);
+    expect(resolveReviewStep('T-001', 'high', ['some-other-label'], 28)).toBe(1);
+  });
+
+  it('risk: high with the review/step-1 label present reports step 2', () => {
+    expect(resolveReviewStep('T-001', 'high', ['review/step-1'], 28)).toBe(2);
+  });
+
+  it('refuses rather than guesses when risk: itself could not be read, before touching labels', () => {
+    expect(() => resolveReviewStep('T-001', undefined, null, 28)).toThrow(
+      /T-001 has no readable 'risk:' field .* refusing rather than defaulting to normal/,
+    );
+  });
+
+  it('refuses rather than guesses which step, when risk: high but labels could not be read', () => {
+    expect(() => resolveReviewStep('T-001', 'high', null, 28)).toThrow(
+      /T-001 is risk: high, but PR #28's labels could not be read — refusing to guess/,
+    );
   });
 });
 
