@@ -119,7 +119,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | task | `T-014` |
 | branch | `task/T-014-review-must-read-the-task-s-risk-not-onl` |
 | claimed-at | 2026-08-16T03:12:57Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -941,20 +941,25 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
+## NEXT TURN: REVIEW ONLY
+
+`T-014` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
+
+**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-014 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `5752c21` · dirty |
+| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `2701f07` · clean |
 | open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
 | suite | **868 green** · 94 files · 272 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 540 insertions(+), 47 deletions(-) (8 files) |
+| diff vs origin/main | 9 files changed, 665 insertions(+), 47 deletions(-) (9 files) |
 | docs budget | current_state 79.0/96.0 KB · §7 26.8/32.0 KB · abstracts 10/10 · bodies 45 |
 
 _Generated 2026-08-16 by `pnpm state`._
