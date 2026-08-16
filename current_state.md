@@ -628,6 +628,29 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-011 — review (step 1 of 2): the CRUD closes the measured defect exactly as claimed — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a mechanical step-1 pass edits nothing on the branch (`REVIEW.md`
+  items 1, 4, 5, 7 only). `handoff/hmdnah/2026-08-16-T-011-review-step1.md` NEW; this abstract.
+- **VERIFIED:** **Item 1 re-executed.** Reverted the five touched `packages/document/src/*.ts` files to
+  `main`'s version, kept `tests/design-option-crud.test.ts` as committed: **12 of 13 RED**
+  (`unknown command "core.createDesignOption"`), the one survivor the §6 RED-baseline case, unmoved.
+  Restored: **21/21 green** across `design-option-crud.test.ts` + `design-option-refs.test.ts`, tree
+  clean. `pnpm state` on this branch: `RISK: contract-touching (re-baselined) · 902 green · 95 files`,
+  matching both PR labels. `tests/freeze-boundary.test.ts` green (12/12), diffing to exactly one
+  declaration (`type SceneCollection`). `gh pr checks 32` confirms `pr-shape` actually ran.
+- **FOUND:** No defect. Every item-4 claim checked against code held — the 40-command count on `main`,
+  `emptyScene()`'s absent `designOptions` key, the `bnn.ts` backward sweep (only hardcoded
+  `'schedules'`/`'views'`-shaped site in the tree), the promote/demote/delete-referrer machinery, and
+  `_baselinedAtEntry: 1000` (confirmed as `docs-state.mjs`'s synthetic sort key for the newest §7 entry,
+  not a placeholder). Item 5's `WALL_VOLUME` figures are computed in the test, not hardcoded.
+- **OWES:** `hmdnah` (a different session) — step 2 of D88 (`REVIEW.md` items 2, 3, 6), on this same
+  claim; the row stays `review` until then. The **owner** — `RISK: contract-touching` regardless of how
+  step 2 lands, so the owner merges this PR, not either reviewing session.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-011-review-step1.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
+
 ### T-011 — Q17a — `scene.designOptions` becomes a `SceneCollection`, and its CRUD ships — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `packages/document/src/commands.ts` (`createDesignOptionCommand`/`updateDesignOptionCommand`/
@@ -899,94 +922,6 @@ is maintenance and does NOT get an entry of its own.**
   element's two edges name the same missing id (the key `App.tsx` lists on), and the edit label still says
   *"N hosted element(s)"* for members. Findings in full: the PR comment.
 
-### T-014 — review (step 2): the mechanism's first live exercise found two real defects and two wrong claims — 2026-08-16 — seat: hmdnah
-
-- **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL_DESCRIPTION` fixed** — was 104 characters, GitHub caps a
-  label description at 100, so `gh label create` for `review/step-1` died on any repo where the label did
-  not already exist, which is every FIRST `risk: high` review; shortened to 79, same meaning) ·
-  `scripts/agent-start.mjs` (**`resolveReviewStep` NEW**, extracted — the reviewer branch's pure
-  risk+labels → step decision, same reason `findTaskPR` is pulled out) · `scripts/agent-start.d.mts` (the
-  new export declared) · `tests/protocol/seats.test.ts` (+1: pins `STEP1_LABEL_DESCRIPTION`'s length) ·
-  `tests/protocol/agent-start.test.ts` (+5: `resolveReviewStep`) · `current_state.md`'s own T-014 §7 entry
-  and `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md` (the wrong "+19" corrected to the real +14) ·
-  `docs/history.md` §E (the oldest §7 abstract, T-004/zayd, rolled off to stay within the 10-abstract cap
-  this new entry pushed over — its durable lesson already lives in `§1a`, unchanged by the roll). No
-  frozen byte, no `packages/`, no `apps/web`.
-- **VERIFIED:** `pnpm verify` green, **874/874** across 94 files, `docs:check` **129/129**. **Revert-
-  verified two ways, both against the real defect this turn found, not only a unit assertion:** (1)
-  `git show main:tests/protocol/seats.test.ts \| grep -c 'it('` → 23, HEAD → 37, 37−23=**14**, not the
-  claimed 19; (2) the label-description bug — `gh label edit review/step-1 --description "<original
-  104-char string>"` against the real GitHub API returns `HTTP 422 … description is too long (maximum is
-  100 characters)`; the shortened 79-char string succeeds. New regression test pins the length so this
-  cannot regress silently (the fixture suite cannot exercise the real `gh` call).
-- **FOUND:** Ran the mechanism live (`agent-start.mjs --seat hmdnah --review`) rather than only reading
-  code — it reported STEP 1, not step 2, though step 1's report was already posted. Cause: the
-  `review/step-1` label was never applied, because `agent-finish.mjs --review --step 1`'s `gh label
-  create` call — the only code path that ever creates it — cannot succeed while the description exceeds
-  GitHub's 100-character cap. Fixed above; applied the corrected label to PR #28 by hand (same two `gh`
-  calls the fixed finish script now makes) since step 1's actual review content was already on record and
-  reconciled. **Item 2 (backward sweep):** `reviewFlipsToDone`/`reviewStepFor`/`reviewStepGate` each have
-  exactly one production call site; no second, un-migrated `!contractTouching` instance found anywhere
-  (`scripts/state.mjs:355`'s reference is an advisory `console.log`, not a flip decision). **Item 3 (new
-  kind of thing):** `review/step-1`'s three consumers enumerated (`agent-finish.mjs` creates/reads it,
-  `agent-start.mjs` reads it) plus the one real invalidator candidate, `reserved-classes.mjs`'s
-  `syncLabels` — confirmed its `owned`/`have`/`want` are filtered to the three `needs-operator/*` labels
-  only, so it structurally cannot touch `review/step-1`; no third silent consumer found. **Item 6 (weak
-  green):** all new tests, including this turn's, assert exact values or exact spawned output, not loose
-  substrings; one honest residual gap noted, not fixed — `resolveReviewStep`'s wiring into `main()`'s
-  console output is still not spawn-tested end-to-end (would need a faked `gh` on `PATH`; no such
-  infrastructure exists in this test file, judged out of scope for one turn).
-- **OWES:** `brahim` — a `T-nnn`-worthy follow-up: nothing detects a mismatch between "step 1 posted its
-  report" and "step 1's finish command actually ran and applied the label" except a human (or reviewer)
-  re-running `agent-start.mjs --review` and noticing it still says STEP 1 — which is exactly how this
-  turn found the bug. `agent-finish.mjs` does `die()` loudly if `gh label create` fails for a reason other
-  than "already exists" (that part is not silent), but nothing requires step 1 to run the finish command
-  at all, and nothing else ever applies the label. Worth a harder integration check (a faked-`gh` spawn
-  test covering the full reviewer-branch wiring, not just `resolveReviewStep`'s pure slice) before the
-  next `risk: high` PR relies on this unattended.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-16-T-014-review-step2.md`
-- **REVIEW:** n/a — this IS step 2 of the review turn (D88, `AGENTS.md §1.2`); the verdict is on the entry
-  above.
-
-### T-014 — `--review` must read the task's `risk:`, not only the frozen surface — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL`/`STEP1_LABEL_COLOR`/`STEP1_LABEL_DESCRIPTION`,
-  `reviewStepFor`, `reviewStepGate`, `reviewFlipsToDone` NEW** — the two-step routing/legality/flip
-  decisions, pure) · `scripts/agent-finish.mjs` (**`--step 1|2` NEW**; a pre-`pnpm verify` gate resolving
-  a review's `risk:` and validating `--step` against it; step 1 creates-if-absent and applies the
-  `review/step-1` label, no row flip, no approve/merge printed; step 2 refuses unless that label is
-  confirmed present, then flips via `reviewFlipsToDone`) · `scripts/agent-start.mjs` (the reviewer branch
-  resolves `risk:` + the claimed PR's labels via `reviewStepFor`, prints which step and the exact finish
-  command with `--step N`, refuses rather than guesses on an unreadable label/risk) ·
-  `scripts/seats.d.mts` (the four new exports declared) · `tests/protocol/seats.test.ts` (+14: the three
-  pure functions, including a revert-verification pair) · `tests/protocol/agent-finish.test.ts` (+7: the
-  new gate). No frozen byte, no `packages/`, no `apps/web`.
-- **VERIFIED:** `pnpm verify` green, exit 0 — **868/868** across 94 files, `docs:check`'s own subset
-  **123/123** across 8; `freeze-boundary` green ⇒ frozen surface unmoved (confirmed separately:
-  `reserved-classes.mjs --base origin/main` → `none — RISK: additive`). **Revert-verified:** `seats.mjs`'s
-  `reviewFlipsToDone` reverted to the pre-fix `!contractTouching` formula → `pnpm vitest run
-  tests/protocol/seats.test.ts -t reviewFlipsToDone` went **2 RED** (`expected true to be false`,
-  reproducing T-008/PR #23's own defect: a `risk: high` step 1 stamps `done`); restored → **5/5 green**.
-- **FOUND:** `AGENTS.md §1.2` and `REVIEW.md`'s "Two steps" section already specified this mechanism in
-  full before any code existed — this PR implements a written spec, not a design decision. ⚠ The
-  `gh`-touching halves (label create, `--add-label`, the label-presence read) are not exercised by the
-  fixture suite, same limitation `reserved-classes.mjs`'s own `syncLabels` already accepts: a throwaway
-  local bare `origin` has no real PR for `gh` to ask about. The pure decision functions are directly
-  tested instead; the plumbing gets its first live exercise on this very PR's own review, since `T-014`
-  is itself `risk: high`.
-- **OWES:** `hmdnah` — this PR (step 1 first, D88; the live exercise of the label-creation path). Also
-  `T-008`/PR #23: its step 1 predates this mechanism and ran by hand, so `review/step-1` needs applying
-  to it **manually** before `--review --step 2` will route; detail in the handoff body.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md`
-- **REVIEW:** Reviewed by `hmdnah` (2026-08-16, PR #28, two-step D88) — **APPROVED and MERGED**,
-  `RISK: additive`, on `narutousomaki741` — the account that did not open it. Step 1 posted a report (no
-  merge); step 2 fixed three defects on the branch (two documentation-accuracy issues step 1 found, plus
-  one live-exercise code defect step 2 found: `STEP1_LABEL_DESCRIPTION` exceeded GitHub's 100-character
-  label-description limit, so `review/step-1` could never be created on a fresh repo). The entry above is
-  the record.
-
 ---
 
 ## §8 — Generated
@@ -1001,16 +936,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-011 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `e097ece` · clean |
-| open PRs | #31 task/T-009-q18-a-hosted-void-may-only-host-on-its-h |
-| suite | **913 green** · 96 files · 283 suites |
+| **newest entry** | **T-011 (hmdnah, 2026-08-16)** |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `15b7dfb` · dirty |
+| open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
+| suite | ⚠⚠ 911/913 passing — **2 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 10 files changed, 890 insertions(+), 58 deletions(-) (10 files) |
-| docs budget | current_state 84.0/96.0 KB · §7 31.6/32.0 KB · abstracts 10/10 · bodies 54 |
+| diff vs origin/main | 11 files changed, 1006 insertions(+), 146 deletions(-) (11 files) |
+| docs budget | current_state 78.4/96.0 KB · §7 25.7/32.0 KB · abstracts 9/10 · bodies 55 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
