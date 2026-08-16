@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
-| role | builder |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
 | task | `T-009` |
 | branch | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` |
@@ -965,25 +965,20 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-009` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-009 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` · `89c2ec4` · dirty |
+| branch · tip · tree | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` · `a078ca8` · clean |
 | open PRs | #31 task/T-009-q18-a-hosted-void-may-only-host-on-its-h |
-| suite | ⚠⚠ 899/902 passing — **3 FAILING** |
+| suite | **902 green** · 95 files · 281 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 6 files changed, 381 insertions(+), 77 deletions(-) (6 files) |
+| diff vs origin/main | 7 files changed, 455 insertions(+), 77 deletions(-) (7 files) |
 | docs budget | current_state 81.6/96.0 KB · §7 29.0/32.0 KB · abstracts 10/10 · bodies 55 |
 
 _Generated 2026-08-16 by `pnpm state`._
