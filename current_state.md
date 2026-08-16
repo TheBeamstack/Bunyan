@@ -971,15 +971,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-009 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` · `a078ca8` · clean |
-| open PRs | #31 task/T-009-q18-a-hosted-void-may-only-host-on-its-h |
+| branch · tip · tree | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` · `64272dc` · clean |
+| open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene · #31 task/T-009-q18-a-hosted-void-may-only-host-on-its-h |
 | suite | **902 green** · 95 files · 281 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 7 files changed, 455 insertions(+), 77 deletions(-) (7 files) |
-| docs budget | current_state 81.6/96.0 KB · §7 29.0/32.0 KB · abstracts 10/10 · bodies 55 |
+| diff vs origin/main | 7 files changed, 452 insertions(+), 79 deletions(-) (7 files) |
+| docs budget | current_state 81.3/96.0 KB · §7 29.0/32.0 KB · abstracts 10/10 · bodies 55 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
