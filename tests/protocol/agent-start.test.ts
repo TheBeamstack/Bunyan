@@ -134,14 +134,22 @@ describe('step 0 — the identity guard, end to end (D87, T-013)', () => {
 describe('step 3 — measured vs. claimed, the load-bearing refusal', () => {
   it('REFUSES to start when §8 has never been generated', () => {
     fx = makeFixture([], { measured: false });
-    const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd']);
+    const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/MEASURED STATE DISAGREES WITH CLAIMED STATE/);
   });
 
   it('proceeds once §8 truly matches reality', () => {
     fx = makeFixture();
-    const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd']);
+    const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).toBe(0);
     expect(r.out).toMatch(/measured state matches claimed state/);
   });
@@ -154,7 +162,11 @@ describe('step 3 — measured vs. claimed, the load-bearing refusal', () => {
       'newest entry** | **HAND-EDITED',
     );
     writeFileSync(csPath, cs);
-    const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd']);
+    const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/MEASURED STATE DISAGREES/);
   });
@@ -172,7 +184,11 @@ describe('step 5 — the machine gate, the safety-critical one', () => {
         risk: 'normal',
       },
     ]);
-    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd']);
+    const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/No ready task this seat can satisfy/);
   });
@@ -188,7 +204,11 @@ describe('step 5 — the machine gate, the safety-critical one', () => {
         risk: 'normal',
       },
     ]);
-    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd', 'T-001']);
+    const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd', 'T-001'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/machine: pc and seat 'zayd' is on machine: box/);
   });
@@ -206,7 +226,11 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
         risk: 'normal',
       },
     ]);
-    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd']);
+    const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).toBe(0);
     expect(r.out).toMatch(/Claimed: T-001/);
 
@@ -238,7 +262,11 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
         risk: 'normal',
       },
     ]);
-    run(['--root', fx.dir, '--no-pull', '--seat', 'zayd']);
+    const zaydGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
+    extraDirs.push(zaydGhDir);
+    run(['--root', fx.dir, '--no-pull', '--seat', 'zayd'], {
+      PATH: `${zaydGhDir}:${process.env.PATH}`,
+    });
 
     const second = mkdtempSync(join(tmpdir(), 'bunyan-second-clone-'));
     extraDirs.push(second);
@@ -263,12 +291,15 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
         risk: 'normal',
       },
     ]);
-    run(['--root', fx.dir, '--no-pull', '--seat', 'zayd']);
+    const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
+    extraDirs.push(fakeGhDir);
+    const ghEnv = { PATH: `${fakeGhDir}:${process.env.PATH}` };
+    run(['--root', fx.dir, '--no-pull', '--seat', 'zayd'], ghEnv);
 
     const second = mkdtempSync(join(tmpdir(), 'bunyan-second-clone-'));
     extraDirs.push(second);
     execFileSync('git', ['clone', '-q', fx.origin, second]);
-    const r = run(['--root', second, '--no-pull', '--seat', 'zayd']);
+    const r = run(['--root', second, '--no-pull', '--seat', 'zayd'], ghEnv);
     expect(r.code).toBe(0);
     expect(r.out).toMatch(/Continuing your own open claim/);
   });
@@ -380,7 +411,11 @@ describe('--continue — a defect returns to its builder, never a second door (D
     ]);
     // The right seat, but this fixture's origin is a bare local repo, not a GitHub one, so `gh pr
     // list` finds nothing — exactly the shape of a task nobody has opened a PR for yet.
-    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd', '--continue', 'T-001']);
+    const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd', '--continue', 'T-001'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/No open PR names T-001/);
   });
