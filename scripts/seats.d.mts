@@ -63,3 +63,13 @@ export declare function reviewerFor(
   taskOrMachine: string,
   finishingSeat?: string,
 ): ReviewerVerdict;
+
+export interface BuilderVerdict {
+  seat: string;
+}
+/** The seat that OWNS a task, derived from its `machine:` field alone — never the §0b baton. */
+export declare function builderFor(
+  root: string,
+  taskId: string,
+  finishingSeat?: string,
+): BuilderVerdict;

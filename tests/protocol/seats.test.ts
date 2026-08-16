@@ -7,6 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
+  builderFor,
   canClaim,
   dependsOn,
   machineOf,
@@ -219,6 +220,62 @@ describe('reviewer routing — a pc claim needs a pc reviewer', () => {
   it("`machine: any` routes to the reviewer sharing the FINISHING seat's machine", () => {
     expect(reviewerFor(fx.dir, 'box', 'zayd')).toEqual({ seat: 'hmdnah', solo: false });
     expect(reviewerFor(fx.dir, 'pc', 'amer')).toEqual({ seat: 'khalihlna', solo: false });
+  });
+});
+
+/**
+ * `builderFor` — the `--continue` admission gate (T-015, D88). Symmetric with `reviewerFor` above,
+ * but it must resolve from the task's `machine:` field ALONE: the §0b baton on a finished branch names
+ * whichever seat last ran `agent-finish.mjs` there, which is the REVIEWER on the `--review` path, not
+ * the builder `--continue` must admit.
+ */
+describe('builder routing — derived from machine:, never a baton', () => {
+  beforeEach(() => {
+    fx = makeFixture([
+      {
+        id: 'T-001',
+        status: 'ready',
+        title: 'box work',
+        area: 'kernel',
+        machine: 'box',
+        risk: 'normal',
+      },
+      {
+        id: 'T-002',
+        status: 'ready',
+        title: 'pc work',
+        area: 'apps-web',
+        machine: 'pc',
+        risk: 'normal',
+      },
+    ]);
+  });
+
+  it('a box task is owned by the box builder', () => {
+    expect(builderFor(fx.dir, 'T-001')).toEqual({ seat: 'zayd' });
+  });
+
+  it('a pc task is owned by the pc builder, never the box one', () => {
+    expect(builderFor(fx.dir, 'T-002')).toEqual({ seat: 'amer' });
+  });
+
+  it("`machine: any` resolves to the builder sharing the FINISHING seat's machine, else box", () => {
+    fx = makeFixture([
+      {
+        id: 'T-003',
+        status: 'ready',
+        title: 'either work',
+        area: 'infra',
+        machine: 'any',
+        risk: 'normal',
+      },
+    ]);
+    expect(builderFor(fx.dir, 'T-003', 'amer')).toEqual({ seat: 'amer' });
+    expect(builderFor(fx.dir, 'T-003')).toEqual({ seat: 'zayd' });
+  });
+
+  it('throws for a task with no machine: field', () => {
+    expect(() => builderFor(fx.dir, 'T-999')).toThrow(/no 'machine:' field/);
   });
 });
 

@@ -14,6 +14,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { makeFixture } from './fixture.mjs';
+import { findTaskPR } from '../../scripts/agent-start.mjs';
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const AGENT_START = join(REPO, 'scripts/agent-start.mjs');
@@ -205,5 +206,86 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
     const r = run(['--root', second, '--no-pull', '--seat', 'zayd']);
     expect(r.code).toBe(0);
     expect(r.out).toMatch(/Continuing your own open claim/);
+  });
+});
+
+describe('findTaskPR — pure, no gh spawn needed', () => {
+  it('matches the open PR whose title names the task', () => {
+    const prs = [
+      { number: 23, headRefName: 'task/T-008-q19-x', title: 'T-008: Q19 — the belongs-to thing' },
+      { number: 24, headRefName: 'task/T-011-y', title: 'T-011: Q17a — a thing' },
+    ];
+    expect(findTaskPR(prs, 'T-008')).toEqual(prs[0]);
+    expect(findTaskPR(prs, 'T-011')).toEqual(prs[1]);
+  });
+
+  it('returns null when no open PR names the task', () => {
+    expect(findTaskPR([], 'T-008')).toBeNull();
+    expect(
+      findTaskPR(
+        [{ number: 1, headRefName: 'task/T-002-x', title: 'T-002: something else' }],
+        'T-008',
+      ),
+    ).toBeNull();
+  });
+});
+
+describe('--continue — a defect returns to its builder, never a second door (D88, T-015)', () => {
+  it('refuses a seat whose ROLE does not build', () => {
+    fx = makeFixture([
+      {
+        id: 'T-001',
+        status: 'ready',
+        title: 'kernel work',
+        area: 'kernel',
+        machine: 'box',
+        risk: 'high',
+      },
+    ]);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'hmdnah', '--continue', 'T-001']);
+    expect(r.code).not.toBe(0);
+    expect(r.out + r.err).toMatch(/role 'reviewer', which does not build/);
+  });
+
+  it("refuses a builder seat that is not the task's OWN builder, per machine: — not the baton", () => {
+    fx = makeFixture([
+      {
+        id: 'T-001',
+        status: 'ready',
+        title: 'kernel work',
+        area: 'kernel',
+        machine: 'box',
+        risk: 'high',
+      },
+    ]);
+    // amer is a builder, just not the box builder T-001's machine: resolves to.
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'amer', '--continue', 'T-001']);
+    expect(r.code).not.toBe(0);
+    expect(r.out + r.err).toMatch(/T-001's builder is 'zayd', not 'amer'/);
+  });
+
+  it('a ready row with no PR is still refused through the --continue door too', () => {
+    fx = makeFixture([
+      {
+        id: 'T-001',
+        status: 'ready',
+        title: 'kernel work',
+        area: 'kernel',
+        machine: 'box',
+        risk: 'high',
+      },
+    ]);
+    // The right seat, but this fixture's origin is a bare local repo, not a GitHub one, so `gh pr
+    // list` finds nothing — exactly the shape of a task nobody has opened a PR for yet.
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd', '--continue', 'T-001']);
+    expect(r.code).not.toBe(0);
+    expect(r.out + r.err).toMatch(/No open PR names T-001/);
+  });
+
+  it('rejects a malformed task id before doing anything else', () => {
+    fx = makeFixture();
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd', '--continue', 'not-a-task']);
+    expect(r.code).not.toBe(0);
+    expect(r.err).toMatch(/--continue expects a T-nnn id/);
   });
 });

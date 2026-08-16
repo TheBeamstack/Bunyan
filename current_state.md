@@ -628,6 +628,38 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-015 — `agent-start.mjs --continue <T-nnn>` — the branch returns to its builder — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `scripts/seats.mjs` (**`builderFor` NEW**, symmetric with `reviewerFor` — resolves a
+  task's own `machine:` field to its builder seat, never the `§0b` baton; `builder-for` CLI dispatch) ·
+  `scripts/agent-start.mjs` (**`--continue <T-nnn>` NEW** — role/seat/open-PR/row-status gates, then a
+  fetch+checkout of the PR's own branch, no new claim written; **`findTaskPR` NEW**, exported) ·
+  `scripts/agent-finish.mjs` (prints an already-open PR's URL instead of `gh pr create` when finishing a
+  `--continue`d branch) · `scripts/{seats,agent-start}.d.mts` (the new exports declared) ·
+  `tests/protocol/seats.test.ts` (`builderFor` suite, +4) · `tests/protocol/agent-start.test.ts`
+  (`findTaskPR` +2, `--continue` refusals +4). No frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, all six gates, `tests/freeze-boundary.test.ts` green ⇒ the frozen
+  surface has not moved. **Revert-verified:** `git stash` on the five source/type files (tests left in
+  place) took the new suite **10 RED** of 39 — `builderFor is not a function`, `unknown argument
+  '--continue'`, `findTaskPR is not a function` — `git stash pop` restored **39/39 green**.
+- **FOUND:** ⚠ Confirms `builderFor` must key on `machine:`: the admitted seat has to be DERIVED from
+  the task row, because a `--review` finish rewrites the `§0b` baton to name the REVIEWER — measured
+  again here against T-008's live branch (baton reads `hmdnah`/reviewer, its claim commit reads `zayd`).
+  ⚠ Confirms the second `done-when:` too: T-008's row on `main` still reads `ready` today, three sessions
+  after its `review` flip landed on its own unmerged branch — a gate reading `main` after `git checkout`
+  would refuse every real `--continue` call, so the row status is read via `git show
+  origin/<branch>:docs/BACKLOG.md` instead.
+- **OWES:** `hmdnah` — this PR's step-1 review (`risk: high`, D88's two-step route). ⚠ **The success
+  path — checking out a real PR's branch and reading `review` off it, and `agent-finish.mjs`'s new
+  `existingPR` branch — is not covered by an automated test.** Both need a `gh`-backed GitHub PR; this
+  repo's test fixtures build a throwaway *local* bare `origin`, against which `gh pr list` returns
+  nothing — the same limitation the existing suite already accepts for `--review`'s own `gh pr
+  checkout`/`gh pr comment` calls. `zayd` — T-008 still additionally waits on T-014 (unbuilt) per D88's
+  "T-008 waits for both" — this PR alone does not unblock it.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-015-continue-mechanism.md`
+- **REVIEW:** AWAITING REVIEW.
+
 ### STEWARD-step-routing-and-continue — D88 asserted two mechanisms no script implements — 2026-08-15 — seat: brahim
 
 - **CHANGED:** `docs/decisions.md` (**D88 amended**) · `docs/BACKLOG.md` (T-014's second `done-when:`
@@ -911,59 +943,6 @@ is maintenance and does NOT get an entry of its own.**
   remedy **deletes the `§2` just written**. Now `git diff <merge-base> <main> -- <file>`. **+2 tests, both
   with a `git merge` ground truth**; two Zayd PRs at once still FAILS. Full: PR #15.
 
-### 87 | 2026-08-08 | Zayd | a belongs-to CYCLE is authorable by two shipped verbs — and it erases the element silently
-
-- **CHANGED:** `packages/document/src/designoptions.ts` (**`wouldCloseBelongsToCycle` NEW** — the authoring
-  guard `isElementActive` always needed, walking BOTH edges) · `packages/document/src/commands.ts`
-  (`core.retargetReference` and `core.setElementMetadata` now REFUSE a cycle) ·
-  **`tests/belongs-to-cycle-guard.test.ts` NEW (+14, **+3 more from Entry 88's review — §5**)** ·
-  `tests/option-cascade-d67.test.ts` (**NEW §8** —
-  the differential fuzz, +1) · `open_rulings.md` (Q19 gains its pin) · `tests/frozen-surface.snapshot.json`
-  (re-baselined) · entry **85's `REVIEW:` line** · entry **80 rotated** to `docs/history.md` §C · and,
-  reviewing PR #12 and PR #13: `current_state.md`, `docs/history.md`.
-- **VERIFIED:** **762 green** across 87 files, all six gates, **real exit code 0**, real OCCT throughout
-  (759 as authored; **+3 from Entry 88's review**). Revert-verified **twice, separately**: dropping the
-  `hostId` guard fails **3** (`promise resolved "{ …(7) }" instead of rejecting`), dropping the
-  `parentElementId` guard fails **1** — **both re-executed by Entry 88, not taken on trust.**
-- **FOUND:** ⚠⚠ **`core.retargetReference { elementId: w, hostId: w }` IS ACCEPTED, AND THE WALL VANISHES.**
-  Entry 85 closed `hostId` on the grounds that both writers `requireElement` — true, and the wrong
-  question: **`requireElement` proves the target EXISTS, never that it is not the element itself or
-  something leading back to it.** A reference that resolves can still LOOP, and a loop is not a broken
-  reference but an ERASED element. Measured through shipped verbs, no design options, no `.bnn`:
-  `scene.elements` **1**, `modelElements()` **0**, `brokenRefs()` **[]**, `unbuildable()` **[]**. ⚠ The
-  same hole on `parentElementId` via `core.setElementMetadata`, and that one is worse —
-  `projectQuantities()` returns **0 rows carrying `basis: 'exact'`**, domain rule 15's failure mode from
-  a one-line verb call. ⚠ **A `hostId`-only guard would not have closed it**: `A.hostId=B` then
-  `B.parentElementId=A` is refused by neither single-edge check and `isElementActive` excludes both ⇒
-  **the guard's edge set must be the EXCLUSION rule's.** ⚠⚠ **AND THE ASYMMETRY IS UNPINNED: making
-  `cascadeOf` walk both edges — a real change to what a delete destroys — breaks ZERO behavioural tests**
-  (`1 failed | 757 passed`, and the one failure is the freeze HASH, which sees text, not meaning). A Q19
-  ruling could land, change `core.deleteElement`, and go green. **Pinned now, and the pin is designed to
-  fail when Q19 lands.** ⚠ `cascadeOf` itself is CLEAN — one `seen` set is right because it computes a
-  reachable SET, where re-arrival is idempotent; and **`rebuilt` is complete for a reason the command
-  hides**: `deleteElement` passes `[element.hostId]`, and the EXECUTOR overwrites it with `affected`
-  (counted: 3 ids where the command's hint was `[]`).
-- **OWES:** Owner: ⚠⚠ **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** — one ADDED export
-  (`wouldCloseBelongsToCycle`); the two `execute` bodies did NOT move the surface. **Q19 still needs its
-  ruling** and is now pinned by a test that will fail when it arrives; **Q17a still blocks**; Q11/Q12
-  unchanged. Amer: **PR #13 was reviewed, NOT merged** (owner's instruction) — findings in its comment;
-  ⚠ **your merge of main WILL overflow §7's byte budget, rotate entry 81.** **Q18 and Q20 are yours.**
-- **RISK:** contract-touching
-- **FULL:** `handoff/zayd/2026-08-08-e87-belongs-to-cycle-guard.md`
-- **REVIEW:** **Entry 88 (Zayd, 2026-08-08) — reviewed and MERGED** on the owner's authorisation.
-  Item 1 re-executed **both** ways (3 RED, 1 RED). ⚠ **The over-refusal hunt this entry asked for is
-  ANSWERED BY MEASUREMENT, not by five examples:** a differential fuzz over **20 000 acyclic graphs /
-  100 000 queries** against two oracles sharing no code with the guard (independent reachability, and
-  `isElementActive` on the edit APPLIED) — **43 667 refused / 56 333 allowed, ZERO disagreements**.
-  **No legitimate authoring act is refused.** Shipped as §5, with the sibling case §3 lacked. ⚠ COST
-  answered too: **0.17 µs/call** on a 10 000-element flat model, 1.7 ms on a 10 000-DEEP chain no
-  building has. ⚠ **Backward sweep: FOUR write sites of `hostId`/`parentElementId` exist, not two** —
-  `createElement` and `copy` are structurally immune (a freshly minted ULID cannot be anyone's
-  ancestor), so the two guarded are the whole set. ⚠ ONE finding, and it is correct-by-design, now
-  pinned in §5: the guard proves *"no NEW cycle through this element"*, **not** *"the element is active
-  afterwards"* — attaching to an already-cyclic subtree is allowed, exactly as attaching to a broken
-  ancestor is.
-
 ---
 
 ## §8 — Generated
@@ -972,17 +951,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **STEWARD-step-routing-and-continue (brahim, 2026-08-15)** |
-| branch · tip · tree | `brahim/2026-08-15-step-routing-and-continue` · `ca176c2` · clean |
-| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati · #17 amer/2026-08-08-e89-drag-handles · #16 zayd/2026-08-08-e90-d66-lazy-build |
-| suite | **836 green** · 94 files · 264 suites |
+| **newest entry** | **T-015 (zayd, 2026-08-16)** |
+| branch · tip · tree | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` · `b0d750a` · dirty |
+| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
+| suite | ⚠⚠ 843/846 passing — **3 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 6 files changed, 182 insertions(+), 68 deletions(-) (6 files) |
-| docs budget | current_state 80.2/96.0 KB · §7 28.1/32.0 KB · abstracts 10/10 · bodies 42 |
+| diff vs origin/main | 10 files changed, 435 insertions(+), 81 deletions(-) (10 files) |
+| docs budget | current_state 79.9/96.0 KB · §7 27.5/32.0 KB · abstracts 10/10 · bodies 43 |
 
-_Generated 2026-08-15 by `pnpm state`._
+_Generated 2026-08-16 by `pnpm state`._
 
 <!-- END GENERATED -->
