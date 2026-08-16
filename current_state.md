@@ -113,13 +113,13 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| role | reviewer |
+| seat | `zayd` |
+| role | builder |
 | machine | box |
-| task | `T-008` |
-| branch | `task/T-008-q19-the-belongs-to-deletion-reconciliati` |
-| claimed-at | 2026-08-15T14:02:55Z |
-| status | finished — PR open, awaiting review |
+| task | `T-013` |
+| branch | `task/T-013-the-seat-identity-guard-gh-api-user-must` |
+| claimed-at | 2026-08-16T12:35:58Z |
+| status | working |
 
 <!-- END BATON -->
 
