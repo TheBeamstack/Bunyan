@@ -27,14 +27,15 @@ export default tseslint.config(
           // listing it here too is a conflict ("included by allowDefaultProject but also found in the
           // project service"). `docs-state.d.mts`/`frozen-surface.d.mts`/`seats.d.mts` are all reached
           // this way (`tests/docs-budget.test.ts`, `tests/freeze-boundary.test.ts`,
-          // `tests/protocol/seats.test.ts`). `agent-start.d.mts` is not — nothing under `tests/**`
-          // imports `agent-start.mjs` directly, since `agent-start.test.ts` exercises it by SPAWNING
-          // it, not importing it (see that file's own header for why) — so it needs listing here.
+          // `tests/protocol/seats.test.ts`). `agent-start.d.mts` JOINED them at T-015: its own
+          // `findTaskPR` is now unit-tested directly (`tests/protocol/agent-start.test.ts` imports
+          // `../../scripts/agent-start.mjs`, alongside its existing spawn-based tests), so it is no
+          // longer listed here either — the same conflict this comment describes, hit for real the
+          // first time something DID import it.
           allowDefaultProject: [
             'vitest.config.ts',
             'eslint.config.js',
             'scripts/*.mjs',
-            'scripts/agent-start.d.mts',
             'tests/protocol/*.mjs',
           ],
           // ⚠ typescript-eslint caps the default project at EIGHT files and then fails the lint with

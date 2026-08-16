@@ -26,6 +26,7 @@
  *   seats.mjs task-field <T-nnn> <field>  machine | area | risk, read from the backlog entry
  *   seats.mjs can-claim <seat> <T-nnn>    exit 0 may claim, 1 may not — prints the reason
  *   seats.mjs ready-for <seat>            ready task ids this seat can satisfy, backlog order
+ *   seats.mjs builder-for <T-nnn> [finishing-seat]   the seat that OWNS a task, from machine: alone
  *   seats.mjs reviewer-for <T-nnn|box|pc|any> [finishing-seat]
  */
 import { readFileSync, existsSync } from 'node:fs';
@@ -346,6 +347,33 @@ export function reviewerFor(root, taskOrMachine, finishingSeat) {
   return { seat: builder.seat, solo: true };
 }
 
+/**
+ * The BUILDER who owns a task, derived from the task's own `machine:` field alone — NEVER from a
+ * branch's §0b baton, which records the last seat to FINISH a turn there, and a `--review` finish
+ * rewrites that baton to name the REVIEWER (measured 2026-08-15 against T-008: its baton reads
+ * `seat: hmdnah / role: reviewer` while its own claim commit reads `claim: T-008 by zayd (box)`). A
+ * gate on the baton would admit the reviewer and refuse the builder in every real `--continue` call.
+ *
+ * Symmetric with `reviewerFor`: resolve the task's machine, then the registry's builder on it, with
+ * the same `any` fallback (the finishing seat's own machine when given, else `box`).
+ */
+export function builderFor(root, taskId, finishingSeat) {
+  const registry = readRegistry(root);
+  const backlog = readBacklog(root);
+  let m = taskField(backlog, taskId, 'machine');
+  if (!m) throw new Error(`${taskId} has no 'machine:' field`);
+  if (m === 'any') {
+    m = finishingSeat ? machineOf(root, finishingSeat) : 'box';
+  }
+  const builder = registry.find((r) => r.role === 'builder' && r.machine === m);
+  if (!builder) {
+    throw new Error(
+      `no builder registered for machine '${m}' — nobody can own ${taskId}'s branch on it.`,
+    );
+  }
+  return { seat: builder.seat };
+}
+
 // ------------------------------------------------------------------------------------------- dispatch --
 
 if (
@@ -402,6 +430,9 @@ if (
       }
       case 'ready-for':
         for (const id of readyFor(root, rest[0])) console.log(id);
+        break;
+      case 'builder-for':
+        console.log(builderFor(root, rest[0], rest[1]).seat);
         break;
       case 'reviewer-for': {
         const v = reviewerFor(root, rest[0], rest[1]);

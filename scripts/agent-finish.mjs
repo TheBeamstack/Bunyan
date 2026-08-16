@@ -485,23 +485,47 @@ export function main(argv = process.argv.slice(2)) {
     `nothing.\n`;
   writeFileSync(bodyFile, body);
 
+  // A `--continue` turn (T-015) finishes a branch that already has an OPEN PR — `agent-start.mjs
+  // --continue` checked it out precisely because one exists. `gh pr create` on a branch that already
+  // has one fails loudly ("already exists"); print the PR it just pushed to instead of a command that
+  // cannot succeed.
+  let existingPR = null;
+  try {
+    const json = execFileSync('gh', ['pr', 'view', '--json', 'number,url,state'], {
+      cwd: root,
+      encoding: 'utf8',
+    });
+    const parsed = JSON.parse(json);
+    if (parsed.state === 'OPEN') existingPR = parsed;
+  } catch {
+    existingPR = null; // no PR yet for this branch (or gh unavailable) — the ordinary first finish
+  }
+
   hr();
   console.log(`Turn complete: ${task} on ${branch}   seat: ${seat} (${role} on ${machine})`);
   console.log('');
-  console.log('Open the PR with EXACTLY this, then STOP:');
-  console.log('');
-  console.log(`  gh pr create --title ${shq(title)} --body-file ${shq(bodyFile)}`);
-  console.log('');
-  console.log(
-    '  Never --fill — it titles the PR from the branch slug, and reviewer routing keys on',
-  );
-  console.log(
-    `  the ${isTask ? 'T-nnn' : 'STEWARD:'} prefix. A batched-review turn may cover several small`,
-  );
-  console.log(
-    '  open PRs in one session (docs/prompts/brahim-orchestrator.md) — each still finishes',
-  );
-  console.log('  with its own `agent-finish.mjs --review` and its own merge.');
+  if (existingPR) {
+    console.log(
+      `This branch already has an open PR — nothing to create. The push above updated it:`,
+    );
+    console.log('');
+    console.log(`  ${existingPR.url}`);
+  } else {
+    console.log('Open the PR with EXACTLY this, then STOP:');
+    console.log('');
+    console.log(`  gh pr create --title ${shq(title)} --body-file ${shq(bodyFile)}`);
+    console.log('');
+    console.log(
+      '  Never --fill — it titles the PR from the branch slug, and reviewer routing keys on',
+    );
+    console.log(
+      `  the ${isTask ? 'T-nnn' : 'STEWARD:'} prefix. A batched-review turn may cover several small`,
+    );
+    console.log(
+      '  open PRs in one session (docs/prompts/brahim-orchestrator.md) — each still finishes',
+    );
+    console.log('  with its own `agent-finish.mjs --review` and its own merge.');
+  }
 }
 
 if (process.argv[1]?.replace(/\\/g, '/').endsWith('scripts/agent-finish.mjs')) {

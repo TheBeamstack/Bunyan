@@ -303,12 +303,115 @@ project._
 
 ---
 
-## §C — Entries 54–86 — the full bodies now live in `handoff/`
+## §C — Entries 54–88 — the full bodies now live in `handoff/`
 
 ⚠ **There is no entry 78.** It was a REVIEW-ONLY session (PR #5) that wrote no abstract of
 its own; its findings are in entry 77's `REVIEW:` line above. The gap is real, not a loss.
 
-54–86 is contiguous.
+54–88 is contiguous.
+
+### 88 | 2026-08-08 | Zayd | the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
+
+- **CHANGED:** **`scripts/prompt-sync.mjs` + `.d.mts` NEW** (the gate: three git questions, no network) ·
+  **`tests/prompt-sync.test.ts` NEW (+12)** · `package.json` (`docs:check` runs it — gate six is now three
+  files) · `.github/workflows/ci.yml` (`BASE_REF` on the docs step, the same sha the re-seed gate reads) ·
+  `eslint.config.js` (the default-project cap: 8 files, and this script was the ninth) · and, reviewing
+  PR #14: `tests/belongs-to-cycle-guard.test.ts` (**NEW §5, +3**), entry **87's `REVIEW:` line** and its
+  `759 green` → **762**, entry **81 rotated** to `docs/history.md` §C (§C now 54–81).
+- **VERIFIED:** **776 green** across 88 files, all six gates, **real exit code 0**. Revert-verified **four
+  ways, separately** — Entry 90 re-ran all four and measured **2 · 3 · 3 · 1 RED** (the claimed 2/2/1/1
+  predates this entry's own follow-up commit).
+- **FOUND:** ⚠⚠ **THE GATE'S DIFFICULTY IS NOT THE COMPARISON, IT IS KNOWING WHEN THE COMPARISON IS
+  MEANINGFUL — A NAIVE `git diff origin/main -- Zayd_Prompt.md` IS WRONG IN THREE OF THE FOUR STATES THIS
+  REPO HAS BEEN IN.** TASK asked *"the whole file, or only FRESH?"* — **neither: no region of the file is
+  always equal.** A branch legitimately owns a new `§2 TASK`/`NEW` before step 10(a), and `pnpm state`
+  legitimately rewrites FRESH at step 8, also before it. **The invariant is a MOMENT, not a region.** ⇒
+  two skips, both measured against real commits: *did the BRANCH touch the file since diverging?* (spares
+  Amer) and *did MAIN?* — ⚠ **the second shipped as `merge-base --is-ancestor` and Entry 90 replaced it.**
+  ⚠ **Q2 (can `docs:check` see `origin/main`?) is SIDESTEPPED** — CI reads the base SHA it already passes
+  the re-seed gate. (`origin/main` does exist in CI; measured after the fact. `git show` costs 1.85 ms.)
+  ⚠⚠ **THREE DEFECTS IN THIS ONE GATE, AND ALL THREE WERE A SKIP THAT REPORTED GREEN:** (1) an
+  unresolvable `BASE_REF` returned a SKIP — **the Entry-73 disease exactly**; it THROWS now. (2) **It
+  survived a green CI run without executing** — `actions/checkout` gives a `pull_request` the
+  `refs/pull/N/merge` MERGE COMMIT, which contains main, so skip 2 fired on every PR; found by reading
+  the log rather than the tick, and CI now passes `pull_request.head.sha`. (3) Question 3 diffed two
+  clean COMMITS, so when `pnpm state` drifted **this session's own prompt**, `docs:check` said *42
+  passed*; it diffs the **WORKING TREE** now — **and immediately caught that real drift and printed the
+  `git checkout origin/main --` fix, which I ran.** ⇒ **A gate's failure mode is never a wrong answer; it
+  is NO answer, wearing a tick.** ⚠ Skip 2 was also wrong twice on a **REBASE** before measurement showed
+  the mid-session and rebased states are one situation. ⚠ Consequence: the halves catch different drift —
+  same-line drift CONFLICTS (so CI never sees it; the LOCAL run names it), append-drift merges cleanly
+  (invisible without the CI half).
+- **OWES:** Owner: **nothing new** — `RISK: additive`, so the next session merges this. **Q17a still
+  blocks, Q19 is still the worst defect on the board** (the DELETION road is untouched and now pinned),
+  Q11/Q12 unchanged. Amer: ⚠⚠ **DO NOT ROTATE ENTRY 80 — Entry 87's advice is void; 79/80/81 are already
+  in `docs/history.md`. ROTATE ENTRY 82 INSTEAD, and only because THIS entry exists.** Measured on the
+  built union: your merge against today's main is **31 411 ✅**, against a main carrying entry 88 it is
+  **35 248 ❌ over by 2 480**, and with entry 82 rotated **30 515 ✅**. Entry 88 is `additive` so it
+  merges first — plan on the rotation. ⚠ **I was on both sides of this gate in one session.**
+  ⚠ **What WILL fail is entry 86's `AWAITING REVIEW` line**, stale now that 87 exists — rewrite it in your
+  merge. ⚠ **`Amer_Prompt.md` is deliberately NOT in `GATED`**; adding it is one line and it is your call.
+  **Q18 and Q20 are yours.**
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-08-e88-prompt-sync-gate.md`
+- **REVIEW:** **Entry 90 (Zayd) — reviewed, AMENDED, MERGED.** ⚠⚠ **FALSE POSITIVE, fixed on the branch:**
+  skip 2 asked *"is main CONTAINED in the branch?"* — about **commits**, where the invariant is about a
+  **file** — so **the parallel agent merging anything mid-session failed a correct session**, and its
+  remedy **deletes the `§2` just written**. Now `git diff <merge-base> <main> -- <file>`. **+2 tests, both
+  with a `git merge` ground truth**; two Zayd PRs at once still FAILS. Full: PR #15.
+
+### 87 | 2026-08-08 | Zayd | a belongs-to CYCLE is authorable by two shipped verbs — and it erases the element silently
+
+- **CHANGED:** `packages/document/src/designoptions.ts` (**`wouldCloseBelongsToCycle` NEW** — the authoring
+  guard `isElementActive` always needed, walking BOTH edges) · `packages/document/src/commands.ts`
+  (`core.retargetReference` and `core.setElementMetadata` now REFUSE a cycle) ·
+  **`tests/belongs-to-cycle-guard.test.ts` NEW (+14, **+3 more from Entry 88's review — §5**)** ·
+  `tests/option-cascade-d67.test.ts` (**NEW §8** —
+  the differential fuzz, +1) · `open_rulings.md` (Q19 gains its pin) · `tests/frozen-surface.snapshot.json`
+  (re-baselined) · entry **85's `REVIEW:` line** · entry **80 rotated** to `docs/history.md` §C · and,
+  reviewing PR #12 and PR #13: `current_state.md`, `docs/history.md`.
+- **VERIFIED:** **762 green** across 87 files, all six gates, **real exit code 0**, real OCCT throughout
+  (759 as authored; **+3 from Entry 88's review**). Revert-verified **twice, separately**: dropping the
+  `hostId` guard fails **3** (`promise resolved "{ …(7) }" instead of rejecting`), dropping the
+  `parentElementId` guard fails **1** — **both re-executed by Entry 88, not taken on trust.**
+- **FOUND:** ⚠⚠ **`core.retargetReference { elementId: w, hostId: w }` IS ACCEPTED, AND THE WALL VANISHES.**
+  Entry 85 closed `hostId` on the grounds that both writers `requireElement` — true, and the wrong
+  question: **`requireElement` proves the target EXISTS, never that it is not the element itself or
+  something leading back to it.** A reference that resolves can still LOOP, and a loop is not a broken
+  reference but an ERASED element. Measured through shipped verbs, no design options, no `.bnn`:
+  `scene.elements` **1**, `modelElements()` **0**, `brokenRefs()` **[]**, `unbuildable()` **[]**. ⚠ The
+  same hole on `parentElementId` via `core.setElementMetadata`, and that one is worse —
+  `projectQuantities()` returns **0 rows carrying `basis: 'exact'`**, domain rule 15's failure mode from
+  a one-line verb call. ⚠ **A `hostId`-only guard would not have closed it**: `A.hostId=B` then
+  `B.parentElementId=A` is refused by neither single-edge check and `isElementActive` excludes both ⇒
+  **the guard's edge set must be the EXCLUSION rule's.** ⚠⚠ **AND THE ASYMMETRY IS UNPINNED: making
+  `cascadeOf` walk both edges — a real change to what a delete destroys — breaks ZERO behavioural tests**
+  (`1 failed | 757 passed`, and the one failure is the freeze HASH, which sees text, not meaning). A Q19
+  ruling could land, change `core.deleteElement`, and go green. **Pinned now, and the pin is designed to
+  fail when Q19 lands.** ⚠ `cascadeOf` itself is CLEAN — one `seen` set is right because it computes a
+  reachable SET, where re-arrival is idempotent; and **`rebuilt` is complete for a reason the command
+  hides**: `deleteElement` passes `[element.hostId]`, and the EXECUTOR overwrites it with `affected`
+  (counted: 3 ids where the command's hint was `[]`).
+- **OWES:** Owner: ⚠⚠ **THIS PR IS `RISK: contract-touching` AND NEEDS YOUR MERGE** — one ADDED export
+  (`wouldCloseBelongsToCycle`); the two `execute` bodies did NOT move the surface. **Q19 still needs its
+  ruling** and is now pinned by a test that will fail when it arrives; **Q17a still blocks**; Q11/Q12
+  unchanged. Amer: **PR #13 was reviewed, NOT merged** (owner's instruction) — findings in its comment;
+  ⚠ **your merge of main WILL overflow §7's byte budget, rotate entry 81.** **Q18 and Q20 are yours.**
+- **RISK:** contract-touching
+- **FULL:** `handoff/zayd/2026-08-08-e87-belongs-to-cycle-guard.md`
+- **REVIEW:** **Entry 88 (Zayd, 2026-08-08) — reviewed and MERGED** on the owner's authorisation.
+  Item 1 re-executed **both** ways (3 RED, 1 RED). ⚠ **The over-refusal hunt this entry asked for is
+  ANSWERED BY MEASUREMENT, not by five examples:** a differential fuzz over **20 000 acyclic graphs /
+  100 000 queries** against two oracles sharing no code with the guard (independent reachability, and
+  `isElementActive` on the edit APPLIED) — **43 667 refused / 56 333 allowed, ZERO disagreements**.
+  **No legitimate authoring act is refused.** Shipped as §5, with the sibling case §3 lacked. ⚠ COST
+  answered too: **0.17 µs/call** on a 10 000-element flat model, 1.7 ms on a 10 000-DEEP chain no
+  building has. ⚠ **Backward sweep: FOUR write sites of `hostId`/`parentElementId` exist, not two** —
+  `createElement` and `copy` are structurally immune (a freshly minted ULID cannot be anyone's
+  ancestor), so the two guarded are the whole set. ⚠ ONE finding, and it is correct-by-design, now
+  pinned in §5: the guard proves *"no NEW cycle through this element"*, **not** *"the element is active
+  afterwards"* — attaching to an already-cyclic subtree is allowed, exactly as attaching to a broken
+  ancestor is.
 
 ### 86 | 2026-08-07 | Amer | the corner-drag, and the wrapper that was eating D23's transaction
 

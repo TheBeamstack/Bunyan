@@ -27,12 +27,20 @@
  *   node scripts/agent-start.mjs --seat hmdnah --review   review a PR (implied for a reviewer seat)
  *   node scripts/agent-start.mjs --seat brahim            steward: readiness view, claims nothing
  *   node scripts/agent-start.mjs --seat zayd --no-claim   run the checks only
+ *   node scripts/agent-start.mjs --seat zayd --continue T-008   resume a branch a reviewer sent back
  *   node scripts/agent-start.mjs --root DIR               run against DIR instead of this checkout
  *   node scripts/agent-start.mjs --no-pull                do not fetch or pull first
  *
  * `--root`/`--no-pull` exist for the tests, the same reasoning as mdo's `agent-start.sh`: every
  * refusal here is a gate the whole protocol rests on, and until these two flags existed not one of
  * them could be exercised without pushing a real claim to the live repository.
+ *
+ * `--continue <T-nnn>` (D88, T-015) is how a defect either review step proves gets back to its
+ * builder: it checks out the branch of the task's own OPEN PR, leaves the row at `review`, and writes
+ * NO new §0b claim — the existing one already names this branch. It is not a second door onto work
+ * another seat is holding: the admitted seat is DERIVED from the task's `machine:` field
+ * (`seats.builderFor`), never read from the baton, which a `--review` finish rewrites to name the
+ * REVIEWER, not the builder.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -156,6 +164,7 @@ function parseArgs(argv) {
     noClaim: false,
     review: false,
     wantTask: '',
+    continueTask: '',
   };
   for (let i = 0; i < argv.length; i++) {
     const t = argv[i];
@@ -166,17 +175,38 @@ function parseArgs(argv) {
     else if (t === '--no-pull') a.noPull = true;
     else if (t === '--no-claim') a.noClaim = true;
     else if (t === '--review') a.review = true;
-    else if (/^T-\d{3}$/.test(t)) a.wantTask = t;
+    else if (t === '--continue' || t.startsWith('--continue=')) {
+      const v = t === '--continue' ? argv[++i] : t.slice('--continue='.length);
+      if (!/^T-\d{3}$/.test(v ?? '')) die(`--continue expects a T-nnn id, got '${v}'.`);
+      a.continueTask = v;
+    } else if (/^T-\d{3}$/.test(t)) a.wantTask = t;
     else die(`agent-start.mjs: unknown argument '${t}'`);
   }
   return a;
+}
+
+// -------------------------------------------------------------------------------------- --continue --
+
+/** The open PR (`gh pr list --json number,headRefName,title`) whose title names `taskId`, or `null`.
+ * Exported so the rule — `--continue` requires an OPEN PR, never a bare branch — is unit-testable
+ * without spawning `gh`. */
+export function findTaskPR(openPRs, taskId) {
+  return openPRs.find((p) => (p.title.match(/^T-\d{3}/) ?? [])[0] === taskId) ?? null;
 }
 
 // =================================================================================================
 // MAIN — guarded so this module can also be imported (its exports above) without running the CLI.
 // =================================================================================================
 export function main(argv = process.argv.slice(2)) {
-  const { seat, root, noPull, noClaim, review, wantTask: wantTaskArg } = parseArgs(argv);
+  const {
+    seat,
+    root,
+    noPull,
+    noClaim,
+    review,
+    wantTask: wantTaskArg,
+    continueTask,
+  } = parseArgs(argv);
   let wantTask = wantTaskArg;
   const csPath = join(root, 'current_state.md');
 
@@ -350,6 +380,84 @@ export function main(argv = process.argv.slice(2)) {
   // ------------------------------------------------------------------------------- 5. turn shape --
   hr();
   console.log(`5. Turn shape — ${role}`);
+
+  // ---- --continue: a defect either review step proves goes back to its builder (D88, T-015) ------
+  if (continueTask) {
+    console.log('');
+    console.log(
+      `   --continue ${continueTask}: returning the branch to its builder, not a new claim.`,
+    );
+    if (role !== 'builder') {
+      die(
+        `--continue is a builder operation; seat '${seat}' is role '${role}', which does not build.`,
+      );
+    }
+    // The admitted seat is DERIVED from the task's own machine:, never read off the §0b baton — a
+    // `--review` finish rewrites that baton to name the REVIEWER, so a gate on it would refuse the
+    // builder in every real call (measured 2026-08-15 against T-008's own baton).
+    let admitted;
+    try {
+      admitted = seats.builderFor(root, continueTask, seat);
+    } catch (e) {
+      die(e.message);
+    }
+    if (admitted.seat !== seat) {
+      die(
+        `${continueTask}'s builder is '${admitted.seat}', not '${seat}'.\n\n` +
+          `  --continue is not a second door onto work another seat is holding.`,
+      );
+    }
+
+    const pr = findTaskPR(openPRs, continueTask);
+    if (!pr) {
+      die(
+        `No open PR names ${continueTask}. --continue resumes a branch a reviewer already sent back —\n` +
+          `  there is nothing to resume without one. A 'ready' row with no PR is claimed the ordinary way.`,
+      );
+    }
+    console.log(`   found PR #${pr.number} on ${pr.headRefName}`);
+
+    // Read the row status from the PR's OWN branch, never main: the ready→review flip lives on the
+    // unmerged branch, so main's own copy of docs/BACKLOG.md still reads 'ready' until the PR merges.
+    const branchBacklog = tryGit(['show', `origin/${pr.headRefName}:docs/BACKLOG.md`], root);
+    const branchStatus = branchBacklog ? seats.rowStatus(branchBacklog, continueTask) : undefined;
+    if (branchStatus !== 'review') {
+      die(
+        `${continueTask}'s row on ${pr.headRefName} reads '${branchStatus ?? 'unreadable'}', not 'review'.\n\n` +
+          `  --continue only resumes a branch a reviewer already sent back.`,
+      );
+    }
+
+    try {
+      git(['fetch', 'origin', pr.headRefName], root);
+    } catch {
+      die(`could not fetch ${pr.headRefName} from origin.`);
+    }
+    try {
+      git(['checkout', pr.headRefName], root);
+    } catch {
+      try {
+        git(['checkout', '-b', pr.headRefName, `origin/${pr.headRefName}`], root);
+      } catch {
+        die(`could not check out ${pr.headRefName}.`);
+      }
+    }
+
+    hr();
+    console.log(
+      `Continuing: ${continueTask}   Seat: ${seat} (${role} on ${machine})   Branch: ${pr.headRefName}`,
+    );
+    console.log('');
+    console.log(
+      "The row stays 'review' throughout — this is a defect returning to its builder, not a",
+    );
+    console.log(
+      'fresh claim, so no new §0b claim is written; the existing one already names this branch.',
+    );
+    console.log('');
+    console.log(`Finish with: node scripts/agent-finish.mjs --seat ${seat} ${continueTask}`);
+    return;
+  }
 
   // ---- reviewer ------------------------------------------------------------------------------
   if (role === 'reviewer' || review) {

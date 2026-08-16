@@ -27,3 +27,12 @@ export declare function renderBaton(claim: Baton): string;
 export declare function writeBaton(currentStateMdPath: string, block: string): void;
 
 export declare function main(argv?: string[]): void;
+
+export interface OpenPR {
+  number: number;
+  headRefName: string;
+  title: string;
+}
+
+/** The open PR whose title names `taskId` (`gh pr list --json number,headRefName,title`), or `null`. */
+export declare function findTaskPR(openPRs: OpenPR[], taskId: string): OpenPR | null;
