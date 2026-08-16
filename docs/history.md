@@ -31,12 +31,18 @@ git history**, on the commit that wrote it (`git log --follow current_state.md`)
 
 ## THE ROTATION RULE (binding — this is how the two files stay in balance)
 
-**Whenever `current_state.md` holds MORE THAN 20 entries, the agent that notices it compacts:**
+**§7's own budget is the current authority — a BYTE budget, not a count** (`current_state.md` §7's own
+header; `BUDGET.maxAbstracts` in `scripts/docs-state.mjs` caps the count side at 10). The "more than 20,
+keep 15" numbers this section used to state were superseded when the budget became byte-based and were
+never updated here — fixed in place rather than left disagreeing with the file that actually governs it.
 
-1. Keep the **newest 15** entries in `current_state.md` §7, in full.
-2. **Summarize each older entry into this file**, appended in order, keeping: its number, date, agent,
-   headline, the measured numbers, the decisions it took (with D-numbers), and anything a future agent
-   would otherwise re-derive. Drop only the session bookkeeping (verify counts, box notes, commit hashes).
+**Whenever `current_state.md` §7 is at or over its budget, the agent that notices it compacts:**
+
+1. Keep the newest abstracts §7's budget allows, in full.
+2. **Summarize each older entry into this file**, appended in order, keeping: its id (a legacy number, or
+   its `T-nnn`/`STEWARD-slug` identity post-D82), date, agent, headline, the measured numbers, the
+   decisions it took (with D-numbers), and anything a future agent would otherwise re-derive. Drop only
+   the session bookkeeping (verify counts, box notes, commit hashes).
 3. Before dropping an entry, **check its durable lessons are already in `current_state.md` §1–§5.** If one
    is not, promote it there first — _the summary here is a pointer, and §1–§5 is where a rule actually
    binds._
@@ -1312,5 +1318,39 @@ because it records *how the freeze question moved* — which sweep was taken ins
 > solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
 > the real D52 Wall pulled forward into `@bunyan/types`).** ⚠⚠ THE ANTI-FUSE RULE HELD (a join reshapes only
 > the cap; side faces keep their tokens, D26). The types (steps 4–5) + MVP gates are also DONE (Entries 44–45).
+
+---
+
+## §E — post-D82 turns (`T-nnn` / `STEWARD-slug`, no more sequential numbers) — full bodies in `handoff/`
+
+Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after D82 (2026-08-14, Entry 91) is
+titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
+same as `current_state.md` §7.
+
+### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
+
+- **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
+  `needs-operator/*` labels; PR title routing + `MERGEABLE`), run by a new `pr-shape` CI job ·
+  `tests/protocol/{reserved-classes,pr-ready}.test.ts` NEW (+17) · `seats.mjs` gained
+  `PR_TITLE_RE`/`titleRoutes`, called by `agent-finish.mjs` · `docs/RUNBOOK.md` NEW ·
+  `docs/BACKLOG.md` decomposed (T-001…T-011) · `AGENTS.md §7` NEW — the owner's writing standard,
+  binding on every seat and subagent · `REVIEW.md`, `docs/seats/README.md` and `Brahim_Prompt.md`
+  corrected where they still described the pre-D82 model · `open_rulings.md` Q13 rewritten.
+  Covers two sessions: `f984e89` built the mechanics on the pc, this one finished them.
+- **VERIFIED:** `pnpm verify` green. The new suites execute against real fixture git histories rather
+  than grepping the scripts. `pnpm docs:check` measured at 6 files / 69 tests **before** any change,
+  which is what proved `tests/protocol/` was already wired into CI.
+- **FOUND:** Branch protection is unavailable on this repository — `403 Upgrade to GitHub Pro or make
+  this repository public` on both the protection and rulesets APIs, with an `ADMIN` token; Q13's
+  account objection is satisfied and a plan objection replaced it (ruled D87). `current_state.md §3`/`§5`
+  called the plan/section unit blocked on Q1–Q3 after it shipped in Entry 77. `REVIEW.md` still taught
+  the pre-D82 self-review loop, and `docs/seats/README.md` still described the retired `§2 DYNAMIC`
+  block under a heading saying it carried no state — both fixed on this branch.
+- **OWES:** the owner — rulings on Q17a, Q17c, Q18, Q19, and the public/Pro/neither call on Q13 (later
+  ruled D87). `hmdnah` — PR #16. `khalihlna` — PR #17. Beyond T-004 nothing was `ready` for box.
+- **RISK:** additive
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
+- **REVIEW:** Reviewed and merged (`STEWARD:` PR, this branch) — the account/PR bookkeeping is not
+  preserved here; see the handoff body and `docs/decisions.md` D87 for what it settled.
 
 

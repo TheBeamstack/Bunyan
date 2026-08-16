@@ -628,6 +628,41 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-014 — `--review` must read the task's `risk:`, not only the frozen surface — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL`/`STEP1_LABEL_COLOR`/`STEP1_LABEL_DESCRIPTION`,
+  `reviewStepFor`, `reviewStepGate`, `reviewFlipsToDone` NEW** — the two-step routing/legality/flip
+  decisions, pure) · `scripts/agent-finish.mjs` (**`--step 1|2` NEW**; a pre-`pnpm verify` gate resolving
+  a review's `risk:` and validating `--step` against it; step 1 creates-if-absent and applies the
+  `review/step-1` label, no row flip, no approve/merge printed; step 2 refuses unless that label is
+  confirmed present, then flips via `reviewFlipsToDone`) · `scripts/agent-start.mjs` (the reviewer branch
+  resolves `risk:` + the claimed PR's labels via `reviewStepFor`, prints which step and the exact finish
+  command with `--step N`, refuses rather than guesses on an unreadable label/risk) ·
+  `scripts/seats.d.mts` (the four new exports declared) · `tests/protocol/seats.test.ts` (+19: the three
+  pure functions, including a revert-verification pair) · `tests/protocol/agent-finish.test.ts` (+7: the
+  new gate). No frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0 — **868/868** across 94 files, `docs:check`'s own subset
+  **123/123** across 8; `freeze-boundary` green ⇒ frozen surface unmoved (confirmed separately:
+  `reserved-classes.mjs --base origin/main` → `none — RISK: additive`). **Revert-verified:** `seats.mjs`'s
+  `reviewFlipsToDone` reverted to the pre-fix `!contractTouching` formula → `pnpm vitest run
+  tests/protocol/seats.test.ts -t reviewFlipsToDone` went **2 RED** (`expected true to be false`,
+  reproducing T-008/PR #23's own defect: a `risk: high` step 1 stamps `done`); restored → **5/5 green**.
+- **FOUND:** `AGENTS.md §1.2` and `REVIEW.md`'s "Two steps" section already specified this mechanism in
+  full before any code existed — this PR implements a written spec, not a design decision. ⚠ The
+  `gh`-touching halves (label create, `--add-label`, the label-presence read) are not exercised by the
+  fixture suite, same limitation `reserved-classes.mjs`'s own `syncLabels` already accepts: a throwaway
+  local bare `origin` has no real PR for `gh` to ask about. The pure decision functions are directly
+  tested instead; the plumbing gets its first live exercise on this very PR's own review, since `T-014`
+  is itself `risk: high`.
+- **OWES:** `hmdnah` — this PR (step 1 first, D88; the live exercise of the label-creation path). Also
+  `T-008`/PR #23: its step 1 predates this mechanism and ran by hand, so `review/step-1` needs applying
+  to it **manually** before `--review --step 2` will route; detail in the handoff body.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md`
+- **REVIEW:** ⚠ This entry is the currently open PR — **AWAITING REVIEW.** `risk: high` (D88): `hmdnah`
+  runs step 1 first (mechanical, `REVIEW.md` items 1, 4, 5, 7; posts a report, no merge), then step 2
+  (adversarial, items 2, 3, 6) in a separate session.
+
 ### T-015 — review: the fix holds, backward sweep and weak-green clean — 2026-08-16 — seat: hmdnah
 
 - **CHANGED:** Nothing on this branch — no defect proven. The code is merged as fixed by the second
@@ -902,31 +937,6 @@ is maintenance and does NOT get an entry of its own.**
   defects fixed on the branch, on `narutousomaki741` — the account that did not open it. The entry above
   is the record.
 
-### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
-
-- **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
-  `needs-operator/*` labels; PR title routing + `MERGEABLE`), run by a new `pr-shape` CI job ·
-  `tests/protocol/{reserved-classes,pr-ready}.test.ts` NEW (+17) · `seats.mjs` gained
-  `PR_TITLE_RE`/`titleRoutes`, called by `agent-finish.mjs` · `docs/RUNBOOK.md` NEW ·
-  `docs/BACKLOG.md` decomposed (T-001…T-011) · `AGENTS.md §7` NEW — the owner's writing standard,
-  binding on every seat and subagent · `REVIEW.md`, `docs/seats/README.md` and `Brahim_Prompt.md`
-  corrected where they still described the pre-D82 model · `open_rulings.md` Q13 rewritten.
-  Covers two sessions: `f984e89` built the mechanics on the pc, this one finished them.
-- **VERIFIED:** `pnpm verify` green. The new suites execute against real fixture git histories rather
-  than grepping the scripts. `pnpm docs:check` measured at 6 files / 69 tests **before** any change,
-  which is what proved `tests/protocol/` was already wired into CI.
-- **FOUND:** Branch protection is unavailable on this repository — `403 Upgrade to GitHub Pro or make
-  this repository public` on both the protection and rulesets APIs, with an `ADMIN` token; Q13's
-  account objection is satisfied and a plan objection replaced it. `current_state.md §3`/`§5` called
-  the plan/section unit blocked on Q1–Q3 after it shipped in Entry 77. `REVIEW.md` still taught the
-  pre-D82 self-review loop, and `docs/seats/README.md` still described the retired `§2 DYNAMIC` block
-  under a heading saying it carried no state.
-- **OWES:** the owner — rulings on Q17a, Q17c, Q18, Q19, and the public/Pro/neither call on Q13.
-  `hmdnah` — PR #16. `khalihlna` — PR #17. Beyond T-004 nothing is `ready` for box.
-- **RISK:** additive
-- **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
-- **REVIEW:** pending — `STEWARD:` PR, this branch.
-
 ---
 
 ## §8 — Generated
@@ -936,16 +946,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-015 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` · `e4375fd` · clean |
-| open PRs | #27 task/T-015-agent-start-mjs-continue-t-nnn-the-branc · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
-| suite | **847 green** · 94 files · 267 suites |
+| **newest entry** | **T-014 (zayd, 2026-08-16)** |
+| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `5752c21` · dirty |
+| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
+| suite | **868 green** · 94 files · 272 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 748 insertions(+), 138 deletions(-) (13 files) |
-| docs budget | current_state 78.4/96.0 KB · §7 25.7/32.0 KB · abstracts 10/10 · bodies 44 |
+| diff vs origin/main | 8 files changed, 540 insertions(+), 47 deletions(-) (8 files) |
+| docs budget | current_state 79.0/96.0 KB · §7 26.8/32.0 KB · abstracts 10/10 · bodies 45 |
 
 _Generated 2026-08-16 by `pnpm state`._
 

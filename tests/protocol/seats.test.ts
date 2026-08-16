@@ -14,8 +14,12 @@ import {
   readRegistry,
   readyFor,
   reviewerFor,
+  reviewFlipsToDone,
+  reviewStepFor,
+  reviewStepGate,
   roleOf,
   rowStatus,
+  STEP1_LABEL,
   taskField,
 } from '../../scripts/seats.mjs';
 import { makeFixture } from './fixture.mjs';
@@ -322,5 +326,86 @@ describe('the real docs/BACKLOG.md, as prettier formats it', () => {
     for (const id of ids) {
       expect(taskField(backlog, id, 'machine'), `${id} has no machine:`).toMatch(/^(any|box|pc)$/);
     }
+  });
+});
+
+describe('the two-step review gate (D88, T-014)', () => {
+  describe('reviewStepFor — which of the two turns a risk: high PR is on', () => {
+    it('is null for anything but risk: high — one ordinary review turn', () => {
+      expect(reviewStepFor('normal', [])).toBeNull();
+      expect(reviewStepFor(undefined, [])).toBeNull();
+      expect(reviewStepFor('high', [STEP1_LABEL])).not.toBeNull();
+    });
+
+    it('is step 1 when the PR carries no review/step-1 label yet', () => {
+      expect(reviewStepFor('high', [])).toBe(1);
+      expect(reviewStepFor('high', ['unrelated-label'])).toBe(1);
+    });
+
+    it('is step 2 once the review/step-1 label is on the PR', () => {
+      expect(reviewStepFor('high', [STEP1_LABEL])).toBe(2);
+      expect(reviewStepFor('high', ['unrelated-label', STEP1_LABEL])).toBe(2);
+    });
+  });
+
+  describe('reviewStepGate — is `--step N` legal for this risk', () => {
+    it('refuses an unreadable/absent risk, never defaulting to normal', () => {
+      const v = reviewStepGate(undefined, null);
+      expect(v.ok).toBe(false);
+      expect(v.reason).toMatch(/no readable 'risk:' field/);
+    });
+
+    it('refuses risk: high with no --step', () => {
+      const v = reviewStepGate('high', null);
+      expect(v.ok).toBe(false);
+      expect(v.reason).toMatch(/requires --step 1 or --step 2/);
+    });
+
+    it('accepts risk: high with --step 1 or --step 2', () => {
+      expect(reviewStepGate('high', 1).ok).toBe(true);
+      expect(reviewStepGate('high', 2).ok).toBe(true);
+    });
+
+    it('refuses risk: high with an out-of-range step', () => {
+      expect(reviewStepGate('high', 3).ok).toBe(false);
+    });
+
+    it('refuses --step on a risk: normal (or any non-high) task', () => {
+      const v = reviewStepGate('normal', 1);
+      expect(v.ok).toBe(false);
+      expect(v.reason).toMatch(/only risk: high uses a two-step review/);
+    });
+
+    it('accepts risk: normal with no --step — unchanged from before T-014', () => {
+      expect(reviewStepGate('normal', null).ok).toBe(true);
+    });
+  });
+
+  describe('reviewFlipsToDone — the exact decision T-014 exists to correct', () => {
+    it('risk: high step 1 does NOT flip to done — the T-008/PR #23 defect this task closes', () => {
+      expect(reviewFlipsToDone('high', 1, false)).toBe(false);
+    });
+
+    it('risk: high step 2 DOES flip to done', () => {
+      expect(reviewFlipsToDone('high', 2, false)).toBe(true);
+    });
+
+    it('risk: normal flips to done regardless of step — unchanged from before T-014', () => {
+      expect(reviewFlipsToDone('normal', null, false)).toBe(true);
+    });
+
+    it('contract-touching never flips, at any risk/step', () => {
+      expect(reviewFlipsToDone('high', 2, true)).toBe(false);
+      expect(reviewFlipsToDone('normal', null, true)).toBe(false);
+    });
+
+    it('REVERT-VERIFIED: the pre-T-014 formula stamps a risk: high step 1 `done` — this is the bug', () => {
+      // `agent-finish.mjs --review` used to flip the row on `!contractTouching` alone, with no notion
+      // of steps at all — exactly what shipped in PR #23 and had to be corrected by hand.
+      const preT014Formula = (_risk: string, _step: number | null, contractTouching: boolean) =>
+        !contractTouching;
+      expect(preT014Formula('high', 1, false)).toBe(true); // RED: the old code stamps 'done'
+      expect(reviewFlipsToDone('high', 1, false)).toBe(false); // GREEN: the fix leaves it 'review'
+    });
   });
 });

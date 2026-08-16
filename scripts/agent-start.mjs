@@ -542,6 +542,69 @@ export function main(argv = process.argv.slice(2)) {
     hr();
     console.log(`Reviewing: PR #${mine.number}   seat: ${seat} (${machine})`);
     console.log('');
+
+    // ── D88's two-step review (T-014) ──────────────────────────────────────────────────────────
+    // Which step this is lives on the PR's OWN `review/step-1` label, never the NEXT TURN: REVIEW
+    // ONLY banner — that is written into the task branch and read here after `git checkout main`,
+    // where it has never existed (REVIEW.md §"Two steps"). Risk itself comes from `docs/BACKLOG.md`,
+    // already merged to `main`, so it needs no branch content either.
+    const mineId = (mine.title.match(/^T-\d{3}/) ?? [])[0];
+    let mineRisk;
+    if (mineId) {
+      mineRisk = seats.taskField(
+        readFileSync(join(root, 'docs/BACKLOG.md'), 'utf8'),
+        mineId,
+        'risk',
+      );
+    }
+    if (mineId && !mineRisk) {
+      die(
+        `${mineId} has no readable 'risk:' field in docs/BACKLOG.md — refusing rather than defaulting ` +
+          `to normal.`,
+      );
+    }
+    if (mineRisk === 'high') {
+      let labels = null;
+      try {
+        labels = JSON.parse(
+          execFileSync('gh', ['pr', 'view', String(mine.number), '--json', 'labels'], {
+            cwd: root,
+            encoding: 'utf8',
+          }),
+        ).labels;
+      } catch {
+        labels = null;
+      }
+      if (!labels) {
+        die(
+          `${mineId} is risk: high, but PR #${mine.number}'s labels could not be read — refusing to ` +
+            `guess which review step this is. Confirm 'gh' is authenticated and retry.`,
+        );
+      }
+      const reviewStep = seats.reviewStepFor(
+        mineRisk,
+        labels.map((l) => l.name),
+      );
+      console.log(
+        `   ⚠ risk: high — TWO-STEP REVIEW (D88). You are running STEP ${reviewStep} of 2.`,
+      );
+      console.log('');
+      if (reviewStep === 1) {
+        console.log('   Step 1 is MECHANICAL — REVIEW.md items 1, 4, 5, 7 only. Post a report.');
+        console.log("   No approval, no merge — the row stays 'review'.");
+      } else {
+        console.log("   Step 2 is ADVERSARIAL — read step 1's report, then run items 2, 3, 6.");
+        console.log(
+          '   Re-confirm item 7 immediately before merging. Approve and merge on green CI.',
+        );
+      }
+      console.log('');
+      console.log(
+        `Finish with: node scripts/agent-finish.mjs --seat ${seat} ${mineId} --review --step ${reviewStep}`,
+      );
+      return;
+    }
+
     console.log('In this order, and the first one is not optional (REVIEW.md):');
     console.log(
       '  1. RE-EXECUTE THE CLAIM. Revert, run the test, paste RED. Restore, paste green.',
