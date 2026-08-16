@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
-| role | builder |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
 | task | `T-015` |
 | branch | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` |
@@ -931,26 +931,21 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-015` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-015 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` · `2798b2c` · dirty |
+| branch · tip · tree | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` · `e4375fd` · clean |
 | open PRs | #27 task/T-015-agent-start-mjs-continue-t-nnn-the-branc · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
 | suite | **847 green** · 94 files · 267 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 12 files changed, 659 insertions(+), 138 deletions(-) (12 files) |
-| docs budget | current_state 78.3/96.0 KB · §7 25.7/32.0 KB · abstracts 10/10 · bodies 44 |
+| diff vs origin/main | 13 files changed, 748 insertions(+), 138 deletions(-) (13 files) |
+| docs budget | current_state 78.4/96.0 KB · §7 25.7/32.0 KB · abstracts 10/10 · bodies 44 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
