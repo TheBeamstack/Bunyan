@@ -107,7 +107,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref       | document | box     | normal | —          |
 | T-008 | done    | Q19 — the belongs-to deletion reconciliation                  | document | box     | high   | —          |
 | T-009 | done    | Q18 — a hosted void may only host on its host's base part     | document | box     | high   | —          |
-| T-010 | blocked | Q18 — two doors on one wall, confirmed in the browser         | apps-web | pc      | normal | T-009      |
+| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser         | apps-web | pc      | normal | T-009      |
 | T-011 | ready   | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
 | T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
 | T-013 | done    | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
@@ -547,6 +547,14 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-16 — `agent-start.mjs --review`'s reviewer-claim loop takes the first PR in `gh pr list`
+  order (newest-first), not the one furthest along its own review pipeline.** Measured on PRs #31
+  (T-009, past step 1, `review/step-1` label, CI green — actually due for step 2) and #32 (T-011, just
+  opened, unlabeled, step 1): both route to `hmdnah`, and the script claimed #32, the newer and less
+  advanced of the two, ahead of #31. Session worked around it by hand (`gh pr checkout 31` directly,
+  `agent-finish.mjs` is branch-driven so this was safe); the script itself is unchanged. Not yet a T-nnn
+  — low-frequency (needs two open PRs routed to the same reviewer at once) and always self-correctable
+  by hand, so recorded rather than decomposed.
 - **2026-08-15 — `current_state.md §3`/`§5` called the plan/section unit blocked on Q1–Q3 after it
   shipped** (Entry 77, PR #5; `tests/plan-section.test.ts`). Fixed this turn. ⚠ The class: rows phrased
   "blocked on a ruling" go stale because the ruling gets recorded elsewhere.
