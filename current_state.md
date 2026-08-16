@@ -113,13 +113,13 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| role | reviewer |
+| seat | `zayd` |
+| role | builder |
 | machine | box |
-| task | `T-009` |
-| branch | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` |
-| claimed-at | 2026-08-16T19:23:08Z |
-| status | finished — PR open, awaiting review |
+| task | `T-016` |
+| branch | `task/T-016-0b-s-baton-carries-the-builder-separatel` |
+| claimed-at | 2026-08-16T22:46:41Z |
+| status | working |
 
 <!-- END BATON -->
 
