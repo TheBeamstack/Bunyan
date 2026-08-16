@@ -628,6 +628,34 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-009 — Q18: a hosted void may only host on its host's own base part — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `packages/document/src/commands.ts` (**`requireHostFaceIsBasePart` NEW**, private —
+  decodes `hostRef`, refuses if its `nodeId` contains `~` (`cutNodeId`'s own separator, the only code that
+  ever writes one) or its `role` starts with `cut(` (`derivedRole`'s own opTag); called from
+  `createElementCommand.execute` right after `hostId` is validated, and from
+  `retargetReferenceCommand.execute` right after the belongs-to-cycle guard — D51's "generalised to every
+  reference." `decodeSubShapeRef` import added). No frozen byte, no `packages/protocol`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/902 tests** main suite (real OCCT
+  WASM throughout), **8 files/146 tests** `docs:check`. `tests/freeze-boundary.test.ts` green ⇒
+  **RISK: additive**. **Revert-verified live:** neutralising the guard's condition left **2 of 14** tests
+  in `tests/document-openings.test.ts` RED (both new, `.rejects.toThrow` never threw); restored,
+  **14/14 green**.
+- **FOUND:** measured the actual trigger headlessly before writing the fix — an interior hole (a window
+  with a sill, `offsetV > 0`) leaves the host face's own token passed through UNCHANGED (`REL_INHERIT`),
+  so it does **not** reproduce the defect; a void whose boundary is COINCIDENT with an existing one
+  (`offsetV: 0`, touching the wall's own base) is what earns OCCT's "Modified" verdict and mints a
+  genuinely derived face token (`…structure~opening-…/face/cut(…z-min~0)#0`) — narrower than "any second
+  opening," and the fixture used in the new tests reproduces it on demand.
+- **OWES:** `hmdnah` — this PR's review; `risk: high` per the BACKLOG entry, so D88's two-step route
+  applies. `amer`/`khalihlna` — `T-010` (the browser confirmation this task is split from, `machine: pc`)
+  still needs the picking gesture itself to offer a valid face instead of a derived one; this PR only
+  gives the refusal a reason, not yet a replacement.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-009-hosted-void-base-part.md`
+- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.** `risk: high` (D88) — needs `hmdnah`'s two-step
+  review (step 1 mechanical, step 2 adversarial, same seat, separate sessions) before merge.
+
 ### T-012 — review (step 2): the fallback quantifies over the registry, and `reviewerForBranch` genuinely reuses `reviewerFor` — 2026-08-16 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
@@ -945,35 +973,6 @@ is maintenance and does NOT get an entry of its own.**
   label-description limit, so `review/step-1` could never be created on a fresh repo). The entry above is
   the record.
 
-### T-015 — review: the fix holds, backward sweep and weak-green clean — 2026-08-16 — seat: hmdnah
-
-- **CHANGED:** Nothing on this branch — no defect proven. The code is merged as fixed by the second
-  `zayd` turn (commit `2798b2c`).
-- **VERIFIED:** `pnpm verify` green, **847/847**, exit 0, `tests/freeze-boundary.test.ts` green ⇒ frozen
-  surface unmoved. **Reconciled step 1's fix myself rather than trusting the report:** `git diff 902e827
-  2798b2c` shows exactly one production line changed
-  (`scripts/agent-start.mjs:400`, `seats.builderFor(root, continueTask)` → `..., seat)`) plus one new
-  test. Reverted that line by hand and re-ran `tests/protocol/agent-start.test.ts`: **1 failed | 16
-  skipped**, `✖ T-001's builder is 'zayd', not 'amer'.` — reproduces step 1's finding exactly. Restored:
-  **17/17** in that file.
-- **FOUND:** No new blocking finding. **Item 2 (backward sweep):** `builderFor` has one production call
-  site, now fixed; every `reviewerFor` call site checked — `agent-finish.mjs:324`/`:475` both pass
-  `seat`, `agent-start.mjs:507` passes `undefined` deliberately (the pre-existing reviewer-routing
-  *display* loop, not an admission gate, unmodified by this PR) — no second instance of the missing-arg
-  shape. **Item 3 (new kind of thing):** the `--continue` door and `builderFor` are the new entity;
-  `agent-finish.mjs`'s `existingPR` check does not key on the entry path, so nothing else needed
-  enumerating. Two non-blocking opinions recorded in the PR comment (duplicate PR-title regex in the
-  display loop; the pre-existing `--limit 10` cap on `gh pr list`). **Item 6 (weak green):** the new
-  regression test infers admission success indirectly (failing one gate later, at "No open PR"); checked
-  a hypothetical alternate bug (raw `finishingSeat` used as machine instead of `machineOf`) and confirmed
-  it would also fail the test's second assertion via a different message — not fooled by that class
-  either. Test is not weak.
-- **OWES:** nothing new. `brahim` — T-016 (depends-on T-015) is now unblocked.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-16-T-015-review.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the build entry, now
-  rotated to `docs/history.md` §E.
-
 ---
 
 ## §8 — Generated
@@ -983,16 +982,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-012 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `main` · `f618020` · dirty |
+| **newest entry** | **T-009 (zayd, 2026-08-16)** |
+| branch · tip · tree | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` · `bf55ac4` · dirty |
 | open PRs | none — main is the tip of the work |
-| suite | **900 green** · 95 files · 281 suites |
+| suite | **902 green** · 95 files · 281 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 3 files changed, 81 insertions(+), 50 deletions(-) (3 files) |
-| docs budget | current_state 82.5/96.0 KB · §7 30.3/32.0 KB · abstracts 10/10 · bodies 53 |
+| diff vs origin/main | 4 files changed, 175 insertions(+), 38 deletions(-) (4 files) |
+| docs budget | current_state 82.6/96.0 KB · §7 30.3/32.0 KB · abstracts 10/10 · bodies 54 |
 
 _Generated 2026-08-16 by `pnpm state`._
 

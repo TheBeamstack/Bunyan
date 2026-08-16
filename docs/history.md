@@ -1366,6 +1366,35 @@ same as `current_state.md` §7.
   step 1 found. See the review entry (rotated alongside this one; both were already in `current_state.md`
   §7) for the record — `T-015 — review: the fix holds, backward sweep and weak-green clean`.
 
+### T-015 — review: the fix holds, backward sweep and weak-green clean — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** Nothing on this branch — no defect proven. The code is merged as fixed by the second
+  `zayd` turn (commit `2798b2c`).
+- **VERIFIED:** `pnpm verify` green, **847/847**, exit 0, `tests/freeze-boundary.test.ts` green ⇒ frozen
+  surface unmoved. **Reconciled step 1's fix myself rather than trusting the report:** `git diff 902e827
+  2798b2c` shows exactly one production line changed
+  (`scripts/agent-start.mjs:400`, `seats.builderFor(root, continueTask)` → `..., seat)`) plus one new
+  test. Reverted that line by hand and re-ran `tests/protocol/agent-start.test.ts`: **1 failed | 16
+  skipped**, `✖ T-001's builder is 'zayd', not 'amer'.` — reproduces step 1's finding exactly. Restored:
+  **17/17** in that file.
+- **FOUND:** No new blocking finding. **Item 2 (backward sweep):** `builderFor` has one production call
+  site, now fixed; every `reviewerFor` call site checked — `agent-finish.mjs:324`/`:475` both pass
+  `seat`, `agent-start.mjs:507` passes `undefined` deliberately (the pre-existing reviewer-routing
+  *display* loop, not an admission gate, unmodified by this PR) — no second instance of the missing-arg
+  shape. **Item 3 (new kind of thing):** the `--continue` door and `builderFor` are the new entity;
+  `agent-finish.mjs`'s `existingPR` check does not key on the entry path, so nothing else needed
+  enumerating. Two non-blocking opinions recorded in the PR comment (duplicate PR-title regex in the
+  display loop; the pre-existing `--limit 10` cap on `gh pr list`). **Item 6 (weak green):** the new
+  regression test infers admission success indirectly (failing one gate later, at "No open PR"); checked
+  a hypothetical alternate bug (raw `finishingSeat` used as machine instead of `machineOf`) and confirmed
+  it would also fail the test's second assertion via a different message — not fooled by that class
+  either. Test is not weak.
+- **OWES:** nothing new. `brahim` — T-016 (depends-on T-015) is now unblocked.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-015-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the build entry,
+  rotated alongside this one.
+
 ### STEWARD-step-routing-and-continue — D88 asserted two mechanisms no script implements — 2026-08-15 — seat: brahim
 
 - **CHANGED:** `docs/decisions.md` (**D88 amended**) · `docs/BACKLOG.md` (T-014's second `done-when:`

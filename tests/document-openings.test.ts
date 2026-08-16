@@ -396,6 +396,79 @@ describe('openings, hosts, and the broken-reference state', () => {
     expect(doc.geometryOf(windowId)!.state).toBe('valid');
   });
 
+  /**
+   * ⚠⚠ D84 (Q18, owner-ruled 2026-08-15) — A HOSTED VOID MAY ONLY HOST ON ITS HOST'S OWN BASE PART.
+   *
+   * The bug this closes: a door reaching the wall's own base (`offsetV: 0`, sill coincident with the
+   * wall's z-min) leaves OCCT reporting that boundary as MODIFIED, not merely holed — so the cut mints
+   * a genuinely DERIVED face token there (`<host>.<layer>~<opening>/face/cut(...)#n`), the same shape a
+   * picked-from-the-already-cut-mesh face would carry. Hosting a SECOND void on that token used to reach
+   * `hostedBy`'s resolution (`build.ts`), which matches only against the host's PRISTINE base parts —
+   * built before any void cuts — and silently landed `broken-ref`, discovered only at the next rebuild.
+   *
+   * ⚠ The test goes through the VERB (`core.createElement`), not a simulated pick: `hostRef`'s node and
+   * role carry the cut's own markers regardless of how a caller obtained them (§ the same defect an
+   * agent driving the command directly would meet).
+   */
+  it('⚠⚠ D84 — createElement REFUSES a host face a prior cut already created or modified', async () => {
+    const { doc, wallId, hostFace } = await buildWall();
+
+    // A door reaching the floor (`offsetV: 0`) — its sill is coincident with the wall's own base face,
+    // which is what earns a genuinely DERIVED face token, not merely a new hole in an inherited one.
+    await doc.execute('core.createElement', {
+      typeId: 'core.opening.v1',
+      hostId: wallId,
+      hostRef: hostFace,
+      params: { width: WINDOW_W, height: 900, anchor: 'fixed', offsetU: 500, offsetV: 0 },
+    });
+
+    const interior = doc.partsOf(wallId)!.find((p) => p.name === 'finish.interior')!;
+    const derivedFace = interior.refs.find((ref) => ref.includes('/face/cut('));
+    expect(
+      derivedFace,
+      'the fixture did not produce a derived face — this test proves nothing',
+    ).toBeDefined();
+
+    await expect(
+      doc.execute('core.createElement', {
+        typeId: 'core.opening.v1',
+        hostId: wallId,
+        hostRef: derivedFace!,
+        params: { width: WINDOW_W, height: WINDOW_H, anchor: 'fixed', offsetU: 2400, offsetV: 900 },
+      }),
+    ).rejects.toThrow(/own base part/);
+
+    // ⚠ AND REFUSED, NOT SILENTLY BROKEN: no half-created element, no new broken reference to show for it.
+    expect(doc.brokenRefs()).toHaveLength(0);
+  });
+
+  /** The same rule, generalised to the OTHER door onto a host face (D51) — manual retargeting. */
+  it('⚠⚠ D84 — retargetReference REFUSES a host face a prior cut already created or modified', async () => {
+    const { doc, wallId, hostFace } = await buildWall();
+    const windowId = (await addWindow(doc, wallId, hostFace)).changes[0]!.id;
+
+    await doc.execute('core.createElement', {
+      typeId: 'core.opening.v1',
+      hostId: wallId,
+      hostRef: hostFace,
+      params: { width: WINDOW_W, height: 900, anchor: 'fixed', offsetU: 2400, offsetV: 0 },
+    });
+    const interior = doc.partsOf(wallId)!.find((p) => p.name === 'finish.interior')!;
+    const derivedFace = interior.refs.find((ref) => ref.includes('/face/cut('));
+    expect(
+      derivedFace,
+      'the fixture did not produce a derived face — this test proves nothing',
+    ).toBeDefined();
+
+    await expect(
+      doc.execute('core.retargetReference', {
+        elementId: windowId,
+        hostId: wallId,
+        hostRef: derivedFace!,
+      }),
+    ).rejects.toThrow(/own base part/);
+  });
+
   /* ============================================================================================
    * DOMAIN RULE 4 — REJECT + KEEP LAST-GOOD.
    * ========================================================================================= */
