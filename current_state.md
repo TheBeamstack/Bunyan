@@ -709,9 +709,12 @@ is maintenance and does NOT get an entry of its own.**
   to it **manually** before `--review --step 2` will route; detail in the handoff body.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md`
-- **REVIEW:** ⚠ This entry is the currently open PR — **AWAITING REVIEW.** `risk: high` (D88): `hmdnah`
-  runs step 1 first (mechanical, `REVIEW.md` items 1, 4, 5, 7; posts a report, no merge), then step 2
-  (adversarial, items 2, 3, 6) in a separate session.
+- **REVIEW:** Reviewed by `hmdnah` (2026-08-16, PR #28, two-step D88) — **APPROVED and MERGED**,
+  `RISK: additive`, on `narutousomaki741` — the account that did not open it. Step 1 posted a report (no
+  merge); step 2 fixed three defects on the branch (two documentation-accuracy issues step 1 found, plus
+  one live-exercise code defect step 2 found: `STEP1_LABEL_DESCRIPTION` exceeded GitHub's 100-character
+  label-description limit, so `review/step-1` could never be created on a fresh repo). The entry above is
+  the record.
 
 ### T-015 — review: the fix holds, backward sweep and weak-green clean — 2026-08-16 — seat: hmdnah
 
@@ -969,16 +972,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-014 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `fc079a8` · dirty |
+| **newest entry** | **T-014 (hmdnah, 2026-08-16)** |
+| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `f10be02` · dirty |
 | open PRs | #28 task/T-014-review-must-read-the-task-s-risk-not-onl · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
-| suite | **873 green** · 94 files · 273 suites |
+| suite | **874 green** · 94 files · 273 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 12 files changed, 732 insertions(+), 48 deletions(-) (12 files) |
-| docs budget | current_state 79.4/96.0 KB · §7 26.8/32.0 KB · abstracts 10/10 · bodies 45 |
+| diff vs origin/main | 13 files changed, 960 insertions(+), 80 deletions(-) (13 files) |
+| docs budget | current_state 81.6/96.0 KB · §7 28.9/32.0 KB · abstracts 10/10 · bodies 46 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
