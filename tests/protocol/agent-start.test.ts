@@ -8,13 +8,13 @@
  * for.
  */
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { makeFixture } from './fixture.mjs';
-import { findTaskPR, resolveReviewStep } from '../../scripts/agent-start.mjs';
+import { findTaskPR, identityGate, resolveReviewStep } from '../../scripts/agent-start.mjs';
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const AGENT_START = join(REPO, 'scripts/agent-start.mjs');
@@ -29,11 +29,15 @@ function isSpawnFailure(e: unknown): e is SpawnFailure {
   return typeof e === 'object' && e !== null;
 }
 
-function run(args: string[]): { code: number; out: string; err: string } {
+function run(
+  args: string[],
+  envOverride?: Record<string, string | undefined>,
+): { code: number; out: string; err: string } {
   try {
     const out = execFileSync('node', [AGENT_START, ...args], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
+      env: envOverride ? { ...process.env, ...envOverride } : process.env,
     });
     return { code: 0, out, err: '' };
   } catch (e: unknown) {
@@ -54,6 +58,30 @@ afterEach(() => {
   extraDirs = [];
 });
 
+/**
+ * The identity guard (T-013) means every spawn of `agent-start.mjs` now checks `gh api user`, and
+ * THIS box's real `gh` is authenticated as exactly one account for the whole suite (`davidian-abdo`,
+ * matching `zayd`/`brahim`). Tests that exercise `hmdnah`/`amer` (`narutousomaki741`) need a `gh`
+ * reporting THAT login instead — a `gh` stand-in on PATH ahead of the real one, forwarding every other
+ * subcommand unchanged, rather than a bypass flag inside the guard itself (which would be the exact
+ * skip T-013 exists to close). Directory is the caller's to clean up via `extraDirs`.
+ */
+function fakeGhReporting(login: string): string {
+  const realGh = execFileSync(process.platform === 'win32' ? 'where' : 'which', ['gh'], {
+    encoding: 'utf8',
+  })
+    .trim()
+    .split(/\r?\n/)[0];
+  const dir = mkdtempSync(join(tmpdir(), 'bunyan-fake-gh-'));
+  const script = join(dir, 'gh');
+  writeFileSync(
+    script,
+    `#!/usr/bin/env bash\nif [ "$1" = "api" ] && [ "$2" = "user" ]; then\n  echo "${login}"\n  exit 0\nfi\nexec "${realGh}" "$@"\n`,
+  );
+  chmodSync(script, 0o755);
+  return dir;
+}
+
 describe('step 0 — seat identity', () => {
   it('refuses with no seat at all', () => {
     fx = makeFixture();
@@ -67,6 +95,39 @@ describe('step 0 — seat identity', () => {
     const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'nobody']);
     expect(r.code).not.toBe(0);
     expect(r.err).toMatch(/unknown seat 'nobody'/);
+  });
+});
+
+describe('step 0 — the identity guard, end to end (D87, T-013)', () => {
+  it("REFUSES the whole turn when gh reports an account other than the SEAT's own", () => {
+    fx = makeFixture();
+    const fakeGhDir = fakeGhReporting('narutousomaki741'); // hmdnah/amer's account, not zayd's
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
+    expect(r.code).not.toBe(0);
+    // ⚠ both accounts named — a guard that says only "wrong account" sends the reader to the wrong
+    // per-seat token file.
+    expect(r.out + r.err).toContain('davidian-abdo');
+    expect(r.out + r.err).toContain('narutousomaki741');
+    // Never got past step 0 — no pull, no measurement, nothing.
+    expect(r.out).not.toMatch(/measured state matches claimed state/);
+  });
+
+  it('an UNRESOLVABLE identity is a hard refusal, never a silent skip', () => {
+    fx = makeFixture();
+    // `node` itself must still resolve (execFileSync spawns it BY NAME through this same PATH) — only
+    // `gh` is missing. A symlink to the real node binary, alone in an otherwise-empty directory, gives
+    // a PATH with no `gh` anywhere on it without breaking the spawn itself.
+    const noGhDir = mkdtempSync(join(tmpdir(), 'bunyan-no-gh-'));
+    extraDirs.push(noGhDir);
+    symlinkSync(process.execPath, join(noGhDir, 'node'));
+    const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd'], {
+      PATH: noGhDir,
+    });
+    expect(r.code).not.toBe(0);
+    expect(r.out + r.err).toMatch(/REFUSAL, never a skip/);
   });
 });
 
@@ -182,7 +243,11 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
     const second = mkdtempSync(join(tmpdir(), 'bunyan-second-clone-'));
     extraDirs.push(second);
     execFileSync('git', ['clone', '-q', fx.origin, second]);
-    const r = run(['--root', second, '--no-pull', '--seat', 'amer', 'T-001']);
+    const fakeGhDir = fakeGhReporting('narutousomaki741');
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', second, '--no-pull', '--seat', 'amer', 'T-001'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/already claimed by seat 'zayd'/);
   });
@@ -272,7 +337,11 @@ describe('--continue — a defect returns to its builder, never a second door (D
         risk: 'high',
       },
     ]);
-    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'hmdnah', '--continue', 'T-001']);
+    const fakeGhDir = fakeGhReporting('narutousomaki741');
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'hmdnah', '--continue', 'T-001'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/role 'reviewer', which does not build/);
   });
@@ -289,7 +358,11 @@ describe('--continue — a defect returns to its builder, never a second door (D
       },
     ]);
     // amer is a builder, just not the box builder T-001's machine: resolves to.
-    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'amer', '--continue', 'T-001']);
+    const fakeGhDir = fakeGhReporting('narutousomaki741');
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'amer', '--continue', 'T-001'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/T-001's builder is 'zayd', not 'amer'/);
   });
@@ -334,11 +407,38 @@ describe('--continue — a defect returns to its builder, never a second door (D
         risk: 'high',
       },
     ]);
-    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'amer', '--continue', 'T-001']);
+    const fakeGhDir = fakeGhReporting('narutousomaki741');
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--no-pull', '--seat', 'amer', '--continue', 'T-001'], {
+      PATH: `${fakeGhDir}:${process.env.PATH}`,
+    });
     expect(r.code).not.toBe(0);
     // Admission itself must succeed — the run fails one gate LATER, at "no open PR" (this fixture's
     // origin is a bare local repo, so `gh pr list` finds nothing), never at the builder mismatch.
     expect(r.out + r.err).not.toMatch(/T-001's builder is 'zayd'/);
     expect(r.out + r.err).toMatch(/No open PR names T-001/);
+  });
+});
+
+describe('identityGate — pure, no gh spawn needed (D87, T-013)', () => {
+  it('refuses when gh reports a DIFFERENT login than the seat account', () => {
+    const g = identityGate('hmdnah', 'narutousomaki741', 'Davidian-Abdo');
+    expect(g.ok).toBe(false);
+    // ⚠ both accounts named — a guard that says only "wrong account" sends the reader to the wrong
+    // per-seat token file (docs/RUNBOOK.md "Seat credentials").
+    expect(g.reason).toContain('narutousomaki741');
+    expect(g.reason).toContain('Davidian-Abdo');
+  });
+
+  it('accepts a case-insensitive match — GitHub logins are case-preserving, not case-sensitive', () => {
+    expect(identityGate('zayd', 'davidian-abdo', 'Davidian-Abdo').ok).toBe(true);
+    expect(identityGate('zayd', 'davidian-abdo', 'davidian-abdo').ok).toBe(true);
+  });
+
+  it('refuses an UNRESOLVABLE identity — never a silent skip', () => {
+    const g = identityGate('zayd', 'davidian-abdo', null);
+    expect(g.ok).toBe(false);
+    expect(g.reason).toMatch(/REFUSAL, never a skip/);
+    expect(g.reason).toContain('davidian-abdo');
   });
 });

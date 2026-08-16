@@ -2,7 +2,8 @@
 /**
  * scripts/agent-start.mjs — the start of a turn. Run this before anything else (Entry 91, D82).
  *
- *   0. establish WHO is running (seat → role + machine + GitHub account)
+ *   0. establish WHO is running (seat → role + machine + GitHub account), and REFUSE unless
+ *      `gh api user --jq .login` matches that account (D87, T-013) — see `identityGate` below
  *   1. pull
  *   2. print current_state.md's orientation + live-claim sections
  *   3. measure the repo (`node scripts/state.mjs --check-only`) and REFUSE if measured disagrees
@@ -20,6 +21,11 @@
  * The refusal in step 5 is the safety-critical one, ported from mdo ADR-0007: a seat may not claim a
  * task whose `machine:` it cannot satisfy, because it would then tick a `done-when:` item its machine
  * could not execute. The box is headless.
+ *
+ * The refusal in step 0 (`identityGate`, T-013) is the OTHER safety-critical one: with no branch
+ * protection available on this private repo (Q13, D87), it is the only thing standing between a
+ * mis-set/forgotten per-seat `GH_TOKEN` and a self-approving merge under the box's default identity —
+ * `gh pr merge` is not blocked by GitHub's own "Can not approve your own pull request" refusal.
  *
  * USAGE
  *   BUNYAN_SEAT=zayd node scripts/agent-start.mjs        claim the next ready task for this seat
@@ -120,6 +126,66 @@ export function writeBaton(csPath, block) {
  * comment must never be able to trip a gate meant to fire only when a SCRIPT raised it. */
 function stripComments(src) {
   return src.replace(/<!--[\s\S]*?-->/g, '');
+}
+
+// ------------------------------------------------------------------------- identity guard (D87, T-013) --
+// ⚠⚠ WHY THIS EXISTS: `gh` on box holds only ONE account at a time (`hosts.yml` is global — D87), and
+// GitHub's own self-approval refusal ("Can not approve your own pull request") does NOT extend to
+// `gh pr merge` — measured 2026-08-15 against `hmdnah`/T-008: the review was refused, but the merge
+// was not. With no branch protection available on a private repo (Q13, D87), a mis-set or simply
+// forgotten per-seat `GH_TOKEN` silently falls back to the box's default identity and can merge under
+// it — a self-approval in effect, with nothing on GitHub's side to catch it. This is the ONLY guard.
+
+/**
+ * Whether `gh`'s own authenticated login matches this seat's account. Pure — given the two strings
+ * already resolved — so the refusal text is testable without spawning `gh`; `resolveGhLogin` below is
+ * the only thing that actually calls it, kept separate for the same reason `findTaskPR`/
+ * `resolveReviewStep` are pulled out of `main()`.
+ *
+ * `actualLogin` is `null` when identity could not be resolved AT ALL — `gh` missing, unauthenticated,
+ * or offline. ⚠ That is a REFUSAL, never a silent skip (`current_state.md §1d`: a gate's hard part is
+ * the skip; Entry 88 shipped three defects of exactly this shape). Comparison is case-insensitive —
+ * GitHub logins are case-preserving but not case-sensitive for identity (`Davidian-Abdo` ==
+ * `davidian-abdo`).
+ */
+export function identityGate(seat, expectedAccount, actualLogin) {
+  if (!actualLogin) {
+    return {
+      ok: false,
+      reason:
+        `could not resolve 'gh api user --jq .login' — gh is not installed, not authenticated, or ` +
+        `unreachable. An unresolvable identity is a REFUSAL, never a skip: seat '${seat}' must be ` +
+        `authenticated as '${expectedAccount}' before this turn can start (docs/RUNBOOK.md "Seat ` +
+        `credentials").`,
+    };
+  }
+  if (actualLogin.toLowerCase() !== expectedAccount.toLowerCase()) {
+    return {
+      ok: false,
+      reason:
+        `gh is authenticated as '${actualLogin}', but seat '${seat}' is '${expectedAccount}'.\n\n` +
+        `  Check which per-seat token file should be exported as GH_TOKEN for this turn ` +
+        `(docs/RUNBOOK.md "Seat credentials") — expected '${expectedAccount}', found '${actualLogin}'.\n` +
+        `  Never 'gh auth switch': the active account is global in hosts.yml and this box runs more ` +
+        `than one seat.`,
+    };
+  }
+  return { ok: true };
+}
+
+/** `gh api user --jq .login`, or `null` on any failure — never throws, so the caller always has an
+ * explicit "unresolved" value to hand to `identityGate` rather than an exception to catch twice. */
+function resolveGhLogin(root) {
+  try {
+    const out = execFileSync('gh', ['api', 'user', '--jq', '.login'], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).trim();
+    return out || null;
+  } catch {
+    return null;
+  }
 }
 
 // ------------------------------------------------------------------------------------- live claims --
@@ -250,11 +316,12 @@ export function main(argv = process.argv.slice(2)) {
         `  Identity is role + machine and nothing else (docs/seats/README.md).`,
     );
   }
-  let role, machine, prompt;
+  let role, machine, prompt, account;
   try {
     role = seats.roleOf(root, seat);
     machine = seats.machineOf(root, seat);
     prompt = seats.promptOf(root, seat);
+    account = seats.accountOf(root, seat);
   } catch (e) {
     die(e.message);
   }
@@ -262,6 +329,7 @@ export function main(argv = process.argv.slice(2)) {
   console.log(`   seat:    ${seat}`);
   console.log(`   role:    ${role}`);
   console.log(`   machine: ${machine}`);
+  console.log(`   account: ${account}`);
   console.log(`   browser: ${browser}`);
   console.log(`   prompt:  ${prompt}`);
   if (machine === 'pc' && browser === 'absent') {
@@ -274,6 +342,12 @@ export function main(argv = process.argv.slice(2)) {
   if (existsSync(join(root, prompt))) {
     console.log(`   (read ${prompt} — four facts, and it carries no state)`);
   }
+
+  // ---- the identity guard (D87, T-013) — refuses BEFORE anything else happens ------------------
+  const ghLogin = resolveGhLogin(root);
+  const idGate = identityGate(seat, account, ghLogin);
+  if (!idGate.ok) die(idGate.reason);
+  console.log(`   ✓ gh identity: ${ghLogin} — matches seat '${seat}' (${account})`);
 
   // ------------------------------------------------------------------------------------- 1. pull --
   hr();

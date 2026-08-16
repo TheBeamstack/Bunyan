@@ -628,6 +628,37 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-013 — the seat identity guard: `gh api user` must match the seat — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `scripts/agent-start.mjs` (**`identityGate` NEW**, exported, pure — refuses on a
+  mismatch, naming both accounts, and refuses on an unresolvable identity too, never a skip; wired into
+  step 0, before pulling or anything else) · `scripts/agent-start.d.mts` (declared) ·
+  `tests/protocol/agent-start.test.ts` (`identityGate` unit suite +3, an end-to-end guard suite +2, and
+  a `fakeGhReporting` `PATH` stand-in so the four pre-existing `hmdnah`/`amer` tests still exercise their
+  ORIGINAL assertion rather than tripping the new guard on this box's single ambient `gh` identity). No
+  frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/888 tests** main suite,
+  **134 tests** `docs:check` subset, `tests/freeze-boundary.test.ts` green ⇒ `RISK: additive`.
+  **Revert-verified:** commenting out the guard's call site left **2 of 27** tests in
+  `tests/protocol/agent-start.test.ts` RED — both new end-to-end tests, failing on "the script proceeded
+  past step 0" — restored to **27/27 green**. Manually reproduced both refusal paths against the real
+  repo too (wrong account: `hmdnah` under this box's real `davidian-abdo` identity; unresolvable: a
+  `PATH` with no `gh` at all) — both exit 1, both name the account(s) the task requires.
+- **FOUND:** GitHub's self-approval refusal genuinely does not extend to `gh pr merge` (re-confirmed the
+  D87 measurement rather than trusting the prior entry's prose) — this guard really is the only thing
+  standing between a forgotten `GH_TOKEN` and a self-approving merge on this private, unprotected repo.
+  `docs/RUNBOOK.md`'s "Seat credentials" section already documented the per-seat token file convention
+  and its 600 mode in full, written 2026-08-15 in anticipation of this task — needed no edit.
+- **OWES:** `hmdnah` — this PR's review. Not covered: file-mode (600) enforcement is documented, not
+  checked programmatically (not in this task's `done-when:`); `agent-finish.mjs` carries no identity
+  check of its own (relies on `agent-start.mjs --review` having already gated the branch it is on).
+- **RISK:** additive — `tests/freeze-boundary.test.ts` green, no frozen byte moved. (`docs/BACKLOG.md`
+  classifies the TASK itself `risk: high` — D88's two-step review — because this guard is the only thing
+  preventing a self-approving merge while the repo stays private and unprotected, Q13/D87; that is a
+  separate axis from the frozen-surface RISK: this field reports.)
+- **FULL:** `handoff/zayd/2026-08-16-T-013-identity-guard.md`
+- **REVIEW:** pending.
+
 ### T-008 — the two step-1 review defects, closed on the existing claim — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `document.ts` (`danglingAncestorRefs` groups both edges by the missing ancestor id, one
@@ -934,32 +965,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-15-STEWARD-two-step-high-risk-review-review.md`
 - **REVIEW:** this is the review — **APPROVED and MERGED**, `RISK: additive`, on `narutousomaki741`.
 
-### STEWARD-two-step-high-risk-review — `risk: high` takes two review turns, not the owner's merge — 2026-08-15 — seat: brahim
-
-- **CHANGED:** `docs/decisions.md` (**D88** NEW) · `AGENTS.md` §1.2 (the rule) and §5 (`risk: high` named
-  as not owner-gated) · `REVIEW.md` (a `Two steps` section; item 7 warns that only step 2 merges) ·
-  `docs/prompts/brahim-orchestrator.md` §4c (`contract-touching` still stops the loop, `risk: high` no
-  longer does) · `docs/BACKLOG.md` (READY criterion 8; **T-014** NEW). No `packages/`, no `apps/web`, no
-  script or test touched.
-- **VERIFIED:** `pnpm verify` green. `AGENTS.md` held at its 200-line cap by turning the §1.3 loop
-  paragraph and the §2 abstract-heading note into pointers — both already said it in full in
-  `docs/prompts/*` and D82.
-- **FOUND:** Three files gave three answers about what `risk: high` meant — `agent-finish.mjs` wrote
-  `NEXT TURN: REVIEW ONLY`, the orchestrator treated it as owner-gated, and `AGENTS.md §5`, which defines
-  owner-gated, never listed it. ⚠ **A cross-account second reviewer does not exist for a box builder PR:**
-  `zayd` opens on `davidian-abdo` and `khalihlna` holds that same account, so GitHub refuses its approval
-  — the two steps are therefore the same seat in separate sessions, and independence comes from the
-  session boundary. The owner declined rearranging seat accounts to buy a second approver.
-- **OWES:** `zayd` — **T-014** (`--review` reads the frozen surface and never the task's `risk:`, so it
-  stamps a `risk: high` row `done` after step 1; measured on T-008), and the two T-008 review defects,
-  which go back to the existing claim on that branch rather than a new row. `hmdnah` — T-008 step 2,
-  after the fix. The `## Discovered` entry recording the `--review` defect is on the T-008 branch and is
-  closed there, not here.
-- **RISK:** additive
-- **FULL:** `handoff/brahim/2026-08-15-STEWARD-two-step-high-risk-review.md`
-- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #24) — APPROVED and MERGED**, `RISK: additive`, two
-  unswept documents fixed on the branch. The entry above is the record.
-
 ---
 
 ## §8 — Generated
@@ -969,16 +974,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-008 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `2fd9282` · clean |
-| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
-| suite | **883 green** · 95 files · 275 suites |
+| **newest entry** | **T-013 (zayd, 2026-08-16)** |
+| branch · tip · tree | `task/T-013-the-seat-identity-guard-gh-api-user-must` · `7972b49` · dirty |
+| open PRs | none — main is the tip of the work |
+| suite | ⚠⚠ 887/888 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 14 files changed, 952 insertions(+), 173 deletions(-) (14 files) |
-| docs budget | current_state 81.6/96.0 KB · §7 29.0/32.0 KB · abstracts 10/10 · bodies 49 |
+| diff vs origin/main | 5 files changed, 257 insertions(+), 41 deletions(-) (5 files) |
+| docs budget | current_state 81.8/96.0 KB · §7 29.6/32.0 KB · abstracts 10/10 · bodies 50 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
