@@ -1327,6 +1327,44 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-014 — `--review` must read the task's `risk:`, not only the frozen surface — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL`/`STEP1_LABEL_COLOR`/`STEP1_LABEL_DESCRIPTION`,
+  `reviewStepFor`, `reviewStepGate`, `reviewFlipsToDone` NEW** — the two-step routing/legality/flip
+  decisions, pure) · `scripts/agent-finish.mjs` (**`--step 1|2` NEW**; a pre-`pnpm verify` gate resolving
+  a review's `risk:` and validating `--step` against it; step 1 creates-if-absent and applies the
+  `review/step-1` label, no row flip, no approve/merge printed; step 2 refuses unless that label is
+  confirmed present, then flips via `reviewFlipsToDone`) · `scripts/agent-start.mjs` (the reviewer branch
+  resolves `risk:` + the claimed PR's labels via `reviewStepFor`, prints which step and the exact finish
+  command with `--step N`, refuses rather than guesses on an unreadable label/risk) ·
+  `scripts/seats.d.mts` (the four new exports declared) · `tests/protocol/seats.test.ts` (+14: the three
+  pure functions, including a revert-verification pair) · `tests/protocol/agent-finish.test.ts` (+7: the
+  new gate). No frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0 — **868/868** across 94 files, `docs:check`'s own subset
+  **123/123** across 8; `freeze-boundary` green ⇒ frozen surface unmoved (confirmed separately:
+  `reserved-classes.mjs --base origin/main` → `none — RISK: additive`). **Revert-verified:** `seats.mjs`'s
+  `reviewFlipsToDone` reverted to the pre-fix `!contractTouching` formula → `pnpm vitest run
+  tests/protocol/seats.test.ts -t reviewFlipsToDone` went **2 RED** (`expected true to be false`,
+  reproducing T-008/PR #23's own defect: a `risk: high` step 1 stamps `done`); restored → **5/5 green**.
+- **FOUND:** `AGENTS.md §1.2` and `REVIEW.md`'s "Two steps" section already specified this mechanism in
+  full before any code existed — this PR implements a written spec, not a design decision. ⚠ The
+  `gh`-touching halves (label create, `--add-label`, the label-presence read) are not exercised by the
+  fixture suite, same limitation `reserved-classes.mjs`'s own `syncLabels` already accepts: a throwaway
+  local bare `origin` has no real PR for `gh` to ask about. The pure decision functions are directly
+  tested instead; the plumbing gets its first live exercise on this very PR's own review, since `T-014`
+  is itself `risk: high`.
+- **OWES:** `hmdnah` — this PR (step 1 first, D88; the live exercise of the label-creation path). Also
+  `T-008`/PR #23: its step 1 predates this mechanism and ran by hand, so `review/step-1` needs applying
+  to it **manually** before `--review --step 2` will route; detail in the handoff body.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md`
+- **REVIEW:** Reviewed by `hmdnah` (2026-08-16, PR #28, two-step D88) — **APPROVED and MERGED**,
+  `RISK: additive`, on `narutousomaki741` — the account that did not open it. Step 1 posted a report (no
+  merge); step 2 fixed three defects on the branch (two documentation-accuracy issues step 1 found, plus
+  one live-exercise code defect step 2 found: `STEP1_LABEL_DESCRIPTION` exceeded GitHub's 100-character
+  label-description limit, so `review/step-1` could never be created on a fresh repo). The entry above is
+  the record.
+
 ### T-015 — `agent-start.mjs --continue <T-nnn>` — the branch returns to its builder — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `scripts/seats.mjs` (**`builderFor` NEW**, symmetric with `reviewerFor` — resolves a

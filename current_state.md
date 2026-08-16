@@ -628,6 +628,32 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-009 — review (step 1, mechanical): the revert holds, and the fix's structural claims check out — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
+  Posted the findings as a PR comment on #31.
+- **VERIFIED:** Item 1, live: neutralised `requireHostFaceIsBasePart`'s guard
+  (`if (false && (...))`) and re-ran `tests/document-openings.test.ts` — **2 of 14 RED**, exactly the
+  two new D84 tests, both on `.rejects.toThrow(/own base part/)`; restored → **14/14 green**.
+  Independently re-ran the FULL suite (not from cache): **95 files/902 tests, all green**, matching
+  the handoff's own claim exactly. `tests/freeze-boundary.test.ts`: **12/12 green** locally,
+  `RISK: additive` confirmed via `pnpm state`.
+- **FOUND:** nothing that blocks. Read every structural claim the fix's legitimacy rests on against
+  the code (item 4) — `decodeSubShapeRef` is a real structured decode, `cutNodeId` is the sole `~`
+  writer, `checkNameSafe` already refuses `~` in authored names, `derivedRole` composes
+  `` `${opTag}(...)` `` and the cut boolean's own `opTag` is literally `'cut'`, both call sites are
+  ordered as described, and `hostRef` is written in exactly two guarded places (the one other site
+  only rewrites an already-valid ref's layer segment) — all confirmed. ⚠ **CI was still `pending` on
+  both jobs at review time and no `needs-operator/*` label was present yet** — per `REVIEW.md` item 7's
+  own warning, "no label" and "the labeller never executed" look identical from here, so this is
+  recorded unresolved, not as clearance.
+- **OWES:** `hmdnah` (a later session) — D88 step 2 on PR #31: items 2, 3, 6, reconciled against this
+  report, and re-confirming CI/the `needs-operator/*` label before merging.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-009-review-step1.md`
+- **REVIEW:** n/a — this IS step 1 of the review; step 2 (`hmdnah`, a separate session) approves and
+  merges.
+
 ### T-009 — Q18: a hosted void may only host on its host's own base part — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `packages/document/src/commands.ts` (**`requireHostFaceIsBasePart` NEW**, private —
@@ -653,8 +679,8 @@ is maintenance and does NOT get an entry of its own.**
   gives the refusal a reason, not yet a replacement.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-16-T-009-hosted-void-base-part.md`
-- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.** `risk: high` (D88) — needs `hmdnah`'s two-step
-  review (step 1 mechanical, step 2 adversarial, same seat, separate sessions) before merge.
+- **REVIEW:** step 1 (mechanical, D88) complete — see `hmdnah`'s entry above, nothing found that
+  blocks. Step 2 (`hmdnah`, a separate session) pending — approves and merges on green CI.
 
 ### T-012 — review (step 2): the fallback quantifies over the registry, and `reviewerForBranch` genuinely reuses `reviewerFor` — 2026-08-16 — seat: hmdnah
 
@@ -935,44 +961,6 @@ is maintenance and does NOT get an entry of its own.**
 - **REVIEW:** n/a — this IS step 2 of the review turn (D88, `AGENTS.md §1.2`); the verdict is on the entry
   above.
 
-### T-014 — `--review` must read the task's `risk:`, not only the frozen surface — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL`/`STEP1_LABEL_COLOR`/`STEP1_LABEL_DESCRIPTION`,
-  `reviewStepFor`, `reviewStepGate`, `reviewFlipsToDone` NEW** — the two-step routing/legality/flip
-  decisions, pure) · `scripts/agent-finish.mjs` (**`--step 1|2` NEW**; a pre-`pnpm verify` gate resolving
-  a review's `risk:` and validating `--step` against it; step 1 creates-if-absent and applies the
-  `review/step-1` label, no row flip, no approve/merge printed; step 2 refuses unless that label is
-  confirmed present, then flips via `reviewFlipsToDone`) · `scripts/agent-start.mjs` (the reviewer branch
-  resolves `risk:` + the claimed PR's labels via `reviewStepFor`, prints which step and the exact finish
-  command with `--step N`, refuses rather than guesses on an unreadable label/risk) ·
-  `scripts/seats.d.mts` (the four new exports declared) · `tests/protocol/seats.test.ts` (+14: the three
-  pure functions, including a revert-verification pair) · `tests/protocol/agent-finish.test.ts` (+7: the
-  new gate). No frozen byte, no `packages/`, no `apps/web`.
-- **VERIFIED:** `pnpm verify` green, exit 0 — **868/868** across 94 files, `docs:check`'s own subset
-  **123/123** across 8; `freeze-boundary` green ⇒ frozen surface unmoved (confirmed separately:
-  `reserved-classes.mjs --base origin/main` → `none — RISK: additive`). **Revert-verified:** `seats.mjs`'s
-  `reviewFlipsToDone` reverted to the pre-fix `!contractTouching` formula → `pnpm vitest run
-  tests/protocol/seats.test.ts -t reviewFlipsToDone` went **2 RED** (`expected true to be false`,
-  reproducing T-008/PR #23's own defect: a `risk: high` step 1 stamps `done`); restored → **5/5 green**.
-- **FOUND:** `AGENTS.md §1.2` and `REVIEW.md`'s "Two steps" section already specified this mechanism in
-  full before any code existed — this PR implements a written spec, not a design decision. ⚠ The
-  `gh`-touching halves (label create, `--add-label`, the label-presence read) are not exercised by the
-  fixture suite, same limitation `reserved-classes.mjs`'s own `syncLabels` already accepts: a throwaway
-  local bare `origin` has no real PR for `gh` to ask about. The pure decision functions are directly
-  tested instead; the plumbing gets its first live exercise on this very PR's own review, since `T-014`
-  is itself `risk: high`.
-- **OWES:** `hmdnah` — this PR (step 1 first, D88; the live exercise of the label-creation path). Also
-  `T-008`/PR #23: its step 1 predates this mechanism and ran by hand, so `review/step-1` needs applying
-  to it **manually** before `--review --step 2` will route; detail in the handoff body.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md`
-- **REVIEW:** Reviewed by `hmdnah` (2026-08-16, PR #28, two-step D88) — **APPROVED and MERGED**,
-  `RISK: additive`, on `narutousomaki741` — the account that did not open it. Step 1 posted a report (no
-  merge); step 2 fixed three defects on the branch (two documentation-accuracy issues step 1 found, plus
-  one live-exercise code defect step 2 found: `STEP1_LABEL_DESCRIPTION` exceeded GitHub's 100-character
-  label-description limit, so `review/step-1` could never be created on a fresh repo). The entry above is
-  the record.
-
 ---
 
 ## §8 — Generated
@@ -987,16 +975,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-009 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` · `5cfc1f5` · clean |
-| open PRs | none — main is the tip of the work |
-| suite | **902 green** · 95 files · 281 suites |
+| **newest entry** | **T-009 (hmdnah, 2026-08-16)** |
+| branch · tip · tree | `task/T-009-q18-a-hosted-void-may-only-host-on-its-h` · `89c2ec4` · dirty |
+| open PRs | #31 task/T-009-q18-a-hosted-void-may-only-host-on-its-h |
+| suite | ⚠⚠ 899/902 passing — **3 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 311 insertions(+), 38 deletions(-) (5 files) |
-| docs budget | current_state 82.6/96.0 KB · §7 30.3/32.0 KB · abstracts 10/10 · bodies 54 |
+| diff vs origin/main | 6 files changed, 381 insertions(+), 77 deletions(-) (6 files) |
+| docs budget | current_state 81.6/96.0 KB · §7 29.0/32.0 KB · abstracts 10/10 · bodies 55 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
