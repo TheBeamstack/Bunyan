@@ -628,6 +628,38 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-013 — review (step 2): the guard held, and CI's own failure-then-fix cycle proved the hermeticity fix genuine — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
+  `docs/BACKLOG.md`'s T-013 row flips `review` → `done` via `agent-finish.mjs --review`.
+- **VERIFIED:** Reconciled step 1's report (items 1, 4, 5, 7,
+  https://github.com/Davidian-Abdo/Bunyan/pull/29#issuecomment-5307660979) against the real
+  failure-then-fix cycle: CI run `31949354336` genuinely failed 9 tests (self-hosted runner has no `gh`
+  auth at all — step 1 had called this "not a CI risk," which was wrong), `zayd` fixed it on the branch
+  (`b1ed6fe`, `fakeGhReporting('davidian-abdo')` wired through all 9), current run `31950627017` green
+  (harness job 9m6s, full run). **Own revert-verification, distinct from step 1's** (which reverted the
+  guard's call site): reverted the hermeticity fix alone, ran under a genuinely unauthenticated `gh`
+  (empty `GH_CONFIG_DIR`, no `GH_TOKEN`) — **9 failed | 18 passed**, exact match to CI's real failure —
+  restored, **27/27 green**. `pnpm verify` (foreground): **888/888, 95 files**; `docs:check`: **134/134**.
+- **FOUND:** Items 2/3/6 all clean. **Backward sweep:** no other pre-existing test file spawns
+  `agent-start.mjs` as a subprocess (`agent-finish.test.ts`/`pr-ready.test.ts` spawn different scripts;
+  `seats.test.ts` imports in-process; none of `agent-finish.mjs`/`seats.mjs`/`pr-ready.mjs`/`state.mjs`
+  call `identityGate`) — no other site was newly exposed. **New kind of thing:** the guard is one call in
+  `main()`, strictly before every later branch (`--review`, `--continue`, `role === 'steward'`, etc.) —
+  no bypass found; noted (not a defect) that `brahim`'s direct-to-`main` bookkeeping commits never invoke
+  `agent-start.mjs` at all, outside the guard's stated self-approval threat model. **Weak green:** the 9
+  `fakeGhReporting`-wired tests don't themselves claim guard enforcement (the 2 step-0 tests do, already
+  revert-verified); real hermeticity is proven by CI's own zero-ambient-identity environment, not by this
+  box's coincidental identity match. Sanity-checked `zayd`'s empty-`GH_CONFIG_DIR` method by running
+  `gh api user` under it myself — genuine exit-4 "not authenticated," one of the guard's three disjuncts,
+  not a narrower failure mode; `resolveGhLogin`'s blanket `try/catch` collapses all three causes to the
+  same `null` regardless.
+- **OWES:** nothing outstanding. `khalihlna`/`amer` — unaffected, this PR touches no `apps/web` or
+  browser-only surface.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-013-review-step2.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); approved and merged on `narutousomaki741`.
+
 ### T-013 — the seat identity guard: `gh api user` must match the seat — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `scripts/agent-start.mjs` (**`identityGate` NEW**, exported, pure — refuses on a
@@ -657,7 +689,10 @@ is maintenance and does NOT get an entry of its own.**
   preventing a self-approving merge while the repo stays private and unprotected, Q13/D87; that is a
   separate axis from the frozen-surface RISK: this field reports.)
 - **FULL:** `handoff/zayd/2026-08-16-T-013-identity-guard.md`
-- **REVIEW:** pending.
+- **REVIEW:** step 1 (mechanical) and step 2 (adversarial) both complete — see the `hmdnah` entry above.
+  Approved and merged on `narutousomaki741`, `RISK: additive`. Step 1's "not a CI risk" call on the
+  7 (9 named) `zayd`-targeting test gap was wrong — CI genuinely failed on it (run `31949354336`); fixed
+  on this branch (`b1ed6fe`) before merge, reconciled in step 2's review.
 
 ### T-008 — the two step-1 review defects, closed on the existing claim — 2026-08-16 — seat: zayd
 
@@ -910,91 +945,24 @@ is maintenance and does NOT get an entry of its own.**
   `RISK: additive`, on `narutousomaki741`, after independently reverting the fix and reproducing the RED
   step 1 found. See the review entry below for the record.
 
-### STEWARD-step-routing-and-continue — D88 asserted two mechanisms no script implements — 2026-08-15 — seat: brahim
-
-- **CHANGED:** `docs/decisions.md` (**D88 amended**) · `docs/BACKLOG.md` (T-014's second `done-when:`
-  moved off the banner onto the label; **T-015** NEW, then fixed twice on review — `builderFor` now
-  derives from `machine:`, not `area:`; **T-016**, **T-017**, **T-018**, **T-019** NEW; T-012 reframed
-  around recurring `STEWARD:` PRs rather than #16/#17; both original `## Discovered` entries closed) ·
-  `REVIEW.md` §"Two steps". PRs **#16** and **#17** closed (owner ruling: stale, real conflicts against
-  `main`; their work re-decomposed as T-018/T-019 instead of rebased). `AGENTS.md` untouched — §1.2
-  already points at `REVIEW.md`, and it is at its line cap.
-- **VERIFIED:** `pnpm verify` green. The banner finding was re-checked before amending: the only two
-  `NEXT TURN: REVIEW ONLY` hits on `main` are prose inside §7 abstracts.
-- **FOUND:** Reviewing PR #24 proved both of D88's mechanisms absent. ⚠⚠ **The `NEXT TURN: REVIEW ONLY`
-  banner has never existed on `main`** — it is written into the task branch and read after
-  `git checkout main`, and routing has always come from the PR title via `reviewerFor`. ⚠ **A builder
-  cannot re-enter its own branch either:** `agent-start.mjs` refuses a row that is not `ready` and a claim
-  already marked finished. Owner ruled a **`review/step-1` label** for the first and **`--continue`** for
-  the second, over a fifth status value and over parsing step 1's comment.
-- **OWES:** `zayd` — **T-015** first (T-008 is blocked on it by owner ruling), then **T-014**, **T-016**
-  (depends-on T-015), **T-018**. `amer` — **T-019**. `hmdnah` — T-008 step 2 after the fix, ⚠ **routed by
-  hand**, since its step 1 predates the label.
-- **RISK:** additive
-- **FULL:** `handoff/brahim/2026-08-15-STEWARD-step-routing-and-continue.md`
-- **REVIEW:** `hmdnah`, 2026-08-15 — **approval withheld**, one blocking finding, fixed on this branch
-  before re-review. ⚠⚠ **T-015's seat gate had been written against the `§0b` baton, which names the last
-  seat to FINISH rather than the builder** — `agent-finish.mjs` rewrites it on the `--review` path too,
-  so T-008's reads `hmdnah`/reviewer against a claim commit reading `zayd`. As written it admitted the
-  reviewer and refused the builder in every intended invocation. The criterion now derives the seat from
-  the task row (`builderFor`, symmetric with `reviewerFor`), and a second criterion that read the row
-  status from `main` — where the `review` flip has not landed — now reads it from the PR's branch. The
-  baton defect itself is recorded in `## Discovered`; owner ruling took it up as **T-016**.
-  **`hmdnah`, 2026-08-15 — APPROVED and MERGED** (`30ca130`), `RISK: additive`, after a second round found
-  `builderFor` still keyed on `area:` (fixed) and a misattributed `AGENTS.md §0b` citation (dropped —
-  that block is `current_state.md`'s). CI stayed red on both rounds from an unrelated GitHub Actions
-  billing failure; merged on green local `pnpm verify` (836+91), per the same precedent as PR #24.
-
-### STEWARD-two-step-high-risk-review — review: D88 is sound, and two orchestrator files still called `risk: high` owner-gated — 2026-08-15 — seat: hmdnah
-
-- **CHANGED:** `docs/prompts/light-brahim-orchestrator.md` §4 and `## Never` — the pc twin of the §4c
-  this PR rewrote, unswept, still sending every `risk: high` PR to the operator ·
-  `docs/prompts/brahim-orchestrator.md`'s header, which contradicted its own §4c · `docs/BACKLOG.md`
-  `## Discovered` (two findings) · §7 order (the new abstract was not prepended, so §8's `newest entry`
-  named `T-007`).
-- **VERIFIED:** `pnpm verify` green. `scripts/reserved-classes.mjs` labels the three owner-gated classes
-  and never reads a task's `risk:`, so `AGENTS.md §5`'s new sentence matches the labeller; `pr-shape`
-  ran here and applied no `needs-operator/*` label.
-- **FOUND:** Two steps D88 describes that the scripts refuse — a builder cannot re-enter a row left at
-  `review` (`agent-start.mjs` takes `ready` rows only, and a `finished` claim is not resumable), and the
-  `NEXT TURN: REVIEW ONLY` banner cannot route step 2 because it is written on the branch and read from
-  `main`. ⚠ Neither is covered by `T-014`, whose `done-when:` items are all on the `--review` path.
-- **OWES:** `brahim` — the two `## Discovered` findings, and `T-014`'s second `done-when:`, whose premise
-  is false. `hmdnah` — T-008 step 2, once its fix lands.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-15-STEWARD-two-step-high-risk-review-review.md`
-- **REVIEW:** this is the review — **APPROVED and MERGED**, `RISK: additive`, on `narutousomaki741`.
-
 ---
 
 ## §8 — Generated
-
-## NEXT TURN: REVIEW ONLY
-
-`T-013` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
-
-## NEXT TURN: REVIEW ONLY
-
-`T-013` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
-| **newest entry** | **T-013 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-013-the-seat-identity-guard-gh-api-user-must` · `b1ed6fe` · clean |
-| open PRs | #29 task/T-013-the-seat-identity-guard-gh-api-user-must |
+| **newest entry** | **T-013 (hmdnah, 2026-08-16)** |
+| branch · tip · tree | `main` · `deaf267` · dirty |
+| open PRs | none — main is the tip of the work |
 | suite | **888 green** · 95 files · 277 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 7 files changed, 438 insertions(+), 57 deletions(-) (7 files) |
-| docs budget | current_state 82.1/96.0 KB · §7 29.6/32.0 KB · abstracts 10/10 · bodies 50 |
+| diff vs origin/main | 3 files changed, 97 insertions(+), 74 deletions(-) (3 files) |
+| docs budget | current_state 80.2/96.0 KB · §7 28.0/32.0 KB · abstracts 9/10 · bodies 51 |
 
 _Generated 2026-08-16 by `pnpm state`._
 

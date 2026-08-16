@@ -1327,6 +1327,61 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### STEWARD-step-routing-and-continue — D88 asserted two mechanisms no script implements — 2026-08-15 — seat: brahim
+
+- **CHANGED:** `docs/decisions.md` (**D88 amended**) · `docs/BACKLOG.md` (T-014's second `done-when:`
+  moved off the banner onto the label; **T-015** NEW, then fixed twice on review — `builderFor` now
+  derives from `machine:`, not `area:`; **T-016**, **T-017**, **T-018**, **T-019** NEW; T-012 reframed
+  around recurring `STEWARD:` PRs rather than #16/#17; both original `## Discovered` entries closed) ·
+  `REVIEW.md` §"Two steps". PRs **#16** and **#17** closed (owner ruling: stale, real conflicts against
+  `main`; their work re-decomposed as T-018/T-019 instead of rebased). `AGENTS.md` untouched — §1.2
+  already points at `REVIEW.md`, and it is at its line cap.
+- **VERIFIED:** `pnpm verify` green. The banner finding was re-checked before amending: the only two
+  `NEXT TURN: REVIEW ONLY` hits on `main` are prose inside §7 abstracts.
+- **FOUND:** Reviewing PR #24 proved both of D88's mechanisms absent. ⚠⚠ **The `NEXT TURN: REVIEW ONLY`
+  banner has never existed on `main`** — it is written into the task branch and read after
+  `git checkout main`, and routing has always come from the PR title via `reviewerFor`. ⚠ **A builder
+  cannot re-enter its own branch either:** `agent-start.mjs` refuses a row that is not `ready` and a claim
+  already marked finished. Owner ruled a **`review/step-1` label** for the first and **`--continue`** for
+  the second, over a fifth status value and over parsing step 1's comment.
+- **OWES:** `zayd` — **T-015** first (T-008 is blocked on it by owner ruling), then **T-014**, **T-016**
+  (depends-on T-015), **T-018**. `amer` — **T-019**. `hmdnah` — T-008 step 2 after the fix, ⚠ **routed by
+  hand**, since its step 1 predates the label.
+- **RISK:** additive
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-step-routing-and-continue.md`
+- **REVIEW:** `hmdnah`, 2026-08-15 — **approval withheld**, one blocking finding, fixed on this branch
+  before re-review. ⚠⚠ **T-015's seat gate had been written against the `§0b` baton, which names the last
+  seat to FINISH rather than the builder** — `agent-finish.mjs` rewrites it on the `--review` path too,
+  so T-008's reads `hmdnah`/reviewer against a claim commit reading `zayd`. As written it admitted the
+  reviewer and refused the builder in every intended invocation. The criterion now derives the seat from
+  the task row (`builderFor`, symmetric with `reviewerFor`), and a second criterion that read the row
+  status from `main` — where the `review` flip has not landed — now reads it from the PR's branch. The
+  baton defect itself is recorded in `## Discovered`; owner ruling took it up as **T-016**.
+  **`hmdnah`, 2026-08-15 — APPROVED and MERGED** (`30ca130`), `RISK: additive`, after a second round found
+  `builderFor` still keyed on `area:` (fixed) and a misattributed `AGENTS.md §0b` citation (dropped —
+  that block is `current_state.md`'s). CI stayed red on both rounds from an unrelated GitHub Actions
+  billing failure; merged on green local `pnpm verify` (836+91), per the same precedent as PR #24.
+
+### STEWARD-two-step-high-risk-review — review: D88 is sound, and two orchestrator files still called `risk: high` owner-gated — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** `docs/prompts/light-brahim-orchestrator.md` §4 and `## Never` — the pc twin of the §4c
+  this PR rewrote, unswept, still sending every `risk: high` PR to the operator ·
+  `docs/prompts/brahim-orchestrator.md`'s header, which contradicted its own §4c · `docs/BACKLOG.md`
+  `## Discovered` (two findings) · §7 order (the new abstract was not prepended, so §8's `newest entry`
+  named `T-007`).
+- **VERIFIED:** `pnpm verify` green. `scripts/reserved-classes.mjs` labels the three owner-gated classes
+  and never reads a task's `risk:`, so `AGENTS.md §5`'s new sentence matches the labeller; `pr-shape`
+  ran here and applied no `needs-operator/*` label.
+- **FOUND:** Two steps D88 describes that the scripts refuse — a builder cannot re-enter a row left at
+  `review` (`agent-start.mjs` takes `ready` rows only, and a `finished` claim is not resumable), and the
+  `NEXT TURN: REVIEW ONLY` banner cannot route step 2 because it is written on the branch and read from
+  `main`. ⚠ Neither is covered by `T-014`, whose `done-when:` items are all on the `--review` path.
+- **OWES:** `brahim` — the two `## Discovered` findings, and `T-014`'s second `done-when:`, whose premise
+  is false. `hmdnah` — T-008 step 2, once its fix lands.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-STEWARD-two-step-high-risk-review-review.md`
+- **REVIEW:** this is the review — **APPROVED and MERGED**, `RISK: additive`, on `narutousomaki741`.
+
 ### STEWARD-two-step-high-risk-review — `risk: high` takes two review turns, not the owner's merge — 2026-08-15 — seat: brahim
 
 - **CHANGED:** `docs/decisions.md` (**D88** NEW) · `AGENTS.md` §1.2 (the rule) and §5 (`risk: high` named
