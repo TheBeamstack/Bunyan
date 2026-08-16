@@ -31,12 +31,18 @@ git history**, on the commit that wrote it (`git log --follow current_state.md`)
 
 ## THE ROTATION RULE (binding — this is how the two files stay in balance)
 
-**Whenever `current_state.md` holds MORE THAN 20 entries, the agent that notices it compacts:**
+**§7's own budget is the current authority — a BYTE budget, not a count** (`current_state.md` §7's own
+header; `BUDGET.maxAbstracts` in `scripts/docs-state.mjs` caps the count side at 10). The "more than 20,
+keep 15" numbers this section used to state were superseded when the budget became byte-based and were
+never updated here — fixed in place rather than left disagreeing with the file that actually governs it.
 
-1. Keep the **newest 15** entries in `current_state.md` §7, in full.
-2. **Summarize each older entry into this file**, appended in order, keeping: its number, date, agent,
-   headline, the measured numbers, the decisions it took (with D-numbers), and anything a future agent
-   would otherwise re-derive. Drop only the session bookkeeping (verify counts, box notes, commit hashes).
+**Whenever `current_state.md` §7 is at or over its budget, the agent that notices it compacts:**
+
+1. Keep the newest abstracts §7's budget allows, in full.
+2. **Summarize each older entry into this file**, appended in order, keeping: its id (a legacy number, or
+   its `T-nnn`/`STEWARD-slug` identity post-D82), date, agent, headline, the measured numbers, the
+   decisions it took (with D-numbers), and anything a future agent would otherwise re-derive. Drop only
+   the session bookkeeping (verify counts, box notes, commit hashes).
 3. Before dropping an entry, **check its durable lessons are already in `current_state.md` §1–§5.** If one
    is not, promote it there first — _the summary here is a pointer, and §1–§5 is where a rule actually
    binds._
@@ -1312,5 +1318,71 @@ because it records *how the freeze question moved* — which sweep was taken ins
 > solver (D55, Entry 41)**, and now **0c wall-to-wall joins (Entry 42 — auto-miter, anti-fuse gate green,
 > the real D52 Wall pulled forward into `@bunyan/types`).** ⚠⚠ THE ANTI-FUSE RULE HELD (a join reshapes only
 > the cap; side faces keep their tokens, D26). The types (steps 4–5) + MVP gates are also DONE (Entries 44–45).
+
+---
+
+## §E — post-D82 turns (`T-nnn` / `STEWARD-slug`, no more sequential numbers) — full bodies in `handoff/`
+
+Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after D82 (2026-08-14, Entry 91) is
+titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
+same as `current_state.md` §7.
+
+### T-004 — per-element build cost is flat from 39 to 273 elements, and 10,000 projects to 7.2 min — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `tests/document-build-cost-scale.test.ts` **NEW (+1)** — four sizes of the reference
+  building (1/3/5/7 storeys), each on a fresh OCCT kernel, timing `rebuildAll()` on a context cold-loaded
+  from `.bnn`. `current_state.md §1a`'s cold-load row carries the measurement and is **not re-coloured**.
+- **VERIFIED:** `pnpm verify` green. Two full runs of the harness: slope **43.81** and **43.24
+  ms/element**, 1.3% apart, R² 0.9998 / 0.9996, intercept within ±140 ms of zero on an 11.7 s total. Local
+  marginals 41.5–45.6 ms per additional element, spread 5.9% and 9.2%. ⇒ **7.30 / 7.21 min projected at
+  10,000 elements, uncached.**
+- **FOUND:** Per-element build cost **is** flat across 39–273 elements, so Entry 90's 64.5% deferrable
+  figure is worth that same fraction of the cold load at the target — about 4.7 of the projected 7.3 min,
+  leaving 2.6 min, which is still not a load time. Two estimators were needed, not one: a least-squares
+  line has a slope whether or not the data is a line, so the flatness verdict is read off the local finite
+  differences and the fit's R² is only its witness. The 7.2 min uncached reaches D66's 6.35 min from a
+  different direction, and at the cache's measured 2.07× it is 3.5 min against the ~3 min `§1a` already
+  carried. The one
+  systematic deviation is the smallest model pricing ~5–10% **low** per element, which makes the
+  marginals fall slightly with size — the opposite direction from superlinearity. Authoring's
+  marginal is 43.1 ms/element against the cold load's 43.8, so command
+  dispatch is not a measurable share of authoring at this scale.
+- **OWES:** `hmdnah` — this PR; there is no fix to revert, so the re-run is the check and the harness
+  reproduced to 1.3% here. `amer` — `unverified here: the same cold load inside a real browser tab`; every
+  number above is Node on the box, as `§1a`'s existing cold-load numbers already are. `brahim` — a call on
+  whether the flatness verdict should become a ratio assertion on the marginal spread, which would be
+  immune to absolute machine speed; it is printed and not asserted today, so a later superlinear
+  regression would still pass this file. ⚠ The projection is a **37× extrapolation** from 273 elements.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-004-build-cost-flatness.md`
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED and MERGED**, `RISK: additive`, two
+  defects fixed on the branch, on `narutousomaki741` — the account that did not open it. The entry above
+  is the record.
+
+### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
+
+- **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
+  `needs-operator/*` labels; PR title routing + `MERGEABLE`), run by a new `pr-shape` CI job ·
+  `tests/protocol/{reserved-classes,pr-ready}.test.ts` NEW (+17) · `seats.mjs` gained
+  `PR_TITLE_RE`/`titleRoutes`, called by `agent-finish.mjs` · `docs/RUNBOOK.md` NEW ·
+  `docs/BACKLOG.md` decomposed (T-001…T-011) · `AGENTS.md §7` NEW — the owner's writing standard,
+  binding on every seat and subagent · `REVIEW.md`, `docs/seats/README.md` and `Brahim_Prompt.md`
+  corrected where they still described the pre-D82 model · `open_rulings.md` Q13 rewritten.
+  Covers two sessions: `f984e89` built the mechanics on the pc, this one finished them.
+- **VERIFIED:** `pnpm verify` green. The new suites execute against real fixture git histories rather
+  than grepping the scripts. `pnpm docs:check` measured at 6 files / 69 tests **before** any change,
+  which is what proved `tests/protocol/` was already wired into CI.
+- **FOUND:** Branch protection is unavailable on this repository — `403 Upgrade to GitHub Pro or make
+  this repository public` on both the protection and rulesets APIs, with an `ADMIN` token; Q13's
+  account objection is satisfied and a plan objection replaced it (ruled D87). `current_state.md §3`/`§5`
+  called the plan/section unit blocked on Q1–Q3 after it shipped in Entry 77. `REVIEW.md` still taught
+  the pre-D82 self-review loop, and `docs/seats/README.md` still described the retired `§2 DYNAMIC`
+  block under a heading saying it carried no state — both fixed on this branch.
+- **OWES:** the owner — rulings on Q17a, Q17c, Q18, Q19, and the public/Pro/neither call on Q13 (later
+  ruled D87). `hmdnah` — PR #16. `khalihlna` — PR #17. Beyond T-004 nothing was `ready` for box.
+- **RISK:** additive
+- **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
+- **REVIEW:** Reviewed and merged (`STEWARD:` PR, this branch) — the account/PR bookkeeping is not
+  preserved here; see the handoff body and `docs/decisions.md` D87 for what it settled.
 
 

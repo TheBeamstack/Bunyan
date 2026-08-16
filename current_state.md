@@ -116,9 +116,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | seat | `hmdnah` |
 | role | reviewer |
 | machine | box |
-| task | `T-015` |
-| branch | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` |
-| claimed-at | 2026-08-16T01:39:26Z |
+| task | `T-014` |
+| branch | `task/T-014-review-must-read-the-task-s-risk-not-onl` |
+| claimed-at | 2026-08-16T03:12:57Z |
 | status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
@@ -628,6 +628,94 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-014 — review (step 2): the mechanism's first live exercise found two real defects and two wrong claims — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL_DESCRIPTION` fixed** — was 104 characters, GitHub caps a
+  label description at 100, so `gh label create` for `review/step-1` died on any repo where the label did
+  not already exist, which is every FIRST `risk: high` review; shortened to 79, same meaning) ·
+  `scripts/agent-start.mjs` (**`resolveReviewStep` NEW**, extracted — the reviewer branch's pure
+  risk+labels → step decision, same reason `findTaskPR` is pulled out) · `scripts/agent-start.d.mts` (the
+  new export declared) · `tests/protocol/seats.test.ts` (+1: pins `STEP1_LABEL_DESCRIPTION`'s length) ·
+  `tests/protocol/agent-start.test.ts` (+5: `resolveReviewStep`) · `current_state.md`'s own T-014 §7 entry
+  and `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md` (the wrong "+19" corrected to the real +14) ·
+  `docs/history.md` §E (the oldest §7 abstract, T-004/zayd, rolled off to stay within the 10-abstract cap
+  this new entry pushed over — its durable lesson already lives in `§1a`, unchanged by the roll). No
+  frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, **874/874** across 94 files, `docs:check` **129/129**. **Revert-
+  verified two ways, both against the real defect this turn found, not only a unit assertion:** (1)
+  `git show main:tests/protocol/seats.test.ts \| grep -c 'it('` → 23, HEAD → 37, 37−23=**14**, not the
+  claimed 19; (2) the label-description bug — `gh label edit review/step-1 --description "<original
+  104-char string>"` against the real GitHub API returns `HTTP 422 … description is too long (maximum is
+  100 characters)`; the shortened 79-char string succeeds. New regression test pins the length so this
+  cannot regress silently (the fixture suite cannot exercise the real `gh` call).
+- **FOUND:** Ran the mechanism live (`agent-start.mjs --seat hmdnah --review`) rather than only reading
+  code — it reported STEP 1, not step 2, though step 1's report was already posted. Cause: the
+  `review/step-1` label was never applied, because `agent-finish.mjs --review --step 1`'s `gh label
+  create` call — the only code path that ever creates it — cannot succeed while the description exceeds
+  GitHub's 100-character cap. Fixed above; applied the corrected label to PR #28 by hand (same two `gh`
+  calls the fixed finish script now makes) since step 1's actual review content was already on record and
+  reconciled. **Item 2 (backward sweep):** `reviewFlipsToDone`/`reviewStepFor`/`reviewStepGate` each have
+  exactly one production call site; no second, un-migrated `!contractTouching` instance found anywhere
+  (`scripts/state.mjs:355`'s reference is an advisory `console.log`, not a flip decision). **Item 3 (new
+  kind of thing):** `review/step-1`'s three consumers enumerated (`agent-finish.mjs` creates/reads it,
+  `agent-start.mjs` reads it) plus the one real invalidator candidate, `reserved-classes.mjs`'s
+  `syncLabels` — confirmed its `owned`/`have`/`want` are filtered to the three `needs-operator/*` labels
+  only, so it structurally cannot touch `review/step-1`; no third silent consumer found. **Item 6 (weak
+  green):** all new tests, including this turn's, assert exact values or exact spawned output, not loose
+  substrings; one honest residual gap noted, not fixed — `resolveReviewStep`'s wiring into `main()`'s
+  console output is still not spawn-tested end-to-end (would need a faked `gh` on `PATH`; no such
+  infrastructure exists in this test file, judged out of scope for one turn).
+- **OWES:** `brahim` — a `T-nnn`-worthy follow-up: nothing detects a mismatch between "step 1 posted its
+  report" and "step 1's finish command actually ran and applied the label" except a human (or reviewer)
+  re-running `agent-start.mjs --review` and noticing it still says STEP 1 — which is exactly how this
+  turn found the bug. `agent-finish.mjs` does `die()` loudly if `gh label create` fails for a reason other
+  than "already exists" (that part is not silent), but nothing requires step 1 to run the finish command
+  at all, and nothing else ever applies the label. Worth a harder integration check (a faked-`gh` spawn
+  test covering the full reviewer-branch wiring, not just `resolveReviewStep`'s pure slice) before the
+  next `risk: high` PR relies on this unattended.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-014-review-step2.md`
+- **REVIEW:** n/a — this IS step 2 of the review turn (D88, `AGENTS.md §1.2`); the verdict is on the entry
+  above.
+
+### T-014 — `--review` must read the task's `risk:`, not only the frozen surface — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL`/`STEP1_LABEL_COLOR`/`STEP1_LABEL_DESCRIPTION`,
+  `reviewStepFor`, `reviewStepGate`, `reviewFlipsToDone` NEW** — the two-step routing/legality/flip
+  decisions, pure) · `scripts/agent-finish.mjs` (**`--step 1|2` NEW**; a pre-`pnpm verify` gate resolving
+  a review's `risk:` and validating `--step` against it; step 1 creates-if-absent and applies the
+  `review/step-1` label, no row flip, no approve/merge printed; step 2 refuses unless that label is
+  confirmed present, then flips via `reviewFlipsToDone`) · `scripts/agent-start.mjs` (the reviewer branch
+  resolves `risk:` + the claimed PR's labels via `reviewStepFor`, prints which step and the exact finish
+  command with `--step N`, refuses rather than guesses on an unreadable label/risk) ·
+  `scripts/seats.d.mts` (the four new exports declared) · `tests/protocol/seats.test.ts` (+14: the three
+  pure functions, including a revert-verification pair) · `tests/protocol/agent-finish.test.ts` (+7: the
+  new gate). No frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0 — **868/868** across 94 files, `docs:check`'s own subset
+  **123/123** across 8; `freeze-boundary` green ⇒ frozen surface unmoved (confirmed separately:
+  `reserved-classes.mjs --base origin/main` → `none — RISK: additive`). **Revert-verified:** `seats.mjs`'s
+  `reviewFlipsToDone` reverted to the pre-fix `!contractTouching` formula → `pnpm vitest run
+  tests/protocol/seats.test.ts -t reviewFlipsToDone` went **2 RED** (`expected true to be false`,
+  reproducing T-008/PR #23's own defect: a `risk: high` step 1 stamps `done`); restored → **5/5 green**.
+- **FOUND:** `AGENTS.md §1.2` and `REVIEW.md`'s "Two steps" section already specified this mechanism in
+  full before any code existed — this PR implements a written spec, not a design decision. ⚠ The
+  `gh`-touching halves (label create, `--add-label`, the label-presence read) are not exercised by the
+  fixture suite, same limitation `reserved-classes.mjs`'s own `syncLabels` already accepts: a throwaway
+  local bare `origin` has no real PR for `gh` to ask about. The pure decision functions are directly
+  tested instead; the plumbing gets its first live exercise on this very PR's own review, since `T-014`
+  is itself `risk: high`.
+- **OWES:** `hmdnah` — this PR (step 1 first, D88; the live exercise of the label-creation path). Also
+  `T-008`/PR #23: its step 1 predates this mechanism and ran by hand, so `review/step-1` needs applying
+  to it **manually** before `--review --step 2` will route; detail in the handoff body.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-014-two-step-review-gate.md`
+- **REVIEW:** Reviewed by `hmdnah` (2026-08-16, PR #28, two-step D88) — **APPROVED and MERGED**,
+  `RISK: additive`, on `narutousomaki741` — the account that did not open it. Step 1 posted a report (no
+  merge); step 2 fixed three defects on the branch (two documentation-accuracy issues step 1 found, plus
+  one live-exercise code defect step 2 found: `STEP1_LABEL_DESCRIPTION` exceeded GitHub's 100-character
+  label-description limit, so `review/step-1` could never be created on a fresh repo). The entry above is
+  the record.
+
 ### T-015 — review: the fix holds, backward sweep and weak-green clean — 2026-08-16 — seat: hmdnah
 
 - **CHANGED:** Nothing on this branch — no defect proven. The code is merged as fixed by the second
@@ -870,63 +958,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-15-T-004-review.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
 
-### T-004 — per-element build cost is flat from 39 to 273 elements, and 10,000 projects to 7.2 min — 2026-08-15 — seat: zayd
-
-- **CHANGED:** `tests/document-build-cost-scale.test.ts` **NEW (+1)** — four sizes of the reference
-  building (1/3/5/7 storeys), each on a fresh OCCT kernel, timing `rebuildAll()` on a context cold-loaded
-  from `.bnn`. `current_state.md §1a`'s cold-load row carries the measurement and is **not re-coloured**.
-- **VERIFIED:** `pnpm verify` green. Two full runs of the harness: slope **43.81** and **43.24
-  ms/element**, 1.3% apart, R² 0.9998 / 0.9996, intercept within ±140 ms of zero on an 11.7 s total. Local
-  marginals 41.5–45.6 ms per additional element, spread 5.9% and 9.2%. ⇒ **7.30 / 7.21 min projected at
-  10,000 elements, uncached.**
-- **FOUND:** Per-element build cost **is** flat across 39–273 elements, so Entry 90's 64.5% deferrable
-  figure is worth that same fraction of the cold load at the target — about 4.7 of the projected 7.3 min,
-  leaving 2.6 min, which is still not a load time. Two estimators were needed, not one: a least-squares
-  line has a slope whether or not the data is a line, so the flatness verdict is read off the local finite
-  differences and the fit's R² is only its witness. The 7.2 min uncached reaches D66's 6.35 min from a
-  different direction, and at the cache's measured 2.07× it is 3.5 min against the ~3 min `§1a` already
-  carried. The one
-  systematic deviation is the smallest model pricing ~5–10% **low** per element, which makes the
-  marginals fall slightly with size — the opposite direction from superlinearity. Authoring's
-  marginal is 43.1 ms/element against the cold load's 43.8, so command
-  dispatch is not a measurable share of authoring at this scale.
-- **OWES:** `hmdnah` — this PR; there is no fix to revert, so the re-run is the check and the harness
-  reproduced to 1.3% here. `amer` — `unverified here: the same cold load inside a real browser tab`; every
-  number above is Node on the box, as `§1a`'s existing cold-load numbers already are. `brahim` — a call on
-  whether the flatness verdict should become a ratio assertion on the marginal spread, which would be
-  immune to absolute machine speed; it is printed and not asserted today, so a later superlinear
-  regression would still pass this file. ⚠ The projection is a **37× extrapolation** from 273 elements.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-15-T-004-build-cost-flatness.md`
-- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #20) — APPROVED and MERGED**, `RISK: additive`, two
-  defects fixed on the branch, on `narutousomaki741` — the account that did not open it. The entry above
-  is the record.
-
-### STEWARD-scaffolding — the five-seat scaffolding, finished — 2026-08-15 — seat: brahim
-
-- **CHANGED:** `scripts/reserved-classes.mjs` + `pr-ready.mjs` NEW (the three owner-gated classes as
-  `needs-operator/*` labels; PR title routing + `MERGEABLE`), run by a new `pr-shape` CI job ·
-  `tests/protocol/{reserved-classes,pr-ready}.test.ts` NEW (+17) · `seats.mjs` gained
-  `PR_TITLE_RE`/`titleRoutes`, called by `agent-finish.mjs` · `docs/RUNBOOK.md` NEW ·
-  `docs/BACKLOG.md` decomposed (T-001…T-011) · `AGENTS.md §7` NEW — the owner's writing standard,
-  binding on every seat and subagent · `REVIEW.md`, `docs/seats/README.md` and `Brahim_Prompt.md`
-  corrected where they still described the pre-D82 model · `open_rulings.md` Q13 rewritten.
-  Covers two sessions: `f984e89` built the mechanics on the pc, this one finished them.
-- **VERIFIED:** `pnpm verify` green. The new suites execute against real fixture git histories rather
-  than grepping the scripts. `pnpm docs:check` measured at 6 files / 69 tests **before** any change,
-  which is what proved `tests/protocol/` was already wired into CI.
-- **FOUND:** Branch protection is unavailable on this repository — `403 Upgrade to GitHub Pro or make
-  this repository public` on both the protection and rulesets APIs, with an `ADMIN` token; Q13's
-  account objection is satisfied and a plan objection replaced it. `current_state.md §3`/`§5` called
-  the plan/section unit blocked on Q1–Q3 after it shipped in Entry 77. `REVIEW.md` still taught the
-  pre-D82 self-review loop, and `docs/seats/README.md` still described the retired `§2 DYNAMIC` block
-  under a heading saying it carried no state.
-- **OWES:** the owner — rulings on Q17a, Q17c, Q18, Q19, and the public/Pro/neither call on Q13.
-  `hmdnah` — PR #16. `khalihlna` — PR #17. Beyond T-004 nothing is `ready` for box.
-- **RISK:** additive
-- **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
-- **REVIEW:** pending — `STEWARD:` PR, this branch.
-
 ---
 
 ## §8 — Generated
@@ -936,16 +967,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-015 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` · `e4375fd` · clean |
-| open PRs | #27 task/T-015-agent-start-mjs-continue-t-nnn-the-branc · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
-| suite | **847 green** · 94 files · 267 suites |
+| **newest entry** | **T-014 (hmdnah, 2026-08-16)** |
+| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `31d5607` · clean |
+| open PRs | #28 task/T-014-review-must-read-the-task-s-risk-not-onl · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
+| suite | **874 green** · 94 files · 273 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 748 insertions(+), 138 deletions(-) (13 files) |
-| docs budget | current_state 78.4/96.0 KB · §7 25.7/32.0 KB · abstracts 10/10 · bodies 44 |
+| diff vs origin/main | 13 files changed, 960 insertions(+), 80 deletions(-) (13 files) |
+| docs budget | current_state 81.6/96.0 KB · §7 28.9/32.0 KB · abstracts 10/10 · bodies 46 |
 
 _Generated 2026-08-16 by `pnpm state`._
 

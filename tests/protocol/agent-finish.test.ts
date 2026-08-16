@@ -138,6 +138,74 @@ describe('the machine gate, AT TICK TIME — not only at claim time', () => {
   });
 });
 
+describe('the risk/step gate — `--review` must read risk:, not only the frozen surface (D88, T-014)', () => {
+  it('refuses --step on a build (non-review) finish', () => {
+    fx = makeFixture([
+      { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'high' },
+    ]);
+    const r = run(['--root', fx.dir, '--seat', 'zayd', 'T-001', '--step', '1']);
+    expect(r.code).not.toBe(0);
+    expect(r.err).toMatch(/only applies to a `--review` turn\./);
+  });
+
+  it('refuses an out-of-range --step value before doing anything else', () => {
+    fx = makeFixture();
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review', '--step', '3']);
+    expect(r.code).not.toBe(0);
+    expect(r.err).toMatch(/--step must be 1 or 2, got '3'/);
+  });
+
+  it('refuses a risk: high review that names no step', () => {
+    fx = makeFixture([
+      { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'high' },
+    ]);
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review']);
+    expect(r.code).not.toBe(0);
+    expect(r.err).toMatch(/requires --step 1 or --step 2/);
+    // Fails BEFORE `pnpm verify` — cheap to catch a usage error before a full verify run.
+    expect(r.out).not.toMatch(/1\. Verification/);
+  });
+
+  it('refuses --step on a risk: normal review — only risk: high uses two steps', () => {
+    fx = makeFixture([
+      { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'normal' },
+    ]);
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review', '--step', '1']);
+    expect(r.code).not.toBe(0);
+    expect(r.err).toMatch(/only risk: high uses a two-step review/);
+  });
+
+  it('refuses an unreadable/absent risk: field, never defaulting to normal', () => {
+    fx = makeFixture([
+      { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'high' },
+    ]);
+    const p = join(fx.dir, 'docs/BACKLOG.md');
+    // Same trick the machine-gate suite uses: blank the field to simulate a mis-decomposed row.
+    writeFileSync(p, readFileSync(p, 'utf8').replace('risk: **high**', 'risk:'));
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review']);
+    expect(r.code).not.toBe(0);
+    expect(r.err).toMatch(/no readable 'risk:' field/);
+  });
+
+  it('a risk: high review naming --step 1 or --step 2 clears the gate, through to verify', () => {
+    fx = makeFixture([
+      { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'high' },
+    ]);
+    const r1 = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review', '--step', '1']);
+    expect(r1.out).toMatch(/✓ risk\/step gate: risk: high, step 1 of 2/);
+    const r2 = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review', '--step', '2']);
+    expect(r2.out).toMatch(/✓ risk\/step gate: risk: high, step 2 of 2/);
+  });
+
+  it('a risk: normal review with no --step is unchanged from before T-014', () => {
+    fx = makeFixture([
+      { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'normal' },
+    ]);
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review']);
+    expect(r.out).toMatch(/✓ risk\/step gate: risk: normal, single review turn/);
+  });
+});
+
 describe('the status flip keeps the table formatted — `format:check` is CI step 3', () => {
   // The status words are different lengths, so writing one over another without repadding changes
   // the column's width and `prettier --check` rejects the file. It opened PR #20 red on a diff its

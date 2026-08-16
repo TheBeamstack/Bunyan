@@ -36,3 +36,15 @@ export interface OpenPR {
 
 /** The open PR whose title names `taskId` (`gh pr list --json number,headRefName,title`), or `null`. */
 export declare function findTaskPR(openPRs: OpenPR[], taskId: string): OpenPR | null;
+
+/**
+ * The two-step review routing decision (D88, T-014), pure. `labels` is the claimed PR's label names,
+ * or `null` when unreadable. Returns `null` for a single-turn review, `1`/`2` for a two-step one, and
+ * throws rather than guesses when `mineRisk` or `labels` could not be read.
+ */
+export declare function resolveReviewStep(
+  mineId: string | undefined,
+  mineRisk: string | undefined,
+  labels: string[] | null,
+  prNumber: number,
+): number | null;
