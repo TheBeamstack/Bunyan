@@ -99,15 +99,12 @@ export interface OptionedElement {
   /**
    * The manual group/assembly it is a member of (reserved; groups are v1.0.x). The same edge as `hostId`.
    *
-   * ⚠⚠ **IT IS NOT DORMANT, AND THIS COMMENT USED TO SAY IT WAS** (Entry 83's sweep). `isElementActive`
-   * below WALKS it, and **two shipped verbs WRITE it** — `core.createElement` and
-   * `core.setElementMetadata` — each validating that the id resolves. But the two walks disagree about
-   * which edges are "belongs-to": `cascadeOf` (D39) cascades a delete over `hostId` ONLY, while this rule
-   * excludes over `hostId` **and** `parentElementId`. ⇒ **delete a parent and its children survive in
-   * `scene.elements` while vanishing from every enumerating consumer.** Measured: `modelElements()` 0 of
-   * 1, a whole-model schedule 0 rows and 0 mm³ with `basis: 'exact'`, `brokenRefs()` and `unbuildable()`
-   * both empty. Filed as `open_rulings.md` **Q19** — reconciling the two edge sets is a semantic ruling
-   * (cascade, refuse, or surface), not a body decision.
+   * ⚠⚠ **IT IS NOT DORMANT** (Entry 83's sweep). `isElementActive` below WALKS it, and **two shipped
+   * verbs WRITE it** — `core.createElement` and `core.setElementMetadata` — each validating that the id
+   * resolves. ⚠ `cascadeOf` (D39/D83) cascades a delete over this edge as well as `hostId`, so the two
+   * walks share one edge set: a row this rule excludes and a delete spares is a row in `scene.elements`
+   * that no consumer can see, which is the defect D83 measured at `modelElements()` 0 of 1 and a
+   * whole-model schedule of 0 rows and 0 mm³ wearing `basis: 'exact'`.
    */
   readonly parentElementId?: ElementId;
 }
@@ -250,15 +247,14 @@ export function isElementActive(
  * ```
  *
  * **A real wall, one verb call, zero rows in a whole-model schedule wearing `basis: 'exact'`, and both
- * diagnostics empty** — domain rule 15's failure mode and Q19's silent erasure, reached by a third road
+ * diagnostics empty** — domain rule 15's failure mode and D83's silent erasure, reached by a third road
  * and needing no hostile document at all.
  *
  * ⚠ **IT WALKS BOTH EDGES, AND THAT IS LOAD-BEARING RATHER THAN THOROUGH.** A guard on `hostId` alone
  * leaves the MIXED cycle open — `A.hostId = B` then `B.parentElementId = A` is refused by neither
  * single-edge check, and `isElementActive` (which walks both) excludes both elements anyway. ⇒ **the
- * guard's edge set must be the EXCLUSION RULE's edge set, or the hole simply moves.** This is the one
- * place the D39/D67 asymmetry is not free: `cascadeOf` may cascade `hostId` only, but nothing may
- * *author* a cycle in the closure `isElementActive` reads.
+ * guard's edge set must be the EXCLUSION RULE's edge set, or the hole simply moves.** The same
+ * requirement reached `cascadeOf` under D83, which is why all three walks now share one edge set.
  *
  * ⚠ **ONE `seen` SET IS CORRECT HERE, AND THE REASON IS NOT "IT WORKED FOR THE OTHER ONE."** This
  * computes a REACHABLE SET — *"is `elementId` above `ancestorId`?"* — where arriving twice is

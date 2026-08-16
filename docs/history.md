@@ -1327,6 +1327,101 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-007 — a dangling `designOptionId` is a broken reference, derived rather than stored — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `packages/document/src/document.ts` (**`danglingDesignOptionRefs` NEW**; `brokenRefs()`
+  returns the stored geometry-derived list plus it) · `packages/document/src/designoptions.ts` (comments
+  only — `ownTagActive` and the file header name the body instead of promising it) ·
+  `tests/design-option-refs.test.ts` (**§4 NEW, +3**) · `tests/option-cascade-d67.test.ts` and
+  `tests/model-enumeration.test.ts` (one fixture assertion each, §6 below) · **Entry 82 rotated** to
+  `docs/history.md` §C, which is now contiguous over 54–84. No frozen byte, no verb, no schema bump.
+- **VERIFIED:** **836 green** across 94 files, all six gates, real exit code 0, real OCCT throughout;
+  `freeze-boundary` green ⇒ the frozen surface has not moved. **Revert-verified**: return `brokenRefs()`
+  to `this.#scene.brokenRefs` and `design-option-refs` goes **2 RED** — `expected [] to have a length of
+  1 but got +0`, which is the silence itself.
+- **FOUND:** ⚠ **It is derived at the query, not staged into `scene.brokenRefs`.** `#stage` re-derives
+  that field only for the assemblies it rebuilds, so an entry staged there goes stale on every element
+  whose assembly the next partial rebuild does not touch — D74's defect in a population whose subject is
+  not even a rebuild root. A dangling tag is a pure fact about `scene.elements`, so reading it is cheaper
+  than teaching the staging filter to tell two producers apart, and D74's one-producer invariant on
+  `scene.brokenRefs` stays intact. ⚠ `hostId` is the element's own id: the reference is hosted on
+  nothing, and widening the watched `interface BrokenReference` would make a diagnostic field
+  contract-touching — no consumer reads it. ⚠⚠ **The backward sweep (invariant 7) cost six tests in two
+  files, all one shape:** `option-cascade-d67` and `model-enumeration` tag elements and supply the
+  catalogue as a consumer OVERRIDE, which is the only road while `scene.designOptions` has no authoring
+  verb, and both assert `brokenRefs()` empty to mean *"no window lost its host face"*. Each now filters
+  the option ids instead. ⇒ **until the catalogue CRUD lands (D85, T-011), every tagged element on this
+  product is a broken reference** — D86 reporting the truth, not a false positive.
+- **OWES:** `hmdnah` — this PR; the revert above is the one to re-execute. `amer` — ⚠ `App.tsx`'s
+  Problems panel hints *"these elements are hosted on a sub-shape that no longer resolves. Retarget them
+  manually"*, which is now wrong for an option entry: it is hosted on nothing and
+  `core.retargetReference` cannot heal it. `unverified here: how the panel reads with an option entry in
+  it — khalihlna to confirm`. `brahim` — D86's row still reads ✅ RULED and this builds it; T-008's (c)
+  half extends this union rather than adding a second surfacing path.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-007-dangling-design-option-ref.md`
+- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #22) — APPROVED and MERGED**, `RISK: additive`, on
+  `narutousomaki741` — the account that did not open it. Item 1 re-executed twice (2 RED both times); the
+  six-test sweep re-executed and its filter proven to hide nothing. One contract-doc fix on the branch;
+  no defect found in the code. The entry above is the record.
+
+### T-007 — review: the derivation is right, and domain rule 3's text had not been widened to admit it — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** `docs/contracts/core_logic.md` — domain rule 3 gains the second broken-reference class ·
+  **Entry 85 rotated** to `docs/history.md` §C, now contiguous over 54–85. The code is merged as authored.
+- **VERIFIED:** `pnpm verify` green, **836 across 94 files**, real exit code 0. Item 1 re-executed twice:
+  `brokenRefs()` returned to `this.#scene.brokenRefs` is **2 RED** (`expected [] to have a length of 1 but
+  got +0`), restored **8/8 green**. The sweep re-executed: both files' original `toHaveLength(0)` gives
+  **6 failed | 25 passed**, and printing the lists shows exactly the two tagged walls per fixture and no
+  masked host-face entry. `brokenRefs()` timed on a hand-assembled 10,000-element scene: **3.288 ms/call
+  with one tag, 3.822 ms/call with all 10,000** — one call site, in a `useMemo` keyed on document version.
+- **FOUND:** ⚠⚠ **The new broken reference is not retargetable by any verb** — `core.createElement` is the
+  only writer of `designOptionId` — which is what rule 3's own D74 note forbids (*"a refusal nobody can act
+  on … a lie about the model's state"*). It survives that test only because it is **derived and never
+  stored**: it enters no `.bnn` and clears the moment the option resolves, so deriving at the query is
+  load-bearing for rule 3 and not only for staleness. The contract recorded one class and the code now
+  ships two, so rule 3 gained the sentence (`AGENTS.md §3` row 1). ⚠ Staging it instead would have gone
+  stale exactly as claimed: `#stage` keeps any entry whose element's assembly is not a rebuild root, so a
+  wall's entry would outlive the `core.createDesignOption` that resolves its tag.
+- **OWES:** `amer` — the `App.tsx` Problems-panel hint the entry above already names;
+  `unverified here: how the panel reads with an option entry in it — khalihlna to confirm`. `brahim` —
+  T-008 is now the next box row, and D86's *"build them together"* note means its (c) half extends this
+  union rather than opening a second surfacing path.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-T-007-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry above.
+
+### T-004 — review: the flatness result holds, and the harness passed while building nothing — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** `tests/document-build-cost-scale.test.ts` — the cold load's built solids are counted and
+  required to equal the authored count. `scripts/agent-finish.mjs` — `setRowStatus` hoisted, exported and
+  **repadded** (+ `scripts/agent-finish.d.mts` NEW, + a case in `tests/protocol/agent-finish.test.ts`).
+  `§1a` + the T-004 body — the smallest-model deviation's direction.
+- **VERIFIED:** `REVIEW.md` item 1, twice. **(a)** Removing `cold.rebuildAll()` went RED only at
+  `expect(fit.slope).toBeGreaterThan(0)` — `-0.0000015`, a coin flip on noise; with the count asserted it
+  is RED in 2.9 s naming `scale 1: solids built by the cold load: expected +0 to be 62`, green restored
+  in 58.4 s. **(b)** Reverting the repad turned `agent-finish.test.ts` RED on `| T-001 | review   |`, the
+  byte CI rejected. Harness re-run twice: **43.45** and **41.93 ms/element**, **7.24** and **6.99 min**
+  projected.
+- **FOUND:** The verdict stands — flat across 39–273 elements, ~7 min at 10,000 — but two claims under it
+  did not. ⚠⚠ **The harness could not tell a cold load that built the whole building from one that built
+  nothing:** `geometryOf(id)?.state` is `undefined` for an element never built and `undefined !==
+  'failed'`, and `brokenRefs()` returns a **stored scene field** rather than a re-derivation, so both
+  passed on an empty measurement. ⚠ `§1a`'s _"smallest model prices ~5% **high**"_ is backwards — 39
+  elements price 38.8–39.6 ms/el against 41.8–44.0 at the larger sizes in all four runs, so the marginals
+  **fall** with size and the warmup cause predicts the opposite sign. Neither unseats the conclusion.
+- **OWES:** ⚠ **every seat — confirm `gh api user` is your own account before approving or merging.** The
+  approve step first refused (`Can not approve your own pull request`): the box held only the account
+  that opened #20. Owner ruling, same day — a per-turn `GH_TOKEN` from `~/.config/bunyan/hmdnah.token`,
+  no global switch — so #20 was approved and merged on `narutousomaki741` after all. GitHub blocks a
+  self-approval but **not** a self-merge, which is the half a seat has to check itself. `amer` —
+  `unverified here: the same cold load inside a real browser tab`, carried forward untouched. `brahim` —
+  the flatness verdict is still **printed, not asserted**; four runs put the marginal spread at
+  5.9–16.8%, the number a ratio gate would have to clear.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-T-004-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
+
 ### T-004 — per-element build cost is flat from 39 to 273 elements, and 10,000 projects to 7.2 min — 2026-08-15 — seat: zayd
 
 - **CHANGED:** `tests/document-build-cost-scale.test.ts` **NEW (+1)** — four sizes of the reference

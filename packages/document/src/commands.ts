@@ -948,7 +948,7 @@ export const deleteElementCommand: Command = {
   id: 'core.deleteElement',
   label: 'Delete element',
   description:
-    'Delete an element AND everything hosted on it (D39), as one undoable edit. To see what will go BEFORE acting, run it with { dryRun: true } — the returned edit already lists the whole cascade (D42).',
+    'Delete an element AND everything that belongs to it — hosted in it or a member of it (D39/D83) — as one undoable edit. To see what will go BEFORE acting, run it with { dryRun: true } — the returned edit already lists the whole cascade (D42).',
   argsSchema: {
     elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
   },
@@ -986,28 +986,49 @@ export const deleteElementCommand: Command = {
     return ctx.edit(
       doomed.length === 1
         ? `Delete ${type.label}`
-        : `Delete ${type.label} and ${doomed.length - 1} hosted element(s)`,
+        : `Delete ${type.label} and ${doomed.length - 1} other element(s)`,
       changes,
       rebuilt,
     );
   },
 };
 
-/** Everything that dies WITH this element (D39). Transitive: a window in a wall, a vent in the window. */
+/**
+ * Everything that dies WITH this element (D39). Transitive: a window in a wall, a vent in the window.
+ *
+ * ⚠⚠ **IT WALKS BOTH BELONGS-TO EDGES, AND THE EDGE SET IS THE EXCLUSION RULE'S** (D83, owner-ruled
+ * 2026-08-15). D39 cascaded `hostId` while `isElementActive` (D67) excludes over `hostId` **and**
+ * `parentElementId`, so a member outlived its parent in `scene.elements` while leaving every
+ * enumerating consumer: measured on two walls, `modelElements()` 0 of 1 and a whole-model schedule of
+ * 0 rows and 0 mm³ wearing `basis: 'exact'`, with `brokenRefs()` and `unbuildable()` both empty.
+ * Whichever edge a cascade misses is the edge on which a row survives that nothing can see.
+ */
 export function cascadeOf(scene: Scene, id: ElementId): readonly Element[] {
   const doomed: Element[] = [];
   const queue = [id];
   const seen = new Set<ElementId>([id]);
   while (queue.length > 0) {
     const current = queue.shift()!;
-    for (const hosted of hostedBy(scene, current)) {
-      if (seen.has(hosted.id)) continue;
-      seen.add(hosted.id);
-      doomed.push(hosted);
-      queue.push(hosted.id);
+    for (const member of belongsTo(scene, current)) {
+      if (seen.has(member.id)) continue;
+      seen.add(member.id);
+      doomed.push(member);
+      queue.push(member.id);
     }
   }
   return doomed;
+}
+
+/**
+ * Every element hanging off this one by either belongs-to edge — hosted in it, or a member of it.
+ *
+ * ⚠ `hostedBy` stays the ASSEMBLY question (which voids does this root cut?), which is `hostId` alone:
+ * a group member has no geometric relationship to its parent, so it is not part of its build.
+ */
+function belongsTo(scene: Scene, ancestorId: ElementId): readonly Element[] {
+  return Object.values(scene.elements).filter(
+    (e) => e.hostId === ancestorId || e.parentElementId === ancestorId,
+  );
 }
 
 /**
@@ -1110,8 +1131,8 @@ export const setClassificationCommand: Command = {
  * refuse-or-retarget guard applies", AND `parentElementId` IS QUANTITY-BEARING** (Entry 83's sweep).
  * `isElementActive` walks it as a belongs-to edge and treats a missing ancestor as EXCLUSION, so an
  * element whose parent has gone contributes to no schedule, no roll-up and no Clean Delta. The id is
- * validated here on the way IN (below) — but nothing guards the parent's DELETION, because `cascadeOf`
- * (D39) cascades over `hostId` only. ⇒ `open_rulings.md` **Q19**, with the measurement.
+ * validated here on the way IN (below); the parent's DELETION takes the member with it (D83), and a
+ * parent missing for any other reason is a broken reference (`danglingAncestorRefs`).
  */
 export const setElementMetadataCommand: Command = {
   id: 'core.setElementMetadata',

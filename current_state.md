@@ -116,9 +116,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | seat | `hmdnah` |
 | role | reviewer |
 | machine | box |
-| task | `T-014` |
-| branch | `task/T-014-review-must-read-the-task-s-risk-not-onl` |
-| claimed-at | 2026-08-16T03:12:57Z |
+| task | `T-008` |
+| branch | `task/T-008-q19-the-belongs-to-deletion-reconciliati` |
+| claimed-at | 2026-08-15T14:02:55Z |
 | status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
@@ -628,6 +628,103 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-008 — the two step-1 review defects, closed on the existing claim — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `document.ts` (`danglingAncestorRefs` groups both edges by the missing ancestor id, one
+  report per element, not per edge; `hostId` now `element.id`, matching T-007's convention) ·
+  `commands.ts` (`deleteElement`'s label: `"hosted element(s)"` → `"other element(s)"`) ·
+  `tests/belongs-to-deletion-d83.test.ts` (+2, through the shipped verbs).
+- **VERIFIED:** `pnpm verify` — **845/95, real OCCT, exit 0**; `freeze-boundary` green, `RISK: additive`
+  unmoved. Both fixes **revert-verified separately**, each 1 RED alone, both restored green.
+- **FOUND:** both defects reproduce exactly as both `hmdnah` reviews measured. `agent-start.mjs
+  --continue T-008` (T-015's first real use) worked as documented — no `gh pr checkout` by hand.
+- **OWES:** `hmdnah` — D88 step 2 on PR #23; both defects closed, `hostId` aligned too (free, unread).
+  `khalihlna` — the 2026-08-15 Problems-panel `unverified here` note stands; untouched this turn.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-008-review-defects-fixed.md`
+- **REVIEW:** pending — `hmdnah` step 2 (D88), same PR #23.
+
+### T-008 — review: the reconciliation holds, and the surfacing pass double-reports one element — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing the owner is
+  deciding on. `docs/BACKLOG.md` `## Discovered` gains the `agent-finish.mjs --review` finding below, and
+  T-008's row is held at `review` against that script's own flip. Entry **86 rotated** to
+  `docs/history.md` §C, now contiguous over 54–86.
+- **VERIFIED:** ⚠ **Item 1 re-executed twice, by two sessions, the second not inheriting the first's
+  result.** `belongsTo` → `hostedBy` in `cascadeOf` is **6 RED**, and the split reproduces exactly: **2**
+  in `belongs-to-cycle-guard.test.ts` (`cascadeOf` terminates on a cycle; `cascadeOf` and
+  `isElementActive` walk the same edges) and **4** in `belongs-to-deletion-d83.test.ts`. Dropping
+  `danglingAncestorRefs` from `brokenRefs()` is **3 RED**, all `expected [] to have a length of 1 but got
+  +0`. Both restored ⇒ **24/24 green** across the two files. `pnpm verify` green, **843 across 95 files**,
+  real exit code 0. `pr-shape` **ran** (`PR shape · reserved classes` SUCCESS) and applied no
+  `needs-operator/*` label.
+- **FOUND:** The verdict holds and both defects reproduce, measured rather than read. ⚠⚠
+  **`brokenRefs()` emits two entries identical in `elementId` and `ref`** when one element's `hostId` and
+  `parentElementId` name the same missing id — `danglingAncestorRefs` checks the edges independently, so
+  they differ only in `reason`. Measured through the shipped verbs (a door hosted in a wall, then
+  `core.setElementMetadata { parentElementId: <that wall> }`, then the wall dropped): **2 entries, 1
+  distinct `` `${b.elementId}:${b.ref}` `` — the key `App.tsx:1096` lists on.** ⚠ **The edit label was not
+  swept with the cascade:** deleting a parent whose member is joined by `parentElementId` alone yields
+  `"Delete Wall and 1 hosted element(s)"`, and the label is journalled (D40). ⚠ Recorded, not proved
+  harmful: `BrokenReference.hostId` is `ancestorId` here against T-007's `element.id` one day earlier, and
+  `ancestorId` is by construction absent from `scene.elements`; `agent.ts:218` projects
+  `{elementId, ref, reason}` and `App.tsx` reads neither, so no consumer resolves it today. ⚠ `cascadeOf`
+  has exactly one production consumer (`deleteElementCommand`) and `brokenRefs()` exactly two
+  (`agent.ts`'s projection, `App.tsx`'s Problems panel), and no verb gates on either.
+- **OWES:** the owner — **T-008 is `risk: high`, so this is a pre-review: NOT approved, NOT merged.** The
+  two defects are the decision. `brahim` — ⚠⚠ `agent-finish.mjs --review` reads the frozen-surface verdict
+  and never the task's `risk:` field, so it stamps a `risk: high` row `done` and prints
+  `gh pr review 23 --approve && gh pr merge 23 --squash`; the row is corrected back to `review` here and
+  the finding is in `docs/BACKLOG.md`'s `## Discovered`. ⚠ The box's default `gh` identity is still
+  `Davidian-Abdo` — `agent-start.mjs`'s own claim comment on #23 was posted from it, twice; the findings
+  comment used `GH_TOKEN=$(cat ~/.config/bunyan/hmdnah.token)` and resolves to `narutousomaki741`. `T-013`
+  is the guard. `amer`/`khalihlna` —
+  `unverified here: the Problems panel's hint text and the duplicate-key row — khalihlna to confirm`.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-T-008-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
+
+### T-008 — the cascade and the exclusion rule now walk one belongs-to edge set — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `packages/document/src/commands.ts` (`cascadeOf` walks **`belongsTo` NEW** — both edges;
+  `core.deleteElement`'s agent-visible description; two stale comment blocks) ·
+  `packages/document/src/document.ts` (**`danglingAncestorRefs` NEW**, unioned into `brokenRefs()` beside
+  T-007's) · `packages/document/src/designoptions.ts` (comments only) ·
+  **`tests/belongs-to-deletion-d83.test.ts` NEW (+7)** · `tests/belongs-to-cycle-guard.test.ts` (the Q19
+  pin replaced by the property it protected; the mixed cycle added) · `docs/contracts/V1.0.0_spec.md`
+  (D39 gains `AMENDED BY D83`) · `docs/contracts/core_logic.md` (domain rule 3's third class) ·
+  `docs/decisions.md` (D83's BUILT note). No frozen byte, no verb, no schema bump, `argsSchema` unmoved.
+- **VERIFIED:** **843 green** across 95 files, all six gates, real exit code 0, real OCCT throughout;
+  `freeze-boundary` green ⇒ the frozen surface has not moved. **Revert-verified each half separately**:
+  `belongsTo` → `hostedBy` is **6 RED** (`expected [ 'wall-…' ] to deeply equal [ …(2) ]`), dropping
+  `danglingAncestorRefs` is **3 RED** (`expected [] to have a length of 1 but got +0`).
+- **FOUND:** ⚠⚠ **The whole suite noticed the new cascade in exactly ONE place** — `1 failed | 842
+  passed` before the pin was updated, and the failure is the pin D83 wrote to fail. ⚠ `hostedBy` stays
+  `hostId`-only because it answers the ASSEMBLY question, and the other four call sites are geometric:
+  `core.copy`'s refusal list is the only arguable one and it is right as it stands, because it exists for
+  the `hostRef` token a copy would have to rewrite (D51/D1) and a `parentElementId` is not inside a token.
+  ⚠ `rebuilt` needed nothing — `dependency.ts` pushes `before.hostId`, so a cascaded member re-cuts the
+  surviving wall it was hosted on, measured on the wall's volume rather than assumed. ⚠ On the `hostId`
+  edge a dangling ancestor means the element is **not built at all** (`affectedAssemblies` drops a root
+  that is not in the scene), so `geometryOf` is `undefined` and `unbuildable()` lists registration
+  failures only — the document said nothing whatever about it before. ⚠ `brokenRefs()` on a
+  hand-assembled 10,000-element scene: **2.78 → 5.81 ms/call**, and **5.70 ms/call with all 10,000
+  broken**, so the added pass is flat in the number of findings.
+- **OWES:** `hmdnah` — this PR; the two reverts above are the ones to re-execute. `amer` — ⚠ `App.tsx`'s
+  Problems-panel hint (*"hosted on a sub-shape that no longer resolves. Retarget them manually"*) is now
+  wrong for two of the three classes: T-007's option entry is hosted on nothing, and an ancestor entry
+  names a host that is gone rather than a face that moved. `unverified here: how the panel reads with
+  those entries in it — khalihlna to confirm`. `brahim` — D83's (a) half is ruled **on the condition that
+  groups stay a v1.0.x reservation**; if group authoring ships, this returns to the owner.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-008-belongs-to-deletion.md`
+- **REVIEW:** `hmdnah`, 2026-08-15, PR #23 — **pre-review only, NOT approved and NOT merged**, because
+  `risk: high` is an owner gate independent of the mechanical `RISK: additive`. Both reverts re-executed:
+  **6 RED** and **3 RED** as claimed, restored 24/24, full suite **843/843**, `freeze-boundary` green. Two
+  non-blocking defects — `brokenRefs()` emits two entries identical in `elementId` and `ref` when one
+  element's two edges name the same missing id (the key `App.tsx` lists on), and the edit label still says
+  *"N hosted element(s)"* for members. Findings in full: the PR comment.
+
 ### T-014 — review (step 2): the mechanism's first live exercise found two real defects and two wrong claims — 2026-08-16 — seat: hmdnah
 
 - **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL_DESCRIPTION` fixed** — was 104 characters, GitHub caps a
@@ -863,101 +960,6 @@ is maintenance and does NOT get an entry of its own.**
 - **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #24) — APPROVED and MERGED**, `RISK: additive`, two
   unswept documents fixed on the branch. The entry above is the record.
 
-### T-007 — a dangling `designOptionId` is a broken reference, derived rather than stored — 2026-08-15 — seat: zayd
-
-- **CHANGED:** `packages/document/src/document.ts` (**`danglingDesignOptionRefs` NEW**; `brokenRefs()`
-  returns the stored geometry-derived list plus it) · `packages/document/src/designoptions.ts` (comments
-  only — `ownTagActive` and the file header name the body instead of promising it) ·
-  `tests/design-option-refs.test.ts` (**§4 NEW, +3**) · `tests/option-cascade-d67.test.ts` and
-  `tests/model-enumeration.test.ts` (one fixture assertion each, §6 below) · **Entry 82 rotated** to
-  `docs/history.md` §C, which is now contiguous over 54–84. No frozen byte, no verb, no schema bump.
-- **VERIFIED:** **836 green** across 94 files, all six gates, real exit code 0, real OCCT throughout;
-  `freeze-boundary` green ⇒ the frozen surface has not moved. **Revert-verified**: return `brokenRefs()`
-  to `this.#scene.brokenRefs` and `design-option-refs` goes **2 RED** — `expected [] to have a length of
-  1 but got +0`, which is the silence itself.
-- **FOUND:** ⚠ **It is derived at the query, not staged into `scene.brokenRefs`.** `#stage` re-derives
-  that field only for the assemblies it rebuilds, so an entry staged there goes stale on every element
-  whose assembly the next partial rebuild does not touch — D74's defect in a population whose subject is
-  not even a rebuild root. A dangling tag is a pure fact about `scene.elements`, so reading it is cheaper
-  than teaching the staging filter to tell two producers apart, and D74's one-producer invariant on
-  `scene.brokenRefs` stays intact. ⚠ `hostId` is the element's own id: the reference is hosted on
-  nothing, and widening the watched `interface BrokenReference` would make a diagnostic field
-  contract-touching — no consumer reads it. ⚠⚠ **The backward sweep (invariant 7) cost six tests in two
-  files, all one shape:** `option-cascade-d67` and `model-enumeration` tag elements and supply the
-  catalogue as a consumer OVERRIDE, which is the only road while `scene.designOptions` has no authoring
-  verb, and both assert `brokenRefs()` empty to mean *"no window lost its host face"*. Each now filters
-  the option ids instead. ⇒ **until the catalogue CRUD lands (D85, T-011), every tagged element on this
-  product is a broken reference** — D86 reporting the truth, not a false positive.
-- **OWES:** `hmdnah` — this PR; the revert above is the one to re-execute. `amer` — ⚠ `App.tsx`'s
-  Problems panel hints *"these elements are hosted on a sub-shape that no longer resolves. Retarget them
-  manually"*, which is now wrong for an option entry: it is hosted on nothing and
-  `core.retargetReference` cannot heal it. `unverified here: how the panel reads with an option entry in
-  it — khalihlna to confirm`. `brahim` — D86's row still reads ✅ RULED and this builds it; T-008's (c)
-  half extends this union rather than adding a second surfacing path.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-15-T-007-dangling-design-option-ref.md`
-- **REVIEW:** **Reviewed by `hmdnah` (2026-08-15, PR #22) — APPROVED and MERGED**, `RISK: additive`, on
-  `narutousomaki741` — the account that did not open it. Item 1 re-executed twice (2 RED both times); the
-  six-test sweep re-executed and its filter proven to hide nothing. One contract-doc fix on the branch;
-  no defect found in the code. The entry above is the record.
-
-### T-007 — review: the derivation is right, and domain rule 3's text had not been widened to admit it — 2026-08-15 — seat: hmdnah
-
-- **CHANGED:** `docs/contracts/core_logic.md` — domain rule 3 gains the second broken-reference class ·
-  **Entry 85 rotated** to `docs/history.md` §C, now contiguous over 54–85. The code is merged as authored.
-- **VERIFIED:** `pnpm verify` green, **836 across 94 files**, real exit code 0. Item 1 re-executed twice:
-  `brokenRefs()` returned to `this.#scene.brokenRefs` is **2 RED** (`expected [] to have a length of 1 but
-  got +0`), restored **8/8 green**. The sweep re-executed: both files' original `toHaveLength(0)` gives
-  **6 failed | 25 passed**, and printing the lists shows exactly the two tagged walls per fixture and no
-  masked host-face entry. `brokenRefs()` timed on a hand-assembled 10,000-element scene: **3.288 ms/call
-  with one tag, 3.822 ms/call with all 10,000** — one call site, in a `useMemo` keyed on document version.
-- **FOUND:** ⚠⚠ **The new broken reference is not retargetable by any verb** — `core.createElement` is the
-  only writer of `designOptionId` — which is what rule 3's own D74 note forbids (*"a refusal nobody can act
-  on … a lie about the model's state"*). It survives that test only because it is **derived and never
-  stored**: it enters no `.bnn` and clears the moment the option resolves, so deriving at the query is
-  load-bearing for rule 3 and not only for staleness. The contract recorded one class and the code now
-  ships two, so rule 3 gained the sentence (`AGENTS.md §3` row 1). ⚠ Staging it instead would have gone
-  stale exactly as claimed: `#stage` keeps any entry whose element's assembly is not a rebuild root, so a
-  wall's entry would outlive the `core.createDesignOption` that resolves its tag.
-- **OWES:** `amer` — the `App.tsx` Problems-panel hint the entry above already names;
-  `unverified here: how the panel reads with an option entry in it — khalihlna to confirm`. `brahim` —
-  T-008 is now the next box row, and D86's *"build them together"* note means its (c) half extends this
-  union rather than opening a second surfacing path.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-15-T-007-review.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry above.
-
-### T-004 — review: the flatness result holds, and the harness passed while building nothing — 2026-08-15 — seat: hmdnah
-
-- **CHANGED:** `tests/document-build-cost-scale.test.ts` — the cold load's built solids are counted and
-  required to equal the authored count. `scripts/agent-finish.mjs` — `setRowStatus` hoisted, exported and
-  **repadded** (+ `scripts/agent-finish.d.mts` NEW, + a case in `tests/protocol/agent-finish.test.ts`).
-  `§1a` + the T-004 body — the smallest-model deviation's direction.
-- **VERIFIED:** `REVIEW.md` item 1, twice. **(a)** Removing `cold.rebuildAll()` went RED only at
-  `expect(fit.slope).toBeGreaterThan(0)` — `-0.0000015`, a coin flip on noise; with the count asserted it
-  is RED in 2.9 s naming `scale 1: solids built by the cold load: expected +0 to be 62`, green restored
-  in 58.4 s. **(b)** Reverting the repad turned `agent-finish.test.ts` RED on `| T-001 | review   |`, the
-  byte CI rejected. Harness re-run twice: **43.45** and **41.93 ms/element**, **7.24** and **6.99 min**
-  projected.
-- **FOUND:** The verdict stands — flat across 39–273 elements, ~7 min at 10,000 — but two claims under it
-  did not. ⚠⚠ **The harness could not tell a cold load that built the whole building from one that built
-  nothing:** `geometryOf(id)?.state` is `undefined` for an element never built and `undefined !==
-  'failed'`, and `brokenRefs()` returns a **stored scene field** rather than a re-derivation, so both
-  passed on an empty measurement. ⚠ `§1a`'s _"smallest model prices ~5% **high**"_ is backwards — 39
-  elements price 38.8–39.6 ms/el against 41.8–44.0 at the larger sizes in all four runs, so the marginals
-  **fall** with size and the warmup cause predicts the opposite sign. Neither unseats the conclusion.
-- **OWES:** ⚠ **every seat — confirm `gh api user` is your own account before approving or merging.** The
-  approve step first refused (`Can not approve your own pull request`): the box held only the account
-  that opened #20. Owner ruling, same day — a per-turn `GH_TOKEN` from `~/.config/bunyan/hmdnah.token`,
-  no global switch — so #20 was approved and merged on `narutousomaki741` after all. GitHub blocks a
-  self-approval but **not** a self-merge, which is the half a seat has to check itself. `amer` —
-  `unverified here: the same cold load inside a real browser tab`, carried forward untouched. `brahim` —
-  the flatness verdict is still **printed, not asserted**; four runs put the marginal spread at
-  5.9–16.8%, the number a ratio gate would have to clear.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-15-T-004-review.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
-
 ---
 
 ## §8 — Generated
@@ -967,16 +969,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-014 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `task/T-014-review-must-read-the-task-s-risk-not-onl` · `31d5607` · clean |
-| open PRs | #28 task/T-014-review-must-read-the-task-s-risk-not-onl · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
-| suite | **874 green** · 94 files · 273 suites |
+| **newest entry** | **T-008 (zayd, 2026-08-16)** |
+| branch · tip · tree | `task/T-008-q19-the-belongs-to-deletion-reconciliati` · `2fd9282` · clean |
+| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
+| suite | **883 green** · 95 files · 275 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 960 insertions(+), 80 deletions(-) (13 files) |
-| docs budget | current_state 81.6/96.0 KB · §7 28.9/32.0 KB · abstracts 10/10 · bodies 46 |
+| diff vs origin/main | 14 files changed, 952 insertions(+), 173 deletions(-) (14 files) |
+| docs budget | current_state 81.6/96.0 KB · §7 29.0/32.0 KB · abstracts 10/10 · bodies 49 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
