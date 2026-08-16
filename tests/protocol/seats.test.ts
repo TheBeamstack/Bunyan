@@ -20,6 +20,7 @@ import {
   roleOf,
   rowStatus,
   STEP1_LABEL,
+  STEP1_LABEL_DESCRIPTION,
   taskField,
 } from '../../scripts/seats.mjs';
 import { makeFixture } from './fixture.mjs';
@@ -407,5 +408,15 @@ describe('the two-step review gate (D88, T-014)', () => {
       expect(preT014Formula('high', 1, false)).toBe(true); // RED: the old code stamps 'done'
       expect(reviewFlipsToDone('high', 1, false)).toBe(false); // GREEN: the fix leaves it 'review'
     });
+  });
+
+  // Regression for a defect hmdnah's step-2 review of T-014 (PR #28) found by actually running the
+  // mechanism against GitHub's real API: `gh label create --description` refuses anything over 100
+  // characters, so `agent-finish.mjs --step 1` could never create `review/step-1` on a repo where it
+  // does not already exist — the exact state of every FIRST risk: high review. Proven live: the
+  // unshortened description was 104 characters and `gh label create` returned "description is too
+  // long (maximum is 100 characters)".
+  it("STEP1_LABEL_DESCRIPTION fits GitHub's 100-character label description limit", () => {
+    expect(STEP1_LABEL_DESCRIPTION.length).toBeLessThanOrEqual(100);
   });
 });

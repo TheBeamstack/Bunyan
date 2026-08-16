@@ -228,8 +228,11 @@ export function dependsOn(backlogSrc, taskId) {
  * is running. It does not exist on a fresh repo — the applying side creates it before adding it. */
 export const STEP1_LABEL = 'review/step-1';
 export const STEP1_LABEL_COLOR = '0E8A16';
+// ⚠⚠ GitHub caps a label's description at 100 characters and `gh label create` refuses anything
+// longer — measured live (T-014, PR #28): the original 104-character wording died on the very first
+// repo where this label did not already exist, which is every FIRST risk: high review ever run.
 export const STEP1_LABEL_DESCRIPTION =
-  'Step 1 (mechanical) of a risk: high two-step review is done — step 2 (adversarial) may run (D88, T-014).';
+  'Step 1 (mechanical) review is done — step 2 (adversarial) may run (D88, T-014).';
 
 /**
  * Which of D88's two review turns a `risk: high` task is on, given the open PR's own label names —
