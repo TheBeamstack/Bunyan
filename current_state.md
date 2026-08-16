@@ -116,10 +116,10 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | seat | `zayd` |
 | role | builder |
 | machine | box |
-| task | `T-013` |
-| branch | `task/T-013-the-seat-identity-guard-gh-api-user-must` |
-| claimed-at | 2026-08-16T12:35:58Z |
-| status | finished — PR open, awaiting review |
+| task | `T-012` |
+| branch | `task/T-012-review-routes-a-pr-whose-title-carries-n` |
+| claimed-at | 2026-08-16T16:04:24Z |
+| status | working |
 
 <!-- END BATON -->
 
