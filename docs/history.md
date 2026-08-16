@@ -1327,6 +1327,45 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-015 — `agent-start.mjs --continue <T-nnn>` — the branch returns to its builder — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `scripts/seats.mjs` (**`builderFor` NEW**, symmetric with `reviewerFor` — resolves a
+  task's own `machine:` field to its builder seat, never the `§0b` baton; `builder-for` CLI dispatch) ·
+  `scripts/agent-start.mjs` (**`--continue <T-nnn>` NEW** — role/seat/open-PR/row-status gates, then a
+  fetch+checkout of the PR's own branch, no new claim written; **`findTaskPR` NEW**, exported) ·
+  `scripts/agent-finish.mjs` (prints an already-open PR's URL instead of `gh pr create` when finishing a
+  `--continue`d branch) · `scripts/{seats,agent-start}.d.mts` (the new exports declared) ·
+  `tests/protocol/seats.test.ts` (`builderFor` suite, +4) · `tests/protocol/agent-start.test.ts`
+  (`findTaskPR` +2, `--continue` refusals +4). No frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, all six gates, `tests/freeze-boundary.test.ts` green ⇒ the frozen
+  surface has not moved. **Revert-verified:** `git stash` on the five source/type files (tests left in
+  place) took the new suite **10 RED** of 39 — `builderFor is not a function`, `unknown argument
+  '--continue'`, `findTaskPR is not a function` — `git stash pop` restored **39/39 green**.
+- **FOUND:** ⚠ Confirms `builderFor` must key on `machine:`: the admitted seat has to be DERIVED from
+  the task row, because a `--review` finish rewrites the `§0b` baton to name the REVIEWER — measured
+  again here against T-008's live branch (baton reads `hmdnah`/reviewer, its claim commit reads `zayd`).
+  ⚠ Confirms the second `done-when:` too: T-008's row on `main` still reads `ready` today, three sessions
+  after its `review` flip landed on its own unmerged branch — a gate reading `main` after `git checkout`
+  would refuse every real `--continue` call, so the row status is read via `git show
+  origin/<branch>:docs/BACKLOG.md` instead.
+- **OWES:** `hmdnah` — this PR's step-1 review (`risk: high`, D88's two-step route). ⚠ **The success
+  path — checking out a real PR's branch and reading `review` off it, and `agent-finish.mjs`'s new
+  `existingPR` branch — is not covered by an automated test.** Both need a `gh`-backed GitHub PR; this
+  repo's test fixtures build a throwaway *local* bare `origin`, against which `gh pr list` returns
+  nothing — the same limitation the existing suite already accepts for `--review`'s own `gh pr
+  checkout`/`gh pr comment` calls. `zayd` — T-008 still additionally waits on T-014 (unbuilt) per D88's
+  "T-008 waits for both" — this PR alone does not unblock it.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-015-continue-mechanism.md`
+- **REVIEW:** **Step 1** (`hmdnah`, 2026-08-16) — **approval withheld**, one blocking finding
+  (PR comment #5305288044): the `--continue` admission gate called `seats.builderFor(root, continueTask)`
+  with no `finishingSeat`, so `machine: any` always resolved to `zayd`/`box`. Fixed on this branch by a
+  second `zayd` turn via `agent-start.mjs --continue T-015` (no new claim), commit `2798b2c` — one
+  production line, one regression test. **Step 2** (`hmdnah`, 2026-08-16) — **APPROVED and MERGED**,
+  `RISK: additive`, on `narutousomaki741`, after independently reverting the fix and reproducing the RED
+  step 1 found. See the review entry (rotated alongside this one; both were already in `current_state.md`
+  §7) for the record — `T-015 — review: the fix holds, backward sweep and weak-green clean`.
+
 ### STEWARD-step-routing-and-continue — D88 asserted two mechanisms no script implements — 2026-08-15 — seat: brahim
 
 - **CHANGED:** `docs/decisions.md` (**D88 amended**) · `docs/BACKLOG.md` (T-014's second `done-when:`

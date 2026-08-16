@@ -628,6 +628,39 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-012 — review (step 2): the fallback quantifies over the registry, and `reviewerForBranch` genuinely reuses `reviewerFor` — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
+  `docs/BACKLOG.md`'s T-012 row flips `review` → `done` via `agent-finish.mjs --review --step 2`.
+- **VERIFIED:** Reconciled step 1's report (items 1, 4, 5, 7,
+  https://github.com/Davidian-Abdo/Bunyan/pull/30#issuecomment-5308498620) — clean, revert-verified
+  (10/77 RED → 77/77 green), numbers reproduced (900 green, 146/146 `docs:check`), `RISK: additive`, no
+  `needs-operator/*`. Re-ran `tests/protocol/seats.test.ts` + `agent-start.test.ts` myself: **77/77
+  green**, matching. `gh pr checks 30` → both jobs `pass` (12s, 9m10s — full run), re-confirmed
+  immediately before merging.
+- **FOUND:** Items 2/3/6 all clean. **Backward sweep:** grepped every other PR-title→reviewer consumer
+  in the tree — `pr-ready.mjs` only checks `titleRoutes()` shape (already accepted `STEWARD:`, unchanged
+  need); `reserved-classes.mjs` has no title/reviewer logic; `agent-finish.mjs`'s three `reviewerFor`
+  calls pass the finishing seat's own known machine, never a parsed title, so never exposed to this gap;
+  `state.mjs` only lists `headRefName`s. `agent-start.mjs`'s routing loop was the only site. **New kind
+  of thing:** `seatFromBranchPrefix`/`reviewerForBranch` quantify over "every seat" via
+  `readRegistry(root)`, a fresh read of `docs/seats/README.md`'s table on every call — no hardcoded seat
+  list found in either file's logic — so a sixth seat added as a registry row gets correct branch-prefix
+  routing automatically, no matching code update needed. **Weak green:** pressure-tested "a T-nnn in the
+  title still wins" against "the fallback branch is never reached at all (a bug), not because precedence
+  is correct" — the test deliberately mismatches the branch prefix's machine (`amer`/pc) against the
+  title's task machine (`box`), so a bug that ran the fallback regardless of `id` would produce a
+  different seat (`khalihlna`) and a different printed line, not a coincidental pass. Independent
+  spot-check: read `reviewerForBranch` directly (`scripts/seats.mjs:443-451`) — confirmed it calls
+  `machineOf` then spreads `reviewerFor(root, m, finishingSeat)`, the SAME function title-based routing
+  uses, reimplementing nothing.
+- **OWES:** nothing outstanding. Minor non-blocking note filed in the handoff body: the merged PR's own
+  test counts (`+9`/`+3`) are off by one against the actual diff (`+8`/`+4`) — doesn't affect
+  correctness, worth fixing next time those numbers are touched.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-012-review-step2.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); approved and merged on `narutousomaki741`.
+
 ### T-012 — `--review` routes a PR whose title carries no `T-nnn` — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `scripts/seats.mjs` (**`seatFromBranchPrefix` NEW**, exported — the seat a branch's own
@@ -658,7 +691,8 @@ is maintenance and does NOT get an entry of its own.**
   D88's two-step route applies.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-16-T-012-titleless-pr-routing.md`
-- **REVIEW:** pending — `hmdnah`, two-step review (D88, risk: high).
+- **REVIEW:** done — two-step review complete (D88), approved and merged by `hmdnah` on
+  `narutousomaki741`. See T-012 review (step 2) above.
 
 ### T-013 — review (step 2): the guard held, and CI's own failure-then-fix cycle proved the hermeticity fix genuine — 2026-08-16 — seat: hmdnah
 
@@ -937,70 +971,28 @@ is maintenance and does NOT get an entry of its own.**
 - **OWES:** nothing new. `brahim` — T-016 (depends-on T-015) is now unblocked.
 - **RISK:** additive
 - **FULL:** `handoff/hmdnah/2026-08-16-T-015-review.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry above.
-
-### T-015 — `agent-start.mjs --continue <T-nnn>` — the branch returns to its builder — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `scripts/seats.mjs` (**`builderFor` NEW**, symmetric with `reviewerFor` — resolves a
-  task's own `machine:` field to its builder seat, never the `§0b` baton; `builder-for` CLI dispatch) ·
-  `scripts/agent-start.mjs` (**`--continue <T-nnn>` NEW** — role/seat/open-PR/row-status gates, then a
-  fetch+checkout of the PR's own branch, no new claim written; **`findTaskPR` NEW**, exported) ·
-  `scripts/agent-finish.mjs` (prints an already-open PR's URL instead of `gh pr create` when finishing a
-  `--continue`d branch) · `scripts/{seats,agent-start}.d.mts` (the new exports declared) ·
-  `tests/protocol/seats.test.ts` (`builderFor` suite, +4) · `tests/protocol/agent-start.test.ts`
-  (`findTaskPR` +2, `--continue` refusals +4). No frozen byte, no `packages/`, no `apps/web`.
-- **VERIFIED:** `pnpm verify` green, all six gates, `tests/freeze-boundary.test.ts` green ⇒ the frozen
-  surface has not moved. **Revert-verified:** `git stash` on the five source/type files (tests left in
-  place) took the new suite **10 RED** of 39 — `builderFor is not a function`, `unknown argument
-  '--continue'`, `findTaskPR is not a function` — `git stash pop` restored **39/39 green**.
-- **FOUND:** ⚠ Confirms `builderFor` must key on `machine:`: the admitted seat has to be DERIVED from
-  the task row, because a `--review` finish rewrites the `§0b` baton to name the REVIEWER — measured
-  again here against T-008's live branch (baton reads `hmdnah`/reviewer, its claim commit reads `zayd`).
-  ⚠ Confirms the second `done-when:` too: T-008's row on `main` still reads `ready` today, three sessions
-  after its `review` flip landed on its own unmerged branch — a gate reading `main` after `git checkout`
-  would refuse every real `--continue` call, so the row status is read via `git show
-  origin/<branch>:docs/BACKLOG.md` instead.
-- **OWES:** `hmdnah` — this PR's step-1 review (`risk: high`, D88's two-step route). ⚠ **The success
-  path — checking out a real PR's branch and reading `review` off it, and `agent-finish.mjs`'s new
-  `existingPR` branch — is not covered by an automated test.** Both need a `gh`-backed GitHub PR; this
-  repo's test fixtures build a throwaway *local* bare `origin`, against which `gh pr list` returns
-  nothing — the same limitation the existing suite already accepts for `--review`'s own `gh pr
-  checkout`/`gh pr comment` calls. `zayd` — T-008 still additionally waits on T-014 (unbuilt) per D88's
-  "T-008 waits for both" — this PR alone does not unblock it.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-16-T-015-continue-mechanism.md`
-- **REVIEW:** **Step 1** (`hmdnah`, 2026-08-16) — **approval withheld**, one blocking finding
-  (PR comment #5305288044): the `--continue` admission gate called `seats.builderFor(root, continueTask)`
-  with no `finishingSeat`, so `machine: any` always resolved to `zayd`/`box`. Fixed on this branch by a
-  second `zayd` turn via `agent-start.mjs --continue T-015` (no new claim), commit `2798b2c` — one
-  production line, one regression test. **Step 2** (`hmdnah`, 2026-08-16) — **APPROVED and MERGED**,
-  `RISK: additive`, on `narutousomaki741`, after independently reverting the fix and reproducing the RED
-  step 1 found. See the review entry below for the record.
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the build entry, now
+  rotated to `docs/history.md` §E.
 
 ---
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-012` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
-| **newest entry** | **T-012 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-012-review-routes-a-pr-whose-title-carries-n` · `7352452` · clean |
+| **newest entry** | **T-012 (hmdnah, 2026-08-16)** |
+| branch · tip · tree | `main` · `f618020` · dirty |
 | open PRs | none — main is the tip of the work |
 | suite | **900 green** · 95 files · 281 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 7 files changed, 458 insertions(+), 12 deletions(-) (7 files) |
-| docs budget | current_state 82.9/96.0 KB · §7 30.6/32.0 KB · abstracts 10/10 · bodies 52 |
+| diff vs origin/main | 3 files changed, 81 insertions(+), 50 deletions(-) (3 files) |
+| docs budget | current_state 82.5/96.0 KB · §7 30.3/32.0 KB · abstracts 10/10 · bodies 53 |
 
 _Generated 2026-08-16 by `pnpm state`._
 

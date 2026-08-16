@@ -109,7 +109,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-009 | ready   | Q18 — a hosted void may only host on its host's base part     | document | box     | high   | —          |
 | T-010 | blocked | Q18 — two doors on one wall, confirmed in the browser         | apps-web | pc      | normal | T-009      |
 | T-011 | ready   | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
-| T-012 | review  | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
+| T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
 | T-013 | done    | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
 | T-014 | done    | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
 | T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
