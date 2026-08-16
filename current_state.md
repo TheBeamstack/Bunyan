@@ -628,6 +628,34 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-015 — review: the fix holds, backward sweep and weak-green clean — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** Nothing on this branch — no defect proven. The code is merged as fixed by the second
+  `zayd` turn (commit `2798b2c`).
+- **VERIFIED:** `pnpm verify` green, **847/847**, exit 0, `tests/freeze-boundary.test.ts` green ⇒ frozen
+  surface unmoved. **Reconciled step 1's fix myself rather than trusting the report:** `git diff 902e827
+  2798b2c` shows exactly one production line changed
+  (`scripts/agent-start.mjs:400`, `seats.builderFor(root, continueTask)` → `..., seat)`) plus one new
+  test. Reverted that line by hand and re-ran `tests/protocol/agent-start.test.ts`: **1 failed | 16
+  skipped**, `✖ T-001's builder is 'zayd', not 'amer'.` — reproduces step 1's finding exactly. Restored:
+  **17/17** in that file.
+- **FOUND:** No new blocking finding. **Item 2 (backward sweep):** `builderFor` has one production call
+  site, now fixed; every `reviewerFor` call site checked — `agent-finish.mjs:324`/`:475` both pass
+  `seat`, `agent-start.mjs:507` passes `undefined` deliberately (the pre-existing reviewer-routing
+  *display* loop, not an admission gate, unmodified by this PR) — no second instance of the missing-arg
+  shape. **Item 3 (new kind of thing):** the `--continue` door and `builderFor` are the new entity;
+  `agent-finish.mjs`'s `existingPR` check does not key on the entry path, so nothing else needed
+  enumerating. Two non-blocking opinions recorded in the PR comment (duplicate PR-title regex in the
+  display loop; the pre-existing `--limit 10` cap on `gh pr list`). **Item 6 (weak green):** the new
+  regression test infers admission success indirectly (failing one gate later, at "No open PR"); checked
+  a hypothetical alternate bug (raw `finishingSeat` used as machine instead of `machineOf`) and confirmed
+  it would also fail the test's second assertion via a different message — not fooled by that class
+  either. Test is not weak.
+- **OWES:** nothing new. `brahim` — T-016 (depends-on T-015) is now unblocked.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-015-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry above.
+
 ### T-015 — `agent-start.mjs --continue <T-nnn>` — the branch returns to its builder — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `scripts/seats.mjs` (**`builderFor` NEW**, symmetric with `reviewerFor` — resolves a
@@ -658,7 +686,13 @@ is maintenance and does NOT get an entry of its own.**
   "T-008 waits for both" — this PR alone does not unblock it.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-16-T-015-continue-mechanism.md`
-- **REVIEW:** AWAITING REVIEW.
+- **REVIEW:** **Step 1** (`hmdnah`, 2026-08-16) — **approval withheld**, one blocking finding
+  (PR comment #5305288044): the `--continue` admission gate called `seats.builderFor(root, continueTask)`
+  with no `finishingSeat`, so `machine: any` always resolved to `zayd`/`box`. Fixed on this branch by a
+  second `zayd` turn via `agent-start.mjs --continue T-015` (no new claim), commit `2798b2c` — one
+  production line, one regression test. **Step 2** (`hmdnah`, 2026-08-16) — **APPROVED and MERGED**,
+  `RISK: additive`, on `narutousomaki741`, after independently reverting the fix and reproducing the RED
+  step 1 found. See the review entry below for the record.
 
 ### STEWARD-step-routing-and-continue — D88 asserted two mechanisms no script implements — 2026-08-15 — seat: brahim
 
@@ -893,56 +927,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
 - **REVIEW:** pending — `STEWARD:` PR, this branch.
 
-### 88 | 2026-08-08 | Zayd | the habit three sessions kept performing by hand is a gate — and the hard part was the SKIP
-
-- **CHANGED:** **`scripts/prompt-sync.mjs` + `.d.mts` NEW** (the gate: three git questions, no network) ·
-  **`tests/prompt-sync.test.ts` NEW (+12)** · `package.json` (`docs:check` runs it — gate six is now three
-  files) · `.github/workflows/ci.yml` (`BASE_REF` on the docs step, the same sha the re-seed gate reads) ·
-  `eslint.config.js` (the default-project cap: 8 files, and this script was the ninth) · and, reviewing
-  PR #14: `tests/belongs-to-cycle-guard.test.ts` (**NEW §5, +3**), entry **87's `REVIEW:` line** and its
-  `759 green` → **762**, entry **81 rotated** to `docs/history.md` §C (§C now 54–81).
-- **VERIFIED:** **776 green** across 88 files, all six gates, **real exit code 0**. Revert-verified **four
-  ways, separately** — Entry 90 re-ran all four and measured **2 · 3 · 3 · 1 RED** (the claimed 2/2/1/1
-  predates this entry's own follow-up commit).
-- **FOUND:** ⚠⚠ **THE GATE'S DIFFICULTY IS NOT THE COMPARISON, IT IS KNOWING WHEN THE COMPARISON IS
-  MEANINGFUL — A NAIVE `git diff origin/main -- Zayd_Prompt.md` IS WRONG IN THREE OF THE FOUR STATES THIS
-  REPO HAS BEEN IN.** TASK asked *"the whole file, or only FRESH?"* — **neither: no region of the file is
-  always equal.** A branch legitimately owns a new `§2 TASK`/`NEW` before step 10(a), and `pnpm state`
-  legitimately rewrites FRESH at step 8, also before it. **The invariant is a MOMENT, not a region.** ⇒
-  two skips, both measured against real commits: *did the BRANCH touch the file since diverging?* (spares
-  Amer) and *did MAIN?* — ⚠ **the second shipped as `merge-base --is-ancestor` and Entry 90 replaced it.**
-  ⚠ **Q2 (can `docs:check` see `origin/main`?) is SIDESTEPPED** — CI reads the base SHA it already passes
-  the re-seed gate. (`origin/main` does exist in CI; measured after the fact. `git show` costs 1.85 ms.)
-  ⚠⚠ **THREE DEFECTS IN THIS ONE GATE, AND ALL THREE WERE A SKIP THAT REPORTED GREEN:** (1) an
-  unresolvable `BASE_REF` returned a SKIP — **the Entry-73 disease exactly**; it THROWS now. (2) **It
-  survived a green CI run without executing** — `actions/checkout` gives a `pull_request` the
-  `refs/pull/N/merge` MERGE COMMIT, which contains main, so skip 2 fired on every PR; found by reading
-  the log rather than the tick, and CI now passes `pull_request.head.sha`. (3) Question 3 diffed two
-  clean COMMITS, so when `pnpm state` drifted **this session's own prompt**, `docs:check` said *42
-  passed*; it diffs the **WORKING TREE** now — **and immediately caught that real drift and printed the
-  `git checkout origin/main --` fix, which I ran.** ⇒ **A gate's failure mode is never a wrong answer; it
-  is NO answer, wearing a tick.** ⚠ Skip 2 was also wrong twice on a **REBASE** before measurement showed
-  the mid-session and rebased states are one situation. ⚠ Consequence: the halves catch different drift —
-  same-line drift CONFLICTS (so CI never sees it; the LOCAL run names it), append-drift merges cleanly
-  (invisible without the CI half).
-- **OWES:** Owner: **nothing new** — `RISK: additive`, so the next session merges this. **Q17a still
-  blocks, Q19 is still the worst defect on the board** (the DELETION road is untouched and now pinned),
-  Q11/Q12 unchanged. Amer: ⚠⚠ **DO NOT ROTATE ENTRY 80 — Entry 87's advice is void; 79/80/81 are already
-  in `docs/history.md`. ROTATE ENTRY 82 INSTEAD, and only because THIS entry exists.** Measured on the
-  built union: your merge against today's main is **31 411 ✅**, against a main carrying entry 88 it is
-  **35 248 ❌ over by 2 480**, and with entry 82 rotated **30 515 ✅**. Entry 88 is `additive` so it
-  merges first — plan on the rotation. ⚠ **I was on both sides of this gate in one session.**
-  ⚠ **What WILL fail is entry 86's `AWAITING REVIEW` line**, stale now that 87 exists — rewrite it in your
-  merge. ⚠ **`Amer_Prompt.md` is deliberately NOT in `GATED`**; adding it is one line and it is your call.
-  **Q18 and Q20 are yours.**
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-08-e88-prompt-sync-gate.md`
-- **REVIEW:** **Entry 90 (Zayd) — reviewed, AMENDED, MERGED.** ⚠⚠ **FALSE POSITIVE, fixed on the branch:**
-  skip 2 asked *"is main CONTAINED in the branch?"* — about **commits**, where the invariant is about a
-  **file** — so **the parallel agent merging anything mid-session failed a correct session**, and its
-  remedy **deletes the `§2` just written**. Now `git diff <merge-base> <main> -- <file>`. **+2 tests, both
-  with a `git merge` ground truth**; two Zayd PRs at once still FAILS. Full: PR #15.
-
 ---
 
 ## §8 — Generated
@@ -957,16 +941,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-015 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` · `f2d12d0` · clean |
-| open PRs | #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
-| suite | **846 green** · 94 files · 267 suites |
+| **newest entry** | **T-015 (hmdnah, 2026-08-16)** |
+| branch · tip · tree | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` · `2798b2c` · dirty |
+| open PRs | #27 task/T-015-agent-start-mjs-continue-t-nnn-the-branc · #23 task/T-008-q19-the-belongs-to-deletion-reconciliati |
+| suite | **847 green** · 94 files · 267 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 11 files changed, 546 insertions(+), 88 deletions(-) (11 files) |
-| docs budget | current_state 79.8/96.0 KB · §7 27.5/32.0 KB · abstracts 10/10 · bodies 43 |
+| diff vs origin/main | 12 files changed, 659 insertions(+), 138 deletions(-) (12 files) |
+| docs budget | current_state 78.3/96.0 KB · §7 25.7/32.0 KB · abstracts 10/10 · bodies 44 |
 
 _Generated 2026-08-16 by `pnpm state`._
 
