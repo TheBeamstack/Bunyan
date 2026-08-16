@@ -113,13 +113,13 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
-| role | steward |
+| seat | `zayd` |
+| role | builder |
 | machine | box |
-| task | `STEWARD-step-routing-and-continue` |
-| branch | `brahim/2026-08-15-step-routing-and-continue` |
-| claimed-at | 2026-08-15T09:38:01Z |
-| status | finished — PR open, awaiting review |
+| task | `T-015` |
+| branch | `task/T-015-agent-start-mjs-continue-t-nnn-the-branc` |
+| claimed-at | 2026-08-16T01:39:26Z |
+| status | working |
 
 <!-- END BATON -->
 
