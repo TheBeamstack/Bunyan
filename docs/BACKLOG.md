@@ -108,7 +108,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-008 | done    | Q19 — the belongs-to deletion reconciliation                  | document | box     | high   | —          |
 | T-009 | done    | Q18 — a hosted void may only host on its host's base part     | document | box     | high   | —          |
 | T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser         | apps-web | pc      | normal | T-009      |
-| T-011 | review  | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
+| T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
 | T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
 | T-013 | done    | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
 | T-014 | done    | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
@@ -329,6 +329,13 @@ so the owner merges this one as well as ruling it.
 - depends-on: —
 - ✅ **RULED 2026-08-15 — `D85`, as recommended: ship the unit.** ⚠ Ruling it did **not** make it
   mergeable by a seat — it is still `RISK: contract-touching`, so the owner merges the PR too.
+- ✅ **MERGED 2026-08-17 — PR #32, `c18ae8e`, by `brahim` under the owner's explicit one-off
+  authorization**, recorded because `AGENTS.md §5` reserves this merge to the owner: they closed the PR
+  by mistake from the GitHub UI, then authorized the reopen and merge in their place. Re-confirmed first
+  on the conflict-resolved tip `40859fd` — `hmdnah`'s approval intact, both CI jobs green, and
+  `packages/` plus every T-011 test byte-identical to the approved `0a641b3`, so only bookkeeping files
+  moved after approval. The frozen-surface re-baseline this carries is pre-freeze under D85; **the P5
+  freeze itself is untouched and remains the owner's separate act.**
 - area: document · machine: **box** · risk: **high**
 
 ### T-012 — `--review` routes a PR whose title carries no `T-nnn`
