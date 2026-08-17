@@ -628,6 +628,47 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-011 — the "no authoring verb" comments, swept; and `§8`'s suite line measures the wrong branch — 2026-08-17 — seat: zayd
+
+- **CHANGED:** comments only, in the PR that ships the CRUD they contradicted (`AGENTS.md §3` row 1) —
+  `packages/document/src/designoptions.ts` (module header, `isElementActive`, `optionScopeOf`) ·
+  `enumerate.ts` (`EnumerateOptions.designOptions`) · `entities.ts` (`Element.designOptionId`) ·
+  `documentation.ts` (`ScheduleDefinition.designOptionIds`, `ViewCommon.designOptionIds`) ·
+  `tests/option-cascade-d67.test.ts` · `tests/plan-section.test.ts`. Plus **2 assertions** in
+  `tests/design-option-crud.test.ts`, **2** `## Discovered` rows in `docs/BACKLOG.md`, and
+  `tests/frozen-surface.snapshot.json` (`_baselinedAt` only — see FOUND).
+- **VERIFIED:** `pnpm verify` green, foreground, real OCCT kernel, exit 0 — main suite **915 green · 96
+  files · 283 suites**, 0 failing; `docs:check` **146 · 8 files**; `freeze-boundary` 12/12, unmoved
+  (comment-only edits to watched files do not touch the frozen surface, and `reserved-classes` has a case
+  asserting exactly that). **Revert-verified by mutation:** made `guardReferences` redirect on the
+  `acknowledge` path, and the first new assertion went red (`expected [ 'MUTANT' ] to deeply equal
+  [ 'option-01M…' ]`) while every pre-existing assertion in the case stayed green — the weak green
+  `REVIEW.md` item 6 names. `commands.ts` restored, diff empty.
+- **FOUND:** Seven files still said `scene.designOptions` was RESERVED with no authoring verb, inside the
+  diff that gives it three. Two were false *before* this PR (`isElementActive`'s "nothing calls it" —
+  four consumers do; `ViewCommon` "no body reads yet" — `projectView` has since Entry 77), swept under
+  invariant 7 rather than left. **⚠⚠ And `§8`'s suite line measures the wrong branch:** `pnpm state` does
+  not run the suite, it reads the untracked `.vitest-summary.json` left by the last `pnpm test` anywhere
+  in the one worktree. That accounts for all four figures in circulation — `913` = this branch before
+  `e05c35a` merged main (T-009 added 2 tests), `902 · 95 · 281` = **main** (quoted into the step-1 review,
+  which ran two files not the suite), `907 · 95 · 283` = **`task/T-016-…`** (main + T-016's 5 tests and 2
+  describes, read back after the 23:19 branch switch), `915 · 96 · 283` = this branch, correct, and the
+  committed `fb4d4e6` value. It **defeats `agent-start.mjs`'s measured-vs-claimed refusal**: both sides
+  read the same stale file, so they agree while both are wrong. **Second finding, met head-on:**
+  `_baselinedAtEntry` names a POSITION — `docs-state.mjs` mints `1000 - i` over §7's order — so appending
+  this abstract re-pointed the baseline's audit trail at it and turned `freeze-boundary` red on a turn
+  that moved no declaration; `pnpm state --rebaseline` cleared it by changing exactly `_baselinedAt`,
+  with all **214** declarations byte-identical.
+
+- **OWES:** `hmdnah` — **step 2** of D88 on the existing claim (step 1 is done and labelled; this defect
+  return does not consume it). The **owner** — `RISK: contract-touching` ⇒ the owner merges PR #32. The
+  `pnpm state` staleness is recorded in `docs/BACKLOG.md ## Discovered` with a fix shape, not claimed.
+- **RISK:** contract-touching (re-baselined) — **0** declarations moved by this turn; the branch keeps the
+  classification it already had (the single `scene.ts :: type SceneCollection` declaration), and the only
+  byte this turn added to the snapshot is `_baselinedAt`.
+- **FULL:** `handoff/zayd/2026-08-17-T-011-reserved-comment-sweep.md`
+- **REVIEW:** pending — `hmdnah`, step 2 (D88); the owner merges.
+
 ### T-011 — review (step 1 of 2): the CRUD closes the measured defect exactly as claimed — 2026-08-16 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — a mechanical step-1 pass edits nothing on the branch (`REVIEW.md`
@@ -888,17 +929,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-011 (hmdnah, 2026-08-16)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `7577d64` · clean |
-| open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | **915 green** · 96 files · 283 suites |
+| **newest entry** | **T-011 (zayd, 2026-08-17)** |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `fb4d4e6` · dirty |
+| open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
+| suite | ⚠⚠ 913/915 passing — **2 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 12 files changed, 1161 insertions(+), 176 deletions(-) (12 files) |
-| docs budget | current_state 74.3/96.0 KB · §7 21.7/32.0 KB · abstracts 8/10 · bodies 57 |
+| diff vs origin/main | 17 files changed, 1238 insertions(+), 206 deletions(-) (17 files) |
+| docs budget | current_state 77.0/96.0 KB · §7 24.7/32.0 KB · abstracts 9/10 · bodies 58 |
 
-_Generated 2026-08-16 by `pnpm state`._
+_Generated 2026-08-17 by `pnpm state`._
 
 <!-- END GENERATED -->

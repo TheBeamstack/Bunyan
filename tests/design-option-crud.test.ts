@@ -260,9 +260,13 @@ describe('D85/Q17a — the design-option CRUD: `scene.designOptions` becomes a f
       CommandFailure,
     );
     // ⚠ acknowledge:true lets both dangle — proving the refusal above named real referrers, not a phantom.
+    // ⚠ The referrers are read BACK: without that, this case would pass just as well if `acknowledge`
+    // silently cleaned them up, which is the opposite of what it means (REVIEW.md item 6).
     const acked = newDoc(doc.scene);
     await acked.execute('core.deleteDesignOption', { id: b, acknowledge: true });
     expect(acked.scene.designOptions?.[b]).toBeUndefined();
+    expect(acked.scene.views?.[view]?.designOptionIds).toEqual([b]);
+    expect(acked.scene.schedules?.[schedule]?.designOptionIds).toEqual([b]);
 
     await doc.execute('core.deleteDesignOption', { id: b, retargetMap: { [b]: a } });
     expect(doc.scene.views?.[view]?.designOptionIds).toEqual([a]);

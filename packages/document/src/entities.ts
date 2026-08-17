@@ -655,8 +655,9 @@ export interface Element {
    */
   readonly connectors?: readonly Connector[];
   /**
-   * ⚠⚠ RESERVED (D65, row Ⓕ). The design ALTERNATIVE this element belongs to (`designoptions.ts`).
-   * Absent ⇒ **main model** — shared by every option, always counted (v1.0.0's only case).
+   * The design ALTERNATIVE this element belongs to (D65, row Ⓕ; `designoptions.ts`). Written by
+   * `core.createElement`, and the catalogue it names is authored by `core.createDesignOption`
+   * (D85/Q17a). Absent ⇒ **main model** — shared by every option, always counted.
    *
    * ⚠⚠⚠ READ `designoptions.ts` BEFORE ANY BODY READS THIS FIELD. When present, this element may be
    * MUTUALLY EXCLUSIVE with another element in the same option set ⇒ **`quantities()`, the project-wide
