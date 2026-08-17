@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-016` |
 | branch | `task/T-016-0b-s-baton-carries-the-builder-separatel` |
@@ -934,25 +934,20 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-016` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-016 (hmdnah, 2026-08-17)** |
-| branch · tip · tree | `task/T-016-0b-s-baton-carries-the-builder-separatel` · `153c957` · dirty |
+| branch · tip · tree | `task/T-016-0b-s-baton-carries-the-builder-separatel` · `3ae75d9` · clean |
 | open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | ⚠⚠ 906/907 passing — **1 FAILING** |
+| suite | **907 green** · 95 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 10 files changed, 370 insertions(+), 107 deletions(-) (10 files) |
+| diff vs origin/main | 11 files changed, 448 insertions(+), 108 deletions(-) (11 files) |
 | docs budget | current_state 78.2/96.0 KB · §7 25.6/32.0 KB · abstracts 10/10 · bodies 57 |
 
 _Generated 2026-08-17 by `pnpm state`._
