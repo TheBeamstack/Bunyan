@@ -991,14 +991,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-017 (hmdnah, 2026-08-17)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `268f2d1` · clean |
-| open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | **928 green** · 96 files · 285 suites |
+| branch · tip · tree | `main` · `ee7c4e5` · clean |
+| open PRs | #35 task/T-018-d66-s-lazy-build-design-doc-measurement- |
+| suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 22 files changed, 2464 insertions(+), 254 deletions(-) (22 files) |
+| **frozen surface** | **RISK: additive** — unchanged vs baseline |
+| diff vs origin/main | (no diff vs origin/main) (0 files) |
 | docs budget | current_state 83.7/96.0 KB · §7 31.2/32.0 KB · abstracts 10/10 · bodies 66 |
 
 _Generated 2026-08-17 by `pnpm state`._
