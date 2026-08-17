@@ -663,7 +663,7 @@ is maintenance and does NOT get an entry of its own.**
 - **RISK:** contract-touching — **0** declarations moved by this turn; the branch keeps the classification
   it already had (the one `scene.ts :: type SceneCollection` move), and this turn added nothing to the
   frozen surface.
-- **FULL:** `handoff/zayd/2026-08-17-T-011-invalidator-join-and-undo.md`
+- **FULL:** `handoff/zayd/2026-08-17-T-011-return-join-neighbour-and-undo-seed.md`
 - **REVIEW:** AWAITING REVIEW — `hmdnah`, D88 step 2 re-run on PR #32.
 
 ### T-011 — review (step 2 of 2): the invalidator under-names, and reproduces D68 from the authoring side — 2026-08-17 — seat: hmdnah
@@ -972,14 +972,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-011 (zayd, 2026-08-17)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `b02824f` · dirty |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `d749fd0` · clean |
 | open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
 | suite | **920 green** · 96 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 20 files changed, 1983 insertions(+), 246 deletions(-) (20 files) |
+| diff vs origin/main | 21 files changed, 2145 insertions(+), 246 deletions(-) (21 files) |
 | docs budget | current_state 81.7/96.0 KB · §7 29.3/32.0 KB · abstracts 10/10 · bodies 60 |
 
 _Generated 2026-08-17 by `pnpm state`._

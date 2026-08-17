@@ -547,6 +547,17 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-17 — `agent-finish.mjs` resolves a turn's handoff body by ALPHABETICAL order, so a second turn
+  on the same task and the same date cannot finish.** Step 3 takes
+  `readdirSync(handoff/<seat>).filter(f => f.includes(task)).sort().at(-1)` and requires the newest §7
+  abstract's `FULL:` to name it — correct only while the date prefix separates the candidates. A D88
+  defect return is exactly the case it does not: `zayd` wrote two `2026-08-17-T-011-*` bodies, and the
+  gate demanded the _earlier_ one (`…-reserved-comment-sweep`, which sorts after `…-invalidator-…`) be
+  linked from the entry describing the _later_ one. Worked around by naming the new body so it sorts last;
+  the next same-day return will hit it again. Fix shape: resolve the body by the abstract's own `FULL:`
+  field and check that the file exists, rather than deriving the filename and checking the field — the
+  entry is the authority on which body it has, and the derivation adds nothing the check needs. Found by
+  `zayd` finishing the T-011 defect return. Recorded, not claimed.
 - **2026-08-17 — the "exactly one primary per set" invariant is enforced at the CRUD doors only, and two
   of the three roads onto `scene.designOptions` bypass it.** `checkPrimaryInvariant` (T-011/D85) guards
   `core.createDesignOption`/`update`/`delete`; a loaded `.bnn` and a `Scene` assembled in code do not go
