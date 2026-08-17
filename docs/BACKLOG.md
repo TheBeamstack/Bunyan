@@ -554,6 +554,23 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-17 — `agent-finish.mjs` runs `pnpm verify` (step 1) before regenerating §8 (step 2), so every
+  turn that edits §7 burns a full verify before failing.** Seen twice today: the run dies red on
+  `§8 agrees with §7 about which entry is newest` after ~9 minutes, and the seat must run `pnpm state` and
+  verify again. Costs ~9 minutes on most turns; the fix is step ordering in the writer, not a protocol
+  question.
+- **2026-08-17 — the orchestrator loop and its subagents contend for one working tree.**
+  `docs/prompts/brahim-orchestrator.md` step 2 runs `git checkout main` every cycle, but a spawned subagent
+  holds the same checkout on its task branch for the length of its turn, so any cycle overlapping a running
+  subagent aborts there. Git refuses cleanly and it self-resolves when the subagent finishes, so it is a
+  protocol wording/isolation question (a worktree per subagent, or "skip step 2 while a subagent holds the
+  tree"), not a repo fault. ⚠ Step 2 currently says a failed pull is a stop-and-report, which would report
+  a healthy state as a fault.
+- **2026-08-17 — T-017's review left two `OWES: brahim` follow-ups**, recorded here so they outlive §7's
+  rotation; detail is in that entry's abstract and body. `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment
+  now cites a gate that holds only to day granularity without saying so, and `frozen-surface.mjs:269`
+  resolves `_baselinedAtEntry` through `.n` — a position rather than an identity for a new-scheme entry, so
+  `1000` always finds whatever sits on top of §7 (pre-existing, guarded by the date cross-check beside it).
 - **2026-08-17 — `agent-start.mjs`'s named-task claim path never consults `liveClaims`, so a finished task
   is claimable by name.** The auto-select path skips a held row on both disjuncts (`agent-start.mjs:809-825`
   — another seat's claim, or a `finished` status); the `wantTask` path above it (`:796-806`) checks only
