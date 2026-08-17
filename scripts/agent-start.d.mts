@@ -15,6 +15,8 @@ export interface Baton {
   branch: string;
   claimedAt: string;
   status: string;
+  /** The seat that BUILT the task — set once at claim time, untouched by a `--review` finish (T-016). */
+  builder?: string;
 }
 
 /** Parses a §0b BATON block's rows, or `null` for the empty-claim placeholder / a missing block. */

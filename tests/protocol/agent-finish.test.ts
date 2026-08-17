@@ -16,7 +16,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { makeFixture } from './fixture.mjs';
-import { setRowStatus } from '../../scripts/agent-finish.mjs';
+import { resolveBuilder, setRowStatus } from '../../scripts/agent-finish.mjs';
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const AGENT_FINISH = join(REPO, 'scripts/agent-finish.mjs');
@@ -234,5 +234,29 @@ describe('the status flip keeps the table formatted — `format:check` is CI ste
     // The real gate: every row of the table is still the same length as its header.
     const lines = readFileSync(p, 'utf8').trimEnd().split('\n');
     for (const line of lines) expect(line).toHaveLength(lines[0]!.length);
+  });
+});
+
+describe('resolveBuilder — the §0b baton `builder` field survives a review finish (T-016)', () => {
+  // Regression: before T-016 the baton had only `seat`, and a `--review` finish overwrote it with the
+  // REVIEWING seat — the builder's identity was recoverable only from the claim commit message, never
+  // from §0b itself (`current_state.md §0b`'s own defect note, Discovered 2026-08-15).
+
+  it('a review finish carries the PRIOR builder forward, never the reviewing seat', () => {
+    const priorBaton = { seat: 'zayd', builder: 'zayd', status: 'finished — PR open' };
+    expect(resolveBuilder(true, priorBaton, 'hmdnah')).toBe('zayd');
+  });
+
+  it('a review finish falls back to the finishing seat when no prior builder is on record', () => {
+    expect(resolveBuilder(true, null, 'hmdnah')).toBe('hmdnah');
+    expect(resolveBuilder(true, { seat: 'zayd' }, 'hmdnah')).toBe('hmdnah');
+  });
+
+  it('a plain (non-review) finish always sets builder to the finishing seat', () => {
+    expect(resolveBuilder(false, null, 'zayd')).toBe('zayd');
+    expect(resolveBuilder(false, { seat: 'zayd', builder: 'zayd' }, 'zayd')).toBe('zayd');
+    // Even resuming someone else's incomplete branch (T-015's --continue) is a BUILD finish, not a
+    // review one — the finishing seat is who actually built it this time.
+    expect(resolveBuilder(false, { seat: 'zayd', builder: 'zayd' }, 'amer')).toBe('amer');
   });
 });
