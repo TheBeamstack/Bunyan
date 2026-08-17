@@ -629,6 +629,39 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-017 — review: the new gate has teeth on the real file, not only on its fixture — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — no defect to fix, and the one correction below is a number in the
+  author's own entry, which `AGENTS.md §4.10` keeps rather than rewrites. Merged PR #34 on
+  `narutousomaki741`.
+- **VERIFIED:** Item 1 re-executed here: the author's neutralisation
+  (`return above && above.date < below.date` → `return false && …`) leaves **1 of 21** RED in
+  `tests/docs-budget.test.ts`, `expected [] to deeply equal [ Array(1) ]` on the fixture case;
+  restored **21/21 green**. Item 6 by mutating the REAL file rather than a fixture — §7's last
+  abstract re-dated `2026-08-16` → `2026-08-18`, which makes `current_state.md` itself genuinely
+  out of order: the new gate goes RED naming the pair, and the check it replaced stays **GREEN** on
+  that same input (`ns` = `1000 … 991`). Old blind, new red, one real file. Item 2: every
+  `.n`/`parseAbstracts` reader re-enumerated independently — the author's five-row table is complete.
+  Item 7: `detectReservedClasses` run here against `origin/main` ⇒ `classes: []`, and both CI jobs
+  SUCCESS on the tip with no `needs-operator/*` label. `freeze-boundary` **12/12**.
+- **FOUND:** no defect; all three `done-when:` items are box-executable and all three were executed.
+  The fixture alone would not have settled item 6 — it proves the helper, and stays green if the
+  real-file assertion is deleted — which is why the gate was re-proved against `current_state.md`.
+  One correction (item 4): the entry's *"§7 holds eight abstracts dated `2026-08-16`"* is `origin/main`'s
+  histogram (8/2, measured); on this PR's own tip it is **7 and 3**, since the same commit adds an
+  `08-17` abstract and rotates an `08-16` one out. The ceiling argument it supports is unaffected —
+  but the observable scope today is one day boundary, so the gate binds the next mis-rotation, not §7
+  as it stands. The `date:` is authored and nothing checks it against the day of the turn
+  (`agent-finish.mjs:284` only suggests it), a second ceiling the entry does not name.
+- **OWES:** `brahim` — two non-blocking follow-ups, neither in this task's `done-when:`:
+  `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment now cites a gate that is true only to day
+  granularity, which it does not say; and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through
+  `.n`, a position rather than an identity for a new-scheme entry, so `1000` always finds whatever is
+  on top of §7 (pre-existing, guarded by the date cross-check beside it).
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-017-review.md`
+- **REVIEW:** n/a — this IS the review.
+
 ### T-017 — §7's newest-first gate now reads the authored date, not the positional key — 2026-08-17 — seat: zayd
 
 - **CHANGED:** `tests/docs-budget.test.ts` (**`outOfDateOrder` NEW**, module-local and pure — the
@@ -667,7 +700,9 @@ is maintenance and does NOT get an entry of its own.**
   two T-016 follow-ups reassigned in that entry's step-2 `OWES:` are untouched by this turn.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-17-T-017-newest-first-by-date.md`
-- **REVIEW:** ⚠ **AWAITING REVIEW — this entry is the currently open PR.**
+- **REVIEW:** reviewed by `hmdnah` (one step, `risk: normal`) — item 1 re-executed, and item 6 re-proved
+  against the real `current_state.md` rather than the fixture. No defect; one number corrected in the
+  review entry above. Approved and merged on `narutousomaki741` with green CI.
 
 ### T-016 — review (step 2, adversarial): the field is correct and its wiring is untested — 2026-08-17 — seat: hmdnah
 
@@ -914,40 +949,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-16-T-013-review-step2.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); approved and merged on `narutousomaki741`.
 
-### T-013 — the seat identity guard: `gh api user` must match the seat — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `scripts/agent-start.mjs` (**`identityGate` NEW**, exported, pure — refuses on a
-  mismatch, naming both accounts, and refuses on an unresolvable identity too, never a skip; wired into
-  step 0, before pulling or anything else) · `scripts/agent-start.d.mts` (declared) ·
-  `tests/protocol/agent-start.test.ts` (`identityGate` unit suite +3, an end-to-end guard suite +2, and
-  a `fakeGhReporting` `PATH` stand-in so the four pre-existing `hmdnah`/`amer` tests still exercise their
-  ORIGINAL assertion rather than tripping the new guard on this box's single ambient `gh` identity). No
-  frozen byte, no `packages/`, no `apps/web`.
-- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/888 tests** main suite,
-  **134 tests** `docs:check` subset, `tests/freeze-boundary.test.ts` green ⇒ `RISK: additive`.
-  **Revert-verified:** commenting out the guard's call site left **2 of 27** tests in
-  `tests/protocol/agent-start.test.ts` RED — both new end-to-end tests, failing on "the script proceeded
-  past step 0" — restored to **27/27 green**. Manually reproduced both refusal paths against the real
-  repo too (wrong account: `hmdnah` under this box's real `davidian-abdo` identity; unresolvable: a
-  `PATH` with no `gh` at all) — both exit 1, both name the account(s) the task requires.
-- **FOUND:** GitHub's self-approval refusal genuinely does not extend to `gh pr merge` (re-confirmed the
-  D87 measurement rather than trusting the prior entry's prose) — this guard really is the only thing
-  standing between a forgotten `GH_TOKEN` and a self-approving merge on this private, unprotected repo.
-  `docs/RUNBOOK.md`'s "Seat credentials" section already documented the per-seat token file convention
-  and its 600 mode in full, written 2026-08-15 in anticipation of this task — needed no edit.
-- **OWES:** `hmdnah` — this PR's review. Not covered: file-mode (600) enforcement is documented, not
-  checked programmatically (not in this task's `done-when:`); `agent-finish.mjs` carries no identity
-  check of its own (relies on `agent-start.mjs --review` having already gated the branch it is on).
-- **RISK:** additive — `tests/freeze-boundary.test.ts` green, no frozen byte moved. (`docs/BACKLOG.md`
-  classifies the TASK itself `risk: high` — D88's two-step review — because this guard is the only thing
-  preventing a self-approving merge while the repo stays private and unprotected, Q13/D87; that is a
-  separate axis from the frozen-surface RISK: this field reports.)
-- **FULL:** `handoff/zayd/2026-08-16-T-013-identity-guard.md`
-- **REVIEW:** step 1 (mechanical) and step 2 (adversarial) both complete — see the `hmdnah` entry above.
-  Approved and merged on `narutousomaki741`, `RISK: additive`. Step 1's "not a CI risk" call on the
-  7 (9 named) `zayd`-targeting test gap was wrong — CI genuinely failed on it (run `31949354336`); fixed
-  on this branch (`b1ed6fe`) before merge, reconciled in step 2's review.
-
 ---
 
 ## §8 — Generated
@@ -957,16 +958,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-017 (zayd, 2026-08-17)** |
-| branch · tip · tree | `task/T-017-docs-budget-test-ts-s-newest-first-check` · `61d9aee` · clean |
-| open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | **910 green** · 95 files · 283 suites |
+| **newest entry** | **T-017 (hmdnah, 2026-08-17)** |
+| branch · tip · tree | `task/T-017-docs-budget-test-ts-s-newest-first-check` · `49bc556` · dirty |
+| open PRs | #34 task/T-017-docs-budget-test-ts-s-newest-first-check |
+| suite | ⚠⚠ 909/910 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 277 insertions(+), 30 deletions(-) (5 files) |
-| docs budget | current_state 79.5/96.0 KB · §7 27.3/32.0 KB · abstracts 10/10 · bodies 59 |
+| diff vs origin/main | 6 files changed, 351 insertions(+), 65 deletions(-) (6 files) |
+| docs budget | current_state 79.4/96.0 KB · §7 27.2/32.0 KB · abstracts 10/10 · bodies 60 |
 
 _Generated 2026-08-17 by `pnpm state`._
 
