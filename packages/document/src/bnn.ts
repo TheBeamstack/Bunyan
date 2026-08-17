@@ -211,9 +211,11 @@ export function loadBnn(bytes: Uint8Array): BnnPackage {
   // ⚠ A collection joins this loop the moment a body WRITES and READS it, because that is when `null`
   // stops being inert and starts reaching real code as an object (`typeof null`, the trap above).
   // `schedules` joined in Entry 68 with its CRUD; `views` joins in Entry 77 with `core.createView` and
-  // `projectView` (D81). `annotations`/`sheets` are still pure reservations that nothing can author, so
-  // they stay out — guarding a key no body touches would be padding, and the row Ⓐ design says so.
-  for (const key of ['schedules', 'views'] as const) {
+  // `projectView` (D81); `designOptions` joins here with its own CRUD (D85/Q17a) — it already had a
+  // READER (`isElementActive`) before it had a writer, and a writer is what makes `null` reachable.
+  // `annotations`/`sheets` are still pure reservations that nothing can author, so they stay out —
+  // guarding a key no body touches would be padding, and the row Ⓐ design says so.
+  for (const key of ['schedules', 'views', 'designOptions'] as const) {
     if (parsed[key] !== undefined && !isPlainObject(parsed[key])) {
       throw new Error(`.bnn scene.json: "${key}" must be an object, and it is not`);
     }

@@ -171,8 +171,10 @@ export interface Scene {
    */
   readonly systems?: Readonly<Record<SystemId, SystemDefinition>>;
   /**
-   * DESIGN OPTIONS — RESERVED (D65, Parity-F; `designoptions.ts`). Parallel design alternatives held in one
-   * document. Absent ⇒ no options (today's case).
+   * DESIGN OPTIONS (D65, Parity-F; `designoptions.ts`). Parallel design alternatives held in one document.
+   * Absent ⇒ no options (the common case). ⚠ **PROMOTED from a pure reservation (D85/Q17a)** —
+   * `core.createDesignOption`/`updateDesignOption`/`deleteDesignOption` author it now; see
+   * `SceneCollection` below for the promotion's terms.
    *
    * ⚠⚠⚠ THIS COLLECTION CHANGES HOW `elements` MUST BE READ — see `designoptions.ts`. With options present,
    * the document deliberately contains MUTUALLY-EXCLUSIVE elements, so every aggregating/publishing consumer
@@ -234,7 +236,20 @@ export type SceneCollection =
    * with no views stays byte-identical, and all four documentation collections keep the one rule —
    * absent ⇒ none of it.
    */
-  | 'views';
+  | 'views'
+  /**
+   * ⚠ PROMOTED FROM A RESERVATION (D85/Q17a, `docs/design/P5_step6D_design_options_crud_design.md`).
+   * A design option is now AUTHORED (`core.createDesignOption`/`updateDesignOption`/
+   * `deleteDesignOption`), so its creation/rename/deletion is an ordinary undoable `SceneChange` — the
+   * `schedules`/`views` precedent verbatim, including no `emptyScene()` entry (materialises on first
+   * authoring; a document with no options stays byte-identical).
+   *
+   * ⚠⚠ AND UNLIKE `schedules`/`views`, THE DEPENDENCY EDGE IS NOT "NOTHING" (`dependency.ts`'s
+   * `designOptions` case). A projection reads the model and the model does not read the projection —
+   * that argument does not transfer here: the join resolver and the room solver (D68) read the ACTIVE
+   * option selection while BUILDING, so which option is primary changes a built B-Rep.
+   */
+  | 'designOptions';
 
 /**
  * One atomic change to the scene — and the unit undo is built from.

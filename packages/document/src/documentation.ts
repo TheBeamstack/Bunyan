@@ -134,14 +134,13 @@ export interface ScheduleDefinition {
    */
   readonly groupBy?: readonly string[];
   /**
-   * ⚠ RESERVED (owner-ruled 2026-07-28, Q2 — `P5_step6B_schedules_design.md` §6.2). WHICH design
-   * alternatives this schedule shows. The `ViewCommon.designOptionIds?` field (D65) for the TABULAR
+   * WHICH design alternatives this schedule shows (owner-ruled 2026-07-28, Q2 —
+   * `P5_step6B_schedules_design.md` §6.2). The `ViewCommon.designOptionIds?` field (D65) for the TABULAR
    * view: a schedule is placed on a sheet through the same `Viewport`, and it is the consumer D65's own
    * sentence names FIRST (*"a schedule double-counts and work packages are published for a scheme
    * nobody builds"*) — yet it was the one that got no field.
    *
-   * Absent ⇒ each option set's PRIMARY option (plus the main model), which is v1.0.0's only case since
-   * no element carries a `designOptionId` yet.
+   * Absent ⇒ each option set's PRIMARY option, plus the main model.
    *
    * ⚠⚠ IT IS A DISPLAY SELECTION, NOT A LICENCE TO DOUBLE-COUNT. Choosing options here is a question
    * *asked of* the model, never a change to it — the `clip` discipline. An aggregating consumer still
@@ -215,17 +214,16 @@ export interface ViewCommon {
   /** World-mm axis-aligned clip box `[min, max]`; absent ⇒ the whole model. */
   readonly clip?: readonly [readonly [number, number, number], readonly [number, number, number]];
   /**
-   * ⚠ RESERVED (D65, row Ⓕ, 2026-07-24 — `designoptions.ts`). WHICH design alternatives this view shows.
-   * Absent ⇒ each option set's PRIMARY option (plus the main model), which is v1.0.0's only case since no
-   * element carries a `designOptionId` yet.
+   * WHICH design alternatives this view shows (D65, row Ⓕ, 2026-07-24 — `designoptions.ts`).
+   * Absent ⇒ each option set's PRIMARY option, plus the main model.
    *
    * ⚠ A view is a PROJECTION (rule 17), so choosing options here is a *question asked of* the model, never
    * a change to it — the same discipline as `clip`. It does not license a view to show two exclusive
    * options at once as if both were built: an aggregating consumer still resolves ONE active option per set
    * (`isElementActive`). This field is a display selection; the exclusion invariant is a correctness rule.
    *
-   * ⚠ It lands on `ViewCommon` — i.e. on a shape that is ITSELF an optional reservation (row Ⓐ) that no body
-   * reads yet — so it is additive twice over and cost the freeze nothing.
+   * ⚠ It lands on `ViewCommon` — i.e. on a shape that was ITSELF an optional reservation (row Ⓐ) when this
+   * field was added — so it was additive twice over and cost the freeze nothing.
    */
   readonly designOptionIds?: readonly DesignOptionId[];
 }

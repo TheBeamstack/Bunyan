@@ -109,9 +109,9 @@ export interface EnumerateOptions {
   /** The active option per set. Absent/unlisted set ⇒ that set's primary option. */
   readonly active?: ActiveOptions;
   /**
-   * The option catalogue. ⚠ `scene.designOptions` is RESERVED with no authoring verb in v1.0.0, so a
-   * consumer that holds one supplies it here — exactly as Planitor/Miqdar will when the bodies land.
-   * Absent ⇒ `scene.designOptions` (undefined today ⇒ the invariant is vacuously satisfied).
+   * The option catalogue. A consumer that already holds one (Planitor/Miqdar) supplies it here instead of
+   * letting this fall back to the document's own `scene.designOptions` (`core.createDesignOption`/
+   * `updateDesignOption`/`deleteDesignOption`, T-011/D85, are that catalogue's authoring verbs).
    */
   readonly designOptions?: Readonly<Record<DesignOptionId, DesignOption>>;
 }

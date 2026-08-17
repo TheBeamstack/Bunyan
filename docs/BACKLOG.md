@@ -108,7 +108,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-008 | done    | Q19 — the belongs-to deletion reconciliation                  | document | box     | high   | —          |
 | T-009 | done    | Q18 — a hosted void may only host on its host's base part     | document | box     | high   | —          |
 | T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser         | apps-web | pc      | normal | T-009      |
-| T-011 | ready   | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
+| T-011 | review  | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
 | T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
 | T-013 | done    | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
 | T-014 | done    | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
@@ -571,6 +571,66 @@ _(unplanned findings land here — never claimed in the same turn that found the
   reconciling against the PR alone finds nothing to reconcile against. The opposite direction of `T-014`'s
   OWES note, which named a report with no label; nothing checks either way. Recorded rather than
   decomposed — step 2 reads the branch body instead.
+- **2026-08-17 — `agent-finish.mjs` resolves a turn's handoff body by ALPHABETICAL order, so a second turn
+  on the same task and the same date cannot finish.** Step 3 takes
+  `readdirSync(handoff/<seat>).filter(f => f.includes(task)).sort().at(-1)` and requires the newest §7
+  abstract's `FULL:` to name it — correct only while the date prefix separates the candidates. A D88
+  defect return is exactly the case it does not: `zayd` wrote two `2026-08-17-T-011-*` bodies, and the
+  gate demanded the _earlier_ one (`…-reserved-comment-sweep`, which sorts after `…-invalidator-…`) be
+  linked from the entry describing the _later_ one. Worked around by naming the new body so it sorts last;
+  the next same-day return will hit it again. Fix shape: resolve the body by the abstract's own `FULL:`
+  field and check that the file exists, rather than deriving the filename and checking the field — the
+  entry is the authority on which body it has, and the derivation adds nothing the check needs. Found by
+  `zayd` finishing the T-011 defect return. Recorded, not claimed.
+- **2026-08-17 — the "exactly one primary per set" invariant is enforced at the CRUD doors only, and two
+  of the three roads onto `scene.designOptions` bypass it.** `checkPrimaryInvariant` (T-011/D85) guards
+  `core.createDesignOption`/`update`/`delete`; a loaded `.bnn` and a `Scene` assembled in code do not go
+  through any of them, and `loadBnn`'s new `designOptions` guard checks only that the value is an object.
+  Measured: with `{option-a: isPrimary:true, option-b: isPrimary:true}` in one `setName`,
+  `isElementActive` returns `true` for **both** mutually exclusive walls, because `ownTagActive` answers
+  `option.isPrimary` when the set is unlisted in `active` — D65's own stated double-count, and zero
+  primaries under-reports the same way. ⚠ Not a regression: the state was reachable before T-011 too.
+  What changed is that the invariant now has an enforcement site, which is what `AGENTS.md` invariant 7
+  asks to be swept backward. Fix shape: check it on the load path (`loadBnn`) beside the null-guard, or
+  surface a violating set through `brokenRefs()`/`unbuildable()` rather than resolving it silently.
+  Found by `hmdnah`'s T-011 step-2 review. Recorded, not claimed.
+- **2026-08-17 — the `--review` wrong-PR claim recurred a third time, and there is still no flag to name
+  a PR.** Same root cause as the 2026-08-16 row below: with #32 (T-011, due step 2) and #33 (T-016, due
+  step 1) both routed to `hmdnah`, `agent-start.mjs --seat hmdnah --review` claimed **#33** — posting a
+  review-claim comment on it and checking its branch out — while the session's actual assignment was #32.
+  Worked around by hand again (`gh pr checkout 32`), leaving a spurious claim comment on #33, which the
+  next session must not read as a live claim. ⚠ The 2026-08-16 row judged this "low-frequency and always
+  self-correctable by hand" and recorded rather than decomposed; three occurrences say the frequency
+  judgement was wrong. Fix shape: a `--pr <n>` flag, or order the candidates by review-pipeline position
+  (`review/step-1` label present ⇒ ahead of an unlabelled PR) instead of `gh pr list` order.
+- **2026-08-17 — `_baselinedAtEntry` names a POSITION, not an entry, under the `T-nnn` scheme (D82), so
+  every new §7 abstract silently re-points the frozen-surface baseline's audit trail.**
+  `docs-state.mjs` mints new-scheme entry numbers as `1000 - i` over §7's array order, so `1000` always
+  means "whatever is newest" rather than a fixed turn. `baselineEntryIssues`'s cross-field check then
+  compares `_baselinedAt` against that moving entry's date, and goes red on a PR that touched no frozen
+  shape: measured here, where appending this turn's abstract (2026-08-17) beside a baseline written
+  2026-08-16 failed `tests/freeze-boundary.test.ts` with `_baselinedAtEntry 1000 is dated 2026-08-17 in
+§7, but _baselinedAt says 2026-08-16`. Cleared by `pnpm state --rebaseline`, which moved exactly one
+  byte-range (`_baselinedAt`) and left all 214 declarations identical — i.e. the gate demanded a
+  re-baseline to record nothing. ⚠ This is the cry-wolf shape `baselineEntryIssues`'s own comment says it
+  avoids, reappearing through the entry-id scheme rather than through rotation; **post-freeze it is worse
+  than cry-wolf**, because the baseline may not be rewritten at all without an owner ruling, so the gate
+  would have no green path. Fix shape: give a new-scheme abstract a stable identity (its `T-nnn` plus
+  date, or a minted monotonic number) instead of its index. Recorded, not claimed.
+- **2026-08-17 — ⚠⚠ `pnpm state` does not measure the suite; it reads `.vitest-summary.json`, which is
+  untracked, branch-agnostic and written by whichever `pnpm test` ran last anywhere in the worktree.**
+  `§8`'s suite line therefore reports the last branch tested, not the branch checked out, and it reports
+  it as green. Measured on this branch: `§8` at `fb4d4e6` reads `915 green · 96 files · 283 suites`
+  (correct — verified by a fresh `pnpm verify` on 2026-08-17), while an uncommitted regen of the same
+  commit reads `907 green · 95 files · 283 suites`, which is the **T-016** branch's suite (`main`'s
+  `902 · 95 · 281` plus T-016's 5 tests and 2 describes), left in the file by the T-016 session's
+  `pnpm verify` and read back after `git checkout` returned to T-011. The same mechanism put `main`'s
+  `902 green · 95 files` into PR #32's step-1 review comment and into that entry's `VERIFIED:` field —
+  the reviewer ran two test files, not the suite. **This defeats `agent-start.mjs`'s measured-vs-claimed
+  refusal**, whose whole purpose is trusting the repository over the previous session's prose: both
+  numbers come from the same stale file, so they agree while being wrong. Fix shape: `state.mjs` refuses
+  a summary whose mtime predates the working tree's newest source file, or records the commit the run
+  measured and refuses on mismatch. Recorded, not claimed.
 - **2026-08-16 — `agent-start.mjs --review`'s reviewer-claim loop takes the first PR in `gh pr list`
   order (newest-first), not the one furthest along its own review pipeline.** Measured on PRs #31
   (T-009, past step 1, `review/step-1` label, CI green — actually due for step 2) and #32 (T-011, just

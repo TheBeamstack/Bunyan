@@ -128,15 +128,15 @@ describe('D67 — the exclusion invariant cascades over every belongs-to edge', 
     const wallB = await scheme('opt-b', 3);
     // ⚠ WHAT THIS ASSERTS IS THAT NO WINDOW LOST ITS HOST FACE, and it is filtered rather than zero
     // because of D86: this fixture holds its catalogue OUTSIDE the scene (see `countActive`), so the
-    // document cannot resolve either wall's tag and `brokenRefs()` now says so. Every tagged element is
-    // a broken reference until the catalogue CRUD lands (D85, `docs/BACKLOG.md` T-011).
+    // document cannot resolve either wall's tag and `brokenRefs()` now says so. A tag naming an option
+    // the document itself does not hold is a broken reference, which is what the filter admits.
     expect(doc.brokenRefs().filter((b) => b.ref !== 'opt-a' && b.ref !== 'opt-b')).toHaveLength(0);
     return { doc, wallA, wallB };
   };
 
-  // ⚠ `scene.designOptions` is a RESERVED collection with no authoring verb in v1.0.0 (row Ⓕ gave
-  // `createElement` the `designOptionId` ARG, but nothing writes the collection itself yet), so a consumer
-  // resolving options supplies it — exactly as Planitor/Miqdar will when the bodies land.
+  // ⚠ This fixture exercises the CALLER-SUPPLIED catalogue — the `override` arm of `optionScopeOf`, which
+  // Planitor/Miqdar take when they already hold one; the document's own `scene.designOptions` arm is
+  // covered by `tests/design-option-crud.test.ts` (D85/Q17a).
   const countActive = (
     doc: DocumentContext,
     active: ActiveOptions = {},

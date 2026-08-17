@@ -284,12 +284,11 @@ describe('D58 row Ⓐ — plan/section: a drawing is a PROJECTION of the B-Rep (
    * ========================================================================================= */
 
   it('⚠⚠ a NON-ACTIVE design option is NOT drawn — the variant wall contributes no curves', async () => {
-    /* ⚠⚠ THE OPTIONS ARE SEEDED INTO THE SCENE, AND THAT IS NOT TEST CONVENIENCE — IT IS THE ONLY ROAD
-     * THAT EXISTS. The artifact doors refuse an id absent from `scene.designOptions`, and **v1.0.0 ships
-     * no command that can author one** — `core.createElement` says so in its own comment and deliberately
-     * SKIPS the same check for its `designOptionId` field. So the three doors onto one reserved collection
-     * hold two policies, and `designOptionIds` is authorable only on a document whose options arrived by
-     * another road (a loaded `.bnn`, or a Scene assembled in code, as here).
+    /* ⚠⚠ THE OPTIONS ARE SEEDED INTO THE SCENE, which is one of three roads onto `scene.designOptions`:
+     * `core.createDesignOption` (D85/Q17a), a loaded `.bnn`, or a Scene assembled in code, as here. The
+     * artifact doors refuse an id absent from the collection while `core.createElement` deliberately
+     * SKIPS the same check for its `designOptionId` field, so the three doors onto one collection still
+     * hold two policies — the accepting one is what this fixture reaches.
      *
      * ⚠⚠ THIS COMMENT USED TO SAY `checkDesignOptions` WAS *"shared with the schedule CRUD"*, AND IT WAS
      * NOT — the view door carried its own second copy of the lookup in `view.ts`, with a different failure

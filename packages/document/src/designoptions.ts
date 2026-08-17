@@ -1,5 +1,5 @@
 /**
- * DESIGN OPTIONS — RESERVED shapes (D65, Freeze-Gate row Ⓕ; `P5_step5F_reservations_design.md`).
+ * DESIGN OPTIONS — the D65 shapes (Freeze-Gate row Ⓕ; `P5_step5F_reservations_design.md`).
  * Owner-ruled 2026-07-24: **reserve the shapes AND write the exclusion invariant into the frozen contract**
  * — because the storage is the cheap half and the invariant is the expensive one to discover late.
  *
@@ -42,9 +42,11 @@
  * arriving inverted:** it predicted 2.0000× over; what ships is 0.5000× under.
  *
  * ⇒ The invariant is NOT vacuous and the reservation is reachable. `ownTagActive`'s surfacing half is
- * built (D86 — `danglingDesignOptionRefs` in `document.ts`), and the exclusion itself is unchanged; the
- * catalogue CRUD that would let a document resolve the tag is `docs/BACKLOG.md` **T-011** (D85). The walk
- * is `docs/design/P5_step6D_design_options_crud_design.md`.
+ * built (D86 — `danglingDesignOptionRefs` in `document.ts`), and the exclusion itself is unchanged.
+ * **The catalogue CRUD is built too** (T-011/D85 — `core.createDesignOption`/`updateDesignOption`/
+ * `deleteDesignOption` in `commands.ts`), so a `designOptionId` a caller mints through
+ * `core.createDesignOption` now resolves and the 50.0% under-report closes through the shipped verbs
+ * alone. The walk is `docs/design/P5_step6D_design_options_crud_design.md`.
  */
 
 import type { ElementId } from './entities.js';
@@ -136,8 +138,8 @@ function ownTagActive(
 }
 
 /**
- * ⚠ RESERVED HELPER — the invariant, expressed once, as code rather than as prose a consumer may not read.
- * Nothing calls it in v1.0.0; it exists so the three consumers implement the SAME rule instead of three
+ * THE INVARIANT, expressed once, as code rather than as prose a consumer may not read. `enumerate.ts`,
+ * `cleandelta.ts`, `joins.ts` and `room.ts` all call it, so they implement the SAME rule instead of four
  * slightly different ones (the "one description, never two" discipline, domain rule 10).
  *
  * `true` ⇒ this element counts toward quantities / the Clean Delta / a schedule under `active`.
@@ -333,8 +335,10 @@ export interface OptionScopeSource {
  * scope slightly differently gets a slightly different answer from an identical rule (domain rule 10 —
  * "one description, never two"; §4f's "three products, one rule").
  *
- * `override` is the caller-supplied catalogue: `scene.designOptions` is RESERVED with no authoring verb in
- * v1.0.0, so a consumer that holds one (Planitor, Miqdar, a future view resolver) supplies it here.
+ * `override` is the caller-supplied catalogue: a consumer that already holds one (Planitor, Miqdar, a
+ * future view resolver) supplies it here instead of falling back to the document's own
+ * `scene.designOptions` (`core.createDesignOption`/`updateDesignOption`/`deleteDesignOption`, T-011/D85,
+ * are that catalogue's authoring verbs).
  */
 export function optionScopeOf(
   scene: OptionScopeSource,
