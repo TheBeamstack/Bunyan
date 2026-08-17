@@ -628,6 +628,44 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-011 — review (step 2, re-run): both returned defects closed; the oracle claim is false — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — a review turn edits no code. `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
+  NEW (⚠ named to sort last: `agent-finish.mjs` resolves the body by lexical sort, and
+  `…-step2-rerun.md` would sort BEFORE `…-step2.md`); this abstract; the `REVIEW:` line of the entry below.
+- **VERIFIED:** **Item 1 re-executed, one revert per returned defect, by hand, tests untouched.** Revert A
+  (drop `joinNeighboursOf` from the case): **4 RED** — 3 in `dependency-graph`, plus `edit.rebuilt` missing
+  the main-model wall in `design-option-crud`. Revert B (seed the option ids from the catalogue only):
+  **2 RED**, both undo-of-delete. Restored: **61/61** across the five files this unit touches; full suite
+  re-run here **920 · 96 files**, `docs:check` **146 · 8** — both match `zayd`'s figures. **Item 7 immediately
+  before approving:** `pnpm state` → contract-touching, 1 declaration moved; `gh api …/89130fb/check-runs`
+  → both jobs `completed/success`; labels `needs-operator/contract-touching` + `needs-operator/freeze` +
+  `review/step-1` ⇒ the labeller **ran**, and the owner merges.
+- **FOUND:** **⚠⚠ The entry below's oracle measurement is false for `area`.** Re-measured on the same
+  construction: `volume` (3 600 000 000), the face/edge counts and the `refs` list (**18** entries, not 17)
+  are identical across the flip, but `area` is **39 848 528.137 → 39 600 000 mm²** and `edgeLength`
+  **36 965.685 → 36 800 mm**. The miter moves volume between lateral faces but replaces a `t×h` cap with a
+  `t√2×h` one, so area grows by `t·h·(√2−1)` = 248 528.137 mm² — the measured delta exactly. ⇒ *"any
+  quantity-based assertion here is a weak green by construction"* does not hold; `area` would have worked.
+  Code and tests unaffected — `bounds` is the right oracle and is the one used. **⚠ Correction to MY OWN
+  step-2 report:** defect 2 is **not** reachable through `DocumentContext`. `#affected` is
+  `edit.rebuilt ∪ #touched`, and the delete's journalled `rebuilt` already named the tagged wall (measured);
+  with the seed defect restored the `undo()` half of the new e2e case still passes. Defect 2 is real in
+  `dependents` alone — an exported declaration Miqdar/Planitor read — not the end-to-end erasure I described.
+  **The one-hop choice is correct and structurally so:** `build.ts` reads option active-ness only through
+  `resolveJoins`, which reads the element's own baseline, its overrides, and `partnersAt`/`throughWallsAt`
+  at its own two endpoints — all one hop; a neighbour's cap moving changes neither its baseline nor its
+  thickness, so nothing propagates further. The `w-lobby` control makes a fixpoint fail the fixture too.
+  **Perf claim re-measured and holds:** 200/400/800/1600 walls → 14.3/16.6/25.0/47.9 ms cold, 8× the walls
+  for 3.3× the time, not a D73 quadratic.
+- **OWES:** The **owner** — merge #32; `RISK: contract-touching` + `needs-operator/freeze`, approved on
+  `narutousomaki741`, and the `docs/BACKLOG.md` row stays `review` until the merge (`brahim`'s sweep flips
+  it). `brahim` — `--review` claimed **PR #33** for the fourth time; it wrote nothing, so #33 is unclaimed,
+  but the `## Discovered` row's fix shape is now overdue.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
+
 ### T-011 — the D88 defect return: the option edge reaches the join neighbour, and seeds from the change — 2026-08-17 — seat: zayd
 
 - **CHANGED:** `packages/document/src/dependency.ts` only — `joinNeighboursOf` NEW (one hop of
@@ -664,7 +702,13 @@ is maintenance and does NOT get an entry of its own.**
   it already had (the one `scene.ts :: type SceneCollection` move), and this turn added nothing to the
   frozen surface.
 - **FULL:** `handoff/zayd/2026-08-17-T-011-return-join-neighbour-and-undo-seed.md`
-- **REVIEW:** AWAITING REVIEW — `hmdnah`, D88 step 2 re-run on PR #32.
+- **REVIEW:** APPROVED — `hmdnah`, D88 step 2 re-run, `89130fb`. Both returned defects closed and
+  independently revert-verified. ⚠ `RISK: contract-touching` + `needs-operator/freeze` ⇒ **the owner
+  merges #32**; the row stays `review` until they do. ⚠ One measured claim in the FOUND field above is
+  **false**: `area` is NOT byte-identical across the flip (39 848 528.14 → 39 600 000 mm², the cap face
+  gains `t·h·(√2−1)`), `edgeLength` moves too, and the `refs` list has 18 entries, not 17. Volume, the
+  face/edge counts and `refs` are identical; `bounds` is the right oracle either way. Correction in the
+  `hmdnah` entry below.
 
 ### T-011 — review (step 2 of 2): the invalidator under-names, and reproduces D68 from the authoring side — 2026-08-17 — seat: hmdnah
 
@@ -932,38 +976,6 @@ is maintenance and does NOT get an entry of its own.**
 - **REVIEW:** done — two-step review complete (D88), approved and merged by `hmdnah` on
   `narutousomaki741`. See T-012 review (step 2) above.
 
-### T-013 — review (step 2): the guard held, and CI's own failure-then-fix cycle proved the hermeticity fix genuine — 2026-08-16 — seat: hmdnah
-
-- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
-  `docs/BACKLOG.md`'s T-013 row flips `review` → `done` via `agent-finish.mjs --review`.
-- **VERIFIED:** Reconciled step 1's report (items 1, 4, 5, 7,
-  https://github.com/Davidian-Abdo/Bunyan/pull/29#issuecomment-5307660979) against the real
-  failure-then-fix cycle: CI run `31949354336` genuinely failed 9 tests (self-hosted runner has no `gh`
-  auth at all — step 1 had called this "not a CI risk," which was wrong), `zayd` fixed it on the branch
-  (`b1ed6fe`, `fakeGhReporting('davidian-abdo')` wired through all 9), current run `31950627017` green
-  (harness job 9m6s, full run). **Own revert-verification, distinct from step 1's** (which reverted the
-  guard's call site): reverted the hermeticity fix alone, ran under a genuinely unauthenticated `gh`
-  (empty `GH_CONFIG_DIR`, no `GH_TOKEN`) — **9 failed | 18 passed**, exact match to CI's real failure —
-  restored, **27/27 green**. `pnpm verify` (foreground): **888/888, 95 files**; `docs:check`: **134/134**.
-- **FOUND:** Items 2/3/6 all clean. **Backward sweep:** no other pre-existing test file spawns
-  `agent-start.mjs` as a subprocess (`agent-finish.test.ts`/`pr-ready.test.ts` spawn different scripts;
-  `seats.test.ts` imports in-process; none of `agent-finish.mjs`/`seats.mjs`/`pr-ready.mjs`/`state.mjs`
-  call `identityGate`) — no other site was newly exposed. **New kind of thing:** the guard is one call in
-  `main()`, strictly before every later branch (`--review`, `--continue`, `role === 'steward'`, etc.) —
-  no bypass found; noted (not a defect) that `brahim`'s direct-to-`main` bookkeeping commits never invoke
-  `agent-start.mjs` at all, outside the guard's stated self-approval threat model. **Weak green:** the 9
-  `fakeGhReporting`-wired tests don't themselves claim guard enforcement (the 2 step-0 tests do, already
-  revert-verified); real hermeticity is proven by CI's own zero-ambient-identity environment, not by this
-  box's coincidental identity match. Sanity-checked `zayd`'s empty-`GH_CONFIG_DIR` method by running
-  `gh api user` under it myself — genuine exit-4 "not authenticated," one of the guard's three disjuncts,
-  not a narrower failure mode; `resolveGhLogin`'s blanket `try/catch` collapses all three causes to the
-  same `null` regardless.
-- **OWES:** nothing outstanding. `khalihlna`/`amer` — unaffected, this PR touches no `apps/web` or
-  browser-only surface.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-16-T-013-review-step2.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); approved and merged on `narutousomaki741`.
-
 ## §8 — Generated
 
 ## NEXT TURN: REVIEW ONLY
@@ -976,16 +988,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-011 (zayd, 2026-08-17)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `6fd32e5` · clean |
+| **newest entry** | **T-011 (hmdnah, 2026-08-17)** |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `89130fb` · dirty |
 | open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | **920 green** · 96 files · 283 suites |
+| suite | ⚠ not measured this session — run `pnpm verify` |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 21 files changed, 2156 insertions(+), 246 deletions(-) (21 files) |
-| docs budget | current_state 81.8/96.0 KB · §7 29.3/32.0 KB · abstracts 10/10 · bodies 60 |
+| diff vs origin/main | 21 files changed, 2240 insertions(+), 279 deletions(-) (21 files) |
+| docs budget | current_state 83.4/96.0 KB · §7 30.6/32.0 KB · abstracts 10/10 · bodies 61 |
 
 _Generated 2026-08-17 by `pnpm state`._
 

@@ -1327,6 +1327,40 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-013 — review (step 2): the guard held, and CI's own failure-then-fix cycle proved the hermeticity fix genuine — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
+  `docs/BACKLOG.md`'s T-013 row flips `review` → `done` via `agent-finish.mjs --review`.
+- **VERIFIED:** Reconciled step 1's report (items 1, 4, 5, 7,
+  https://github.com/Davidian-Abdo/Bunyan/pull/29#issuecomment-5307660979) against the real
+  failure-then-fix cycle: CI run `31949354336` genuinely failed 9 tests (self-hosted runner has no `gh`
+  auth at all — step 1 had called this "not a CI risk," which was wrong), `zayd` fixed it on the branch
+  (`b1ed6fe`, `fakeGhReporting('davidian-abdo')` wired through all 9), current run `31950627017` green
+  (harness job 9m6s, full run). **Own revert-verification, distinct from step 1's** (which reverted the
+  guard's call site): reverted the hermeticity fix alone, ran under a genuinely unauthenticated `gh`
+  (empty `GH_CONFIG_DIR`, no `GH_TOKEN`) — **9 failed | 18 passed**, exact match to CI's real failure —
+  restored, **27/27 green**. `pnpm verify` (foreground): **888/888, 95 files**; `docs:check`: **134/134**.
+- **FOUND:** Items 2/3/6 all clean. **Backward sweep:** no other pre-existing test file spawns
+  `agent-start.mjs` as a subprocess (`agent-finish.test.ts`/`pr-ready.test.ts` spawn different scripts;
+  `seats.test.ts` imports in-process; none of `agent-finish.mjs`/`seats.mjs`/`pr-ready.mjs`/`state.mjs`
+  call `identityGate`) — no other site was newly exposed. **New kind of thing:** the guard is one call in
+  `main()`, strictly before every later branch (`--review`, `--continue`, `role === 'steward'`, etc.) —
+  no bypass found; noted (not a defect) that `brahim`'s direct-to-`main` bookkeeping commits never invoke
+  `agent-start.mjs` at all, outside the guard's stated self-approval threat model. **Weak green:** the 9
+  `fakeGhReporting`-wired tests don't themselves claim guard enforcement (the 2 step-0 tests do, already
+  revert-verified); real hermeticity is proven by CI's own zero-ambient-identity environment, not by this
+  box's coincidental identity match. Sanity-checked `zayd`'s empty-`GH_CONFIG_DIR` method by running
+  `gh api user` under it myself — genuine exit-4 "not authenticated," one of the guard's three disjuncts,
+  not a narrower failure mode; `resolveGhLogin`'s blanket `try/catch` collapses all three causes to the
+  same `null` regardless.
+- **OWES:** nothing outstanding. `khalihlna`/`amer` — unaffected, this PR touches no `apps/web` or
+  browser-only surface.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-013-review-step2.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); approved and merged on `narutousomaki741`.
+
+---
+
 ### T-013 — the seat identity guard: `gh api user` must match the seat — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `scripts/agent-start.mjs` (**`identityGate` NEW**, exported, pure — refuses on a
