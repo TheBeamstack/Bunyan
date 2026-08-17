@@ -1327,6 +1327,56 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-013 — the seat identity guard: `gh api user` must match the seat — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `scripts/agent-start.mjs` (**`identityGate` NEW**, exported, pure — refuses on a
+  mismatch, naming both accounts, and refuses on an unresolvable identity too, never a skip; wired into
+  step 0, before pulling or anything else) · `scripts/agent-start.d.mts` (declared) ·
+  `tests/protocol/agent-start.test.ts` (`identityGate` unit suite +3, an end-to-end guard suite +2, and
+  a `fakeGhReporting` `PATH` stand-in so the four pre-existing `hmdnah`/`amer` tests still exercise their
+  ORIGINAL assertion rather than tripping the new guard on this box's single ambient `gh` identity). No
+  frozen byte, no `packages/`, no `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/888 tests** main suite,
+  **134 tests** `docs:check` subset, `tests/freeze-boundary.test.ts` green ⇒ `RISK: additive`.
+  **Revert-verified:** commenting out the guard's call site left **2 of 27** tests in
+  `tests/protocol/agent-start.test.ts` RED — both new end-to-end tests, failing on "the script proceeded
+  past step 0" — restored to **27/27 green**. Manually reproduced both refusal paths against the real
+  repo too (wrong account: `hmdnah` under this box's real `davidian-abdo` identity; unresolvable: a
+  `PATH` with no `gh` at all) — both exit 1, both name the account(s) the task requires.
+- **FOUND:** GitHub's self-approval refusal genuinely does not extend to `gh pr merge` (re-confirmed the
+  D87 measurement rather than trusting the prior entry's prose) — this guard really is the only thing
+  standing between a forgotten `GH_TOKEN` and a self-approving merge on this private, unprotected repo.
+  `docs/RUNBOOK.md`'s "Seat credentials" section already documented the per-seat token file convention
+  and its 600 mode in full, written 2026-08-15 in anticipation of this task — needed no edit.
+- **OWES:** `hmdnah` — this PR's review. Not covered: file-mode (600) enforcement is documented, not
+  checked programmatically (not in this task's `done-when:`); `agent-finish.mjs` carries no identity
+  check of its own (relies on `agent-start.mjs --review` having already gated the branch it is on).
+- **RISK:** additive — `tests/freeze-boundary.test.ts` green, no frozen byte moved. (`docs/BACKLOG.md`
+  classifies the TASK itself `risk: high` — D88's two-step review — because this guard is the only thing
+  preventing a self-approving merge while the repo stays private and unprotected, Q13/D87; that is a
+  separate axis from the frozen-surface RISK: this field reports.)
+- **FULL:** `handoff/zayd/2026-08-16-T-013-identity-guard.md`
+- **REVIEW:** step 1 (mechanical) and step 2 (adversarial) both complete — see the `hmdnah` entry in
+  `current_state.md` §7. Approved and merged on `narutousomaki741`, `RISK: additive`. Step 1's "not a CI
+  risk" call on the 7 (9 named) `zayd`-targeting test gap was wrong — CI genuinely failed on it (run
+  `31949354336`); fixed on this branch (`b1ed6fe`) before merge, reconciled in step 2's review.
+
+### T-008 — the two step-1 review defects, closed on the existing claim — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `document.ts` (`danglingAncestorRefs` groups both edges by the missing ancestor id, one
+  report per element, not per edge; `hostId` now `element.id`, matching T-007's convention) ·
+  `commands.ts` (`deleteElement`'s label: `"hosted element(s)"` → `"other element(s)"`) ·
+  `tests/belongs-to-deletion-d83.test.ts` (+2, through the shipped verbs).
+- **VERIFIED:** `pnpm verify` — **845/95, real OCCT, exit 0**; `freeze-boundary` green, `RISK: additive`
+  unmoved. Both fixes **revert-verified separately**, each 1 RED alone, both restored green.
+- **FOUND:** both defects reproduce exactly as both `hmdnah` reviews measured. `agent-start.mjs
+  --continue T-008` (T-015's first real use) worked as documented — no `gh pr checkout` by hand.
+- **OWES:** `hmdnah` — D88 step 2 on PR #23; both defects closed, `hostId` aligned too (free, unread).
+  `khalihlna` — the 2026-08-15 Problems-panel `unverified here` note stands; untouched this turn.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-008-review-defects-fixed.md`
+- **REVIEW:** pending — `hmdnah` step 2 (D88), same PR #23.
+
 ### T-008 — the cascade and the exclusion rule now walk one belongs-to edge set — 2026-08-15 — seat: zayd
 
 - **CHANGED:** `packages/document/src/commands.ts` (`cascadeOf` walks **`belongsTo` NEW** — both edges;

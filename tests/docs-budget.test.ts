@@ -58,6 +58,29 @@ const kb = (n: number) => `${(n / 1024).toFixed(1)} KB`;
  */
 const reviewText = (a: EntryAbstract) => a.fieldsFull?.REVIEW ?? a.fields.REVIEW ?? '';
 
+/**
+ * ⚠⚠ NEWEST-FIRST IS MEASURED AGAINST THE `date:` IN EACH HEADING, NEVER AGAINST `.n`.
+ *
+ * `parseAbstracts` hands every new-scheme (`T-nnn`/`STEWARD-<slug>`) entry `n = 1000 - i` — its index
+ * in the same top-to-bottom walk and nothing else (`docs-state.mjs`, "SYNTHETIC SORT KEYS"). Asserting
+ * those numbers descend asserts that the loop counted down; it holds whatever order §7 is in, and §7
+ * now holds no legacy `### N | …` entry whose number an author actually wrote. Measured on a
+ * two-entry fixture with the older entry on top: `n` is `1000, 999` — descending, check green.
+ *
+ * The date is authored, so it is the one signal in a heading that can disagree with position. It has
+ * DAY granularity, which is coarser than a turn, so equal dates are accepted in either order: what
+ * this catches is a whole day out of sequence, not two entries within one day.
+ *
+ * Returns one description per offending adjacent pair; empty ⇒ §7 descends by date.
+ */
+const outOfDateOrder = (list: EntryAbstract[]) =>
+  list.flatMap((below, i) => {
+    const above = list[i - 1];
+    return above && above.date < below.date
+      ? [`${below.id} (${below.date}) is below ${above.id} (${above.date})`]
+      : [];
+  });
+
 describe('the handoff docs stay within budget', () => {
   it('current_state.md is under its byte budget', () => {
     const n = bytes('current_state.md');
@@ -119,12 +142,76 @@ describe('every §7 abstract is well formed', () => {
     }
   });
 
-  it('numbers entries uniquely and monotonically — the parallel-agent collision detector', () => {
+  it('numbers entries uniquely — the parallel-agent collision detector', () => {
     // Two agents working in parallel both claim the next number in their own PR. The second to merge
     // hits a git conflict on ONE §7 row; if it were ever resolved carelessly this test catches it.
     const ns = abstracts.map((a) => a.n);
     expect(new Set(ns).size, `duplicate entry numbers: ${ns.join(', ')}`).toBe(ns.length);
-    expect([...ns], 'abstracts must be newest-first').toEqual([...ns].sort((x, y) => y - x));
+  });
+
+  it('is written newest-first, judged by each entry’s own date', () => {
+    // ⚠ `newestAbstract` takes the MAX `.n`, which for a new-scheme entry is its position — so §7's
+    // order IS which entry the generator calls newest, in §8 and in `--rebaseline`'s audit fields.
+    // `outOfDateOrder` above says why the date, not `.n`, is what can disagree with that position.
+    expect(outOfDateOrder(abstracts), 'abstracts must be newest-first').toEqual([]);
+  });
+
+  /**
+   * ⚠⚠ THE TEETH, ON A FIXTURE — because the real file passes either way and that is the defect.
+   *
+   * The check this replaced read `.n`, which `parseAbstracts` derives from the same walk it is being
+   * asked to validate, so it was true by construction. Both assertions here are on ONE fixture: the
+   * old signal descends on it, and the new one still refuses it.
+   */
+  it('⚠⚠ refuses an older entry sitting above a newer one — what `.n` could not see', () => {
+    const outOfOrder = parseAbstracts(
+      [
+        '## §7 — Entry abstracts (newest 10)',
+        '',
+        '### T-002 — the older entry, wrongly on top — 2026-01-01 — seat: zayd',
+        '',
+        '- **RISK:** additive',
+        '',
+        '### T-001 — the newer entry, wrongly below — 2026-01-02 — seat: zayd',
+        '',
+        '- **RISK:** additive',
+        '',
+        '## §8 — Generated',
+      ].join('\n'),
+    );
+    expect(
+      outOfOrder.map((a) => a.id),
+      'the synthetic §7 must parse',
+    ).toEqual(['T-002', 'T-001']);
+
+    const ns = outOfOrder.map((a) => a.n);
+    expect([...ns], 'the positional key descends here — which is why it proved nothing').toEqual(
+      [...ns].sort((x, y) => y - x),
+    );
+    expect(outOfDateOrder(outOfOrder)).toEqual(['T-001 (2026-01-02) is below T-002 (2026-01-01)']);
+  });
+
+  it('accepts two same-date entries in either relative order', () => {
+    // A day cannot order two turns taken on the same day, and §7 routinely holds several — so this
+    // check must be silent about them rather than guess. Both orders of the same pair are accepted.
+    const sameDay = (first: string, second: string) =>
+      parseAbstracts(
+        [
+          '## §7 — Entry abstracts (newest 10)',
+          '',
+          `### ${first} — one turn — 2026-01-01 — seat: zayd`,
+          '',
+          '- **RISK:** additive',
+          '',
+          `### ${second} — the other turn, same day — 2026-01-01 — seat: hmdnah`,
+          '',
+          '- **RISK:** additive',
+          '',
+          '## §8 — Generated',
+        ].join('\n'),
+      );
+    expect(outOfDateOrder(sameDay('T-001', 'T-002'))).toEqual([]);
+    expect(outOfDateOrder(sameDay('T-002', 'T-001'))).toEqual([]);
   });
 
   /* ============================================================================================
