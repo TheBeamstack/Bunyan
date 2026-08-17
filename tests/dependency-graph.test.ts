@@ -23,6 +23,7 @@ import { dependents, emptyScene } from '@bunyan/document';
 import type {
   Classification,
   Constraint,
+  DesignOption,
   Element,
   ElementId,
   Scene,
@@ -80,6 +81,53 @@ function twoLevelScene(
     constraints,
   );
 }
+
+/* ------------------------------------------------------------------------------------------------
+ * The design-option fixture — a corner, a butt, and two controls that CAN be join partners but are not.
+ * ---------------------------------------------------------------------------------------------- */
+
+const OPT_A: DesignOption = { id: 'option-a', setName: 'Facade', name: 'A', isPrimary: true };
+const DEMOTED_A: DesignOption = { ...OPT_A, isPrimary: false };
+const OPT_B: DesignOption = { id: 'option-b', setName: 'Facade', name: 'B', isPrimary: false };
+const OPT_Z: DesignOption = { id: 'option-z', setName: 'Lobby', name: 'A', isPrimary: true };
+
+function wall(
+  id: string,
+  start: readonly [number, number],
+  end: readonly [number, number],
+  over: Partial<Element> = {},
+): Element {
+  return element(id, { params: { start, end, thickness: 200 }, ...over });
+}
+
+/**
+ * `w-opt-a` runs north from the corner at `[6000,0]`; `w-corner` (main model) meets it there, `w-butting`
+ * lands mid-span on its face, and `win-opt-a` is hosted in it. `w-far` is parallel and 5000 mm away;
+ * `w-lobby` shares `w-corner`'s other end but is tagged into a DIFFERENT option set.
+ */
+function optionScene(): Scene {
+  return {
+    ...emptyScene(),
+    designOptions: { 'option-a': OPT_A, 'option-b': OPT_B, 'option-z': OPT_Z },
+    elements: Object.fromEntries(
+      [
+        wall('w-opt-a', [6000, 0], [6000, 4000], { designOptionId: 'option-a' }),
+        wall('w-opt-b', [6000, 0], [6000, -4000], { designOptionId: 'option-b' }),
+        wall('w-corner', [0, 0], [6000, 0]),
+        wall('w-butting', [6000, 2000], [9000, 2000]),
+        wall('w-far', [0, 5000], [6000, 5000]),
+        wall('w-lobby', [0, 0], [0, 4000], { designOptionId: 'option-z' }),
+        element('win-opt-a', { typeId: 'core.opening.v1', hostId: 'w-opt-a' }),
+      ].map((e) => [e.id, e]),
+    ),
+  };
+}
+
+const optionChange = (over: Partial<SceneChange>): SceneChange => ({
+  collection: 'designOptions',
+  id: 'option-a',
+  ...over,
+});
 
 const ids = (list: readonly ElementId[]) => [...list].sort();
 const change = (collection: SceneChange['collection'], id: string): SceneChange => ({
@@ -212,5 +260,56 @@ describe('the typed dependency graph — the rebuild invalidator is a declared g
     expect(dependents(scene, { collection: 'constraints', id: 'b', before: base })).toEqual([
       'wall-span',
     ]);
+  });
+
+  /* ==============================================================================================
+   * designOption→element (T-011/D85, Q17a §4.3) — the edge `dependency-graph.test.ts` did not have.
+   * ============================================================================================ */
+
+  it('⚠⚠ designOption→element reaches the JOIN NEIGHBOUR, whose miter the option flip changes', () => {
+    // The elements whose ACTIVE-NESS flips are not the elements whose GEOMETRY changes: `partnersAt`
+    // filters by `isElementActive`, so demoting an option removes a MAIN-MODEL wall's miter partner.
+    // Naming only the tagged walls leaves that wall with a solid mitered against a wall nobody builds —
+    // `join-option-cascade.test.ts`'s mode 1, arriving through the invalidator instead of the resolver.
+    const scene = optionScene();
+    const staged = dependents(scene, optionChange({ before: OPT_A, after: DEMOTED_A }));
+    expect(ids(staged)).toEqual(ids(['w-butting', 'w-corner', 'w-opt-a', 'w-opt-b', 'win-opt-a']));
+    // The controls are walls that CAN be join partners but are not: `w-far` is 5000 mm away, and
+    // `w-lobby` shares the corner but belongs to a different option SET, which this edit does not touch.
+    expect(staged).not.toContain('w-far');
+    expect(staged).not.toContain('w-lobby');
+  });
+
+  it('a design option in a set nothing is tagged into still re-stages its own set only', () => {
+    const scene = optionScene();
+    // The Lobby set's own edit reaches the Lobby wall and the corner wall it miters against — never the
+    // Facade walls, which prove the edge is set-scoped rather than "every optioned element".
+    const staged = dependents(scene, optionChange({ id: 'option-z', before: OPT_Z }));
+    expect(ids(staged)).toEqual(ids(['w-lobby', 'w-corner']));
+  });
+
+  /**
+   * ⚠⚠ UNDO OF A DELETE reads the POST-DELETE scene, so the catalogue no longer holds the option — the
+   * one edge for which the pre- and post-edit scenes do NOT give the same answer. Seeding through
+   * `setName → optionIds → elements` drops the deleted option's own elements out of the filter, and the
+   * elements that go active again on the undo are re-staged by nothing.
+   */
+  it('⚠⚠ undo of a DELETE seeds from the CHANGE, not from a catalogue that no longer holds the option', () => {
+    const scene = optionScene();
+    const withoutA = { ...scene.designOptions };
+    delete withoutA['option-a'];
+    const postDelete: Scene = { ...scene, designOptions: withoutA };
+    // Same change, the post-delete scene: the option's own tagged elements must still be named.
+    expect(ids(dependents(postDelete, optionChange({ before: OPT_A })))).toEqual(
+      ids(['w-butting', 'w-corner', 'w-opt-a', 'w-opt-b', 'win-opt-a']),
+    );
+    // And the reviewer's own case — a set whose ONLY option was the deleted one, so `setName` resolves
+    // to an empty catalogue and the seed was `[]` outright.
+    const soleScene: Scene = {
+      ...scene,
+      designOptions: { 'option-z': OPT_Z },
+      elements: { 'w-opt-a': scene.elements['w-opt-a']! },
+    };
+    expect(dependents(soleScene, optionChange({ before: OPT_A }))).toEqual(['w-opt-a']);
   });
 });

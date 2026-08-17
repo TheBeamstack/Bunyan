@@ -25,6 +25,7 @@ import {
   createRegistries,
   dependents,
   emptyScene,
+  resolveJoins,
 } from '@bunyan/document';
 import type { Scene, SceneChange } from '@bunyan/document';
 import { wallType } from '@bunyan/types';
@@ -32,6 +33,18 @@ import { wallType } from '@bunyan/types';
 const T = 200;
 const H = 3000;
 const WALL_VOLUME = 6000 * T * H;
+/**
+ * ⚠ Pin the CODE, not just the class — `REFUSED` vs `NOT_FOUND` is agent-visible surface that must not
+ * move, and `design-option-refs.test.ts` already holds the two doors apart by exactly this field.
+ */
+const refuses = async (call: Promise<unknown>, code: CommandFailure['code']): Promise<void> => {
+  const error: unknown = await call.then(
+    () => undefined,
+    (e: unknown) => e,
+  );
+  expect(error).toBeInstanceOf(CommandFailure);
+  expect((error as CommandFailure).code).toBe(code);
+};
 
 describe('D85/Q17a — the design-option CRUD: `scene.designOptions` becomes a first-class collection', () => {
   let kernel: OcctKernel;
@@ -69,6 +82,28 @@ describe('D85/Q17a — the design-option CRUD: `scene.designOptions` becomes a f
         ...(designOptionId === undefined ? {} : { designOptionId }),
       })
     ).changes[0]!.id;
+
+  /** A wall on an arbitrary baseline — what a JOIN case needs and `makeWall`'s parallel rows cannot give. */
+  const makeWallAt = async (
+    doc: DocumentContext,
+    start: readonly [number, number],
+    end: readonly [number, number],
+    designOptionId?: string,
+  ): Promise<string> =>
+    (
+      await doc.execute('core.createElement', {
+        typeId: wallType.id,
+        params: { start, end, thickness: T, height: H },
+        ...(designOptionId === undefined ? {} : { designOptionId }),
+      })
+    ).changes[0]!.id;
+
+  /** The element's LIVE built solid, measured in the kernel — the B-Rep, not the recipe's opinion of it. */
+  const boundsOf = async (
+    doc: DocumentContext,
+    id: string,
+  ): Promise<{ min: readonly number[]; max: readonly number[] }> =>
+    (await client.request('bounds', { handle: doc.partsOf(id)![0]!.handle })).bounds;
 
   const createOption = async (
     doc: DocumentContext,
@@ -170,9 +205,10 @@ describe('D85/Q17a — the design-option CRUD: `scene.designOptions` becomes a f
   it('⚠⚠ two explicit primaries in one set is REFUSED', async () => {
     const doc = newDoc();
     await createOption(doc, { name: 'A', isPrimary: true });
-    await expect(
+    await refuses(
       doc.execute('core.createDesignOption', { setName: 'Facade', name: 'B', isPrimary: true }),
-    ).rejects.toBeInstanceOf(CommandFailure);
+      'REFUSED',
+    );
 
     // ⚠ And joining WITHOUT claiming primary is fine — the set still has exactly one.
     const b = (await doc.execute('core.createDesignOption', { setName: 'Facade', name: 'B' }))
@@ -185,9 +221,7 @@ describe('D85/Q17a — the design-option CRUD: `scene.designOptions` becomes a f
     const a = await createOption(doc);
     expect(doc.scene.designOptions![a]!.isPrimary).toBe(true);
 
-    await expect(
-      doc.execute('core.updateDesignOption', { id: a, isPrimary: false }),
-    ).rejects.toBeInstanceOf(CommandFailure);
+    await refuses(doc.execute('core.updateDesignOption', { id: a, isPrimary: false }), 'REFUSED');
     expect(doc.scene.designOptions![a]!.isPrimary).toBe(true); // refused, unchanged
   }, 120000);
 
@@ -197,9 +231,7 @@ describe('D85/Q17a — the design-option CRUD: `scene.designOptions` becomes a f
     const b = (await doc.execute('core.createDesignOption', { setName: 'Facade', name: 'B' }))
       .changes[0]!.id;
 
-    await expect(doc.execute('core.deleteDesignOption', { id: a })).rejects.toBeInstanceOf(
-      CommandFailure,
-    );
+    await refuses(doc.execute('core.deleteDesignOption', { id: a }), 'REFUSED');
 
     // ⚠⚠ Promoting B atomically demotes A, in ONE edit — the swap that would otherwise deadlock: demote
     // A first and the set has zero primaries (refused); promote B first and it has two (refused too).
@@ -227,9 +259,7 @@ describe('D85/Q17a — the design-option CRUD: `scene.designOptions` becomes a f
       .changes[0]!.id;
     const wall = await makeWall(doc, 0, b);
 
-    await expect(doc.execute('core.deleteDesignOption', { id: b })).rejects.toBeInstanceOf(
-      CommandFailure,
-    );
+    await refuses(doc.execute('core.deleteDesignOption', { id: b }), 'REFUSED');
     await doc.execute('core.deleteDesignOption', { id: b, retargetMap: { [b]: a } });
     expect(doc.scene.elements[wall]!.designOptionId).toBe(a);
     expect(doc.scene.designOptions?.[b]).toBeUndefined();
@@ -256,9 +286,7 @@ describe('D85/Q17a — the design-option CRUD: `scene.designOptions` becomes a f
       })
     ).changes[0]!.id;
 
-    await expect(doc.execute('core.deleteDesignOption', { id: b })).rejects.toBeInstanceOf(
-      CommandFailure,
-    );
+    await refuses(doc.execute('core.deleteDesignOption', { id: b }), 'REFUSED');
     // ⚠ acknowledge:true lets both dangle — proving the refusal above named real referrers, not a phantom.
     // ⚠ The referrers are read BACK: without that, this case would pass just as well if `acknowledge`
     // silently cleaned them up, which is the opposite of what it means (REVIEW.md item 6).
@@ -300,6 +328,66 @@ describe('D85/Q17a — the design-option CRUD: `scene.designOptions` becomes a f
     const staged = dependents(doc.scene, change);
     expect(new Set(staged)).toEqual(new Set([tagged, opening]));
     expect(staged).not.toContain(untagged);
+  }, 120000);
+
+  /**
+   * ⚠⚠ THE JOIN NEIGHBOUR, MEASURED THROUGH THE SHIPPED VERBS. The §5 case above cannot see this: its
+   * negative control is parallel and 5000 mm away, so it can never be a join partner and proves nothing
+   * about a wall that IS one. `partnersAt` filters by `isElementActive`, so demoting an option removes a
+   * MAIN-MODEL wall's only partner and its miter with it — `resolveJoins` says so before and after, and
+   * the wall must be in `edit.rebuilt` or it keeps a solid mitered against a wall nobody builds.
+   */
+  it('⚠⚠ promoting the other option re-stages the MAIN-MODEL wall whose miter it silently changes', async () => {
+    const doc = newDoc();
+    const a = await createOption(doc, { name: 'A' });
+    const b = await createOption(doc, { name: 'B' });
+    const main = await makeWallAt(doc, [0, 0], [6000, 0]);
+    await makeWallAt(doc, [6000, 0], [6000, 4000], a);
+
+    // Ground truth, both directions: A is primary, so the option wall is active and `main` miters to it.
+    expect(resolveJoins(doc.scene, main).map((j) => j.end)).toEqual(['end']);
+    const before = await boundsOf(doc, main);
+    const edit = await doc.execute('core.updateDesignOption', { id: b, isPrimary: true });
+    expect(resolveJoins(doc.scene, main)).toEqual([]);
+
+    // `main`'s geometry just changed and nothing it owns was edited — the invalidator is the only thing
+    // that can know. `rebuilt` is the cascade that ACTUALLY happened (`#affected`), not the command's
+    // declaration, so this is the staged set.
+    expect(edit.rebuilt).toContain(main);
+
+    // ⚠⚠ AND THE B-REP ITSELF, because "re-staged" is not the criterion — "not stale" is. Volume and area
+    // cannot see this: a 45° miter between two equal-thickness walls adds on one lateral face exactly what
+    // it removes on the other, so both are byte-identical before and after (measured). The SHAPE is what
+    // moves, and the bound says so — the mitered solid runs 100 mm (half a thickness) past its baseline
+    // end, the plain-capped one stops on it.
+    expect(await boundsOf(doc, main)).toEqual({ min: [0, -100, 0], max: [6000, 100, 3000] });
+    expect(before).toEqual({ min: [0, -100, 0], max: [6100, 100, 3000] });
+  }, 120000);
+
+  /**
+   * ⚠⚠ UNDO OF A DELETE IS THE ONE DIRECTION WHERE PRE- AND POST-EDIT SCENES DISAGREE. `#affected` reads
+   * the pre-change scene, which on an undo is the POST-delete one: the option is already out of the
+   * catalogue, so a seed resolved as `setName → optionIds → elements` finds nothing and the elements that
+   * go active again are re-staged by nothing.
+   */
+  it('⚠⚠ undoing the delete of a set’s only option re-stages the elements that go active again', async () => {
+    const doc = newDoc();
+    const a = await createOption(doc, { name: 'A' });
+    const tagged = await makeWall(doc, 0, a);
+    // `acknowledge` lets the tag dangle: the element goes inactive, so its geometry is dropped.
+    await doc.execute('core.deleteDesignOption', { id: a, acknowledge: true });
+    expect(doc.modelElements().map((e) => e.id)).not.toContain(tagged);
+
+    const change: SceneChange = {
+      collection: 'designOptions',
+      id: a,
+      before: { id: a, setName: 'Facade', name: 'A', isPrimary: true },
+    };
+    expect(dependents(doc.scene, change)).toContain(tagged);
+
+    await doc.undo();
+    expect(doc.modelElements().map((e) => e.id)).toContain(tagged);
+    expect(doc.partsOf(tagged)).toBeDefined();
   }, 120000);
 
   it('authoring a design option re-stages NOTHING when no element is tagged into its set yet', async () => {

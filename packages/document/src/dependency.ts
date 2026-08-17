@@ -44,9 +44,12 @@ import { baselineOf, endpointsOf, wallsJoinedTo } from './joins.js';
  * must be re-staged. Assembly grouping (host↔hosted, style layers) is applied later by
  * `affectedAssemblies`; this returns the seed set of affected elements.
  *
- * @param scene the scene to resolve dependents against. Element→container and element→grid membership is
- *   unchanged by an elevation/axis edit, so the pre- or post-edit scene gives the same answer; the caller
- *   passes the pre-edit scene, matching the style edge's long-standing behaviour.
+ * @param scene the scene to resolve dependents against. **The caller passes the PRE-edit scene** —
+ *   `DocumentContext.#affected` does so on `execute`, `undo` and `redo` alike. For the container/grid/style
+ *   edges that is immaterial: membership is unchanged by an elevation/axis edit, so either scene gives the
+ *   same answer. ⚠ It is NOT immaterial for the `designOptions` edge, where the pre-edit scene of an UNDO
+ *   is the post-DELETE one and no longer holds the option — which is why that edge seeds from `change`'s
+ *   own option rather than out of the catalogue alone (`elementsTaggedIntoSet`).
  */
 export function dependents(
   scene: Scene,
@@ -175,21 +178,30 @@ export function dependents(
       // switch stays satisfied; the room-area invalidation lives with the solver, not in the rebuild graph.
       return [];
     case 'designOptions': {
-      // EDGE: option-set → tagged elements → their host/parent descendants (D85/Q17a §4.3). ⚠ NOT a
-      // declared "nothing" — the `schedules`/`views` argument ("a projection reads the model, the model
-      // does not read the projection") does not transfer: the join resolver and room solver (D68) read the
-      // ACTIVE option selection WHILE BUILDING (`partnersAt`, `assembleRoomInput`), so changing which
-      // option in a set is primary — or deleting an option — changes which elements the miter/room
-      // computation can see, which changes a built B-Rep (the ambiguity flip).
+      // EDGE: option-set → tagged elements → their host/parent descendants → THEIR JOIN NEIGHBOURS
+      // (D85/Q17a §4.3). ⚠ NOT a declared "nothing" — the `schedules`/`views` argument ("a projection
+      // reads the model, the model does not read the projection") does not transfer: the join resolver and
+      // room solver (D68) read the ACTIVE option selection WHILE BUILDING (`partnersAt`,
+      // `assembleRoomInput`), so changing which option in a set is primary — or deleting an option —
+      // changes which elements the miter/room computation can see, which changes a built B-Rep.
       //
       // ⚠ THE CONSERVATIVE, D73-CONSISTENT FORM: re-stage every element tagged into the CHANGED option's
       // set (its own active-ness may have flipped), plus everything hosted or parented on one of them
       // (D67 — a descendant's active-ness is read off its ancestor's, `isElementActive`'s own traversal,
-      // just walked forward here instead of back). Over-naming costs a rebuild; under-naming leaves a
-      // stale solid (`wallsJoinedTo`'s own argument, and it points the same way here).
+      // just walked forward here instead of back).
+      //
+      // ⚠⚠ AND THE JOIN NEIGHBOURS, WHICH IS THE HALF THE FLIPPED SET CANNOT COVER: the elements whose
+      // ACTIVE-NESS flips are not the elements whose GEOMETRY changes. `partnersAt` filters by
+      // `isElementActive` (`joins.ts:322/358/416`), so demoting an option removes a MAIN-MODEL wall's
+      // miter partner — that wall is tagged into nothing, hangs off nothing, and would keep a solid
+      // mitered against a wall the document no longer builds. That is `join-option-cascade.test.ts`'s
+      // mode 1 arriving through the invalidator instead of the resolver, i.e. D68 from the authoring side.
+      // ONE HOP, exactly as `case 'elements'` takes it: a join is not transitive, and a fixpoint here
+      // would name the whole connected component of the wall graph.
       const option = (change.after ?? change.before) as DesignOption | undefined;
       if (option === undefined) return [];
-      return belongsToDescendants(scene, elementsTaggedIntoSet(scene, option.setName));
+      const flipped = belongsToDescendants(scene, elementsTaggedIntoSet(scene, option));
+      return unique([...flipped, ...joinNeighboursOf(scene, flipped)]);
     }
     default:
       return assertNever(collection);
@@ -225,18 +237,42 @@ function elementIdsWhere(
     .map((e) => e.id);
 }
 
-/** Every element whose OWN `designOptionId` names an option in this set — the seed of the option edge. */
-function elementsTaggedIntoSet(scene: Scene, setName: string): readonly ElementId[] {
-  const optionIds = new Set(
-    Object.values(scene.designOptions ?? {})
-      .filter((o) => o.setName === setName)
-      .map((o) => o.id),
-  );
-  if (optionIds.size === 0) return [];
+/**
+ * Every element tagged into the changed option's set — the seed of the option edge.
+ *
+ * ⚠⚠ SEEDED FROM THE CHANGE'S OWN OPTION, NOT ONLY FROM THE CATALOGUE, and that is what makes UNDO OF A
+ * DELETE work. `#affected` resolves against the PRE-CHANGE scene, which on an undo is the POST-delete one:
+ * the option is already out of `scene.designOptions`, so `setName → optionIds → elements` alone drops its
+ * own tagged elements out of the filter and returns `[]` for a set whose only option was the deleted one.
+ * Those elements are exactly the ones that go active again when the undo restores it. The catalogue is
+ * still read for the SIBLINGS — a promotion demotes one of them, and their active-ness flips too.
+ */
+function elementsTaggedIntoSet(scene: Scene, option: DesignOption): readonly ElementId[] {
+  const optionIds = new Set<string>([option.id]);
+  for (const o of Object.values(scene.designOptions ?? {})) {
+    if (o.setName === option.setName) optionIds.add(o.id);
+  }
   return elementIdsWhere(
     scene,
     (e) => e.designOptionId !== undefined && optionIds.has(e.designOptionId),
   );
+}
+
+/**
+ * The walls whose caps depend on any of `ids` — one hop of the same `wallsJoinedTo` scan `case 'elements'`
+ * runs, driven off each element's own baseline (endpoints for the corner join, the segment for the
+ * mid-span butt). Ids that carry no baseline contribute nothing.
+ */
+function joinNeighboursOf(scene: Scene, ids: readonly ElementId[]): readonly ElementId[] {
+  const out: ElementId[] = [];
+  for (const id of ids) {
+    const element = scene.elements[id];
+    if (element === undefined) continue;
+    const base = baselineOf(element);
+    if (base === undefined) continue;
+    out.push(...wallsJoinedTo(scene, id, endpointsOf(element), [base]));
+  }
+  return out;
 }
 
 /**

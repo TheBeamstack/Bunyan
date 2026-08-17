@@ -628,6 +628,44 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-011 — the D88 defect return: the option edge reaches the join neighbour, and seeds from the change — 2026-08-17 — seat: zayd
+
+- **CHANGED:** `packages/document/src/dependency.ts` only — `joinNeighboursOf` NEW (one hop of
+  `wallsJoinedTo`, endpoints **and** segment, exactly as `case 'elements'` line 82 takes it);
+  `elementsTaggedIntoSet` now takes the `DesignOption` and seeds from `change`'s own option id ∪ the
+  catalogue's siblings of that `setName`; `dependents`'s `@param scene` docstring corrected. **No exported
+  declaration added or changed.** Plus 3 new cases in `tests/dependency-graph.test.ts` (which had no
+  `designOptions` case at all), 2 in `tests/design-option-crud.test.ts`, and a `refuses(call, code)` helper
+  pinning `REFUSED` on the five refusal cases.
+- **VERIFIED:** Both defects **reproduced red first**, through the shipped verbs on the real OCCT kernel,
+  before a line of fix. **Revert-verified, the fix only** (`git stash push -- dependency.ts`, tests
+  untouched): **5 failed | 23 passed (28)** — every new assertion red, every pre-existing one green.
+  Restored: 28/28. `pnpm verify` full, foreground, exit 0 — **920 green · 96 files**, `docs:check`
+  **146 · 8**; `freeze-boundary` 12/12 **unmoved**, no re-baseline this turn. **Cost measured** (pure TS,
+  `dependents` on one option change, half the walls tagged, cold): 200/400/800 walls → 11.4/17.3/23.8 ms
+  vs 0.42/0.21/0.43 before — 4× the walls for 2.1× the time, **not** a D73 quadratic, because
+  `wallsJoinedTo`'s index is memoised per scene object (`INDEX_CACHE`).
+- **FOUND:** **⚠⚠ Volume and area cannot see defect 1, and a test built on either would be weak green.** A
+  45° miter between two equal-thickness walls adds on one lateral face exactly what it removes on the
+  other: `volume 3 600 000 000`, `area 36 000 000` and a 17-entry `refs` list are **byte-identical** before
+  and after. The **shape** moves, and the kernel's `bounds` on the live handle is what says so — so the
+  reviewer's open item (the two-B-Rep comparison) landed **in this turn**: after the promote, `max.x` is
+  `6000` with the fix and **`6100` with it reverted** — 100 mm, half a wall thickness, of a wall nobody
+  edited, still mitered against a wall the document no longer builds. Shown to fire on its own, with the
+  `edit.rebuilt` assertion above it neutralised. **Backward sweep (invariant 7):** `dependency.ts` is the
+  **only** site that turns an option change into an affected set — every other `scene.designOptions` reader
+  (`enumerate`/`joins`/`room`/`cleandelta`/`projectView`) resolves at query time through `optionScopeOf`
+  and caches nothing, so there is no second invalidator to keep in step.
+- **OWES:** `hmdnah` — step 2 again, on the existing claim, against this head; the row stays `review`. The
+  **owner** — `RISK: contract-touching` + `needs-operator/freeze` from the earlier commits, so the owner
+  merges #32. Untouched by design: the `## Discovered` primary-invariant row (pre-existing, not this PR's
+  growth) and the spurious review-claim comment on PR #33.
+- **RISK:** contract-touching — **0** declarations moved by this turn; the branch keeps the classification
+  it already had (the one `scene.ts :: type SceneCollection` move), and this turn added nothing to the
+  frozen surface.
+- **FULL:** `handoff/zayd/2026-08-17-T-011-invalidator-join-and-undo.md`
+- **REVIEW:** AWAITING REVIEW — `hmdnah`, D88 step 2 re-run on PR #32.
+
 ### T-011 — review (step 2 of 2): the invalidator under-names, and reproduces D68 from the authoring side — 2026-08-17 — seat: hmdnah
 
 - **CHANGED:** nothing on the branch — a review turn edits no code (`REVIEW.md`'s findings table: a defect
@@ -926,42 +964,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-16-T-013-review-step2.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); approved and merged on `narutousomaki741`.
 
-### T-013 — the seat identity guard: `gh api user` must match the seat — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `scripts/agent-start.mjs` (**`identityGate` NEW**, exported, pure — refuses on a
-  mismatch, naming both accounts, and refuses on an unresolvable identity too, never a skip; wired into
-  step 0, before pulling or anything else) · `scripts/agent-start.d.mts` (declared) ·
-  `tests/protocol/agent-start.test.ts` (`identityGate` unit suite +3, an end-to-end guard suite +2, and
-  a `fakeGhReporting` `PATH` stand-in so the four pre-existing `hmdnah`/`amer` tests still exercise their
-  ORIGINAL assertion rather than tripping the new guard on this box's single ambient `gh` identity). No
-  frozen byte, no `packages/`, no `apps/web`.
-- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/888 tests** main suite,
-  **134 tests** `docs:check` subset, `tests/freeze-boundary.test.ts` green ⇒ `RISK: additive`.
-  **Revert-verified:** commenting out the guard's call site left **2 of 27** tests in
-  `tests/protocol/agent-start.test.ts` RED — both new end-to-end tests, failing on "the script proceeded
-  past step 0" — restored to **27/27 green**. Manually reproduced both refusal paths against the real
-  repo too (wrong account: `hmdnah` under this box's real `davidian-abdo` identity; unresolvable: a
-  `PATH` with no `gh` at all) — both exit 1, both name the account(s) the task requires.
-- **FOUND:** GitHub's self-approval refusal genuinely does not extend to `gh pr merge` (re-confirmed the
-  D87 measurement rather than trusting the prior entry's prose) — this guard really is the only thing
-  standing between a forgotten `GH_TOKEN` and a self-approving merge on this private, unprotected repo.
-  `docs/RUNBOOK.md`'s "Seat credentials" section already documented the per-seat token file convention
-  and its 600 mode in full, written 2026-08-15 in anticipation of this task — needed no edit.
-- **OWES:** `hmdnah` — this PR's review. Not covered: file-mode (600) enforcement is documented, not
-  checked programmatically (not in this task's `done-when:`); `agent-finish.mjs` carries no identity
-  check of its own (relies on `agent-start.mjs --review` having already gated the branch it is on).
-- **RISK:** additive — `tests/freeze-boundary.test.ts` green, no frozen byte moved. (`docs/BACKLOG.md`
-  classifies the TASK itself `risk: high` — D88's two-step review — because this guard is the only thing
-  preventing a self-approving merge while the repo stays private and unprotected, Q13/D87; that is a
-  separate axis from the frozen-surface RISK: this field reports.)
-- **FULL:** `handoff/zayd/2026-08-16-T-013-identity-guard.md`
-- **REVIEW:** step 1 (mechanical) and step 2 (adversarial) both complete — see the `hmdnah` entry above.
-  Approved and merged on `narutousomaki741`, `RISK: additive`. Step 1's "not a CI risk" call on the
-  7 (9 named) `zayd`-targeting test gap was wrong — CI genuinely failed on it (run `31949354336`); fixed
-  on this branch (`b1ed6fe`) before merge, reconciled in step 2's review.
-
----
-
 ## §8 — Generated
 
 
@@ -969,16 +971,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-011 (hmdnah, 2026-08-17)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `ee8abb3` · clean |
+| **newest entry** | **T-011 (zayd, 2026-08-17)** |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `b02824f` · dirty |
 | open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | **915 green** · 96 files · 283 suites |
+| suite | **920 green** · 96 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 19 files changed, 1690 insertions(+), 209 deletions(-) (19 files) |
-| docs budget | current_state 81.7/96.0 KB · §7 28.9/32.0 KB · abstracts 10/10 · bodies 59 |
+| diff vs origin/main | 20 files changed, 1983 insertions(+), 246 deletions(-) (20 files) |
+| docs budget | current_state 81.7/96.0 KB · §7 29.3/32.0 KB · abstracts 10/10 · bodies 60 |
 
 _Generated 2026-08-17 by `pnpm state`._
 
