@@ -85,10 +85,15 @@ wait for "continue."
 
 ## Spawning a subagent (`amer` or `khalihlna`)
 
-Use the Agent tool. Keep the prompt short and self-contained:
+Use the Agent tool. Keep the prompt short and self-contained. **`amer` is not the pc's default `gh`
+identity (`docs/RUNBOOK.md` "Seat credentials") — the prompt must carry the export line itself; a fresh
+subagent has no standing reading path to `RUNBOOK.md` and will otherwise burn a turn discovering the gate
+by hand:**
 
 > You are seat `amer` [or `khalihlna`, for a review] on the local pc, in the Bunyan repo at
-> `<absolute repo path>`. Read `AGENTS.md` in full now, then run
+> `<absolute repo path>`. Read `AGENTS.md` in full now. [`amer` only:] Before anything else, run
+> `export GH_TOKEN=$(cat ~/.config/bunyan/amer.token)` — this seat is not the pc's default `gh` identity
+> (`docs/RUNBOOK.md`). Then run
 > `node scripts/agent-start.mjs --seat amer` [or `--seat khalihlna --review`] and do exactly what it
 > tells you for **one turn only** — claim, do the work (this machine has a real browser; any
 > rendering/interaction claim must actually run here, not be assumed), finish with

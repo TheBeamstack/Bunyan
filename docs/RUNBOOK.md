@@ -44,18 +44,24 @@ safe only while nothing external can arrive.
 ## Seat credentials
 
 **Ruled 2026-08-15 (D87): env-scoped, never `gh auth switch`.** A seat whose GitHub account is not the
-box default reads a token file for its turn:
+**machine's own default** reads a token file for its turn:
 
 ```bash
-export GH_TOKEN=$(cat ~/.config/bunyan/hmdnah.token)
+export GH_TOKEN=$(cat ~/.config/bunyan/<seat>.token)
 ```
 
-The file is `~/.config/bunyan/<seat>.token`, mode **600**, and lives outside the repo. With `GH_TOKEN`
-unset the identity is the box default (`Davidian-Abdo`), which is what `zayd` and `brahim` want.
+The file is `~/.config/bunyan/<seat>.token`, mode **600**, and lives outside the repo — **per machine**,
+never synced or committed. Each machine's `gh` default covers two of the five seats; the other two need
+this export:
 
-⚠ **`gh auth switch` is rejected**: the active account is global in `hosts.yml`, and this box runs
-`zayd`, `hmdnah` and `brahim`, so a concurrent seat would inherit whichever identity was switched to
-last. ⚠⚠ **Verify before any write call** — `gh api user --jq .login` must equal the seat's account from
+| Machine | Default identity (`GH_TOKEN` unset) | Needs a token file |
+| --- | --- | --- |
+| box | `Davidian-Abdo` — covers `zayd`, `brahim` | `hmdnah` (`narutousomaki741`) |
+| pc | `Davidian-Abdo` — covers `khalihlna` | `amer` (`narutousomaki741`) |
+
+⚠ **`gh auth switch` is rejected**: the active account is global in `hosts.yml`, and each machine runs
+more than one seat, so a concurrent seat would inherit whichever identity was switched to last.
+⚠⚠ **Verify before any write call** — `gh api user --jq .login` must equal the seat's account from
 `node scripts/seats.mjs account <seat>`. A silent fallback to the default identity is a self-approval,
 which is why `T-013` makes this a refusal rather than a convention.
 
