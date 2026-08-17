@@ -673,7 +673,38 @@ is maintenance and does NOT get an entry of its own.**
   `done-when:` names `Part.node`.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-17-T-018-d66-lazy-build.md`
-- **REVIEW:** pending — `hmdnah`.
+- **REVIEW:** approved and merged by `hmdnah` on `narutousomaki741`, green CI, no defect. Item 1
+  re-executed independently; findings in the `hmdnah` entry above and on PR #35.
+
+### T-018 — review: the deferral numbers reproduce, and the tripwire has teeth — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** no product or test byte — no defect to fix. This abstract, and `T-011`'s comment-sweep
+  abstract rotated to `docs/history.md` §E to hold §7 inside its 32 KB budget once a tenth abstract
+  lands (`docs-budget.test.ts`'s own remedy). Merged PR #35 on `narutousomaki741`.
+- **VERIFIED:** **Item 1 re-executed.** `identitiesOf` reverted from `p.refs` to `p.nodeId` ⇒ **1 of 8
+  RED** — `the identity signature must carry more than the recipe-derived node ids: expected 12 to be
+  greater than 12`; restored, tree clean, **8/8 green**. ⚠ The row's `Part.node` **has never existed** —
+  judged against `Part.nodeId` (`entities.ts:695`), which the tripwire was built against. **Item 5
+  re-measured twice:** 89.8 %/89.3 % deferred both runs, slope **27.82** and **28.04 ms** against the
+  doc's 28.3, R² 0.9968/0.9983, bounds and take-off identical; the intercept is the noisy term
+  (39 → 67 → 90 ms) but stays under 4 % of a cold load, so what it carries survives the spread. **Item
+  7:** `RISK: additive — unchanged vs baseline`, `freeze-boundary` green, no `packages/` byte, and
+  `PR shape · reserved classes` confirmed to have RUN with no `needs-operator/*` label.
+- **FOUND:** no defect; all four `done-when:` items are box-executable and were executed. Every item-4
+  claim held against code — `partNodeId` (`geometry.ts:60`), `rebuildOnly`'s assembly closure
+  (`document.ts:553`), `saveBnn(scene, …)` (`bnn.ts:103`), `enumerate.ts:215`'s `'unbuildable'`,
+  `baselineOf`'s early return (`joins.ts:103`), `partnersAt`'s unscoped 2D match (`joins.ts:205`).
+  **"Nothing ported from #16" holds:** that instrument has no `warmUp`, sweep or `fitLine` and reported
+  a different measurement (3 storeys, "~35 % forced"). One correction: `CHANGED:` names **one** rotated
+  abstract where the commit rotates **two** (T-016, T-011), both intact in `history.md` §E — the second
+  is what keeps §7 in budget, so the act is right and its description short by a row.
+- **OWES:** `brahim` — T-018's `done-when:` names `Part.node`, to correct post-merge; and `main`'s §8
+  disagreed with the measured tree at turn start (T-011's branch-shaped block), regenerated with
+  `pnpm state` and committed so the turn could begin. `khalihlna` — *unverified here: lazy first paint
+  improves time-to-first-pixel*, already written as such in the doc, T-006's and not ticked.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-018-review-d66-lazy-build.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #35.
 
 ### T-017 — review: the new gate has teeth on the real file, not only on its fixture — 2026-08-17 — seat: hmdnah
 
@@ -931,48 +962,6 @@ is maintenance and does NOT get an entry of its own.**
 - **RISK:** additive
 - **FULL:** `handoff/hmdnah/2026-08-17-T-011-review-step2.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
-
-### T-011 — the "no authoring verb" comments, swept; and `§8`'s suite line measures the wrong branch — 2026-08-17 — seat: zayd
-
-- **CHANGED:** comments only, in the PR that ships the CRUD they contradicted (`AGENTS.md §3` row 1) —
-  `packages/document/src/designoptions.ts` (module header, `isElementActive`, `optionScopeOf`) ·
-  `enumerate.ts` (`EnumerateOptions.designOptions`) · `entities.ts` (`Element.designOptionId`) ·
-  `documentation.ts` (`ScheduleDefinition.designOptionIds`, `ViewCommon.designOptionIds`) ·
-  `tests/option-cascade-d67.test.ts` · `tests/plan-section.test.ts`. Plus **2 assertions** in
-  `tests/design-option-crud.test.ts`, **2** `## Discovered` rows in `docs/BACKLOG.md`, and
-  `tests/frozen-surface.snapshot.json` (`_baselinedAt` only — see FOUND).
-- **VERIFIED:** `pnpm verify` green, foreground, real OCCT kernel, exit 0 — main suite **915 green · 96
-  files · 283 suites**, 0 failing; `docs:check` **146 · 8 files**; `freeze-boundary` 12/12, unmoved
-  (comment-only edits to watched files do not touch the frozen surface, and `reserved-classes` has a case
-  asserting exactly that). **Revert-verified by mutation:** made `guardReferences` redirect on the
-  `acknowledge` path, and the first new assertion went red (`expected [ 'MUTANT' ] to deeply equal
-  [ 'option-01M…' ]`) while every pre-existing assertion in the case stayed green — the weak green
-  `REVIEW.md` item 6 names. `commands.ts` restored, diff empty.
-- **FOUND:** Seven files still said `scene.designOptions` was RESERVED with no authoring verb, inside the
-  diff that gives it three. Two were false *before* this PR (`isElementActive`'s "nothing calls it" —
-  four consumers do; `ViewCommon` "no body reads yet" — `projectView` has since Entry 77), swept under
-  invariant 7 rather than left. **⚠⚠ And `§8`'s suite line measures the wrong branch:** `pnpm state` does
-  not run the suite, it reads the untracked `.vitest-summary.json` left by the last `pnpm test` anywhere
-  in the one worktree. That accounts for all four figures in circulation — `913` = this branch before
-  `e05c35a` merged main (T-009 added 2 tests), `902 · 95 · 281` = **main** (quoted into the step-1 review,
-  which ran two files not the suite), `907 · 95 · 283` = **`task/T-016-…`** (main + T-016's 5 tests and 2
-  describes, read back after the 23:19 branch switch), `915 · 96 · 283` = this branch, correct, and the
-  committed `fb4d4e6` value. It **defeats `agent-start.mjs`'s measured-vs-claimed refusal**: both sides
-  read the same stale file, so they agree while both are wrong. **Second finding, met head-on:**
-  `_baselinedAtEntry` names a POSITION — `docs-state.mjs` mints `1000 - i` over §7's order — so appending
-  this abstract re-pointed the baseline's audit trail at it and turned `freeze-boundary` red on a turn
-  that moved no declaration; `pnpm state --rebaseline` cleared it by changing exactly `_baselinedAt`,
-  with all **214** declarations byte-identical.
-
-- **OWES:** `hmdnah` — **step 2** of D88 on the existing claim (step 1 is done and labelled; this defect
-  return does not consume it). The **owner** — `RISK: contract-touching` ⇒ the owner merges PR #32. The
-  `pnpm state` staleness is recorded in `docs/BACKLOG.md ## Discovered` with a fix shape, not claimed.
-- **RISK:** contract-touching (re-baselined) — **0** declarations moved by this turn; the branch keeps the
-  classification it already had (the single `scene.ts :: type SceneCollection` declaration), and the only
-  byte this turn added to the snapshot is `_baselinedAt`.
-- **FULL:** `handoff/zayd/2026-08-17-T-011-reserved-comment-sweep.md`
-- **REVIEW:** step 2 (adversarial, D88) complete — **NOT approved**, two defects proven in the new
-  dependency edge; returned to `zayd` on the existing claim. See the `hmdnah` step-2 entry above.
 
 ## §8 — Generated
 
