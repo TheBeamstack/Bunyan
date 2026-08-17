@@ -27,7 +27,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as seats from './seats.mjs';
 import { parseAbstracts } from './docs-state.mjs';
-import { renderBaton } from './agent-start.mjs';
+import { renderBaton, parseBaton } from './agent-start.mjs';
 
 const SELF_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -68,6 +68,21 @@ export function setRowStatus(backlogPath, taskId, next) {
   const width = m[2].length + m[3].length;
   const padded = next + ' '.repeat(Math.max(1, width - next.length));
   writeFileSync(backlogPath, src.replace(re, `$1${padded}$4`));
+}
+
+/**
+ * Which seat the §0b baton's `builder` field should name after this finish (T-016). Pure so it is
+ * unit-testable without a full `pnpm verify` fixture run (the pattern `setRowStatus` above already
+ * uses) — the baton write itself happens after step 1, which this repo's fixtures cannot clear.
+ *
+ * A `--review` finish must NOT overwrite `builder`: it updates `seat`/`role`/`status` to name the
+ * REVIEWING seat, and without this the baton loses the builder's identity the moment review starts
+ * (measured against T-008's baton, D82 Entry 91 — `hmdnah`'s review-turn finish left `seat: hmdnah`
+ * with no way to recover who had actually built the task). A plain (non-review) finish always sets
+ * `builder` to the finishing seat — unchanged from before this field existed.
+ */
+export function resolveBuilder(review, priorBaton, seat) {
+  return review ? (priorBaton?.builder ?? seat) : seat;
 }
 
 function parseArgs(argv) {
@@ -482,6 +497,13 @@ export function main(argv = process.argv.slice(2)) {
     const before = csForBaton.slice(0, csForBaton.indexOf(bBegin));
     const after = csForBaton.slice(csForBaton.indexOf(bEnd) + bEnd.length);
     const claimedAtMatch = csForBaton.match(/\| claimed-at \| (.+?) \|/);
+    // ⚠⚠ `builder` names whoever actually BUILT this task, set once by agent-start.mjs at claim time
+    // (T-016). A `--review` finish updates seat/role/status to the REVIEWING seat but must leave
+    // `builder` untouched — otherwise the baton loses the builder's identity the moment review starts,
+    // which is what T-015's `--continue` had to route around by re-deriving it from the task's own
+    // `machine:` field instead of trusting the baton at all.
+    const priorBaton = parseBaton(csForBaton);
+    const builder = resolveBuilder(review, priorBaton, seat);
     const claim = {
       seat,
       role,
@@ -490,6 +512,7 @@ export function main(argv = process.argv.slice(2)) {
       branch: branchNow,
       claimedAt: claimedAtMatch ? claimedAtMatch[1] : new Date().toISOString(),
       status,
+      builder,
     };
     writeFileSync(csPath, before + renderBaton(claim) + after);
   }

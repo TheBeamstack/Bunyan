@@ -113,8 +113,8 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-013 | done    | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
 | T-014 | done    | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
 | T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
-| T-016 | ready   | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |
-| T-017 | ready   | `docs-budget.test.ts`'s newest-first check verifies itself    | infra    | box     | normal | —          |
+| T-016 | done    | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |
+| T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself    | infra    | box     | normal | —          |
 | T-018 | ready   | D66's lazy-build design doc + measurement, reproduced         | document | box     | normal | —          |
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`      | apps-web | pc      | normal | —          |
 
@@ -547,6 +547,30 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-17 — `agent-start.mjs`'s named-task claim path never consults `liveClaims`, so a finished task
+  is claimable by name.** The auto-select path skips a held row on both disjuncts (`agent-start.mjs:809-825`
+  — another seat's claim, or a `finished` status); the `wantTask` path above it (`:796-806`) checks only
+  `rowStatus === 'ready'` and `canClaim`. Measured on T-011, whose row on `main` reads `ready` while PR #32
+  is open and approved: `node scripts/seats.mjs can-claim zayd T-011` answers `yes`, and `ready-for zayd`
+  lists it first. Reachable only by naming the task explicitly — the loop's own builder turns pass no task
+  and are therefore safe — so recorded rather than decomposed. ⚠ The `ready`-on-`main` half is by design
+  (the `ready`→`review` flip lives on the unmerged branch, T-015), which is why the live-claim check is the
+  only thing standing here.
+- **2026-08-17 — T-016 step 2 left two `OWES: brahim` follow-ups**, recorded here so they outlive §7's
+  rotation; the measurement and reasoning are in that entry's abstract and body, not restated. (1) An
+  end-to-end test of `agent-finish.mjs`'s baton write — closable, but it changes `zayd`'s harness with a
+  113-test blast radius. (2) Four copies of one rationale, all stale since T-016 merged
+  (`agent-start.mjs` `~48`/`~499`, `seats.mjs` `~459`, `tests/protocol/seats.test.ts` `~306`) — wants one
+  copy and three pointers per `AGENTS.md §7.2`, not a fourth rewrite. Neither is decomposed: (1) is a
+  builder-harness call and (2) spans files outside any one task's diff.
+- **2026-08-17 — a step-1 review's `review/step-1` label can land while its findings comment does not, and
+  the §7 abstract still claims the comment was posted.** Measured on PR #33 (T-016): the label was applied
+  at 11:33:05Z and the abstract reads _"Findings posted as a PR comment on #33"_, but the PR's six comments
+  are three auto-claims and two housekeeping notes — no report. Step 1's findings survive only on the
+  branch (`handoff/hmdnah/2026-08-17-T-016-review-step1.md` and its §7 abstract), so a step-2 session
+  reconciling against the PR alone finds nothing to reconcile against. The opposite direction of `T-014`'s
+  OWES note, which named a report with no label; nothing checks either way. Recorded rather than
+  decomposed — step 2 reads the branch body instead.
 - **2026-08-17 — `agent-finish.mjs` resolves a turn's handoff body by ALPHABETICAL order, so a second turn
   on the same task and the same date cannot finish.** Step 3 takes
   `readdirSync(handoff/<seat>).filter(f => f.includes(task)).sort().at(-1)` and requires the newest §7

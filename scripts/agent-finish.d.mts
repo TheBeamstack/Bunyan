@@ -11,4 +11,16 @@
  */
 export declare function setRowStatus(backlogPath: string, taskId: string, next: string): void;
 
+/**
+ * Which seat the §0b baton's `builder` field should name after this finish (T-016). A `--review`
+ * finish carries the prior baton's `builder` forward unchanged; a plain finish sets it to the
+ * finishing seat. `priorBaton` is the baton parsed off the branch before this finish rewrites it, or
+ * `null`/`undefined` when unreadable.
+ */
+export declare function resolveBuilder(
+  review: boolean,
+  priorBaton: Record<string, string> | null | undefined,
+  seat: string,
+): string;
+
 export declare function main(argv?: string[]): void;

@@ -114,6 +114,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | Field | Value |
 |---|---|
 | seat | `hmdnah` |
+| builder | `zayd` |
 | role | reviewer |
 | machine | box |
 | task | `T-011` |
@@ -628,6 +629,143 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+
+### T-017 — review: the new gate has teeth on the real file, not only on its fixture — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — no defect to fix, and the one correction below is a number in the
+  author's own entry, which `AGENTS.md §4.10` keeps rather than rewrites. Merged PR #34 on
+  `narutousomaki741`.
+- **VERIFIED:** Item 1 re-executed here: the author's neutralisation
+  (`return above && above.date < below.date` → `return false && …`) leaves **1 of 21** RED in
+  `tests/docs-budget.test.ts`, `expected [] to deeply equal [ Array(1) ]` on the fixture case;
+  restored **21/21 green**. Item 6 by mutating the REAL file rather than a fixture — §7's last
+  abstract re-dated `2026-08-16` → `2026-08-18`, which makes `current_state.md` itself genuinely
+  out of order: the new gate goes RED naming the pair, and the check it replaced stays **GREEN** on
+  that same input (`ns` = `1000 … 991`). Old blind, new red, one real file. Item 2: every
+  `.n`/`parseAbstracts` reader re-enumerated independently — the author's five-row table is complete.
+  Item 7: `detectReservedClasses` run here against `origin/main` ⇒ `classes: []`, and both CI jobs
+  SUCCESS on the tip with no `needs-operator/*` label. `freeze-boundary` **12/12**.
+- **FOUND:** no defect; all three `done-when:` items are box-executable and all three were executed.
+  The fixture alone would not have settled item 6 — it proves the helper, and stays green if the
+  real-file assertion is deleted — which is why the gate was re-proved against `current_state.md`.
+  One correction (item 4): the entry's *"§7 holds eight abstracts dated `2026-08-16`"* is `origin/main`'s
+  histogram (8/2, measured); on this PR's own tip it is **7 and 3**, since the same commit adds an
+  `08-17` abstract and rotates an `08-16` one out. The ceiling argument it supports is unaffected —
+  but the observable scope today is one day boundary, so the gate binds the next mis-rotation, not §7
+  as it stands. The `date:` is authored and nothing checks it against the day of the turn
+  (`agent-finish.mjs:284` only suggests it), a second ceiling the entry does not name.
+- **OWES:** `brahim` — two non-blocking follow-ups, neither in this task's `done-when:`:
+  `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment now cites a gate that is true only to day
+  granularity, which it does not say; and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through
+  `.n`, a position rather than an identity for a new-scheme entry, so `1000` always finds whatever is
+  on top of §7 (pre-existing, guarded by the date cross-check beside it).
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-017-review.md`
+- **REVIEW:** n/a — this IS the review.
+
+### T-017 — §7's newest-first gate now reads the authored date, not the positional key — 2026-08-17 — seat: zayd
+
+- **CHANGED:** `tests/docs-budget.test.ts` (**`outOfDateOrder` NEW**, module-local and pure — the
+  offending adjacent pairs, empty ⇒ §7 descends by date; the old "numbers entries uniquely and
+  monotonically" case SPLIT, its duplicate-number half kept verbatim and its order half replaced by a
+  date comparison; +2 fixture cases — the teeth, and same-date entries in either order) ·
+  `tests/freeze-boundary.test.ts` (one comment: *"nothing enforces it"* was true when written and is
+  false as of this PR) · `current_state.md` (this abstract; **T-008's second abstract rotated** to
+  `docs/history.md` §E to stay inside the 10-abstract cap — its durable lesson is already in §5's
+  CLOSED list) · `docs/history.md` §E. No `scripts/`, no `packages/`, no `apps/web`, no frozen byte.
+- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/910 tests** main suite,
+  **8 files/154 tests** `docs:check` subset, `tests/freeze-boundary.test.ts` **12/12** ⇒
+  `RISK: additive`.
+  **Revert-verified:** neutralising the date comparison to the old blind behaviour
+  (`return above && above.date < below.date` → `return false && …`) left **1 of 21**
+  RED in `tests/docs-budget.test.ts` — the fixture case, `expected [] to deeply equal [ Array(1) ]`;
+  restored **21/21 green**. The same test's positional-key assertion stayed green through the revert,
+  which is deliberate: it is the half that records what the old signal could see.
+- **FOUND:** measured the defect before writing the fix rather than reading it off the BACKLOG row —
+  on a two-entry fixture with the OLDER entry on top (`T-002`/`2026-01-01` above `T-001`/`2026-01-02`)
+  the positional key is `1000, 999`, descending, and the old assertion is green on the exact input it
+  exists to refuse. What made it worth gating at all: `newestAbstract` returns the MAX `.n`, which for
+  a new-scheme entry IS its position, so §7's written order decides §8's "newest entry" row and
+  `--rebaseline`'s `_baselinedAtEntry`/`_baselinedAt` — and the existing "§8 agrees with §7" case
+  cannot catch a mislabel, both its sides coming from that same call. ⚠ **Day granularity is the
+  honest ceiling, not an oversight:** §7 holds eight abstracts dated `2026-08-16`, so a swap within a
+  day is invisible and is accepted by design. **Backward sweep, all five order-readers enumerated:**
+  `newestAbstract` (the reason the gate exists), `state.mjs:229`/`:240` and the `AWAITING REVIEW` guard
+  (covered transitively), `frozen-surface.mjs`'s `baselineEntryIssues` (treats `.n` as an identity, not
+  a sequence — unaffected), and `agent-finish.mjs:280`, whose `find(a => a.id === task && a.seat ===
+  seat)` does take the topmost of a same-id/same-seat pair (§7 holds one today) — not a defect, the
+  matched object is never read past the `die()` beside it.
+- **OWES:** `hmdnah` — this PR's review; `risk: normal` per the BACKLOG row, so the ordinary one-step
+  route. Not covered: two entries written on the same day are unordered by this gate, which would need
+  a finer-grained authored field in §7's heading — a schema change, out of scope here. `brahim` — the
+  two T-016 follow-ups reassigned in that entry's step-2 `OWES:` are untouched by this turn.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-17-T-017-newest-first-by-date.md`
+- **REVIEW:** reviewed by `hmdnah` (one step, `risk: normal`) — item 1 re-executed, and item 6 re-proved
+  against the real `current_state.md` rather than the fixture. No defect; one number corrected in the
+  review entry above. Approved and merged on `narutousomaki741` with green CI.
+
+### T-016 — review (step 2, adversarial): the field is correct and its wiring is untested — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — the two findings below are comment-level and unprovable by test,
+  and step 2 is the step nobody reviews. Merged PR #33 on `narutousomaki741`.
+- **VERIFIED:** Item 1 re-executed independently of step 1: `resolveBuilder` → `return seat;` leaves
+  **1 of 50 RED**, `expected 'hmdnah' to be 'zayd'`; restored, whole `tests/protocol/` tree
+  **113/113 green**. Item 2: every baton site enumerated (two writers, two readers, one fixture) —
+  no consumer dirty. Item 3: `liveClaims` is what quantifies over every baton, feeding two claim
+  refusals, and both correctly still key on `seat` — a collision gate asks who holds the branch, not
+  who built it. Item 6 by mutation: deleting the `builder` key from `agent-finish.mjs`'s `claim`
+  object restores the pre-T-016 defect at the call site and leaves **113/113 green**. Item 7
+  re-confirmed on the tip: `review/step-1` only, no `needs-operator/*`, both CI jobs pass.
+- **FOUND:** no defect. (1) **The wiring is uncovered** — the three `resolveBuilder` cases assert a
+  pure function, nothing asserts it is called, so `done-when:` bullets 2 and 3 rest on re-execution;
+  it is proven instead on this branch's own history, where `153c957` (plain finish) wrote
+  `builder: zayd` and `c9ac027` (`--review` finish) carried it forward under `seat: hmdnah` —
+  `zayd`'s `OWES:` discharged. (2) **One rationale, four copies, all four now stale** — the reason
+  `--continue` derives the admitted seat from `machine:` is written out at `agent-start.mjs` `~48`
+  and `~499`, `seats.builderFor` (`seats.mjs` `~459`) and `tests/protocol/seats.test.ts` `~306`, and
+  each says a gate on the baton "would admit the reviewer", true of `seat` and false of `builder`;
+  step 1 flagged the first two. Measured scope limit, quantified: **1 of 8** live batons carries a
+  `builder` row, so the next `--review` finish on the other seven stamps `builder: hmdnah` by the
+  documented fallback — a false positive where there was a silence.
+- **OWES:** `brahim` — two follow-ups, neither in this task's `done-when:`: an end-to-end test of
+  `agent-finish.mjs`'s baton write (step 1 measured that one `package.json` with a no-op `verify`
+  crosses `agent-finish.test.ts`'s stated fixture boundary, so it is closable, but it is a change to
+  `zayd`'s harness with a 113-test blast radius); and the four stale rationale copies, which want one
+  copy and three pointers per `AGENTS.md §7.2` rather than a fourth rewrite.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-016-review-step2.md`
+- **REVIEW:** n/a — this IS step 2 of the review.
+
+### T-016 — review (step 1, mechanical): the revert holds, and the fixture the `done-when:` names is reachable — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a step-1 review that edits the branch changes the thing step 2
+  reviews. Findings posted as a PR comment on #33.
+- **VERIFIED:** Item 1, twice. **Unit:** `resolveBuilder` → `return seat;`, both protocol suites
+  re-run — **1 of 50 RED**, `expected 'hmdnah' to be 'zayd'` on "a review finish carries the PRIOR
+  builder forward"; restored **50/50 green**. **Fixture, end to end** — the reproduction `done-when:`
+  bullet 4 names: a real `--review` finish driven through to the baton write on a `makeFixture` repo
+  (one added `package.json` with a no-op `verify` script clears step 1) writes **`builder: hmdnah`**
+  with the fix reverted and **`builder: zayd`** with it in place, `seat: hmdnah` either way. Numbers
+  re-measured, all matching: **95 files/907 tests**, `docs:check` **8 files/151 tests**,
+  `freeze-boundary` **12/12**.
+- **FOUND:** nothing that blocks. Three claims that do not hold as written (item 4): (1)
+  `resolveBuilder`'s doc-comment and handoff §2/§5 say the baton write is "past what this repo's
+  fixtures can reach" — it is reachable, so no committed test covers `agent-finish.mjs`'s baton write
+  and bullet 4 rests on this review's re-execution alone; (2) `scripts/agent-start.mjs`'s file header
+  and its `--continue` gate comment still justify deriving the builder by saying a `--review` finish
+  rewrites the baton to name the reviewer — the condition this PR removes; (3) handoff §2's "renders
+  identically to before" — a pre-T-016 baton gains a `builder` row, which the new test asserts.
+  Measured scope limit: on a baton written before this merges there is no `builder` row, so the
+  fallback names the reviewer — the field is trustworthy only on branches claimed after the merge.
+  Item 7: no `needs-operator/*` label **and** the labeller ran (both CI jobs SUCCESS on the tip).
+- **OWES:** `hmdnah` (a later session) — D88 step 2 on PR #33: items 2, 3, 6, reconciled against this
+  report, and re-confirming CI and the `needs-operator/*` check before merging.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-016-review-step1.md`
+- **REVIEW:** n/a — this IS step 1 of the review; step 2 (`hmdnah`, a separate session) approves and
+  merges.
+
 ### T-011 — review (step 2, re-run): both returned defects closed; the oracle claim is false — 2026-08-17 — seat: hmdnah
 
 - **CHANGED:** nothing on the branch — a review turn edits no code. `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
@@ -791,6 +929,38 @@ is maintenance and does NOT get an entry of its own.**
 - **REVIEW:** step 2 (adversarial, D88) complete — **NOT approved**, two defects proven in the new
   dependency edge; returned to `zayd` on the existing claim. See the `hmdnah` step-2 entry above.
 
+### T-016 — `§0b`'s baton carries the builder separately from the current holder — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `scripts/agent-start.mjs` (`renderBaton`/the initial claim write both gain a `builder`
+  field, set once at claim time, falling back to `seat` when absent) · `scripts/agent-start.d.mts`
+  (declared) · `scripts/agent-finish.mjs` (**`resolveBuilder` NEW**, pure, exported — a `--review`
+  finish carries the prior baton's `builder` forward, a plain finish sets it to the finishing seat) ·
+  `scripts/agent-finish.d.mts` (declared) · `tests/protocol/agent-start.test.ts` (`renderBaton`/
+  `parseBaton` round-trip suite +2, one assertion on the existing claim test) ·
+  `tests/protocol/agent-finish.test.ts` (`resolveBuilder` suite +3). No frozen byte, no `packages/`, no
+  `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0 — **95 files/907 tests** main suite, **151 tests**
+  `docs:check` subset, `tests/freeze-boundary.test.ts` green ⇒ `RISK: additive`. **Revert-verified:**
+  reverting `resolveBuilder` to its pre-fix shape (`return seat;` unconditionally) left **1 of 3** new
+  tests RED — `expected 'hmdnah' to be 'zayd'` on the review-finish case; restored to 3/3 green, then a
+  full re-run of both protocol suites (50/50 green).
+- **FOUND:** confirms the gap named 2026-08-15 exactly: before this fix, `agent-finish.mjs`'s baton
+  rewrite re-rendered the WHOLE claim with `seat` set to the finishing seat unconditionally, so a
+  `--review` finish had no way to leave the builder's identity anywhere in `current_state.md` — only the
+  claim commit message (`claim: T-nnn by <seat> (<machine>)`) still carried it.
+- **OWES:** `hmdnah` — this PR's review, `risk: high` (D88 two-step). Not covered: no end-to-end test
+  drives a real `--review` finish through to the baton write — that path runs after `pnpm verify`, past
+  what this repo's fixtures can reach (same scope limit `agent-finish.test.ts`'s own header already
+  states); this task's own review finish is the first live exercise — check `§0b`'s `builder` row still
+  reads `zayd` after it. `seats.builderFor`/`--continue` were left unchanged; switching `--continue` to
+  trust `builder` instead of re-deriving it is a possible follow-up, not part of this task.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-016-baton-builder-field.md`
+- **REVIEW:** both D88 steps complete, `hmdnah`, separate sessions — step 1 mechanical, step 2
+  adversarial (items 2, 3, 6, item 1 re-executed, item 7 re-confirmed). No defect; approved and merged
+  on `narutousomaki741` with green CI. The `builder` row survived this PR's own review finish, which is
+  the check this entry's `OWES:` asked for. Two follow-ups reassigned to `brahim` in step 2's `OWES:`.
+
 ### T-011 — review (step 1 of 2): the CRUD closes the measured defect exactly as claimed — 2026-08-16 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — a mechanical step-1 pass edits nothing on the branch (`REVIEW.md`
@@ -814,169 +984,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-16-T-011-review-step1.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
 
-### T-011 — Q17a — `scene.designOptions` becomes a `SceneCollection`, and its CRUD ships — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `packages/document/src/commands.ts` (`createDesignOptionCommand`/`updateDesignOptionCommand`/
-  `deleteDesignOptionCommand` NEW, registered in `CORE_COMMANDS`; `checkPrimaryInvariant`,
-  `designOptionReferrers` NEW) · `packages/document/src/scene.ts` (`SceneCollection` gains
-  `'designOptions'` — **contract-touching**) · `packages/document/src/dependency.ts` (`designOptions` case
-  NEW, closing the exhaustive switch's `TS2345`; `elementsTaggedIntoSet`/`belongsToDescendants` NEW) ·
-  `packages/document/src/bnn.ts` (`designOptions` joins the hostile-`.bnn` guarded-key list) ·
-  `packages/document/src/designoptions.ts` (header comment only — the CRUD is built) ·
-  `tests/design-option-crud.test.ts` NEW (+13) · `tests/frozen-surface.snapshot.json` re-baselined (one
-  declaration: `type SceneCollection`).
-- **VERIFIED:** `pnpm verify` green, foreground, real OCCT kernel, exit 0 — main suite **913 tests / 96
-  files**, `docs:check` **146 tests / 8 files**. `tests/freeze-boundary.test.ts` green because the baseline
-  was re-generated in this PR; the live diff against `origin/main`'s committed baseline is exactly the one
-  declaration the design doc predicted (§3.2). **Revert-verified:** `git stash` on the five touched
-  `packages/document/src/*.ts` files left **12 of 13** new tests RED (`unknown command
-  "core.createDesignOption"`) — the one survivor is the RED baseline case, which asserts the UNCHANGED
-  defect and is not supposed to move. `git stash pop` restored 13/13, `tests/design-option-refs.test.ts`'s
-  existing 8 unaffected.
-- **FOUND:** The measured defect closes exactly as the design doc's §1.4 predicted: two identical
-  6000×200×3000 walls, one tagged with a CRUD-minted id, both now count — `modelElements()` 2 of 2, a
-  whole-model schedule totals 7 200 000 000 mm³ (was 3 600 000 000), `brokenRefs()`/`unmeasured` both
-  empty. **New kind of thing, not in the design doc:** promoting an option to primary
-  (`updateDesignOption({isPrimary:true})`) must atomically demote the set's other primary in the SAME
-  edit, or swapping a set's primary deadlocks — demote-old-first leaves zero primaries (refused),
-  promote-new-first leaves two (refused too), and no ordering of two single-option calls ever succeeds.
-  `core.createDesignOption` deliberately does NOT auto-demote (an explicit `isPrimary:true` against an
-  existing primary is refused instead) — a brand-new row silently stealing an existing option's primacy
-  is not a gesture a create should perform, and keeping create strict is what keeps the "two explicit
-  primaries" refusal path testable at all. **Backward sweep** (invariant 7): grepped every
-  `'schedules'`/`'views'`-shaped list and every `SceneCollection` reference in `packages/document/src` and
-  `apps/web/src` — `bnn.ts`'s guard list was the only non-exhaustive-switch site; every exhaustive switch
-  is compiler-enforced, and `pnpm typecheck` was green throughout.
-- **OWES:** `hmdnah` — this PR's review; `risk: high` (BACKLOG row) ⇒ D88's two-step route, **and**
-  `RISK: contract-touching` ⇒ after both steps approve, the **owner** merges it, never the reviewing
-  agent.
-- **RISK:** contract-touching (re-baselined) — 1 declaration moved:
-  `packages/document/src/scene.ts :: type SceneCollection`, predicted and owner-ruled in advance (D85,
-  design doc §3.2).
-- **FULL:** `handoff/zayd/2026-08-16-T-011-design-option-crud.md`
-- **REVIEW:** two-step review (D88) complete — step 1 clean, step 2 **NOT approved**: two defects proven
-  in `dependency.ts`'s new `designOptions` edge, returned to `zayd` on the existing claim.
-
-### T-009 — review (step 1, mechanical): the revert holds, and the fix's structural claims check out — 2026-08-16 — seat: hmdnah
-
-- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
-  Posted the findings as a PR comment on #31.
-- **VERIFIED:** Item 1, live: neutralised `requireHostFaceIsBasePart`'s guard
-  (`if (false && (...))`) and re-ran `tests/document-openings.test.ts` — **2 of 14 RED**, exactly the
-  two new D84 tests, both on `.rejects.toThrow(/own base part/)`; restored → **14/14 green**.
-  Independently re-ran the FULL suite (not from cache): **95 files/902 tests, all green**, matching
-  the handoff's own claim exactly. `tests/freeze-boundary.test.ts`: **12/12 green** locally,
-  `RISK: additive` confirmed via `pnpm state`.
-- **FOUND:** nothing that blocks. Read every structural claim the fix's legitimacy rests on against
-  the code (item 4) — `decodeSubShapeRef` is a real structured decode, `cutNodeId` is the sole `~`
-  writer, `checkNameSafe` already refuses `~` in authored names, `derivedRole` composes
-  `` `${opTag}(...)` `` and the cut boolean's own `opTag` is literally `'cut'`, both call sites are
-  ordered as described, and `hostRef` is written in exactly two guarded places (the one other site
-  only rewrites an already-valid ref's layer segment) — all confirmed. ⚠ **CI was still `pending` on
-  both jobs at review time and no `needs-operator/*` label was present yet** — per `REVIEW.md` item 7's
-  own warning, "no label" and "the labeller never executed" look identical from here, so this is
-  recorded unresolved, not as clearance.
-- **OWES:** `hmdnah` (a later session) — D88 step 2 on PR #31: items 2, 3, 6, reconciled against this
-  report, and re-confirming CI/the `needs-operator/*` label before merging.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-16-T-009-review-step1.md`
-- **REVIEW:** n/a — this IS step 1 of the review; step 2 (`hmdnah`, a separate session) approves and
-  merges.
-
-### T-009 — Q18: a hosted void may only host on its host's own base part — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `packages/document/src/commands.ts` (**`requireHostFaceIsBasePart` NEW**, private —
-  decodes `hostRef`, refuses if its `nodeId` contains `~` (`cutNodeId`'s own separator, the only code that
-  ever writes one) or its `role` starts with `cut(` (`derivedRole`'s own opTag); called from
-  `createElementCommand.execute` right after `hostId` is validated, and from
-  `retargetReferenceCommand.execute` right after the belongs-to-cycle guard — D51's "generalised to every
-  reference." `decodeSubShapeRef` import added). No frozen byte, no `packages/protocol`, no `apps/web`.
-- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/902 tests** main suite (real OCCT
-  WASM throughout), **8 files/146 tests** `docs:check`. `tests/freeze-boundary.test.ts` green ⇒
-  **RISK: additive**. **Revert-verified live:** neutralising the guard's condition left **2 of 14** tests
-  in `tests/document-openings.test.ts` RED (both new, `.rejects.toThrow` never threw); restored,
-  **14/14 green**.
-- **FOUND:** measured the actual trigger headlessly before writing the fix — an interior hole (a window
-  with a sill, `offsetV > 0`) leaves the host face's own token passed through UNCHANGED (`REL_INHERIT`),
-  so it does **not** reproduce the defect; a void whose boundary is COINCIDENT with an existing one
-  (`offsetV: 0`, touching the wall's own base) is what earns OCCT's "Modified" verdict and mints a
-  genuinely derived face token (`…structure~opening-…/face/cut(…z-min~0)#0`) — narrower than "any second
-  opening," and the fixture used in the new tests reproduces it on demand.
-- **OWES:** `hmdnah` — this PR's review; `risk: high` per the BACKLOG entry, so D88's two-step route
-  applies. `amer`/`khalihlna` — `T-010` (the browser confirmation this task is split from, `machine: pc`)
-  still needs the picking gesture itself to offer a valid face instead of a derived one; this PR only
-  gives the refusal a reason, not yet a replacement.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-16-T-009-hosted-void-base-part.md`
-- **REVIEW:** step 1 (mechanical, D88) complete — see `hmdnah`'s entry above, nothing found that
-  blocks. Step 2 (`hmdnah`, a separate session) pending — approves and merges on green CI.
-
-### T-012 — review (step 2): the fallback quantifies over the registry, and `reviewerForBranch` genuinely reuses `reviewerFor` — 2026-08-16 — seat: hmdnah
-
-- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing being merged.
-  `docs/BACKLOG.md`'s T-012 row flips `review` → `done` via `agent-finish.mjs --review --step 2`.
-- **VERIFIED:** Reconciled step 1's report (items 1, 4, 5, 7,
-  https://github.com/Davidian-Abdo/Bunyan/pull/30#issuecomment-5308498620) — clean, revert-verified
-  (10/77 RED → 77/77 green), numbers reproduced (900 green, 146/146 `docs:check`), `RISK: additive`, no
-  `needs-operator/*`. Re-ran `tests/protocol/seats.test.ts` + `agent-start.test.ts` myself: **77/77
-  green**, matching. `gh pr checks 30` → both jobs `pass` (12s, 9m10s — full run), re-confirmed
-  immediately before merging.
-- **FOUND:** Items 2/3/6 all clean. **Backward sweep:** grepped every other PR-title→reviewer consumer
-  in the tree — `pr-ready.mjs` only checks `titleRoutes()` shape (already accepted `STEWARD:`, unchanged
-  need); `reserved-classes.mjs` has no title/reviewer logic; `agent-finish.mjs`'s three `reviewerFor`
-  calls pass the finishing seat's own known machine, never a parsed title, so never exposed to this gap;
-  `state.mjs` only lists `headRefName`s. `agent-start.mjs`'s routing loop was the only site. **New kind
-  of thing:** `seatFromBranchPrefix`/`reviewerForBranch` quantify over "every seat" via
-  `readRegistry(root)`, a fresh read of `docs/seats/README.md`'s table on every call — no hardcoded seat
-  list found in either file's logic — so a sixth seat added as a registry row gets correct branch-prefix
-  routing automatically, no matching code update needed. **Weak green:** pressure-tested "a T-nnn in the
-  title still wins" against "the fallback branch is never reached at all (a bug), not because precedence
-  is correct" — the test deliberately mismatches the branch prefix's machine (`amer`/pc) against the
-  title's task machine (`box`), so a bug that ran the fallback regardless of `id` would produce a
-  different seat (`khalihlna`) and a different printed line, not a coincidental pass. Independent
-  spot-check: read `reviewerForBranch` directly (`scripts/seats.mjs:443-451`) — confirmed it calls
-  `machineOf` then spreads `reviewerFor(root, m, finishingSeat)`, the SAME function title-based routing
-  uses, reimplementing nothing.
-- **OWES:** nothing outstanding. Minor non-blocking note filed in the handoff body: the merged PR's own
-  test counts (`+9`/`+3`) are off by one against the actual diff (`+8`/`+4`) — doesn't affect
-  correctness, worth fixing next time those numbers are touched.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-16-T-012-review-step2.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); approved and merged on `narutousomaki741`.
-
-### T-012 — `--review` routes a PR whose title carries no `T-nnn` — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `scripts/seats.mjs` (**`seatFromBranchPrefix` NEW**, exported — the seat a branch's own
-  `<seat>/…` prefix names; **`reviewerForBranch` NEW**, exported — for a titleless PR, resolves that
-  seat's `machineOf`, then hands it to the SAME `reviewerFor` a `T-nnn` PR already uses) ·
-  `scripts/agent-start.mjs` (the `--review` routing loop's `else` branch — no `T-nnn` — now calls
-  `reviewerForBranch(root, pr.headRefName, undefined)` instead of leaving `r = '?'`; prints `NOBODY` with
-  the reason when the prefix names no seat; the trailing `Finish with:` hint is STEWARD-aware) ·
-  `scripts/seats.d.mts` (both declared) · `tests/protocol/seats.test.ts` (+9, pure) ·
-  `tests/protocol/agent-start.test.ts` (`fakeGhForReview`/`pushSteward` NEW; +3, spawns the real CLI). No
-  frozen byte, no `packages/`, no `apps/web`.
-- **VERIFIED:** `pnpm verify` (foreground) green, all six gates — main suite **900 tests, 95 files**;
-  `docs:check` **146 tests, 8 files**. `tests/freeze-boundary.test.ts` green ⇒ frozen surface unmoved —
-  **RISK: additive**. **Revert-verified live:** `git stash` on the three source/type files left **10 of
-  77** protocol tests RED (`seatFromBranchPrefix`/`reviewerForBranch is not a function`, plus the new
-  end-to-end case); the end-to-end one reproduces the task's own `done-when:` literally — a real spawn of
-  `agent-start.mjs --review` against a fixture `STEWARD:`-titled PR on a real pushed branch printed
-  `reviewer: ?` and stopped at "No open PR routes to this seat." `git stash pop` restored 77/77 green.
-- **FOUND:** Closes a gap T-015's own handoff had flagged and left open (`gh pr
-  checkout`/`gh pr comment` were untested against a real PR, since this repo's fixture `origin` is a bare
-  local repo `gh pr list` returns nothing against) — the new `fakeGhForReview` stub answers `pr list` with
-  canned JSON and makes `pr checkout` a real `git checkout` of a branch the test itself pushed, hermetic
-  against ambient `gh` auth per today's earlier T-013 CI lesson (own `fakeGhReporting` `PATH` stand-in,
-  extended rather than duplicated). `agent-finish.mjs`'s own `reviewerFor` calls were never exposed to
-  this gap — they pass the finishing seat's own machine directly, never a parsed title — so needed no
-  change (backward sweep, invariant 7).
-- **OWES:** `hmdnah` — this PR's review; `risk: high` per the BACKLOG entry (safety-critical routing), so
-  D88's two-step route applies.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-16-T-012-titleless-pr-routing.md`
-- **REVIEW:** done — two-step review complete (D88), approved and merged by `hmdnah` on
-  `narutousomaki741`. See T-012 review (step 2) above.
-
 ## §8 — Generated
 
 
@@ -984,16 +991,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-011 (hmdnah, 2026-08-17)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `5e2f097` · clean |
-| open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | **920 green** · 96 files · 283 suites |
+| **newest entry** | **T-017 (hmdnah, 2026-08-17)** |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `0a641b3` · dirty |
+| open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
+| suite | **910 green** · 95 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 22 files changed, 2466 insertions(+), 279 deletions(-) (22 files) |
-| docs budget | current_state 83.4/96.0 KB · §7 30.6/32.0 KB · abstracts 10/10 · bodies 61 |
+| diff vs origin/main | 35 files changed, 3509 insertions(+), 399 deletions(-) (35 files) |
+| docs budget | current_state 83.8/96.0 KB · §7 31.2/32.0 KB · abstracts 10/10 · bodies 66 |
 
 _Generated 2026-08-17 by `pnpm state`._
 

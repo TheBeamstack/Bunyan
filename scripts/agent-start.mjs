@@ -96,9 +96,13 @@ export function parseBaton(csSrc) {
   return Object.keys(out).length ? out : null;
 }
 
-export function renderBaton({ seat, role, machine, task, branch, claimedAt, status }) {
+export function renderBaton({ seat, role, machine, task, branch, claimedAt, status, builder }) {
   const rows = [
     ['seat', `\`${seat}\``],
+    // ⚠ `builder` is the seat that BUILT the task — written once at the claim (T-016) and carried
+    // forward unchanged by a `--review` finish, which overwrites `seat`/`role`/`status` to name the
+    // reviewer instead. Falls back to `seat` so a baton written before T-016 still renders.
+    ['builder', `\`${builder ?? seat}\``],
     ['role', role],
     ['machine', machine],
     ['task', `\`${task}\``],
@@ -885,6 +889,7 @@ export function main(argv = process.argv.slice(2)) {
       branch,
       claimedAt: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
       status: 'working',
+      builder: seat,
     }),
   );
   git(['add', csPath], root);
