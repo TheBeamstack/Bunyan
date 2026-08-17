@@ -250,7 +250,8 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
    */
   it("⚠⚠ catches Q15's own shape: an entry number that disagrees with the date beside it", () => {
     const abstracts = parseAbstracts(readCurrentState(ROOT));
-    // ⚠ By MAX, not by position — §7 is written newest-first by convention and nothing enforces it.
+    // ⚠ By MAX, not by position — §7's newest-first order is gated in `docs-budget.test.ts`, but by
+    // each entry's `date:`, which cannot separate two entries written on the same day.
     const newest = abstracts.reduce((a, b) => (b.n > a.n ? b : a));
     // ⚠ Pick a date that is NOT this entry's own, whatever §7 currently says — a literal would be
     // one more hand-maintained constant, which is the disease this whole describe block is about.

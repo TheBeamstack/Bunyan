@@ -1327,6 +1327,22 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-008 — the two step-1 review defects, closed on the existing claim — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `document.ts` (`danglingAncestorRefs` groups both edges by the missing ancestor id, one
+  report per element, not per edge; `hostId` now `element.id`, matching T-007's convention) ·
+  `commands.ts` (`deleteElement`'s label: `"hosted element(s)"` → `"other element(s)"`) ·
+  `tests/belongs-to-deletion-d83.test.ts` (+2, through the shipped verbs).
+- **VERIFIED:** `pnpm verify` — **845/95, real OCCT, exit 0**; `freeze-boundary` green, `RISK: additive`
+  unmoved. Both fixes **revert-verified separately**, each 1 RED alone, both restored green.
+- **FOUND:** both defects reproduce exactly as both `hmdnah` reviews measured. `agent-start.mjs
+  --continue T-008` (T-015's first real use) worked as documented — no `gh pr checkout` by hand.
+- **OWES:** `hmdnah` — D88 step 2 on PR #23; both defects closed, `hostId` aligned too (free, unread).
+  `khalihlna` — the 2026-08-15 Problems-panel `unverified here` note stands; untouched this turn.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-008-review-defects-fixed.md`
+- **REVIEW:** pending — `hmdnah` step 2 (D88), same PR #23.
+
 ### T-008 — the cascade and the exclusion rule now walk one belongs-to edge set — 2026-08-15 — seat: zayd
 
 - **CHANGED:** `packages/document/src/commands.ts` (`cascadeOf` walks **`belongsTo` NEW** — both edges;
