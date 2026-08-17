@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-018` |
 | branch | `task/T-018-d66-s-lazy-build-design-doc-measurement-` |
@@ -970,15 +970,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-018 (zayd, 2026-08-17)** |
-| branch · tip · tree | `task/T-018-d66-s-lazy-build-design-doc-measurement-` · `052dda7` · clean |
-| open PRs | none — main is the tip of the work |
+| branch · tip · tree | `task/T-018-d66-s-lazy-build-design-doc-measurement-` · `dfe7057` · clean |
+| open PRs | #35 task/T-018-d66-s-lazy-build-design-doc-measurement- |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 6 files changed, 1054 insertions(+), 66 deletions(-) (6 files) |
-| docs budget | current_state 82.8/96.0 KB · §7 30.4/32.0 KB · abstracts 9/10 · bodies 67 |
+| diff vs origin/main | 7 files changed, 1282 insertions(+), 106 deletions(-) (7 files) |
+| docs budget | current_state 81.8/96.0 KB · §7 29.5/32.0 KB · abstracts 9/10 · bodies 68 |
 
 _Generated 2026-08-17 by `pnpm state`._
 
