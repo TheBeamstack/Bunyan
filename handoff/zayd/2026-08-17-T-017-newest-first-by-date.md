@@ -94,7 +94,10 @@ left as it stands.
 
 ## 6. Verification
 
-`pnpm verify` green, exit 0 — all six gates. Numbers in the §7 abstract.
+`pnpm verify` green, exit 0 — all six gates. **95 files / 910 tests** in the main suite (907 before
+this turn; the three added are the split half, the fixture with teeth and the same-date case),
+**8 files / 154 tests** in the `docs:check` subset, `tests/freeze-boundary.test.ts` **12/12** ⇒ the
+frozen surface has not moved, `RISK: additive`.
 
 **Revert-verified.** Neutralised the date comparison to reproduce the old blind behaviour
 (`return above && above.date < below.date` → `return false && above && above.date < below.date`) and

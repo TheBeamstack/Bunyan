@@ -639,8 +639,9 @@ is maintenance and does NOT get an entry of its own.**
   false as of this PR) · `current_state.md` (this abstract; **T-008's second abstract rotated** to
   `docs/history.md` §E to stay inside the 10-abstract cap — its durable lesson is already in §5's
   CLOSED list) · `docs/history.md` §E. No `scripts/`, no `packages/`, no `apps/web`, no frozen byte.
-- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/909 tests** main suite,
-  **153 tests** `docs:check` subset, `tests/freeze-boundary.test.ts` **12/12** ⇒ `RISK: additive`.
+- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/910 tests** main suite,
+  **8 files/154 tests** `docs:check` subset, `tests/freeze-boundary.test.ts` **12/12** ⇒
+  `RISK: additive`.
   **Revert-verified:** neutralising the date comparison to the old blind behaviour
   (`return above && above.date < below.date` → `return false && …`) left **1 of 21**
   RED in `tests/docs-budget.test.ts` — the fixture case, `expected [] to deeply equal [ Array(1) ]`;
