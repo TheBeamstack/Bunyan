@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| role | reviewer |
+| seat | `zayd` |
+| role | builder |
 | machine | box |
 | task | `T-011` |
 | branch | `task/T-011-q17a-scene-designoptions-becomes-a-scene` |
@@ -924,21 +924,26 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
+## NEXT TURN: REVIEW ONLY
+
+`T-011` (built by `zayd`) was flagged **contract-touching**. The next session reviews its PR and **claims no new task**.
+
+**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-011 (zayd, 2026-08-17)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `fb4d4e6` · dirty |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `a6ae074` · clean |
 | open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | ⚠⚠ 913/915 passing — **2 FAILING** |
+| suite | **915 green** · 96 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 17 files changed, 1238 insertions(+), 206 deletions(-) (17 files) |
-| docs budget | current_state 77.0/96.0 KB · §7 24.7/32.0 KB · abstracts 9/10 · bodies 58 |
+| diff vs origin/main | 18 files changed, 1389 insertions(+), 207 deletions(-) (18 files) |
+| docs budget | current_state 77.7/96.0 KB · §7 25.3/32.0 KB · abstracts 9/10 · bodies 58 |
 
 _Generated 2026-08-17 by `pnpm state`._
 
