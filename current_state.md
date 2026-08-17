@@ -113,8 +113,8 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
-| role | builder |
+| seat | `hmdnah` |
+| role | reviewer |
 | machine | box |
 | task | `T-011` |
 | branch | `task/T-011-q17a-scene-designoptions-becomes-a-scene` |
@@ -978,25 +978,20 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-011` (built by `zayd`) was flagged **contract-touching**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-011 (hmdnah, 2026-08-17)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `89130fb` · dirty |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `5e2f097` · clean |
 | open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | ⚠ not measured this session — run `pnpm verify` |
+| suite | **920 green** · 96 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 21 files changed, 2240 insertions(+), 279 deletions(-) (21 files) |
+| diff vs origin/main | 22 files changed, 2466 insertions(+), 279 deletions(-) (22 files) |
 | docs budget | current_state 83.4/96.0 KB · §7 30.6/32.0 KB · abstracts 10/10 · bodies 61 |
 
 _Generated 2026-08-17 by `pnpm state`._
