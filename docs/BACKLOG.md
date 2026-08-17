@@ -547,6 +547,14 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-17 — a step-1 review's `review/step-1` label can land while its findings comment does not, and
+  the §7 abstract still claims the comment was posted.** Measured on PR #33 (T-016): the label was applied
+  at 11:33:05Z and the abstract reads _"Findings posted as a PR comment on #33"_, but the PR's six comments
+  are three auto-claims and two housekeeping notes — no report. Step 1's findings survive only on the
+  branch (`handoff/hmdnah/2026-08-17-T-016-review-step1.md` and its §7 abstract), so a step-2 session
+  reconciling against the PR alone finds nothing to reconcile against. The opposite direction of `T-014`'s
+  OWES note, which named a report with no label; nothing checks either way. Recorded rather than
+  decomposed — step 2 reads the branch body instead.
 - **2026-08-16 — `agent-start.mjs --review`'s reviewer-claim loop takes the first PR in `gh pr list`
   order (newest-first), not the one furthest along its own review pipeline.** Measured on PRs #31
   (T-009, past step 1, `review/step-1` label, CI green — actually due for step 2) and #32 (T-011, just
