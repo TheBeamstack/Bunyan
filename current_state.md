@@ -120,7 +120,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | task | `T-018` |
 | branch | `task/T-018-d66-s-lazy-build-design-doc-measurement-` |
 | claimed-at | 2026-08-17T19:40:32Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -981,7 +981,7 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-018 (zayd, 2026-08-17)** |
-| branch · tip · tree | `task/T-018-d66-s-lazy-build-design-doc-measurement-` · `bf1e8d6` · dirty |
+| branch · tip · tree | `task/T-018-d66-s-lazy-build-design-doc-measurement-` · `052dda7` · clean |
 | open PRs | none — main is the tip of the work |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
