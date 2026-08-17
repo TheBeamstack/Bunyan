@@ -120,7 +120,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | task | `T-017` |
 | branch | `task/T-017-docs-budget-test-ts-s-newest-first-check` |
 | claimed-at | 2026-08-17T12:36:41Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -957,15 +957,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-017 (zayd, 2026-08-17)** |
-| branch · tip · tree | `task/T-017-docs-budget-test-ts-s-newest-first-check` · `eb533dc` · dirty |
+| branch · tip · tree | `task/T-017-docs-budget-test-ts-s-newest-first-check` · `61d9aee` · clean |
 | open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | **907 green** · 95 files · 283 suites |
+| suite | **910 green** · 95 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 4 files changed, 152 insertions(+), 25 deletions(-) (4 files) |
-| docs budget | current_state 79.6/96.0 KB · §7 27.3/32.0 KB · abstracts 10/10 · bodies 59 |
+| diff vs origin/main | 5 files changed, 277 insertions(+), 30 deletions(-) (5 files) |
+| docs budget | current_state 79.5/96.0 KB · §7 27.3/32.0 KB · abstracts 10/10 · bodies 59 |
 
 _Generated 2026-08-17 by `pnpm state`._
 
