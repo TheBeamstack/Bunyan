@@ -629,6 +629,35 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-016 — review (step 1, mechanical): the revert holds, and the fixture the `done-when:` names is reachable — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a step-1 review that edits the branch changes the thing step 2
+  reviews. Findings posted as a PR comment on #33.
+- **VERIFIED:** Item 1, twice. **Unit:** `resolveBuilder` → `return seat;`, both protocol suites
+  re-run — **1 of 50 RED**, `expected 'hmdnah' to be 'zayd'` on "a review finish carries the PRIOR
+  builder forward"; restored **50/50 green**. **Fixture, end to end** — the reproduction `done-when:`
+  bullet 4 names: a real `--review` finish driven through to the baton write on a `makeFixture` repo
+  (one added `package.json` with a no-op `verify` script clears step 1) writes **`builder: hmdnah`**
+  with the fix reverted and **`builder: zayd`** with it in place, `seat: hmdnah` either way. Numbers
+  re-measured, all matching: **95 files/907 tests**, `docs:check` **8 files/151 tests**,
+  `freeze-boundary` **12/12**.
+- **FOUND:** nothing that blocks. Three claims that do not hold as written (item 4): (1)
+  `resolveBuilder`'s doc-comment and handoff §2/§5 say the baton write is "past what this repo's
+  fixtures can reach" — it is reachable, so no committed test covers `agent-finish.mjs`'s baton write
+  and bullet 4 rests on this review's re-execution alone; (2) `scripts/agent-start.mjs`'s file header
+  and its `--continue` gate comment still justify deriving the builder by saying a `--review` finish
+  rewrites the baton to name the reviewer — the condition this PR removes; (3) handoff §2's "renders
+  identically to before" — a pre-T-016 baton gains a `builder` row, which the new test asserts.
+  Measured scope limit: on a baton written before this merges there is no `builder` row, so the
+  fallback names the reviewer — the field is trustworthy only on branches claimed after the merge.
+  Item 7: no `needs-operator/*` label **and** the labeller ran (both CI jobs SUCCESS on the tip).
+- **OWES:** `hmdnah` (a later session) — D88 step 2 on PR #33: items 2, 3, 6, reconciled against this
+  report, and re-confirming CI and the `needs-operator/*` check before merging.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-016-review-step1.md`
+- **REVIEW:** n/a — this IS step 1 of the review; step 2 (`hmdnah`, a separate session) approves and
+  merges.
+
 ### T-016 — `§0b`'s baton carries the builder separately from the current holder — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `scripts/agent-start.mjs` (`renderBaton`/the initial claim write both gain a `builder`
@@ -656,7 +685,8 @@ is maintenance and does NOT get an entry of its own.**
   trust `builder` instead of re-deriving it is a possible follow-up, not part of this task.
 - **RISK:** additive
 - **FULL:** `handoff/zayd/2026-08-16-T-016-baton-builder-field.md`
-- **REVIEW:** pending — `hmdnah`, `risk: high` (D88 two-step).
+- **REVIEW:** step 1 (mechanical, D88) complete — see `hmdnah`'s entry above, nothing found that
+  blocks. Step 2 (`hmdnah`, a separate session) pending — approves and merges on green CI.
 
 ### T-009 — review (step 1, mechanical): the revert holds, and the fix's structural claims check out — 2026-08-16 — seat: hmdnah
 
@@ -900,47 +930,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-15-T-008-review.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on the entry below.
 
-### T-008 — the cascade and the exclusion rule now walk one belongs-to edge set — 2026-08-15 — seat: zayd
-
-- **CHANGED:** `packages/document/src/commands.ts` (`cascadeOf` walks **`belongsTo` NEW** — both edges;
-  `core.deleteElement`'s agent-visible description; two stale comment blocks) ·
-  `packages/document/src/document.ts` (**`danglingAncestorRefs` NEW**, unioned into `brokenRefs()` beside
-  T-007's) · `packages/document/src/designoptions.ts` (comments only) ·
-  **`tests/belongs-to-deletion-d83.test.ts` NEW (+7)** · `tests/belongs-to-cycle-guard.test.ts` (the Q19
-  pin replaced by the property it protected; the mixed cycle added) · `docs/contracts/V1.0.0_spec.md`
-  (D39 gains `AMENDED BY D83`) · `docs/contracts/core_logic.md` (domain rule 3's third class) ·
-  `docs/decisions.md` (D83's BUILT note). No frozen byte, no verb, no schema bump, `argsSchema` unmoved.
-- **VERIFIED:** **843 green** across 95 files, all six gates, real exit code 0, real OCCT throughout;
-  `freeze-boundary` green ⇒ the frozen surface has not moved. **Revert-verified each half separately**:
-  `belongsTo` → `hostedBy` is **6 RED** (`expected [ 'wall-…' ] to deeply equal [ …(2) ]`), dropping
-  `danglingAncestorRefs` is **3 RED** (`expected [] to have a length of 1 but got +0`).
-- **FOUND:** ⚠⚠ **The whole suite noticed the new cascade in exactly ONE place** — `1 failed | 842
-  passed` before the pin was updated, and the failure is the pin D83 wrote to fail. ⚠ `hostedBy` stays
-  `hostId`-only because it answers the ASSEMBLY question, and the other four call sites are geometric:
-  `core.copy`'s refusal list is the only arguable one and it is right as it stands, because it exists for
-  the `hostRef` token a copy would have to rewrite (D51/D1) and a `parentElementId` is not inside a token.
-  ⚠ `rebuilt` needed nothing — `dependency.ts` pushes `before.hostId`, so a cascaded member re-cuts the
-  surviving wall it was hosted on, measured on the wall's volume rather than assumed. ⚠ On the `hostId`
-  edge a dangling ancestor means the element is **not built at all** (`affectedAssemblies` drops a root
-  that is not in the scene), so `geometryOf` is `undefined` and `unbuildable()` lists registration
-  failures only — the document said nothing whatever about it before. ⚠ `brokenRefs()` on a
-  hand-assembled 10,000-element scene: **2.78 → 5.81 ms/call**, and **5.70 ms/call with all 10,000
-  broken**, so the added pass is flat in the number of findings.
-- **OWES:** `hmdnah` — this PR; the two reverts above are the ones to re-execute. `amer` — ⚠ `App.tsx`'s
-  Problems-panel hint (*"hosted on a sub-shape that no longer resolves. Retarget them manually"*) is now
-  wrong for two of the three classes: T-007's option entry is hosted on nothing, and an ancestor entry
-  names a host that is gone rather than a face that moved. `unverified here: how the panel reads with
-  those entries in it — khalihlna to confirm`. `brahim` — D83's (a) half is ruled **on the condition that
-  groups stay a v1.0.x reservation**; if group authoring ships, this returns to the owner.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-15-T-008-belongs-to-deletion.md`
-- **REVIEW:** `hmdnah`, 2026-08-15, PR #23 — **pre-review only, NOT approved and NOT merged**, because
-  `risk: high` is an owner gate independent of the mechanical `RISK: additive`. Both reverts re-executed:
-  **6 RED** and **3 RED** as claimed, restored 24/24, full suite **843/843**, `freeze-boundary` green. Two
-  non-blocking defects — `brokenRefs()` emits two entries identical in `elementId` and `ref` when one
-  element's two edges name the same missing id (the key `App.tsx` lists on), and the edit label still says
-  *"N hosted element(s)"* for members. Findings in full: the PR comment.
-
 ---
 
 ## §8 — Generated
@@ -955,17 +944,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-016 (zayd, 2026-08-16)** |
-| branch · tip · tree | `task/T-016-0b-s-baton-carries-the-builder-separatel` · `8c77b5a` · clean |
-| open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | **907 green** · 95 files · 283 suites |
+| **newest entry** | **T-016 (hmdnah, 2026-08-17)** |
+| branch · tip · tree | `task/T-016-0b-s-baton-carries-the-builder-separatel` · `153c957` · dirty |
+| open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
+| suite | ⚠⚠ 906/907 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 9 files changed, 293 insertions(+), 66 deletions(-) (9 files) |
-| docs budget | current_state 79.1/96.0 KB · §7 26.9/32.0 KB · abstracts 10/10 · bodies 56 |
+| diff vs origin/main | 10 files changed, 370 insertions(+), 107 deletions(-) (10 files) |
+| docs budget | current_state 78.2/96.0 KB · §7 25.6/32.0 KB · abstracts 10/10 · bodies 57 |
 
-_Generated 2026-08-16 by `pnpm state`._
+_Generated 2026-08-17 by `pnpm state`._
 
 <!-- END GENERATED -->

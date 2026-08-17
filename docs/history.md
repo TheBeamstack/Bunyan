@@ -1327,6 +1327,47 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-008 — the cascade and the exclusion rule now walk one belongs-to edge set — 2026-08-15 — seat: zayd
+
+- **CHANGED:** `packages/document/src/commands.ts` (`cascadeOf` walks **`belongsTo` NEW** — both edges;
+  `core.deleteElement`'s agent-visible description; two stale comment blocks) ·
+  `packages/document/src/document.ts` (**`danglingAncestorRefs` NEW**, unioned into `brokenRefs()` beside
+  T-007's) · `packages/document/src/designoptions.ts` (comments only) ·
+  **`tests/belongs-to-deletion-d83.test.ts` NEW (+7)** · `tests/belongs-to-cycle-guard.test.ts` (the Q19
+  pin replaced by the property it protected; the mixed cycle added) · `docs/contracts/V1.0.0_spec.md`
+  (D39 gains `AMENDED BY D83`) · `docs/contracts/core_logic.md` (domain rule 3's third class) ·
+  `docs/decisions.md` (D83's BUILT note). No frozen byte, no verb, no schema bump, `argsSchema` unmoved.
+- **VERIFIED:** **843 green** across 95 files, all six gates, real exit code 0, real OCCT throughout;
+  `freeze-boundary` green ⇒ the frozen surface has not moved. **Revert-verified each half separately**:
+  `belongsTo` → `hostedBy` is **6 RED** (`expected [ 'wall-…' ] to deeply equal [ …(2) ]`), dropping
+  `danglingAncestorRefs` is **3 RED** (`expected [] to have a length of 1 but got +0`).
+- **FOUND:** ⚠⚠ **The whole suite noticed the new cascade in exactly ONE place** — `1 failed | 842
+  passed` before the pin was updated, and the failure is the pin D83 wrote to fail. ⚠ `hostedBy` stays
+  `hostId`-only because it answers the ASSEMBLY question, and the other four call sites are geometric:
+  `core.copy`'s refusal list is the only arguable one and it is right as it stands, because it exists for
+  the `hostRef` token a copy would have to rewrite (D51/D1) and a `parentElementId` is not inside a token.
+  ⚠ `rebuilt` needed nothing — `dependency.ts` pushes `before.hostId`, so a cascaded member re-cuts the
+  surviving wall it was hosted on, measured on the wall's volume rather than assumed. ⚠ On the `hostId`
+  edge a dangling ancestor means the element is **not built at all** (`affectedAssemblies` drops a root
+  that is not in the scene), so `geometryOf` is `undefined` and `unbuildable()` lists registration
+  failures only — the document said nothing whatever about it before. ⚠ `brokenRefs()` on a
+  hand-assembled 10,000-element scene: **2.78 → 5.81 ms/call**, and **5.70 ms/call with all 10,000
+  broken**, so the added pass is flat in the number of findings.
+- **OWES:** `hmdnah` — this PR; the two reverts above are the ones to re-execute. `amer` — ⚠ `App.tsx`'s
+  Problems-panel hint (*"hosted on a sub-shape that no longer resolves. Retarget them manually"*) is now
+  wrong for two of the three classes: T-007's option entry is hosted on nothing, and an ancestor entry
+  names a host that is gone rather than a face that moved. `unverified here: how the panel reads with
+  those entries in it — khalihlna to confirm`. `brahim` — D83's (a) half is ruled **on the condition that
+  groups stay a v1.0.x reservation**; if group authoring ships, this returns to the owner.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-15-T-008-belongs-to-deletion.md`
+- **REVIEW:** `hmdnah`, 2026-08-15, PR #23 — **pre-review only, NOT approved and NOT merged**, because
+  `risk: high` is an owner gate independent of the mechanical `RISK: additive`. Both reverts re-executed:
+  **6 RED** and **3 RED** as claimed, restored 24/24, full suite **843/843**, `freeze-boundary` green. Two
+  non-blocking defects — `brokenRefs()` emits two entries identical in `elementId` and `ref` when one
+  element's two edges name the same missing id (the key `App.tsx` lists on), and the edit label still says
+  *"N hosted element(s)"* for members. Findings in full: the PR comment.
+
 ### T-014 — review (step 2): the mechanism's first live exercise found two real defects and two wrong claims — 2026-08-16 — seat: hmdnah
 
 - **CHANGED:** `scripts/seats.mjs` (**`STEP1_LABEL_DESCRIPTION` fixed** — was 104 characters, GitHub caps a
