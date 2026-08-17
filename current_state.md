@@ -660,8 +660,9 @@ is maintenance and does NOT get an entry of its own.**
   for 3.3× the time, not a D73 quadratic.
 - **OWES:** The **owner** — merge #32; `RISK: contract-touching` + `needs-operator/freeze`, approved on
   `narutousomaki741`, and the `docs/BACKLOG.md` row stays `review` until the merge (`brahim`'s sweep flips
-  it). `brahim` — `--review` claimed **PR #33** for the fourth time; it wrote nothing, so #33 is unclaimed,
-  but the `## Discovered` row's fix shape is now overdue.
+  it). `brahim` — `--review` claimed **PR #33** for the fourth time, auto-claim comment included;
+  answered on #33 (`issuecomment-5314875325`) — it was not reviewed and holds no live claim. The
+  `## Discovered` row's fix shape is now overdue.
 - **RISK:** additive
 - **FULL:** `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.

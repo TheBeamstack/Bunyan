@@ -216,9 +216,11 @@ step 2. `tests/frozen-surface.snapshot.json` is untouched by `ee8abb3..89130fb` 
 
 - **Nothing browser-shaped** in this PR, so no `unverified here` debt.
 - **`agent-start.mjs --seat hmdnah --review` claimed PR #33 again** — a fourth occurrence, and it took
-  #33 (T-016) rather than #32 exactly as recorded. It checked out #33's branch; it wrote and pushed
-  nothing, so #33 is left unclaimed this turn, and I redirected to #32 by hand. The `## Discovered` row
-  already covers it.
+  #33 (T-016) rather than #32 exactly as recorded. ⚠ **Correction to what I first wrote here:** it did
+  not merely check the branch out — it posted the auto-claim comment on #33 as well
+  (`2026-08-17T09:51:29Z`, `agent-start.mjs:646`), which I had asserted it had not. Checked, then
+  answered with a housekeeping comment (`#33 issuecomment-5314875325`) saying #33 was not reviewed and
+  carries no live claim. I redirected to #32 by hand; the `## Discovered` row covers the mechanism.
 - **I did not re-run `pnpm verify`'s `typecheck`/`lint`/`format:check` legs locally** — CI ran all three
   green on `89130fb`, and I re-ran the two legs that carry this turn's evidence (`test`: 920/96,
   `docs:check`: 146/8).
