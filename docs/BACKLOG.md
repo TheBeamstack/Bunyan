@@ -554,6 +554,16 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-17 — `NEXT TURN: REVIEW ONLY` is cleared only on a `--review` finish, so a PR merged any other
+  way strands the banner and halts every builder turn on both machines.** `agent-finish.mjs:335` gates the
+  clear on `if (review)`; `agent-start.mjs:789` refuses a builder claim while it stands. T-011's banner
+  reached `main` with PR #32 and outlived it — the owner-authorized merge ran no `--review` finish — leaving
+  no script path to clear it: a builder turn is refused by the banner, `--review` refuses with no open PR,
+  and a steward finish does not touch it. Cleared by direct commit, as the merged-PR backstop
+  (`docs/prompts/brahim-orchestrator.md` step 4a) repairs the same omission's other half. Fix shape: clear
+  the banner on every finish whose task the banner names, not only `--review` — the banner addresses the
+  next session, and which finish retires it is not the banner's business. Found by `brahim` delegating the
+  first builder turn after #32. Recorded, not claimed.
 - **2026-08-17 — `agent-finish.mjs` runs `pnpm verify` (step 1) before regenerating §8 (step 2), so every
   turn that edits §7 burns a full verify before failing.** Seen twice today: the run dies red on
   `§8 agrees with §7 about which entry is newest` after ~9 minutes, and the seat must run `pnpm state` and
