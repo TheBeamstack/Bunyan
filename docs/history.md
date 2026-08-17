@@ -1327,6 +1327,63 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-016 — `§0b`'s baton carries the builder separately from the current holder — 2026-08-16 — seat: zayd
+
+- **CHANGED:** `scripts/agent-start.mjs` (`renderBaton`/the initial claim write both gain a `builder`
+  field, set once at claim time, falling back to `seat` when absent) · `scripts/agent-start.d.mts`
+  (declared) · `scripts/agent-finish.mjs` (**`resolveBuilder` NEW**, pure, exported — a `--review`
+  finish carries the prior baton's `builder` forward, a plain finish sets it to the finishing seat) ·
+  `scripts/agent-finish.d.mts` (declared) · `tests/protocol/agent-start.test.ts` (`renderBaton`/
+  `parseBaton` round-trip suite +2, one assertion on the existing claim test) ·
+  `tests/protocol/agent-finish.test.ts` (`resolveBuilder` suite +3). No frozen byte, no `packages/`, no
+  `apps/web`.
+- **VERIFIED:** `pnpm verify` green, exit 0 — **95 files/907 tests** main suite, **151 tests**
+  `docs:check` subset, `tests/freeze-boundary.test.ts` green ⇒ `RISK: additive`. **Revert-verified:**
+  reverting `resolveBuilder` to its pre-fix shape (`return seat;` unconditionally) left **1 of 3** new
+  tests RED — `expected 'hmdnah' to be 'zayd'` on the review-finish case; restored to 3/3 green, then a
+  full re-run of both protocol suites (50/50 green).
+- **FOUND:** confirms the gap named 2026-08-15 exactly: before this fix, `agent-finish.mjs`'s baton
+  rewrite re-rendered the WHOLE claim with `seat` set to the finishing seat unconditionally, so a
+  `--review` finish had no way to leave the builder's identity anywhere in `current_state.md` — only the
+  claim commit message (`claim: T-nnn by <seat> (<machine>)`) still carried it.
+- **OWES:** `hmdnah` — this PR's review, `risk: high` (D88 two-step). Not covered: no end-to-end test
+  drives a real `--review` finish through to the baton write — that path runs after `pnpm verify`, past
+  what this repo's fixtures can reach (same scope limit `agent-finish.test.ts`'s own header already
+  states); this task's own review finish is the first live exercise — check `§0b`'s `builder` row still
+  reads `zayd` after it. `seats.builderFor`/`--continue` were left unchanged; switching `--continue` to
+  trust `builder` instead of re-deriving it is a possible follow-up, not part of this task.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-16-T-016-baton-builder-field.md`
+- **REVIEW:** both D88 steps complete, `hmdnah`, separate sessions — step 1 mechanical, step 2
+  adversarial (items 2, 3, 6, item 1 re-executed, item 7 re-confirmed). No defect; approved and merged
+  on `narutousomaki741` with green CI. The `builder` row survived this PR's own review finish, which is
+  the check this entry's `OWES:` asked for. Two follow-ups reassigned to `brahim` in step 2's `OWES:`.
+
+
+### T-011 — review (step 1 of 2): the CRUD closes the measured defect exactly as claimed — 2026-08-16 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a mechanical step-1 pass edits nothing on the branch (`REVIEW.md`
+  items 1, 4, 5, 7 only). `handoff/hmdnah/2026-08-16-T-011-review-step1.md` NEW; this abstract.
+- **VERIFIED:** **Item 1 re-executed.** Reverted the five touched `packages/document/src/*.ts` files to
+  `main`'s version, kept `tests/design-option-crud.test.ts` as committed: **12 of 13 RED**
+  (`unknown command "core.createDesignOption"`), the one survivor the §6 RED-baseline case, unmoved.
+  Restored: **21/21 green** across `design-option-crud.test.ts` + `design-option-refs.test.ts`, tree
+  clean. `pnpm state` on this branch: `RISK: contract-touching (re-baselined) · 902 green · 95 files`,
+  matching both PR labels. `tests/freeze-boundary.test.ts` green (12/12), diffing to exactly one
+  declaration (`type SceneCollection`). `gh pr checks 32` confirms `pr-shape` actually ran.
+- **FOUND:** No defect. Every item-4 claim checked against code held — the 40-command count on `main`,
+  `emptyScene()`'s absent `designOptions` key, the `bnn.ts` backward sweep (only hardcoded
+  `'schedules'`/`'views'`-shaped site in the tree), the promote/demote/delete-referrer machinery, and
+  `_baselinedAtEntry: 1000` (confirmed as `docs-state.mjs`'s synthetic sort key for the newest §7 entry,
+  not a placeholder). Item 5's `WALL_VOLUME` figures are computed in the test, not hardcoded.
+- **OWES:** `hmdnah` (a different session) — step 2 of D88 (`REVIEW.md` items 2, 3, 6), on this same
+  claim; the row stays `review` until then. The **owner** — `RISK: contract-touching` regardless of how
+  step 2 lands, so the owner merges this PR, not either reviewing session.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-16-T-011-review-step1.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
+
+
 ### T-011 — Q17a — `scene.designOptions` becomes a `SceneCollection`, and its CRUD ships — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `packages/document/src/commands.ts` (`createDesignOptionCommand`/`updateDesignOptionCommand`/

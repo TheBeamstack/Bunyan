@@ -630,6 +630,51 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-018 — D66's lazy build: 89.8% of a cold load is deferrable, and a deferred join partner is safe — 2026-08-17 — seat: zayd
+
+- **CHANGED:** `docs/design/P5_step9_D66_lazy_build_design.md` **NEW** (§3a keep-live set · §3b first
+  paint · §3c force-vs-declare · §3d eviction ruled out — the section numbers T-005/T-006 already cite) ·
+  `tests/d66-lazy-build-measure.test.ts` **NEW** (+8, the instrument every number is printed by) ·
+  `docs/BACKLOG.md` (one `## Discovered` row) · `current_state.md` (this abstract; **T-011's step-1
+  review abstract rotated** to `docs/history.md` §E to stay inside the 10-abstract cap) ·
+  `docs/history.md` §E. **Nothing ported from closed PR #16**, and no `packages/`, no `apps/web`, no
+  `scripts/`, no frozen byte.
+- **VERIFIED:** `pnpm verify` green, foreground, real OCCT kernel, exit 0 — main suite **936 green · 97
+  files · 287 suites**, `docs:check` **154 · 8 files**; `tests/freeze-boundary.test.ts` 12/12,
+  unmoved ⇒ `RISK: additive`. **Revert-verified on the tripwire the row names:** changing
+  `identitiesOf` from `parts.flatMap(p => [...p.refs])` to `parts.map(p => p.nodeId)` left **1 of 8
+  RED** — `the identity signature must carry more than the recipe-derived node ids: expected 12 to be
+  greater than 12`; restored 8/8. ⚠ **The element-for-element identity comparison stays GREEN through
+  that revert, which is the point:** `partNodeId` is `${elementId}.${partName}`, computed with no kernel
+  call, so it agrees whatever the geometry did. ⚠ **The row names `Part.node`, a field that has never
+  existed** — it is `Part.nodeId` (`entities.ts:695`).
+- **FOUND:** **The safety condition holds and it holds ACROSS A JOIN.** Two cold documents from the same
+  `.bnn`, `rebuildAll()` vs `rebuildOnly(9 of 88)`: part names, `nodeId`, `refs` and `quantities` all
+  identical, `brokenRefs()` empty in both — and the built south wall keeps the miter made by a west wall
+  the partial document **never builds** (`resolveJoins` = `['start','end']` in both; bounds
+  `[-100,-100,0 … 8100,100,3000]` in both, the `-100` being the miter). Measured on `bounds`, not
+  `refs`, because T-011 measured that `refs` cannot see a miter. **Deferral:** 89.8% of elements / 89.3%
+  of solids deferred removes **85.8%** of a 2443 ms cold load; a 4-point `rebuildOnly` sweep
+  (22/44/66/88 el → 707/1231/1869/2567 ms) fits **28.3 ms/element, intercept 39 ms = 1.6%, R² 0.9961**,
+  so the element fraction and the wall-clock fraction agree to ~4 points. `rebuildOnly(everything)` costs
+  2567 ms against `rebuildAll()`'s 2443 ms ⇒ **the build half needs no new API.** ⚠⚠ **§3c's real
+  defect:** `projectQuantities` DECLARES the 79 deferred elements rather than under-reporting — but
+  `enumerate.ts:215` gives every one of them `failure: 'unbuildable'`, so a consumer cannot tell *"not
+  built yet"* from *"cannot be built"*. **Two measurement defects found by the harness failing:** a sweep
+  on cold kernels priced an element at **−0.76 ms** (each later load warmer than the last), and with all
+  the doors on one storey the fit came back **R² 0.2539**; fixed by a per-kernel warm-up and by spreading
+  the doors.
+- **OWES:** `hmdnah` — this PR's review, `risk: normal`, the ordinary one-step route. `khalihlna` —
+  *unverified here: lazy first paint improves time-to-first-pixel*; every number is headless and the
+  browser half is T-006's. `brahim` — three non-blocking items: the `## Discovered` join level-scoping
+  row wants a decision on becoming a `T-nnn`; **T-005's first `done-when:` bullet is discharged** (`save`
+  reads no built state — the two scenes are byte-identical JSON and `saveBnn` takes a `Scene`, never a
+  `DocumentContext`), so its wording now describes a measurement that exists; and T-018's own
+  `done-when:` names `Part.node`.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-17-T-018-d66-lazy-build.md`
+- **REVIEW:** pending — `hmdnah`.
+
 ### T-017 — review: the new gate has teeth on the real file, not only on its fixture — 2026-08-17 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — no defect to fix, and the one correction below is a number in the
@@ -929,77 +974,22 @@ is maintenance and does NOT get an entry of its own.**
 - **REVIEW:** step 2 (adversarial, D88) complete — **NOT approved**, two defects proven in the new
   dependency edge; returned to `zayd` on the existing claim. See the `hmdnah` step-2 entry above.
 
-### T-016 — `§0b`'s baton carries the builder separately from the current holder — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `scripts/agent-start.mjs` (`renderBaton`/the initial claim write both gain a `builder`
-  field, set once at claim time, falling back to `seat` when absent) · `scripts/agent-start.d.mts`
-  (declared) · `scripts/agent-finish.mjs` (**`resolveBuilder` NEW**, pure, exported — a `--review`
-  finish carries the prior baton's `builder` forward, a plain finish sets it to the finishing seat) ·
-  `scripts/agent-finish.d.mts` (declared) · `tests/protocol/agent-start.test.ts` (`renderBaton`/
-  `parseBaton` round-trip suite +2, one assertion on the existing claim test) ·
-  `tests/protocol/agent-finish.test.ts` (`resolveBuilder` suite +3). No frozen byte, no `packages/`, no
-  `apps/web`.
-- **VERIFIED:** `pnpm verify` green, exit 0 — **95 files/907 tests** main suite, **151 tests**
-  `docs:check` subset, `tests/freeze-boundary.test.ts` green ⇒ `RISK: additive`. **Revert-verified:**
-  reverting `resolveBuilder` to its pre-fix shape (`return seat;` unconditionally) left **1 of 3** new
-  tests RED — `expected 'hmdnah' to be 'zayd'` on the review-finish case; restored to 3/3 green, then a
-  full re-run of both protocol suites (50/50 green).
-- **FOUND:** confirms the gap named 2026-08-15 exactly: before this fix, `agent-finish.mjs`'s baton
-  rewrite re-rendered the WHOLE claim with `seat` set to the finishing seat unconditionally, so a
-  `--review` finish had no way to leave the builder's identity anywhere in `current_state.md` — only the
-  claim commit message (`claim: T-nnn by <seat> (<machine>)`) still carried it.
-- **OWES:** `hmdnah` — this PR's review, `risk: high` (D88 two-step). Not covered: no end-to-end test
-  drives a real `--review` finish through to the baton write — that path runs after `pnpm verify`, past
-  what this repo's fixtures can reach (same scope limit `agent-finish.test.ts`'s own header already
-  states); this task's own review finish is the first live exercise — check `§0b`'s `builder` row still
-  reads `zayd` after it. `seats.builderFor`/`--continue` were left unchanged; switching `--continue` to
-  trust `builder` instead of re-deriving it is a possible follow-up, not part of this task.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-16-T-016-baton-builder-field.md`
-- **REVIEW:** both D88 steps complete, `hmdnah`, separate sessions — step 1 mechanical, step 2
-  adversarial (items 2, 3, 6, item 1 re-executed, item 7 re-confirmed). No defect; approved and merged
-  on `narutousomaki741` with green CI. The `builder` row survived this PR's own review finish, which is
-  the check this entry's `OWES:` asked for. Two follow-ups reassigned to `brahim` in step 2's `OWES:`.
-
-### T-011 — review (step 1 of 2): the CRUD closes the measured defect exactly as claimed — 2026-08-16 — seat: hmdnah
-
-- **CHANGED:** nothing in the diff — a mechanical step-1 pass edits nothing on the branch (`REVIEW.md`
-  items 1, 4, 5, 7 only). `handoff/hmdnah/2026-08-16-T-011-review-step1.md` NEW; this abstract.
-- **VERIFIED:** **Item 1 re-executed.** Reverted the five touched `packages/document/src/*.ts` files to
-  `main`'s version, kept `tests/design-option-crud.test.ts` as committed: **12 of 13 RED**
-  (`unknown command "core.createDesignOption"`), the one survivor the §6 RED-baseline case, unmoved.
-  Restored: **21/21 green** across `design-option-crud.test.ts` + `design-option-refs.test.ts`, tree
-  clean. `pnpm state` on this branch: `RISK: contract-touching (re-baselined) · 902 green · 95 files`,
-  matching both PR labels. `tests/freeze-boundary.test.ts` green (12/12), diffing to exactly one
-  declaration (`type SceneCollection`). `gh pr checks 32` confirms `pr-shape` actually ran.
-- **FOUND:** No defect. Every item-4 claim checked against code held — the 40-command count on `main`,
-  `emptyScene()`'s absent `designOptions` key, the `bnn.ts` backward sweep (only hardcoded
-  `'schedules'`/`'views'`-shaped site in the tree), the promote/demote/delete-referrer machinery, and
-  `_baselinedAtEntry: 1000` (confirmed as `docs-state.mjs`'s synthetic sort key for the newest §7 entry,
-  not a placeholder). Item 5's `WALL_VOLUME` figures are computed in the test, not hardcoded.
-- **OWES:** `hmdnah` (a different session) — step 2 of D88 (`REVIEW.md` items 2, 3, 6), on this same
-  claim; the row stays `review` until then. The **owner** — `RISK: contract-touching` regardless of how
-  step 2 lands, so the owner merges this PR, not either reviewing session.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-16-T-011-review-step1.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
-
 ## §8 — Generated
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
-| **newest entry** | **T-017 (hmdnah, 2026-08-17)** |
-| branch · tip · tree | `main` · `ee7c4e5` · clean |
+| **newest entry** | **T-018 (zayd, 2026-08-17)** |
+| branch · tip · tree | `task/T-018-d66-s-lazy-build-design-doc-measurement-` · `bf1e8d6` · dirty |
 | open PRs | none — main is the tip of the work |
-| suite | **928 green** · 96 files · 285 suites |
+| suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | (no diff vs origin/main) (0 files) |
-| docs budget | current_state 83.7/96.0 KB · §7 31.2/32.0 KB · abstracts 10/10 · bodies 66 |
+| diff vs origin/main | 6 files changed, 1054 insertions(+), 66 deletions(-) (6 files) |
+| docs budget | current_state 82.8/96.0 KB · §7 30.4/32.0 KB · abstracts 9/10 · bodies 67 |
 
 _Generated 2026-08-17 by `pnpm state`._
 
