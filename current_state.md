@@ -113,14 +113,14 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-016` |
-| branch | `task/T-016-0b-s-baton-carries-the-builder-separatel` |
-| claimed-at | 2026-08-16T22:46:41Z |
-| status | finished — PR open, awaiting review |
+| task | `T-017` |
+| branch | `task/T-017-docs-budget-test-ts-s-newest-first-check` |
+| claimed-at | 2026-08-17T12:36:41Z |
+| status | working |
 
 <!-- END BATON -->
 
