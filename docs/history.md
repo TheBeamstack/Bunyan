@@ -1758,4 +1758,40 @@ same as `current_state.md` §7.
 - **REVIEW:** Reviewed and merged (`STEWARD:` PR, this branch) — the account/PR bookkeeping is not
   preserved here; see the handoff body and `docs/decisions.md` D87 for what it settled.
 
+### T-008 — review: the reconciliation holds, and the surfacing pass double-reports one element — 2026-08-15 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a pre-review that edits the branch changes the thing the owner is
+  deciding on. `docs/BACKLOG.md` `## Discovered` gains the `agent-finish.mjs --review` finding below, and
+  T-008's row is held at `review` against that script's own flip.
+- **VERIFIED:** ⚠ **Item 1 re-executed twice, by two sessions, the second not inheriting the first's
+  result.** `belongsTo` → `hostedBy` in `cascadeOf` is **6 RED**, and the split reproduces exactly: **2**
+  in `belongs-to-cycle-guard.test.ts` (`cascadeOf` terminates on a cycle; `cascadeOf` and
+  `isElementActive` walk the same edges) and **4** in `belongs-to-deletion-d83.test.ts`. Dropping
+  `danglingAncestorRefs` from `brokenRefs()` is **3 RED**, all `expected [] to have a length of 1 but got
+  +0`. Both restored ⇒ **24/24 green** across the two files.
+- **FOUND:** The verdict holds and both defects reproduce, measured rather than read. ⚠⚠
+  **`brokenRefs()` emits two entries identical in `elementId` and `ref`** when one element's `hostId` and
+  `parentElementId` name the same missing id — `danglingAncestorRefs` checks the edges independently, so
+  they differ only in `reason`. Measured through the shipped verbs (a door hosted in a wall, then
+  `core.setElementMetadata { parentElementId: <that wall> }`, then the wall dropped): **2 entries, 1
+  distinct `` `${b.elementId}:${b.ref}` `` — the key `App.tsx:1096` lists on.** ⚠ **The edit label was not
+  swept with the cascade:** deleting a parent whose member is joined by `parentElementId` alone yields
+  `"Delete Wall and 1 hosted element(s)"`, and the label is journalled (D40). ⚠ Recorded, not proved
+  harmful: `BrokenReference.hostId` is `ancestorId` here against T-007's `element.id` one day earlier, and
+  `ancestorId` is by construction absent from `scene.elements`; `agent.ts:218` projects
+  `{elementId, ref, reason}` and `App.tsx` reads neither, so no consumer resolves it today. ⚠ `cascadeOf`
+  has exactly one production consumer (`deleteElementCommand`) and `brokenRefs()` exactly two
+  (`agent.ts`'s projection, `App.tsx`'s Problems panel), and no verb gates on either.
+- **OWES:** the owner — **T-008 is `risk: high`, so this is a pre-review: NOT approved, NOT merged.** The
+  two defects are the decision. `brahim` — ⚠⚠ `agent-finish.mjs --review` reads the frozen-surface verdict
+  and never the task's `risk:` field, so it stamps a `risk: high` row `done` and prints an approve/merge
+  pair; the row is corrected back to `review` here and the finding is in `docs/BACKLOG.md`'s
+  `## Discovered` — `T-014` closed it. ⚠ The box's default `gh` identity is `Davidian-Abdo`, so
+  `agent-start.mjs`'s own claim comment on #23 was posted from it; `T-013` is the guard.
+  `amer`/`khalihlna` —
+  `unverified here: the Problems panel's hint text and the duplicate-key row — khalihlna to confirm`.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-15-T-008-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); the verdict is on T-008's build entry.
+
 
