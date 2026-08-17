@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
 | task | `T-011` |
 | branch | `task/T-011-q17a-scene-designoptions-becomes-a-scene` |
@@ -986,21 +986,26 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
+## NEXT TURN: REVIEW ONLY
+
+`T-011` (built by `zayd`) was flagged **contract-touching**. The next session reviews its PR and **claims no new task**.
+
+**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-017 (hmdnah, 2026-08-17)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `0a641b3` · dirty |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `268f2d1` · clean |
 | open PRs | #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | **910 green** · 95 files · 283 suites |
+| suite | **928 green** · 96 files · 285 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 35 files changed, 3509 insertions(+), 399 deletions(-) (35 files) |
-| docs budget | current_state 83.8/96.0 KB · §7 31.2/32.0 KB · abstracts 10/10 · bodies 66 |
+| diff vs origin/main | 22 files changed, 2464 insertions(+), 254 deletions(-) (22 files) |
+| docs budget | current_state 83.7/96.0 KB · §7 31.2/32.0 KB · abstracts 10/10 · bodies 66 |
 
 _Generated 2026-08-17 by `pnpm state`._
 
