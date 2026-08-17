@@ -628,6 +628,44 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+### T-011 — review (step 2 of 2): the invalidator under-names, and reproduces D68 from the authoring side — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — a review turn edits no code (`REVIEW.md`'s findings table: a defect
+  either step proves goes back to the builder, D88). `handoff/hmdnah/2026-08-17-T-011-review-step2.md` NEW;
+  this abstract; one `## Discovered` row in `docs/BACKLOG.md`.
+- **VERIFIED:** **Item 1 re-executed, on a different revert from step 1's** — replaced `dependency.ts`'s
+  `case 'designOptions'` with `return []`, everything else untouched: **1 of 13 RED** (`expected Set{} to
+  deeply equal Set{ …(2) }`, `design-option-crud.test.ts:301`); restored, **56/56 green** across the five
+  files this unit touches. **Item 7 re-confirmed against a baseline this branch did not write:**
+  `diffSurface(main's committed snapshot, buildSurface(HEAD))` = **1 changed** (`scene.ts :: type
+  SceneCollection`), 0 added, 0 removed, 214 → 214 — the `--rebaseline` hid nothing. CI green on
+  `6cac987`, `PR shape · reserved classes` **ran** (14 s, pass), labels `needs-operator/contract-touching`
+  + `needs-operator/freeze` + `review/step-1`.
+- **FOUND:** **⚠⚠ Two defects, both in the new dependency edge — NOT APPROVED.** **(1)** The edge seeds
+  tagged elements + belongs-to descendants but never expands over `wallsJoinedTo`, which `case 'elements'`
+  does. Measured end-to-end through the shipped verbs: `core.updateDesignOption {isPrimary:true}` moves
+  `resolveJoins(mainWall)` from `['end']` to `[]` while `#affected` names **only the option wall** — the
+  main-model wall keeps a solid mitered against a wall the document no longer builds, which is
+  `join-option-cascade.test.ts`'s mode 1 arriving through the invalidator. T-011's own `done-when` names
+  this outcome. **(2)** `elementsTaggedIntoSet` resolves the seed through `setName → optionIds →
+  elements`, so on **undo of a delete** — where `#affected` reads the pre-revert (post-delete) scene — the
+  deleted option's own tagged elements fall out of the filter and **nothing** is re-staged; reachable via
+  `deleteDesignOption {acknowledge:true}` on a set's only option. `dependents`'s `@param scene` docstring
+  still claims pre- and post-edit give the same answer, which this edge makes false. **Why green:** the
+  one edge test puts its negative control 5000 mm away and parallel — it can never be a join partner — and
+  `tests/dependency-graph.test.ts` gained no `designOptions` case at all. **Also found, non-blocking:** the
+  primary invariant is enforced at the CRUD doors only, and two primaries in one set makes
+  `isElementActive` return `true` for both mutually exclusive walls (D65's double-count) through a loaded
+  `.bnn` or a code-assembled `Scene` — pre-existing, so a `## Discovered` row, not this PR's growth.
+- **OWES:** `zayd` — the two invalidator fixes on the existing claim via `agent-start.mjs --continue
+  T-011`; the row stays `review`, no new claim, no new PR. The **owner** — `RISK: contract-touching`, so
+  the owner merges #32 **after** the return lands, not before. `brahim` — `agent-start.mjs --review`
+  claimed **PR #33**, not #32, and posted a review-claim comment there; there is no flag to name a PR, so
+  #33 carries a spurious claim and was not reviewed. Recorded in `## Discovered`.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-011-review-step2.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
+
 ### T-011 — the "no authoring verb" comments, swept; and `§8`'s suite line measures the wrong branch — 2026-08-17 — seat: zayd
 
 - **CHANGED:** comments only, in the PR that ships the CRUD they contradicted (`AGENTS.md §3` row 1) —
@@ -667,7 +705,8 @@ is maintenance and does NOT get an entry of its own.**
   classification it already had (the single `scene.ts :: type SceneCollection` declaration), and the only
   byte this turn added to the snapshot is `_baselinedAt`.
 - **FULL:** `handoff/zayd/2026-08-17-T-011-reserved-comment-sweep.md`
-- **REVIEW:** pending — `hmdnah`, step 2 (D88); the owner merges.
+- **REVIEW:** step 2 (adversarial, D88) complete — **NOT approved**, two defects proven in the new
+  dependency edge; returned to `zayd` on the existing claim. See the `hmdnah` step-2 entry above.
 
 ### T-011 — review (step 1 of 2): the CRUD closes the measured defect exactly as claimed — 2026-08-16 — seat: hmdnah
 
@@ -732,7 +771,8 @@ is maintenance and does NOT get an entry of its own.**
   `packages/document/src/scene.ts :: type SceneCollection`, predicted and owner-ruled in advance (D85,
   design doc §3.2).
 - **FULL:** `handoff/zayd/2026-08-16-T-011-design-option-crud.md`
-- **REVIEW:** pending — `hmdnah`, two-step review (D88); step 2 approves, the owner merges.
+- **REVIEW:** two-step review (D88) complete — step 1 clean, step 2 **NOT approved**: two defects proven
+  in `dependency.ts`'s new `designOptions` edge, returned to `zayd` on the existing claim.
 
 ### T-009 — review (step 1, mechanical): the revert holds, and the fix's structural claims check out — 2026-08-16 — seat: hmdnah
 
@@ -934,16 +974,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-011 (zayd, 2026-08-17)** |
-| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `a6ae074` · clean |
+| **newest entry** | **T-011 (hmdnah, 2026-08-17)** |
+| branch · tip · tree | `task/T-011-q17a-scene-designoptions-becomes-a-scene` · `6cac987` · dirty |
 | open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
-| suite | **915 green** · 96 files · 283 suites |
+| suite | ⚠⚠ 914/915 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/scene.ts :: type SceneCollection · baseline REWRITTEN this session |
-| diff vs origin/main | 18 files changed, 1389 insertions(+), 207 deletions(-) (18 files) |
-| docs budget | current_state 77.7/96.0 KB · §7 25.3/32.0 KB · abstracts 9/10 · bodies 58 |
+| diff vs origin/main | 18 files changed, 1457 insertions(+), 209 deletions(-) (18 files) |
+| docs budget | current_state 81.7/96.0 KB · §7 28.9/32.0 KB · abstracts 10/10 · bodies 59 |
 
 _Generated 2026-08-17 by `pnpm state`._
 

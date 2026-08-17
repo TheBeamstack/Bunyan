@@ -547,6 +547,27 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-17 — the "exactly one primary per set" invariant is enforced at the CRUD doors only, and two
+  of the three roads onto `scene.designOptions` bypass it.** `checkPrimaryInvariant` (T-011/D85) guards
+  `core.createDesignOption`/`update`/`delete`; a loaded `.bnn` and a `Scene` assembled in code do not go
+  through any of them, and `loadBnn`'s new `designOptions` guard checks only that the value is an object.
+  Measured: with `{option-a: isPrimary:true, option-b: isPrimary:true}` in one `setName`,
+  `isElementActive` returns `true` for **both** mutually exclusive walls, because `ownTagActive` answers
+  `option.isPrimary` when the set is unlisted in `active` — D65's own stated double-count, and zero
+  primaries under-reports the same way. ⚠ Not a regression: the state was reachable before T-011 too.
+  What changed is that the invariant now has an enforcement site, which is what `AGENTS.md` invariant 7
+  asks to be swept backward. Fix shape: check it on the load path (`loadBnn`) beside the null-guard, or
+  surface a violating set through `brokenRefs()`/`unbuildable()` rather than resolving it silently.
+  Found by `hmdnah`'s T-011 step-2 review. Recorded, not claimed.
+- **2026-08-17 — the `--review` wrong-PR claim recurred a third time, and there is still no flag to name
+  a PR.** Same root cause as the 2026-08-16 row below: with #32 (T-011, due step 2) and #33 (T-016, due
+  step 1) both routed to `hmdnah`, `agent-start.mjs --seat hmdnah --review` claimed **#33** — posting a
+  review-claim comment on it and checking its branch out — while the session's actual assignment was #32.
+  Worked around by hand again (`gh pr checkout 32`), leaving a spurious claim comment on #33, which the
+  next session must not read as a live claim. ⚠ The 2026-08-16 row judged this "low-frequency and always
+  self-correctable by hand" and recorded rather than decomposed; three occurrences say the frequency
+  judgement was wrong. Fix shape: a `--pr <n>` flag, or order the candidates by review-pipeline position
+  (`review/step-1` label present ⇒ ahead of an unlabelled PR) instead of `gh pr list` order.
 - **2026-08-17 — `_baselinedAtEntry` names a POSITION, not an entry, under the `T-nnn` scheme (D82), so
   every new §7 abstract silently re-points the frozen-surface baseline's audit trail.**
   `docs-state.mjs` mints new-scheme entry numbers as `1000 - i` over §7's array order, so `1000` always
