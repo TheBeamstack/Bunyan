@@ -113,14 +113,14 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| builder | `zayd` |
-| role | reviewer |
-| machine | box |
-| task | `T-018` |
-| branch | `task/T-018-d66-s-lazy-build-design-doc-measurement-` |
-| claimed-at | 2026-08-17T19:40:32Z |
-| status | finished — PR open, awaiting review |
+| seat | `amer` |
+| builder | `amer` |
+| role | builder |
+| machine | pc |
+| task | `T-001` |
+| branch | `task/T-001-the-perpendicular-foot-snap-candidate` |
+| claimed-at | 2026-08-17T21:14:25Z |
+| status | working |
 
 <!-- END BATON -->
 
