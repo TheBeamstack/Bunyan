@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-017` |
 | branch | `task/T-017-docs-budget-test-ts-s-newest-first-check` |
@@ -959,14 +959,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-017 (hmdnah, 2026-08-17)** |
-| branch · tip · tree | `task/T-017-docs-budget-test-ts-s-newest-first-check` · `49bc556` · dirty |
-| open PRs | #34 task/T-017-docs-budget-test-ts-s-newest-first-check |
-| suite | ⚠⚠ 909/910 passing — **1 FAILING** |
+| branch · tip · tree | `task/T-017-docs-budget-test-ts-s-newest-first-check` · `ce9366e` · clean |
+| open PRs | #34 task/T-017-docs-budget-test-ts-s-newest-first-check · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
+| suite | **910 green** · 95 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 6 files changed, 351 insertions(+), 65 deletions(-) (6 files) |
+| diff vs origin/main | 7 files changed, 458 insertions(+), 65 deletions(-) (7 files) |
 | docs budget | current_state 79.4/96.0 KB · §7 27.2/32.0 KB · abstracts 10/10 · bodies 60 |
 
 _Generated 2026-08-17 by `pnpm state`._
