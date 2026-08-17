@@ -45,9 +45,13 @@ import {
 } from '../tool/snap';
 import {
   GUIDE_SNAP_KIND,
+  PERPENDICULAR_SNAP_KIND,
   alignmentGuides,
+  perpendicularFeet,
+  referenceEdges,
   referencePoints,
   type AlignmentGuide,
+  type PerpendicularFoot,
 } from '../tool/align';
 
 export type { RenderPart } from './RenderPart';
@@ -370,6 +374,37 @@ export class Viewport {
       cursor,
       cursorPx,
       references: [...extraReferences, ...referencePoints(near)],
+      project: this.project,
+      tolerancePx,
+    });
+  }
+
+  /**
+   * The perpendicular feet from `anchor` onto nearby reference edges (design §4.3's other derived kind,
+   * T-001) — the candidates to feed back into `snapAt`, and the right-angle indicators to draw.
+   *
+   * ⚠ Reference edges come from the SAME index `guidesAt` reads, gathered around the ANCHOR rather than
+   * the cursor: a perpendicular is a relationship between the anchor and an edge, so the edge has to be
+   * near the point the tool is drawing FROM, not near wherever the cursor has since wandered.
+   *
+   * ⚠ `anchor === null` ⇒ `[]` outright: with no gesture in progress there is no "from" point, and a
+   * perpendicular to nothing is not a candidate.
+   */
+  perpendicularAt(
+    cursorPx: readonly [number, number],
+    tolerancePx = 12,
+    allow: readonly SnapKind[] | null = null,
+    anchor: Vec3 | null = null,
+  ): PerpendicularFoot[] {
+    if (this.#disposed) return [];
+    if (anchor === null) return [];
+    if (allow !== null && !allow.includes(PERPENDICULAR_SNAP_KIND)) return [];
+
+    const near = this.#ensureSnapIndex().near(anchor, GUIDE_REFERENCE_RADIUS_MM);
+    return perpendicularFeet({
+      anchor,
+      cursorPx,
+      edges: referenceEdges(near),
       project: this.project,
       tolerancePx,
     });
