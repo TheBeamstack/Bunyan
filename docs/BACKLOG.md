@@ -554,6 +554,33 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-17 — ⚠⚠ `pnpm verify`'s test step cannot collect five `tests/protocol/*.test.ts` files on
+  this pc (Windows), so `pnpm verify` cannot go green here regardless of task.** `vitest run` (pinned
+  `^2.1.8`, installed `2.1.9`) throws `SyntaxError: Invalid or unexpected token` parsing an em-dash
+  (U+2014) inside each file's header block comment — reproduced independently on `pr-ready`, `agent-finish`,
+  `agent-start`, `reserved-classes` and `seats`. Not the file content: `tsc`, raw `esbuild` (two versions),
+  Vite's own transform, and `vite-node` all parse each file cleanly; `npx vitest@latest` (4.1.10) runs the
+  same file 8/8 green; CI's Linux runner is green on the identical command (PR #18). Reproduces on two
+  Node builds (24.11.0, a portable 20.18.1) — narrows to the pinned vitest/esbuild pair on Windows, not
+  Node version. Since these five files landed on `main` at Entry 91 (D82) and every branch descends from
+  it, **this blocks `agent-finish.mjs` — which requires unconditional green `pnpm verify` — for every
+  future `amer`/`khalihlna` turn on this machine**, independent of what the task touches. Fix shape: a
+  vitest major bump (2→4, per the working `@latest` run) or an esbuild-level workaround; either is
+  infra/box territory and needs cross-platform (CI) verification before landing, not a pc-side patch.
+  Found by `amer` on T-001, whose branch has real, tested, browser-verified work but no PR because of
+  this. Recorded, not claimed.
+- **2026-08-17 — this pc's system Chrome (151.0.7922.138) cannot boot the OCCT kernel at all** — hangs on
+  "Booting OCCT kernel…", throwing `Failed to execute 'decode' on 'TextDecoder': The provided ArrayBuffer
+  value must not be resizable` from the kernel worker's boot path (`packages/kernel-occt/wasm/bunyan-kernel.js`).
+  Confirmed pre-existing (reproduces against unmodified `main`). A/B against cached Playwright Chromium
+  builds: 145.0.7632.6 and 148.0.7778.96 boot cleanly, 151.0.7922.34 does not — the regression window is
+  Chrome 149–151, and it is in `kernel-occt`'s boot path, not `apps/web`. ⚠ **Worked around for this
+  machine, not fixed**: `BUNYAN_BROWSER_CMD` (`scripts/seats.mjs`'s documented override) is now set as a
+  persistent Windows user env var, pinned to the cached
+  `%LOCALAPPDATA%\ms-playwright\chromium-1223\chrome-win64\chrome.exe` (148.0.7778.96) — takes effect on
+  the next fresh session/process, not the one that set it. A real fix (kernel-occt boot path handling a
+  non-resizable `ArrayBuffer`) is `zayd`'s, and needed before this machine can trust its default browser
+  again. Found by `amer` on T-001; env var set by `light_brahim` the same cycle. Recorded, not claimed.
 - **2026-08-17 — ⚠⚠ wall joins are not level-scoped, so stacking an ordinary building's storeys drops the
   miter on the storey below.** `partnersAt`/`throughWallsAt` match baselines in 2D and `indexOf` indexes
   every element in the scene with a baseline; neither consults `containerId`, the level's elevation, or the
