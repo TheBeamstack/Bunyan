@@ -113,7 +113,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-013 | done    | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
 | T-014 | done    | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
 | T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
-| T-016 | review  | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |
+| T-016 | done    | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |
 | T-017 | ready   | `docs-budget.test.ts`'s newest-first check verifies itself    | infra    | box     | normal | —          |
 | T-018 | ready   | D66's lazy-build design doc + measurement, reproduced         | document | box     | normal | —          |
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`      | apps-web | pc      | normal | —          |

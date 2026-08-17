@@ -934,15 +934,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-016 (hmdnah, 2026-08-17)** |
-| branch · tip · tree | `task/T-016-0b-s-baton-carries-the-builder-separatel` · `3ae75d9` · clean |
+| branch · tip · tree | `task/T-016-0b-s-baton-carries-the-builder-separatel` · `11d6e92` · clean |
 | open PRs | #33 task/T-016-0b-s-baton-carries-the-builder-separatel · #32 task/T-011-q17a-scene-designoptions-becomes-a-scene |
 | suite | **907 green** · 95 files · 283 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 40 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 11 files changed, 448 insertions(+), 108 deletions(-) (11 files) |
-| docs budget | current_state 78.2/96.0 KB · §7 25.6/32.0 KB · abstracts 10/10 · bodies 57 |
+| diff vs origin/main | 12 files changed, 629 insertions(+), 146 deletions(-) (12 files) |
+| docs budget | current_state 77.4/96.0 KB · §7 25.1/32.0 KB · abstracts 10/10 · bodies 58 |
 
 _Generated 2026-08-17 by `pnpm state`._
 
