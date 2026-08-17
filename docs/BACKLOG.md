@@ -115,7 +115,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
 | T-016 | done    | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |
 | T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself    | infra    | box     | normal | —          |
-| T-018 | ready   | D66's lazy-build design doc + measurement, reproduced         | document | box     | normal | —          |
+| T-018 | done    | D66's lazy-build design doc + measurement, reproduced         | document | box     | normal | —          |
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`      | apps-web | pc      | normal | —          |
 
 ---
@@ -554,6 +554,19 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-17 — ⚠⚠ wall joins are not level-scoped, so stacking an ordinary building's storeys drops the
+  miter on the storey below.** `partnersAt`/`throughWallsAt` match baselines in 2D and `indexOf` indexes
+  every element in the scene with a baseline; neither consults `containerId`, the level's elevation, or the
+  wall's own base/top datums. Measured through the shipped verbs on the real kernel: one storey with a 90°
+  corner gives `resolveJoins(a) = ['start']` and the wall's solid reaching `min.x = -100 mm` (the miter);
+  authoring the SAME corner one level up takes the lower wall to `resolveJoins(a) = []` and `min.x = 0` —
+  the crowd of coincident endpoints reads as ambiguous and the auto-miter falls back to the plain cap. Two
+  walls stacked at the same plan position on different storeys is the ordinary case in any multi-storey
+  building, so this is not an edge case; it is D68's ambiguity flip arriving through elevation instead of
+  through design options, and it changes geometry on a storey nobody edited. Fix shape: scope the endpoint
+  and segment scans to walls that share a vertical extent — the datums `baselineOf`/`elevationOf` already
+  resolve — rather than to every wall in plan. Found by `zayd` building T-018's fixture (which offsets each
+  storey in plan to work around it). Recorded, not claimed.
 - **2026-08-17 — `NEXT TURN: REVIEW ONLY` is cleared only on a `--review` finish, so a PR merged any other
   way strands the banner and halts every builder turn on both machines.** `agent-finish.mjs:335` gates the
   clear on `if (review)`; `agent-start.mjs:789` refuses a builder claim while it stands. T-011's banner

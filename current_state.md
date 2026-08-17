@@ -113,13 +113,13 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
-| task | `T-011` |
-| branch | `task/T-011-q17a-scene-designoptions-becomes-a-scene` |
-| claimed-at | 2026-08-16T20:54:10Z |
+| task | `T-018` |
+| branch | `task/T-018-d66-s-lazy-build-design-doc-measurement-` |
+| claimed-at | 2026-08-17T19:40:32Z |
 | status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
@@ -630,6 +630,82 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-018 — D66's lazy build: 89.8% of a cold load is deferrable, and a deferred join partner is safe — 2026-08-17 — seat: zayd
+
+- **CHANGED:** `docs/design/P5_step9_D66_lazy_build_design.md` **NEW** (§3a keep-live set · §3b first
+  paint · §3c force-vs-declare · §3d eviction ruled out — the section numbers T-005/T-006 already cite) ·
+  `tests/d66-lazy-build-measure.test.ts` **NEW** (+8, the instrument every number is printed by) ·
+  `docs/BACKLOG.md` (one `## Discovered` row) · `current_state.md` (this abstract; **T-011's step-1
+  review abstract rotated** to `docs/history.md` §E to stay inside the 10-abstract cap) ·
+  `docs/history.md` §E. **Nothing ported from closed PR #16**, and no `packages/`, no `apps/web`, no
+  `scripts/`, no frozen byte.
+- **VERIFIED:** `pnpm verify` green, foreground, real OCCT kernel, exit 0 — main suite **936 green · 97
+  files · 287 suites**, `docs:check` **154 · 8 files**; `tests/freeze-boundary.test.ts` 12/12,
+  unmoved ⇒ `RISK: additive`. **Revert-verified on the tripwire the row names:** changing
+  `identitiesOf` from `parts.flatMap(p => [...p.refs])` to `parts.map(p => p.nodeId)` left **1 of 8
+  RED** — `the identity signature must carry more than the recipe-derived node ids: expected 12 to be
+  greater than 12`; restored 8/8. ⚠ **The element-for-element identity comparison stays GREEN through
+  that revert, which is the point:** `partNodeId` is `${elementId}.${partName}`, computed with no kernel
+  call, so it agrees whatever the geometry did. ⚠ **The row names `Part.node`, a field that has never
+  existed** — it is `Part.nodeId` (`entities.ts:695`).
+- **FOUND:** **The safety condition holds and it holds ACROSS A JOIN.** Two cold documents from the same
+  `.bnn`, `rebuildAll()` vs `rebuildOnly(9 of 88)`: part names, `nodeId`, `refs` and `quantities` all
+  identical, `brokenRefs()` empty in both — and the built south wall keeps the miter made by a west wall
+  the partial document **never builds** (`resolveJoins` = `['start','end']` in both; bounds
+  `[-100,-100,0 … 8100,100,3000]` in both, the `-100` being the miter). Measured on `bounds`, not
+  `refs`, because T-011 measured that `refs` cannot see a miter. **Deferral:** 89.8% of elements / 89.3%
+  of solids deferred removes **85.8%** of a 2443 ms cold load; a 4-point `rebuildOnly` sweep
+  (22/44/66/88 el → 707/1231/1869/2567 ms) fits **28.3 ms/element, intercept 39 ms = 1.6%, R² 0.9961**,
+  so the element fraction and the wall-clock fraction agree to ~4 points. `rebuildOnly(everything)` costs
+  2567 ms against `rebuildAll()`'s 2443 ms ⇒ **the build half needs no new API.** ⚠⚠ **§3c's real
+  defect:** `projectQuantities` DECLARES the 79 deferred elements rather than under-reporting — but
+  `enumerate.ts:215` gives every one of them `failure: 'unbuildable'`, so a consumer cannot tell *"not
+  built yet"* from *"cannot be built"*. **Two measurement defects found by the harness failing:** a sweep
+  on cold kernels priced an element at **−0.76 ms** (each later load warmer than the last), and with all
+  the doors on one storey the fit came back **R² 0.2539**; fixed by a per-kernel warm-up and by spreading
+  the doors.
+- **OWES:** `hmdnah` — this PR's review, `risk: normal`, the ordinary one-step route. `khalihlna` —
+  *unverified here: lazy first paint improves time-to-first-pixel*; every number is headless and the
+  browser half is T-006's. `brahim` — three non-blocking items: the `## Discovered` join level-scoping
+  row wants a decision on becoming a `T-nnn`; **T-005's first `done-when:` bullet is discharged** (`save`
+  reads no built state — the two scenes are byte-identical JSON and `saveBnn` takes a `Scene`, never a
+  `DocumentContext`), so its wording now describes a measurement that exists; and T-018's own
+  `done-when:` names `Part.node`.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-17-T-018-d66-lazy-build.md`
+- **REVIEW:** approved and merged by `hmdnah` on `narutousomaki741`, green CI, no defect. Item 1
+  re-executed independently; findings in the `hmdnah` entry above and on PR #35.
+
+### T-018 — review: the deferral numbers reproduce, and the tripwire has teeth — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** no product or test byte — no defect to fix. This abstract, and `T-011`'s comment-sweep
+  abstract rotated to `docs/history.md` §E to hold §7 inside its 32 KB budget once a tenth abstract
+  lands (`docs-budget.test.ts`'s own remedy). Merged PR #35 on `narutousomaki741`.
+- **VERIFIED:** **Item 1 re-executed.** `identitiesOf` reverted from `p.refs` to `p.nodeId` ⇒ **1 of 8
+  RED** — `the identity signature must carry more than the recipe-derived node ids: expected 12 to be
+  greater than 12`; restored, tree clean, **8/8 green**. ⚠ The row's `Part.node` **has never existed** —
+  judged against `Part.nodeId` (`entities.ts:695`), which the tripwire was built against. **Item 5
+  re-measured twice:** 89.8 %/89.3 % deferred both runs, slope **27.82** and **28.04 ms** against the
+  doc's 28.3, R² 0.9968/0.9983, bounds and take-off identical; the intercept is the noisy term
+  (39 → 67 → 90 ms) but stays under 4 % of a cold load, so what it carries survives the spread. **Item
+  7:** `RISK: additive — unchanged vs baseline`, `freeze-boundary` green, no `packages/` byte, and
+  `PR shape · reserved classes` confirmed to have RUN with no `needs-operator/*` label.
+- **FOUND:** no defect; all four `done-when:` items are box-executable and were executed. Every item-4
+  claim held against code — `partNodeId` (`geometry.ts:60`), `rebuildOnly`'s assembly closure
+  (`document.ts:553`), `saveBnn(scene, …)` (`bnn.ts:103`), `enumerate.ts:215`'s `'unbuildable'`,
+  `baselineOf`'s early return (`joins.ts:103`), `partnersAt`'s unscoped 2D match (`joins.ts:205`).
+  **"Nothing ported from #16" holds:** that instrument has no `warmUp`, sweep or `fitLine` and reported
+  a different measurement (3 storeys, "~35 % forced"). One correction: `CHANGED:` names **one** rotated
+  abstract where the commit rotates **two** (T-016, T-011), both intact in `history.md` §E — the second
+  is what keeps §7 in budget, so the act is right and its description short by a row.
+- **OWES:** `brahim` — T-018's `done-when:` names `Part.node`, to correct post-merge; and `main`'s §8
+  disagreed with the measured tree at turn start (T-011's branch-shaped block), regenerated with
+  `pnpm state` and committed so the turn could begin. `khalihlna` — *unverified here: lazy first paint
+  improves time-to-first-pixel*, already written as such in the doc, T-006's and not ticked.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-018-review-d66-lazy-build.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #35.
+
 ### T-017 — review: the new gate has teeth on the real file, not only on its fixture — 2026-08-17 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — no defect to fix, and the one correction below is a number in the
@@ -887,119 +963,22 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-17-T-011-review-step2.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
 
-### T-011 — the "no authoring verb" comments, swept; and `§8`'s suite line measures the wrong branch — 2026-08-17 — seat: zayd
-
-- **CHANGED:** comments only, in the PR that ships the CRUD they contradicted (`AGENTS.md §3` row 1) —
-  `packages/document/src/designoptions.ts` (module header, `isElementActive`, `optionScopeOf`) ·
-  `enumerate.ts` (`EnumerateOptions.designOptions`) · `entities.ts` (`Element.designOptionId`) ·
-  `documentation.ts` (`ScheduleDefinition.designOptionIds`, `ViewCommon.designOptionIds`) ·
-  `tests/option-cascade-d67.test.ts` · `tests/plan-section.test.ts`. Plus **2 assertions** in
-  `tests/design-option-crud.test.ts`, **2** `## Discovered` rows in `docs/BACKLOG.md`, and
-  `tests/frozen-surface.snapshot.json` (`_baselinedAt` only — see FOUND).
-- **VERIFIED:** `pnpm verify` green, foreground, real OCCT kernel, exit 0 — main suite **915 green · 96
-  files · 283 suites**, 0 failing; `docs:check` **146 · 8 files**; `freeze-boundary` 12/12, unmoved
-  (comment-only edits to watched files do not touch the frozen surface, and `reserved-classes` has a case
-  asserting exactly that). **Revert-verified by mutation:** made `guardReferences` redirect on the
-  `acknowledge` path, and the first new assertion went red (`expected [ 'MUTANT' ] to deeply equal
-  [ 'option-01M…' ]`) while every pre-existing assertion in the case stayed green — the weak green
-  `REVIEW.md` item 6 names. `commands.ts` restored, diff empty.
-- **FOUND:** Seven files still said `scene.designOptions` was RESERVED with no authoring verb, inside the
-  diff that gives it three. Two were false *before* this PR (`isElementActive`'s "nothing calls it" —
-  four consumers do; `ViewCommon` "no body reads yet" — `projectView` has since Entry 77), swept under
-  invariant 7 rather than left. **⚠⚠ And `§8`'s suite line measures the wrong branch:** `pnpm state` does
-  not run the suite, it reads the untracked `.vitest-summary.json` left by the last `pnpm test` anywhere
-  in the one worktree. That accounts for all four figures in circulation — `913` = this branch before
-  `e05c35a` merged main (T-009 added 2 tests), `902 · 95 · 281` = **main** (quoted into the step-1 review,
-  which ran two files not the suite), `907 · 95 · 283` = **`task/T-016-…`** (main + T-016's 5 tests and 2
-  describes, read back after the 23:19 branch switch), `915 · 96 · 283` = this branch, correct, and the
-  committed `fb4d4e6` value. It **defeats `agent-start.mjs`'s measured-vs-claimed refusal**: both sides
-  read the same stale file, so they agree while both are wrong. **Second finding, met head-on:**
-  `_baselinedAtEntry` names a POSITION — `docs-state.mjs` mints `1000 - i` over §7's order — so appending
-  this abstract re-pointed the baseline's audit trail at it and turned `freeze-boundary` red on a turn
-  that moved no declaration; `pnpm state --rebaseline` cleared it by changing exactly `_baselinedAt`,
-  with all **214** declarations byte-identical.
-
-- **OWES:** `hmdnah` — **step 2** of D88 on the existing claim (step 1 is done and labelled; this defect
-  return does not consume it). The **owner** — `RISK: contract-touching` ⇒ the owner merges PR #32. The
-  `pnpm state` staleness is recorded in `docs/BACKLOG.md ## Discovered` with a fix shape, not claimed.
-- **RISK:** contract-touching (re-baselined) — **0** declarations moved by this turn; the branch keeps the
-  classification it already had (the single `scene.ts :: type SceneCollection` declaration), and the only
-  byte this turn added to the snapshot is `_baselinedAt`.
-- **FULL:** `handoff/zayd/2026-08-17-T-011-reserved-comment-sweep.md`
-- **REVIEW:** step 2 (adversarial, D88) complete — **NOT approved**, two defects proven in the new
-  dependency edge; returned to `zayd` on the existing claim. See the `hmdnah` step-2 entry above.
-
-### T-016 — `§0b`'s baton carries the builder separately from the current holder — 2026-08-16 — seat: zayd
-
-- **CHANGED:** `scripts/agent-start.mjs` (`renderBaton`/the initial claim write both gain a `builder`
-  field, set once at claim time, falling back to `seat` when absent) · `scripts/agent-start.d.mts`
-  (declared) · `scripts/agent-finish.mjs` (**`resolveBuilder` NEW**, pure, exported — a `--review`
-  finish carries the prior baton's `builder` forward, a plain finish sets it to the finishing seat) ·
-  `scripts/agent-finish.d.mts` (declared) · `tests/protocol/agent-start.test.ts` (`renderBaton`/
-  `parseBaton` round-trip suite +2, one assertion on the existing claim test) ·
-  `tests/protocol/agent-finish.test.ts` (`resolveBuilder` suite +3). No frozen byte, no `packages/`, no
-  `apps/web`.
-- **VERIFIED:** `pnpm verify` green, exit 0 — **95 files/907 tests** main suite, **151 tests**
-  `docs:check` subset, `tests/freeze-boundary.test.ts` green ⇒ `RISK: additive`. **Revert-verified:**
-  reverting `resolveBuilder` to its pre-fix shape (`return seat;` unconditionally) left **1 of 3** new
-  tests RED — `expected 'hmdnah' to be 'zayd'` on the review-finish case; restored to 3/3 green, then a
-  full re-run of both protocol suites (50/50 green).
-- **FOUND:** confirms the gap named 2026-08-15 exactly: before this fix, `agent-finish.mjs`'s baton
-  rewrite re-rendered the WHOLE claim with `seat` set to the finishing seat unconditionally, so a
-  `--review` finish had no way to leave the builder's identity anywhere in `current_state.md` — only the
-  claim commit message (`claim: T-nnn by <seat> (<machine>)`) still carried it.
-- **OWES:** `hmdnah` — this PR's review, `risk: high` (D88 two-step). Not covered: no end-to-end test
-  drives a real `--review` finish through to the baton write — that path runs after `pnpm verify`, past
-  what this repo's fixtures can reach (same scope limit `agent-finish.test.ts`'s own header already
-  states); this task's own review finish is the first live exercise — check `§0b`'s `builder` row still
-  reads `zayd` after it. `seats.builderFor`/`--continue` were left unchanged; switching `--continue` to
-  trust `builder` instead of re-deriving it is a possible follow-up, not part of this task.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-16-T-016-baton-builder-field.md`
-- **REVIEW:** both D88 steps complete, `hmdnah`, separate sessions — step 1 mechanical, step 2
-  adversarial (items 2, 3, 6, item 1 re-executed, item 7 re-confirmed). No defect; approved and merged
-  on `narutousomaki741` with green CI. The `builder` row survived this PR's own review finish, which is
-  the check this entry's `OWES:` asked for. Two follow-ups reassigned to `brahim` in step 2's `OWES:`.
-
-### T-011 — review (step 1 of 2): the CRUD closes the measured defect exactly as claimed — 2026-08-16 — seat: hmdnah
-
-- **CHANGED:** nothing in the diff — a mechanical step-1 pass edits nothing on the branch (`REVIEW.md`
-  items 1, 4, 5, 7 only). `handoff/hmdnah/2026-08-16-T-011-review-step1.md` NEW; this abstract.
-- **VERIFIED:** **Item 1 re-executed.** Reverted the five touched `packages/document/src/*.ts` files to
-  `main`'s version, kept `tests/design-option-crud.test.ts` as committed: **12 of 13 RED**
-  (`unknown command "core.createDesignOption"`), the one survivor the §6 RED-baseline case, unmoved.
-  Restored: **21/21 green** across `design-option-crud.test.ts` + `design-option-refs.test.ts`, tree
-  clean. `pnpm state` on this branch: `RISK: contract-touching (re-baselined) · 902 green · 95 files`,
-  matching both PR labels. `tests/freeze-boundary.test.ts` green (12/12), diffing to exactly one
-  declaration (`type SceneCollection`). `gh pr checks 32` confirms `pr-shape` actually ran.
-- **FOUND:** No defect. Every item-4 claim checked against code held — the 40-command count on `main`,
-  `emptyScene()`'s absent `designOptions` key, the `bnn.ts` backward sweep (only hardcoded
-  `'schedules'`/`'views'`-shaped site in the tree), the promote/demote/delete-referrer machinery, and
-  `_baselinedAtEntry: 1000` (confirmed as `docs-state.mjs`'s synthetic sort key for the newest §7 entry,
-  not a placeholder). Item 5's `WALL_VOLUME` figures are computed in the test, not hardcoded.
-- **OWES:** `hmdnah` (a different session) — step 2 of D88 (`REVIEW.md` items 2, 3, 6), on this same
-  claim; the row stays `review` until then. The **owner** — `RISK: contract-touching` regardless of how
-  step 2 lands, so the owner merges this PR, not either reviewing session.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-16-T-011-review-step1.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
-
 ## §8 — Generated
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
-| **newest entry** | **T-017 (hmdnah, 2026-08-17)** |
-| branch · tip · tree | `main` · `ee7c4e5` · clean |
+| **newest entry** | **T-018 (zayd, 2026-08-17)** |
+| branch · tip · tree | `task/T-018-d66-s-lazy-build-design-doc-measurement-` · `dfe7057` · clean |
 | open PRs | #35 task/T-018-d66-s-lazy-build-design-doc-measurement- |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | (no diff vs origin/main) (0 files) |
-| docs budget | current_state 83.7/96.0 KB · §7 31.2/32.0 KB · abstracts 10/10 · bodies 66 |
+| diff vs origin/main | 7 files changed, 1282 insertions(+), 106 deletions(-) (7 files) |
+| docs budget | current_state 81.8/96.0 KB · §7 29.5/32.0 KB · abstracts 9/10 · bodies 68 |
 
 _Generated 2026-08-17 by `pnpm state`._
 
