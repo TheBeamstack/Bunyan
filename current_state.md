@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `brahim` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-unblock-pc-and-chrome-boot` |
 | branch | `brahim/2026-08-18-unblock-pc-and-chrome-boot` |
@@ -998,14 +998,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-unblock-pc-and-chrome-boot (hmdnah, 2026-08-18)** |
-| branch · tip · tree | `brahim/2026-08-18-unblock-pc-and-chrome-boot` · `fea516e` · dirty |
+| branch · tip · tree | `brahim/2026-08-18-unblock-pc-and-chrome-boot` · `9301df7` · clean |
 | open PRs | #36 brahim/2026-08-18-unblock-pc-and-chrome-boot |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 348 insertions(+), 76 deletions(-) (5 files) |
+| diff vs origin/main | 6 files changed, 482 insertions(+), 76 deletions(-) (6 files) |
 | docs budget | current_state 84.4/96.0 KB · §7 32.0/32.0 KB · abstracts 10/10 · bodies 70 |
 
 _Generated 2026-08-18 by `pnpm state`._
