@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-020` |
 | branch | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` |
@@ -981,25 +981,20 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-020` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-020 (hmdnah, 2026-08-18)** |
-| branch · tip · tree | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` · `82e1c60` · dirty |
+| branch · tip · tree | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` · `91e3ae2` · clean |
 | open PRs | #37 task/T-020-the-pinned-vitest-cannot-collect-tests-p |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 7 files changed, 452 insertions(+), 534 deletions(-) (7 files) |
+| diff vs origin/main | 8 files changed, 542 insertions(+), 535 deletions(-) (8 files) |
 | docs budget | current_state 83.9/96.0 KB · §7 31.2/32.0 KB · abstracts 10/10 · bodies 72 |
 
 _Generated 2026-08-18 by `pnpm state`._
