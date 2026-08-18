@@ -1327,6 +1327,50 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-011 — the D88 defect return: the option edge reaches the join neighbour, and seeds from the change — 2026-08-17 — seat: zayd
+
+- **CHANGED:** `packages/document/src/dependency.ts` only — `joinNeighboursOf` NEW (one hop of
+  `wallsJoinedTo`, endpoints **and** segment, exactly as `case 'elements'` line 82 takes it);
+  `elementsTaggedIntoSet` now takes the `DesignOption` and seeds from `change`'s own option id ∪ the
+  catalogue's siblings of that `setName`; `dependents`'s `@param scene` docstring corrected. **No exported
+  declaration added or changed.** Plus 3 new cases in `tests/dependency-graph.test.ts` (which had no
+  `designOptions` case at all), 2 in `tests/design-option-crud.test.ts`, and a `refuses(call, code)` helper
+  pinning `REFUSED` on the five refusal cases.
+- **VERIFIED:** Both defects **reproduced red first**, through the shipped verbs on the real OCCT kernel,
+  before a line of fix. **Revert-verified, the fix only** (`git stash push -- dependency.ts`, tests
+  untouched): **5 failed | 23 passed (28)** — every new assertion red, every pre-existing one green.
+  Restored: 28/28. `pnpm verify` full, foreground, exit 0 — **920 green · 96 files**, `docs:check`
+  **146 · 8**; `freeze-boundary` 12/12 **unmoved**, no re-baseline this turn. **Cost measured** (pure TS,
+  `dependents` on one option change, half the walls tagged, cold): 200/400/800 walls → 11.4/17.3/23.8 ms
+  vs 0.42/0.21/0.43 before — 4× the walls for 2.1× the time, **not** a D73 quadratic, because
+  `wallsJoinedTo`'s index is memoised per scene object (`INDEX_CACHE`).
+- **FOUND:** **⚠⚠ Volume and area cannot see defect 1, and a test built on either would be weak green.** A
+  45° miter between two equal-thickness walls adds on one lateral face exactly what it removes on the
+  other: `volume 3 600 000 000`, `area 36 000 000` and a 17-entry `refs` list are **byte-identical** before
+  and after. The **shape** moves, and the kernel's `bounds` on the live handle is what says so — so the
+  reviewer's open item (the two-B-Rep comparison) landed **in this turn**: after the promote, `max.x` is
+  `6000` with the fix and **`6100` with it reverted** — 100 mm, half a wall thickness, of a wall nobody
+  edited, still mitered against a wall the document no longer builds. Shown to fire on its own, with the
+  `edit.rebuilt` assertion above it neutralised. **Backward sweep (invariant 7):** `dependency.ts` is the
+  **only** site that turns an option change into an affected set — every other `scene.designOptions` reader
+  (`enumerate`/`joins`/`room`/`cleandelta`/`projectView`) resolves at query time through `optionScopeOf`
+  and caches nothing, so there is no second invalidator to keep in step.
+- **OWES:** `hmdnah` — step 2 again, on the existing claim, against this head; the row stays `review`. The
+  **owner** — `RISK: contract-touching` + `needs-operator/freeze` from the earlier commits, so the owner
+  merges #32. Untouched by design: the `## Discovered` primary-invariant row (pre-existing, not this PR's
+  growth) and the spurious review-claim comment on PR #33.
+- **RISK:** contract-touching — **0** declarations moved by this turn; the branch keeps the classification
+  it already had (the one `scene.ts :: type SceneCollection` move), and this turn added nothing to the
+  frozen surface.
+- **FULL:** `handoff/zayd/2026-08-17-T-011-return-join-neighbour-and-undo-seed.md`
+- **REVIEW:** APPROVED — `hmdnah`, D88 step 2 re-run, `89130fb`. Both returned defects closed and
+  independently revert-verified. ⚠ `RISK: contract-touching` + `needs-operator/freeze` ⇒ **the owner
+  merges #32**; the row stays `review` until they do. ⚠ One measured claim in the FOUND field above is
+  **false**: `area` is NOT byte-identical across the flip (39 848 528.14 → 39 600 000 mm², the cap face
+  gains `t·h·(√2−1)`), `edgeLength` moves too, and the `refs` list has 18 entries, not 17. Volume, the
+  face/edge counts and `refs` are identical; `bounds` is the right oracle either way. Correction in the
+  `hmdnah` entry below.
+
 ### T-011 — review (step 2 of 2): the invalidator under-names, and reproduces D68 from the authoring side — 2026-08-17 — seat: hmdnah
 
 - **CHANGED:** nothing on the branch — a review turn edits no code (`REVIEW.md`'s findings table: a defect

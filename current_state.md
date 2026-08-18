@@ -630,6 +630,44 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-020 — the runner moves 2.1.9 → 4.1.10, and vitest 2 was not enforcing test timeouts — 2026-08-18 — seat: zayd
+
+- **CHANGED:** `package.json` (`vitest` `^2.1.8` → `^4.1.10`) and `pnpm-lock.yaml` (`vitest@2.1.9` →
+  `4.1.10`, `vite@5.4.21` dropped — apps/web's `6.4.3` now serves the runner too) ·
+  `tests/document-persistence.test.ts` — one explicit `120_000` timeout on the clean-delta test, the one
+  test the bump exposed. `handoff/zayd/2026-08-18-T-020-vitest-2-to-4.md` NEW; this abstract; T-011's
+  D88-return abstract rotated to `docs/history.md` §E, §7 having stood at 32756 of 32768 bytes. No
+  `packages/`, no `scripts/`, no `vitest.config.ts` byte, no snapshot byte.
+- **VERIFIED:** `pnpm verify` green, exit 0, 6 m 23 s. **The suite count is a fresh full run on both sides,
+  never `§8`'s cached line:** `vitest@2.1.9` → **936 passed · 97 files · 287 suites** (270.68 s);
+  `vitest@4.1.10` → **936 passed · 97 files · 287 suites** (268.77 s). Unchanged, so nothing stopped
+  collecting. `docs:check`, which collects `tests/protocol` on its own, **154 · 8**. `numTotalTests` /
+  `numTotalTestSuites` / `testResults.length` all still present in the json reporter's output, which is
+  what `state.mjs:120-126` reads. `freeze-boundary` 12/12 unmoved, no re-baseline.
+- **FOUND:** **⚠⚠ vitest 2 never applied the 5 000 ms default timeout to a test whose awaits are
+  microtask-only, and one test had been 3.7× over it.** The bump's single failure was
+  `document-persistence.test.ts`'s clean-delta test; A/B on the same commit, each runner installed in
+  turn, prices it at **18 549 ms under 2.1.9 (passing)** and **18 397 ms under 4.1.10 (timed out at
+  5 000 ms)** — the cost moved 0.8%, the enforcement moved. `InProcessTransport` resolves every kernel
+  response through `queueMicrotask` (`transport.ts:63`), so 250 real kernel edits are one uninterrupted
+  microtask chain and the event loop never reaches the timer phase a `setTimeout` deadline lives in.
+  Invariant 8 exactly: the test was green because nothing was checking. **Backward sweep over the
+  newly-enforced rule, by measured duration rather than by source, because only a run answers "how long":**
+  exactly three of 936 tests exceed 5 000 ms — 58 571 ms and 16 256 ms, both already carrying explicit
+  timeouts, and this one. The next-slowest is 1 980 ms, a 2.5× margin. **The API sweep is an enumeration,
+  not a sample:** the suite imports eight names from `vitest` and calls five `vi.*` sites, and each of the
+  22 documented 2→3/3→4 breaking changes is checked against its call sites in the body — the numeric
+  `}, 120_000)` third argument used at 130 sites is **not** the options-object form vitest 4 removed.
+- **OWES:** `hmdnah` — this PR's review, `risk: high` ⇒ **two review turns** (D88). ⚠ Item 1's revert is
+  the added timeout, and reverting it should reproduce *Test timed out in 5000ms* rather than a fix
+  regressing. The **pc seats** — `unverified here: the five protocol files collect on Windows — the pc
+  seats to confirm`; the box parses those files under **both** runners, so it can neither reproduce the
+  failure nor witness the repair, and **T-021** is the turn that closes it. `brahim` — T-021 becomes
+  claimable once this merges, and with it the five `ready` `pc` rows behind it.
+- **RISK:** additive — no declaration moved, no frozen byte; `reserved-classes.mjs` returns `none`.
+- **FULL:** `handoff/zayd/2026-08-18-T-020-vitest-2-to-4.md`
+- **REVIEW:** ⚠ This entry is the currently open PR — **AWAITING REVIEW.**
+
 ### STEWARD-unblock-pc-and-chrome-boot — review: the splits are honest, and T-024 named a fixture that measures green — 2026-08-18 — seat: hmdnah
 
 - **CHANGED:** `docs/BACKLOG.md` — T-024's `done-when:` corrected to name the one turn that reproduces
@@ -947,66 +985,22 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
 
-### T-011 — the D88 defect return: the option edge reaches the join neighbour, and seeds from the change — 2026-08-17 — seat: zayd
-
-- **CHANGED:** `packages/document/src/dependency.ts` only — `joinNeighboursOf` NEW (one hop of
-  `wallsJoinedTo`, endpoints **and** segment, exactly as `case 'elements'` line 82 takes it);
-  `elementsTaggedIntoSet` now takes the `DesignOption` and seeds from `change`'s own option id ∪ the
-  catalogue's siblings of that `setName`; `dependents`'s `@param scene` docstring corrected. **No exported
-  declaration added or changed.** Plus 3 new cases in `tests/dependency-graph.test.ts` (which had no
-  `designOptions` case at all), 2 in `tests/design-option-crud.test.ts`, and a `refuses(call, code)` helper
-  pinning `REFUSED` on the five refusal cases.
-- **VERIFIED:** Both defects **reproduced red first**, through the shipped verbs on the real OCCT kernel,
-  before a line of fix. **Revert-verified, the fix only** (`git stash push -- dependency.ts`, tests
-  untouched): **5 failed | 23 passed (28)** — every new assertion red, every pre-existing one green.
-  Restored: 28/28. `pnpm verify` full, foreground, exit 0 — **920 green · 96 files**, `docs:check`
-  **146 · 8**; `freeze-boundary` 12/12 **unmoved**, no re-baseline this turn. **Cost measured** (pure TS,
-  `dependents` on one option change, half the walls tagged, cold): 200/400/800 walls → 11.4/17.3/23.8 ms
-  vs 0.42/0.21/0.43 before — 4× the walls for 2.1× the time, **not** a D73 quadratic, because
-  `wallsJoinedTo`'s index is memoised per scene object (`INDEX_CACHE`).
-- **FOUND:** **⚠⚠ Volume and area cannot see defect 1, and a test built on either would be weak green.** A
-  45° miter between two equal-thickness walls adds on one lateral face exactly what it removes on the
-  other: `volume 3 600 000 000`, `area 36 000 000` and a 17-entry `refs` list are **byte-identical** before
-  and after. The **shape** moves, and the kernel's `bounds` on the live handle is what says so — so the
-  reviewer's open item (the two-B-Rep comparison) landed **in this turn**: after the promote, `max.x` is
-  `6000` with the fix and **`6100` with it reverted** — 100 mm, half a wall thickness, of a wall nobody
-  edited, still mitered against a wall the document no longer builds. Shown to fire on its own, with the
-  `edit.rebuilt` assertion above it neutralised. **Backward sweep (invariant 7):** `dependency.ts` is the
-  **only** site that turns an option change into an affected set — every other `scene.designOptions` reader
-  (`enumerate`/`joins`/`room`/`cleandelta`/`projectView`) resolves at query time through `optionScopeOf`
-  and caches nothing, so there is no second invalidator to keep in step.
-- **OWES:** `hmdnah` — step 2 again, on the existing claim, against this head; the row stays `review`. The
-  **owner** — `RISK: contract-touching` + `needs-operator/freeze` from the earlier commits, so the owner
-  merges #32. Untouched by design: the `## Discovered` primary-invariant row (pre-existing, not this PR's
-  growth) and the spurious review-claim comment on PR #33.
-- **RISK:** contract-touching — **0** declarations moved by this turn; the branch keeps the classification
-  it already had (the one `scene.ts :: type SceneCollection` move), and this turn added nothing to the
-  frozen surface.
-- **FULL:** `handoff/zayd/2026-08-17-T-011-return-join-neighbour-and-undo-seed.md`
-- **REVIEW:** APPROVED — `hmdnah`, D88 step 2 re-run, `89130fb`. Both returned defects closed and
-  independently revert-verified. ⚠ `RISK: contract-touching` + `needs-operator/freeze` ⇒ **the owner
-  merges #32**; the row stays `review` until they do. ⚠ One measured claim in the FOUND field above is
-  **false**: `area` is NOT byte-identical across the flip (39 848 528.14 → 39 600 000 mm², the cap face
-  gains `t·h·(√2−1)`), `edgeLength` moves too, and the `refs` list has 18 entries, not 17. Volume, the
-  face/edge counts and `refs` are identical; `bounds` is the right oracle either way. Correction in the
-  `hmdnah` entry below.
-
 ## §8 — Generated
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
-| **newest entry** | **STEWARD-unblock-pc-and-chrome-boot (hmdnah, 2026-08-18)** |
-| branch · tip · tree | `main` · `1dd2c1a` · clean |
+| **newest entry** | **T-020 (zayd, 2026-08-18)** |
+| branch · tip · tree | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` · `bede12a` · dirty |
 | open PRs | none — main is the tip of the work |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 1 file changed, 6 insertions(+), 1 deletion(-) (1 files) |
-| docs budget | current_state 84.4/96.0 KB · §7 32.0/32.0 KB · abstracts 10/10 · bodies 70 |
+| diff vs origin/main | 5 files changed, 218 insertions(+), 491 deletions(-) (5 files) |
+| docs budget | current_state 83.8/96.0 KB · §7 31.5/32.0 KB · abstracts 10/10 · bodies 71 |
 
 _Generated 2026-08-18 by `pnpm state`._
 
