@@ -554,6 +554,18 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-18 — every merge lands a branch-shaped `§8` on `main`, so the next builder's
+  `agent-start.mjs` measures a disagreement and refuses.** `§8` is regenerated on the task branch, where
+  its `branch · tip · tree`, `open PRs` and `diff vs origin/main` rows describe that branch; the merge
+  commits those rows verbatim onto `main`, where they are false. Measured by `zayd` opening T-018:
+  `main`'s committed `§8` still read `RISK: contract-touching (re-baselined)` from the T-011 branch while
+  the repo measured `additive`, and the turn was refused at step 3. Already worked around twice by hand —
+  `faf7d31` is a bare `pnpm state` regen of `main` for this reason. The refusal itself is correct and is
+  the mechanism `AGENTS.md §1.1` wants (_trust the repository_); what is wrong is that a clean merge
+  guarantees the disagreement. Fix shape: either the reviewer's `--review` finish regenerates `§8` from
+  `main` after merging, or the branch-scoped rows leave the committed `§8` altogether — they describe a
+  branch, and `§8` on `main` is read as describing `main`. Found by `zayd` on T-018. Recorded, not claimed.
+
 - **2026-08-17 — ⚠⚠ `pnpm verify`'s test step cannot collect five `tests/protocol/*.test.ts` files on
   this pc (Windows), so `pnpm verify` cannot go green here regardless of task.** `vitest run` (pinned
   `^2.1.8`, installed `2.1.9`) throws `SyntaxError: Invalid or unexpected token` parsing an em-dash
