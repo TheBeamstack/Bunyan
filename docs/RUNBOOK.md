@@ -54,10 +54,10 @@ The file is `~/.config/bunyan/<seat>.token`, mode **600**, and lives outside the
 never synced or committed. Each machine's `gh` default covers two of the five seats; the other two need
 this export:
 
-| Machine | Default identity (`GH_TOKEN` unset) | Needs a token file |
-| --- | --- | --- |
-| box | `Davidian-Abdo` — covers `zayd`, `brahim` | `hmdnah` (`narutousomaki741`) |
-| pc | `Davidian-Abdo` — covers `khalihlna` | `amer` (`narutousomaki741`) |
+| Machine | Default identity (`GH_TOKEN` unset)       | Needs a token file            |
+| ------- | ----------------------------------------- | ----------------------------- |
+| box     | `Davidian-Abdo` — covers `zayd`, `brahim` | `hmdnah` (`narutousomaki741`) |
+| pc      | `Davidian-Abdo` — covers `khalihlna`      | `amer` (`narutousomaki741`)   |
 
 ⚠ **`gh auth switch` is rejected**: the active account is global in `hosts.yml`, and each machine runs
 more than one seat, so a concurrent seat would inherit whichever identity was switched to last.
