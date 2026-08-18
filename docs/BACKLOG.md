@@ -102,7 +102,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-002 | ready   | The two-candidate-line intersection snap                      | apps-web | pc      | normal | T-001      |
 | T-003 | ready   | The in-app open-source licences screen                        | apps-web | pc      | normal | —          |
 | T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?      | document | box     | normal | —          |
-| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built    | document | box     | normal | T-018      |
+| T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built    | document | box     | normal | T-018      |
 | T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint          | apps-web | pc      | normal | T-005      |
 | T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref       | document | box     | normal | —          |
 | T-008 | done    | Q19 — the belongs-to deletion reconciliation                  | document | box     | high   | —          |
@@ -571,7 +571,7 @@ _(unplanned findings land here — never claimed in the same turn that found the
   this. Recorded, not claimed.
 - **2026-08-17 — this pc's system Chrome (151.0.7922.138) cannot boot the OCCT kernel at all** — hangs on
   "Booting OCCT kernel…", throwing `Failed to execute 'decode' on 'TextDecoder': The provided ArrayBuffer
-  value must not be resizable` from the kernel worker's boot path (`packages/kernel-occt/wasm/bunyan-kernel.js`).
+value must not be resizable` from the kernel worker's boot path (`packages/kernel-occt/wasm/bunyan-kernel.js`).
   Confirmed pre-existing (reproduces against unmodified `main`). A/B against cached Playwright Chromium
   builds: 145.0.7632.6 and 148.0.7778.96 boot cleanly, 151.0.7922.34 does not — the regression window is
   Chrome 149–151, and it is in `kernel-occt`'s boot path, not `apps/web`. ⚠ **Worked around for this
