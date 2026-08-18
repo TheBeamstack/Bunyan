@@ -96,13 +96,17 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 > `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is not decomposed here — the freeze has not
 > happened, and rows nobody may claim bury rows somebody must.
 
+> **Row order is the sequence, not the id order.** `scripts/seats.mjs`'s `readyFor` takes the first
+> `ready` row a machine can satisfy, so this table's order is how the steward sequences work. **T-005
+> sits below T-024 deliberately:** its only dependent is T-006, a `pc` row, and no `pc` turn can finish
+> until T-020 lands — so building it first advances nothing, while T-020 unblocks that machine entirely.
+
 | ID    | Status  | Task                                                                    | Area     | Machine | Risk   | Depends on |
 | ----- | ------- | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
 | T-001 | ready   | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
 | T-002 | ready   | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
 | T-003 | ready   | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
 | T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
-| T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
 | T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | pc      | normal | T-005      |
 | T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
 | T-008 | done    | Q19 — the belongs-to deletion reconciliation                            | document | box     | high   | —          |
@@ -122,6 +126,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-022 | ready   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | blocked | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-024 | ready   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
+| T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
 
 ---
 
