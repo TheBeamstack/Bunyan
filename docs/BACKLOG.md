@@ -96,27 +96,32 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 > `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is not decomposed here — the freeze has not
 > happened, and rows nobody may claim bury rows somebody must.
 
-| ID    | Status  | Task                                                          | Area     | Machine | Risk   | Depends on |
-| ----- | ------- | ------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
-| T-001 | ready   | The perpendicular-foot snap candidate                         | apps-web | pc      | normal | —          |
-| T-002 | ready   | The two-candidate-line intersection snap                      | apps-web | pc      | normal | T-001      |
-| T-003 | ready   | The in-app open-source licences screen                        | apps-web | pc      | normal | —          |
-| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?      | document | box     | normal | —          |
-| T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built    | document | box     | normal | T-018      |
-| T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint          | apps-web | pc      | normal | T-005      |
-| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref       | document | box     | normal | —          |
-| T-008 | done    | Q19 — the belongs-to deletion reconciliation                  | document | box     | high   | —          |
-| T-009 | done    | Q18 — a hosted void may only host on its host's base part     | document | box     | high   | —          |
-| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser         | apps-web | pc      | normal | T-009      |
-| T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
-| T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
-| T-013 | done    | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
-| T-014 | done    | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
-| T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
-| T-016 | done    | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |
-| T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself    | infra    | box     | normal | —          |
-| T-018 | done    | D66's lazy-build design doc + measurement, reproduced         | document | box     | normal | —          |
-| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`      | apps-web | pc      | normal | —          |
+| ID    | Status  | Task                                                                    | Area     | Machine | Risk   | Depends on |
+| ----- | ------- | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
+| T-001 | ready   | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
+| T-002 | ready   | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
+| T-003 | ready   | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
+| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
+| T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
+| T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | pc      | normal | T-005      |
+| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
+| T-008 | done    | Q19 — the belongs-to deletion reconciliation                            | document | box     | high   | —          |
+| T-009 | done    | Q18 — a hosted void may only host on its host's base part               | document | box     | high   | —          |
+| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | pc      | normal | T-009      |
+| T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`                | document | box     | high   | —          |
+| T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`                   | infra    | box     | high   | —          |
+| T-013 | done    | The seat identity guard — `gh api user` must match the seat             | infra    | box     | high   | —          |
+| T-014 | done    | `--review` must read the task's `risk:`, not only the surface           | infra    | box     | high   | —          |
+| T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder            | infra    | box     | high   | —          |
+| T-016 | done    | `§0b`'s baton carries the builder separately from the holder            | infra    | box     | high   | T-015      |
+| T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself              | infra    | box     | normal | —          |
+| T-018 | done    | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
+| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
+| T-020 | ready   | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
+| T-021 | blocked | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
+| T-022 | ready   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
+| T-023 | blocked | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
+| T-024 | ready   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 
 ---
 
@@ -203,9 +208,10 @@ quantifies over the model must build what it is about to report, or declare it.
   prediction that was wrong) · `docs/decisions.md` D66
 - verify: `pnpm verify`
 - done-when:
-  - ⚠ **the unmeasured claim is measured FIRST:** does `save` read built state at all? T-018's design doc
-    says _"it should not — it writes the recipe — but that is a claim, not a measurement"_ and asks this
-    session to check before relying on the paragraph. Do that before choosing anything;
+  - ✅ **DISCHARGED BY T-018 — `save` reads no built state.** The partial and the full document
+    serialise to byte-identical `Scene` JSON, and `saveBnn` takes a `Scene`, never a `DocumentContext`
+    (`tests/d66-lazy-build-measure.test.ts`). This bullet asked the claiming session to measure that
+    first; it is measured, so start from it. ⚠ The FORCE/DECLARE choice below is untouched;
   - FORCE or DECLARE is chosen per aggregate (`projectQuantities`, schedules, the Clean Delta, `save`)
     and the choice is justified against the measurement above;
   - ⚠ **`save` is not a design call** — a save that silently omits unbuilt elements is data loss, not a
@@ -520,9 +526,11 @@ closed PR #16 (14 commits stale, real conflicts) and never landed on `main`. `T-
   - the measurement instrument is a committed test file, not a one-off script;
   - §3a (keep-live set) / §3b (first paint) / §3c (force vs. declare) are each named as a section T-005
     and T-006 can cite by number;
-  - revert-verified: the instrument's identity-comparison assertion fails if `Part.node` is read instead
-    of `Part.refs` — a weak-green shape the closed PR's own review caught once already, worth keeping as
-    a tripwire.
+  - revert-verified: the instrument's identity-comparison assertion fails if `Part.nodeId` is read
+    instead of `Part.refs` — a weak-green shape the closed PR's own review caught once already, worth
+    keeping as a tripwire. ⚠ This read `Part.node` when written, a field that has never existed
+    (`entities.ts:683`); corrected by `brahim` after the merge, and the tripwire was built against
+    `nodeId`.
 - depends-on: —
 - area: document · machine: **box** · risk: **normal**
 
@@ -550,10 +558,140 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 - depends-on: —
 - area: apps-web · machine: **pc** · risk: **normal**
 
+### T-020 — The pinned vitest cannot collect `tests/protocol/*` on Windows
+
+`pnpm verify` cannot reach green on the pc for **any** task, so `agent-finish.mjs` refuses every
+`amer`/`khalihlna` turn. Measured there: `vitest run` (pinned `^2.1.8`, installed `2.1.9`) throws
+`SyntaxError: Invalid or unexpected token` collecting five `tests/protocol/*.test.ts` files, while `tsc`,
+esbuild, Vite's transform, `vite-node` and `npx vitest@latest` (4.1.10) all parse the same files cleanly
+and CI's Linux runner is green on the identical command.
+
+- implements: this file's `## Discovered` entry of 2026-08-17 · `current_state.md §6` (`verify` **is** the
+  CI step list, exactly) · `AGENTS.md §1.1` (a finish requires unconditional green)
+- verify: `pnpm verify`
+- done-when:
+  - the runner is moved to a major the pc measured green, and `package.json`'s pin and the lockfile move
+    together;
+  - ⚠ **the suite count is reported before and after, and is unchanged** — a major bump that silently
+    stops collecting a file reports _fewer_ tests and a green run, which is this defect's own shape
+    (`current_state.md §1c-7`);
+  - every vitest API the suite and `vitest.config.ts` use that changed between the two majors is
+    enumerated and each call site checked — invariant 7's backward sweep, over the config too;
+  - CI green on the self-hosted runner (D89);
+  - ⚠ **no item here claims the pc is fixed.** The box cannot reproduce a Windows-only collection
+    failure, so the entry writes `unverified here: the five protocol files collect on Windows — the pc
+seats to confirm`, and T-021 is what closes it.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — it replaces the runner every gate in `pnpm verify` depends on, including the gates that
+> would catch its own regressions.
+
+### T-021 — `pnpm verify` reaches green on the pc, confirmed there
+
+- implements: T-020's bump · `AGENTS.md §4.9` (only a pc seat may report a pc-only claim)
+- verify: `pnpm verify`, on the pc
+- done-when:
+  - the five `tests/protocol/*.test.ts` files collect and pass on the pc;
+  - `pnpm verify` exits 0 there — which it has never done;
+  - revert-verified: restoring the `^2.1.8` pin reproduces the collection `SyntaxError`;
+  - ⚠ measured **on this machine**, and it is the first turn that may tick T-020's deferred claim.
+- depends-on: T-020
+- area: infra · machine: **pc** · risk: **normal**
+
+> Split from T-020 because the fix is a dependency bump the box and CI must verify, and the failure it
+> closes reproduces only on Windows — one row would let a box seat tick a criterion it cannot run.
+
+### T-022 — `kernel-occt`'s glue decodes from growable WASM memory
+
+The shipped kernel does not boot on Chrome 149+: `TextDecoder.decode` now refuses a view whose backing
+`ArrayBuffer` is resizable, which is how Chrome exposes growable WASM memory, and
+`packages/kernel-occt/wasm/bunyan-kernel.js` decodes UTF-8 straight off `HEAPU8`. Measured on the pc —
+Chromium 145 and 148 boot, 151 hangs on "Booting OCCT kernel…" — and reproduced against unmodified `main`,
+so it is pre-existing and not `apps/web`'s.
+
+- implements: this file's `## Discovered` entry of 2026-08-17 · `current_state.md §1c-9` (**measure the
+  artifact, not the manual**) · `§6` (the link recipe) · Q14/Entry 79 (the proven toolchain pin)
+- verify: `pnpm verify`
+- done-when:
+  - the emitted `bunyan-kernel.js` no longer decodes from a view of growable memory — asserted against
+    **the artifact**, because its doc-comments and its emitted bytes have disagreed before (§1c-9);
+  - a committed test pins that, so a later relink cannot reintroduce it silently;
+  - ⚠ **the pin is re-proved or deliberately moved.** Entry 79 proved relinking on the pinned emsdk digest
+    reproduces the committed artifact byte for byte. An emsdk bump moves `tools/kernel-build/toolchain.json`
+    and re-proves it the same way; a post-link patch leaves the pin alone and belongs in the recipe, never
+    as a hand edit to a generated file;
+  - ⚠ **measure the cost before choosing.** An emsdk bump may invalidate the OCCT static libs prebuilt
+    under the current pin at `~/occt-wasm-spike/install`, turning a ~60–74 s link into a 2.5 h rebuild
+    (`current_state.md §6`); if it does, the patch path is preferred and the entry says so with the number;
+  - the suite stays green, count reported;
+  - ⚠ **no item here claims a browser boot.** Measured on box: Node 20.20.2 decodes a resizable-backed
+    view without complaint, so the runtime here cannot reproduce Chrome's refusal. The entry writes
+    `unverified here: the kernel boots on Chrome 151 — the pc seats to confirm`, and T-023 closes it;
+  - ⚠ box discipline (`§6a`): the container stays capped, and an OCCT **version** bump is out of scope.
+- depends-on: —
+- area: kernel · machine: **box** · risk: **high**
+
+> `risk: high` — it changes the committed WASM artifact and touches the toolchain pin, the two things
+> every geometric claim in the repo is measured against.
+
+### T-023 — The kernel boots on the pc's system Chrome, confirmed there
+
+- implements: T-022's fix · `AGENTS.md §4.9`
+- verify: a browser run on the pc
+- done-when:
+  - the app boots on that machine's system Chrome (151.x) with **no `BUNYAN_BROWSER_CMD` override**, and
+    the `TextDecoder` error is gone by name;
+  - console-error-free boot;
+  - revert-verified: the pre-fix artifact still hangs on the same browser;
+  - ⚠ **the workaround is removed once the fix is proven** — the persistent `BUNYAN_BROWSER_CMD` pinning
+    Chromium 148 is unset and the removal recorded, so it cannot outlive what it works around.
+- depends-on: T-022
+- area: apps-web · machine: **pc** · risk: **normal**
+
+### T-024 — `_baselinedAtEntry` names a position, so a cross-day §7 append goes red
+
+`docs-state.mjs` mints new-scheme entry numbers as `1000 - i` over §7's array order, so `1000` means
+"whatever is newest" rather than a fixed turn. `baselineEntryIssues` then compares `_baselinedAt` against
+that moving entry's date, and any turn that appends a §7 abstract on a later day than the baseline fails
+`tests/freeze-boundary.test.ts` having moved no declaration.
+
+- implements: this file's `## Discovered` entry of 2026-08-17 · `scripts/frozen-surface.mjs`'s
+  `baselineEntryIssues` · `scripts/docs-state.mjs` ("SYNTHETIC SORT KEYS") · Q15
+- verify: `pnpm verify`
+- done-when:
+  - a new-scheme abstract carries a **stable identity** — its `T-nnn`/`STEWARD-slug` with its date, or a
+    minted monotonic number — and `_baselinedAtEntry` records that, not a position;
+  - appending a §7 abstract on a later day leaves `freeze-boundary` green when no declaration moved,
+    measured on the one turn that hit it, `STEWARD-unblock-pc-and-chrome-boot`;
+  - ⚠ **the gate is repaired, not removed** — a baseline whose recorded date genuinely disagrees with the
+    entry that authorised it must still fail;
+  - ⚠ **this lands before the P5 freeze.** After it the baseline may not be rewritten without an owner
+    ruling, so today's only remedy — `pnpm state --rebaseline` to record nothing — stops being available
+    and the gate has no green path at all;
+  - revert-verified: the pre-fix scheme reproduces the red on a fixture whose newest abstract postdates
+    the baseline.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — it is the freeze gate itself, and `AGENTS.md §5` makes the P5 freeze the one
+> irreversible act.
+
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-18 — `agent-finish.mjs --review` prints `gh pr merge` on an owner-gated PR, because it reads
+  `pnpm state`'s risk verdict and not `reserved-classes.mjs`'s class.** The two disagree by construction
+  on a re-baseline: PR #36 moved 0 of 214 declarations, so `state.mjs` returns `RISK: additive`, while
+  `reserved-classes.mjs` returns `⇒ OWNER-GATED` on `needs-operator/freeze` and CI applies that label.
+  Measured on #36 — both commands printed, neither run. Only `REVIEW.md` item 7's ⚠ (_"any
+  `needs-operator/*` label ⇒ you do not merge"_) stands between the printed command and a seat merging an
+  owner-gated PR, which is an instruction where `T-014` established a gate belongs — the same shape, in the
+  same script, for the freeze class instead of `risk: high`. Fix shape: `--review` resolves the reserved
+  classes it already has a module for, and suppresses the merge commands whenever one is present, rather
+  than deriving merge-ability from the frozen-surface diff alone. Found by `hmdnah` reviewing #36.
+  Recorded, not claimed.
 - **2026-08-18 — every merge lands a branch-shaped `§8` on `main`, so the next builder's
   `agent-start.mjs` measures a disagreement and refuses.** `§8` is regenerated on the task branch, where
   its `branch · tip · tree`, `open PRs` and `diff vs origin/main` rows describe that branch; the merge

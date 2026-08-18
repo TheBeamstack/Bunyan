@@ -114,11 +114,11 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | Field | Value |
 |---|---|
 | seat | `hmdnah` |
-| builder | `zayd` |
+| builder | `brahim` |
 | role | reviewer |
 | machine | box |
-| task | `T-018` |
-| branch | `task/T-018-d66-s-lazy-build-design-doc-measurement-` |
+| task | `STEWARD-unblock-pc-and-chrome-boot` |
+| branch | `brahim/2026-08-18-unblock-pc-and-chrome-boot` |
 | claimed-at | 2026-08-17T19:40:32Z |
 | status | finished — PR open, awaiting review |
 
@@ -630,6 +630,72 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### STEWARD-unblock-pc-and-chrome-boot — review: the splits are honest, and T-024 named a fixture that measures green — 2026-08-18 — seat: hmdnah
+
+- **CHANGED:** `docs/BACKLOG.md` — T-024's `done-when:` corrected to name the one turn that reproduces
+  the defect, plus one `## Discovered` row; `handoff/hmdnah/2026-08-18-STEWARD-unblock-pc-and-chrome-boot-review.md`
+  NEW; this abstract and the `REVIEW:` line above. No `packages/`, no `scripts/`, no snapshot byte.
+- **VERIFIED:** **Item 1 re-executed in its docs-only form — two mutations, since the diff reverts no fix.**
+  (A) restoring `_baselinedAt` to `2026-08-17` takes `freeze-boundary` **1 of 12 RED**
+  (`_baselinedAtEntry 1000 is dated 2026-08-18 in §7, but _baselinedAt says 2026-08-17`); restored,
+  **12/12 green**. (B) flipping T-022 to `machine: **pc**` moves `reviewer-for` `hmdnah` → `khalihlna` and
+  `can-claim zayd` `yes` → `REFUSED`; restored. **The claim T-022 rests on, re-measured here rather than
+  taken:** Node 20.20.2 decodes a resizable-backed view without throwing, and
+  `WebAssembly.Memory(...).buffer.resizable` is **`false`** here — the box cannot construct Chrome's
+  shape, let alone reproduce its refusal. The call site matches the diagnosis:
+  `UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr))` over `HEAPU8`, one UTF-8 decoder in the glue.
+- **FOUND:** **One defect, fixed on the branch.** T-024's `done-when:` named _"the two turns that hit it
+  (T-011, `STEWARD-…`)"_; run against T-011's own merged tree (`c18ae8e`), `baselineEntryIssues` returns
+  **`[]`** — its dates agreed on the day and its re-baseline was earned by a real declaration moving
+  (`scene.ts :: type SceneCollection`). A criterion pointing at a green fixture is not checkable (READY
+  criterion 4), so it now names the one turn that does reproduce. **Everything else checked out:** all
+  three box rows' `done-when:` items are box-executable, each carries an explicit `unverified here:`
+  naming its pc successor, and `seats.mjs` routes and refuses the five rows accordingly; both corrections
+  hold against the code (`Part.node` exists nowhere, `saveBnn` takes a `Scene`); T-011's rotated abstract
+  is byte-identical.
+- **OWES:** The **owner** — the merge; `needs-operator/freeze` is applied and CI's `PR shape` job ran.
+  `brahim` — the `--review` merge-command routing defect now in `## Discovered`, and an owner line on
+  `AGENTS.md §7.3` vs. invariant 10 for an in-place correction in a planning file.
+- **RISK:** additive — no snapshot byte, no declaration, no code. **Not merged: owner-gated.**
+- **FULL:** `handoff/hmdnah/2026-08-18-STEWARD-unblock-pc-and-chrome-boot-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #36.
+
+### STEWARD-unblock-pc-and-chrome-boot — the two defects that block a whole machine, decomposed — 2026-08-18 — seat: brahim
+
+- **CHANGED:** `docs/BACKLOG.md` — **T-020**/**T-021** (the pinned vitest cannot collect
+  `tests/protocol/*` on Windows; box fix, pc confirmation) and **T-022**/**T-023** (`kernel-occt`'s glue
+  decodes from growable WASM memory; box fix, pc confirmation) NEW · T-018's `done-when:` corrected from
+  `Part.node`, a field that has never existed, to `Part.nodeId` · T-005's first bullet marked discharged
+  by T-018's measurement · **T-024** NEW (`_baselinedAtEntry` names a position, so a cross-day §7 append
+  goes red), decomposed because this turn tripped it rather than because the row was old · T-011's
+  step-2-of-2 review abstract rotated to `docs/history.md` §E, §7 being over its byte budget at 33235.
+  No `packages/`, no `apps/web`, no `scripts/`; the only frozen-surface byte is `_baselinedAt` (see RISK).
+- **VERIFIED:** `pnpm verify` green, exit 0. Four facts measured before writing the rows rather than
+  assumed: **Node 20.20.2 decodes a resizable-backed view without complaint**, so the box cannot
+  reproduce Chrome's refusal and T-022 carries no browser criterion; `bunyan-kernel.js` is minified
+  emscripten glue with one `TextDecoder` on the UTF-8 path, so the fix is the toolchain or the recipe,
+  never a hand edit; all five protocol test files carry em-dashes (5–37 each); `Part.node` does not exist
+  (`entities.ts:683`).
+- **FOUND:** Both defects block a whole machine and both are box work — the machine that is not blocked.
+  `pnpm verify` cannot reach green on the pc for **any** task, so `agent-finish.mjs` refuses every
+  `amer`/`khalihlna` turn and five `ready` `pc` rows sit behind it with T-001's browser-verified work
+  unmerged. The kernel not booting on Chrome 149+ is a v1.0.0 shipping defect, not a dev-box one; the
+  pc's `BUNYAN_BROWSER_CMD` pin fixes one machine and nothing users get. Both split box/pc under this
+  file's own rule — *a `done-when:` that mixes machines needs splitting* — so each box row carries an
+  explicit `unverified here:` and each pc row is the turn that may tick it.
+- **OWES:** `zayd` — **T-020**, **T-022** and **T-024**, all `ready`, all `risk: high` ⇒ two review turns
+  each (D88). ⚠ **T-024 before the P5 freeze**, for the reason in its own row: after the freeze the
+  baseline may not be rewritten without an owner ruling, so today's only remedy stops existing and the
+  gate has no green path. The pc seats — **T-021** and **T-023** once their box halves merge; T-023 also
+  unsets the `BUNYAN_BROWSER_CMD` workaround so it cannot outlive its fix. `brahim` (a later turn) — the
+  `--review` wrong-PR claim, three occurrences and still undecomposed.
+- **RISK:** additive (re-baselined) — **0 declarations moved**, all 214 byte-identical; the only change
+  to the snapshot is `_baselinedAt`, demanded by the very defect T-024 decomposes. ⚠ It still labels the
+  PR `needs-operator/freeze`, so the owner merges a docs-only turn — the cry-wolf cost that row ends.
+- **FULL:** `handoff/brahim/2026-08-18-STEWARD-unblock-pc-and-chrome-boot.md`
+- **REVIEW:** ✅ approved by `hmdnah` 2026-08-18 — one defect found and fixed on the branch (T-024 named
+  T-011 as a fixture that measures green). ⚠ **Owner merges** — `needs-operator/freeze`.
+
 ### T-018 — D66's lazy build: 89.8% of a cold load is deferrable, and a deferred join partner is safe — 2026-08-17 — seat: zayd
 
 - **CHANGED:** `docs/design/P5_step9_D66_lazy_build_design.md` **NEW** (§3a keep-live set · §3b first
@@ -925,60 +991,22 @@ is maintenance and does NOT get an entry of its own.**
   face/edge counts and `refs` are identical; `bounds` is the right oracle either way. Correction in the
   `hmdnah` entry below.
 
-### T-011 — review (step 2 of 2): the invalidator under-names, and reproduces D68 from the authoring side — 2026-08-17 — seat: hmdnah
-
-- **CHANGED:** nothing on the branch — a review turn edits no code (`REVIEW.md`'s findings table: a defect
-  either step proves goes back to the builder, D88). `handoff/hmdnah/2026-08-17-T-011-review-step2.md` NEW;
-  this abstract; one `## Discovered` row in `docs/BACKLOG.md`.
-- **VERIFIED:** **Item 1 re-executed, on a different revert from step 1's** — replaced `dependency.ts`'s
-  `case 'designOptions'` with `return []`, everything else untouched: **1 of 13 RED** (`expected Set{} to
-  deeply equal Set{ …(2) }`, `design-option-crud.test.ts:301`); restored, **56/56 green** across the five
-  files this unit touches. **Item 7 re-confirmed against a baseline this branch did not write:**
-  `diffSurface(main's committed snapshot, buildSurface(HEAD))` = **1 changed** (`scene.ts :: type
-  SceneCollection`), 0 added, 0 removed, 214 → 214 — the `--rebaseline` hid nothing. CI green on
-  `6cac987`, `PR shape · reserved classes` **ran** (14 s, pass), labels `needs-operator/contract-touching`
-  + `needs-operator/freeze` + `review/step-1`.
-- **FOUND:** **⚠⚠ Two defects, both in the new dependency edge — NOT APPROVED.** **(1)** The edge seeds
-  tagged elements + belongs-to descendants but never expands over `wallsJoinedTo`, which `case 'elements'`
-  does. Measured end-to-end through the shipped verbs: `core.updateDesignOption {isPrimary:true}` moves
-  `resolveJoins(mainWall)` from `['end']` to `[]` while `#affected` names **only the option wall** — the
-  main-model wall keeps a solid mitered against a wall the document no longer builds, which is
-  `join-option-cascade.test.ts`'s mode 1 arriving through the invalidator. T-011's own `done-when` names
-  this outcome. **(2)** `elementsTaggedIntoSet` resolves the seed through `setName → optionIds →
-  elements`, so on **undo of a delete** — where `#affected` reads the pre-revert (post-delete) scene — the
-  deleted option's own tagged elements fall out of the filter and **nothing** is re-staged; reachable via
-  `deleteDesignOption {acknowledge:true}` on a set's only option. `dependents`'s `@param scene` docstring
-  still claims pre- and post-edit give the same answer, which this edge makes false. **Why green:** the
-  one edge test puts its negative control 5000 mm away and parallel — it can never be a join partner — and
-  `tests/dependency-graph.test.ts` gained no `designOptions` case at all. **Also found, non-blocking:** the
-  primary invariant is enforced at the CRUD doors only, and two primaries in one set makes
-  `isElementActive` return `true` for both mutually exclusive walls (D65's double-count) through a loaded
-  `.bnn` or a code-assembled `Scene` — pre-existing, so a `## Discovered` row, not this PR's growth.
-- **OWES:** `zayd` — the two invalidator fixes on the existing claim via `agent-start.mjs --continue
-  T-011`; the row stays `review`, no new claim, no new PR. The **owner** — `RISK: contract-touching`, so
-  the owner merges #32 **after** the return lands, not before. `brahim` — `agent-start.mjs --review`
-  claimed **PR #33**, not #32, and posted a review-claim comment there; there is no flag to name a PR, so
-  #33 carries a spurious claim and was not reviewed. Recorded in `## Discovered`.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-17-T-011-review-step2.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
-
 ## §8 — Generated
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
-| **newest entry** | **T-018 (zayd, 2026-08-17)** |
-| branch · tip · tree | `main` · `834783e` · clean |
-| open PRs | none — main is the tip of the work |
+| **newest entry** | **STEWARD-unblock-pc-and-chrome-boot (hmdnah, 2026-08-18)** |
+| branch · tip · tree | `brahim/2026-08-18-unblock-pc-and-chrome-boot` · `9301df7` · clean |
+| open PRs | #36 brahim/2026-08-18-unblock-pc-and-chrome-boot |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | (no diff vs origin/main) (0 files) |
-| docs budget | current_state 81.8/96.0 KB · §7 29.5/32.0 KB · abstracts 9/10 · bodies 68 |
+| diff vs origin/main | 6 files changed, 482 insertions(+), 76 deletions(-) (6 files) |
+| docs budget | current_state 84.4/96.0 KB · §7 32.0/32.0 KB · abstracts 10/10 · bodies 70 |
 
 _Generated 2026-08-18 by `pnpm state`._
 
