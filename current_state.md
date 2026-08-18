@@ -630,6 +630,36 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### STEWARD-unblock-pc-and-chrome-boot — review: the splits are honest, and T-024 named a fixture that measures green — 2026-08-18 — seat: hmdnah
+
+- **CHANGED:** `docs/BACKLOG.md` — T-024's `done-when:` corrected to name the one turn that reproduces
+  the defect, plus one `## Discovered` row; `handoff/hmdnah/2026-08-18-STEWARD-unblock-pc-and-chrome-boot-review.md`
+  NEW; this abstract and the `REVIEW:` line above. No `packages/`, no `scripts/`, no snapshot byte.
+- **VERIFIED:** **Item 1 re-executed in its docs-only form — two mutations, since the diff reverts no fix.**
+  (A) restoring `_baselinedAt` to `2026-08-17` takes `freeze-boundary` **1 of 12 RED**
+  (`_baselinedAtEntry 1000 is dated 2026-08-18 in §7, but _baselinedAt says 2026-08-17`); restored,
+  **12/12 green**. (B) flipping T-022 to `machine: **pc**` moves `reviewer-for` `hmdnah` → `khalihlna` and
+  `can-claim zayd` `yes` → `REFUSED`; restored. **The claim T-022 rests on, re-measured here rather than
+  taken:** Node 20.20.2 decodes a resizable-backed view without throwing, and
+  `WebAssembly.Memory(...).buffer.resizable` is **`false`** here — the box cannot construct Chrome's
+  shape, let alone reproduce its refusal. The call site matches the diagnosis:
+  `UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr))` over `HEAPU8`, one UTF-8 decoder in the glue.
+- **FOUND:** **One defect, fixed on the branch.** T-024's `done-when:` named _"the two turns that hit it
+  (T-011, `STEWARD-…`)"_; run against T-011's own merged tree (`c18ae8e`), `baselineEntryIssues` returns
+  **`[]`** — its dates agreed on the day and its re-baseline was earned by a real declaration moving
+  (`scene.ts :: type SceneCollection`). A criterion pointing at a green fixture is not checkable (READY
+  criterion 4), so it now names the one turn that does reproduce. **Everything else checked out:** all
+  three box rows' `done-when:` items are box-executable, each carries an explicit `unverified here:`
+  naming its pc successor, and `seats.mjs` routes and refuses the five rows accordingly; both corrections
+  hold against the code (`Part.node` exists nowhere, `saveBnn` takes a `Scene`); T-011's rotated abstract
+  is byte-identical.
+- **OWES:** The **owner** — the merge; `needs-operator/freeze` is applied and CI's `PR shape` job ran.
+  `brahim` — the `--review` merge-command routing defect now in `## Discovered`, and an owner line on
+  `AGENTS.md §7.3` vs. invariant 10 for an in-place correction in a planning file.
+- **RISK:** additive — no snapshot byte, no declaration, no code. **Not merged: owner-gated.**
+- **FULL:** `handoff/hmdnah/2026-08-18-STEWARD-unblock-pc-and-chrome-boot-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #36.
+
 ### STEWARD-unblock-pc-and-chrome-boot — the two defects that block a whole machine, decomposed — 2026-08-18 — seat: brahim
 
 - **CHANGED:** `docs/BACKLOG.md` — **T-020**/**T-021** (the pinned vitest cannot collect
@@ -663,7 +693,8 @@ is maintenance and does NOT get an entry of its own.**
   to the snapshot is `_baselinedAt`, demanded by the very defect T-024 decomposes. ⚠ It still labels the
   PR `needs-operator/freeze`, so the owner merges a docs-only turn — the cry-wolf cost that row ends.
 - **FULL:** `handoff/brahim/2026-08-18-STEWARD-unblock-pc-and-chrome-boot.md`
-- **REVIEW:** pending — `hmdnah`.
+- **REVIEW:** ✅ approved by `hmdnah` 2026-08-18 — one defect found and fixed on the branch (T-024 named
+  T-011 as a fixture that measures green). ⚠ **Owner merges** — `needs-operator/freeze`.
 
 ### T-018 — D66's lazy build: 89.8% of a cold load is deferrable, and a deferred join partner is safe — 2026-08-17 — seat: zayd
 
@@ -966,16 +997,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **STEWARD-unblock-pc-and-chrome-boot (brahim, 2026-08-18)** |
-| branch · tip · tree | `brahim/2026-08-18-unblock-pc-and-chrome-boot` · `32c6cac` · clean |
-| open PRs | none — main is the tip of the work |
+| **newest entry** | **STEWARD-unblock-pc-and-chrome-boot (hmdnah, 2026-08-18)** |
+| branch · tip · tree | `brahim/2026-08-18-unblock-pc-and-chrome-boot` · `fea516e` · dirty |
+| open PRs | #36 brahim/2026-08-18-unblock-pc-and-chrome-boot |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 305 insertions(+), 75 deletions(-) (5 files) |
-| docs budget | current_state 81.4/96.0 KB · §7 29.1/32.0 KB · abstracts 9/10 · bodies 69 |
+| diff vs origin/main | 5 files changed, 348 insertions(+), 76 deletions(-) (5 files) |
+| docs budget | current_state 84.4/96.0 KB · §7 32.0/32.0 KB · abstracts 10/10 · bodies 70 |
 
 _Generated 2026-08-18 by `pnpm state`._
 

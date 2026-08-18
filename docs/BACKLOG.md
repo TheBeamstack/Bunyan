@@ -663,7 +663,7 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
   - a new-scheme abstract carries a **stable identity** — its `T-nnn`/`STEWARD-slug` with its date, or a
     minted monotonic number — and `_baselinedAtEntry` records that, not a position;
   - appending a §7 abstract on a later day leaves `freeze-boundary` green when no declaration moved,
-    measured on the two turns that hit it (T-011, `STEWARD-unblock-pc-and-chrome-boot`);
+    measured on the one turn that hit it, `STEWARD-unblock-pc-and-chrome-boot`;
   - ⚠ **the gate is repaired, not removed** — a baseline whose recorded date genuinely disagrees with the
     entry that authorised it must still fail;
   - ⚠ **this lands before the P5 freeze.** After it the baseline may not be rewritten without an owner
@@ -681,6 +681,17 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-18 — `agent-finish.mjs --review` prints `gh pr merge` on an owner-gated PR, because it reads
+  `pnpm state`'s risk verdict and not `reserved-classes.mjs`'s class.** The two disagree by construction
+  on a re-baseline: PR #36 moved 0 of 214 declarations, so `state.mjs` returns `RISK: additive`, while
+  `reserved-classes.mjs` returns `⇒ OWNER-GATED` on `needs-operator/freeze` and CI applies that label.
+  Measured on #36 — both commands printed, neither run. Only `REVIEW.md` item 7's ⚠ (_"any
+  `needs-operator/*` label ⇒ you do not merge"_) stands between the printed command and a seat merging an
+  owner-gated PR, which is an instruction where `T-014` established a gate belongs — the same shape, in the
+  same script, for the freeze class instead of `risk: high`. Fix shape: `--review` resolves the reserved
+  classes it already has a module for, and suppresses the merge commands whenever one is present, rather
+  than deriving merge-ability from the frozen-surface diff alone. Found by `hmdnah` reviewing #36.
+  Recorded, not claimed.
 - **2026-08-18 — every merge lands a branch-shaped `§8` on `main`, so the next builder's
   `agent-start.mjs` measures a disagreement and refuses.** `§8` is regenerated on the task branch, where
   its `branch · tip · tree`, `open PRs` and `diff vs origin/main` rows describe that branch; the merge
