@@ -113,14 +113,14 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| builder | `brahim` |
-| role | reviewer |
+| seat | `zayd` |
+| builder | `zayd` |
+| role | builder |
 | machine | box |
-| task | `STEWARD-unblock-pc-and-chrome-boot` |
-| branch | `brahim/2026-08-18-unblock-pc-and-chrome-boot` |
-| claimed-at | 2026-08-17T19:40:32Z |
-| status | finished — PR open, awaiting review |
+| task | `T-020` |
+| branch | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` |
+| claimed-at | 2026-08-18T19:51:18Z |
+| status | working |
 
 <!-- END BATON -->
 
