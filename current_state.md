@@ -630,6 +630,39 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-020 — review (step 1, mechanical): the bump collects the identical 936 tests, and vitest 2 was not enforcing the default timeout — 2026-08-18 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — a review turn edits no code.
+  `handoff/hmdnah/2026-08-18-T-020-review-step1.md` NEW; this abstract; the `REVIEW:` line of the entry
+  below; T-011's step-2 re-run abstract rotated to `docs/history.md` §E to hold §7 inside its budget.
+- **VERIFIED:** **Item 1 re-executed by hand**, the added `120_000` reverted under the branch's runner:
+  RED, `Test timed out in 5000ms` at 19 001 ms, `1 failed | 8 passed (9)`; restored 9/9. **Both full runs
+  re-measured here**, each runner installed in turn from its own lockfile — `vitest@2.1.9` **936 · 97 files
+  · 287 suites** (274.63 s) and `vitest@4.1.10` **936 · 97 · 287** (271.46 s), `docs:check` **154 · 8**
+  under both. ⚠ **Stronger than the count:** diffing the two json summaries by `(file, test title)` gives an
+  **empty symmetric difference**, so the runners collected the *identical* 936 tests, which is what the
+  `done-when:`'s ⚠ is actually asking. **Item 7:** `reserved-classes.mjs --base <main>` → `none —
+  RISK: additive`; both CI jobs now `success` on `82e1c60`.
+- **FOUND:** **The author's mechanism is correct, and a probe isolates it from the cost.** Same commit,
+  same reverted file: 2.1.9 passes the clean-delta test at 18 855 ms, 4.1.10 times it out at 5000 ms after
+  19 001 ms. A two-case probe with no kernel in it — a microtask-only chain busy ~8000 ms, and a
+  `setTimeout` of 8000 ms, neither carrying an explicit timeout — passes A and fails B under 2.1.9 while
+  failing both under 4.1.10, so vitest 2's default deadline is a timer that a chain resolving through
+  `queueMicrotask` (`transport.ts:63`) never lets reach the timer phase. **⚠ CI's labeller had not run:**
+  `pr-shape` was red in `Set up job` on a `429` fetching `actions/checkout@v4`, which is item 7's *"no label
+  and no labeller look identical"* case; re-run, now green. Sweep and API figures reproduce — three of 936
+  tests over 5000 ms with next-slowest 1878 ms (author 1980 ms, same test), 131 numeric `}, N)` sites and
+  **zero** options-object sites, `.toThrow` 58 / `.toEqual` 394 exact. One nit: the `vi.*` enumeration is
+  complete but counted five where the tree has six call sites of four methods.
+- **OWES:** `hmdnah` — **step 2** (items 2, 3, 6 plus the pre-merge `needs-operator/*` re-check), separate
+  session, same claim, row stays `review`. The **pc seats** — `unverified here: the five protocol files
+  collect on Windows — the pc seats to confirm`; this box parses all five under **both** runners, so **T-021**
+  closes it and the criterion is not ticked here.
+- **RISK:** additive — a review turn moved no declaration; `reserved-classes.mjs` returns `none`.
+- **FULL:** `handoff/hmdnah/2026-08-18-T-020-review-step1.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), D88 step 1 of 2; findings posted to PR #37
+  (`issuecomment-5333851516`, presence verified).
+
 ### T-020 — the runner moves 2.1.9 → 4.1.10, and vitest 2 was not enforcing test timeouts — 2026-08-18 — seat: zayd
 
 - **CHANGED:** `package.json` (`vitest` `^2.1.8` → `^4.1.10`) and `pnpm-lock.yaml` (`vitest@2.1.9` →
@@ -666,7 +699,7 @@ is maintenance and does NOT get an entry of its own.**
   claimable once this merges, and with it the five `ready` `pc` rows behind it.
 - **RISK:** additive — no declaration moved, no frozen byte; `reserved-classes.mjs` returns `none`.
 - **FULL:** `handoff/zayd/2026-08-18-T-020-vitest-2-to-4.md`
-- **REVIEW:** ⚠ This entry is the currently open PR — **AWAITING REVIEW.**
+- **REVIEW:** ⚠ **STEP 1 OF 2 DONE, NOT APPROVED** — `hmdnah`, D88 step 1 (mechanical), `82e1c60`, findings on PR #37. Item 1 re-executed RED, both suite counts re-measured at 936 · 97 · 287 and shown to be the identical 936 tests, and the microtask-timeout mechanism reproduced by a probe. **Step 2 approves and merges**; the row stays `review` until it does.
 
 ### STEWARD-unblock-pc-and-chrome-boot — review: the splits are honest, and T-024 named a fixture that measures green — 2026-08-18 — seat: hmdnah
 
@@ -946,45 +979,6 @@ is maintenance and does NOT get an entry of its own.**
 - **REVIEW:** n/a — this IS step 1 of the review; step 2 (`hmdnah`, a separate session) approves and
   merges.
 
-### T-011 — review (step 2, re-run): both returned defects closed; the oracle claim is false — 2026-08-17 — seat: hmdnah
-
-- **CHANGED:** nothing on the branch — a review turn edits no code. `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
-  NEW (⚠ named to sort last: `agent-finish.mjs` resolves the body by lexical sort, and
-  `…-step2-rerun.md` would sort BEFORE `…-step2.md`); this abstract; the `REVIEW:` line of the entry below.
-- **VERIFIED:** **Item 1 re-executed, one revert per returned defect, by hand, tests untouched.** Revert A
-  (drop `joinNeighboursOf` from the case): **4 RED** — 3 in `dependency-graph`, plus `edit.rebuilt` missing
-  the main-model wall in `design-option-crud`. Revert B (seed the option ids from the catalogue only):
-  **2 RED**, both undo-of-delete. Restored: **61/61** across the five files this unit touches; full suite
-  re-run here **920 · 96 files**, `docs:check` **146 · 8** — both match `zayd`'s figures. **Item 7 immediately
-  before approving:** `pnpm state` → contract-touching, 1 declaration moved; `gh api …/89130fb/check-runs`
-  → both jobs `completed/success`; labels `needs-operator/contract-touching` + `needs-operator/freeze` +
-  `review/step-1` ⇒ the labeller **ran**, and the owner merges.
-- **FOUND:** **⚠⚠ The entry below's oracle measurement is false for `area`.** Re-measured on the same
-  construction: `volume` (3 600 000 000), the face/edge counts and the `refs` list (**18** entries, not 17)
-  are identical across the flip, but `area` is **39 848 528.137 → 39 600 000 mm²** and `edgeLength`
-  **36 965.685 → 36 800 mm**. The miter moves volume between lateral faces but replaces a `t×h` cap with a
-  `t√2×h` one, so area grows by `t·h·(√2−1)` = 248 528.137 mm² — the measured delta exactly. ⇒ *"any
-  quantity-based assertion here is a weak green by construction"* does not hold; `area` would have worked.
-  Code and tests unaffected — `bounds` is the right oracle and is the one used. **⚠ Correction to MY OWN
-  step-2 report:** defect 2 is **not** reachable through `DocumentContext`. `#affected` is
-  `edit.rebuilt ∪ #touched`, and the delete's journalled `rebuilt` already named the tagged wall (measured);
-  with the seed defect restored the `undo()` half of the new e2e case still passes. Defect 2 is real in
-  `dependents` alone — an exported declaration Miqdar/Planitor read — not the end-to-end erasure I described.
-  **The one-hop choice is correct and structurally so:** `build.ts` reads option active-ness only through
-  `resolveJoins`, which reads the element's own baseline, its overrides, and `partnersAt`/`throughWallsAt`
-  at its own two endpoints — all one hop; a neighbour's cap moving changes neither its baseline nor its
-  thickness, so nothing propagates further. The `w-lobby` control makes a fixpoint fail the fixture too.
-  **Perf claim re-measured and holds:** 200/400/800/1600 walls → 14.3/16.6/25.0/47.9 ms cold, 8× the walls
-  for 3.3× the time, not a D73 quadratic.
-- **OWES:** The **owner** — merge #32; `RISK: contract-touching` + `needs-operator/freeze`, approved on
-  `narutousomaki741`, and the `docs/BACKLOG.md` row stays `review` until the merge (`brahim`'s sweep flips
-  it). `brahim` — `--review` claimed **PR #33** for the fourth time, auto-claim comment included;
-  answered on #33 (`issuecomment-5314875325`) — it was not reviewed and holds no live claim. The
-  `## Discovered` row's fix shape is now overdue.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
-
 ## §8 — Generated
 
 ## NEXT TURN: REVIEW ONLY
@@ -997,16 +991,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-020 (zayd, 2026-08-18)** |
-| branch · tip · tree | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` · `276a63a` · clean |
-| open PRs | none — main is the tip of the work |
+| **newest entry** | **T-020 (hmdnah, 2026-08-18)** |
+| branch · tip · tree | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` · `82e1c60` · dirty |
+| open PRs | #37 task/T-020-the-pinned-vitest-cannot-collect-tests-p |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 6 files changed, 374 insertions(+), 495 deletions(-) (6 files) |
-| docs budget | current_state 83.9/96.0 KB · §7 31.5/32.0 KB · abstracts 10/10 · bodies 71 |
+| diff vs origin/main | 7 files changed, 452 insertions(+), 534 deletions(-) (7 files) |
+| docs budget | current_state 83.9/96.0 KB · §7 31.2/32.0 KB · abstracts 10/10 · bodies 72 |
 
 _Generated 2026-08-18 by `pnpm state`._
 

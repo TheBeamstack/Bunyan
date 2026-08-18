@@ -1327,6 +1327,45 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-011 — review (step 2, re-run): both returned defects closed; the oracle claim is false — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — a review turn edits no code. `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
+  NEW (⚠ named to sort last: `agent-finish.mjs` resolves the body by lexical sort, and
+  `…-step2-rerun.md` would sort BEFORE `…-step2.md`); this abstract; the `REVIEW:` line of the entry below.
+- **VERIFIED:** **Item 1 re-executed, one revert per returned defect, by hand, tests untouched.** Revert A
+  (drop `joinNeighboursOf` from the case): **4 RED** — 3 in `dependency-graph`, plus `edit.rebuilt` missing
+  the main-model wall in `design-option-crud`. Revert B (seed the option ids from the catalogue only):
+  **2 RED**, both undo-of-delete. Restored: **61/61** across the five files this unit touches; full suite
+  re-run here **920 · 96 files**, `docs:check` **146 · 8** — both match `zayd`'s figures. **Item 7 immediately
+  before approving:** `pnpm state` → contract-touching, 1 declaration moved; `gh api …/89130fb/check-runs`
+  → both jobs `completed/success`; labels `needs-operator/contract-touching` + `needs-operator/freeze` +
+  `review/step-1` ⇒ the labeller **ran**, and the owner merges.
+- **FOUND:** **⚠⚠ The entry below's oracle measurement is false for `area`.** Re-measured on the same
+  construction: `volume` (3 600 000 000), the face/edge counts and the `refs` list (**18** entries, not 17)
+  are identical across the flip, but `area` is **39 848 528.137 → 39 600 000 mm²** and `edgeLength`
+  **36 965.685 → 36 800 mm**. The miter moves volume between lateral faces but replaces a `t×h` cap with a
+  `t√2×h` one, so area grows by `t·h·(√2−1)` = 248 528.137 mm² — the measured delta exactly. ⇒ *"any
+  quantity-based assertion here is a weak green by construction"* does not hold; `area` would have worked.
+  Code and tests unaffected — `bounds` is the right oracle and is the one used. **⚠ Correction to MY OWN
+  step-2 report:** defect 2 is **not** reachable through `DocumentContext`. `#affected` is
+  `edit.rebuilt ∪ #touched`, and the delete's journalled `rebuilt` already named the tagged wall (measured);
+  with the seed defect restored the `undo()` half of the new e2e case still passes. Defect 2 is real in
+  `dependents` alone — an exported declaration Miqdar/Planitor read — not the end-to-end erasure I described.
+  **The one-hop choice is correct and structurally so:** `build.ts` reads option active-ness only through
+  `resolveJoins`, which reads the element's own baseline, its overrides, and `partnersAt`/`throughWallsAt`
+  at its own two endpoints — all one hop; a neighbour's cap moving changes neither its baseline nor its
+  thickness, so nothing propagates further. The `w-lobby` control makes a fixpoint fail the fixture too.
+  **Perf claim re-measured and holds:** 200/400/800/1600 walls → 14.3/16.6/25.0/47.9 ms cold, 8× the walls
+  for 3.3× the time, not a D73 quadratic.
+- **OWES:** The **owner** — merge #32; `RISK: contract-touching` + `needs-operator/freeze`, approved on
+  `narutousomaki741`, and the `docs/BACKLOG.md` row stays `review` until the merge (`brahim`'s sweep flips
+  it). `brahim` — `--review` claimed **PR #33** for the fourth time, auto-claim comment included;
+  answered on #33 (`issuecomment-5314875325`) — it was not reviewed and holds no live claim. The
+  `## Discovered` row's fix shape is now overdue.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
+
 ### T-011 — the D88 defect return: the option edge reaches the join neighbour, and seeds from the change — 2026-08-17 — seat: zayd
 
 - **CHANGED:** `packages/document/src/dependency.ts` only — `joinNeighboursOf` NEW (one hop of
