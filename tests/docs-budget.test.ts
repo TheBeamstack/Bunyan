@@ -26,6 +26,7 @@ import {
   section7,
   parseAbstracts,
   newestAbstract,
+  recordedAbstracts,
   entryBodies,
   generatedBlock,
   MARKERS,
@@ -114,25 +115,31 @@ describe('every §7 abstract is well formed', () => {
     // inside 12–22 KB of prose where an agent could pass straight over them.
     for (const a of abstracts) {
       for (const f of ABSTRACT_FIELDS) {
-        expect(Object.keys(a.fields), `Entry ${a.id} is missing the ${f}: field`).toContain(f);
-        expect(a.fields[f]?.length ?? 0, `Entry ${a.id}'s ${f}: field is empty`).toBeGreaterThan(0);
+        expect(
+          Object.keys(a.fields),
+          `Entry ${String(a.key)} is missing the ${f}: field`,
+        ).toContain(f);
+        expect(
+          a.fields[f]?.length ?? 0,
+          `Entry ${String(a.key)}'s ${f}: field is empty`,
+        ).toBeGreaterThan(0);
       }
     }
   });
 
   it('declares a RISK the freeze gate understands', () => {
     for (const a of abstracts) {
-      expect(a.fields.RISK, `Entry ${a.id}`).toMatch(/^(additive|contract-touching)/);
+      expect(a.fields.RISK, `Entry ${String(a.key)}`).toMatch(/^(additive|contract-touching)/);
     }
   });
 
   it('points at a body that exists, and every body has an abstract or is archived', () => {
     for (const a of abstracts) {
       const p = (a.fields.FULL ?? '').replace(/`/g, '').trim();
-      expect(p, `Entry ${a.id}'s FULL: must name a handoff/ path`).toMatch(
+      expect(p, `Entry ${String(a.key)}'s FULL: must name a handoff/ path`).toMatch(
         /^handoff\/\w+\/.+\.md$/,
       );
-      expect(existsSync(join(ROOT, p)), `Entry ${a.id}: ${p} does not exist`).toBe(true);
+      expect(existsSync(join(ROOT, p)), `Entry ${String(a.key)}: ${p} does not exist`).toBe(true);
     }
     // The converse is deliberately weaker: a body may outlive its abstract (that is what rotation
     // does), but it must then be indexed in docs/history.md so nothing becomes unreachable.
@@ -254,9 +261,9 @@ describe('every §7 abstract is well formed', () => {
       if (/pre-dates the PR flow/i.test(review)) continue;
       expect(
         /AWAITING REVIEW/i.test(review),
-        `Entry ${a.id} still says AWAITING REVIEW, but entry ${newest.id} exists.\n` +
-          `Either step 3 was skipped, or entry ${a.id} was merged by its own author.\n` +
-          `The reviewing session must rewrite entry ${a.id}'s REVIEW: line to record who reviewed ` +
+        `Entry ${String(a.key)} still says AWAITING REVIEW, but entry ${String(newest.key)} exists.\n` +
+          `Either step 3 was skipped, or entry ${String(a.key)} was merged by its own author.\n` +
+          `The reviewing session must rewrite entry ${String(a.key)}'s REVIEW: line to record who reviewed ` +
           `it and what they found.\n` +
           `  REVIEW: ${review}`,
       ).toBe(false);
@@ -392,6 +399,56 @@ describe('the doc tree is intact', () => {
  * LF box too — it is not a Windows-only test that a Linux CI can never exercise, which is the whole
  * point. The LF parse is asserted non-empty first, so it cannot pass by both sides returning `[]`.
  */
+/**
+ * ⚠⚠ THE ENTRY KEY IS NOT UNIQUE, AND THIS IS WHERE THAT IS MEASURED RATHER THAN CLAIMED.
+ *
+ * `abstractKey` states the fact and points here on purpose: a count written into a comment is
+ * falsified by the next abstract, which is exactly what happened to the `⚠ MEASURED` note this
+ * replaces — it said *"not unique across §7 today"* in a commit whose own rotation had just left §7
+ * with zero collisions.
+ *
+ * The generator is **any two turns by one seat on one task on one day**, and it has two live routes:
+ * D88's two review steps, and `agent-start.mjs --continue` returning a defect to its builder. Both
+ * are CORRECT turns, which is why there is no uniqueness gate — a §7-scoped one would be green on
+ * most days and red on a turn that did nothing wrong, and a gate that cries wolf is edited to shut
+ * up. What IS checkable is that every collision is a pair of distinct turns rather than one abstract
+ * written twice, and that is what this asserts.
+ */
+describe('the entry key collides, and every collision is a turn-PAIR', () => {
+  const recorded = recordedAbstracts(ROOT);
+  const byKey = new Map<string, typeof recorded>();
+  for (const a of recorded) {
+    const k = String(a.key);
+    byKey.set(k, [...(byKey.get(k) ?? []), a]);
+  }
+  const collisions = [...byKey.values()].filter((g) => g.length > 1);
+
+  it('collisions exist across §7 + docs/history.md — the population invariant 10 makes permanent', () => {
+    expect(
+      collisions.length,
+      'no colliding key in the record — the claim in `abstractKey` is now false',
+    ).toBeGreaterThan(0);
+    // …and §7 alone is not the scope that decides: the record is strictly larger than the window.
+    expect(recorded.length).toBeGreaterThan(parseAbstracts(readCurrentState(ROOT)).length);
+  });
+
+  /**
+   * ⚠ THE PROPERTY THAT KEEPS THE COLLISION OUT OF `baselineEntryIssues`. A durable reference
+   * resolves to a turn-PAIR, and the half that gate reads is the date — so a collision is harmless
+   * exactly as long as both members carry one date. That holds because the date is IN the key, which
+   * is what this pins: an `abstractKey` narrowed to drop it would make a reference ambiguous about
+   * the one field the gate compares.
+   */
+  it('every colliding key is one task, one seat, ONE DAY', () => {
+    for (const group of collisions) {
+      const k = String(group[0]?.key);
+      expect(new Set(group.map((a) => a.id)).size, `${k}: not one task`).toBe(1);
+      expect(new Set(group.map((a) => a.seat)).size, `${k}: not one seat`).toBe(1);
+      expect(new Set(group.map((a) => a.date)).size, `${k}: not one day`).toBe(1);
+    }
+  });
+});
+
 describe('the doc parser reads the file as it is CHECKED OUT, not as it was committed', () => {
   const lf = src.replace(/\r?\n/g, '\n');
   const crlf = src.replace(/\r?\n/g, '\r\n');
@@ -415,7 +472,7 @@ describe('the doc parser reads the file as it is CHECKED OUT, not as it was comm
     );
     for (const a of parsed) {
       for (const [name, value] of Object.entries(a.fieldsFull)) {
-        expect(value, `entry ${a.id}'s ${name} kept a \\r`).not.toMatch(/\r/);
+        expect(value, `entry ${String(a.key)}'s ${name} kept a \\r`).not.toMatch(/\r/);
       }
     }
   });

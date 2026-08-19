@@ -1327,6 +1327,74 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+
+### STEWARD-unblock-pc-and-chrome-boot — review: the splits are honest, and T-024 named a fixture that measures green — 2026-08-18 — seat: hmdnah
+
+- **CHANGED:** `docs/BACKLOG.md` — T-024's `done-when:` corrected to name the one turn that reproduces
+  the defect, plus one `## Discovered` row; `handoff/hmdnah/2026-08-18-STEWARD-unblock-pc-and-chrome-boot-review.md`
+  NEW; this abstract and the `REVIEW:` line above. No `packages/`, no `scripts/`, no snapshot byte.
+- **VERIFIED:** **Item 1 re-executed in its docs-only form — two mutations, since the diff reverts no fix.**
+  (A) restoring `_baselinedAt` to `2026-08-17` takes `freeze-boundary` **1 of 12 RED**
+  (`_baselinedAtEntry 1000 is dated 2026-08-18 in §7, but _baselinedAt says 2026-08-17`); restored,
+  **12/12 green**. (B) flipping T-022 to `machine: **pc**` moves `reviewer-for` `hmdnah` → `khalihlna` and
+  `can-claim zayd` `yes` → `REFUSED`; restored. **The claim T-022 rests on, re-measured here rather than
+  taken:** Node 20.20.2 decodes a resizable-backed view without throwing, and
+  `WebAssembly.Memory(...).buffer.resizable` is **`false`** here — the box cannot construct Chrome's
+  shape, let alone reproduce its refusal. The call site matches the diagnosis:
+  `UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr))` over `HEAPU8`, one UTF-8 decoder in the glue.
+- **FOUND:** **One defect, fixed on the branch.** T-024's `done-when:` named _"the two turns that hit it
+  (T-011, `STEWARD-…`)"_; run against T-011's own merged tree (`c18ae8e`), `baselineEntryIssues` returns
+  **`[]`** — its dates agreed on the day and its re-baseline was earned by a real declaration moving
+  (`scene.ts :: type SceneCollection`). A criterion pointing at a green fixture is not checkable (READY
+  criterion 4), so it now names the one turn that does reproduce. **Everything else checked out:** all
+  three box rows' `done-when:` items are box-executable, each carries an explicit `unverified here:`
+  naming its pc successor, and `seats.mjs` routes and refuses the five rows accordingly; both corrections
+  hold against the code (`Part.node` exists nowhere, `saveBnn` takes a `Scene`); T-011's rotated abstract
+  is byte-identical.
+- **OWES:** The **owner** — the merge; `needs-operator/freeze` is applied and CI's `PR shape` job ran.
+  `brahim` — the `--review` merge-command routing defect now in `## Discovered`, and an owner line on
+  `AGENTS.md §7.3` vs. invariant 10 for an in-place correction in a planning file.
+- **RISK:** additive — no snapshot byte, no declaration, no code. **Not merged: owner-gated.**
+- **FULL:** `handoff/hmdnah/2026-08-18-STEWARD-unblock-pc-and-chrome-boot-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #36.
+
+
+### STEWARD-unblock-pc-and-chrome-boot — the two defects that block a whole machine, decomposed — 2026-08-18 — seat: brahim
+
+- **CHANGED:** `docs/BACKLOG.md` — **T-020**/**T-021** (the pinned vitest cannot collect
+  `tests/protocol/*` on Windows; box fix, pc confirmation) and **T-022**/**T-023** (`kernel-occt`'s glue
+  decodes from growable WASM memory; box fix, pc confirmation) NEW · T-018's `done-when:` corrected from
+  `Part.node`, a field that has never existed, to `Part.nodeId` · T-005's first bullet marked discharged
+  by T-018's measurement · **T-024** NEW (`_baselinedAtEntry` names a position, so a cross-day §7 append
+  goes red), decomposed because this turn tripped it rather than because the row was old · T-011's
+  step-2-of-2 review abstract rotated to `docs/history.md` §E, §7 being over its byte budget at 33235.
+  No `packages/`, no `apps/web`, no `scripts/`; the only frozen-surface byte is `_baselinedAt` (see RISK).
+- **VERIFIED:** `pnpm verify` green, exit 0. Four facts measured before writing the rows rather than
+  assumed: **Node 20.20.2 decodes a resizable-backed view without complaint**, so the box cannot
+  reproduce Chrome's refusal and T-022 carries no browser criterion; `bunyan-kernel.js` is minified
+  emscripten glue with one `TextDecoder` on the UTF-8 path, so the fix is the toolchain or the recipe,
+  never a hand edit; all five protocol test files carry em-dashes (5–37 each); `Part.node` does not exist
+  (`entities.ts:683`).
+- **FOUND:** Both defects block a whole machine and both are box work — the machine that is not blocked.
+  `pnpm verify` cannot reach green on the pc for **any** task, so `agent-finish.mjs` refuses every
+  `amer`/`khalihlna` turn and five `ready` `pc` rows sit behind it with T-001's browser-verified work
+  unmerged. The kernel not booting on Chrome 149+ is a v1.0.0 shipping defect, not a dev-box one; the
+  pc's `BUNYAN_BROWSER_CMD` pin fixes one machine and nothing users get. Both split box/pc under this
+  file's own rule — *a `done-when:` that mixes machines needs splitting* — so each box row carries an
+  explicit `unverified here:` and each pc row is the turn that may tick it.
+- **OWES:** `zayd` — **T-020**, **T-022** and **T-024**, all `ready`, all `risk: high` ⇒ two review turns
+  each (D88). ⚠ **T-024 before the P5 freeze**, for the reason in its own row: after the freeze the
+  baseline may not be rewritten without an owner ruling, so today's only remedy stops existing and the
+  gate has no green path. The pc seats — **T-021** and **T-023** once their box halves merge; T-023 also
+  unsets the `BUNYAN_BROWSER_CMD` workaround so it cannot outlive its fix. `brahim` (a later turn) — the
+  `--review` wrong-PR claim, three occurrences and still undecomposed.
+- **RISK:** additive (re-baselined) — **0 declarations moved**, all 214 byte-identical; the only change
+  to the snapshot is `_baselinedAt`, demanded by the very defect T-024 decomposes. ⚠ It still labels the
+  PR `needs-operator/freeze`, so the owner merges a docs-only turn — the cry-wolf cost that row ends.
+- **FULL:** `handoff/brahim/2026-08-18-STEWARD-unblock-pc-and-chrome-boot.md`
+- **REVIEW:** ✅ approved by `hmdnah` 2026-08-18 — one defect found and fixed on the branch (T-024 named
+  T-011 as a fixture that measures green). ⚠ **Owner merges** — `needs-operator/freeze`.
+
 ### T-020 — review (step 2, adversarial): the identical 936 tests also execute the identical 5047 assertions, and the hook deadline is the gate the sweep missed — 2026-08-19 — seat: hmdnah
 
 - **CHANGED:** nothing on the branch — a review turn edits no code.

@@ -688,14 +688,29 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
-- **2026-08-19 — an abstract's stable key `<id> — <date> — <seat>` is not unique across §7.**
-  `T-016 — 2026-08-17 — hmdnah` names **two** abstracts: D88's two review steps are separate turns by
-  the same seat on the same task, and T-016's two ran on one calendar day. T-024's fix does not depend
-  on uniqueness — the date is the half `baselineEntryIssues` checks and it is identical either way —
-  but a reference resolves to a turn-pair rather than a turn in that case. No uniqueness gate was
-  added, because one would be red on a merged abstract and `AGENTS.md` invariant 10 forbids rewriting
-  it. Fix shape, if it is ever worth one: a step marker in the heading, which is a §7 schema change.
-  Found by `zayd` building T-024. Recorded, not claimed.
+- **2026-08-19 — an abstract's stable key `<id> — <date> — <seat>` is not unique, and §7 is not the
+  scope that decides.** Corrected on T-024's defect return; the first statement of this row named the
+  wrong scope, the wrong count and one of the two generators. Measured over `current_state.md` §7 **plus
+  `docs/history.md`** — the population invariant 10 makes permanent — **5 colliding keys of 51 distinct**
+  across 56 headings, up from the 4 of 51 step 2 measured, because step 2's own abstract created one.
+  The generator is **any two turns by one seat on one task on one day**, and it has two live routes:
+  D88's two review steps, and `agent-start.mjs --continue` returning a defect to its builder
+  (`T-011 — 2026-08-17 — zayd`, and this turn's own). A §7-scoped view is not a smaller version of the
+  same fact — it is a different one that swings turn to turn. T-024's fix does not depend on uniqueness:
+  the date is in the key, so a reference resolves to a turn-PAIR that carries one date, which is the half
+  `baselineEntryIssues` reads (pinned by `tests/docs-budget.test.ts`'s "the entry key collides, and every
+  collision is a turn-PAIR"). **No uniqueness gate, and not for the reason first given:** at §7 scope such
+  a gate is green on most days and red on a _correct_ turn — a second review step or a returned build —
+  which is cry-wolf, not invariant 10. Fix shape, if it is ever worth one: a step marker in the heading,
+  which is a §7 schema change. Found by `zayd` building T-024, corrected by `zayd` on its return.
+  Recorded, not claimed.
+- **2026-08-19 — `docs/history.md` §E holds `T-015 — review: the fix holds, backward sweep and
+weak-green clean — 2026-08-16 — seat: hmdnah` TWICE** (lines 2231 and 2300), same heading, same
+  `FULL:` path, bodies differing only in the `REVIEW:` line's wording — a rotation that copied instead of
+  moving, across two compactions. Invariant 10 makes the archive append-only, so this is not `zayd`'s to
+  edit; it is the one colliding key in the record that is **not** a turn-pair, and it is why the new
+  collision gate asserts one task/seat/day rather than distinct headlines. Found by `zayd` on T-024's
+  defect return, measuring the record for the row above. Recorded, not claimed.
 - **2026-08-19 — `reserved-classes.mjs` classes ANY diff to `tests/frozen-surface.snapshot.json` as
   `freeze`, including a metadata-only one.** T-024's own PR moves `_baselinedAtEntry` and **0 of 214**
   declarations, so `state.mjs` returns `RISK: additive` while CI labels it `needs-operator/freeze` and

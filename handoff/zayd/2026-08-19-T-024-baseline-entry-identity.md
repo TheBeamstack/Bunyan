@@ -102,14 +102,32 @@ prints an entry reference, not merely the one that broke.
 `grep -rn '\.n\b' scripts tests` and `grep -rn '\b1000\b' scripts tests` were the two mechanical
 forms; nothing outside the table survives either.
 
-## 5. Found while doing it — the key is not unique across §7 today
+## 5. Found while doing it — the key is not unique, and §7 is not the scope that decides
 
-**Measured, not assumed:** `T-016 — 2026-08-17 — hmdnah` names **two** abstracts. D88's two review
-steps are separate turns by the same seat on the same task, and T-016's two ran on one calendar day,
-so the triple collides. It does not weaken the gate — the date is the half `baselineEntryIssues`
-checks and it is identical either way — but a reference resolves to a turn-pair rather than a turn in
-that case, so no uniqueness gate is added here (one would be red on a merged abstract, and invariant
-10 forbids rewriting it). Recorded in `docs/BACKLOG.md ## Discovered`, not claimed.
+⚠ **Corrected on this PR's defect return (2026-08-19), before merge** — the first version of this
+section scoped the claim to §7, gave one collision, and named one generator. All three were wrong, and
+the §7-scoped figure had been falsified by this PR's own rotation.
+
+**Measured over `current_state.md` §7 PLUS `docs/history.md`** — the population invariant 10 makes
+permanent, and the only scope that does not swing turn to turn: **5 colliding keys of 51 distinct**
+across 56 headings. The generator is **any two turns by one seat on one task on one day**, with two
+live routes: D88's two review steps (`T-016 — 2026-08-17 — hmdnah`, and this PR's own two) and
+`agent-start.mjs --continue` returning a defect to its builder (`T-011 — 2026-08-17 — zayd`, and this
+turn). It does not weaken the gate: the date is **in** the key, so a reference resolves to a turn-pair
+that carries one date, and the date is the half `baselineEntryIssues` reads.
+
+**No uniqueness gate, and not for the reason first given.** A §7-scoped gate would be green today and
+red on a *correct* turn — the second review step, or a returned build — which is the cry-wolf shape
+this whole area exists to stop, not invariant 10. What is gated instead is the property the collision
+must have: `tests/docs-budget.test.ts`'s *"the entry key collides, and every collision is a turn-PAIR"*
+measures the count over the record rather than stating it in a comment, and asserts every colliding key
+is one task, one seat, one day. Recorded in `docs/BACKLOG.md ## Discovered`, not claimed.
+
+⚠ That gate found one thing the record already carries: `docs/history.md` §E holds T-015's review
+abstract **twice** (identical heading and `FULL:` path, bodies differing only in the `REVIEW:` line) —
+a rotation that copied instead of moving. Invariant 10 makes the archive append-only, so it is not
+mine to edit; it is a `## Discovered` row, and it is why the gate asserts one task/seat/day rather
+than distinct headlines.
 
 ## 6. Risk
 

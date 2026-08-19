@@ -234,6 +234,14 @@ export function baselineSnapshot(prev, surface, { entry, at }) {
  * baseline now records `abstractKey` — `<id> — <date> — <seat>` — and a synthetic number is refused
  * outright, so the position cannot come back through the file it was written into.
  *
+ * ⚠⚠ AND `abstracts` IS THE RECORD, NOT §7 — `recordedAbstracts(root)`, which is §7 plus the archive
+ * it rotates into. A self-consistent key proves the two audit fields agree with each other and
+ * NOTHING about whether the turn it names ever happened: `T-999 — 2026-01-01 — nobody` passed the
+ * keyed path clean. Resolving it against §7 alone buys that check back and pays T-024's own defect
+ * for it — §7's headroom was one append wide when this was written, so the check would have gone red
+ * on the next turn by anyone. The archive is append-only (invariant 10), so resolving against the
+ * union is the same question asked of a population that does not rot.
+ *
  * What survives rotation, and what each line is for:
  *   - the entry is either an author-written legacy NUMBER or a new-scheme KEY, and never a minted
  *     position — which is the shape T-024 named;
@@ -242,7 +250,12 @@ export function baselineSnapshot(prev, surface, { entry, at }) {
  *     entry's own date must agree with `_baselinedAt`. Q15's defect was `72` sitting beside
  *     `2026-08-03` — Entry 77's date. A key carries its date, so the pair is checkable forever; a
  *     legacy number is resolved in §7 while it is still there and SKIPS once it rotates, which is
- *     why that half never cries wolf.
+ *     why that half never cries wolf;
+ *   - ⚠ and the key must NAME A TURN THAT EXISTS, resolved in the record. The key is not unique —
+ *     two turns by one seat on one task on one day share one (`abstractKey`) — so this resolves to a
+ *     turn-pair in those cases, and both members carry the key's own date, so the check is unchanged
+ *     by the collision. The legacy half keeps its skip: entries 1-90 are closed (D82), nothing new is
+ *     ever validated there, and §A/§B summarise their oldest entries without a `###` heading.
  *
  * ⚠ The one thing this deliberately does NOT do is bound the baseline's AGE. An old baseline is the
  * correct state of a repo that has not touched a frozen shape lately — `diffSurface` is what says
@@ -278,14 +291,21 @@ export function baselineEntryIssues(snapshot, abstracts) {
   }
 
   if (keyed) {
-    // ⚠⚠ THE CROSS-FIELD CHECK, ON AN IDENTITY THAT CARRIES ITS OWN DATE — SO IT NEEDS NO LOOKUP AT
-    // ALL. Q15's shape (a baseline whose recorded date is not the authorising entry's) still fails:
-    // the key names the date the entry was written, `_baselinedAt` claims one, and a hand-edit to
-    // either half separates them. Because the pair is self-contained it cannot rot with §7's
+    // ⚠⚠ THE CROSS-FIELD CHECK, ON AN IDENTITY THAT CARRIES ITS OWN DATE — SO THE DATE HALF NEEDS NO
+    // LOOKUP. Q15's shape (a baseline whose recorded date is not the authorising entry's) still
+    // fails: the key names the date the entry was written, `_baselinedAt` claims one, and a hand-edit
+    // to either half separates them. Because the pair is self-contained it cannot rot with §7's
     // rotation and it cannot move with §7's order — which is the whole of T-024.
+    //
+    // ⚠ THE RESOLUTION BELOW IS THE HALF SELF-CONSISTENCY CANNOT COVER, and it is why `abstracts` is
+    // the record rather than §7: moving BOTH audit fields together is a hand-edit no cross-field
+    // check can see, and only a lookup catches it.
     const keyDate = ENTRY_KEY.exec(entry)[2];
     if (keyDate !== at) {
       issues.push(`_baselinedAtEntry ${entry} is dated ${keyDate}, but _baselinedAt says ${at}`);
+    }
+    if (!abstracts.some((a) => a.key === entry)) {
+      issues.push(`_baselinedAtEntry ${entry} names no abstract in the record`);
     }
     return issues;
   }

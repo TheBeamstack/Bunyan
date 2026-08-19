@@ -79,6 +79,29 @@ export declare function abstractKey(a: {
   seat: string;
 }): number | string;
 
+/**
+ * An abstract as the ARCHIVE carries it — identity fields only, parsed from a `docs/history.md`
+ * heading. `EntryAbstract` is structurally one of these plus §7's parsed body.
+ */
+export interface RecordedAbstract {
+  id: string;
+  /** `null` for an archived new-scheme abstract: it has no §7 position, and minting one would lie. */
+  n: number | null;
+  scheme: 'legacy' | 'T';
+  key: number | string;
+  date: string;
+  agent: string;
+  seat: string;
+  headline: string;
+}
+
+/**
+ * §7's window PLUS `docs/history.md` — the population a durable reference resolves against, and the
+ * only one that does not rot. **Throws** if the archive parses to zero headings, for the reason
+ * `newestAbstract` throws on an empty §7. See the implementation.
+ */
+export declare function recordedAbstracts(root: string): RecordedAbstract[];
+
 export declare function readCurrentState(root: string): string;
 export declare function section7(src: string): string;
 export declare function parseAbstracts(src: string): EntryAbstract[];

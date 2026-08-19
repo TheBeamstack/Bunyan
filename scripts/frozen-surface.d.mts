@@ -41,12 +41,18 @@ export declare function baselineSnapshot(
 /**
  * Every reason the committed baseline's audit fields are wrong. Empty ⇒ sound.
  *
- * ⚠ `abstracts` is the `current_state.md` §7 parse — a ROTATING window, which is why membership in
- * it is not the invariant. See the implementation's comment; Entry 84's review is the reason.
+ * ⚠ `abstracts` is `recordedAbstracts(root)` — §7 PLUS `docs/history.md` — never the §7 parse alone.
+ * §7 is a rotating byte-capped window, so membership in it is not existence, and asking it for one
+ * reddens the gate on the next turn by anyone (T-024's own defect). See the implementation's comment.
  */
 export declare function baselineEntryIssues(
   snapshot: { _baselinedAtEntry: number | string; _baselinedAt: string },
-  abstracts: readonly { n: number; date: string; scheme?: 'legacy' | 'T' }[],
+  abstracts: readonly {
+    n: number | null;
+    date: string;
+    key: number | string;
+    scheme?: 'legacy' | 'T';
+  }[],
 ): string[];
 
 /** Compare a surface against a baseline. All entries are `"<file> :: <kind> <name>"`. */

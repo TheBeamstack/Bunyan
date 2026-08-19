@@ -34,6 +34,7 @@ import {
   newestAbstract,
   parseAbstracts,
   readCurrentState,
+  recordedAbstracts,
   riskVerdict,
   SYNTHETIC_ENTRY_BASE,
 } from '../scripts/docs-state.mjs';
@@ -221,8 +222,9 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
     // DISEASE ONE STEP FURTHER OUT (found by Entry 84's review, which Entry 83's own checklist item 1
     // asked for). §7 is a ROTATING TEN-ENTRY WINDOW, so membership in it is not existence; the next
     // test measures the difference. The rule now lives in `baselineEntryIssues`, beside the writer it
-    // audits, and is checked against a population that does not rot.
-    expect(baselineEntryIssues(snapshot, parseAbstracts(readCurrentState(ROOT)))).toEqual([]);
+    // audits, and is checked against a population that does not rot — §7 PLUS the archive it rotates
+    // into, which is what `recordedAbstracts` is and why §7 alone is never passed here.
+    expect(baselineEntryIssues(snapshot, recordedAbstracts(ROOT))).toEqual([]);
   });
 
   /**
@@ -239,14 +241,17 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
    * below fails; the first is what proves the scenario is real rather than hypothetical.
    */
   it('⚠ an entry that has ROTATED OUT of §7 still exists — the gate must not cry wolf', () => {
-    const abstracts = parseAbstracts(readCurrentState(ROOT));
+    const live = parseAbstracts(readCurrentState(ROOT));
+    const recorded = recordedAbstracts(ROOT);
 
-    // The premise, measured rather than assumed: 76 really has left the window.
-    expect(abstracts.map((a) => a.n)).not.toContain(76);
+    // The premise, measured rather than assumed: 76 really has left the window…
+    expect(live.map((a) => a.n)).not.toContain(76);
+    // …and the archive is what still holds it, which is the whole reason the record is the union.
+    expect(recorded.find((a) => a.key === 76)?.date).toBe('2026-08-02');
 
-    // …and it is still a real entry, so a baseline naming it is sound.
+    // …so a baseline naming it is sound.
     expect(
-      baselineEntryIssues({ _baselinedAtEntry: 76, _baselinedAt: '2026-08-02' }, abstracts),
+      baselineEntryIssues({ _baselinedAtEntry: 76, _baselinedAt: '2026-08-02' }, recorded),
     ).toEqual([]);
   });
 
@@ -259,48 +264,68 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
    * lookup at all; the legacy half still resolves in §7 and SKIPS once the named entry rotates.
    */
   it("⚠⚠ catches Q15's own shape: an entry whose date disagrees with the one beside it", () => {
-    const abstracts = parseAbstracts(readCurrentState(ROOT));
+    const recorded = recordedAbstracts(ROOT);
 
-    // The new-scheme form — the only one a rebaseline writes from here on.
+    // ⚠ The new-scheme form, on an entry TAKEN FROM THE RECORD rather than hardcoded — a literal key
+    // and a literal expectation make the `abstracts` argument decorative, which is what this half
+    // used to be. Both halves of the input and both halves of the expectation come from the file.
+    const real = recorded.find((a) => a.scheme === 'T');
+    if (real === undefined) throw new Error('the record holds no new-scheme abstract');
     expect(
-      baselineEntryIssues(
-        { _baselinedAtEntry: 'T-024 — 2026-08-19 — zayd', _baselinedAt: '2026-08-18' },
-        abstracts,
-      ),
+      baselineEntryIssues({ _baselinedAtEntry: real.key, _baselinedAt: '2026-01-01' }, recorded),
     ).toEqual([
-      '_baselinedAtEntry T-024 — 2026-08-19 — zayd is dated 2026-08-19, ' +
-        'but _baselinedAt says 2026-08-18',
+      `_baselinedAtEntry ${String(real.key)} is dated ${real.date}, ` +
+        'but _baselinedAt says 2026-01-01',
     ]);
 
-    // The legacy form, on a fixture: §7 holds no `### N | …` entry any more, so a real-file
-    // assertion here would be measuring an empty set.
-    const legacy = parseAbstracts(
-      [
-        '## §7 — Entry abstracts (newest 10)',
-        '',
-        '### 88 | 2026-01-02 | Zayd | the newer legacy entry',
-        '',
-        '- **RISK:** additive',
-        '',
-        '### 87 | 2026-01-01 | Zayd | the older legacy entry',
-        '',
-        '- **RISK:** additive',
-        '',
-        '## §8 — Generated',
-      ].join('\n'),
-    );
+    // ⚠⚠ AND THE ARGUMENT IS LOAD-BEARING, WHICH IS THE ASSERTION THAT SAYS SO. The same input
+    // against a non-empty population that does not hold the key reports one issue MORE — before the
+    // record resolution the two calls were byte-identical, so this test claimed a real-file check it
+    // was not making. (An EMPTY array is a different verdict: the parser has failed.)
+    const junk = [{ n: 1, date: '1999-01-01', key: 1, scheme: 'legacy' as const }];
     expect(
-      baselineEntryIssues({ _baselinedAtEntry: 88, _baselinedAt: '2026-01-01' }, legacy),
-    ).toEqual(['_baselinedAtEntry 88 is dated 2026-01-02 in §7, but _baselinedAt says 2026-01-01']);
+      baselineEntryIssues({ _baselinedAtEntry: real.key, _baselinedAt: '2026-01-01' }, junk),
+    ).toEqual([
+      `_baselinedAtEntry ${String(real.key)} is dated ${real.date}, ` +
+        'but _baselinedAt says 2026-01-01',
+      `_baselinedAtEntry ${String(real.key)} names no abstract in the record`,
+    ]);
 
-    // A legacy number that has not happened yet — the shape a mistyped constant takes.
+    // ⚠ The legacy form: §7 holds no `### N | …` entry any more, but `docs/history.md` §C holds
+    // thirteen, so this is measured against the real record rather than a fixture.
+    const legacy = recorded.filter((a) => a.scheme === 'legacy');
+    expect(legacy.length, '§7 and the archive hold no legacy abstract — the premise is gone').toBe(
+      13,
+    );
+    expect(parseAbstracts(readCurrentState(ROOT)).filter((a) => a.scheme === 'legacy')).toEqual([]);
+
+    const newestLegacy = Math.max(...legacy.map((a) => a.n as number));
+    const oldest = legacy.reduce((lo, a) => ((a.n as number) < (lo.n as number) ? a : lo));
     expect(
-      baselineEntryIssues({ _baselinedAtEntry: 89, _baselinedAt: '2026-01-02' }, legacy),
-    ).toEqual(['_baselinedAtEntry is 89, but the newest entry that exists is 88']);
+      baselineEntryIssues(
+        { _baselinedAtEntry: oldest.n as number, _baselinedAt: '2026-01-01' },
+        recorded,
+      ),
+    ).toEqual([
+      `_baselinedAtEntry ${String(oldest.n)} is dated ${oldest.date} in §7, ` +
+        'but _baselinedAt says 2026-01-01',
+    ]);
+
+    // ⚠ A legacy number that has not happened yet — the shape a mistyped constant takes. Gated on
+    // `legacy.length > 0`, so against §7 alone (zero legacy abstracts) this bound is dead; the
+    // record is what keeps it live.
+    expect(
+      baselineEntryIssues(
+        { _baselinedAtEntry: newestLegacy + 1, _baselinedAt: '2026-01-02' },
+        recorded,
+      ),
+    ).toEqual([
+      `_baselinedAtEntry is ${newestLegacy + 1}, but the newest entry that exists is ${newestLegacy}`,
+    ]);
 
     // And the historical number stays pinned.
     expect(
-      baselineEntryIssues({ _baselinedAtEntry: 72, _baselinedAt: '2026-08-03' }, abstracts).join(),
+      baselineEntryIssues({ _baselinedAtEntry: 72, _baselinedAt: '2026-08-03' }, recorded).join(),
     ).toContain('72');
   });
 });
@@ -367,24 +392,90 @@ describe('the baseline names an entry, not a position (T-024)', () => {
     ]);
   });
 
-  it('the committed baseline records a key, and it resolves to a real §7 abstract', () => {
-    // ⚠ Weak-green guard: the test above passes on a fixture the repo never sees. This one measures
-    // the file that actually gates every PR.
+  /**
+   * ⚠⚠ THE RESOLUTION IS AGAINST THE RECORD, AND THE FIRST VERSION OF THIS TEST ASKED §7 — which put
+   * T-024's own defect back inside T-024's own gate. §7 is a byte budget: it stood at 32209 of 32768
+   * with the authorising abstract at the BOTTOM, so its headroom was smaller than the smallest
+   * abstract it held and ONE append rotated that abstract out. `expect(named).toBeDefined()` against
+   * §7 therefore FAILED — not skipped — on the next turn by any seat, having moved no declaration,
+   * and the three exits from that red are the three this block's own header rejects.
+   *
+   * The archive is append-only (invariant 10) and its headings are verbatim, so `recordedAbstracts`
+   * answers the same question against a population that only grows.
+   */
+  it('the committed baseline records a key, and it resolves in the record', () => {
+    // ⚠ Weak-green guard: the tests above pass on a fixture the repo never sees. This one measures
+    // the files that actually gate every PR.
     expect(typeof snapshot._baselinedAtEntry, 'the baseline still records a position').toBe(
       'string',
     );
-    const named = parseAbstracts(readCurrentState(ROOT)).find(
-      (a) => a.key === snapshot._baselinedAtEntry,
-    );
-    expect(named, `${String(snapshot._baselinedAtEntry)} names no abstract in §7`).toBeDefined();
+    const recorded = recordedAbstracts(ROOT);
+    const named = recorded.find((a) => a.key === snapshot._baselinedAtEntry);
+    expect(
+      named,
+      `${String(snapshot._baselinedAtEntry)} names no abstract in §7 or docs/history.md`,
+    ).toBeDefined();
     expect(named?.date).toBe(snapshot._baselinedAt);
+    expect(baselineEntryIssues(snapshot, recorded)).toEqual([]);
+  });
+
+  /**
+   * ⚠⚠ THE FUSE THE PREVIOUS SHAPE CARRIED, MEASURED ON THE REAL FILES RATHER THAN ARGUED. This is
+   * the test that would have gone red, so it is the test that pins the repair: an abstract that has
+   * ALREADY left §7 resolves in the record, and does not resolve in §7.
+   */
+  it('⚠⚠ an abstract that has rotated OUT of §7 still resolves — the fuse is gone', () => {
+    const live = parseAbstracts(readCurrentState(ROOT));
+    const recorded = recordedAbstracts(ROOT);
+    const rotated = recorded.find((a) => a.scheme === 'T' && !live.some((l) => l.key === a.key));
+    if (rotated === undefined) {
+      throw new Error('nothing has rotated out of §7 yet — the premise cannot be measured');
+    }
+
+    expect(
+      baselineEntryIssues({ _baselinedAtEntry: rotated.key, _baselinedAt: rotated.date }, recorded),
+    ).toEqual([]);
+    // …and the archive is what makes that true, not the function being lenient.
+    expect(
+      baselineEntryIssues({ _baselinedAtEntry: rotated.key, _baselinedAt: rotated.date }, live),
+    ).toEqual([`_baselinedAtEntry ${String(rotated.key)} names no abstract in the record`]);
+  });
+
+  /**
+   * ⚠ THE HOLE THE SELF-CONTAINED KEY LEFT: a key is checkable against itself, so a fabricated one
+   * whose two halves agree passed clean. `T-999 — 2026-01-01 — nobody` returned `[]` against the real
+   * §7, and so did the authorising key with BOTH audit fields hand-moved together — the one edit a
+   * cross-field check cannot see.
+   */
+  it('⚠⚠ a key that names no turn is refused, against the real record', () => {
+    const recorded = recordedAbstracts(ROOT);
+    expect(
+      baselineEntryIssues(
+        { _baselinedAtEntry: 'T-999 — 2026-01-01 — nobody', _baselinedAt: '2026-01-01' },
+        recorded,
+      ),
+    ).toEqual(['_baselinedAtEntry T-999 — 2026-01-01 — nobody names no abstract in the record']);
+
+    // Both halves moved together — self-consistent, and still a lie about which turn authorised it.
+    const entry = String(snapshot._baselinedAtEntry);
+    const moved = entry.replace(/ — \d{4}-\d{2}-\d{2} — /, ' — 2026-01-01 — ');
+    expect(moved, 'the baseline key did not carry a date to move').not.toBe(entry);
+    expect(
+      baselineEntryIssues({ _baselinedAtEntry: moved, _baselinedAt: '2026-01-01' }, recorded),
+    ).toEqual([`_baselinedAtEntry ${moved} names no abstract in the record`]);
   });
 
   it('⚠ the gate is repaired, not removed — a key whose date is not the baseline’s still fails', () => {
     const lying = `${authorising.id} — 2026-01-01 — ${authorising.seat}`;
+    // ⚠ Assert the MESSAGE, not the count: `toHaveLength(1)` cannot tell a repair from a different
+    // refusal, and narrowing `ENTRY_KEY` to stop accepting `STEWARD-` keys kept it green by turning
+    // the input into a malformed identity instead.
     expect(
       baselineEntryIssues({ _baselinedAtEntry: lying, _baselinedAt: authorising.date }, crossDay),
-    ).toHaveLength(1);
+    ).toEqual([
+      `_baselinedAtEntry ${lying} is dated 2026-01-01, but _baselinedAt says ${authorising.date}`,
+      `_baselinedAtEntry ${lying} names no abstract in the record`,
+    ]);
   });
 
   it('refuses anything that is neither a legacy number nor a key', () => {
