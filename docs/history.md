@@ -1328,6 +1328,78 @@ titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-s
 same as `current_state.md` §7.
 
 
+### T-020 — review (step 1, mechanical): the bump collects the identical 936 tests, and vitest 2 was not enforcing the default timeout — 2026-08-18 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — a review turn edits no code.
+  `handoff/hmdnah/2026-08-18-T-020-review-step1.md` NEW; this abstract; the `REVIEW:` line of the entry
+  below; T-011's step-2 re-run abstract rotated to `docs/history.md` §E to hold §7 inside its budget.
+- **VERIFIED:** **Item 1 re-executed by hand**, the added `120_000` reverted under the branch's runner:
+  RED, `Test timed out in 5000ms` at 19 001 ms, `1 failed | 8 passed (9)`; restored 9/9. **Both full runs
+  re-measured here**, each runner installed in turn from its own lockfile — `vitest@2.1.9` **936 · 97 files
+  · 287 suites** (274.63 s) and `vitest@4.1.10` **936 · 97 · 287** (271.46 s), `docs:check` **154 · 8**
+  under both. ⚠ **Stronger than the count:** diffing the two json summaries by `(file, test title)` gives an
+  **empty symmetric difference**, so the runners collected the *identical* 936 tests, which is what the
+  `done-when:`'s ⚠ is actually asking. **Item 7:** `reserved-classes.mjs --base <main>` → `none —
+  RISK: additive`; both CI jobs now `success` on `82e1c60`.
+- **FOUND:** **The author's mechanism is correct, and a probe isolates it from the cost.** Same commit,
+  same reverted file: 2.1.9 passes the clean-delta test at 18 855 ms, 4.1.10 times it out at 5000 ms after
+  19 001 ms. A two-case probe with no kernel in it — a microtask-only chain busy ~8000 ms, and a
+  `setTimeout` of 8000 ms, neither carrying an explicit timeout — passes A and fails B under 2.1.9 while
+  failing both under 4.1.10, so vitest 2's default deadline is a timer that a chain resolving through
+  `queueMicrotask` (`transport.ts:63`) never lets reach the timer phase. **⚠ CI's labeller had not run:**
+  `pr-shape` was red in `Set up job` on a `429` fetching `actions/checkout@v4`, which is item 7's *"no label
+  and no labeller look identical"* case; re-run, now green. Sweep and API figures reproduce — three of 936
+  tests over 5000 ms with next-slowest 1878 ms (author 1980 ms, same test), 131 numeric `}, N)` sites and
+  **zero** options-object sites, `.toThrow` 58 / `.toEqual` 394 exact. One nit: the `vi.*` enumeration is
+  complete but counted five where the tree has six call sites of four methods.
+- **OWES:** `hmdnah` — **step 2** (items 2, 3, 6 plus the pre-merge `needs-operator/*` re-check), separate
+  session, same claim, row stays `review`. The **pc seats** — `unverified here: the five protocol files
+  collect on Windows — the pc seats to confirm`; this box parses all five under **both** runners, so **T-021**
+  closes it and the criterion is not ticked here.
+- **RISK:** additive — a review turn moved no declaration; `reserved-classes.mjs` returns `none`.
+- **FULL:** `handoff/hmdnah/2026-08-18-T-020-review-step1.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), D88 step 1 of 2; findings posted to PR #37
+  (`issuecomment-5333851516`, presence verified).
+
+### T-020 — the runner moves 2.1.9 → 4.1.10, and vitest 2 was not enforcing test timeouts — 2026-08-18 — seat: zayd
+
+- **CHANGED:** `package.json` (`vitest` `^2.1.8` → `^4.1.10`) and `pnpm-lock.yaml` (`vitest@2.1.9` →
+  `4.1.10`, `vite@5.4.21` dropped — apps/web's `6.4.3` now serves the runner too) ·
+  `tests/document-persistence.test.ts` — one explicit `120_000` timeout on the clean-delta test, the one
+  test the bump exposed. `handoff/zayd/2026-08-18-T-020-vitest-2-to-4.md` NEW; this abstract; T-011's
+  D88-return abstract rotated to `docs/history.md` §E, §7 having stood at 32756 of 32768 bytes. No
+  `packages/`, no `scripts/`, no `vitest.config.ts` byte, no snapshot byte.
+- **VERIFIED:** `pnpm verify` green, exit 0, 6 m 23 s. **The suite count is a fresh full run on both sides,
+  never `§8`'s cached line:** `vitest@2.1.9` → **936 passed · 97 files · 287 suites** (270.68 s);
+  `vitest@4.1.10` → **936 passed · 97 files · 287 suites** (268.77 s). Unchanged, so nothing stopped
+  collecting. `docs:check`, which collects `tests/protocol` on its own, **154 · 8**. `numTotalTests` /
+  `numTotalTestSuites` / `testResults.length` all still present in the json reporter's output, which is
+  what `state.mjs:120-126` reads. `freeze-boundary` 12/12 unmoved, no re-baseline.
+- **FOUND:** **⚠⚠ vitest 2 never applied the 5 000 ms default timeout to a test whose awaits are
+  microtask-only, and one test had been 3.7× over it.** The bump's single failure was
+  `document-persistence.test.ts`'s clean-delta test; A/B on the same commit, each runner installed in
+  turn, prices it at **18 549 ms under 2.1.9 (passing)** and **18 397 ms under 4.1.10 (timed out at
+  5 000 ms)** — the cost moved 0.8%, the enforcement moved. `InProcessTransport` resolves every kernel
+  response through `queueMicrotask` (`transport.ts:63`), so 250 real kernel edits are one uninterrupted
+  microtask chain and the event loop never reaches the timer phase a `setTimeout` deadline lives in.
+  Invariant 8 exactly: the test was green because nothing was checking. **Backward sweep over the
+  newly-enforced rule, by measured duration rather than by source, because only a run answers "how long":**
+  exactly three of 936 tests exceed 5 000 ms — 58 571 ms and 16 256 ms, both already carrying explicit
+  timeouts, and this one. The next-slowest is 1 980 ms, a 2.5× margin. **The API sweep is an enumeration,
+  not a sample:** the suite imports eight names from `vitest` and calls five `vi.*` sites, and each of the
+  22 documented 2→3/3→4 breaking changes is checked against its call sites in the body — the numeric
+  `}, 120_000)` third argument used at 130 sites is **not** the options-object form vitest 4 removed.
+- **OWES:** `hmdnah` — this PR's review, `risk: high` ⇒ **two review turns** (D88). ⚠ Item 1's revert is
+  the added timeout, and reverting it should reproduce *Test timed out in 5000ms* rather than a fix
+  regressing. The **pc seats** — `unverified here: the five protocol files collect on Windows — the pc
+  seats to confirm`; the box parses those files under **both** runners, so it can neither reproduce the
+  failure nor witness the repair, and **T-021** is the turn that closes it. `brahim` — T-021 becomes
+  claimable once this merges, and with it the five `ready` `pc` rows behind it.
+- **RISK:** additive — no declaration moved, no frozen byte; `reserved-classes.mjs` returns `none`.
+- **FULL:** `handoff/zayd/2026-08-18-T-020-vitest-2-to-4.md`
+- **REVIEW:** ✅ **APPROVED AND MERGED** — `hmdnah`, D88 both steps, on `narutousomaki741`. Step 1 (mechanical, `82e1c60`): item 1 re-executed RED, both suite counts re-measured at 936 · 97 · 287 and shown to be the identical 936 tests, the microtask-timeout mechanism reproduced by a kernel-free probe. Step 2 (adversarial, `c203a67`, abstract in `docs/history.md` §E, body `handoff/hmdnah/2026-08-19-T-020-review-step2.md`): the same tests also execute the same **5047** `expect()` calls, collection matches the 97 files on disk exactly, and the margins are green at `--testTimeout=2500` and `--hookTimeout=1200` — the hook deadline being the second gate the bump switches on and the sweep did not cover. Both CI jobs SUCCESS on the merged tip; `needs-operator/*` empty and informative. ⚠ Step 2 is archived rather than in §7 because it ran past midnight UTC, and a §7 abstract dated 2026-08-19 reddens `freeze-boundary` through **T-024** having moved no declaration. ⚠ `unverified here: the five protocol files collect on Windows` is **not** ticked; T-021 closes it.
+
+
 ### STEWARD-unblock-pc-and-chrome-boot — review: the splits are honest, and T-024 named a fixture that measures green — 2026-08-18 — seat: hmdnah
 
 - **CHANGED:** `docs/BACKLOG.md` — T-024's `done-when:` corrected to name the one turn that reproduces

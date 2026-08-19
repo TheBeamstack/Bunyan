@@ -630,6 +630,68 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-024 — review (step 2, re-run): F3 is closed, and the branch is standing on the state that proves it — 2026-08-19 — seat: hmdnah
+
+- **CHANGED:** no code byte — the four findings below are documentation and an unreachable boundary, none
+  red, so `REVIEW.md`'s table makes them findings rather than a third return.
+  `handoff/hmdnah/2026-08-19-T-024-review-step2-rerun.md` NEW; this abstract; T-020's two abstracts rotated
+  to `docs/history.md` §E as a **move**, §7 having stood at 32075 of 32768 bytes with 6 of 10 abstracts.
+  ⚠ **PR #38 APPROVED and NOT MERGED** — `needs-operator/freeze` routes the merge to the owner
+  (`AGENTS.md §5.3`), which composes with `risk: high` rather than being replaced by it.
+- **VERIFIED:** **Item 1, twice.** (A) the record-resolution removed from `baselineEntryIssues`:
+  **4 failed | 38 passed (42)** over `freeze-boundary` + `docs-budget`, restored 50/50 with
+  `state-risk-e2e` — the author's `4 failed | 46 passed (50)` on the same three files. (B) **the returned
+  shape run against the state this branch is in**: `scripts/{docs-state,frozen-surface}.{mjs,d.mts}` and
+  both test files restored from `317c756` while `current_state.md`/`docs/history.md` stay at the head ⇒
+  `expect(named).toBeDefined()` **FAILS**, `STEWARD-unblock-pc-and-chrome-boot — 2026-08-18 — brahim names
+  no abstract in §7`, **1 failed | 37 passed (38)**; restored green. The authorising key resolves in the
+  record and **not** in §7 (measured: §7 6 abstracts, record 57 headings), so the fuse was performed rather
+  than simulated and the repair is green on the exact input the old shape reddens. **Counts re-derived:**
+  **946** (97 files, 0 failed, 0 pending), `docs:check` **163**, `freeze-boundary` **19**; `it(` titles
+  diffed `317c756` → `a555a2f` give **+2/+2 and one rename, nothing removed**, and `protocol` 8 /
+  `protocol/*` 17·33·8·9·46 / `state-risk-e2e` 8 are identical to step 1's. **Item 3:** `diffSurface`
+  `{added:[],removed:[],changed:[]}` at 214 = 214, the writer mints only from §7 ⊂ record, and **0** of the
+  51 archived headings sit inside a code fence. **Item 7 on the exact tip, per job:** local HEAD = origin =
+  `headRefOid` = `a555a2f`; `typecheck · lint · geometry harness` SUCCESS 20:03:58→20:13:38Z and
+  `PR shape · reserved classes` SUCCESS 20:13:40→20:13:52Z, so the label is a verdict and not a silence.
+- **FOUND:** ⚠ **H1 — the legacy half now describes behaviour it no longer has**, because `abstracts`
+  changed under it: `frozen-surface.mjs:250` still says a legacy number *"SKIPS once it rotates, which is
+  why that half never cries wolf"* and `:314` that the bound *"skips when §7 holds no legacy entry"*, while
+  the record carries **13** legacy headings permanently against §7's **0** — so the bound is always live and
+  the resolution never skips. Two edges: `:327` emits *"is dated … **in §7**"* for an entry the same test
+  asserts is not in §7, and `newestLegacy` is 88 while **entries 89 and 90 happened** (`docs/history.md:460`
+  and `:328` cite both) without a `### N |` heading, so a baseline naming either is refused as *"the newest
+  entry that exists is 88"*. Unreachable through the writer, which mints keys only — G3's class. The new
+  test's title *"a legacy number that has not happened yet"* is false of the input it now picks (89).
+  ⚠ **H2 — the collision gate's second assertion is a tautology.** `key === \`${id} — ${date} — ${seat}\``
+  for all **44** new-scheme abstracts, so grouping by key partitions exactly by those three fields and the
+  three `size === 1` checks cannot fail; **0** legacy collisions exist, where they would not be vacuous. Its
+  comment claims it separates *"a pair of distinct turns"* from *"one abstract written twice"* — the record
+  holds exactly the second shape (the T-015 duplicate) and the test is green on it. The half that measures,
+  `collisions.length > 0`, is sound. **H3 — the corrected uniqueness count is stale by one on the commit
+  that wrote it:** `## Discovered` and the abstract say **5 of 51 across 56**, measured now **6 of 51 across
+  57**, the sixth being this PR's own two `T-024 — 2026-08-19 — zayd` abstracts; the row's T-015 line
+  numbers are stale by exactly the 68 lines the same commit inserted above them (2231+68 = 2299,
+  2300+68 = 2368). The code is immune because the test measures. **H4 —** `frozen-surface.d.mts:44`'s
+  *"never the §7 parse alone"* is overstated: `state-risk-e2e.test.ts:209`/`:250` do exactly that, legitimately,
+  on fixtures with no `docs/history.md` where `recordedAbstracts` throws by design. **Confirmed as reported:**
+  the T-015 duplicate is real at `docs/history.md:2299`/`:2368`, written by `71cfc02` and `c18ae8e`, present
+  on `origin/main` and so not this branch's to edit; **G1**'s reasoning holds — `agent-finish.mjs:279` finds
+  by `id + seat`, and the record carries `T-024 — 2026-08-19 — zayd` **twice**, so `.key` accepts the
+  predecessor identically and closing it needs a §7 schema change.
+- **OWES:** The **owner** — the merge; `needs-operator/freeze` is unconditional. `brahim` — **H1–H4** as
+  `## Discovered` rows, and **Q22** is still unruled: `REVIEW.md`'s two-step table defines no turn for a
+  branch returned by *step 2*, so this turn followed `docs/history.md`'s `T-011 — review (step 2, re-run)`
+  precedent and re-ran step 2 against the new head rather than invent a rule. **G1**, **G3** and **G5**
+  unchanged and unclaimed. Nothing owed to a `pc` seat — every measurement here is headless and was executed
+  here.
+- **RISK:** additive — a review turn moved no declaration; `pnpm state` re-derives `RISK: additive` at
+  214 = 214.
+- **FULL:** `handoff/hmdnah/2026-08-19-T-024-review-step2-rerun.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), D88 step 2 re-run against the new head.
+  ✅ **APPROVED, NOT MERGED**: F3 is closed on the state the branch is already in, both reverts reproduce
+  here, and the four findings are documentation or unreachable. The owner merges (`AGENTS.md §5.3`).
+
 ### T-024 — the defect return: the gate resolves its key in the RECORD, so §7's rotation cannot redden it — 2026-08-19 — seat: zayd
 
 - **CHANGED:** `scripts/docs-state.mjs` (**`recordedAbstracts` NEW** — §7's parse plus every
@@ -679,8 +741,14 @@ is maintenance and does NOT get an entry of its own.**
   merges:** the branch moves `_baselinedAtEntry`, which `reserved-classes.mjs` classes `freeze` on a bare
   path match.
 - **FULL:** `handoff/zayd/2026-08-19-T-024-return-record-resolution.md`
-- **REVIEW:** ⚠ **AWAITING REVIEW** — the returned fix for step 2's F3, on the existing claim and the
-  existing PR #38. Not merged by its author, and owner-gated by label.
+- **REVIEW:** ✅ **APPROVED, NOT MERGED** — `hmdnah`, D88 step 2 re-run against the new head, on
+  `narutousomaki741` (`handoff/hmdnah/2026-08-19-T-024-review-step2-rerun.md`, tip `a555a2f`). **F3 is
+  closed:** the returned shape is RED on the state this branch is already in — the authorising abstract
+  has rotated out of §7 and resolves only in the record — while the repair is green there, and removing
+  the record-resolution takes four tests RED. Four non-blocking findings (**H1** the legacy half's comment,
+  `in §7` message and 88-bound, **H2** the collision gate's tautological second assertion, **H3** the
+  uniqueness count stale by one on its own commit, **H4** the `.d.mts`'s *"never §7 alone"*). ⚠ **The owner
+  merges this** — `needs-operator/freeze`, both CI jobs SUCCESS on the exact tip.
 
 ### T-024 — review (step 2, adversarial): the repaired gate's §7 tie is two appends from red, and this turn is the first — 2026-08-19 — seat: hmdnah
 
@@ -874,77 +942,6 @@ is maintenance and does NOT get an entry of its own.**
   above. ⚠ **A third review turn is owed on the return** — D88's table does not describe it; recorded
   for `brahim`.
 
-### T-020 — review (step 1, mechanical): the bump collects the identical 936 tests, and vitest 2 was not enforcing the default timeout — 2026-08-18 — seat: hmdnah
-
-- **CHANGED:** nothing on the branch — a review turn edits no code.
-  `handoff/hmdnah/2026-08-18-T-020-review-step1.md` NEW; this abstract; the `REVIEW:` line of the entry
-  below; T-011's step-2 re-run abstract rotated to `docs/history.md` §E to hold §7 inside its budget.
-- **VERIFIED:** **Item 1 re-executed by hand**, the added `120_000` reverted under the branch's runner:
-  RED, `Test timed out in 5000ms` at 19 001 ms, `1 failed | 8 passed (9)`; restored 9/9. **Both full runs
-  re-measured here**, each runner installed in turn from its own lockfile — `vitest@2.1.9` **936 · 97 files
-  · 287 suites** (274.63 s) and `vitest@4.1.10` **936 · 97 · 287** (271.46 s), `docs:check` **154 · 8**
-  under both. ⚠ **Stronger than the count:** diffing the two json summaries by `(file, test title)` gives an
-  **empty symmetric difference**, so the runners collected the *identical* 936 tests, which is what the
-  `done-when:`'s ⚠ is actually asking. **Item 7:** `reserved-classes.mjs --base <main>` → `none —
-  RISK: additive`; both CI jobs now `success` on `82e1c60`.
-- **FOUND:** **The author's mechanism is correct, and a probe isolates it from the cost.** Same commit,
-  same reverted file: 2.1.9 passes the clean-delta test at 18 855 ms, 4.1.10 times it out at 5000 ms after
-  19 001 ms. A two-case probe with no kernel in it — a microtask-only chain busy ~8000 ms, and a
-  `setTimeout` of 8000 ms, neither carrying an explicit timeout — passes A and fails B under 2.1.9 while
-  failing both under 4.1.10, so vitest 2's default deadline is a timer that a chain resolving through
-  `queueMicrotask` (`transport.ts:63`) never lets reach the timer phase. **⚠ CI's labeller had not run:**
-  `pr-shape` was red in `Set up job` on a `429` fetching `actions/checkout@v4`, which is item 7's *"no label
-  and no labeller look identical"* case; re-run, now green. Sweep and API figures reproduce — three of 936
-  tests over 5000 ms with next-slowest 1878 ms (author 1980 ms, same test), 131 numeric `}, N)` sites and
-  **zero** options-object sites, `.toThrow` 58 / `.toEqual` 394 exact. One nit: the `vi.*` enumeration is
-  complete but counted five where the tree has six call sites of four methods.
-- **OWES:** `hmdnah` — **step 2** (items 2, 3, 6 plus the pre-merge `needs-operator/*` re-check), separate
-  session, same claim, row stays `review`. The **pc seats** — `unverified here: the five protocol files
-  collect on Windows — the pc seats to confirm`; this box parses all five under **both** runners, so **T-021**
-  closes it and the criterion is not ticked here.
-- **RISK:** additive — a review turn moved no declaration; `reserved-classes.mjs` returns `none`.
-- **FULL:** `handoff/hmdnah/2026-08-18-T-020-review-step1.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), D88 step 1 of 2; findings posted to PR #37
-  (`issuecomment-5333851516`, presence verified).
-
-### T-020 — the runner moves 2.1.9 → 4.1.10, and vitest 2 was not enforcing test timeouts — 2026-08-18 — seat: zayd
-
-- **CHANGED:** `package.json` (`vitest` `^2.1.8` → `^4.1.10`) and `pnpm-lock.yaml` (`vitest@2.1.9` →
-  `4.1.10`, `vite@5.4.21` dropped — apps/web's `6.4.3` now serves the runner too) ·
-  `tests/document-persistence.test.ts` — one explicit `120_000` timeout on the clean-delta test, the one
-  test the bump exposed. `handoff/zayd/2026-08-18-T-020-vitest-2-to-4.md` NEW; this abstract; T-011's
-  D88-return abstract rotated to `docs/history.md` §E, §7 having stood at 32756 of 32768 bytes. No
-  `packages/`, no `scripts/`, no `vitest.config.ts` byte, no snapshot byte.
-- **VERIFIED:** `pnpm verify` green, exit 0, 6 m 23 s. **The suite count is a fresh full run on both sides,
-  never `§8`'s cached line:** `vitest@2.1.9` → **936 passed · 97 files · 287 suites** (270.68 s);
-  `vitest@4.1.10` → **936 passed · 97 files · 287 suites** (268.77 s). Unchanged, so nothing stopped
-  collecting. `docs:check`, which collects `tests/protocol` on its own, **154 · 8**. `numTotalTests` /
-  `numTotalTestSuites` / `testResults.length` all still present in the json reporter's output, which is
-  what `state.mjs:120-126` reads. `freeze-boundary` 12/12 unmoved, no re-baseline.
-- **FOUND:** **⚠⚠ vitest 2 never applied the 5 000 ms default timeout to a test whose awaits are
-  microtask-only, and one test had been 3.7× over it.** The bump's single failure was
-  `document-persistence.test.ts`'s clean-delta test; A/B on the same commit, each runner installed in
-  turn, prices it at **18 549 ms under 2.1.9 (passing)** and **18 397 ms under 4.1.10 (timed out at
-  5 000 ms)** — the cost moved 0.8%, the enforcement moved. `InProcessTransport` resolves every kernel
-  response through `queueMicrotask` (`transport.ts:63`), so 250 real kernel edits are one uninterrupted
-  microtask chain and the event loop never reaches the timer phase a `setTimeout` deadline lives in.
-  Invariant 8 exactly: the test was green because nothing was checking. **Backward sweep over the
-  newly-enforced rule, by measured duration rather than by source, because only a run answers "how long":**
-  exactly three of 936 tests exceed 5 000 ms — 58 571 ms and 16 256 ms, both already carrying explicit
-  timeouts, and this one. The next-slowest is 1 980 ms, a 2.5× margin. **The API sweep is an enumeration,
-  not a sample:** the suite imports eight names from `vitest` and calls five `vi.*` sites, and each of the
-  22 documented 2→3/3→4 breaking changes is checked against its call sites in the body — the numeric
-  `}, 120_000)` third argument used at 130 sites is **not** the options-object form vitest 4 removed.
-- **OWES:** `hmdnah` — this PR's review, `risk: high` ⇒ **two review turns** (D88). ⚠ Item 1's revert is
-  the added timeout, and reverting it should reproduce *Test timed out in 5000ms* rather than a fix
-  regressing. The **pc seats** — `unverified here: the five protocol files collect on Windows — the pc
-  seats to confirm`; the box parses those files under **both** runners, so it can neither reproduce the
-  failure nor witness the repair, and **T-021** is the turn that closes it. `brahim` — T-021 becomes
-  claimable once this merges, and with it the five `ready` `pc` rows behind it.
-- **RISK:** additive — no declaration moved, no frozen byte; `reserved-classes.mjs` returns `none`.
-- **FULL:** `handoff/zayd/2026-08-18-T-020-vitest-2-to-4.md`
-- **REVIEW:** ✅ **APPROVED AND MERGED** — `hmdnah`, D88 both steps, on `narutousomaki741`. Step 1 (mechanical, `82e1c60`): item 1 re-executed RED, both suite counts re-measured at 936 · 97 · 287 and shown to be the identical 936 tests, the microtask-timeout mechanism reproduced by a kernel-free probe. Step 2 (adversarial, `c203a67`, abstract in `docs/history.md` §E, body `handoff/hmdnah/2026-08-19-T-020-review-step2.md`): the same tests also execute the same **5047** `expect()` calls, collection matches the 97 files on disk exactly, and the margins are green at `--testTimeout=2500` and `--hookTimeout=1200` — the hook deadline being the second gate the bump switches on and the sweep did not cover. Both CI jobs SUCCESS on the merged tip; `needs-operator/*` empty and informative. ⚠ Step 2 is archived rather than in §7 because it ran past midnight UTC, and a §7 abstract dated 2026-08-19 reddens `freeze-boundary` through **T-024** having moved no declaration. ⚠ `unverified here: the five protocol files collect on Windows` is **not** ticked; T-021 closes it.
-
 ## §8 — Generated
 
 ## NEXT TURN: REVIEW ONLY
@@ -957,16 +954,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-024 (zayd, 2026-08-19)** |
-| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `5ecb0a8` · clean |
+| **newest entry** | **T-024 (hmdnah, 2026-08-19)** |
+| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `a555a2f` · dirty |
 | open PRs | #38 task/T-024-baselinedatentry-names-a-position-so-a-c |
 | suite | **946 green** · 97 files · 289 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 17 files changed, 2129 insertions(+), 359 deletions(-) (17 files) |
-| docs budget | current_state 83.2/96.0 KB · §7 30.8/32.0 KB · abstracts 6/10 · bodies 77 |
+| diff vs origin/main | 17 files changed, 2275 insertions(+), 431 deletions(-) (17 files) |
+| docs budget | current_state 82.6/96.0 KB · §7 29.9/32.0 KB · abstracts 5/10 · bodies 78 |
 
 _Generated 2026-08-19 by `pnpm state`._
 
