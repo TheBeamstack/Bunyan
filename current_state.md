@@ -630,6 +630,76 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-024 — review (step 2, adversarial): the repaired gate's §7 tie is two appends from red, and this turn is the first — 2026-08-19 — seat: hmdnah
+
+- **CHANGED:** no code byte — F3 is a scoping call on the author's own `done-when:` and both candidate
+  repairs change an exported contract in `scripts/frozen-surface.mjs`, which `REVIEW.md`'s ownership rule
+  makes a finding rather than a fix. `handoff/hmdnah/2026-08-19-T-024-review-step2.md` NEW; this abstract;
+  T-018's two abstracts rotated to `docs/history.md` §E, §7 having stood at 31588 of 32768 bytes with 8 of
+  10 abstracts. ⚠ **`docs/BACKLOG.md`'s T-024 row set back to `review` by hand** after
+  `agent-finish --review --step 2` stamped it `done` — see **G5**. PR #38 **not approved and not merged**.
+- **VERIFIED:** **Item 3 — the writer and the acceptor are closed against each other, quantified over the
+  whole record and not over §7:** across `current_state.md` §7 + `docs/history.md`, **42 new-scheme and 13
+  legacy headings, 0** keys `abstractKey` can mint that `ENTRY_KEY`/`isSyntheticEntryNumber` refuse — and
+  closed by construction, `ENTRY_KEY`'s three alternatives being byte-identical to `NEW_HEADING`'s groups
+  1/3/4. The **invalidator** never reads the new field: `diffSurface` re-measured `{added:[],removed:[],
+  changed:[]}` at 214 = 214. **Item 7 re-confirmed on the exact merge tip** `5636b8e` (local HEAD =
+  origin = `headRefOid`), per job rather than per label, which is the trap the item names: `typecheck ·
+  lint · geometry harness` SUCCESS 11:50:10→11:59:44Z and `PR shape · reserved classes` SUCCESS
+  11:59:46→11:59:58Z, so `needs-operator/freeze` is a verdict and not a silence; mechanism re-derived at
+  `reserved-classes.mjs`'s bare path match on the snapshot file.
+- **FOUND:** ⚠⚠ **F3 upheld as a proven defect — the fuse is TWO appends, not six, and this turn is the
+  first of them.** Step 1 measured against the 10-abstract cap; the budget that binds is the **byte** cap,
+  and §7 sits at **31588 / 32768 with 1180 B of headroom — less than the smallest abstract it holds**.
+  Simulating the rotation as it is performed and re-running the new test's own assertion on the result:
+  the baseline's key leaves §7 after **2** appends at the median footprint (4056 B) and **3** at the
+  smallest, `expect(named).toBeDefined()` FAILING each time while `baselineEntryIssues` returns `[]`. A
+  builder turn plus its review is two abstracts, so the next ordinary task reddens `docs:check` for every
+  seat having moved no declaration — T-024's own shape, on the gate T-024 built. ⚠⚠ **Re-measured with
+  this abstract in place, the fuse is ONE:** rotating T-018's two out left the authorising abstract at
+  §7's bottom, so the very next append — any seat, any task — takes it out at all three sample sizes.
+  **A recorded follow-up
+  cannot work:** claiming and finishing one appends the second abstract itself, and the three exits left
+  are the three this entry rejects (falsify a date · `--rebaseline`, owner-gated after the freeze · delete
+  the test, which is **F4**, and how Q15 happened). ⇒ back to `zayd` on the existing claim. **Item 6 — the
+  PR moved three of four real-file assertions onto fixtures and left the fourth over-strict.** Measured:
+  the *"cannot name an entry that has not happened"* bound is **dead against the real file** (§7 holds 0
+  legacy abstracts, so `legacy.length > 0` never fires — `5000` and `999999` are refused on `origin/main`
+  and accepted here) while its test stays green on a synthetic fixture; the keyed path's `abstracts`
+  argument is **inert** (byte-identical output against the real §7 and a junk one-element array), so
+  *"catches Q15's own shape"* asserts nothing about `current_state.md`; and *"the gate is repaired, not
+  removed"* asserts `toHaveLength(1)` without the message — narrowing `ENTRY_KEY` to drop `STEWARD-`
+  leaves it **green** (2 failed | 15 passed elsewhere; restored 17/17). **Item 2 — two sites the sweep
+  missed. G1:** `agent-finish.mjs:280` identifies an abstract by `id + seat`, the tuple this PR proves
+  collides, which is why step 1's abstract already satisfies step 2's gate. **G2:** the seven
+  `docs-budget` messages moved `.n` → `.id`, the one field that is never unique — §7 holds two `T-024`
+  abstracts today. **G3:** `isSyntheticEntryNumber` covers `(990, 1000]`, but a turn appends *then*
+  rotates, so §7 transiently holds 11 and index 10 mints `990`, which the guard reports as legacy.
+  **The `⚠ MEASURED` uniqueness claim:** step 1's correction to *"zero collisions"* is falsified by this
+  very turn — step 1's abstract and this one are both `T-024 — 2026-08-19 — hmdnah`, so D88 puts a live
+  collision in §7 on the PR that says there is none. Right text: 4 colliding keys of 51 across §7 +
+  history, generator "any two turns by one seat on one task on one day" (D88's pair **and** `--continue`'s
+  builder pair), conclusion unchanged but for cry-wolf rather than invariant 10. Correcting it needs no
+  rewrite of a merged record **because F3 returns the PR** — its author fixes all four copies inside the
+  same editable window.
+- **OWES:** `zayd` — on the existing claim via `agent-start.mjs --continue T-024`, no new PR: F3/F4 (give
+  the §7 resolution the predecessor's skip, wherever it lives), the four copies of the uniqueness claim,
+  and optionally G2/G4's fixture-only assertions. `brahim` — the `## Discovered` uniqueness row's scope,
+  count and generator; **G1** and **G5** as new rows; T-024 stays `review`. ⚠ **And a ruling: D88 has no
+  third step.** This return happens *after* step 2, so whoever reviews the returned branch reviews an
+  unreviewed fix; `REVIEW.md`'s two-step table does not say what that turn is and I have not invented one.
+  The **owner** — the merge, once a repaired PR is approved; `needs-operator/freeze` composes with `risk:
+  high` rather than being replaced by it. Nothing owed to a `pc` seat.
+- **RISK:** additive — a review turn moved no declaration; `diffSurface` empty at 214 = 214.
+- **FULL:** `handoff/hmdnah/2026-08-19-T-024-review-step2.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), D88 **step 2 of 2**. ⚠ **NOT APPROVED**:
+  F3 is upheld and PR #38 returns to its builder on the existing claim. **G5 — `agent-finish.mjs` stamped
+  the backlog row `done` on an owner-gated PR**: `reviewFlipsToDone('high', 2, false)` is `true` because
+  `contractTouching` reads §8's frozen-surface row, and `AGENTS.md §5`'s freeze and legal-figure classes
+  walk past it; `done` is what satisfies a `depends-on:`, so this releases dependents on an unmerged PR.
+  T-014's defect, one class over; the 2026-08-18 `## Discovered` row covers only the printed merge
+  commands, which a human can decline, and not the row flip, which nobody sees. Row corrected by hand.
+
 ### T-024 — review (step 1, mechanical): both reverts reproduce, and the repaired gate loses its tie to §7 six appends out — 2026-08-19 — seat: hmdnah
 
 - **CHANGED:** nothing on the branch — a review turn edits no code, and F3/F4 below are a scoping call on
@@ -878,82 +948,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/brahim/2026-08-18-STEWARD-unblock-pc-and-chrome-boot.md`
 - **REVIEW:** ✅ approved by `hmdnah` 2026-08-18 — one defect found and fixed on the branch (T-024 named
   T-011 as a fixture that measures green). ⚠ **Owner merges** — `needs-operator/freeze`.
-
-### T-018 — D66's lazy build: 89.8% of a cold load is deferrable, and a deferred join partner is safe — 2026-08-17 — seat: zayd
-
-- **CHANGED:** `docs/design/P5_step9_D66_lazy_build_design.md` **NEW** (§3a keep-live set · §3b first
-  paint · §3c force-vs-declare · §3d eviction ruled out — the section numbers T-005/T-006 already cite) ·
-  `tests/d66-lazy-build-measure.test.ts` **NEW** (+8, the instrument every number is printed by) ·
-  `docs/BACKLOG.md` (one `## Discovered` row) · `current_state.md` (this abstract; **T-011's step-1
-  review abstract rotated** to `docs/history.md` §E to stay inside the 10-abstract cap) ·
-  `docs/history.md` §E. **Nothing ported from closed PR #16**, and no `packages/`, no `apps/web`, no
-  `scripts/`, no frozen byte.
-- **VERIFIED:** `pnpm verify` green, foreground, real OCCT kernel, exit 0 — main suite **936 green · 97
-  files · 287 suites**, `docs:check` **154 · 8 files**; `tests/freeze-boundary.test.ts` 12/12,
-  unmoved ⇒ `RISK: additive`. **Revert-verified on the tripwire the row names:** changing
-  `identitiesOf` from `parts.flatMap(p => [...p.refs])` to `parts.map(p => p.nodeId)` left **1 of 8
-  RED** — `the identity signature must carry more than the recipe-derived node ids: expected 12 to be
-  greater than 12`; restored 8/8. ⚠ **The element-for-element identity comparison stays GREEN through
-  that revert, which is the point:** `partNodeId` is `${elementId}.${partName}`, computed with no kernel
-  call, so it agrees whatever the geometry did. ⚠ **The row names `Part.node`, a field that has never
-  existed** — it is `Part.nodeId` (`entities.ts:695`).
-- **FOUND:** **The safety condition holds and it holds ACROSS A JOIN.** Two cold documents from the same
-  `.bnn`, `rebuildAll()` vs `rebuildOnly(9 of 88)`: part names, `nodeId`, `refs` and `quantities` all
-  identical, `brokenRefs()` empty in both — and the built south wall keeps the miter made by a west wall
-  the partial document **never builds** (`resolveJoins` = `['start','end']` in both; bounds
-  `[-100,-100,0 … 8100,100,3000]` in both, the `-100` being the miter). Measured on `bounds`, not
-  `refs`, because T-011 measured that `refs` cannot see a miter. **Deferral:** 89.8% of elements / 89.3%
-  of solids deferred removes **85.8%** of a 2443 ms cold load; a 4-point `rebuildOnly` sweep
-  (22/44/66/88 el → 707/1231/1869/2567 ms) fits **28.3 ms/element, intercept 39 ms = 1.6%, R² 0.9961**,
-  so the element fraction and the wall-clock fraction agree to ~4 points. `rebuildOnly(everything)` costs
-  2567 ms against `rebuildAll()`'s 2443 ms ⇒ **the build half needs no new API.** ⚠⚠ **§3c's real
-  defect:** `projectQuantities` DECLARES the 79 deferred elements rather than under-reporting — but
-  `enumerate.ts:215` gives every one of them `failure: 'unbuildable'`, so a consumer cannot tell *"not
-  built yet"* from *"cannot be built"*. **Two measurement defects found by the harness failing:** a sweep
-  on cold kernels priced an element at **−0.76 ms** (each later load warmer than the last), and with all
-  the doors on one storey the fit came back **R² 0.2539**; fixed by a per-kernel warm-up and by spreading
-  the doors.
-- **OWES:** `hmdnah` — this PR's review, `risk: normal`, the ordinary one-step route. `khalihlna` —
-  *unverified here: lazy first paint improves time-to-first-pixel*; every number is headless and the
-  browser half is T-006's. `brahim` — three non-blocking items: the `## Discovered` join level-scoping
-  row wants a decision on becoming a `T-nnn`; **T-005's first `done-when:` bullet is discharged** (`save`
-  reads no built state — the two scenes are byte-identical JSON and `saveBnn` takes a `Scene`, never a
-  `DocumentContext`), so its wording now describes a measurement that exists; and T-018's own
-  `done-when:` names `Part.node`.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-17-T-018-d66-lazy-build.md`
-- **REVIEW:** approved and merged by `hmdnah` on `narutousomaki741`, green CI, no defect. Item 1
-  re-executed independently; findings in the `hmdnah` entry above and on PR #35.
-
-### T-018 — review: the deferral numbers reproduce, and the tripwire has teeth — 2026-08-17 — seat: hmdnah
-
-- **CHANGED:** no product or test byte — no defect to fix. This abstract, and `T-011`'s comment-sweep
-  abstract rotated to `docs/history.md` §E to hold §7 inside its 32 KB budget once a tenth abstract
-  lands (`docs-budget.test.ts`'s own remedy). Merged PR #35 on `narutousomaki741`.
-- **VERIFIED:** **Item 1 re-executed.** `identitiesOf` reverted from `p.refs` to `p.nodeId` ⇒ **1 of 8
-  RED** — `the identity signature must carry more than the recipe-derived node ids: expected 12 to be
-  greater than 12`; restored, tree clean, **8/8 green**. ⚠ The row's `Part.node` **has never existed** —
-  judged against `Part.nodeId` (`entities.ts:695`), which the tripwire was built against. **Item 5
-  re-measured twice:** 89.8 %/89.3 % deferred both runs, slope **27.82** and **28.04 ms** against the
-  doc's 28.3, R² 0.9968/0.9983, bounds and take-off identical; the intercept is the noisy term
-  (39 → 67 → 90 ms) but stays under 4 % of a cold load, so what it carries survives the spread. **Item
-  7:** `RISK: additive — unchanged vs baseline`, `freeze-boundary` green, no `packages/` byte, and
-  `PR shape · reserved classes` confirmed to have RUN with no `needs-operator/*` label.
-- **FOUND:** no defect; all four `done-when:` items are box-executable and were executed. Every item-4
-  claim held against code — `partNodeId` (`geometry.ts:60`), `rebuildOnly`'s assembly closure
-  (`document.ts:553`), `saveBnn(scene, …)` (`bnn.ts:103`), `enumerate.ts:215`'s `'unbuildable'`,
-  `baselineOf`'s early return (`joins.ts:103`), `partnersAt`'s unscoped 2D match (`joins.ts:205`).
-  **"Nothing ported from #16" holds:** that instrument has no `warmUp`, sweep or `fitLine` and reported
-  a different measurement (3 storeys, "~35 % forced"). One correction: `CHANGED:` names **one** rotated
-  abstract where the commit rotates **two** (T-016, T-011), both intact in `history.md` §E — the second
-  is what keeps §7 in budget, so the act is right and its description short by a row.
-- **OWES:** `brahim` — T-018's `done-when:` names `Part.node`, to correct post-merge; and `main`'s §8
-  disagreed with the measured tree at turn start (T-011's branch-shaped block), regenerated with
-  `pnpm state` and committed so the turn could begin. `khalihlna` — *unverified here: lazy first paint
-  improves time-to-first-pixel*, already written as such in the doc, T-006's and not ticked.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-17-T-018-review-d66-lazy-build.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #35.
 
 ## §8 — Generated
 

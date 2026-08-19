@@ -1529,6 +1529,82 @@ same as `current_state.md` §7.
 - **REVIEW:** step 2 (adversarial, D88) complete — **NOT approved**, two defects proven in the new
   dependency edge; returned to `zayd` on the existing claim. See the `hmdnah` step-2 entry above.
 
+### T-018 — D66's lazy build: 89.8% of a cold load is deferrable, and a deferred join partner is safe — 2026-08-17 — seat: zayd
+
+- **CHANGED:** `docs/design/P5_step9_D66_lazy_build_design.md` **NEW** (§3a keep-live set · §3b first
+  paint · §3c force-vs-declare · §3d eviction ruled out — the section numbers T-005/T-006 already cite) ·
+  `tests/d66-lazy-build-measure.test.ts` **NEW** (+8, the instrument every number is printed by) ·
+  `docs/BACKLOG.md` (one `## Discovered` row) · `current_state.md` (this abstract; **T-011's step-1
+  review abstract rotated** to `docs/history.md` §E to stay inside the 10-abstract cap) ·
+  `docs/history.md` §E. **Nothing ported from closed PR #16**, and no `packages/`, no `apps/web`, no
+  `scripts/`, no frozen byte.
+- **VERIFIED:** `pnpm verify` green, foreground, real OCCT kernel, exit 0 — main suite **936 green · 97
+  files · 287 suites**, `docs:check` **154 · 8 files**; `tests/freeze-boundary.test.ts` 12/12,
+  unmoved ⇒ `RISK: additive`. **Revert-verified on the tripwire the row names:** changing
+  `identitiesOf` from `parts.flatMap(p => [...p.refs])` to `parts.map(p => p.nodeId)` left **1 of 8
+  RED** — `the identity signature must carry more than the recipe-derived node ids: expected 12 to be
+  greater than 12`; restored 8/8. ⚠ **The element-for-element identity comparison stays GREEN through
+  that revert, which is the point:** `partNodeId` is `${elementId}.${partName}`, computed with no kernel
+  call, so it agrees whatever the geometry did. ⚠ **The row names `Part.node`, a field that has never
+  existed** — it is `Part.nodeId` (`entities.ts:695`).
+- **FOUND:** **The safety condition holds and it holds ACROSS A JOIN.** Two cold documents from the same
+  `.bnn`, `rebuildAll()` vs `rebuildOnly(9 of 88)`: part names, `nodeId`, `refs` and `quantities` all
+  identical, `brokenRefs()` empty in both — and the built south wall keeps the miter made by a west wall
+  the partial document **never builds** (`resolveJoins` = `['start','end']` in both; bounds
+  `[-100,-100,0 … 8100,100,3000]` in both, the `-100` being the miter). Measured on `bounds`, not
+  `refs`, because T-011 measured that `refs` cannot see a miter. **Deferral:** 89.8% of elements / 89.3%
+  of solids deferred removes **85.8%** of a 2443 ms cold load; a 4-point `rebuildOnly` sweep
+  (22/44/66/88 el → 707/1231/1869/2567 ms) fits **28.3 ms/element, intercept 39 ms = 1.6%, R² 0.9961**,
+  so the element fraction and the wall-clock fraction agree to ~4 points. `rebuildOnly(everything)` costs
+  2567 ms against `rebuildAll()`'s 2443 ms ⇒ **the build half needs no new API.** ⚠⚠ **§3c's real
+  defect:** `projectQuantities` DECLARES the 79 deferred elements rather than under-reporting — but
+  `enumerate.ts:215` gives every one of them `failure: 'unbuildable'`, so a consumer cannot tell *"not
+  built yet"* from *"cannot be built"*. **Two measurement defects found by the harness failing:** a sweep
+  on cold kernels priced an element at **−0.76 ms** (each later load warmer than the last), and with all
+  the doors on one storey the fit came back **R² 0.2539**; fixed by a per-kernel warm-up and by spreading
+  the doors.
+- **OWES:** `hmdnah` — this PR's review, `risk: normal`, the ordinary one-step route. `khalihlna` —
+  *unverified here: lazy first paint improves time-to-first-pixel*; every number is headless and the
+  browser half is T-006's. `brahim` — three non-blocking items: the `## Discovered` join level-scoping
+  row wants a decision on becoming a `T-nnn`; **T-005's first `done-when:` bullet is discharged** (`save`
+  reads no built state — the two scenes are byte-identical JSON and `saveBnn` takes a `Scene`, never a
+  `DocumentContext`), so its wording now describes a measurement that exists; and T-018's own
+  `done-when:` names `Part.node`.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-17-T-018-d66-lazy-build.md`
+- **REVIEW:** approved and merged by `hmdnah` on `narutousomaki741`, green CI, no defect. Item 1
+  re-executed independently; findings in the `hmdnah` entry above and on PR #35.
+
+### T-018 — review: the deferral numbers reproduce, and the tripwire has teeth — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** no product or test byte — no defect to fix. This abstract, and `T-011`'s comment-sweep
+  abstract rotated to `docs/history.md` §E to hold §7 inside its 32 KB budget once a tenth abstract
+  lands (`docs-budget.test.ts`'s own remedy). Merged PR #35 on `narutousomaki741`.
+- **VERIFIED:** **Item 1 re-executed.** `identitiesOf` reverted from `p.refs` to `p.nodeId` ⇒ **1 of 8
+  RED** — `the identity signature must carry more than the recipe-derived node ids: expected 12 to be
+  greater than 12`; restored, tree clean, **8/8 green**. ⚠ The row's `Part.node` **has never existed** —
+  judged against `Part.nodeId` (`entities.ts:695`), which the tripwire was built against. **Item 5
+  re-measured twice:** 89.8 %/89.3 % deferred both runs, slope **27.82** and **28.04 ms** against the
+  doc's 28.3, R² 0.9968/0.9983, bounds and take-off identical; the intercept is the noisy term
+  (39 → 67 → 90 ms) but stays under 4 % of a cold load, so what it carries survives the spread. **Item
+  7:** `RISK: additive — unchanged vs baseline`, `freeze-boundary` green, no `packages/` byte, and
+  `PR shape · reserved classes` confirmed to have RUN with no `needs-operator/*` label.
+- **FOUND:** no defect; all four `done-when:` items are box-executable and were executed. Every item-4
+  claim held against code — `partNodeId` (`geometry.ts:60`), `rebuildOnly`'s assembly closure
+  (`document.ts:553`), `saveBnn(scene, …)` (`bnn.ts:103`), `enumerate.ts:215`'s `'unbuildable'`,
+  `baselineOf`'s early return (`joins.ts:103`), `partnersAt`'s unscoped 2D match (`joins.ts:205`).
+  **"Nothing ported from #16" holds:** that instrument has no `warmUp`, sweep or `fitLine` and reported
+  a different measurement (3 storeys, "~35 % forced"). One correction: `CHANGED:` names **one** rotated
+  abstract where the commit rotates **two** (T-016, T-011), both intact in `history.md` §E — the second
+  is what keeps §7 in budget, so the act is right and its description short by a row.
+- **OWES:** `brahim` — T-018's `done-when:` names `Part.node`, to correct post-merge; and `main`'s §8
+  disagreed with the measured tree at turn start (T-011's branch-shaped block), regenerated with
+  `pnpm state` and committed so the turn could begin. `khalihlna` — *unverified here: lazy first paint
+  improves time-to-first-pixel*, already written as such in the doc, T-006's and not ticked.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-018-review-d66-lazy-build.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #35.
+
 ### T-017 — review: the new gate has teeth on the real file, not only on its fixture — 2026-08-17 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — no defect to fix, and the one correction below is a number in the
