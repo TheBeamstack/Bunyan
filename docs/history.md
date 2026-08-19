@@ -1529,6 +1529,81 @@ same as `current_state.md` §7.
 - **REVIEW:** step 2 (adversarial, D88) complete — **NOT approved**, two defects proven in the new
   dependency edge; returned to `zayd` on the existing claim. See the `hmdnah` step-2 entry above.
 
+### T-017 — review: the new gate has teeth on the real file, not only on its fixture — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — no defect to fix, and the one correction below is a number in the
+  author's own entry, which `AGENTS.md §4.10` keeps rather than rewrites. Merged PR #34 on
+  `narutousomaki741`.
+- **VERIFIED:** Item 1 re-executed here: the author's neutralisation
+  (`return above && above.date < below.date` → `return false && …`) leaves **1 of 21** RED in
+  `tests/docs-budget.test.ts`, `expected [] to deeply equal [ Array(1) ]` on the fixture case;
+  restored **21/21 green**. Item 6 by mutating the REAL file rather than a fixture — §7's last
+  abstract re-dated `2026-08-16` → `2026-08-18`, which makes `current_state.md` itself genuinely
+  out of order: the new gate goes RED naming the pair, and the check it replaced stays **GREEN** on
+  that same input (`ns` = `1000 … 991`). Old blind, new red, one real file. Item 2: every
+  `.n`/`parseAbstracts` reader re-enumerated independently — the author's five-row table is complete.
+  Item 7: `detectReservedClasses` run here against `origin/main` ⇒ `classes: []`, and both CI jobs
+  SUCCESS on the tip with no `needs-operator/*` label. `freeze-boundary` **12/12**.
+- **FOUND:** no defect; all three `done-when:` items are box-executable and all three were executed.
+  The fixture alone would not have settled item 6 — it proves the helper, and stays green if the
+  real-file assertion is deleted — which is why the gate was re-proved against `current_state.md`.
+  One correction (item 4): the entry's *"§7 holds eight abstracts dated `2026-08-16`"* is `origin/main`'s
+  histogram (8/2, measured); on this PR's own tip it is **7 and 3**, since the same commit adds an
+  `08-17` abstract and rotates an `08-16` one out. The ceiling argument it supports is unaffected —
+  but the observable scope today is one day boundary, so the gate binds the next mis-rotation, not §7
+  as it stands. The `date:` is authored and nothing checks it against the day of the turn
+  (`agent-finish.mjs:284` only suggests it), a second ceiling the entry does not name.
+- **OWES:** `brahim` — two non-blocking follow-ups, neither in this task's `done-when:`:
+  `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment now cites a gate that is true only to day
+  granularity, which it does not say; and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through
+  `.n`, a position rather than an identity for a new-scheme entry, so `1000` always finds whatever is
+  on top of §7 (pre-existing, guarded by the date cross-check beside it).
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-017-review.md`
+- **REVIEW:** n/a — this IS the review.
+
+### T-017 — §7's newest-first gate now reads the authored date, not the positional key — 2026-08-17 — seat: zayd
+
+- **CHANGED:** `tests/docs-budget.test.ts` (**`outOfDateOrder` NEW**, module-local and pure — the
+  offending adjacent pairs, empty ⇒ §7 descends by date; the old "numbers entries uniquely and
+  monotonically" case SPLIT, its duplicate-number half kept verbatim and its order half replaced by a
+  date comparison; +2 fixture cases — the teeth, and same-date entries in either order) ·
+  `tests/freeze-boundary.test.ts` (one comment: *"nothing enforces it"* was true when written and is
+  false as of this PR) · `current_state.md` (this abstract; **T-008's second abstract rotated** to
+  `docs/history.md` §E to stay inside the 10-abstract cap — its durable lesson is already in §5's
+  CLOSED list) · `docs/history.md` §E. No `scripts/`, no `packages/`, no `apps/web`, no frozen byte.
+- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/910 tests** main suite,
+  **8 files/154 tests** `docs:check` subset, `tests/freeze-boundary.test.ts` **12/12** ⇒
+  `RISK: additive`.
+  **Revert-verified:** neutralising the date comparison to the old blind behaviour
+  (`return above && above.date < below.date` → `return false && …`) left **1 of 21**
+  RED in `tests/docs-budget.test.ts` — the fixture case, `expected [] to deeply equal [ Array(1) ]`;
+  restored **21/21 green**. The same test's positional-key assertion stayed green through the revert,
+  which is deliberate: it is the half that records what the old signal could see.
+- **FOUND:** measured the defect before writing the fix rather than reading it off the BACKLOG row —
+  on a two-entry fixture with the OLDER entry on top (`T-002`/`2026-01-01` above `T-001`/`2026-01-02`)
+  the positional key is `1000, 999`, descending, and the old assertion is green on the exact input it
+  exists to refuse. What made it worth gating at all: `newestAbstract` returns the MAX `.n`, which for
+  a new-scheme entry IS its position, so §7's written order decides §8's "newest entry" row and
+  `--rebaseline`'s `_baselinedAtEntry`/`_baselinedAt` — and the existing "§8 agrees with §7" case
+  cannot catch a mislabel, both its sides coming from that same call. ⚠ **Day granularity is the
+  honest ceiling, not an oversight:** §7 holds eight abstracts dated `2026-08-16`, so a swap within a
+  day is invisible and is accepted by design. **Backward sweep, all five order-readers enumerated:**
+  `newestAbstract` (the reason the gate exists), `state.mjs:229`/`:240` and the `AWAITING REVIEW` guard
+  (covered transitively), `frozen-surface.mjs`'s `baselineEntryIssues` (treats `.n` as an identity, not
+  a sequence — unaffected), and `agent-finish.mjs:280`, whose `find(a => a.id === task && a.seat ===
+  seat)` does take the topmost of a same-id/same-seat pair (§7 holds one today) — not a defect, the
+  matched object is never read past the `die()` beside it.
+- **OWES:** `hmdnah` — this PR's review; `risk: normal` per the BACKLOG row, so the ordinary one-step
+  route. Not covered: two entries written on the same day are unordered by this gate, which would need
+  a finer-grained authored field in §7's heading — a schema change, out of scope here. `brahim` — the
+  two T-016 follow-ups reassigned in that entry's step-2 `OWES:` are untouched by this turn.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-17-T-017-newest-first-by-date.md`
+- **REVIEW:** reviewed by `hmdnah` (one step, `risk: normal`) — item 1 re-executed, and item 6 re-proved
+  against the real `current_state.md` rather than the fixture. No defect; one number corrected in the
+  review entry above. Approved and merged on `narutousomaki741` with green CI.
+
 ### T-016 — review (step 2, adversarial): the field is correct and its wiring is untested — 2026-08-17 — seat: hmdnah
 
 - **CHANGED:** nothing in the diff — the two findings below are comment-level and unprovable by test,

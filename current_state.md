@@ -630,6 +630,62 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-024 — review (step 1, mechanical): both reverts reproduce, and the repaired gate loses its tie to §7 six appends out — 2026-08-19 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — a review turn edits no code, and F3/F4 below are a scoping call on
+  the author's own criterion, which `AGENTS.md §1.2` returns to the builder rather than pushes.
+  `handoff/hmdnah/2026-08-19-T-024-review-step1.md` NEW; this abstract; the `REVIEW:` line of the entry
+  below; T-017's two abstracts rotated to `docs/history.md` §E, §7 having stood at 31578 of 32768 chars
+  and 9 of 10 abstracts. PR #38 **not approved and not merged** — `needs-operator/freeze` routes it to the
+  owner (`AGENTS.md §5.3`), and no merge command was run at any point.
+- **VERIFIED:** **Item 1, both of the author's reverts re-executed by hand.** (A) `abstractKey`
+  neutralised to `return a.n` ⇒ **4 failed | 21 passed (25)**, including `expected 1000 to be
+  'T-024 — 2026-08-05 — zayd'`; restored 25/25. (B) the pre-fix scheme entire — nine files from
+  `origin/main` with this turn's `2026-08-19` abstract present ⇒ **1 failed | 11 passed (12)**,
+  `_baselinedAtEntry 1000 is dated 2026-08-19 in §7, but _baselinedAt says 2026-08-18`, on a branch that
+  moved 0 of 214 declarations; restored 17/17. ⚠ **The `done-when:`'s *repaired, not removed* half proved
+  by CONSTRUCTION, not by the green path:** the committed baseline hand-edited to
+  `"STEWARD-unblock-pc-and-chrome-boot — 2026-01-01 — brahim"` with `_baselinedAt` moved to match — **both
+  halves together**, so no self-consistency check can see it — goes RED. **Item 5, every figure
+  re-derived:** 936 → 942 and `docs:check` 154 → 159 and `freeze-boundary` 12 → 17 from full JSON runs on
+  both branches; `diffSurface` ⇒ `{added:[],removed:[],changed:[]}` at 214 = 214; §7 at 32696/32768 and
+  10/10 on `origin/main`, exact. **Set-differenced by test name, not by total:** 2 removed are RENAMES of
+  tests still present, 8 added, net **+6**, all in `freeze-boundary` (+5) and `state-risk-e2e` (+1);
+  `docs-budget` 21 and all six protocol files identical, `pending` 0 both runs — **nothing stopped
+  running**. **Item 7:** `pnpm state` ⇒ `RISK: additive`, matching the diff, and the labeller **did
+  execute** (`PR shape · reserved classes` pass 14 s), so `needs-operator/freeze` is a verdict and not a
+  silence. **The baseline names the right turn:** `git log -S` puts the write at `32c6cac`, whose §7 had
+  the `brahim` steward abstract on top, so the key resolves to exactly what `1000` denoted then.
+- **FOUND:** the fix is mechanically sound; four findings, none blocking and none red today. **F1 — the
+  `⚠ MEASURED` uniqueness claim is falsified by the diff that ships it:** *"not unique across §7 today"*
+  is stated in four places, but this same PR rotated both `T-016` abstracts to `docs/history.md` and they
+  were §7's only collision — `origin/main` 10 abstracts/1 collision, this branch 9/**0**. **F2 — the
+  collision is 4 keys of 41 across §7 + history, not 1**, and `T-011 — 2026-08-17 — zayd` is a *builder*
+  pair, so *"D88's two review steps"* under-names the generator (`REVIEW.md`'s own defect-return path is
+  the other). The conclusion not to gate holds; the premise given for it does not — a §7-scoped gate would
+  be **green** today, so *"red on a merged abstract"* is false at that scope. **F3 — ⚠⚠ the new
+  §7-resolution test reintroduces T-024's own shape:** *"the committed baseline records a key, and it
+  resolves to a real §7 abstract"* **fails rather than skips** once the authorising abstract rotates out —
+  measured **6 appends** away, and executed by deleting that abstract from §7 (`1 failed | 16 passed`)
+  while `baselineEntryIssues` itself correctly returned `[]`. The predecessor was built to skip *"which is
+  why it never cries wolf"*; this is not, and it lands after the freeze when `--rebaseline` is owner-gated.
+  **F4 — `baselineEntryIssues` never consults §7 on the keyed path**, so `T-999 — 2026-01-01 — nobody`
+  returns `[]`; defensible, but it leaves the whole §7 tie resting on F3's test, whose obvious repair when
+  it reddens is deletion — which is how Q15 happened.
+- **OWES:** `hmdnah` — **step 2** (items 2, 3, 6, plus re-confirming `needs-operator/*` immediately before
+  the merge), separate session, same claim, row stays `review`; reconcile against this report rather than
+  re-run it. The **owner** — the merge, unconditionally (`needs-operator/freeze`). `zayd` — F3/F4 if step 2
+  agrees, on the existing claim via `agent-start.mjs --continue T-024`; suggested shape is to move the
+  resolution into `baselineEntryIssues` with the predecessor's skip, so the §7 tie returns without a
+  rotation fuse. `brahim` — the `## Discovered` uniqueness row names the wrong scope, the wrong count and
+  an incomplete mechanism (F1/F2) before it is acted on. Nothing is owed to a `pc` seat — every claim here
+  is headless and was executed here.
+- **RISK:** additive — a review turn moved no declaration; `diffSurface` empty at 214.
+- **FULL:** `handoff/hmdnah/2026-08-19-T-024-review-step1.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), D88 **step 1 of 2**; findings posted to
+  PR #38 (`issuecomment-5341466379`, presence verified by read-back), `review/step-1` label applied and
+  verified. No approval, no merge.
+
 ### T-024 — `_baselinedAtEntry` records an identity, not a §7 position — 2026-08-19 — seat: zayd
 
 - **CHANGED:** `scripts/docs-state.mjs` (`abstractKey` · `ENTRY_KEY` · `SYNTHETIC_ENTRY_BASE` ·
@@ -673,7 +729,18 @@ is maintenance and does NOT get an entry of its own.**
 - **RISK:** additive — 0 of 214 declarations moved, `_declarationCount` unchanged, no frozen byte.
   ⚠ **Not merged by its author, and owner-gated by label** — see `OWES:`.
 - **FULL:** `handoff/zayd/2026-08-19-T-024-baseline-entry-identity.md`
-- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.**
+- **REVIEW:** ⚠ **STEP 1 OF 2 COMPLETE — NOT APPROVED, NOT MERGED; step 2 pending** (D88, `risk: high`).
+  `hmdnah` step 1 (mechanical, items 1/4/5/7) on `narutousomaki741`, findings at PR #38
+  `issuecomment-5341466379`, abstract above, body `handoff/hmdnah/2026-08-19-T-024-review-step1.md`.
+  Both reverts re-executed independently — (A) 4 failed | 21 passed (25), (B) the pre-fix scheme entire
+  reproducing `_baselinedAtEntry 1000 is dated 2026-08-19 in §7, but _baselinedAt says 2026-08-18` — and
+  the *repaired, not removed* criterion proved on a constructed lie rather than the green path. All three
+  counts and `0 of 214` re-derived; `RISK: additive` matches the diff. Four findings, none blocking:
+  the `⚠ MEASURED` uniqueness claim is falsified by this diff's own rotation (F1), the collision is 4 keys
+  of 41 and not only D88's shape (F2), the new §7-resolution test fails rather than skips once the
+  authorising abstract rotates — measured 6 appends out (F3), and `baselineEntryIssues` never consults §7
+  on the keyed path (F4). ⚠ **The OWNER merges this** — `needs-operator/freeze`, `AGENTS.md §5.3`.
+  Items 2, 3 and 6 remain for step 2.
 
 ### T-020 — review (step 1, mechanical): the bump collects the identical 936 tests, and vitest 2 was not enforcing the default timeout — 2026-08-18 — seat: hmdnah
 
@@ -888,81 +955,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-17-T-018-review-d66-lazy-build.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #35.
 
-### T-017 — review: the new gate has teeth on the real file, not only on its fixture — 2026-08-17 — seat: hmdnah
-
-- **CHANGED:** nothing in the diff — no defect to fix, and the one correction below is a number in the
-  author's own entry, which `AGENTS.md §4.10` keeps rather than rewrites. Merged PR #34 on
-  `narutousomaki741`.
-- **VERIFIED:** Item 1 re-executed here: the author's neutralisation
-  (`return above && above.date < below.date` → `return false && …`) leaves **1 of 21** RED in
-  `tests/docs-budget.test.ts`, `expected [] to deeply equal [ Array(1) ]` on the fixture case;
-  restored **21/21 green**. Item 6 by mutating the REAL file rather than a fixture — §7's last
-  abstract re-dated `2026-08-16` → `2026-08-18`, which makes `current_state.md` itself genuinely
-  out of order: the new gate goes RED naming the pair, and the check it replaced stays **GREEN** on
-  that same input (`ns` = `1000 … 991`). Old blind, new red, one real file. Item 2: every
-  `.n`/`parseAbstracts` reader re-enumerated independently — the author's five-row table is complete.
-  Item 7: `detectReservedClasses` run here against `origin/main` ⇒ `classes: []`, and both CI jobs
-  SUCCESS on the tip with no `needs-operator/*` label. `freeze-boundary` **12/12**.
-- **FOUND:** no defect; all three `done-when:` items are box-executable and all three were executed.
-  The fixture alone would not have settled item 6 — it proves the helper, and stays green if the
-  real-file assertion is deleted — which is why the gate was re-proved against `current_state.md`.
-  One correction (item 4): the entry's *"§7 holds eight abstracts dated `2026-08-16`"* is `origin/main`'s
-  histogram (8/2, measured); on this PR's own tip it is **7 and 3**, since the same commit adds an
-  `08-17` abstract and rotates an `08-16` one out. The ceiling argument it supports is unaffected —
-  but the observable scope today is one day boundary, so the gate binds the next mis-rotation, not §7
-  as it stands. The `date:` is authored and nothing checks it against the day of the turn
-  (`agent-finish.mjs:284` only suggests it), a second ceiling the entry does not name.
-- **OWES:** `brahim` — two non-blocking follow-ups, neither in this task's `done-when:`:
-  `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment now cites a gate that is true only to day
-  granularity, which it does not say; and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through
-  `.n`, a position rather than an identity for a new-scheme entry, so `1000` always finds whatever is
-  on top of §7 (pre-existing, guarded by the date cross-check beside it).
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-17-T-017-review.md`
-- **REVIEW:** n/a — this IS the review.
-
-### T-017 — §7's newest-first gate now reads the authored date, not the positional key — 2026-08-17 — seat: zayd
-
-- **CHANGED:** `tests/docs-budget.test.ts` (**`outOfDateOrder` NEW**, module-local and pure — the
-  offending adjacent pairs, empty ⇒ §7 descends by date; the old "numbers entries uniquely and
-  monotonically" case SPLIT, its duplicate-number half kept verbatim and its order half replaced by a
-  date comparison; +2 fixture cases — the teeth, and same-date entries in either order) ·
-  `tests/freeze-boundary.test.ts` (one comment: *"nothing enforces it"* was true when written and is
-  false as of this PR) · `current_state.md` (this abstract; **T-008's second abstract rotated** to
-  `docs/history.md` §E to stay inside the 10-abstract cap — its durable lesson is already in §5's
-  CLOSED list) · `docs/history.md` §E. No `scripts/`, no `packages/`, no `apps/web`, no frozen byte.
-- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/910 tests** main suite,
-  **8 files/154 tests** `docs:check` subset, `tests/freeze-boundary.test.ts` **12/12** ⇒
-  `RISK: additive`.
-  **Revert-verified:** neutralising the date comparison to the old blind behaviour
-  (`return above && above.date < below.date` → `return false && …`) left **1 of 21**
-  RED in `tests/docs-budget.test.ts` — the fixture case, `expected [] to deeply equal [ Array(1) ]`;
-  restored **21/21 green**. The same test's positional-key assertion stayed green through the revert,
-  which is deliberate: it is the half that records what the old signal could see.
-- **FOUND:** measured the defect before writing the fix rather than reading it off the BACKLOG row —
-  on a two-entry fixture with the OLDER entry on top (`T-002`/`2026-01-01` above `T-001`/`2026-01-02`)
-  the positional key is `1000, 999`, descending, and the old assertion is green on the exact input it
-  exists to refuse. What made it worth gating at all: `newestAbstract` returns the MAX `.n`, which for
-  a new-scheme entry IS its position, so §7's written order decides §8's "newest entry" row and
-  `--rebaseline`'s `_baselinedAtEntry`/`_baselinedAt` — and the existing "§8 agrees with §7" case
-  cannot catch a mislabel, both its sides coming from that same call. ⚠ **Day granularity is the
-  honest ceiling, not an oversight:** §7 holds eight abstracts dated `2026-08-16`, so a swap within a
-  day is invisible and is accepted by design. **Backward sweep, all five order-readers enumerated:**
-  `newestAbstract` (the reason the gate exists), `state.mjs:229`/`:240` and the `AWAITING REVIEW` guard
-  (covered transitively), `frozen-surface.mjs`'s `baselineEntryIssues` (treats `.n` as an identity, not
-  a sequence — unaffected), and `agent-finish.mjs:280`, whose `find(a => a.id === task && a.seat ===
-  seat)` does take the topmost of a same-id/same-seat pair (§7 holds one today) — not a defect, the
-  matched object is never read past the `die()` beside it.
-- **OWES:** `hmdnah` — this PR's review; `risk: normal` per the BACKLOG row, so the ordinary one-step
-  route. Not covered: two entries written on the same day are unordered by this gate, which would need
-  a finer-grained authored field in §7's heading — a schema change, out of scope here. `brahim` — the
-  two T-016 follow-ups reassigned in that entry's step-2 `OWES:` are untouched by this turn.
-- **RISK:** additive
-- **FULL:** `handoff/zayd/2026-08-17-T-017-newest-first-by-date.md`
-- **REVIEW:** reviewed by `hmdnah` (one step, `risk: normal`) — item 1 re-executed, and item 6 re-proved
-  against the real `current_state.md` rather than the fixture. No defect; one number corrected in the
-  review entry above. Approved and merged on `narutousomaki741` with green CI.
-
 ## §8 — Generated
 
 ## NEXT TURN: REVIEW ONLY
@@ -975,16 +967,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-024 (zayd, 2026-08-19)** |
-| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `e73b80b` · clean |
-| open PRs | none — main is the tip of the work |
+| **newest entry** | **T-024 (hmdnah, 2026-08-19)** |
+| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `bb15527` · dirty |
+| open PRs | #38 task/T-024-baselinedatentry-names-a-position-so-a-c |
 | suite | **942 green** · 97 files · 288 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 611 insertions(+), 134 deletions(-) (13 files) |
-| docs budget | current_state 83.2/96.0 KB · §7 30.8/32.0 KB · abstracts 9/10 · bodies 74 |
+| diff vs origin/main | 13 files changed, 760 insertions(+), 211 deletions(-) (13 files) |
+| docs budget | current_state 83.6/96.0 KB · §7 30.8/32.0 KB · abstracts 8/10 · bodies 75 |
 
 _Generated 2026-08-19 by `pnpm state`._
 
