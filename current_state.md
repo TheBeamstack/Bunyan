@@ -957,15 +957,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-024 (hmdnah, 2026-08-19)** |
-| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `ab39f1f` · clean |
+| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `8ecb9c5` · clean |
 | open PRs | #38 task/T-024-baselinedatentry-names-a-position-so-a-c |
 | suite | **942 green** · 97 files · 288 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 14 files changed, 997 insertions(+), 211 deletions(-) (14 files) |
-| docs budget | current_state 83.6/96.0 KB · §7 30.8/32.0 KB · abstracts 8/10 · bodies 75 |
+| diff vs origin/main | 15 files changed, 1501 insertions(+), 285 deletions(-) (15 files) |
+| docs budget | current_state 83.4/96.0 KB · §7 30.9/32.0 KB · abstracts 7/10 · bodies 76 |
 
 _Generated 2026-08-19 by `pnpm state`._
 
