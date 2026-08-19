@@ -1327,6 +1327,45 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-020 — review (step 2, adversarial): the identical 936 tests also execute the identical 5047 assertions, and the hook deadline is the gate the sweep missed — 2026-08-19 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — a review turn edits no code.
+  `handoff/hmdnah/2026-08-19-T-020-review-step2.md` NEW; this abstract; the `REVIEW:` line of the entry
+  below; T-016's step-1 abstract rotated to `docs/history.md` §E, §7 having stood at 32447 of 32768 bytes
+  and 10 of 10 abstracts.
+- **VERIFIED:** **Item 6, instrumented rather than argued.** A temporary setup file (untracked, deleted)
+  recorded `expect.getState().assertionCalls` per `(file, title)`, full suite under each runner installed
+  from its own lockfile: **5047 `expect()` calls under both**, 912 distinct keys, **zero** keys under one
+  runner only, **zero** tests whose count differs — the same tests *and* the same assertions, which
+  `(file, title)` equality cannot show. Collection is complete against the disk, not merely
+  self-consistent: **97** files match the include globs on disk and the 4.1.10 summary's `testResults` is
+  the identical set. Margins measured, not inferred: green at `--testTimeout=2500` and at
+  `--hookTimeout=1200`. **Item 7 on the tip actually merged** — `agent-finish.mjs` pushed `c203a67`, so
+  step 1's `82e1c60` and this turn's arrival tip `9eac573` were both stale; both CI jobs re-confirmed
+  **SUCCESS on `c203a67`**.
+- **FOUND:** nothing that blocks; approved and merged. **⚠ The backward sweep covers tests and not hooks,
+  and vitest 4 switches on two deadlines.** `hookTimeout` resolves to **10 000 ms** independently of
+  `testTimeout` (`vitest/dist/chunks/coverage.DM_a_rWm.js:539`), every kernel suite's `beforeAll` boots
+  OCCT, and `queueMicrotask` suppresses a hook's deadline exactly as it suppresses a test's — so a ranking
+  of test durations answers half the question. Green at `--hookTimeout=1200`, so every unprotected hook is
+  inside 1.2 s (**≥8×**) and the gap is real but empty. Every unprotected test is inside 2500 ms (**≥2×**,
+  max 1921 ms); the three over 5000 ms all carry explicit timeouts. Nothing is gated out of the ranking —
+  **zero** `.skip`/`.skipIf`/`.only`/`.todo`/`.runIf` sites repo-wide. Item 3: no new kind of thing;
+  `state.mjs:116-131`'s four summary fields are present and correct (936 · 936 · 97 · 287), and `pr-shape`
+  runs no `pnpm install`, so the labeller is out of the bump's reach. The one site where the bump moves
+  *semantics* rather than enforcement, `tests/kernel-client.test.ts:137-155`'s only `vi.useFakeTimers`, is
+  not vacuous: an unfired timer hangs the await, and it passed at `--testTimeout=2500`. ⚠ Correction to
+  step 1: `geometry-cache-d29.test.ts:59`'s `}, 120_000)` is the **hook's** timeout, so its 1921 ms test is
+  genuinely unprotected.
+- **OWES:** `brahim` — **`agent-finish.mjs --review --step 2` accepts step 1's abstract and body as
+  step 2's**, its gate checking only that some abstract names the task and the seat, so every prior step 2
+  wrote its own by habit rather than by gate; a backlog candidate, not a defect in this PR. The **pc
+  seats** — `unverified here: the five protocol files collect on Windows — the pc seats to confirm`, **not
+  ticked here**, closed by **T-021**, now claimable.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-19-T-020-review-step2.md`
+- **REVIEW:** n/a — this IS step 2 of the review, and it approved and merged PR #37.
+
 ### T-011 — review (step 2, re-run): both returned defects closed; the oracle claim is false — 2026-08-17 — seat: hmdnah
 
 - **CHANGED:** nothing on the branch — a review turn edits no code. `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`

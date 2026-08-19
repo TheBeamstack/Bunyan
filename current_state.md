@@ -699,7 +699,7 @@ is maintenance and does NOT get an entry of its own.**
   claimable once this merges, and with it the five `ready` `pc` rows behind it.
 - **RISK:** additive — no declaration moved, no frozen byte; `reserved-classes.mjs` returns `none`.
 - **FULL:** `handoff/zayd/2026-08-18-T-020-vitest-2-to-4.md`
-- **REVIEW:** ⚠ **STEP 1 OF 2 DONE, NOT APPROVED** — `hmdnah`, D88 step 1 (mechanical), `82e1c60`, findings on PR #37. Item 1 re-executed RED, both suite counts re-measured at 936 · 97 · 287 and shown to be the identical 936 tests, and the microtask-timeout mechanism reproduced by a probe. **Step 2 approves and merges**; the row stays `review` until it does.
+- **REVIEW:** ✅ **APPROVED AND MERGED** — `hmdnah`, D88 both steps, on `narutousomaki741`. Step 1 (mechanical, `82e1c60`): item 1 re-executed RED, both suite counts re-measured at 936 · 97 · 287 and shown to be the identical 936 tests, the microtask-timeout mechanism reproduced by a kernel-free probe. Step 2 (adversarial, `c203a67`, abstract in `docs/history.md` §E, body `handoff/hmdnah/2026-08-19-T-020-review-step2.md`): the same tests also execute the same **5047** `expect()` calls, collection matches the 97 files on disk exactly, and the margins are green at `--testTimeout=2500` and `--hookTimeout=1200` — the hook deadline being the second gate the bump switches on and the sweep did not cover. Both CI jobs SUCCESS on the merged tip; `needs-operator/*` empty and informative. ⚠ Step 2 is archived rather than in §7 because it ran past midnight UTC, and a §7 abstract dated 2026-08-19 reddens `freeze-boundary` through **T-024** having moved no declaration. ⚠ `unverified here: the five protocol files collect on Windows` is **not** ticked; T-021 closes it.
 
 ### STEWARD-unblock-pc-and-chrome-boot — review: the splits are honest, and T-024 named a fixture that measures green — 2026-08-18 — seat: hmdnah
 
@@ -987,15 +987,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-020 (hmdnah, 2026-08-18)** |
-| branch · tip · tree | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` · `9eac573` · clean |
+| branch · tip · tree | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` · `c203a67` · dirty |
 | open PRs | #37 task/T-020-the-pinned-vitest-cannot-collect-tests-p |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 535 insertions(+), 533 deletions(-) (8 files) |
-| docs budget | current_state 83.6/96.0 KB · §7 31.2/32.0 KB · abstracts 10/10 · bodies 72 |
+| diff vs origin/main | 8 files changed, 575 insertions(+), 534 deletions(-) (8 files) |
+| docs budget | current_state 84.3/96.0 KB · §7 31.9/32.0 KB · abstracts 10/10 · bodies 73 |
 
 _Generated 2026-08-19 by `pnpm state`._
 
