@@ -125,7 +125,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
 | T-021 | ready   | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
-| T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
+| T-024 | review  | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-022 | ready   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | blocked | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
@@ -704,6 +704,29 @@ _(unplanned findings land here — never claimed in the same turn that found the
   policy makes load-bearing after the freeze. Fix shape: class `freeze` on a `surface` diff, and
   report an audit-field-only edit as a separate, non-gating class. Found by `zayd` building T-024.
   Recorded, not claimed.
+- **2026-08-19 — `agent-finish.mjs --review` stamps the backlog row `done` on an owner-gated PR, not only
+  prints its merge command.** `seats.reviewFlipsToDone(risk, step, contractTouching)` reads
+  `contractTouching` from `§8`'s frozen-surface row, so `reviewFlipsToDone('high', 2, false)` is `true` on
+  a PR carrying `needs-operator/freeze`: measured on PR #38's step 2, which wrote `T-024 → done` while the
+  owner had not merged and could not be made to on a reviewer's schedule. `done` is what satisfies another
+  row's `depends-on:`, so this releases dependents on an unmerged PR — nothing depends on T-024, which is
+  luck. This is `T-014`'s defect one class over: `AGENTS.md §5` names **three** owner-gated classes and
+  `reserved-classes.mjs` labels all three, while `reviewFlipsToDone` knows only `contract-touching`, so the
+  freeze and legal-figure classes walk past it. The 2026-08-18 row below covers the _printed merge command_
+  — which a human can decline — and not the row flip, which nobody sees. Fix shape: `--review` resolves the
+  reserved classes it already has a module for, and keeps the row `review` whenever any `needs-operator/*`
+  applies. Row set back to `review` by hand this turn. Found by `hmdnah`, step 2 of PR #38. Recorded, not
+  claimed.
+- **2026-08-19 — the stable key `<id> — <date> — <seat>` is not the identity `agent-finish.mjs` uses, and
+  T-024 did not sweep it.** T-024 adds `EntryAbstract.key` for anything that names an entry, then leaves
+  `agent-finish.mjs:280`'s handoff gate on `find(a => a.id === task && a.seat === seat)` — a subset of the
+  key, and precisely the tuple whose collisions the same PR records. That is why a D88 step 2 passes on
+  step 1's abstract (the row below), and why §7 now carries two abstracts keyed `T-024 — 2026-08-19 —
+hmdnah`: the review protocol generates the collision the code comment says is rare. Two smaller sites of
+  the same sweep: the seven `docs-budget` messages moved `.n` → `.id`, the one field that is never unique,
+  and `isSyntheticEntryNumber` guards `(990, 1000]` while a turn appends its abstract _before_ rotating, so
+  §7's transient 11th index mints `990` and is reported as a legacy number. Found by `hmdnah`, step 2 of
+  PR #38. Recorded, not claimed.
 - **2026-08-19 — `agent-finish.mjs --review --step 2` accepts step 1's abstract and body as step 2's
   handoff artifacts, and prints the merge commands.** Its gate checks only that _some_ §7 abstract names
   the task and the seat, and a D88 step 1 has already written one — so a step 2 that wrote nothing of its
