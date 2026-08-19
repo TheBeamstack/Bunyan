@@ -113,14 +113,14 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-020` |
-| branch | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` |
-| claimed-at | 2026-08-18T19:51:18Z |
-| status | finished — PR open, awaiting review |
+| task | `T-024` |
+| branch | `task/T-024-baselinedatentry-names-a-position-so-a-c` |
+| claimed-at | 2026-08-19T00:39:12Z |
+| status | working |
 
 <!-- END BATON -->
 
