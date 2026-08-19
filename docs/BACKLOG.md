@@ -100,6 +100,8 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 > `ready` row a machine can satisfy, so this table's order is how the steward sequences work. **T-005
 > sits below T-024 deliberately:** its only dependent is T-006, a `pc` row, and no `pc` turn can finish
 > until T-020 lands — so building it first advances nothing, while T-020 unblocks that machine entirely.
+> **T-024 sits above T-022** because it is cheap, must land before the P5 freeze either way, and is
+> already costing turns their §7 abstract — a record loss, not a nuisance (`## Discovered`, 2026-08-19).
 
 | ID    | Status  | Task                                                                    | Area     | Machine | Risk   | Depends on |
 | ----- | ------- | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
@@ -123,9 +125,9 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
 | T-021 | ready   | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
+| T-024 | ready   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-022 | ready   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | blocked | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
-| T-024 | ready   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
 
 ---
