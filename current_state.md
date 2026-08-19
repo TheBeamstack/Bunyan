@@ -987,14 +987,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-020 (hmdnah, 2026-08-18)** |
-| branch · tip · tree | `task/T-020-the-pinned-vitest-cannot-collect-tests-p` · `c203a67` · dirty |
-| open PRs | #37 task/T-020-the-pinned-vitest-cannot-collect-tests-p |
+| branch · tip · tree | `main` · `4e4aadd` · clean |
+| open PRs | none — main is the tip of the work |
 | suite | **936 green** · 97 files · 287 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 575 insertions(+), 534 deletions(-) (8 files) |
+| diff vs origin/main | 1 file changed, 18 insertions(+), 1 deletion(-) (1 files) |
 | docs budget | current_state 84.3/96.0 KB · §7 31.9/32.0 KB · abstracts 10/10 · bodies 73 |
 
 _Generated 2026-08-19 by `pnpm state`._
