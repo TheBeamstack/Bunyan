@@ -1327,6 +1327,128 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+### T-020 — review (step 2, adversarial): the identical 936 tests also execute the identical 5047 assertions, and the hook deadline is the gate the sweep missed — 2026-08-19 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — a review turn edits no code.
+  `handoff/hmdnah/2026-08-19-T-020-review-step2.md` NEW; this abstract; the `REVIEW:` line of the entry
+  below; T-016's step-1 abstract rotated to `docs/history.md` §E, §7 having stood at 32447 of 32768 bytes
+  and 10 of 10 abstracts.
+- **VERIFIED:** **Item 6, instrumented rather than argued.** A temporary setup file (untracked, deleted)
+  recorded `expect.getState().assertionCalls` per `(file, title)`, full suite under each runner installed
+  from its own lockfile: **5047 `expect()` calls under both**, 912 distinct keys, **zero** keys under one
+  runner only, **zero** tests whose count differs — the same tests *and* the same assertions, which
+  `(file, title)` equality cannot show. Collection is complete against the disk, not merely
+  self-consistent: **97** files match the include globs on disk and the 4.1.10 summary's `testResults` is
+  the identical set. Margins measured, not inferred: green at `--testTimeout=2500` and at
+  `--hookTimeout=1200`. **Item 7 on the tip actually merged** — `agent-finish.mjs` pushed `c203a67`, so
+  step 1's `82e1c60` and this turn's arrival tip `9eac573` were both stale; both CI jobs re-confirmed
+  **SUCCESS on `c203a67`**.
+- **FOUND:** nothing that blocks; approved and merged. **⚠ The backward sweep covers tests and not hooks,
+  and vitest 4 switches on two deadlines.** `hookTimeout` resolves to **10 000 ms** independently of
+  `testTimeout` (`vitest/dist/chunks/coverage.DM_a_rWm.js:539`), every kernel suite's `beforeAll` boots
+  OCCT, and `queueMicrotask` suppresses a hook's deadline exactly as it suppresses a test's — so a ranking
+  of test durations answers half the question. Green at `--hookTimeout=1200`, so every unprotected hook is
+  inside 1.2 s (**≥8×**) and the gap is real but empty. Every unprotected test is inside 2500 ms (**≥2×**,
+  max 1921 ms); the three over 5000 ms all carry explicit timeouts. Nothing is gated out of the ranking —
+  **zero** `.skip`/`.skipIf`/`.only`/`.todo`/`.runIf` sites repo-wide. Item 3: no new kind of thing;
+  `state.mjs:116-131`'s four summary fields are present and correct (936 · 936 · 97 · 287), and `pr-shape`
+  runs no `pnpm install`, so the labeller is out of the bump's reach. The one site where the bump moves
+  *semantics* rather than enforcement, `tests/kernel-client.test.ts:137-155`'s only `vi.useFakeTimers`, is
+  not vacuous: an unfired timer hangs the await, and it passed at `--testTimeout=2500`. ⚠ Correction to
+  step 1: `geometry-cache-d29.test.ts:59`'s `}, 120_000)` is the **hook's** timeout, so its 1921 ms test is
+  genuinely unprotected.
+- **OWES:** `brahim` — **`agent-finish.mjs --review --step 2` accepts step 1's abstract and body as
+  step 2's**, its gate checking only that some abstract names the task and the seat, so every prior step 2
+  wrote its own by habit rather than by gate; a backlog candidate, not a defect in this PR. The **pc
+  seats** — `unverified here: the five protocol files collect on Windows — the pc seats to confirm`, **not
+  ticked here**, closed by **T-021**, now claimable.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-19-T-020-review-step2.md`
+- **REVIEW:** n/a — this IS step 2 of the review, and it approved and merged PR #37.
+
+### T-011 — review (step 2, re-run): both returned defects closed; the oracle claim is false — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — a review turn edits no code. `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
+  NEW (⚠ named to sort last: `agent-finish.mjs` resolves the body by lexical sort, and
+  `…-step2-rerun.md` would sort BEFORE `…-step2.md`); this abstract; the `REVIEW:` line of the entry below.
+- **VERIFIED:** **Item 1 re-executed, one revert per returned defect, by hand, tests untouched.** Revert A
+  (drop `joinNeighboursOf` from the case): **4 RED** — 3 in `dependency-graph`, plus `edit.rebuilt` missing
+  the main-model wall in `design-option-crud`. Revert B (seed the option ids from the catalogue only):
+  **2 RED**, both undo-of-delete. Restored: **61/61** across the five files this unit touches; full suite
+  re-run here **920 · 96 files**, `docs:check` **146 · 8** — both match `zayd`'s figures. **Item 7 immediately
+  before approving:** `pnpm state` → contract-touching, 1 declaration moved; `gh api …/89130fb/check-runs`
+  → both jobs `completed/success`; labels `needs-operator/contract-touching` + `needs-operator/freeze` +
+  `review/step-1` ⇒ the labeller **ran**, and the owner merges.
+- **FOUND:** **⚠⚠ The entry below's oracle measurement is false for `area`.** Re-measured on the same
+  construction: `volume` (3 600 000 000), the face/edge counts and the `refs` list (**18** entries, not 17)
+  are identical across the flip, but `area` is **39 848 528.137 → 39 600 000 mm²** and `edgeLength`
+  **36 965.685 → 36 800 mm**. The miter moves volume between lateral faces but replaces a `t×h` cap with a
+  `t√2×h` one, so area grows by `t·h·(√2−1)` = 248 528.137 mm² — the measured delta exactly. ⇒ *"any
+  quantity-based assertion here is a weak green by construction"* does not hold; `area` would have worked.
+  Code and tests unaffected — `bounds` is the right oracle and is the one used. **⚠ Correction to MY OWN
+  step-2 report:** defect 2 is **not** reachable through `DocumentContext`. `#affected` is
+  `edit.rebuilt ∪ #touched`, and the delete's journalled `rebuilt` already named the tagged wall (measured);
+  with the seed defect restored the `undo()` half of the new e2e case still passes. Defect 2 is real in
+  `dependents` alone — an exported declaration Miqdar/Planitor read — not the end-to-end erasure I described.
+  **The one-hop choice is correct and structurally so:** `build.ts` reads option active-ness only through
+  `resolveJoins`, which reads the element's own baseline, its overrides, and `partnersAt`/`throughWallsAt`
+  at its own two endpoints — all one hop; a neighbour's cap moving changes neither its baseline nor its
+  thickness, so nothing propagates further. The `w-lobby` control makes a fixpoint fail the fixture too.
+  **Perf claim re-measured and holds:** 200/400/800/1600 walls → 14.3/16.6/25.0/47.9 ms cold, 8× the walls
+  for 3.3× the time, not a D73 quadratic.
+- **OWES:** The **owner** — merge #32; `RISK: contract-touching` + `needs-operator/freeze`, approved on
+  `narutousomaki741`, and the `docs/BACKLOG.md` row stays `review` until the merge (`brahim`'s sweep flips
+  it). `brahim` — `--review` claimed **PR #33** for the fourth time, auto-claim comment included;
+  answered on #33 (`issuecomment-5314875325`) — it was not reviewed and holds no live claim. The
+  `## Discovered` row's fix shape is now overdue.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-011-review-step2b-rerun.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #32.
+
+### T-011 — the D88 defect return: the option edge reaches the join neighbour, and seeds from the change — 2026-08-17 — seat: zayd
+
+- **CHANGED:** `packages/document/src/dependency.ts` only — `joinNeighboursOf` NEW (one hop of
+  `wallsJoinedTo`, endpoints **and** segment, exactly as `case 'elements'` line 82 takes it);
+  `elementsTaggedIntoSet` now takes the `DesignOption` and seeds from `change`'s own option id ∪ the
+  catalogue's siblings of that `setName`; `dependents`'s `@param scene` docstring corrected. **No exported
+  declaration added or changed.** Plus 3 new cases in `tests/dependency-graph.test.ts` (which had no
+  `designOptions` case at all), 2 in `tests/design-option-crud.test.ts`, and a `refuses(call, code)` helper
+  pinning `REFUSED` on the five refusal cases.
+- **VERIFIED:** Both defects **reproduced red first**, through the shipped verbs on the real OCCT kernel,
+  before a line of fix. **Revert-verified, the fix only** (`git stash push -- dependency.ts`, tests
+  untouched): **5 failed | 23 passed (28)** — every new assertion red, every pre-existing one green.
+  Restored: 28/28. `pnpm verify` full, foreground, exit 0 — **920 green · 96 files**, `docs:check`
+  **146 · 8**; `freeze-boundary` 12/12 **unmoved**, no re-baseline this turn. **Cost measured** (pure TS,
+  `dependents` on one option change, half the walls tagged, cold): 200/400/800 walls → 11.4/17.3/23.8 ms
+  vs 0.42/0.21/0.43 before — 4× the walls for 2.1× the time, **not** a D73 quadratic, because
+  `wallsJoinedTo`'s index is memoised per scene object (`INDEX_CACHE`).
+- **FOUND:** **⚠⚠ Volume and area cannot see defect 1, and a test built on either would be weak green.** A
+  45° miter between two equal-thickness walls adds on one lateral face exactly what it removes on the
+  other: `volume 3 600 000 000`, `area 36 000 000` and a 17-entry `refs` list are **byte-identical** before
+  and after. The **shape** moves, and the kernel's `bounds` on the live handle is what says so — so the
+  reviewer's open item (the two-B-Rep comparison) landed **in this turn**: after the promote, `max.x` is
+  `6000` with the fix and **`6100` with it reverted** — 100 mm, half a wall thickness, of a wall nobody
+  edited, still mitered against a wall the document no longer builds. Shown to fire on its own, with the
+  `edit.rebuilt` assertion above it neutralised. **Backward sweep (invariant 7):** `dependency.ts` is the
+  **only** site that turns an option change into an affected set — every other `scene.designOptions` reader
+  (`enumerate`/`joins`/`room`/`cleandelta`/`projectView`) resolves at query time through `optionScopeOf`
+  and caches nothing, so there is no second invalidator to keep in step.
+- **OWES:** `hmdnah` — step 2 again, on the existing claim, against this head; the row stays `review`. The
+  **owner** — `RISK: contract-touching` + `needs-operator/freeze` from the earlier commits, so the owner
+  merges #32. Untouched by design: the `## Discovered` primary-invariant row (pre-existing, not this PR's
+  growth) and the spurious review-claim comment on PR #33.
+- **RISK:** contract-touching — **0** declarations moved by this turn; the branch keeps the classification
+  it already had (the one `scene.ts :: type SceneCollection` move), and this turn added nothing to the
+  frozen surface.
+- **FULL:** `handoff/zayd/2026-08-17-T-011-return-join-neighbour-and-undo-seed.md`
+- **REVIEW:** APPROVED — `hmdnah`, D88 step 2 re-run, `89130fb`. Both returned defects closed and
+  independently revert-verified. ⚠ `RISK: contract-touching` + `needs-operator/freeze` ⇒ **the owner
+  merges #32**; the row stays `review` until they do. ⚠ One measured claim in the FOUND field above is
+  **false**: `area` is NOT byte-identical across the flip (39 848 528.14 → 39 600 000 mm², the cap face
+  gains `t·h·(√2−1)`), `edgeLength` moves too, and the `refs` list has 18 entries, not 17. Volume, the
+  face/edge counts and `refs` are identical; `bounds` is the right oracle either way. Correction in the
+  `hmdnah` entry below.
+
 ### T-011 — review (step 2 of 2): the invalidator under-names, and reproduces D68 from the authoring side — 2026-08-17 — seat: hmdnah
 
 - **CHANGED:** nothing on the branch — a review turn edits no code (`REVIEW.md`'s findings table: a defect

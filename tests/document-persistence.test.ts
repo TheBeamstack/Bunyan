@@ -296,7 +296,10 @@ describe('.bnn — the native format', () => {
     // structures have two lifetimes, and conflating them is what cost us the moat.
     expect(doc.history().length).toBeLessThanOrEqual(200);
     expect(doc.changeFeed().length).toBeGreaterThan(250);
-  });
+    // ⚠ 250 real kernel edits measure ~18.5 s here, so this test always needed an explicit timeout;
+    // vitest 2 never enforced the 5 s default on it because `InProcessTransport` resolves through
+    // `queueMicrotask`, and a microtask-only promise chain never returns to the timer phase.
+  }, 120_000);
 
   it('an agent can ISSUE a revision through the surface alone (D41 + rule 9)', async () => {
     const doc = new DocumentContext({ registries: registries(), geometry: client });
