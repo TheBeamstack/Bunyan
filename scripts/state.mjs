@@ -228,16 +228,18 @@ const abstracts = parseAbstracts(cs);
 // `newestAbstract` in `docs-state.mjs` for the failure it is standing in front of (Entry 80).
 const newest = newestAbstract(abstracts);
 
-// ⚠ THE REBASELINE WRITE, DELIBERATELY DOWN HERE. It needs `newest.n` — the entry whose ruling
+// ⚠ THE REBASELINE WRITE, DELIBERATELY DOWN HERE. It needs `newest.key` — the entry whose ruling
 // authorises this baseline — and the parse that produces it is above. `newestAbstract` throws on a
 // failed parse, so a session that cannot read §7 does not get to rewrite the freeze baseline either.
+// ⚠⚠ `.key`, NOT `.n`: `.n` is §7's array POSITION for a five-seat entry, so a baseline recording it
+// re-resolved to whatever landed next (T-024).
 if (rebaselining) {
   const prev = existsSync(snapPath) ? JSON.parse(readFileSync(snapPath, 'utf8')) : {};
   // ⚠⚠ BOTH FIELDS COME FROM THE SAME §7 PARSE, AND THE DATE USED TO COME FROM `new Date()`. The
   // baseline's gate cross-checks them against each other, so a clock-stamped date made every
   // rebaseline run outside the entry's own calendar day write a file its own gate rejects — see
   // `baselineSnapshot` and `tests/state-risk-e2e.test.ts`.
-  const next = baselineSnapshot(prev, current, { entry: newest.n, at: newest.date });
+  const next = baselineSnapshot(prev, current, { entry: newest.key, at: newest.date });
   writeFileSync(snapPath, JSON.stringify(next, null, 2) + '\n');
   console.log(
     `⚠ frozen-surface baseline REWRITTEN (${next._declarationCount} declarations, entry ${next._baselinedAtEntry}). ` +

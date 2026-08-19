@@ -26,11 +26,14 @@ export declare function buildSurface(root: string): FrozenSurface;
 export declare function baselineSnapshot(
   prev: Record<string, unknown>,
   surface: FrozenSurface,
-  /** ⚠ `at` is the AUTHORISING ENTRY's §7 date, never the clock — see the implementation. */
-  meta: { entry: number; at: string },
+  /**
+   * ⚠ `at` is the AUTHORISING ENTRY's §7 date, never the clock, and `entry` is its `abstractKey` —
+   * never `.n`, which is a §7 position for a five-seat entry (T-024).
+   */
+  meta: { entry: number | string; at: string },
 ): Record<string, unknown> & {
   _baselinedAt: string;
-  _baselinedAtEntry: number;
+  _baselinedAtEntry: number | string;
   _declarationCount: number;
   surface: FrozenSurface;
 };
@@ -42,8 +45,8 @@ export declare function baselineSnapshot(
  * it is not the invariant. See the implementation's comment; Entry 84's review is the reason.
  */
 export declare function baselineEntryIssues(
-  snapshot: { _baselinedAtEntry: number; _baselinedAt: string },
-  abstracts: readonly { n: number; date: string }[],
+  snapshot: { _baselinedAtEntry: number | string; _baselinedAt: string },
+  abstracts: readonly { n: number; date: string; scheme?: 'legacy' | 'T' }[],
 ): string[];
 
 /** Compare a surface against a baseline. All entries are `"<file> :: <kind> <name>"`. */

@@ -29,13 +29,21 @@ import {
   WATCHED,
 } from '../scripts/frozen-surface.mjs';
 import type { FrozenSurface } from '../scripts/frozen-surface.mjs';
-import { parseAbstracts, readCurrentState, riskVerdict } from '../scripts/docs-state.mjs';
+import {
+  abstractKey,
+  newestAbstract,
+  parseAbstracts,
+  readCurrentState,
+  riskVerdict,
+  SYNTHETIC_ENTRY_BASE,
+} from '../scripts/docs-state.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 interface Snapshot {
   _baselinedAt: string;
-  _baselinedAtEntry: number;
+  /** An author-written legacy number, or a new-scheme `abstractKey` — never a §7 position (T-024). */
+  _baselinedAtEntry: number | string;
   _declarationCount: number;
   surface: FrozenSurface;
 }
@@ -170,18 +178,20 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
    * ruling that permits touching the freeze pointed five entries wide of it, and no test looked. The
    * rebaseline write ran BEFORE `state.mjs` parsed §7, which is why it never had the number to write.
    */
-  it('writes the entry number instead of inheriting a stale one', () => {
+  it('writes the entry identity instead of inheriting a stale one', () => {
     const prev = { _README: 'keep me', _baselinedAt: '2026-08-03', _baselinedAtEntry: 72 };
     const next = baselineSnapshot(
       prev,
       { 'a.ts': { 'interface A': 'deadbeef' } },
       {
-        entry: 81,
+        entry: 'T-081 — 2026-08-05 — zayd',
         at: '2026-08-05',
       },
     ) as unknown as Snapshot & { _README: string };
 
-    expect(next._baselinedAtEntry, 'the stale 72 survived the write').toBe(81);
+    expect(next._baselinedAtEntry, 'the stale 72 survived the write').toBe(
+      'T-081 — 2026-08-05 — zayd',
+    );
     expect(next._baselinedAt).toBe('2026-08-05');
     expect(next._declarationCount).toBe(1);
     // Fields this function does not own still ride through — that is what `...prev` is for.
@@ -192,7 +202,7 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
     const next = baselineSnapshot(
       {},
       { 'a.ts': { 'interface A': 'x', 'type B': 'y' }, 'b.ts': { 'const C': 'z' } },
-      { entry: 81, at: '2026-08-05' },
+      { entry: 'T-081 — 2026-08-05 — zayd', at: '2026-08-05' },
     ) as unknown as Snapshot;
     expect(next._declarationCount).toBe(3);
   });
@@ -244,38 +254,148 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
    * ⚠ THE HALF THAT REPLACES WHAT `toContain` WAS REACHING FOR — and it costs no constant.
    *
    * Q15's defect was `_baselinedAtEntry: 72` sitting beside `_baselinedAt: '2026-08-03'`, which is
-   * ENTRY 77's date. The two fields disagreed, and 72 was in §7 at the time, so the disagreement was
-   * detectable without anyone remembering a number. That is the check — and it SKIPS once the named
-   * entry rotates, which is exactly why it never becomes the previous test's problem.
+   * ENTRY 77's date. The two fields disagreed, so the disagreement was detectable without anyone
+   * remembering a number. A new-scheme key carries its own date, so the same check needs no §7
+   * lookup at all; the legacy half still resolves in §7 and SKIPS once the named entry rotates.
    */
-  it("⚠⚠ catches Q15's own shape: an entry number that disagrees with the date beside it", () => {
+  it("⚠⚠ catches Q15's own shape: an entry whose date disagrees with the one beside it", () => {
     const abstracts = parseAbstracts(readCurrentState(ROOT));
-    // ⚠ By MAX, not by position — §7's newest-first order is gated in `docs-budget.test.ts`, but by
-    // each entry's `date:`, which cannot separate two entries written on the same day.
-    const newest = abstracts.reduce((a, b) => (b.n > a.n ? b : a));
-    // ⚠ Pick a date that is NOT this entry's own, whatever §7 currently says — a literal would be
-    // one more hand-maintained constant, which is the disease this whole describe block is about.
-    const wrong = newest.date === '2026-01-01' ? '2026-01-02' : '2026-01-01';
 
-    expect(
-      baselineEntryIssues({ _baselinedAtEntry: newest.n, _baselinedAt: wrong }, abstracts),
-    ).toEqual([
-      `_baselinedAtEntry ${newest.n} is dated ${newest.date} in §7, but _baselinedAt says ${wrong}`,
-    ]);
-
-    // An entry number that has not happened yet — the shape a mistyped constant takes.
+    // The new-scheme form — the only one a rebaseline writes from here on.
     expect(
       baselineEntryIssues(
-        { _baselinedAtEntry: newest.n + 1, _baselinedAt: newest.date },
+        { _baselinedAtEntry: 'T-024 — 2026-08-19 — zayd', _baselinedAt: '2026-08-18' },
         abstracts,
       ),
     ).toEqual([
-      `_baselinedAtEntry is ${newest.n + 1}, but the newest entry that exists is ${newest.n}`,
+      '_baselinedAtEntry T-024 — 2026-08-19 — zayd is dated 2026-08-19, ' +
+        'but _baselinedAt says 2026-08-18',
     ]);
+
+    // The legacy form, on a fixture: §7 holds no `### N | …` entry any more, so a real-file
+    // assertion here would be measuring an empty set.
+    const legacy = parseAbstracts(
+      [
+        '## §7 — Entry abstracts (newest 10)',
+        '',
+        '### 88 | 2026-01-02 | Zayd | the newer legacy entry',
+        '',
+        '- **RISK:** additive',
+        '',
+        '### 87 | 2026-01-01 | Zayd | the older legacy entry',
+        '',
+        '- **RISK:** additive',
+        '',
+        '## §8 — Generated',
+      ].join('\n'),
+    );
+    expect(
+      baselineEntryIssues({ _baselinedAtEntry: 88, _baselinedAt: '2026-01-01' }, legacy),
+    ).toEqual(['_baselinedAtEntry 88 is dated 2026-01-02 in §7, but _baselinedAt says 2026-01-01']);
+
+    // A legacy number that has not happened yet — the shape a mistyped constant takes.
+    expect(
+      baselineEntryIssues({ _baselinedAtEntry: 89, _baselinedAt: '2026-01-02' }, legacy),
+    ).toEqual(['_baselinedAtEntry is 89, but the newest entry that exists is 88']);
 
     // And the historical number stays pinned.
     expect(
       baselineEntryIssues({ _baselinedAtEntry: 72, _baselinedAt: '2026-08-03' }, abstracts).join(),
     ).toContain('72');
+  });
+});
+
+/* ================================================================================================
+ * T-024 — `_baselinedAtEntry` IS AN IDENTITY, NOT A §7 POSITION.
+ *
+ * ⚠⚠ THE DEFECT THIS BLOCK PINS, AND IT COST THE RECORD RATHER THAN A RE-RUN. `parseAbstracts`
+ * mints `n = 1000 - i` over §7's array order, so `1000` names "whatever is newest" — and a baseline
+ * that recorded it re-pointed at a different entry the moment a turn prepended its abstract. Every
+ * such turn then failed the gate having moved no declaration. Its two escape hatches were falsifying
+ * the abstract's date and `pnpm state --rebaseline`, which records nothing and is owner-gated after
+ * the freeze; the turn that hit it second took neither and archived its abstract out of §7 instead.
+ * ============================================================================================= */
+
+describe('the baseline names an entry, not a position (T-024)', () => {
+  /** §7 as it looks on the turn that trips this: an abstract appended a day after the baseline. */
+  const crossDay = parseAbstracts(
+    [
+      '## §7 — Entry abstracts (newest 10)',
+      '',
+      '### T-024 — the turn appending today’s abstract — 2026-08-19 — seat: zayd',
+      '',
+      '- **RISK:** additive',
+      '',
+      '### STEWARD-unblock-pc-and-chrome-boot — the turn that re-baselined — 2026-08-18 — seat: brahim',
+      '',
+      '- **RISK:** additive (re-baselined)',
+      '',
+      '## §8 — Generated',
+    ].join('\n'),
+  );
+  // ⚠ A fixture that failed to parse must FAIL, never resolve to `undefined` and assert nothing —
+  // the same rule `newestAbstract` applies to an empty §7.
+  const authorising = crossDay[1];
+  if (authorising === undefined) throw new Error('the T-024 fixture did not parse two abstracts');
+
+  it('⚠⚠ a §7 append on a later day leaves a sound baseline GREEN — the whole of T-024', () => {
+    // The premise, measured rather than assumed: the newest abstract really does postdate the
+    // baseline, which is the input the positional key could not survive.
+    expect(newestAbstract(crossDay).date).toBe('2026-08-19');
+    expect(authorising.date).toBe('2026-08-18');
+
+    expect(
+      baselineEntryIssues(
+        { _baselinedAtEntry: abstractKey(authorising), _baselinedAt: authorising.date },
+        crossDay,
+      ),
+    ).toEqual([]);
+  });
+
+  it('⚠ the positional key is REFUSED, on the same input that used to make it lie', () => {
+    // `1000` resolves to the 2026-08-19 abstract here, not to the 2026-08-18 one that authorised the
+    // baseline — which is exactly how a turn that moved no declaration went red.
+    expect(newestAbstract(crossDay).n).toBe(SYNTHETIC_ENTRY_BASE);
+    expect(
+      baselineEntryIssues(
+        { _baselinedAtEntry: SYNTHETIC_ENTRY_BASE, _baselinedAt: authorising.date },
+        crossDay,
+      ),
+    ).toEqual([
+      `_baselinedAtEntry is ${SYNTHETIC_ENTRY_BASE}, ` +
+        'which is a §7 POSITION and not an entry identity (T-024)',
+    ]);
+  });
+
+  it('the committed baseline records a key, and it resolves to a real §7 abstract', () => {
+    // ⚠ Weak-green guard: the test above passes on a fixture the repo never sees. This one measures
+    // the file that actually gates every PR.
+    expect(typeof snapshot._baselinedAtEntry, 'the baseline still records a position').toBe(
+      'string',
+    );
+    const named = parseAbstracts(readCurrentState(ROOT)).find(
+      (a) => a.key === snapshot._baselinedAtEntry,
+    );
+    expect(named, `${String(snapshot._baselinedAtEntry)} names no abstract in §7`).toBeDefined();
+    expect(named?.date).toBe(snapshot._baselinedAt);
+  });
+
+  it('⚠ the gate is repaired, not removed — a key whose date is not the baseline’s still fails', () => {
+    const lying = `${authorising.id} — 2026-01-01 — ${authorising.seat}`;
+    expect(
+      baselineEntryIssues({ _baselinedAtEntry: lying, _baselinedAt: authorising.date }, crossDay),
+    ).toHaveLength(1);
+  });
+
+  it('refuses anything that is neither a legacy number nor a key', () => {
+    for (const bad of [null, 'T-024', '', 0, -3, { id: 'T-024' }]) {
+      expect(
+        baselineEntryIssues(
+          { _baselinedAtEntry: bad as never, _baselinedAt: '2026-08-18' },
+          crossDay,
+        ).join(),
+        `${JSON.stringify(bad)} was accepted as an entry identity`,
+      ).toMatch(/not an entry identity/);
+    }
   });
 });

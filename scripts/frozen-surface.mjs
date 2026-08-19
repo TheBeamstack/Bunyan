@@ -27,6 +27,7 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
+import { ENTRY_KEY, isSyntheticEntryNumber } from './docs-state.mjs';
 
 /** The files whose exported declarations freeze at P5. Adding a frozen shape? Add its file. */
 export const WATCHED = [
@@ -181,7 +182,7 @@ export function buildSurface(root) {
  * remember to retype* — with not even a self-assertion, and on the audit trail back to the ruling
  * that permits touching the freeze.
  *
- * ⇒ The entry number is now PASSED IN, from the `current_state.md` §7 parse the same run performs.
+ * ⇒ The entry identity is now PASSED IN, from the `current_state.md` §7 parse the same run performs.
  * `...prev` survives only to keep fields this function does not own (`_README`), and every field this
  * function DOES own is written on every rebaseline, so none of them can be stale by omission.
  *
@@ -224,15 +225,24 @@ export function baselineSnapshot(prev, surface, { entry, at }) {
  * changed nothing, for obeying the freeze. Entry 83's own comment names the consequence: *"a gate
  * that cries wolf is edited to shut up."* This is that comment, applied to itself.
  *
+ * ⚠⚠ AND `_baselinedAtEntry` IS AN IDENTITY, NEVER A POSITION (T-024). It used to hold `.n`, which
+ * for a five-seat entry is `1000 - i` over §7's array order — so it named "whatever is newest",
+ * re-resolved to a different entry every time one was prepended, and the cross-field check below
+ * then compared the baseline's date against an entry it never authorised. Any turn appending a §7
+ * abstract on a later day went RED having moved no declaration; two turns hit it, and the second
+ * lost its abstract to `docs/history.md` rather than falsify a date or re-baseline. A new-scheme
+ * baseline now records `abstractKey` — `<id> — <date> — <seat>` — and a synthetic number is refused
+ * outright, so the position cannot come back through the file it was written into.
+ *
  * What survives rotation, and what each line is for:
- *   - the entry number is a POSITIVE INTEGER and no GREATER than the newest entry — it cannot name
- *     an entry that has not happened, which is the shape a mistyped constant takes;
+ *   - the entry is either an author-written legacy NUMBER or a new-scheme KEY, and never a minted
+ *     position — which is the shape T-024 named;
  *   - `_baselinedAt` is a real ISO date, never a placeholder;
- *   - ⚠ **and the cross-field check, which is the one that would have caught Q15 itself**: while
- *     the named entry is still resolvable in §7, its DATE must agree. Q15's defect was `72` sitting
- *     beside `2026-08-03` — Entry 77's date — and 72 was in §7 at the time. It needs no
- *     hand-maintained constant, and it SKIPS once the entry rotates, which is why it never cries
- *     wolf.
+ *   - ⚠ **and the cross-field check, which is the one that would have caught Q15 itself**: the
+ *     entry's own date must agree with `_baselinedAt`. Q15's defect was `72` sitting beside
+ *     `2026-08-03` — Entry 77's date. A key carries its date, so the pair is checkable forever; a
+ *     legacy number is resolved in §7 while it is still there and SKIPS once it rotates, which is
+ *     why that half never cries wolf.
  *
  * ⚠ The one thing this deliberately does NOT do is bound the baseline's AGE. An old baseline is the
  * correct state of a repo that has not touched a frozen shape lately — `diffSurface` is what says
@@ -244,8 +254,14 @@ export function baselineEntryIssues(snapshot, abstracts) {
   const entry = snapshot._baselinedAtEntry;
   const at = snapshot._baselinedAt;
 
-  if (!Number.isInteger(entry) || entry < 1) {
-    issues.push(`_baselinedAtEntry is ${JSON.stringify(entry)}, which is not an entry number`);
+  const keyed = typeof entry === 'string' && ENTRY_KEY.test(entry);
+  const numbered = Number.isInteger(entry) && entry >= 1 && !isSyntheticEntryNumber(entry);
+  if (!keyed && !numbered) {
+    issues.push(
+      isSyntheticEntryNumber(entry)
+        ? `_baselinedAtEntry is ${entry}, which is a §7 POSITION and not an entry identity (T-024)`
+        : `_baselinedAtEntry is ${JSON.stringify(entry)}, which is not an entry identity`,
+    );
   }
   if (typeof at !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(at)) {
     issues.push(`_baselinedAt is ${JSON.stringify(at)}, which is not an ISO date`);
@@ -256,17 +272,36 @@ export function baselineEntryIssues(snapshot, abstracts) {
     issues.push('_baselinedAtEntry is 72 — the number the Q15 defect left behind');
   }
 
-  const numbers = abstracts.map((a) => a.n);
-  if (numbers.length === 0) {
+  if (abstracts.length === 0) {
     issues.push('§7 parsed to zero abstracts — the parser has failed, not the baseline');
     return issues;
   }
-  const newest = Math.max(...numbers);
-  if (Number.isInteger(entry) && entry > newest) {
-    issues.push(`_baselinedAtEntry is ${entry}, but the newest entry that exists is ${newest}`);
+
+  if (keyed) {
+    // ⚠⚠ THE CROSS-FIELD CHECK, ON AN IDENTITY THAT CARRIES ITS OWN DATE — SO IT NEEDS NO LOOKUP AT
+    // ALL. Q15's shape (a baseline whose recorded date is not the authorising entry's) still fails:
+    // the key names the date the entry was written, `_baselinedAt` claims one, and a hand-edit to
+    // either half separates them. Because the pair is self-contained it cannot rot with §7's
+    // rotation and it cannot move with §7's order — which is the whole of T-024.
+    const keyDate = ENTRY_KEY.exec(entry)[2];
+    if (keyDate !== at) {
+      issues.push(`_baselinedAtEntry ${entry} is dated ${keyDate}, but _baselinedAt says ${at}`);
+    }
+    return issues;
   }
 
-  const named = abstracts.find((a) => a.n === entry);
+  // ── the legacy numbered form: baselines written before the five-seat scheme ──────────────────
+  // Only entries 1–90 carry an author-written number (D82), so nothing new is ever validated here.
+  // The bound skips when §7 holds no legacy entry, for the same reason the date check skips a
+  // rotated-out one: there is nothing left in the window to measure against.
+  const legacy = abstracts.filter((a) => a.scheme === 'legacy');
+  if (legacy.length > 0) {
+    const newest = Math.max(...legacy.map((a) => a.n));
+    if (Number.isInteger(entry) && entry > newest) {
+      issues.push(`_baselinedAtEntry is ${entry}, but the newest entry that exists is ${newest}`);
+    }
+  }
+  const named = legacy.find((a) => a.n === entry);
   if (named !== undefined && named.date !== at) {
     issues.push(
       `_baselinedAtEntry ${entry} is dated ${named.date} in §7, but _baselinedAt says ${at}`,

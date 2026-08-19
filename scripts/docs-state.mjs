@@ -158,11 +158,53 @@ export function parseAbstracts(src) {
   // is not tuned to "usually" clear the legacy numbers — §7 holds at most `BUDGET.maxAbstracts` (10)
   // entries at once, so no legacy number can ever coexist with a new-scheme one within a few hundred
   // of it, let alone a thousand.
+  //
+  // ⚠⚠ `.n` IS A SORT KEY AND NOTHING ELSE — IT IS NOT AN IDENTITY, AND STORING IT AS ONE COST TWO
+  // TURNS THEIR §7 ABSTRACT (T-024). `1000` means "whatever is newest right now", so a durable
+  // reference to `1000` re-resolves to a different entry the moment one is prepended. Anything that
+  // has to name an entry ACROSS a commit takes `abstractKey` below.
   const newOnes = out.filter((a) => a.n === null);
   newOnes.forEach((a, i) => {
-    a.n = 1000 - i;
+    a.n = SYNTHETIC_ENTRY_BASE - i;
   });
+  for (const a of out) a.key = abstractKey(a);
   return out;
+}
+
+/** The base of the synthetic range `parseAbstracts` mints from §7 POSITION. */
+export const SYNTHETIC_ENTRY_BASE = 1000;
+
+/**
+ * True when a number is one this parser minted from position rather than one an author wrote.
+ * The mint is `SYNTHETIC_ENTRY_BASE - i` over a §7 capped at `BUDGET.maxAbstracts`, so the whole
+ * synthetic population is `(BASE - maxAbstracts, BASE]` and no legacy entry number comes near it.
+ */
+export function isSyntheticEntryNumber(n) {
+  return (
+    Number.isInteger(n) &&
+    n > SYNTHETIC_ENTRY_BASE - BUDGET.maxAbstracts &&
+    n <= SYNTHETIC_ENTRY_BASE
+  );
+}
+
+/** The shape `abstractKey` writes for a new-scheme entry: the heading's identity fields, minus its title. */
+export const ENTRY_KEY = /^(T-\d{3}|STEWARD-[a-z0-9-]+) — (\d{4}-\d{2}-\d{2}) — ([a-z]+)$/;
+
+/**
+ * THE STABLE IDENTITY OF AN ABSTRACT — what anything durable records instead of `.n` (T-024).
+ *
+ * A legacy entry already has one: the number its author wrote. A new-scheme entry does not, so its
+ * key is the three identity fields of its own heading — id, date, seat — which are authored, survive
+ * rotation out of §7, and are greppable in the file. The title is left out because it is prose an
+ * author may correct; these three are not.
+ *
+ * ⚠ MEASURED: the triple is not unique across §7 today. D88's two review steps are separate turns by
+ * the SAME seat on the same task, and T-016's two ran on one day (`2026-08-17`), so they share a key.
+ * A reference resolves to a turn-pair rather than a turn in that one case; the date, which is the
+ * half `baselineEntryIssues` checks, is identical either way.
+ */
+export function abstractKey(a) {
+  return a.scheme === 'legacy' ? a.n : `${a.id} — ${a.date} — ${a.seat}`;
 }
 
 /**

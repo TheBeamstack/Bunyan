@@ -688,6 +688,22 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-19 — an abstract's stable key `<id> — <date> — <seat>` is not unique across §7.**
+  `T-016 — 2026-08-17 — hmdnah` names **two** abstracts: D88's two review steps are separate turns by
+  the same seat on the same task, and T-016's two ran on one calendar day. T-024's fix does not depend
+  on uniqueness — the date is the half `baselineEntryIssues` checks and it is identical either way —
+  but a reference resolves to a turn-pair rather than a turn in that case. No uniqueness gate was
+  added, because one would be red on a merged abstract and `AGENTS.md` invariant 10 forbids rewriting
+  it. Fix shape, if it is ever worth one: a step marker in the heading, which is a §7 schema change.
+  Found by `zayd` building T-024. Recorded, not claimed.
+- **2026-08-19 — `reserved-classes.mjs` classes ANY diff to `tests/frozen-surface.snapshot.json` as
+  `freeze`, including a metadata-only one.** T-024's own PR moves `_baselinedAtEntry` and **0 of 214**
+  declarations, so `state.mjs` returns `RISK: additive` while CI labels it `needs-operator/freeze` and
+  the owner merges a PR that touches no contract. This is the third occurrence of the same cry-wolf
+  shape (PR #36, `--review`'s merge commands, and now this), and it is the one the `_README`'s own
+  policy makes load-bearing after the freeze. Fix shape: class `freeze` on a `surface` diff, and
+  report an audit-field-only edit as a separate, non-gating class. Found by `zayd` building T-024.
+  Recorded, not claimed.
 - **2026-08-19 — `agent-finish.mjs --review --step 2` accepts step 1's abstract and body as step 2's
   handoff artifacts, and prints the merge commands.** Its gate checks only that _some_ §7 abstract names
   the task and the seat, and a D88 step 1 has already written one — so a step 2 that wrote nothing of its

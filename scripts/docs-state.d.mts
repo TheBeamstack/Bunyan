@@ -34,6 +34,12 @@ export interface EntryAbstract {
   n: number;
   /** `'legacy' | 'T'` — which heading form produced this entry. */
   scheme: 'legacy' | 'T';
+  /**
+   * THE STABLE IDENTITY — what anything durable records instead of `.n` (T-024). A legacy entry's is
+   * the number its author wrote; a new-scheme entry's is `"<id> — <date> — <seat>"`, the three
+   * authored fields of its own heading. Unlike `.n` it does not move when an entry is prepended.
+   */
+  key: number | string;
   date: string;
   /** Alias of `seat`, kept for every pre-existing call site that reads `.agent`. */
   agent: string;
@@ -57,6 +63,21 @@ export interface EntryAbstract {
   fieldsFull: Record<string, string>;
   raw: string;
 }
+
+/** The base of the synthetic range `parseAbstracts` mints from §7 position. */
+export declare const SYNTHETIC_ENTRY_BASE: number;
+/** True when a number is one minted from §7 position rather than one an author wrote. */
+export declare function isSyntheticEntryNumber(n: unknown): boolean;
+/** The shape `abstractKey` writes for a new-scheme entry: `"<id> — <date> — <seat>"`. */
+export declare const ENTRY_KEY: RegExp;
+/** The stable identity of an abstract — see `EntryAbstract.key`. */
+export declare function abstractKey(a: {
+  scheme: 'legacy' | 'T';
+  n: number;
+  id: string;
+  date: string;
+  seat: string;
+}): number | string;
 
 export declare function readCurrentState(root: string): string;
 export declare function section7(src: string): string;

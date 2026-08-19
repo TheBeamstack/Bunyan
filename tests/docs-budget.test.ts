@@ -114,23 +114,25 @@ describe('every §7 abstract is well formed', () => {
     // inside 12–22 KB of prose where an agent could pass straight over them.
     for (const a of abstracts) {
       for (const f of ABSTRACT_FIELDS) {
-        expect(Object.keys(a.fields), `Entry ${a.n} is missing the ${f}: field`).toContain(f);
-        expect(a.fields[f]?.length ?? 0, `Entry ${a.n}'s ${f}: field is empty`).toBeGreaterThan(0);
+        expect(Object.keys(a.fields), `Entry ${a.id} is missing the ${f}: field`).toContain(f);
+        expect(a.fields[f]?.length ?? 0, `Entry ${a.id}'s ${f}: field is empty`).toBeGreaterThan(0);
       }
     }
   });
 
   it('declares a RISK the freeze gate understands', () => {
     for (const a of abstracts) {
-      expect(a.fields.RISK, `Entry ${a.n}`).toMatch(/^(additive|contract-touching)/);
+      expect(a.fields.RISK, `Entry ${a.id}`).toMatch(/^(additive|contract-touching)/);
     }
   });
 
   it('points at a body that exists, and every body has an abstract or is archived', () => {
     for (const a of abstracts) {
       const p = (a.fields.FULL ?? '').replace(/`/g, '').trim();
-      expect(p, `Entry ${a.n}'s FULL: must name a handoff/ path`).toMatch(/^handoff\/\w+\/.+\.md$/);
-      expect(existsSync(join(ROOT, p)), `Entry ${a.n}: ${p} does not exist`).toBe(true);
+      expect(p, `Entry ${a.id}'s FULL: must name a handoff/ path`).toMatch(
+        /^handoff\/\w+\/.+\.md$/,
+      );
+      expect(existsSync(join(ROOT, p)), `Entry ${a.id}: ${p} does not exist`).toBe(true);
     }
     // The converse is deliberately weaker: a body may outlive its abstract (that is what rotation
     // does), but it must then be indexed in docs/history.md so nothing becomes unreachable.
@@ -252,9 +254,9 @@ describe('every §7 abstract is well formed', () => {
       if (/pre-dates the PR flow/i.test(review)) continue;
       expect(
         /AWAITING REVIEW/i.test(review),
-        `Entry ${a.n} still says AWAITING REVIEW, but entry ${newest.n} exists.\n` +
-          `Either step 3 was skipped, or entry ${a.n} was merged by its own author.\n` +
-          `The reviewing session must rewrite entry ${a.n}'s REVIEW: line to record who reviewed ` +
+        `Entry ${a.id} still says AWAITING REVIEW, but entry ${newest.id} exists.\n` +
+          `Either step 3 was skipped, or entry ${a.id} was merged by its own author.\n` +
+          `The reviewing session must rewrite entry ${a.id}'s REVIEW: line to record who reviewed ` +
           `it and what they found.\n` +
           `  REVIEW: ${review}`,
       ).toBe(false);
@@ -413,7 +415,7 @@ describe('the doc parser reads the file as it is CHECKED OUT, not as it was comm
     );
     for (const a of parsed) {
       for (const [name, value] of Object.entries(a.fieldsFull)) {
-        expect(value, `entry ${a.n}'s ${name} kept a \\r`).not.toMatch(/\r/);
+        expect(value, `entry ${a.id}'s ${name} kept a \\r`).not.toMatch(/\r/);
       }
     }
   });

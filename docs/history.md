@@ -1529,6 +1529,67 @@ same as `current_state.md` §7.
 - **REVIEW:** step 2 (adversarial, D88) complete — **NOT approved**, two defects proven in the new
   dependency edge; returned to `zayd` on the existing claim. See the `hmdnah` step-2 entry above.
 
+### T-016 — review (step 2, adversarial): the field is correct and its wiring is untested — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — the two findings below are comment-level and unprovable by test,
+  and step 2 is the step nobody reviews. Merged PR #33 on `narutousomaki741`.
+- **VERIFIED:** Item 1 re-executed independently of step 1: `resolveBuilder` → `return seat;` leaves
+  **1 of 50 RED**, `expected 'hmdnah' to be 'zayd'`; restored, whole `tests/protocol/` tree
+  **113/113 green**. Item 2: every baton site enumerated (two writers, two readers, one fixture) —
+  no consumer dirty. Item 3: `liveClaims` is what quantifies over every baton, feeding two claim
+  refusals, and both correctly still key on `seat` — a collision gate asks who holds the branch, not
+  who built it. Item 6 by mutation: deleting the `builder` key from `agent-finish.mjs`'s `claim`
+  object restores the pre-T-016 defect at the call site and leaves **113/113 green**. Item 7
+  re-confirmed on the tip: `review/step-1` only, no `needs-operator/*`, both CI jobs pass.
+- **FOUND:** no defect. (1) **The wiring is uncovered** — the three `resolveBuilder` cases assert a
+  pure function, nothing asserts it is called, so `done-when:` bullets 2 and 3 rest on re-execution;
+  it is proven instead on this branch's own history, where `153c957` (plain finish) wrote
+  `builder: zayd` and `c9ac027` (`--review` finish) carried it forward under `seat: hmdnah` —
+  `zayd`'s `OWES:` discharged. (2) **One rationale, four copies, all four now stale** — the reason
+  `--continue` derives the admitted seat from `machine:` is written out at `agent-start.mjs` `~48`
+  and `~499`, `seats.builderFor` (`seats.mjs` `~459`) and `tests/protocol/seats.test.ts` `~306`, and
+  each says a gate on the baton "would admit the reviewer", true of `seat` and false of `builder`;
+  step 1 flagged the first two. Measured scope limit, quantified: **1 of 8** live batons carries a
+  `builder` row, so the next `--review` finish on the other seven stamps `builder: hmdnah` by the
+  documented fallback — a false positive where there was a silence.
+- **OWES:** `brahim` — two follow-ups, neither in this task's `done-when:`: an end-to-end test of
+  `agent-finish.mjs`'s baton write (step 1 measured that one `package.json` with a no-op `verify`
+  crosses `agent-finish.test.ts`'s stated fixture boundary, so it is closable, but it is a change to
+  `zayd`'s harness with a 113-test blast radius); and the four stale rationale copies, which want one
+  copy and three pointers per `AGENTS.md §7.2` rather than a fourth rewrite.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-016-review-step2.md`
+- **REVIEW:** n/a — this IS step 2 of the review.
+
+### T-016 — review (step 1, mechanical): the revert holds, and the fixture the `done-when:` names is reachable — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a step-1 review that edits the branch changes the thing step 2
+  reviews. Findings posted as a PR comment on #33.
+- **VERIFIED:** Item 1, twice. **Unit:** `resolveBuilder` → `return seat;`, both protocol suites
+  re-run — **1 of 50 RED**, `expected 'hmdnah' to be 'zayd'` on "a review finish carries the PRIOR
+  builder forward"; restored **50/50 green**. **Fixture, end to end** — the reproduction `done-when:`
+  bullet 4 names: a real `--review` finish driven through to the baton write on a `makeFixture` repo
+  (one added `package.json` with a no-op `verify` script clears step 1) writes **`builder: hmdnah`**
+  with the fix reverted and **`builder: zayd`** with it in place, `seat: hmdnah` either way. Numbers
+  re-measured, all matching: **95 files/907 tests**, `docs:check` **8 files/151 tests**,
+  `freeze-boundary` **12/12**.
+- **FOUND:** nothing that blocks. Three claims that do not hold as written (item 4): (1)
+  `resolveBuilder`'s doc-comment and handoff §2/§5 say the baton write is "past what this repo's
+  fixtures can reach" — it is reachable, so no committed test covers `agent-finish.mjs`'s baton write
+  and bullet 4 rests on this review's re-execution alone; (2) `scripts/agent-start.mjs`'s file header
+  and its `--continue` gate comment still justify deriving the builder by saying a `--review` finish
+  rewrites the baton to name the reviewer — the condition this PR removes; (3) handoff §2's "renders
+  identically to before" — a pre-T-016 baton gains a `builder` row, which the new test asserts.
+  Measured scope limit: on a baton written before this merges there is no `builder` row, so the
+  fallback names the reviewer — the field is trustworthy only on branches claimed after the merge.
+  Item 7: no `needs-operator/*` label **and** the labeller ran (both CI jobs SUCCESS on the tip).
+- **OWES:** `hmdnah` (a later session) — D88 step 2 on PR #33: items 2, 3, 6, reconciled against this
+  report, and re-confirming CI and the `needs-operator/*` check before merging.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-016-review-step1.md`
+- **REVIEW:** n/a — this IS step 1 of the review; step 2 (`hmdnah`, a separate session) approves and
+  merges.
+
 ### T-016 — `§0b`'s baton carries the builder separately from the current holder — 2026-08-16 — seat: zayd
 
 - **CHANGED:** `scripts/agent-start.mjs` (`renderBaton`/the initial claim write both gain a `builder`
