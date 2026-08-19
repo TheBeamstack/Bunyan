@@ -122,7 +122,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-018 | done    | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
-| T-021 | blocked | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
+| T-021 | ready   | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
 | T-022 | ready   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | blocked | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-024 | ready   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
@@ -685,6 +685,23 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
+
+- **2026-08-19 — `agent-finish.mjs --review --step 2` accepts step 1's abstract and body as step 2's
+  handoff artifacts, and prints the merge commands.** Its gate checks only that _some_ §7 abstract names
+  the task and the seat, and a D88 step 1 has already written one — so a step 2 that wrote nothing of its
+  own passes. Every prior step 2 (T-011, T-012, T-013, T-014, T-016) wrote its own by hand, so the
+  convention has held by habit rather than by gate. Found by `hmdnah` finishing step 2 of PR #37. Fix
+  shape: key the gate on the step, so step 2 requires an abstract that is not step 1's. Recorded, not
+  claimed.
+- **2026-08-19 — T-024 has now cost a real turn its §7 abstract.** Step 2 of PR #37 could not append an
+  abstract dated `2026-08-19` at all: `_baselinedAtEntry` is the positional key `1000`, so it resolves to
+  whatever is newest and its date disagreed with `_baselinedAt: 2026-08-18`, reddening
+  `tests/freeze-boundary.test.ts` having moved no declaration. The only alternatives were falsifying the
+  date or re-baselining the frozen snapshot, which is owner-gated — so the abstract was archived straight
+  into `docs/history.md` §E and **§7 carries none for that turn**. ⚠ A reader looking in §7 for T-020's
+  step-2 review will not find it; the body is `handoff/hmdnah/2026-08-19-T-020-review-step2.md`. This is
+  the second measured instance after `STEWARD-unblock-pc-and-chrome-boot`, and the first where the gate
+  cost the record rather than a re-baseline. Recorded against **T-024**, already `ready`.
 
 - **2026-08-18 — `agent-finish.mjs --review` prints `gh pr merge` on an owner-gated PR, because it reads
   `pnpm state`'s risk verdict and not `reserved-classes.mjs`'s class.** The two disagree by construction
