@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-024` |
 | branch | `task/T-024-baselinedatentry-names-a-position-so-a-c` |
@@ -947,27 +947,22 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-024` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-024 (hmdnah, 2026-08-19)** |
-| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `e83d041` · clean |
+| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `645c4ce` · clean |
 | open PRs | #38 task/T-024-baselinedatentry-names-a-position-so-a-c |
 | suite | **946 green** · 97 files · 289 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 18 files changed, 2494 insertions(+), 431 deletions(-) (18 files) |
-| docs budget | current_state 82.6/96.0 KB · §7 29.9/32.0 KB · abstracts 5/10 · bodies 78 |
+| diff vs origin/main | 18 files changed, 2529 insertions(+), 431 deletions(-) (18 files) |
+| docs budget | current_state 82.9/96.0 KB · §7 30.2/32.0 KB · abstracts 5/10 · bodies 78 |
 
-_Generated 2026-08-19 by `pnpm state`._
+_Generated 2026-08-20 by `pnpm state`._
 
 <!-- END GENERATED -->
