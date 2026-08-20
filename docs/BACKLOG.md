@@ -125,7 +125,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
 | T-021 | ready   | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
-| T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
+| T-024 | review  | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-022 | ready   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | blocked | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
@@ -731,7 +731,10 @@ weak-green clean — 2026-08-16 — seat: hmdnah` TWICE** (lines 2231 and 2300),
   — which a human can decline — and not the row flip, which nobody sees. Fix shape: `--review` resolves the
   reserved classes it already has a module for, and keeps the row `review` whenever any `needs-operator/*`
   applies. Row set back to `review` by hand this turn. Found by `hmdnah`, step 2 of PR #38. Recorded, not
-  claimed.
+  claimed. ⚠ **Fired a second time on 2026-08-20**, on the step-2 re-run that approved the same PR — it
+  printed `backlog status → done (T-024 merges immediately after this turn)` and `gh pr merge 38 --squash`
+  against a still-unmerged `needs-operator/freeze` PR. Row set back to `review` by hand again; the flip is
+  reproducible, not a one-off.
 - **2026-08-19 — the stable key `<id> — <date> — <seat>` is not the identity `agent-finish.mjs` uses, and
   T-024 did not sweep it.** T-024 adds `EntryAbstract.key` for anything that names an entry, then leaves
   `agent-finish.mjs:280`'s handoff gate on `find(a => a.id === task && a.seat === seat)` — a subset of the

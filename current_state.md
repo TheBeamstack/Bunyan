@@ -636,6 +636,9 @@ is maintenance and does NOT get an entry of its own.**
   red, so `REVIEW.md`'s table makes them findings rather than a third return.
   `handoff/hmdnah/2026-08-19-T-024-review-step2b-rerun.md` NEW; this abstract; T-020's two abstracts rotated
   to `docs/history.md` §E as a **move**, §7 having stood at 32075 of 32768 bytes with 6 of 10 abstracts.
+  ⚠ **`docs/BACKLOG.md`'s T-024 row set back to `review` by hand** — `agent-finish --review --step 2`
+  stamped it `done` again and printed `gh pr merge 38 --squash`, so **G5 is reproducible**; the existing
+  `## Discovered` row carries the second instance.
   ⚠ **PR #38 APPROVED and NOT MERGED** — `needs-operator/freeze` routes the merge to the owner
   (`AGENTS.md §5.3`), which composes with `risk: high` rather than being replaced by it.
 - **VERIFIED:** **Item 1, twice.** (A) the record-resolution removed from `baselineEntryIssues`:
@@ -953,15 +956,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-024 (hmdnah, 2026-08-19)** |
-| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `645c4ce` · clean |
+| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `393eba2` · dirty |
 | open PRs | #38 task/T-024-baselinedatentry-names-a-position-so-a-c |
 | suite | **946 green** · 97 files · 289 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 18 files changed, 2529 insertions(+), 431 deletions(-) (18 files) |
-| docs budget | current_state 82.9/96.0 KB · §7 30.2/32.0 KB · abstracts 5/10 · bodies 78 |
+| diff vs origin/main | 18 files changed, 2529 insertions(+), 430 deletions(-) (18 files) |
+| docs budget | current_state 82.9/96.0 KB · §7 30.4/32.0 KB · abstracts 5/10 · bodies 78 |
 
 _Generated 2026-08-20 by `pnpm state`._
 
