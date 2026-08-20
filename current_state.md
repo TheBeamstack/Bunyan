@@ -956,7 +956,7 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-024 (hmdnah, 2026-08-19)** |
-| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `393eba2` · dirty |
+| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `d562c06` · clean |
 | open PRs | #38 task/T-024-baselinedatentry-names-a-position-so-a-c |
 | suite | **946 green** · 97 files · 289 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
