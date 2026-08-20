@@ -217,3 +217,35 @@ Four findings, none blocking and none red:
 - **`brahim`** — H1 through H4 as `## Discovered` rows; **Q22** still unruled, and this turn ran the
   conservative reading of it rather than inventing one; **G1**, **G3** and **G5** unchanged.
 - Nothing owed to a `pc` seat — every measurement here is headless and was executed here.
+
+⚠ The 2026-08-17 `## Discovered` row on `agent-finish.mjs` resolving a turn's handoff body by
+alphabetical order fired here in a new shape: `…-review-step2-rerun.md` sorts **before**
+`…-review-step2.md` under `Array.sort` (`-` is 0x2D, `.` is 0x2E), so the script demanded this turn's
+`FULL:` point at the previous turn's body. Renamed to `…-review-step2b-rerun.md` to sort last. The
+row already exists; this is a second measured instance, not a new finding.
+
+## 11. Item 1 re-executed on 2026-08-20, before the verdict was signed
+
+This turn was interrupted between its abstract and its push, and the session that closed it re-ran both
+reverts rather than inherit them. Same seat, same branch, same working tree; `pnpm docs:check` throughout,
+so the totals below carry `tests/protocol`'s 121 and the per-file counts are the comparable figures.
+
+| revert | result |
+| --- | --- |
+| **(A)** the record-resolution removed from `baselineEntryIssues` | `freeze-boundary` **19 tests, 4 failed** — the same four titles §1 records, each missing exactly the `names no abstract in the record` issue; restored ⇒ **163 passed (163)** |
+| **(B)** `scripts/{docs-state,frozen-surface}.{mjs,d.mts}` + both test files from `317c756`, `current_state.md`/`docs/history.md` at head | `freeze-boundary` **17 tests, 1 failed** — `STEWARD-unblock-pc-and-chrome-boot — 2026-08-18 — brahim names no abstract in §7: expected undefined to be defined`; restored ⇒ **163 passed (163)** |
+
+Re-derived on the same tree: the baseline key **resolves in the record and not in §7** (§7 5 abstracts /
+31154 B, record 58 headings), legacy headings **0 in §7 against 13 in the record** (67, 76, 77, 79–88) ⇒
+**H1 stands**, `key === \`${id} — ${date} — ${seat}\`` for all **45** new-scheme abstracts ⇒ **H2 stands**,
+and the rotation was a **move** — `T-020` appears once, and is absent from the six colliding keys.
+
+⚠ **H3's own number has rotted once more, which is H3's point:** the collision measures **6 of 51 distinct
+across 58** headings here against the body's **57**, the totals differing by when the count was taken.
+The colliding set is unchanged — `T-024`/`hmdnah` (×3), `T-024`/`zayd`, `T-011`/`hmdnah`, `T-011`/`zayd`,
+`T-016`/`hmdnah`, `T-015`/`hmdnah` — so the finding is confirmed rather than altered, and the fix shape
+stays "cite the test, not a number".
+
+**Item 7 re-confirmed on `a555a2f` immediately before signing:** `typecheck · lint · geometry harness`
+SUCCESS 20:03:58→20:13:38Z and `PR shape · reserved classes` SUCCESS 20:13:40→20:13:52Z, labels
+`needs-operator/freeze` + `review/step-1`. The verdict below is signed on measurements executed here.

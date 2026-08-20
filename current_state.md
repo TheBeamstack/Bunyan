@@ -634,7 +634,7 @@ is maintenance and does NOT get an entry of its own.**
 
 - **CHANGED:** no code byte — the four findings below are documentation and an unreachable boundary, none
   red, so `REVIEW.md`'s table makes them findings rather than a third return.
-  `handoff/hmdnah/2026-08-19-T-024-review-step2-rerun.md` NEW; this abstract; T-020's two abstracts rotated
+  `handoff/hmdnah/2026-08-19-T-024-review-step2b-rerun.md` NEW; this abstract; T-020's two abstracts rotated
   to `docs/history.md` §E as a **move**, §7 having stood at 32075 of 32768 bytes with 6 of 10 abstracts.
   ⚠ **PR #38 APPROVED and NOT MERGED** — `needs-operator/freeze` routes the merge to the owner
   (`AGENTS.md §5.3`), which composes with `risk: high` rather than being replaced by it.
@@ -687,10 +687,13 @@ is maintenance and does NOT get an entry of its own.**
   here.
 - **RISK:** additive — a review turn moved no declaration; `pnpm state` re-derives `RISK: additive` at
   214 = 214.
-- **FULL:** `handoff/hmdnah/2026-08-19-T-024-review-step2-rerun.md`
+- **FULL:** `handoff/hmdnah/2026-08-19-T-024-review-step2b-rerun.md`
 - **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), D88 step 2 re-run against the new head.
   ✅ **APPROVED, NOT MERGED**: F3 is closed on the state the branch is already in, both reverts reproduce
   here, and the four findings are documentation or unreachable. The owner merges (`AGENTS.md §5.3`).
+  ⚠ **The turn was interrupted between this abstract and its push, and item 1 was RE-EXECUTED on
+  2026-08-20 before the verdict was signed** — (A) 4 failed, same four titles; (B) `1 failed`,
+  `… names no abstract in §7`; both restored to `docs:check` **163**. Body §11.
 
 ### T-024 — the defect return: the gate resolves its key in the RECORD, so §7's rotation cannot redden it — 2026-08-19 — seat: zayd
 
@@ -742,7 +745,7 @@ is maintenance and does NOT get an entry of its own.**
   path match.
 - **FULL:** `handoff/zayd/2026-08-19-T-024-return-record-resolution.md`
 - **REVIEW:** ✅ **APPROVED, NOT MERGED** — `hmdnah`, D88 step 2 re-run against the new head, on
-  `narutousomaki741` (`handoff/hmdnah/2026-08-19-T-024-review-step2-rerun.md`, tip `a555a2f`). **F3 is
+  `narutousomaki741` (`handoff/hmdnah/2026-08-19-T-024-review-step2b-rerun.md`, tip `a555a2f`). **F3 is
   closed:** the returned shape is RED on the state this branch is already in — the authorising abstract
   has rotated out of §7 and resolves only in the record — while the repair is green there, and removing
   the record-resolution takes four tests RED. Four non-blocking findings (**H1** the legacy half's comment,
@@ -955,14 +958,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-024 (hmdnah, 2026-08-19)** |
-| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `a555a2f` · dirty |
+| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `e83d041` · clean |
 | open PRs | #38 task/T-024-baselinedatentry-names-a-position-so-a-c |
 | suite | **946 green** · 97 files · 289 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 17 files changed, 2275 insertions(+), 431 deletions(-) (17 files) |
+| diff vs origin/main | 18 files changed, 2494 insertions(+), 431 deletions(-) (18 files) |
 | docs budget | current_state 82.6/96.0 KB · §7 29.9/32.0 KB · abstracts 5/10 · bodies 78 |
 
 _Generated 2026-08-19 by `pnpm state`._
