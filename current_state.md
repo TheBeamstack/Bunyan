@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-022` |
 | branch | `task/T-022-kernel-occt-s-glue-decodes-from-growable` |
@@ -910,25 +910,20 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
-## NEXT TURN: REVIEW ONLY
-
-`T-022` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
-
-**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-022 (hmdnah, 2026-08-21)** |
-| branch · tip · tree | `task/T-022-kernel-occt-s-glue-decodes-from-growable` · `465642a` · dirty |
+| branch · tip · tree | `task/T-022-kernel-occt-s-glue-decodes-from-growable` · `6e6e4ff` · clean |
 | open PRs | #39 task/T-022-kernel-occt-s-glue-decodes-from-growable |
-| suite | ⚠⚠ 949/951 passing — **2 FAILING** |
+| suite | **951 green** · 98 files · 291 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 616 insertions(+), 151 deletions(-) (13 files) |
+| diff vs origin/main | 14 files changed, 770 insertions(+), 151 deletions(-) (14 files) |
 | docs budget | current_state 79.7/96.0 KB · §7 27.0/32.0 KB · abstracts 5/10 · bodies 80 |
 
 _Generated 2026-08-21 by `pnpm state`._
