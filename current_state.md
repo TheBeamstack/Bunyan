@@ -630,6 +630,48 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-022 — the glue decoded from a view of growable memory, at BOTH of its two decode sites — 2026-08-21 — seat: zayd
+
+- **CHANGED:** `tools/kernel-build/postlink.mjs` **NEW** — rewrites both emitted `TextDecoder.decode`
+  sites from `subarray` to `slice`; `link.sh` runs it as the last step of the link, so the patch is in the
+  RECIPE and not a hand edit to a generated file. `packages/kernel-occt/wasm/bunyan-kernel.js` relinked +
+  patched (**4e5508df…**, 6 bytes smaller); **`bunyan-kernel.wasm` UNCHANGED (f34fef31…)**.
+  `tests/kernel-glue-growable-decode.test.ts` NEW; `postlink.mjs` added to `GEOMETRY_PATHS` (file-exact,
+  Entry 74's lesson — it shapes the artifact, so `link.sh`'s own argument covers it); `toolchain.json`,
+  `tools/kernel-build/README.md`, `NOTICE` re-stated; goldens re-seeded (`seededAt` only).
+- **VERIFIED:** **Item 1** — glue reverted to the committed pre-patch bytes: **RED 2 failed | 3 passed
+  (5)**, restored **5 passed**. **The pin re-proved**: relinked on the pinned digest in **75 s** and both
+  files came back **byte-identical to the committed artifact** (wasm `f34fef31…`, glue `044baac6…`), so
+  only the glue moved. **`pnpm verify` 98 files · 951 tests · 0 failed**, `docs:check` **163**,
+  `freeze-boundary` green. Re-seed gate run as CI runs it (`BASE_REF=main`) → **OK** on the
+  `Re-seed-unchanged:` trailer; 15 oracle cases, **not one value moved**.
+- **FOUND:** ⚠ **THE TASK NAMED ONE SITE AND THERE ARE TWO.** Counting the set rather than reading the
+  reported member (§1c-8) gives `grep -o '\.decode(' | wc -l` = **2**: `UTF8ArrayToString` **and**
+  `UTF16ToString` (`UTF16Decoder.decode(HEAPU16.subarray(…))`), the second named nowhere in the task.
+  Fixing only the reported one ships a kernel that still hangs the moment anything crosses as UTF-16.
+  ⚠ **Spec/contract defect fixed (`AGENTS.md` §3):** `toolchain.json`'s `verifiedBy` claimed the relink
+  reproduced *"the committed one"* at wasm sha256 `819ff12c…` — **no committed artifact has that hash.**
+  Entry 79 measured it against the tree BEFORE that same entry's `toolchainId()` change, so its own
+  follow-up commit un-measured it (§1d) **in the one file whose whole purpose is to be the pin**; a reader
+  relinking today and comparing would conclude the pin was broken. Replaced with today's re-proof.
+  (`README.md`/`NOTICE` carried the hash too but were already precise that it named the pre-change tree.)
+  ⚠ **The emsdk bump was priced and refused, per the `done-when:`**: the prebuilt OCCT libs carry the
+  pinned compiler — `strings libTKMath.a:math.cxx.o` → `clang 23.0.0git (787619a4)`, i.e. emcc **6.0.2** —
+  so a digest bump turns a **75 s** link into the **2.5 h** OCCT rebuild (§6), drags a golden re-seed and
+  an `OCCT_BUILD_ID` cache invalidation behind a string bug, and needs a second 3.18 GB image against 9.0 G
+  free. ⚠ **Re-seeding cannot detect this change even in principle** — the seeder answers with NATIVE OCCT,
+  not our glue; the suite driving the real kernel is what actually exercises the patch.
+- **OWES:** **`amer`/`khalihlna` (T-023)** — `unverified here: the kernel boots on Chrome 151`. Measured
+  and not a formality: **Node 20.20.2 cannot reproduce the bug at all** (`WebAssembly.Memory.buffer.resizable`
+  = **false**, and it decodes a resizable-backed view happily), so no headless assertion can watch this
+  fail as Chrome fails it, and **no `done-when:` item here claims a browser boot**. The 149/151 numbers in
+  the task are the pc's and were not re-measured here. **`brahim`** — a `## Discovered` row that the
+  shipped artifact now has a **patch step**: relinking means running `link.sh`, never `em++` by hand.
+- **RISK:** additive — no frozen byte, no protocol/schema change; `freeze-boundary` green.
+- **FULL:** `handoff/zayd/2026-08-21-T-022-glue-growable-decode.md`
+- **REVIEW:** ⏳ **AWAITING REVIEW** — `hmdnah` (box; every measurement here is headless), except the
+  Chrome boot, which is `khalihlna`'s under T-023. `risk: high` ⇒ two review turns (D88).
+
 ### T-024 — review (step 2, re-run): F3 is closed, and the branch is standing on the state that proves it — 2026-08-19 — seat: hmdnah
 
 - **CHANGED:** no code byte — the four findings below are documentation and an unreachable boundary, none
@@ -882,72 +924,6 @@ is maintenance and does NOT get an entry of its own.**
   PR #38 (`issuecomment-5341466379`, presence verified by read-back), `review/step-1` label applied and
   verified. No approval, no merge.
 
-### T-024 — `_baselinedAtEntry` records an identity, not a §7 position — 2026-08-19 — seat: zayd
-
-- **CHANGED:** `scripts/docs-state.mjs` (`abstractKey` · `ENTRY_KEY` · `SYNTHETIC_ENTRY_BASE` ·
-  `isSyntheticEntryNumber`; every parsed abstract carries `.key`) · `scripts/frozen-surface.mjs`
-  (`baselineEntryIssues` takes a key or a legacy number and REFUSES a synthetic one) ·
-  `scripts/state.mjs` (`--rebaseline` writes `newest.key`) · both `.d.mts` ·
-  `tests/frozen-surface.snapshot.json` — `_baselinedAtEntry` `1000` →
-  `"STEWARD-unblock-pc-and-chrome-boot — 2026-08-18 — brahim"`, the only byte that moved in it ·
-  `tests/freeze-boundary.test.ts` **+5** · `tests/state-risk-e2e.test.ts` **+1** ·
-  `tests/docs-budget.test.ts` (seven failure messages render `a.id`, not `a.n`) ·
-  `docs/BACKLOG.md` (two `## Discovered` rows) · `handoff/zayd/2026-08-19-T-024-baseline-entry-identity.md`
-  NEW; this abstract; T-016's two review abstracts rotated to `docs/history.md` §E, §7 having stood at
-  32696 of 32768 chars and 10 of 10 abstracts. No `packages/`, no `apps/web`, no frozen declaration.
-- **VERIFIED:** `pnpm verify` green, exit 0. `freeze-boundary` **17/17** (was 12), `docs:check`
-  **159 · 8** (was 154). **⚠⚠ Item (C) is this entry itself: it is in §7 dated `2026-08-19` against a
-  baseline dated `2026-08-18`, `freeze-boundary` green, 0 of 214 declarations moved, NO re-baseline
-  and no falsified date** — the defect's exact input, taken by the turn that fixes it.
-  **Revert-verified twice.** (A) `abstractKey` neutralised to `return a.n` — the pre-fix identity —
-  leaves **4 failed | 21 passed (25)**, including the end-to-end
-  `expected 1000 to be 'T-024 — 2026-08-05 — zayd'`; restored 25/25. (B) the pre-fix scheme entire —
-  three scripts, the snapshot and the old test file all restored from `origin/main`, this entry
-  present — **1 failed | 11 passed (12)**, `_baselinedAtEntry 1000 is dated 2026-08-19 in §7, but
-  _baselinedAt says 2026-08-18`, on a branch that moved 0 of 214 declarations; restored 17/17.
-- **FOUND:** **The identity is `<id> — <date> — <seat>`, the three authored fields of the heading**,
-  which survive §7's rotation and do not move when a turn prepends an abstract. A key carries its own
-  date, so Q15's cross-field check needs no §7 lookup; the legacy numbered branch keeps the old lookup
-  and still skips once its entry rotates. ⚠ **And a self-contained key is only half the audit** — it
-  proves the two fields agree with each other and nothing about whether the turn they name happened,
-  so the gate also resolves the key in **§7 plus `docs/history.md`**, the population invariant 10 makes
-  permanent. Asking §7 alone is T-024's own defect: its headroom was one append wide. **The backward
-  sweep's other dirty site:** `docs-budget.test.ts` printed `Entry 1000` to a human in seven failure
-  messages, against `docs-state.d.mts`'s own *"never render this to a human"* — they print the key now,
-  `.id` being the one field that is never unique. **⚠ MEASURED over §7 + `docs/history.md` — the key is
-  not unique, and §7 is not the scope that decides:** **5 colliding keys of 51 distinct** across 56
-  headings, generated by **any two turns by one seat on one task on one day** — D88's review pair and
-  `--continue`'s builder pair. The date is in the key, so a reference resolves to a turn-pair carrying
-  one date, which is the half the gate reads. No uniqueness gate: at §7 scope one is green today and red
-  on a *correct* turn, which is cry-wolf.
-- **OWES:** `hmdnah` — this PR's review, `risk: high` ⇒ **two review turns** (D88). ⚠ Item 1's revert
-  is (B) above, and it must reproduce a red on a branch that moved no declaration. The **owner** — the
-  merge: `reserved-classes.mjs` classes any `tests/frozen-surface.snapshot.json` diff as `freeze`, so
-  a metadata-only fix is labelled `needs-operator/freeze`. `brahim` — two `## Discovered` rows (the
-  D88 key collision; the metadata-only `freeze` label). Nothing is owed to a `pc` seat — every claim
-  here is headless and was executed here.
-- **RISK:** additive — 0 of 214 declarations moved, `_declarationCount` unchanged, no frozen byte.
-  ⚠ **Not merged by its author, and owner-gated by label** — see `OWES:`.
-- **FULL:** `handoff/zayd/2026-08-19-T-024-baseline-entry-identity.md`
-- **REVIEW:** ⚠ **STEP 1 OF 2 COMPLETE — NOT APPROVED, NOT MERGED; step 2 pending** (D88, `risk: high`).
-  `hmdnah` step 1 (mechanical, items 1/4/5/7) on `narutousomaki741`, findings at PR #38
-  `issuecomment-5341466379`, abstract above, body `handoff/hmdnah/2026-08-19-T-024-review-step1.md`.
-  Both reverts re-executed independently — (A) 4 failed | 21 passed (25), (B) the pre-fix scheme entire
-  reproducing `_baselinedAtEntry 1000 is dated 2026-08-19 in §7, but _baselinedAt says 2026-08-18` — and
-  the *repaired, not removed* criterion proved on a constructed lie rather than the green path. All three
-  counts and `0 of 214` re-derived; `RISK: additive` matches the diff. Four findings, none blocking:
-  the `⚠ MEASURED` uniqueness claim is falsified by this diff's own rotation (F1), the collision is 4 keys
-  of 41 and not only D88's shape (F2), the new §7-resolution test fails rather than skips once the
-  authorising abstract rotates — measured 6 appends out (F3), and `baselineEntryIssues` never consults §7
-  on the keyed path (F4). ⚠ **The OWNER merges this** — `needs-operator/freeze`, `AGENTS.md §5.3`.
-  ⚠ **STEP 2 COMPLETE — NOT APPROVED; returned to `zayd` on the existing claim, row still `review`**
-  (`hmdnah`, items 2/3/6 + item 7, `issuecomment-5342185121`, body
-  `handoff/hmdnah/2026-08-19-T-024-review-step2.md`). F3 upheld as a proven defect and re-measured at
-  **one** append, not six — §7's byte headroom, not its count, is what binds. Fixed on this branch by a
-  second `zayd` turn via `agent-start.mjs --continue T-024` (no new claim, no new PR); see the entry
-  above. ⚠ **A third review turn is owed on the return** — D88's table does not describe it; recorded
-  for `brahim`.
-
 ## §8 — Generated
 
 
@@ -955,17 +931,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-024 (hmdnah, 2026-08-19)** |
-| branch · tip · tree | `task/T-024-baselinedatentry-names-a-position-so-a-c` · `d562c06` · clean |
-| open PRs | #38 task/T-024-baselinedatentry-names-a-position-so-a-c |
-| suite | **946 green** · 97 files · 289 suites |
+| **newest entry** | **T-022 (zayd, 2026-08-21)** |
+| branch · tip · tree | `task/T-022-kernel-occt-s-glue-decodes-from-growable` · `53ce0b9` · dirty |
+| open PRs | none — main is the tip of the work |
+| suite | **951 green** · 98 files · 291 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 18 files changed, 2529 insertions(+), 430 deletions(-) (18 files) |
-| docs budget | current_state 82.9/96.0 KB · §7 30.4/32.0 KB · abstracts 5/10 · bodies 78 |
+| diff vs origin/main | 11 files changed, 310 insertions(+), 88 deletions(-) (11 files) |
+| docs budget | current_state 80.8/96.0 KB · §7 28.5/32.0 KB · abstracts 5/10 · bodies 79 |
 
-_Generated 2026-08-20 by `pnpm state`._
+_Generated 2026-08-21 by `pnpm state`._
 
 <!-- END GENERATED -->
