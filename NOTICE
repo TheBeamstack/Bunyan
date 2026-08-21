@@ -63,15 +63,17 @@ something, it is stated here in full, and the licence texts themselves are in
   the recipe and the tests both read.
 
   ⚠ THAT THIS IS A REAL PIN WAS DEMONSTRATED, NOT ASSUMED — and the demonstration
-  has a date attached because that is what makes it checkable. On 2026-08-05 the
-  kernel source as it then stood was relinked, unmodified, on this digest, and
-  reproduced the module then committed here BYTE FOR BYTE:
+  has a date attached because that is what makes it checkable. On 2026-08-21 the
+  kernel source was relinked, unmodified, on this digest, and reproduced the
+  module redistributed here BYTE FOR BYTE:
 
-    819ff12cbd627fd7d8a5e73e30b0d34f7f5b056702b23c38e218ad6784a6c696
+    f34fef311af31cd63d1804147f6f8bde58d44a07c4b864193a1fd1ac5223d56a
 
-  The module redistributed today is that same source with `toolchainId()` added,
-  relinked on the same digest; it is 139 bytes larger and is not itself what that
-  comparison was run against.
+  ⚠ The JavaScript glue beside that module is the linker's output with one
+  documented patch applied — `tools/kernel-build/postlink.mjs`, run by `link.sh`,
+  which stops both `TextDecoder.decode` sites reading through a view of growable
+  WebAssembly memory that recent browsers refuse. It is part of the recipe a
+  recipient runs, not a hand edit, and it does not touch the module above.
 
   The build id `occt-7.9.3-emcc-6.0.2` names that combination, and it is no
   longer a constant kept true by hand: `tools/kernel-build/src/kernel.cpp`

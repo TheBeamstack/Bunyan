@@ -26,8 +26,9 @@
     "equivalentTag": "6.0.2",
     "emcc": "6.0.2",
     "emccCommit": "7a2d97d627ff4945eae28847ce0387ac52b92c09",
-    "verifiedOn": "2026-08-05",
-    "verifiedBy": "Entry 79 — relinked on this digest and the artifact came back BYTE-IDENTICAL to the committed one (wasm sha256 819ff12cbd627fd7d8a5e73e30b0d34f7f5b056702b23c38e218ad6784a6c696), which is what makes this a pin and not a note."
+    "verifiedOn": "2026-08-21",
+    "verifiedBy": "T-022 — relinked on this digest in 75 s and the artifact came back BYTE-IDENTICAL to the one committed here: wasm sha256 f34fef311af31cd63d1804147f6f8bde58d44a07c4b864193a1fd1ac5223d56a, glue sha256 044baac643940196224f4e70cb2ae66997f9f8baf60e82fc8774fef4a7568db5 before `postlink.mjs` runs. Entry 79 first proved the pin on 2026-08-05, but against the artifact as it stood BEFORE that entry's own `toolchainId()` change (wasm sha256 819ff12cbd627fd7d8a5e73e30b0d34f7f5b056702b23c38e218ad6784a6c696), so its numbers no longer name anything committed."
   },
+  "postlink": "The committed glue is the linker's output with `postlink.mjs` applied; the committed .wasm is the linker's output unmodified.",
   "buildId": "occt-7.9.3-emcc-6.0.2"
 }
