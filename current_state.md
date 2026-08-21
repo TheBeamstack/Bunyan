@@ -120,7 +120,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | task | `T-022` |
 | branch | `task/T-022-kernel-occt-s-glue-decodes-from-growable` |
 | claimed-at | 2026-08-21T09:52:18Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -926,20 +926,25 @@ is maintenance and does NOT get an entry of its own.**
 
 ## §8 — Generated
 
+## NEXT TURN: REVIEW ONLY
+
+`T-022` (built by `zayd`) was flagged **high-risk**. The next session reviews its PR and **claims no new task**.
+
+**reviewer seat: `hmdnah`** — resolved from the task's machine:, because the first item on a review checklist is *revert the fix and paste the red output*.
 
 <!-- BEGIN GENERATED — written by `pnpm state`. Never hand-edit. -->
 
 | | |
 | --- | --- |
 | **newest entry** | **T-022 (zayd, 2026-08-21)** |
-| branch · tip · tree | `task/T-022-kernel-occt-s-glue-decodes-from-growable` · `53ce0b9` · dirty |
+| branch · tip · tree | `task/T-022-kernel-occt-s-glue-decodes-from-growable` · `8657ede` · clean |
 | open PRs | none — main is the tip of the work |
 | suite | **951 green** · 98 files · 291 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 11 files changed, 310 insertions(+), 88 deletions(-) (11 files) |
+| diff vs origin/main | 12 files changed, 516 insertions(+), 95 deletions(-) (12 files) |
 | docs budget | current_state 80.8/96.0 KB · §7 28.5/32.0 KB · abstracts 5/10 · bodies 79 |
 
 _Generated 2026-08-21 by `pnpm state`._
