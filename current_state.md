@@ -895,15 +895,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-022 (hmdnah, 2026-08-21)** |
-| branch · tip · tree | `task/T-022-kernel-occt-s-glue-decodes-from-growable` · `6e6e4ff` · clean |
+| branch · tip · tree | `task/T-022-kernel-occt-s-glue-decodes-from-growable` · `7080db5` · clean |
 | open PRs | #39 task/T-022-kernel-occt-s-glue-decodes-from-growable |
 | suite | **951 green** · 98 files · 291 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 14 files changed, 770 insertions(+), 151 deletions(-) (14 files) |
-| docs budget | current_state 79.7/96.0 KB · §7 27.0/32.0 KB · abstracts 5/10 · bodies 80 |
+| diff vs origin/main | 16 files changed, 1126 insertions(+), 219 deletions(-) (16 files) |
+| docs budget | current_state 77.4/96.0 KB · §7 25.0/32.0 KB · abstracts 5/10 · bodies 81 |
 
 _Generated 2026-08-21 by `pnpm state`._
 
