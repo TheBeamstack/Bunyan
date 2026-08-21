@@ -113,14 +113,14 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-024` |
-| branch | `task/T-024-baselinedatentry-names-a-position-so-a-c` |
-| claimed-at | 2026-08-19T00:39:12Z |
-| status | finished — PR open, awaiting review |
+| task | `T-022` |
+| branch | `task/T-022-kernel-occt-s-glue-decodes-from-growable` |
+| claimed-at | 2026-08-21T09:52:06Z |
+| status | working |
 
 <!-- END BATON -->
 
