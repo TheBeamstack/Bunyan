@@ -125,7 +125,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
 | T-021 | ready   | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
-| T-024 | review  | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
+| T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-022 | ready   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | blocked | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
@@ -687,6 +687,31 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
+
+- **2026-08-21 — `frozen-surface.mjs`'s legacy half documents a skip that can no longer happen.** T-024
+  pointed `abstracts` at `recordedAbstracts`, so the legacy set never empties: **13** legacy headings in
+  the record against **0** in §7, which makes the `:315` bound always live and `:252`'s _"SKIPS once it
+  rotates, which is why that half never cries wolf"_ false. Two edges follow — `:327` reports a
+  disagreement as _"in §7"_ for an entry it resolved outside §7, and `newestLegacy` is **88** while
+  entries **89** and **90** are real turns carrying no `### N |` heading, so a baseline naming either is
+  refused as _"the newest entry that exists is 88"_. Unreachable through the writer, which mints keys only.
+  Found by `hmdnah` on PR #38 step 2; re-measured by `brahim` on `50b3fa0`. Recorded, not claimed.
+- **2026-08-21 — `docs-budget.test.ts`'s collision gate asserts a tautology in its second half.**
+  `key` equals `<id> — <date> — <seat>` for all **45** new-scheme abstracts, so grouping by key partitions
+  by exactly those three fields and the three `size === 1` checks cannot fail; they would bite only on a
+  legacy collision, of which there are **0**. The half that measures, `collisions.length > 0`, is sound.
+  Found by `hmdnah` on PR #38 step 2; re-measured by `brahim`. Recorded, not claimed.
+- **2026-08-21 — every count and line number written into `## Discovered` prose rots, and one row's has
+  twice.** The 2026-08-19 uniqueness row says **5 of 51 across 56**; step 2 measured **6 of 51 across 57**,
+  and `50b3fa0` measures **6 of 51 across 58** — the review protocol that generates key collisions also
+  generates the abstracts that move the count (`T-024 — 2026-08-19 — hmdnah` is now **×3**). The same row's
+  line numbers for the T-015 duplicate have moved twice, 2231/2300 → 2299/2368 → **2371/2440**. The code is
+  immune because the tests measure; the prose is not. **Cite a heading, never a line number, and date any
+  count.** Found by `hmdnah` on PR #38 step 2. Recorded, not claimed.
+- **2026-08-21 — `frozen-surface.d.mts:44`'s _"never the §7 parse alone"_ is overstated.**
+  `state-risk-e2e.test.ts:209`/`:250` pass the §7 parse alone, legitimately, on fixtures carrying no
+  `docs/history.md`, where `recordedAbstracts` throws by design. A doc line, not a defect. Found by
+  `hmdnah` on PR #38 step 2. Recorded, not claimed.
 
 - **2026-08-19 — an abstract's stable key `<id> — <date> — <seat>` is not unique, and §7 is not the
   scope that decides.** Corrected on T-024's defect return; the first statement of this row named the
