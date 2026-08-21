@@ -125,7 +125,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
 | T-021 | ready   | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
-| T-024 | ready   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
+| T-024 | review  | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-022 | ready   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | blocked | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
@@ -688,6 +688,63 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-19 — an abstract's stable key `<id> — <date> — <seat>` is not unique, and §7 is not the
+  scope that decides.** Corrected on T-024's defect return; the first statement of this row named the
+  wrong scope, the wrong count and one of the two generators. Measured over `current_state.md` §7 **plus
+  `docs/history.md`** — the population invariant 10 makes permanent — **5 colliding keys of 51 distinct**
+  across 56 headings, up from the 4 of 51 step 2 measured, because step 2's own abstract created one.
+  The generator is **any two turns by one seat on one task on one day**, and it has two live routes:
+  D88's two review steps, and `agent-start.mjs --continue` returning a defect to its builder
+  (`T-011 — 2026-08-17 — zayd`, and this turn's own). A §7-scoped view is not a smaller version of the
+  same fact — it is a different one that swings turn to turn. T-024's fix does not depend on uniqueness:
+  the date is in the key, so a reference resolves to a turn-PAIR that carries one date, which is the half
+  `baselineEntryIssues` reads (pinned by `tests/docs-budget.test.ts`'s "the entry key collides, and every
+  collision is a turn-PAIR"). **No uniqueness gate, and not for the reason first given:** at §7 scope such
+  a gate is green on most days and red on a _correct_ turn — a second review step or a returned build —
+  which is cry-wolf, not invariant 10. Fix shape, if it is ever worth one: a step marker in the heading,
+  which is a §7 schema change. Found by `zayd` building T-024, corrected by `zayd` on its return.
+  Recorded, not claimed.
+- **2026-08-19 — `docs/history.md` §E holds `T-015 — review: the fix holds, backward sweep and
+weak-green clean — 2026-08-16 — seat: hmdnah` TWICE** (lines 2231 and 2300), same heading, same
+  `FULL:` path, bodies differing only in the `REVIEW:` line's wording — a rotation that copied instead of
+  moving, across two compactions. Invariant 10 makes the archive append-only, so this is not `zayd`'s to
+  edit; it is the one colliding key in the record that is **not** a turn-pair, and it is why the new
+  collision gate asserts one task/seat/day rather than distinct headlines. Found by `zayd` on T-024's
+  defect return, measuring the record for the row above. Recorded, not claimed.
+- **2026-08-19 — `reserved-classes.mjs` classes ANY diff to `tests/frozen-surface.snapshot.json` as
+  `freeze`, including a metadata-only one.** T-024's own PR moves `_baselinedAtEntry` and **0 of 214**
+  declarations, so `state.mjs` returns `RISK: additive` while CI labels it `needs-operator/freeze` and
+  the owner merges a PR that touches no contract. This is the third occurrence of the same cry-wolf
+  shape (PR #36, `--review`'s merge commands, and now this), and it is the one the `_README`'s own
+  policy makes load-bearing after the freeze. Fix shape: class `freeze` on a `surface` diff, and
+  report an audit-field-only edit as a separate, non-gating class. Found by `zayd` building T-024.
+  Recorded, not claimed.
+- **2026-08-19 — `agent-finish.mjs --review` stamps the backlog row `done` on an owner-gated PR, not only
+  prints its merge command.** `seats.reviewFlipsToDone(risk, step, contractTouching)` reads
+  `contractTouching` from `§8`'s frozen-surface row, so `reviewFlipsToDone('high', 2, false)` is `true` on
+  a PR carrying `needs-operator/freeze`: measured on PR #38's step 2, which wrote `T-024 → done` while the
+  owner had not merged and could not be made to on a reviewer's schedule. `done` is what satisfies another
+  row's `depends-on:`, so this releases dependents on an unmerged PR — nothing depends on T-024, which is
+  luck. This is `T-014`'s defect one class over: `AGENTS.md §5` names **three** owner-gated classes and
+  `reserved-classes.mjs` labels all three, while `reviewFlipsToDone` knows only `contract-touching`, so the
+  freeze and legal-figure classes walk past it. The 2026-08-18 row below covers the _printed merge command_
+  — which a human can decline — and not the row flip, which nobody sees. Fix shape: `--review` resolves the
+  reserved classes it already has a module for, and keeps the row `review` whenever any `needs-operator/*`
+  applies. Row set back to `review` by hand this turn. Found by `hmdnah`, step 2 of PR #38. Recorded, not
+  claimed. ⚠ **Fired a second time on 2026-08-20**, on the step-2 re-run that approved the same PR — it
+  printed `backlog status → done (T-024 merges immediately after this turn)` and `gh pr merge 38 --squash`
+  against a still-unmerged `needs-operator/freeze` PR. Row set back to `review` by hand again; the flip is
+  reproducible, not a one-off.
+- **2026-08-19 — the stable key `<id> — <date> — <seat>` is not the identity `agent-finish.mjs` uses, and
+  T-024 did not sweep it.** T-024 adds `EntryAbstract.key` for anything that names an entry, then leaves
+  `agent-finish.mjs:280`'s handoff gate on `find(a => a.id === task && a.seat === seat)` — a subset of the
+  key, and precisely the tuple whose collisions the same PR records. That is why a D88 step 2 passes on
+  step 1's abstract (the row below), and why §7 now carries two abstracts keyed `T-024 — 2026-08-19 —
+hmdnah`: the review protocol generates the collision the code comment says is rare. Two smaller sites of
+  the same sweep: the seven `docs-budget` messages moved `.n` → `.id`, the one field that is never unique,
+  and `isSyntheticEntryNumber` guards `(990, 1000]` while a turn appends its abstract _before_ rotating, so
+  §7's transient 11th index mints `990` and is reported as a legacy number. Found by `hmdnah`, step 2 of
+  PR #38. Recorded, not claimed.
 - **2026-08-19 — `agent-finish.mjs --review --step 2` accepts step 1's abstract and body as step 2's
   handoff artifacts, and prints the merge commands.** Its gate checks only that _some_ §7 abstract names
   the task and the seat, and a D88 step 1 has already written one — so a step 2 that wrote nothing of its

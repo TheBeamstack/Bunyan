@@ -34,6 +34,12 @@ export interface EntryAbstract {
   n: number;
   /** `'legacy' | 'T'` — which heading form produced this entry. */
   scheme: 'legacy' | 'T';
+  /**
+   * THE STABLE IDENTITY — what anything durable records instead of `.n` (T-024). A legacy entry's is
+   * the number its author wrote; a new-scheme entry's is `"<id> — <date> — <seat>"`, the three
+   * authored fields of its own heading. Unlike `.n` it does not move when an entry is prepended.
+   */
+  key: number | string;
   date: string;
   /** Alias of `seat`, kept for every pre-existing call site that reads `.agent`. */
   agent: string;
@@ -57,6 +63,44 @@ export interface EntryAbstract {
   fieldsFull: Record<string, string>;
   raw: string;
 }
+
+/** The base of the synthetic range `parseAbstracts` mints from §7 position. */
+export declare const SYNTHETIC_ENTRY_BASE: number;
+/** True when a number is one minted from §7 position rather than one an author wrote. */
+export declare function isSyntheticEntryNumber(n: unknown): boolean;
+/** The shape `abstractKey` writes for a new-scheme entry: `"<id> — <date> — <seat>"`. */
+export declare const ENTRY_KEY: RegExp;
+/** The stable identity of an abstract — see `EntryAbstract.key`. */
+export declare function abstractKey(a: {
+  scheme: 'legacy' | 'T';
+  n: number;
+  id: string;
+  date: string;
+  seat: string;
+}): number | string;
+
+/**
+ * An abstract as the ARCHIVE carries it — identity fields only, parsed from a `docs/history.md`
+ * heading. `EntryAbstract` is structurally one of these plus §7's parsed body.
+ */
+export interface RecordedAbstract {
+  id: string;
+  /** `null` for an archived new-scheme abstract: it has no §7 position, and minting one would lie. */
+  n: number | null;
+  scheme: 'legacy' | 'T';
+  key: number | string;
+  date: string;
+  agent: string;
+  seat: string;
+  headline: string;
+}
+
+/**
+ * §7's window PLUS `docs/history.md` — the population a durable reference resolves against, and the
+ * only one that does not rot. **Throws** if the archive parses to zero headings, for the reason
+ * `newestAbstract` throws on an empty §7. See the implementation.
+ */
+export declare function recordedAbstracts(root: string): RecordedAbstract[];
 
 export declare function readCurrentState(root: string): string;
 export declare function section7(src: string): string;

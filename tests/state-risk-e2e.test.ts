@@ -66,11 +66,14 @@ const riskInSection8 = (): string => {
   return m?.[1]?.trim() ?? '(no RISK row in §8)';
 };
 
+// ⚠ TWO SCHEMES, NEWEST-FIRST — the five-seat entry on top is the one `--rebaseline` records, and it
+// is the only form written from here on (D82). The legacy entry below it keeps the other branch of
+// `abstractKey` under this instrument too.
 const CURRENT_STATE = `# state
 
 ## §7 — Entry abstracts
 
-### 1 | 2026-08-05 | zayd | the only entry
+### T-024 — the entry that authorises the baseline — 2026-08-05 — seat: zayd
 
 - **CHANGED:** nothing
 - **VERIFIED:** nothing
@@ -79,6 +82,16 @@ const CURRENT_STATE = `# state
 - **RISK:** additive
 - **FULL:** handoff/zayd/2026-08-05-x.md
 - **REVIEW:** ⚠ AWAITING REVIEW — this is the open PR
+
+### 1 | 2026-08-04 | zayd | the legacy entry below it
+
+- **CHANGED:** nothing
+- **VERIFIED:** nothing
+- **FOUND:** nothing
+- **OWES:** nothing
+- **RISK:** additive
+- **FULL:** handoff/zayd/2026-08-04-x.md
+- **REVIEW:** reviewed
 
 ## §8 — Generated
 
@@ -189,14 +202,59 @@ describe('the RISK verdict `pnpm state` actually prints (Q15)', () => {
    */
   it("⚠⚠ writes a baseline its own gate accepts — the date is the ENTRY's, never the clock's", () => {
     runState('--rebaseline');
-    const snap = JSON.parse(read(SNAP)) as { _baselinedAtEntry: number; _baselinedAt: string };
+    const snap = JSON.parse(read(SNAP)) as {
+      _baselinedAtEntry: number | string;
+      _baselinedAt: string;
+    };
     const abstracts = parseAbstracts(read('current_state.md'));
 
-    // The premise, measured: §7's only entry is NOT dated today, so a clock-stamped date disagrees.
+    // The premise, measured: no §7 entry is dated today, so a clock-stamped date disagrees.
     expect(abstracts.map((a) => a.date)).not.toContain(new Date().toISOString().slice(0, 10));
 
-    expect(snap._baselinedAtEntry).toBe(1);
+    expect(snap._baselinedAtEntry).toBe('T-024 — 2026-08-05 — zayd');
     expect(snap._baselinedAt).toBe('2026-08-05');
+    expect(baselineEntryIssues(snap, abstracts)).toEqual([]);
+  });
+
+  /**
+   * ⚠⚠ T-024, EXECUTED END TO END: THE APPEND THAT USED TO REDDEN THE GATE HAVING MOVED NOTHING.
+   *
+   * `_baselinedAtEntry` held `.n`, which for a five-seat entry is `1000 - i` over §7's array order —
+   * so it named whatever was newest, and prepending the next turn's abstract re-pointed it at an
+   * entry whose date is not the baseline's. Two turns hit it; the second archived its abstract into
+   * `docs/history.md` rather than falsify a date or re-baseline, and §7 carries none for that turn.
+   * The generator writes the authorising entry's own key now, so the append is invisible to the gate.
+   */
+  it('⚠⚠ stays green when a LATER-DATED abstract is appended above the baseline’s entry', () => {
+    const before = JSON.parse(read(SNAP)) as { _baselinedAtEntry: number | string };
+    write(
+      'current_state.md',
+      read('current_state.md').replace(
+        '### T-024 — the entry that authorises the baseline',
+        [
+          '### T-025 — the next turn, a day later — 2026-08-06 — seat: hmdnah',
+          '',
+          '- **RISK:** additive',
+          '',
+          '### T-024 — the entry that authorises the baseline',
+        ].join('\n'),
+      ),
+    );
+    commit('append the next turn’s abstract');
+    runState(); // a plain run: no re-baseline, and the baseline must survive it untouched
+
+    const snap = JSON.parse(read(SNAP)) as {
+      _baselinedAtEntry: number | string;
+      _baselinedAt: string;
+    };
+    const abstracts = parseAbstracts(read('current_state.md'));
+
+    // The premise, measured: the newest abstract now postdates the baseline, and the baseline moved
+    // no byte — which is the exact input the positional key could not survive.
+    expect(abstracts[0]?.date).toBe('2026-08-06');
+    expect(snap._baselinedAt).toBe('2026-08-05');
+    expect(snap._baselinedAtEntry).toBe(before._baselinedAtEntry);
+
     expect(baselineEntryIssues(snap, abstracts)).toEqual([]);
   });
 

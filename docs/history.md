@@ -1327,6 +1327,146 @@ Entries 1–90 keep their legacy numeric heading (`AGENTS.md` §2); a turn after
 titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-slug`, newest first, the
 same as `current_state.md` §7.
 
+
+### T-020 — review (step 1, mechanical): the bump collects the identical 936 tests, and vitest 2 was not enforcing the default timeout — 2026-08-18 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — a review turn edits no code.
+  `handoff/hmdnah/2026-08-18-T-020-review-step1.md` NEW; this abstract; the `REVIEW:` line of the entry
+  below; T-011's step-2 re-run abstract rotated to `docs/history.md` §E to hold §7 inside its budget.
+- **VERIFIED:** **Item 1 re-executed by hand**, the added `120_000` reverted under the branch's runner:
+  RED, `Test timed out in 5000ms` at 19 001 ms, `1 failed | 8 passed (9)`; restored 9/9. **Both full runs
+  re-measured here**, each runner installed in turn from its own lockfile — `vitest@2.1.9` **936 · 97 files
+  · 287 suites** (274.63 s) and `vitest@4.1.10` **936 · 97 · 287** (271.46 s), `docs:check` **154 · 8**
+  under both. ⚠ **Stronger than the count:** diffing the two json summaries by `(file, test title)` gives an
+  **empty symmetric difference**, so the runners collected the *identical* 936 tests, which is what the
+  `done-when:`'s ⚠ is actually asking. **Item 7:** `reserved-classes.mjs --base <main>` → `none —
+  RISK: additive`; both CI jobs now `success` on `82e1c60`.
+- **FOUND:** **The author's mechanism is correct, and a probe isolates it from the cost.** Same commit,
+  same reverted file: 2.1.9 passes the clean-delta test at 18 855 ms, 4.1.10 times it out at 5000 ms after
+  19 001 ms. A two-case probe with no kernel in it — a microtask-only chain busy ~8000 ms, and a
+  `setTimeout` of 8000 ms, neither carrying an explicit timeout — passes A and fails B under 2.1.9 while
+  failing both under 4.1.10, so vitest 2's default deadline is a timer that a chain resolving through
+  `queueMicrotask` (`transport.ts:63`) never lets reach the timer phase. **⚠ CI's labeller had not run:**
+  `pr-shape` was red in `Set up job` on a `429` fetching `actions/checkout@v4`, which is item 7's *"no label
+  and no labeller look identical"* case; re-run, now green. Sweep and API figures reproduce — three of 936
+  tests over 5000 ms with next-slowest 1878 ms (author 1980 ms, same test), 131 numeric `}, N)` sites and
+  **zero** options-object sites, `.toThrow` 58 / `.toEqual` 394 exact. One nit: the `vi.*` enumeration is
+  complete but counted five where the tree has six call sites of four methods.
+- **OWES:** `hmdnah` — **step 2** (items 2, 3, 6 plus the pre-merge `needs-operator/*` re-check), separate
+  session, same claim, row stays `review`. The **pc seats** — `unverified here: the five protocol files
+  collect on Windows — the pc seats to confirm`; this box parses all five under **both** runners, so **T-021**
+  closes it and the criterion is not ticked here.
+- **RISK:** additive — a review turn moved no declaration; `reserved-classes.mjs` returns `none`.
+- **FULL:** `handoff/hmdnah/2026-08-18-T-020-review-step1.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), D88 step 1 of 2; findings posted to PR #37
+  (`issuecomment-5333851516`, presence verified).
+
+### T-020 — the runner moves 2.1.9 → 4.1.10, and vitest 2 was not enforcing test timeouts — 2026-08-18 — seat: zayd
+
+- **CHANGED:** `package.json` (`vitest` `^2.1.8` → `^4.1.10`) and `pnpm-lock.yaml` (`vitest@2.1.9` →
+  `4.1.10`, `vite@5.4.21` dropped — apps/web's `6.4.3` now serves the runner too) ·
+  `tests/document-persistence.test.ts` — one explicit `120_000` timeout on the clean-delta test, the one
+  test the bump exposed. `handoff/zayd/2026-08-18-T-020-vitest-2-to-4.md` NEW; this abstract; T-011's
+  D88-return abstract rotated to `docs/history.md` §E, §7 having stood at 32756 of 32768 bytes. No
+  `packages/`, no `scripts/`, no `vitest.config.ts` byte, no snapshot byte.
+- **VERIFIED:** `pnpm verify` green, exit 0, 6 m 23 s. **The suite count is a fresh full run on both sides,
+  never `§8`'s cached line:** `vitest@2.1.9` → **936 passed · 97 files · 287 suites** (270.68 s);
+  `vitest@4.1.10` → **936 passed · 97 files · 287 suites** (268.77 s). Unchanged, so nothing stopped
+  collecting. `docs:check`, which collects `tests/protocol` on its own, **154 · 8**. `numTotalTests` /
+  `numTotalTestSuites` / `testResults.length` all still present in the json reporter's output, which is
+  what `state.mjs:120-126` reads. `freeze-boundary` 12/12 unmoved, no re-baseline.
+- **FOUND:** **⚠⚠ vitest 2 never applied the 5 000 ms default timeout to a test whose awaits are
+  microtask-only, and one test had been 3.7× over it.** The bump's single failure was
+  `document-persistence.test.ts`'s clean-delta test; A/B on the same commit, each runner installed in
+  turn, prices it at **18 549 ms under 2.1.9 (passing)** and **18 397 ms under 4.1.10 (timed out at
+  5 000 ms)** — the cost moved 0.8%, the enforcement moved. `InProcessTransport` resolves every kernel
+  response through `queueMicrotask` (`transport.ts:63`), so 250 real kernel edits are one uninterrupted
+  microtask chain and the event loop never reaches the timer phase a `setTimeout` deadline lives in.
+  Invariant 8 exactly: the test was green because nothing was checking. **Backward sweep over the
+  newly-enforced rule, by measured duration rather than by source, because only a run answers "how long":**
+  exactly three of 936 tests exceed 5 000 ms — 58 571 ms and 16 256 ms, both already carrying explicit
+  timeouts, and this one. The next-slowest is 1 980 ms, a 2.5× margin. **The API sweep is an enumeration,
+  not a sample:** the suite imports eight names from `vitest` and calls five `vi.*` sites, and each of the
+  22 documented 2→3/3→4 breaking changes is checked against its call sites in the body — the numeric
+  `}, 120_000)` third argument used at 130 sites is **not** the options-object form vitest 4 removed.
+- **OWES:** `hmdnah` — this PR's review, `risk: high` ⇒ **two review turns** (D88). ⚠ Item 1's revert is
+  the added timeout, and reverting it should reproduce *Test timed out in 5000ms* rather than a fix
+  regressing. The **pc seats** — `unverified here: the five protocol files collect on Windows — the pc
+  seats to confirm`; the box parses those files under **both** runners, so it can neither reproduce the
+  failure nor witness the repair, and **T-021** is the turn that closes it. `brahim` — T-021 becomes
+  claimable once this merges, and with it the five `ready` `pc` rows behind it.
+- **RISK:** additive — no declaration moved, no frozen byte; `reserved-classes.mjs` returns `none`.
+- **FULL:** `handoff/zayd/2026-08-18-T-020-vitest-2-to-4.md`
+- **REVIEW:** ✅ **APPROVED AND MERGED** — `hmdnah`, D88 both steps, on `narutousomaki741`. Step 1 (mechanical, `82e1c60`): item 1 re-executed RED, both suite counts re-measured at 936 · 97 · 287 and shown to be the identical 936 tests, the microtask-timeout mechanism reproduced by a kernel-free probe. Step 2 (adversarial, `c203a67`, abstract in `docs/history.md` §E, body `handoff/hmdnah/2026-08-19-T-020-review-step2.md`): the same tests also execute the same **5047** `expect()` calls, collection matches the 97 files on disk exactly, and the margins are green at `--testTimeout=2500` and `--hookTimeout=1200` — the hook deadline being the second gate the bump switches on and the sweep did not cover. Both CI jobs SUCCESS on the merged tip; `needs-operator/*` empty and informative. ⚠ Step 2 is archived rather than in §7 because it ran past midnight UTC, and a §7 abstract dated 2026-08-19 reddens `freeze-boundary` through **T-024** having moved no declaration. ⚠ `unverified here: the five protocol files collect on Windows` is **not** ticked; T-021 closes it.
+
+
+### STEWARD-unblock-pc-and-chrome-boot — review: the splits are honest, and T-024 named a fixture that measures green — 2026-08-18 — seat: hmdnah
+
+- **CHANGED:** `docs/BACKLOG.md` — T-024's `done-when:` corrected to name the one turn that reproduces
+  the defect, plus one `## Discovered` row; `handoff/hmdnah/2026-08-18-STEWARD-unblock-pc-and-chrome-boot-review.md`
+  NEW; this abstract and the `REVIEW:` line above. No `packages/`, no `scripts/`, no snapshot byte.
+- **VERIFIED:** **Item 1 re-executed in its docs-only form — two mutations, since the diff reverts no fix.**
+  (A) restoring `_baselinedAt` to `2026-08-17` takes `freeze-boundary` **1 of 12 RED**
+  (`_baselinedAtEntry 1000 is dated 2026-08-18 in §7, but _baselinedAt says 2026-08-17`); restored,
+  **12/12 green**. (B) flipping T-022 to `machine: **pc**` moves `reviewer-for` `hmdnah` → `khalihlna` and
+  `can-claim zayd` `yes` → `REFUSED`; restored. **The claim T-022 rests on, re-measured here rather than
+  taken:** Node 20.20.2 decodes a resizable-backed view without throwing, and
+  `WebAssembly.Memory(...).buffer.resizable` is **`false`** here — the box cannot construct Chrome's
+  shape, let alone reproduce its refusal. The call site matches the diagnosis:
+  `UTF8Decoder.decode(heapOrArray.subarray(idx, endPtr))` over `HEAPU8`, one UTF-8 decoder in the glue.
+- **FOUND:** **One defect, fixed on the branch.** T-024's `done-when:` named _"the two turns that hit it
+  (T-011, `STEWARD-…`)"_; run against T-011's own merged tree (`c18ae8e`), `baselineEntryIssues` returns
+  **`[]`** — its dates agreed on the day and its re-baseline was earned by a real declaration moving
+  (`scene.ts :: type SceneCollection`). A criterion pointing at a green fixture is not checkable (READY
+  criterion 4), so it now names the one turn that does reproduce. **Everything else checked out:** all
+  three box rows' `done-when:` items are box-executable, each carries an explicit `unverified here:`
+  naming its pc successor, and `seats.mjs` routes and refuses the five rows accordingly; both corrections
+  hold against the code (`Part.node` exists nowhere, `saveBnn` takes a `Scene`); T-011's rotated abstract
+  is byte-identical.
+- **OWES:** The **owner** — the merge; `needs-operator/freeze` is applied and CI's `PR shape` job ran.
+  `brahim` — the `--review` merge-command routing defect now in `## Discovered`, and an owner line on
+  `AGENTS.md §7.3` vs. invariant 10 for an in-place correction in a planning file.
+- **RISK:** additive — no snapshot byte, no declaration, no code. **Not merged: owner-gated.**
+- **FULL:** `handoff/hmdnah/2026-08-18-STEWARD-unblock-pc-and-chrome-boot-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #36.
+
+
+### STEWARD-unblock-pc-and-chrome-boot — the two defects that block a whole machine, decomposed — 2026-08-18 — seat: brahim
+
+- **CHANGED:** `docs/BACKLOG.md` — **T-020**/**T-021** (the pinned vitest cannot collect
+  `tests/protocol/*` on Windows; box fix, pc confirmation) and **T-022**/**T-023** (`kernel-occt`'s glue
+  decodes from growable WASM memory; box fix, pc confirmation) NEW · T-018's `done-when:` corrected from
+  `Part.node`, a field that has never existed, to `Part.nodeId` · T-005's first bullet marked discharged
+  by T-018's measurement · **T-024** NEW (`_baselinedAtEntry` names a position, so a cross-day §7 append
+  goes red), decomposed because this turn tripped it rather than because the row was old · T-011's
+  step-2-of-2 review abstract rotated to `docs/history.md` §E, §7 being over its byte budget at 33235.
+  No `packages/`, no `apps/web`, no `scripts/`; the only frozen-surface byte is `_baselinedAt` (see RISK).
+- **VERIFIED:** `pnpm verify` green, exit 0. Four facts measured before writing the rows rather than
+  assumed: **Node 20.20.2 decodes a resizable-backed view without complaint**, so the box cannot
+  reproduce Chrome's refusal and T-022 carries no browser criterion; `bunyan-kernel.js` is minified
+  emscripten glue with one `TextDecoder` on the UTF-8 path, so the fix is the toolchain or the recipe,
+  never a hand edit; all five protocol test files carry em-dashes (5–37 each); `Part.node` does not exist
+  (`entities.ts:683`).
+- **FOUND:** Both defects block a whole machine and both are box work — the machine that is not blocked.
+  `pnpm verify` cannot reach green on the pc for **any** task, so `agent-finish.mjs` refuses every
+  `amer`/`khalihlna` turn and five `ready` `pc` rows sit behind it with T-001's browser-verified work
+  unmerged. The kernel not booting on Chrome 149+ is a v1.0.0 shipping defect, not a dev-box one; the
+  pc's `BUNYAN_BROWSER_CMD` pin fixes one machine and nothing users get. Both split box/pc under this
+  file's own rule — *a `done-when:` that mixes machines needs splitting* — so each box row carries an
+  explicit `unverified here:` and each pc row is the turn that may tick it.
+- **OWES:** `zayd` — **T-020**, **T-022** and **T-024**, all `ready`, all `risk: high` ⇒ two review turns
+  each (D88). ⚠ **T-024 before the P5 freeze**, for the reason in its own row: after the freeze the
+  baseline may not be rewritten without an owner ruling, so today's only remedy stops existing and the
+  gate has no green path. The pc seats — **T-021** and **T-023** once their box halves merge; T-023 also
+  unsets the `BUNYAN_BROWSER_CMD` workaround so it cannot outlive its fix. `brahim` (a later turn) — the
+  `--review` wrong-PR claim, three occurrences and still undecomposed.
+- **RISK:** additive (re-baselined) — **0 declarations moved**, all 214 byte-identical; the only change
+  to the snapshot is `_baselinedAt`, demanded by the very defect T-024 decomposes. ⚠ It still labels the
+  PR `needs-operator/freeze`, so the owner merges a docs-only turn — the cry-wolf cost that row ends.
+- **FULL:** `handoff/brahim/2026-08-18-STEWARD-unblock-pc-and-chrome-boot.md`
+- **REVIEW:** ✅ approved by `hmdnah` 2026-08-18 — one defect found and fixed on the branch (T-024 named
+  T-011 as a fixture that measures green). ⚠ **Owner merges** — `needs-operator/freeze`.
+
 ### T-020 — review (step 2, adversarial): the identical 936 tests also execute the identical 5047 assertions, and the hook deadline is the gate the sweep missed — 2026-08-19 — seat: hmdnah
 
 - **CHANGED:** nothing on the branch — a review turn edits no code.
@@ -1528,6 +1668,218 @@ same as `current_state.md` §7.
 - **FULL:** `handoff/zayd/2026-08-17-T-011-reserved-comment-sweep.md`
 - **REVIEW:** step 2 (adversarial, D88) complete — **NOT approved**, two defects proven in the new
   dependency edge; returned to `zayd` on the existing claim. See the `hmdnah` step-2 entry above.
+
+### T-018 — D66's lazy build: 89.8% of a cold load is deferrable, and a deferred join partner is safe — 2026-08-17 — seat: zayd
+
+- **CHANGED:** `docs/design/P5_step9_D66_lazy_build_design.md` **NEW** (§3a keep-live set · §3b first
+  paint · §3c force-vs-declare · §3d eviction ruled out — the section numbers T-005/T-006 already cite) ·
+  `tests/d66-lazy-build-measure.test.ts` **NEW** (+8, the instrument every number is printed by) ·
+  `docs/BACKLOG.md` (one `## Discovered` row) · `current_state.md` (this abstract; **T-011's step-1
+  review abstract rotated** to `docs/history.md` §E to stay inside the 10-abstract cap) ·
+  `docs/history.md` §E. **Nothing ported from closed PR #16**, and no `packages/`, no `apps/web`, no
+  `scripts/`, no frozen byte.
+- **VERIFIED:** `pnpm verify` green, foreground, real OCCT kernel, exit 0 — main suite **936 green · 97
+  files · 287 suites**, `docs:check` **154 · 8 files**; `tests/freeze-boundary.test.ts` 12/12,
+  unmoved ⇒ `RISK: additive`. **Revert-verified on the tripwire the row names:** changing
+  `identitiesOf` from `parts.flatMap(p => [...p.refs])` to `parts.map(p => p.nodeId)` left **1 of 8
+  RED** — `the identity signature must carry more than the recipe-derived node ids: expected 12 to be
+  greater than 12`; restored 8/8. ⚠ **The element-for-element identity comparison stays GREEN through
+  that revert, which is the point:** `partNodeId` is `${elementId}.${partName}`, computed with no kernel
+  call, so it agrees whatever the geometry did. ⚠ **The row names `Part.node`, a field that has never
+  existed** — it is `Part.nodeId` (`entities.ts:695`).
+- **FOUND:** **The safety condition holds and it holds ACROSS A JOIN.** Two cold documents from the same
+  `.bnn`, `rebuildAll()` vs `rebuildOnly(9 of 88)`: part names, `nodeId`, `refs` and `quantities` all
+  identical, `brokenRefs()` empty in both — and the built south wall keeps the miter made by a west wall
+  the partial document **never builds** (`resolveJoins` = `['start','end']` in both; bounds
+  `[-100,-100,0 … 8100,100,3000]` in both, the `-100` being the miter). Measured on `bounds`, not
+  `refs`, because T-011 measured that `refs` cannot see a miter. **Deferral:** 89.8% of elements / 89.3%
+  of solids deferred removes **85.8%** of a 2443 ms cold load; a 4-point `rebuildOnly` sweep
+  (22/44/66/88 el → 707/1231/1869/2567 ms) fits **28.3 ms/element, intercept 39 ms = 1.6%, R² 0.9961**,
+  so the element fraction and the wall-clock fraction agree to ~4 points. `rebuildOnly(everything)` costs
+  2567 ms against `rebuildAll()`'s 2443 ms ⇒ **the build half needs no new API.** ⚠⚠ **§3c's real
+  defect:** `projectQuantities` DECLARES the 79 deferred elements rather than under-reporting — but
+  `enumerate.ts:215` gives every one of them `failure: 'unbuildable'`, so a consumer cannot tell *"not
+  built yet"* from *"cannot be built"*. **Two measurement defects found by the harness failing:** a sweep
+  on cold kernels priced an element at **−0.76 ms** (each later load warmer than the last), and with all
+  the doors on one storey the fit came back **R² 0.2539**; fixed by a per-kernel warm-up and by spreading
+  the doors.
+- **OWES:** `hmdnah` — this PR's review, `risk: normal`, the ordinary one-step route. `khalihlna` —
+  *unverified here: lazy first paint improves time-to-first-pixel*; every number is headless and the
+  browser half is T-006's. `brahim` — three non-blocking items: the `## Discovered` join level-scoping
+  row wants a decision on becoming a `T-nnn`; **T-005's first `done-when:` bullet is discharged** (`save`
+  reads no built state — the two scenes are byte-identical JSON and `saveBnn` takes a `Scene`, never a
+  `DocumentContext`), so its wording now describes a measurement that exists; and T-018's own
+  `done-when:` names `Part.node`.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-17-T-018-d66-lazy-build.md`
+- **REVIEW:** approved and merged by `hmdnah` on `narutousomaki741`, green CI, no defect. Item 1
+  re-executed independently; findings in the `hmdnah` entry above and on PR #35.
+
+### T-018 — review: the deferral numbers reproduce, and the tripwire has teeth — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** no product or test byte — no defect to fix. This abstract, and `T-011`'s comment-sweep
+  abstract rotated to `docs/history.md` §E to hold §7 inside its 32 KB budget once a tenth abstract
+  lands (`docs-budget.test.ts`'s own remedy). Merged PR #35 on `narutousomaki741`.
+- **VERIFIED:** **Item 1 re-executed.** `identitiesOf` reverted from `p.refs` to `p.nodeId` ⇒ **1 of 8
+  RED** — `the identity signature must carry more than the recipe-derived node ids: expected 12 to be
+  greater than 12`; restored, tree clean, **8/8 green**. ⚠ The row's `Part.node` **has never existed** —
+  judged against `Part.nodeId` (`entities.ts:695`), which the tripwire was built against. **Item 5
+  re-measured twice:** 89.8 %/89.3 % deferred both runs, slope **27.82** and **28.04 ms** against the
+  doc's 28.3, R² 0.9968/0.9983, bounds and take-off identical; the intercept is the noisy term
+  (39 → 67 → 90 ms) but stays under 4 % of a cold load, so what it carries survives the spread. **Item
+  7:** `RISK: additive — unchanged vs baseline`, `freeze-boundary` green, no `packages/` byte, and
+  `PR shape · reserved classes` confirmed to have RUN with no `needs-operator/*` label.
+- **FOUND:** no defect; all four `done-when:` items are box-executable and were executed. Every item-4
+  claim held against code — `partNodeId` (`geometry.ts:60`), `rebuildOnly`'s assembly closure
+  (`document.ts:553`), `saveBnn(scene, …)` (`bnn.ts:103`), `enumerate.ts:215`'s `'unbuildable'`,
+  `baselineOf`'s early return (`joins.ts:103`), `partnersAt`'s unscoped 2D match (`joins.ts:205`).
+  **"Nothing ported from #16" holds:** that instrument has no `warmUp`, sweep or `fitLine` and reported
+  a different measurement (3 storeys, "~35 % forced"). One correction: `CHANGED:` names **one** rotated
+  abstract where the commit rotates **two** (T-016, T-011), both intact in `history.md` §E — the second
+  is what keeps §7 in budget, so the act is right and its description short by a row.
+- **OWES:** `brahim` — T-018's `done-when:` names `Part.node`, to correct post-merge; and `main`'s §8
+  disagreed with the measured tree at turn start (T-011's branch-shaped block), regenerated with
+  `pnpm state` and committed so the turn could begin. `khalihlna` — *unverified here: lazy first paint
+  improves time-to-first-pixel*, already written as such in the doc, T-006's and not ticked.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-018-review-d66-lazy-build.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`); full findings posted to PR #35.
+
+### T-017 — review: the new gate has teeth on the real file, not only on its fixture — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — no defect to fix, and the one correction below is a number in the
+  author's own entry, which `AGENTS.md §4.10` keeps rather than rewrites. Merged PR #34 on
+  `narutousomaki741`.
+- **VERIFIED:** Item 1 re-executed here: the author's neutralisation
+  (`return above && above.date < below.date` → `return false && …`) leaves **1 of 21** RED in
+  `tests/docs-budget.test.ts`, `expected [] to deeply equal [ Array(1) ]` on the fixture case;
+  restored **21/21 green**. Item 6 by mutating the REAL file rather than a fixture — §7's last
+  abstract re-dated `2026-08-16` → `2026-08-18`, which makes `current_state.md` itself genuinely
+  out of order: the new gate goes RED naming the pair, and the check it replaced stays **GREEN** on
+  that same input (`ns` = `1000 … 991`). Old blind, new red, one real file. Item 2: every
+  `.n`/`parseAbstracts` reader re-enumerated independently — the author's five-row table is complete.
+  Item 7: `detectReservedClasses` run here against `origin/main` ⇒ `classes: []`, and both CI jobs
+  SUCCESS on the tip with no `needs-operator/*` label. `freeze-boundary` **12/12**.
+- **FOUND:** no defect; all three `done-when:` items are box-executable and all three were executed.
+  The fixture alone would not have settled item 6 — it proves the helper, and stays green if the
+  real-file assertion is deleted — which is why the gate was re-proved against `current_state.md`.
+  One correction (item 4): the entry's *"§7 holds eight abstracts dated `2026-08-16`"* is `origin/main`'s
+  histogram (8/2, measured); on this PR's own tip it is **7 and 3**, since the same commit adds an
+  `08-17` abstract and rotates an `08-16` one out. The ceiling argument it supports is unaffected —
+  but the observable scope today is one day boundary, so the gate binds the next mis-rotation, not §7
+  as it stands. The `date:` is authored and nothing checks it against the day of the turn
+  (`agent-finish.mjs:284` only suggests it), a second ceiling the entry does not name.
+- **OWES:** `brahim` — two non-blocking follow-ups, neither in this task's `done-when:`:
+  `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment now cites a gate that is true only to day
+  granularity, which it does not say; and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through
+  `.n`, a position rather than an identity for a new-scheme entry, so `1000` always finds whatever is
+  on top of §7 (pre-existing, guarded by the date cross-check beside it).
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-017-review.md`
+- **REVIEW:** n/a — this IS the review.
+
+### T-017 — §7's newest-first gate now reads the authored date, not the positional key — 2026-08-17 — seat: zayd
+
+- **CHANGED:** `tests/docs-budget.test.ts` (**`outOfDateOrder` NEW**, module-local and pure — the
+  offending adjacent pairs, empty ⇒ §7 descends by date; the old "numbers entries uniquely and
+  monotonically" case SPLIT, its duplicate-number half kept verbatim and its order half replaced by a
+  date comparison; +2 fixture cases — the teeth, and same-date entries in either order) ·
+  `tests/freeze-boundary.test.ts` (one comment: *"nothing enforces it"* was true when written and is
+  false as of this PR) · `current_state.md` (this abstract; **T-008's second abstract rotated** to
+  `docs/history.md` §E to stay inside the 10-abstract cap — its durable lesson is already in §5's
+  CLOSED list) · `docs/history.md` §E. No `scripts/`, no `packages/`, no `apps/web`, no frozen byte.
+- **VERIFIED:** `pnpm verify` green, exit 0, all six gates — **95 files/910 tests** main suite,
+  **8 files/154 tests** `docs:check` subset, `tests/freeze-boundary.test.ts` **12/12** ⇒
+  `RISK: additive`.
+  **Revert-verified:** neutralising the date comparison to the old blind behaviour
+  (`return above && above.date < below.date` → `return false && …`) left **1 of 21**
+  RED in `tests/docs-budget.test.ts` — the fixture case, `expected [] to deeply equal [ Array(1) ]`;
+  restored **21/21 green**. The same test's positional-key assertion stayed green through the revert,
+  which is deliberate: it is the half that records what the old signal could see.
+- **FOUND:** measured the defect before writing the fix rather than reading it off the BACKLOG row —
+  on a two-entry fixture with the OLDER entry on top (`T-002`/`2026-01-01` above `T-001`/`2026-01-02`)
+  the positional key is `1000, 999`, descending, and the old assertion is green on the exact input it
+  exists to refuse. What made it worth gating at all: `newestAbstract` returns the MAX `.n`, which for
+  a new-scheme entry IS its position, so §7's written order decides §8's "newest entry" row and
+  `--rebaseline`'s `_baselinedAtEntry`/`_baselinedAt` — and the existing "§8 agrees with §7" case
+  cannot catch a mislabel, both its sides coming from that same call. ⚠ **Day granularity is the
+  honest ceiling, not an oversight:** §7 holds eight abstracts dated `2026-08-16`, so a swap within a
+  day is invisible and is accepted by design. **Backward sweep, all five order-readers enumerated:**
+  `newestAbstract` (the reason the gate exists), `state.mjs:229`/`:240` and the `AWAITING REVIEW` guard
+  (covered transitively), `frozen-surface.mjs`'s `baselineEntryIssues` (treats `.n` as an identity, not
+  a sequence — unaffected), and `agent-finish.mjs:280`, whose `find(a => a.id === task && a.seat ===
+  seat)` does take the topmost of a same-id/same-seat pair (§7 holds one today) — not a defect, the
+  matched object is never read past the `die()` beside it.
+- **OWES:** `hmdnah` — this PR's review; `risk: normal` per the BACKLOG row, so the ordinary one-step
+  route. Not covered: two entries written on the same day are unordered by this gate, which would need
+  a finer-grained authored field in §7's heading — a schema change, out of scope here. `brahim` — the
+  two T-016 follow-ups reassigned in that entry's step-2 `OWES:` are untouched by this turn.
+- **RISK:** additive
+- **FULL:** `handoff/zayd/2026-08-17-T-017-newest-first-by-date.md`
+- **REVIEW:** reviewed by `hmdnah` (one step, `risk: normal`) — item 1 re-executed, and item 6 re-proved
+  against the real `current_state.md` rather than the fixture. No defect; one number corrected in the
+  review entry above. Approved and merged on `narutousomaki741` with green CI.
+
+### T-016 — review (step 2, adversarial): the field is correct and its wiring is untested — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — the two findings below are comment-level and unprovable by test,
+  and step 2 is the step nobody reviews. Merged PR #33 on `narutousomaki741`.
+- **VERIFIED:** Item 1 re-executed independently of step 1: `resolveBuilder` → `return seat;` leaves
+  **1 of 50 RED**, `expected 'hmdnah' to be 'zayd'`; restored, whole `tests/protocol/` tree
+  **113/113 green**. Item 2: every baton site enumerated (two writers, two readers, one fixture) —
+  no consumer dirty. Item 3: `liveClaims` is what quantifies over every baton, feeding two claim
+  refusals, and both correctly still key on `seat` — a collision gate asks who holds the branch, not
+  who built it. Item 6 by mutation: deleting the `builder` key from `agent-finish.mjs`'s `claim`
+  object restores the pre-T-016 defect at the call site and leaves **113/113 green**. Item 7
+  re-confirmed on the tip: `review/step-1` only, no `needs-operator/*`, both CI jobs pass.
+- **FOUND:** no defect. (1) **The wiring is uncovered** — the three `resolveBuilder` cases assert a
+  pure function, nothing asserts it is called, so `done-when:` bullets 2 and 3 rest on re-execution;
+  it is proven instead on this branch's own history, where `153c957` (plain finish) wrote
+  `builder: zayd` and `c9ac027` (`--review` finish) carried it forward under `seat: hmdnah` —
+  `zayd`'s `OWES:` discharged. (2) **One rationale, four copies, all four now stale** — the reason
+  `--continue` derives the admitted seat from `machine:` is written out at `agent-start.mjs` `~48`
+  and `~499`, `seats.builderFor` (`seats.mjs` `~459`) and `tests/protocol/seats.test.ts` `~306`, and
+  each says a gate on the baton "would admit the reviewer", true of `seat` and false of `builder`;
+  step 1 flagged the first two. Measured scope limit, quantified: **1 of 8** live batons carries a
+  `builder` row, so the next `--review` finish on the other seven stamps `builder: hmdnah` by the
+  documented fallback — a false positive where there was a silence.
+- **OWES:** `brahim` — two follow-ups, neither in this task's `done-when:`: an end-to-end test of
+  `agent-finish.mjs`'s baton write (step 1 measured that one `package.json` with a no-op `verify`
+  crosses `agent-finish.test.ts`'s stated fixture boundary, so it is closable, but it is a change to
+  `zayd`'s harness with a 113-test blast radius); and the four stale rationale copies, which want one
+  copy and three pointers per `AGENTS.md §7.2` rather than a fourth rewrite.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-016-review-step2.md`
+- **REVIEW:** n/a — this IS step 2 of the review.
+
+### T-016 — review (step 1, mechanical): the revert holds, and the fixture the `done-when:` names is reachable — 2026-08-17 — seat: hmdnah
+
+- **CHANGED:** nothing in the diff — a step-1 review that edits the branch changes the thing step 2
+  reviews. Findings posted as a PR comment on #33.
+- **VERIFIED:** Item 1, twice. **Unit:** `resolveBuilder` → `return seat;`, both protocol suites
+  re-run — **1 of 50 RED**, `expected 'hmdnah' to be 'zayd'` on "a review finish carries the PRIOR
+  builder forward"; restored **50/50 green**. **Fixture, end to end** — the reproduction `done-when:`
+  bullet 4 names: a real `--review` finish driven through to the baton write on a `makeFixture` repo
+  (one added `package.json` with a no-op `verify` script clears step 1) writes **`builder: hmdnah`**
+  with the fix reverted and **`builder: zayd`** with it in place, `seat: hmdnah` either way. Numbers
+  re-measured, all matching: **95 files/907 tests**, `docs:check` **8 files/151 tests**,
+  `freeze-boundary` **12/12**.
+- **FOUND:** nothing that blocks. Three claims that do not hold as written (item 4): (1)
+  `resolveBuilder`'s doc-comment and handoff §2/§5 say the baton write is "past what this repo's
+  fixtures can reach" — it is reachable, so no committed test covers `agent-finish.mjs`'s baton write
+  and bullet 4 rests on this review's re-execution alone; (2) `scripts/agent-start.mjs`'s file header
+  and its `--continue` gate comment still justify deriving the builder by saying a `--review` finish
+  rewrites the baton to name the reviewer — the condition this PR removes; (3) handoff §2's "renders
+  identically to before" — a pre-T-016 baton gains a `builder` row, which the new test asserts.
+  Measured scope limit: on a baton written before this merges there is no `builder` row, so the
+  fallback names the reviewer — the field is trustworthy only on branches claimed after the merge.
+  Item 7: no `needs-operator/*` label **and** the labeller ran (both CI jobs SUCCESS on the tip).
+- **OWES:** `hmdnah` (a later session) — D88 step 2 on PR #33: items 2, 3, 6, reconciled against this
+  report, and re-confirming CI and the `needs-operator/*` check before merging.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-17-T-016-review-step1.md`
+- **REVIEW:** n/a — this IS step 1 of the review; step 2 (`hmdnah`, a separate session) approves and
+  merges.
 
 ### T-016 — `§0b`'s baton carries the builder separately from the current holder — 2026-08-16 — seat: zayd
 
