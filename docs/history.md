@@ -1328,6 +1328,76 @@ titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-s
 same as `current_state.md` §7.
 
 
+### T-024 — review (step 2, adversarial): the repaired gate's §7 tie is two appends from red, and this turn is the first — 2026-08-19 — seat: hmdnah
+
+- **CHANGED:** no code byte — F3 is a scoping call on the author's own `done-when:` and both candidate
+  repairs change an exported contract in `scripts/frozen-surface.mjs`, which `REVIEW.md`'s ownership rule
+  makes a finding rather than a fix. `handoff/hmdnah/2026-08-19-T-024-review-step2.md` NEW; this abstract;
+  T-018's two abstracts rotated to `docs/history.md` §E, §7 having stood at 31588 of 32768 bytes with 8 of
+  10 abstracts. ⚠ **`docs/BACKLOG.md`'s T-024 row set back to `review` by hand** after
+  `agent-finish --review --step 2` stamped it `done` — see **G5**. PR #38 **not approved and not merged**.
+- **VERIFIED:** **Item 3 — the writer and the acceptor are closed against each other, quantified over the
+  whole record and not over §7:** across `current_state.md` §7 + `docs/history.md`, **42 new-scheme and 13
+  legacy headings, 0** keys `abstractKey` can mint that `ENTRY_KEY`/`isSyntheticEntryNumber` refuse — and
+  closed by construction, `ENTRY_KEY`'s three alternatives being byte-identical to `NEW_HEADING`'s groups
+  1/3/4. The **invalidator** never reads the new field: `diffSurface` re-measured `{added:[],removed:[],
+  changed:[]}` at 214 = 214. **Item 7 re-confirmed on the exact merge tip** `5636b8e` (local HEAD =
+  origin = `headRefOid`), per job rather than per label, which is the trap the item names: `typecheck ·
+  lint · geometry harness` SUCCESS 11:50:10→11:59:44Z and `PR shape · reserved classes` SUCCESS
+  11:59:46→11:59:58Z, so `needs-operator/freeze` is a verdict and not a silence; mechanism re-derived at
+  `reserved-classes.mjs`'s bare path match on the snapshot file.
+- **FOUND:** ⚠⚠ **F3 upheld as a proven defect — the fuse is TWO appends, not six, and this turn is the
+  first of them.** Step 1 measured against the 10-abstract cap; the budget that binds is the **byte** cap,
+  and §7 sits at **31588 / 32768 with 1180 B of headroom — less than the smallest abstract it holds**.
+  Simulating the rotation as it is performed and re-running the new test's own assertion on the result:
+  the baseline's key leaves §7 after **2** appends at the median footprint (4056 B) and **3** at the
+  smallest, `expect(named).toBeDefined()` FAILING each time while `baselineEntryIssues` returns `[]`. A
+  builder turn plus its review is two abstracts, so the next ordinary task reddens `docs:check` for every
+  seat having moved no declaration — T-024's own shape, on the gate T-024 built. ⚠⚠ **Re-measured with
+  this abstract in place, the fuse is ONE:** rotating T-018's two out left the authorising abstract at
+  §7's bottom, so the very next append — any seat, any task — takes it out at all three sample sizes.
+  **A recorded follow-up
+  cannot work:** claiming and finishing one appends the second abstract itself, and the three exits left
+  are the three this entry rejects (falsify a date · `--rebaseline`, owner-gated after the freeze · delete
+  the test, which is **F4**, and how Q15 happened). ⇒ back to `zayd` on the existing claim. **Item 6 — the
+  PR moved three of four real-file assertions onto fixtures and left the fourth over-strict.** Measured:
+  the *"cannot name an entry that has not happened"* bound is **dead against the real file** (§7 holds 0
+  legacy abstracts, so `legacy.length > 0` never fires — `5000` and `999999` are refused on `origin/main`
+  and accepted here) while its test stays green on a synthetic fixture; the keyed path's `abstracts`
+  argument is **inert** (byte-identical output against the real §7 and a junk one-element array), so
+  *"catches Q15's own shape"* asserts nothing about `current_state.md`; and *"the gate is repaired, not
+  removed"* asserts `toHaveLength(1)` without the message — narrowing `ENTRY_KEY` to drop `STEWARD-`
+  leaves it **green** (2 failed | 15 passed elsewhere; restored 17/17). **Item 2 — two sites the sweep
+  missed. G1:** `agent-finish.mjs:280` identifies an abstract by `id + seat`, the tuple this PR proves
+  collides, which is why step 1's abstract already satisfies step 2's gate. **G2:** the seven
+  `docs-budget` messages moved `.n` → `.id`, the one field that is never unique — §7 holds two `T-024`
+  abstracts today. **G3:** `isSyntheticEntryNumber` covers `(990, 1000]`, but a turn appends *then*
+  rotates, so §7 transiently holds 11 and index 10 mints `990`, which the guard reports as legacy.
+  **The `⚠ MEASURED` uniqueness claim:** step 1's correction to *"zero collisions"* is falsified by this
+  very turn — step 1's abstract and this one are both `T-024 — 2026-08-19 — hmdnah`, so D88 puts a live
+  collision in §7 on the PR that says there is none. Right text: 4 colliding keys of 51 across §7 +
+  history, generator "any two turns by one seat on one task on one day" (D88's pair **and** `--continue`'s
+  builder pair), conclusion unchanged but for cry-wolf rather than invariant 10. Correcting it needs no
+  rewrite of a merged record **because F3 returns the PR** — its author fixes all four copies inside the
+  same editable window.
+- **OWES:** `zayd` — on the existing claim via `agent-start.mjs --continue T-024`, no new PR: F3/F4 (give
+  the §7 resolution the predecessor's skip, wherever it lives), the four copies of the uniqueness claim,
+  and optionally G2/G4's fixture-only assertions. `brahim` — the `## Discovered` uniqueness row's scope,
+  count and generator; **G1** and **G5** as new rows; T-024 stays `review`. ⚠ **And a ruling: D88 has no
+  third step.** This return happens *after* step 2, so whoever reviews the returned branch reviews an
+  unreviewed fix; `REVIEW.md`'s two-step table does not say what that turn is and I have not invented one.
+  The **owner** — the merge, once a repaired PR is approved; `needs-operator/freeze` composes with `risk:
+  high` rather than being replaced by it. Nothing owed to a `pc` seat.
+- **RISK:** additive — a review turn moved no declaration; `diffSurface` empty at 214 = 214.
+- **FULL:** `handoff/hmdnah/2026-08-19-T-024-review-step2.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), D88 **step 2 of 2**. ⚠ **NOT APPROVED**:
+  F3 is upheld and PR #38 returns to its builder on the existing claim. **G5 — `agent-finish.mjs` stamped
+  the backlog row `done` on an owner-gated PR**: `reviewFlipsToDone('high', 2, false)` is `true` because
+  `contractTouching` reads §8's frozen-surface row, and `AGENTS.md §5`'s freeze and legal-figure classes
+  walk past it; `done` is what satisfies a `depends-on:`, so this releases dependents on an unmerged PR.
+  T-014's defect, one class over; the 2026-08-18 `## Discovered` row covers only the printed merge
+  commands, which a human can decline, and not the row flip, which nobody sees. Row corrected by hand.
+
 ### T-024 — review (step 1, mechanical): both reverts reproduce, and the repaired gate loses its tie to §7 six appends out — 2026-08-19 — seat: hmdnah
 
 - **CHANGED:** nothing on the branch — a review turn edits no code, and F3/F4 below are a scoping call on
