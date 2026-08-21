@@ -119,7 +119,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | machine | box |
 | task | `T-022` |
 | branch | `task/T-022-kernel-occt-s-glue-decodes-from-growable` |
-| claimed-at | 2026-08-21T09:52:06Z |
+| claimed-at | 2026-08-21T09:52:18Z |
 | status | working |
 
 <!-- END BATON -->
