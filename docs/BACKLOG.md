@@ -127,7 +127,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-021 | ready   | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
 | T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
-| T-023 | blocked | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
+| T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-005 | ready   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
 
 ---
@@ -687,6 +687,29 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
+
+- **2026-08-21 — the seat identity gate guards the CLAIM, and the merge happens outside it.** D87's check
+  lives in `agent-start.mjs`, but a reviewer approves and merges _after_ `agent-finish.mjs` has returned,
+  so a session that reaches the merge without a fresh claim is unguarded. Measured on PR #39: the box's
+  `gh` default resolves to `Davidian-Abdo`, the PR's own author, and the session got as far as the merge
+  command with nothing checking — it stopped only because the seat read `AGENTS.md §6` itself.
+  `gh pr merge` would have succeeded, since GitHub's self-approval refusal does not extend to merge
+  (`agent-start.mjs`'s own ⚠⚠ block, measured 2026-08-15). Compounding it, `agent-finish --review` writes
+  the verdict as accomplished fact: PR #39 carried _"Verdict: APPROVED, and merged by me on
+  `narutousomaki741`"_ while the PR had **zero** reviews. Fix shape: re-run the identity gate at
+  approve/merge time, and have the finish state the verdict as owed rather than done. Found by `hmdnah`
+  merging PR #39, and by `brahim` instructing that session to skip `agent-start.mjs`. Recorded, not claimed.
+- **2026-08-21 — `current_state.md §6`'s relink recipe caps memory at `--memory=2g`, and the link fits in
+  1 GB.** Step 2 of PR #39 ran it under a hard 1 GB cgroup cap with container swap off in **78 s**, exit 0,
+  emitting a `.wasm` and glue byte-identical to the committed pair. The overstatement has a measured cost:
+  step 1 of the same PR **deferred the relink entirely** on `--memory=2g` against 1024 MB free, and recorded
+  it as an `unverified here:` a box seat could not discharge. Fix shape: correct §6's figure to what was
+  measured. Found by `hmdnah`, PR #39 step 2. Recorded, not claimed.
+- **2026-08-21 — the shipped kernel glue now has a patch step, so relinking means running `link.sh`.**
+  T-022 added `tools/kernel-build/postlink.mjs`, which rewrites both emitted `TextDecoder.decode` sites
+  after the link; `em++` invoked by hand emits the unpatched glue and reintroduces the growable-memory
+  decode. The recipe in `current_state.md §6` already runs `link.sh`, which applies it. Owed by `zayd`
+  building T-022. Recorded, not claimed.
 
 - **2026-08-21 — `frozen-surface.mjs`'s legacy half documents a skip that can no longer happen.** T-024
   pointed `abstracts` at `recordedAbstracts`, so the legacy set never empties: **13** legacy headings in
