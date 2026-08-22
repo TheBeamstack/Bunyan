@@ -549,5 +549,9 @@ describe('D66 lazy build — the instrument the design doc is written from (T-01
     expect(fullTakeoff.unmeasured, 'a full load leaves nothing unmeasured').toHaveLength(0);
     expect(partialTakeoff.unmeasured, 'and neither does a forced one').toHaveLength(0);
     expect(partialTakeoff.rows.length, 'row for row').toBe(fullTakeoff.rows.length);
-  });
+    // ⚠ EXPLICIT TIMEOUT, because this case BUILDS: FORCE (T-005) makes `projectQuantities` a whole-model
+    // rebuild of everything the keep-live set skipped, which is real OCCT work and not the pure read the
+    // 5 s default assumes. Measured red on the CI runner at the default and green on the box — a fixture
+    // this size sits either side of 5 s depending on the machine, which is the worst place for it to sit.
+  }, 120_000);
 });

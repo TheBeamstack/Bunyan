@@ -632,7 +632,9 @@ is maintenance and does NOT get an entry of its own.**
 
 ### T-005 — review: the sweep's lens was narrower than the rule it swept for — 2026-08-22 — seat: hmdnah
 
-- **CHANGED:** two documentation files on the branch, **no product code**: `open_rulings.md` — **Q23 NEW**
+- **CHANGED:** one test fix and two documentation files on the branch, **no product code**:
+  `tests/d66-lazy-build-measure.test.ts` — an explicit **`120_000`** timeout on the §3c case, which this
+  PR turned into a whole-model build while leaving it on the 5 s default; `open_rulings.md` — **Q23 NEW**
   (does `agent.query`'s part-scoped filter FORCE, DECLARE, or stay recipe-only?), with a recommendation and
   a price; `docs/design/P5_step9_D66_lazy_build_design.md` §3c — one paragraph recording that the ruling
   table is **not the whole set**, pointing at Q23, because the doc otherwise reads *"§3c is BUILT"* and
@@ -649,6 +651,15 @@ is maintenance and does NOT get an entry of its own.**
   read-only aggregate into a D42 rejection**, the one failure mode that would have made every take-off
   throw. `WATCHED` holds none of the four changed files; `PR shape · reserved classes` **ran and passed**
   with **zero** labels, which is what separates *"no label"* from *"the labeller never executed"*.
+  ⚠⚠ **AND `pnpm verify` GREEN ON THE BOX WAS NOT GREEN CI — THIS PR IS WHERE THE TWO DISAGREED.** The
+  first push went red on the self-hosted runner: `d66-lazy-build-measure.test.ts`'s §3c case
+  **`Test timed out in 5000ms`**, `1 failed | 958 passed`. Cause is this PR's own change — the turn
+  rewrote that case (its §8) so it calls `projectQuantities()`, which after this same PR **FORCES a
+  whole-model rebuild**, turning a pure read into real OCCT work on the 5 s default while the file's own
+  `beforeAll` already carries `900_000`. **Measured both sides: 3892 ms on this box, over 5000 ms on the
+  runner** — a one-second margin, so the machine decided the verdict and the author could not have seen
+  it. Fixed on the branch with an explicit `120_000` and a comment saying it builds. ⚠ The PR's own new
+  `tests/d66-force-declare.test.ts` is unaffected — small fixture, passed on the runner in the same job.
 - **FOUND:** ⚠⚠ **§3c BINDS AN AGGREGATE THE SWEEP'S LENS COULD NOT SEE.** The sweep enumerated readers of
   `ModelElement.state`/`.failure`; §3c binds *every aggregate that quantifies over the model*, and the two
   sets differ by `agent.query`. `QueryFilter.discipline`/`.materialId` are **PART-scoped (D45)**, so they
@@ -929,15 +940,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-005 (hmdnah, 2026-08-22)** |
-| branch · tip · tree | `task/T-005-d66-3c-force-on-measure-and-whether-save` · `3d3912d` · dirty |
+| branch · tip · tree | `task/T-005-d66-3c-force-on-measure-and-whether-save` · `0543f2e` · dirty |
 | open PRs | #40 task/T-005-d66-3c-force-on-measure-and-whether-save |
 | suite | **959 green** · 99 files · 293 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 1142 insertions(+), 144 deletions(-) (13 files) |
-| docs budget | current_state 80.4/96.0 KB · §7 28.0/32.0 KB · abstracts 6/10 · bodies 83 |
+| diff vs origin/main | 13 files changed, 1188 insertions(+), 144 deletions(-) (13 files) |
+| docs budget | current_state 81.5/96.0 KB · §7 29.1/32.0 KB · abstracts 6/10 · bodies 83 |
 
 _Generated 2026-08-22 by `pnpm state`._
 
