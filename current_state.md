@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-005` |
 | branch | `task/T-005-d66-3c-force-on-measure-and-whether-save` |
@@ -929,15 +929,15 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-005 (zayd, 2026-08-22)** |
-| branch · tip · tree | `task/T-005-d66-3c-force-on-measure-and-whether-save` · `3046816` · clean |
-| open PRs | none — main is the tip of the work |
+| branch · tip · tree | `task/T-005-d66-3c-force-on-measure-and-whether-save` · `f194f81` · clean |
+| open PRs | #40 task/T-005-d66-3c-force-on-measure-and-whether-save |
 | suite | **959 green** · 99 files · 293 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 10 files changed, 881 insertions(+), 75 deletions(-) (10 files) |
-| docs budget | current_state 81.8/96.0 KB · §7 29.5/32.0 KB · abstracts 6/10 · bodies 82 |
+| diff vs origin/main | 13 files changed, 1144 insertions(+), 146 deletions(-) (13 files) |
+| docs budget | current_state 80.4/96.0 KB · §7 28.0/32.0 KB · abstracts 6/10 · bodies 83 |
 
 _Generated 2026-08-22 by `pnpm state`._
 

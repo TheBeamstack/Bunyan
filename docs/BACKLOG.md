@@ -128,7 +128,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
-| T-005 | review  | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
+| T-005 | done    | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
 
 ---
 
