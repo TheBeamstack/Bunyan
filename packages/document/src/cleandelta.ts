@@ -28,6 +28,7 @@ import { revertChanges } from './scene.js';
 import type { UndoableEdit } from './undo.js';
 import { journalCoversRevision, missingAnchorMessage } from './undo.js';
 import type { EnumerateOptions, ModelElement } from './enumerate.js';
+import { deferredElements } from './enumerate.js';
 import { isElementActive, optionScopeOf } from './designoptions.js';
 import { builtAxisLength } from './joins.js';
 import type { JoinOptionSelection } from './joins.js';
@@ -442,6 +443,12 @@ export async function exportCleanDelta(
   const histories = historiesIn(slice);
 
   // --- 2. every real element NOW, indexed. --------------------------------------------------------
+  // ⚠⚠ FORCE FIRST (D66 §3c, T-005), and BOUNDED TO THE DELTA — the same scope owner ruling Q2 gives the
+  // prior rebuild below, for the same reason: the cost tracks the size of the CHANGE. A delta element
+  // this document never built would otherwise arrive as `stale`, and a generated child of one would not
+  // arrive at all — and absence from `elements` is precisely what Planitor's consumer rule reads as
+  // `unchanged` and keeps billing.
+  await doc.rebuildOnly(deferredElements(doc.scene, (id) => doc.geometryOf(id), histories.keys()));
   const now = new Map<ElementId, ModelElement>();
   for (const element of doc.modelElements(options)) now.set(element.id, element);
 

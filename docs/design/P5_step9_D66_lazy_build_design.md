@@ -1,9 +1,10 @@
 # P5 / D66 — LAZY BUILD: what may be deferred, what may not, and the measurement it rests on
 
-**Status:** DESIGN + MEASUREMENT (headless, `zayd`, 2026-08-17, T-018). No product code changed — the
-deliverable is this document and its instrument, `tests/d66-lazy-build-measure.test.ts`.
+**Status:** DESIGN + MEASUREMENT (headless, `zayd`, 2026-08-17, T-018), instrument
+`tests/d66-lazy-build-measure.test.ts`. **§3c is BUILT** (`zayd`, 2026-08-22, T-005) — its ruling and its
+tripwire, `tests/d66-force-declare.test.ts`.
 **Predecessor:** `P5_step9_D66_scale_design.md` (the contract half — reserve nothing).
-**Successors:** **T-005** builds §3c, **T-006** builds §3a and §3b.
+**Successor:** **T-006** builds §3a and §3b.
 
 **What lazy build is.** Build only the elements somebody is about to look at, and build the rest when
 they are asked for. It is recipe-is-truth exercised on a subset, which is why `P5_step9_D66_scale_design.md`
@@ -142,31 +143,57 @@ in **2567 ms** against `rebuildAll()`'s **2443 ms** — the same work, within th
 ### 3c. FORCE vs DECLARE — every aggregate that quantifies over the model
 
 An aggregate over a partially built model must either **FORCE** the elements it is about to report (build
-them first) or **DECLARE** that it did not.
+them first) or **DECLARE** that it did not. **Ruled and built by T-005**; the measurements below are what
+the choice rests on.
 
-**What happens today, measured on the partial document:**
+**What T-018 measured on the partial document:**
 
-| Aggregate             | Behaviour on a partially built model                                                                                                                                                                 |
+| Aggregate             | Behaviour before the ruling                                                                                                                                                                          |
 | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `projectQuantities()` | **DECLARES.** 12 rows and **79 `unmeasured` entries** against the full load's 112 rows and 0. Nothing is silently dropped.                                                                           |
+| `projectQuantities()` | **DECLARED.** 12 rows and **79 `unmeasured` entries** against the full load's 112 rows and 0. Nothing was silently dropped.                                                                          |
 | `saveBnn()`           | **Reads no built state.** The two documents' scenes are byte-identical as JSON, and `saveBnn(scene, options)` takes a `Scene`, never a `DocumentContext` — there is no built state within its reach. |
 
-⚠⚠ **The declaration is honest about _what_ and wrong about _why_.** `enumerate.ts` gives an element with
+⚠⚠ **The declaration was honest about _what_ and wrong about _why_.** `enumerate.ts` gave an element with
 no geometry entry `state: 'failed'` and `failure: 'unbuildable'` — which is what a Type refusing to build
-looks like. Every one of the 79 deferred elements is reported with reason `'unbuildable'`, so a consumer
-cannot tell _"nobody has asked for this yet"_ from _"this cannot be built at all"_. Under lazy build that
-turns a normal first paint into a take-off that reports most of the building as broken.
+looks like — so a consumer could not tell _"nobody has asked for this yet"_ from _"this cannot be built at
+all"_, and a normal first paint reported most of the building as broken.
 
-**⇒ What T-005 owes, per aggregate:**
+⚠⚠ **AND THE FINDING THAT DECIDED IT (T-005): DECLARE WAS NEVER AVAILABLE TO AN ENUMERATING AGGREGATE.** A
+declaration can only name what it can see, and a **deferred parent's D59 children are not enumerated at
+all** — deriving children _is_ the build (§2), so an unbuilt curtain wall yields no panel rows and leaves
+nothing to declare them by. Measured on a 3×2 curtain wall: **6 panel rows from a full document, 0 from a
+partial one**, with the authored row itself still reported. An aggregate that DECLAREd would be plausible
+and short, which is domain rule 15's failure mode one level up.
 
-1. `projectQuantities`, the schedules body and the Clean Delta: FORCE or DECLARE, chosen per aggregate and
-   justified against the measurement above.
-2. ⚠ **The `'unbuildable'` conflation is the load-bearing item**, whichever way the choice goes: a DECLARE
-   that cannot distinguish _deferred_ from _unbuildable_ is not a declaration a consumer can act on, and
-   `ElementState.stale` already exists to mean _recipe present, solid not built_ (`entities.ts`).
-3. ⚠ **`save` is not a design call.** The measurement above says it does not read built state, so it needs
-   nothing; if that ever changes, it FORCES — a save that silently omits unbuilt elements is data loss,
-   not a reporting shortfall.
+**⇒ THE RULING, per aggregate** (`tests/d66-force-declare.test.ts`; each line is revert-verified, and the
+red it produces is quoted):
+
+| Aggregate             | Choice                          | Why                                                                                                                                                        | Red without it         |
+| --------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------- |
+| `projectQuantities()` | **FORCE** (whole model)         | A project-wide total's whole contract is completeness.                                                                                                     | 3 rows against 16      |
+| `evaluateSchedule()`  | **FORCE** (whole model)         | Its **row set**, not its measurement, is what needs the build — a schedule with no `quantity` column is short by every panel without it.                   | 0 panel rows against 6 |
+| `projectView()`       | **FORCE** (whole model)         | A drawing that is plausible and short is exactly what nobody audits — the method's own standing argument, applied to the elements nobody has built yet.    | 2 drawn against 8      |
+| `exportCleanDelta()`  | **FORCE**, bounded to the delta | Owner ruling Q2 sets that exporter's scope: its cost tracks the size of the CHANGE, so it forces the journal's own ids, exactly as its prior rebuild does. | 1 PEI against 17       |
+| `saveBnn()`           | **NEITHER**                     | Its signature takes a `Scene`, so no built state is in reach. If that ever changes it FORCES — a save that silently omits unbuilt elements is data loss.   | —                      |
+
+**The two supporting changes.**
+
+1. **`enumerate.ts` reports a never-built element as `stale`, with no `failure`.** `ElementState.stale`
+   already means _recipe present, solid not built_, and `agent.ts` already answered `stale` for the same
+   element through `geometryOf()`. `ModelElement.state` widens by that one member, which
+   `ElementGeometry['state']` structurally cannot carry: it is the state of an element that has no
+   `ElementGeometry` at all.
+2. **`deferredElements(scene, geometryOf, ids?)` is the FORCE set** — the authored rows with no geometry
+   entry, bounded by `ids` for the Clean Delta. `rebuildOnly` of it is empty on a fully built document, so
+   FORCE costs nothing outside lazy build.
+
+⚠ **FORCE is a build, not an edit** (domain rule 17): no `UndoableEdit`, no journal entry, no revision, no
+authored byte. The one stored field it moves is `scene.brokenRefs`, which is a MEASUREMENT that
+`rebuildOnly` already moves and that a partial build had simply not taken yet.
+
+⚠ **NOT BUILT, and named so it is not assumed:** a narrower force for a schedule or a view — building only
+the Types that declare `buildChildren`, rather than the whole model — is a pure optimisation with no
+correctness content, and nothing measures it yet.
 
 ### 3d. Eviction — NOT built, and that is a ruling, not an omission
 

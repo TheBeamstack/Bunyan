@@ -101,6 +101,11 @@ function typeVersionsOf(scene: Scene): Record<string, number> {
 }
 
 export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
+  // ⚠⚠ NEITHER FORCE NOR DECLARE, AND THE SIGNATURE IS THE PROOF (D66 §3c, T-005): it takes a `Scene`
+  // — the recipe — so no built state is within its reach and a lazily built document writes the same
+  // bytes as a fully built one. Should that ever change it FORCES: a save that silently omits unbuilt
+  // elements is data loss, not a reporting shortfall.
+  //
   // ⚠⚠ A FILE MAY NOT CLAIM A BASELINE ITS OWN LOG CONTRADICTS (domain rule 14, swept 2026-07-28).
   //
   // ⚠ Note precisely what is refused, and what is not. **Omitting the journal is legitimate** — a

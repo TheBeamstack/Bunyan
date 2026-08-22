@@ -688,6 +688,21 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-22 — `ModelElement.hasParts` cannot be read without `state`, and nothing enforces that.**
+  A `stale` element (D66 §3c/T-005 — recipe present, solid not built) carries `hasParts: false` for the
+  same reason a pure void does, so the field alone cannot separate _"nothing to measure"_ from _"not
+  measured yet"_. All five consumers test `state !== 'valid'` first, so it is unreachable today; the
+  guarantee is a convention, which `§1c-8` calls a dirty rule that has not happened yet. Fix shape: make
+  the field tri-state, or gate it in the enumeration's own test. Found by `zayd` on T-005. Recorded, not
+  claimed.
+- **2026-08-22 — FORCE is whole-model where only the composite parents need it.** `projectQuantities`,
+  `evaluateSchedule` and `projectView` build every deferred element, but the only population the
+  enumeration actually loses is a deferred parent's D59 children — so a schedule filtered to `core.wall`
+  could build the Types that declare `buildChildren` and nothing else. Pure optimisation, no correctness
+  content, and nothing measures its size at D48's 10,000-element target. Named in
+  `docs/design/P5_step9_D66_lazy_build_design.md` §3c as not built. Found by `zayd` on T-005. Recorded,
+  not claimed.
+
 - **2026-08-21 — the seat identity gate guards the CLAIM, and the merge happens outside it.** D87's check
   lives in `agent-start.mjs`, but a reviewer approves and merges _after_ `agent-finish.mjs` has returned,
   so a session that reaches the merge without a fresh claim is unguarded. Measured on PR #39: the box's
