@@ -12,8 +12,9 @@
  *     built in both, part for part: `nodeId`, the sub-shape identities, and the measured quantities.
  *     ⚠ Including ACROSS A JOIN — the keep-live set deliberately omits two of the four ring walls, so a
  *     built wall's corner partner is a wall this document has never built.
- *  3. **What the aggregates say about the elements that were skipped** (design §3c) — the FORCE vs
- *     DECLARE evidence, and whether `save` reads built state at all.
+ *  3. **What the aggregates say about the elements that were skipped** (design §3c) — the DECLARE the
+ *     enumeration makes, the FORCE `projectQuantities` runs (T-005), and whether `save` reads built
+ *     state at all.
  *
  * ── WHY THE FIXTURE IS SHAPED THIS WAY ────────────────────────────────────────────────────────────
  * Baseline `{start,end}` walls (`@bunyan/types`' `core.wall`), never the `{length,height}` fixture the
@@ -501,27 +502,6 @@ describe('D66 lazy build — the instrument the design doc is written from (T-01
    * §3c — WHAT THE AGGREGATES SAY ABOUT THE ELEMENTS NOBODY BUILT
    * ========================================================================================= */
 
-  it('⚠⚠ `projectQuantities` DECLARES the deferred elements rather than under-reporting silently — but calls them `unbuildable`', async () => {
-    const partialTakeoff = await partial.doc.projectQuantities();
-    const fullTakeoff = await full.doc.projectQuantities();
-
-    expect(fullTakeoff.unmeasured, 'a full load leaves nothing unmeasured').toHaveLength(0);
-    expect(partialTakeoff.rows.length).toBeLessThan(fullTakeoff.rows.length);
-
-    // ⚠ The aggregate does NOT silently under-report: every deferred element is named. What it gets
-    // wrong is the REASON — `enumerate.ts` gives an element with no geometry entry `state: 'failed'`
-    // and `failure: 'unbuildable'`, which is what a Type refusing to build looks like. A consumer
-    // cannot tell "nobody asked for this yet" from "this cannot be built at all".
-    expect(partialTakeoff.unmeasured.length).toBeGreaterThan(0);
-    const reasons = new Set(partialTakeoff.unmeasured.map((u) => u.reason));
-    console.log(
-      `\n     §3c — partial take-off: ${String(partialTakeoff.rows.length)} rows, ` +
-        `${String(partialTakeoff.unmeasured.length)} unmeasured; reasons ${JSON.stringify([...reasons])}` +
-        `\n            full take-off: ${String(fullTakeoff.rows.length)} rows, 0 unmeasured\n`,
-    );
-    expect([...reasons]).toEqual(['unbuildable']);
-  });
-
   it('⚠ `save` does not read built state — the two documents write the same scene', () => {
     // `saveBnn(scene, options)` takes a `Scene`, never a `DocumentContext`: there is no built state in
     // its reach, and this is the measurement behind that type-level fact. A `.bnn` written from a
@@ -537,4 +517,41 @@ describe('D66 lazy build — the instrument the design doc is written from (T-01
     expect(partial.doc.brokenRefs()).toHaveLength(0);
     expect(full.doc.brokenRefs()).toHaveLength(0);
   });
+
+  // ⚠⚠ LAST, AND THAT IS LOAD-BEARING: `projectQuantities` FORCES (T-005), so this case leaves
+  // `partial.doc` fully built and every case above it nothing to defer.
+  it('⚠⚠ §3c — the enumeration DECLARES the deferred elements `stale`; `projectQuantities` FORCES', async () => {
+    // The DECLARE half, read before anything forces. `stale` is *recipe present, solid not built*;
+    // reporting these as `failed`/`unbuildable` said a Type had refused them (T-005).
+    const enumerated = partial.doc.modelElements();
+    const deferred = enumerated.filter((e) => e.state === 'stale');
+    expect(deferred.length, 'the elements the keep-live set skipped').toBeGreaterThan(0);
+    expect(
+      deferred.filter((e) => e.failure !== undefined),
+      'nothing failed',
+    ).toHaveLength(0);
+    expect(
+      enumerated.filter((e) => e.failure === 'unbuildable'),
+      'no Type refused anything in this fixture',
+    ).toHaveLength(0);
+
+    // The FORCE half: the take-off builds what it is about to report, so a partial document answers
+    // exactly as a full one.
+    const fullTakeoff = await full.doc.projectQuantities();
+    const partialTakeoff = await partial.doc.projectQuantities();
+    console.log(
+      `\n     §3c — ${String(deferred.length)} of ${String(enumerated.length)} enumerated elements ` +
+        `DECLARED \`stale\` before the take-off\n` +
+        `            take-off after FORCE: ${String(partialTakeoff.rows.length)} rows, ` +
+        `${String(partialTakeoff.unmeasured.length)} unmeasured (full: ` +
+        `${String(fullTakeoff.rows.length)} rows)\n`,
+    );
+    expect(fullTakeoff.unmeasured, 'a full load leaves nothing unmeasured').toHaveLength(0);
+    expect(partialTakeoff.unmeasured, 'and neither does a forced one').toHaveLength(0);
+    expect(partialTakeoff.rows.length, 'row for row').toBe(fullTakeoff.rows.length);
+    // ⚠ EXPLICIT TIMEOUT, because this case BUILDS: FORCE (T-005) makes `projectQuantities` a whole-model
+    // rebuild of everything the keep-live set skipped, which is real OCCT work and not the pure read the
+    // 5 s default assumes. Measured red on the CI runner at the default and green on the box — a fixture
+    // this size sits either side of 5 s depending on the machine, which is the worst place for it to sit.
+  }, 120_000);
 });

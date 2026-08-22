@@ -31,7 +31,7 @@
 
 import type { SectionCurve } from '@bunyan/protocol';
 import type { BrokenReference, ElementId, Part } from './entities.js';
-import { containerCode, modelElements } from './enumerate.js';
+import { containerCode, deferredElements, modelElements } from './enumerate.js';
 import type {
   EnumerateOptions,
   ModelElement,
@@ -557,6 +557,28 @@ export class DocumentContext {
   }
 
   /**
+   * ⚠⚠ **FORCE** — build what nobody has built, before an aggregate quantifies over the model
+   * (D66 §3c, T-005). `projectQuantities`, `projectView` and `evaluateSchedule` all open with it.
+   *
+   * **Why all three FORCE and none of them DECLARE.** A declaration can only name what it can see, and
+   * an unbuilt parent's D59 children are not enumerated at all (`enumerate.ts` filter 1) — so a
+   * deferred curtain wall costs a schedule its panel rows with nothing left to declare them by. That
+   * is domain rule 15's failure mode as an aggregate: plausible, and short.
+   *
+   * ⚠ It is free on a fully built document — the set is empty — so this is a guard for lazy build
+   * rather than a cost anyone pays today.
+   *
+   * ⚠ It does not make an aggregate an EDIT (domain rule 17): no `UndoableEdit`, no journal entry, no
+   * revision, no authored byte. The one stored field a build moves is `scene.brokenRefs`, which is a
+   * MEASUREMENT of geometry that `rebuildOnly` already moves and that a partial build had simply not
+   * taken yet.
+   */
+  async #forceBuild(): Promise<void> {
+    const deferred = deferredElements(this.#scene, (id) => this.#geometryByElement.get(id));
+    if (deferred.length > 0) await this.rebuildOnly(deferred);
+  }
+
+  /**
    * Free every OCCT solid this document holds, and forget them.
    *
    * ⚠⚠ THE HEAP DISCIPLINE, FOR A DOCUMENT THAT IS ITSELF DISPOSABLE (spec §6.2). OCCT solids live on
@@ -670,6 +692,8 @@ export class DocumentContext {
    * project total that is plausible and short is domain rule 15's failure mode as an aggregate.
    */
   async projectQuantities(options: EnumerateOptions = {}): Promise<ProjectQuantities> {
+    // FORCE (D66 §3c) — a project-wide total is the one artifact whose whole contract is completeness.
+    await this.#forceBuild();
     const rows: ProjectQuantityRow[] = [];
     const unmeasured: UnmeasuredElement[] = [];
 
@@ -737,8 +761,9 @@ export class DocumentContext {
    * schedule **THREW** on the pure composite, and one non-active design option produced a **2.0000×
    * over-report** — D65's named failure mode on the consumer its own sentence names first.
    *
-   * ⚠ A schedule with no `quantity` column makes ZERO kernel calls: selection and every `field`/`param`/
-   * `count` cell are pure functions of the scene and the built tree.
+   * ⚠ A schedule with no `quantity` column makes ZERO MEASUREMENT calls: selection and every
+   * `field`/`param`/`count` cell are pure functions of the scene and the built tree. ⚠ On a lazily
+   * built document it still FORCEs first (D66 §3c) — the built tree is where the D59 children are.
    *
    * ⚠ AND IT IS A QUERY, NOT AN EDIT (domain rule 17 — a schedule is a PROJECTION): it writes no
    * `scene.json` byte, mints no `UndoableEdit`, and caches nothing. The `.bnn` carries the DEFINITION.
@@ -776,6 +801,10 @@ export class DocumentContext {
           `a 3d view is served by the renderer, not by sectionCut`,
       );
     }
+
+    // FORCE (D66 §3c) — a drawing that is plausible and short is exactly what nobody audits, which is
+    // this method's own standing argument applied to the elements nobody has built yet.
+    await this.#forceBuild();
 
     // The stored selection is the artifact's own — `evaluateSchedule`'s EXACT rule, deliberately, so a
     // drawing and a table asked the same question can never answer it two different ways.
@@ -943,6 +972,9 @@ export class DocumentContext {
     definition: ScheduleDefinition,
     options: EnumerateOptions = {},
   ): Promise<ScheduleResult> {
+    // FORCE (D66 §3c) — and it is the ROW SET that needs it, not the measurement: a param-only schedule
+    // of a deferred curtain wall's panels would otherwise be short by every panel.
+    await this.#forceBuild();
     // ⚠ THE STORED SELECTION IS THE ARTIFACT'S OWN (owner Q2, the `ViewCommon.designOptionIds` shape): a
     // schedule saved as "the Option B door schedule" shows Option B when it is opened. It wins for the
     // sets it names; the caller's `active` covers every other set. Absent ⇒ each set's primary, which is

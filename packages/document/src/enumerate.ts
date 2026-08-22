@@ -96,11 +96,31 @@ export interface ModelElement {
    */
   readonly mark?: string;
   readonly classification?: Classification;
-  /** The build outcome, carried through so a consumer never has to ask a second question. */
-  readonly state: ElementGeometry['state'];
-  /** Why it failed, when it did (D42 `geometry` vs D43 `unbuildable` — the load-bearing distinction). */
+  /**
+   * The build outcome, carried through so a consumer never has to ask a second question.
+   *
+   * ⚠⚠ AN ELEMENT NOBODY HAS BUILT IS `stale`, NEVER `failed` (D66 §3c, T-005). `stale` means *recipe
+   * present, solid not built*; `failed`+`unbuildable` means a Type refused. A consumer acts on the
+   * first by building it and on the second by fixing the model, and under lazy build the two
+   * populations differ by nearly the whole building.
+   *
+   * ⚠ `'stale'` is the one member `ElementGeometry['state']` does not carry, and structurally so: it is
+   * the state of an element that has NO `ElementGeometry` at all.
+   */
+  readonly state: ElementGeometry['state'] | 'stale';
+  /**
+   * Why it failed, when it did (D42 `geometry` vs D43 `unbuildable` — the load-bearing distinction).
+   *
+   * ⚠ Absent on a `stale` element: nothing failed, so there is no reason to give.
+   */
   readonly failure?: ElementGeometry['failure'];
-  /** `false` ⇒ a pure void or a pure composite: real, enumerated, but contributing no quantity (§2.3). */
+  /**
+   * `false` ⇒ a pure void or a pure composite: real, enumerated, but contributing no quantity (§2.3).
+   *
+   * ⚠ **Read it only after `state`.** On a `stale` element it is `false` because nothing is built yet,
+   * not because the element has nothing to measure — the two are indistinguishable from this field
+   * alone. Every consumer here tests `state !== 'valid'` first, which is what keeps them apart.
+   */
   readonly hasParts: boolean;
 }
 
@@ -147,6 +167,32 @@ export interface ProjectQuantities {
   readonly basis: 'exact';
 }
 
+/**
+ * ⚠⚠ THE FORCE SET (D66 §3c, T-005) — the authored rows this document has not built.
+ *
+ * `rebuildOnly(deferredElements(...))` is what an aggregate runs before it enumerates, so it reports on
+ * the model rather than on whatever the last partial build happened to touch. It is empty on a fully
+ * built document, which is why FORCE costs nothing outside lazy build.
+ *
+ * ⚠ Authored rows only. A D59 child is not a scene row and cannot be built on its own — it arrives with
+ * its parent, which is the same reason `rebuildOnly` builds whole assemblies.
+ *
+ * @param ids Bound the set to these ids; omit for the whole model. The Clean Delta bounds it to the
+ *   delta, because owner ruling Q2 makes that exporter's cost track the size of the CHANGE.
+ */
+export function deferredElements(
+  scene: Scene,
+  geometryOf: (id: ElementId) => ElementGeometry | undefined,
+  ids?: Iterable<ElementId>,
+): readonly ElementId[] {
+  const out: ElementId[] = [];
+  for (const id of ids ?? Object.keys(scene.elements)) {
+    if (scene.elements[id] === undefined) continue;
+    if (geometryOf(id) === undefined) out.push(id);
+  }
+  return out;
+}
+
 /** The spatial container chain as a readable address — `Site/Tower A/Level 1`. `''` when unplaced. */
 export function containerCode(scene: Scene, id: ContainerId | undefined): string {
   return containerPath(scene, id)
@@ -162,15 +208,22 @@ export function containerCode(scene: Scene, id: ContainerId | undefined): string
  *
  * ⚠ It reads the BUILT tree because a generated child only exists once its parent has been built —
  * deriving children *is* the build (D59 Model A), and re-deriving them here would be a second build
- * path duplicating the engine. An element the document has never built is therefore not enumerated;
- * a stale document rebuilds first, which is `DocumentContext`'s ordinary discipline.
+ * path duplicating the engine.
+ *
+ * ⚠⚠ **SO AN UNBUILT PARENT'S D59 CHILDREN ARE NOT ENUMERATED AT ALL, AND THAT IS WHY EVERY AGGREGATE
+ * FORCES** (D66 §3c, T-005). An authored row is always reported, `stale` when nobody built it — but a
+ * curtain wall's panels are the build's own output, so a deferred curtain wall costs a schedule its
+ * panel rows with nothing left to declare them by. A declaration can only name what it can see; the
+ * missing population is invisible by construction, so `deferredElements` + `rebuildOnly` is the only
+ * honest answer for an aggregate, and DECLARE was never actually on the table for it.
  *
  * The four filters, in one place so three products cannot each get them slightly wrong:
  *  1. walk `ElementGeometry.children` — 16 of the measured 19 real elements are invisible without it;
  *  2. exclude non-active design options, WITH the D67 ancestor cascade;
  *  3. an element with no own parts is still ENUMERATED (it has a PEI a tag may bind to) — it simply
  *     yields no quantity rows, which is where filter 3 actually bites (`projectQuantities`);
- *  4. a failed/unbuildable element is enumerated with its state, and reported by the roll-up.
+ *  4. an element that is unbuilt, failed or unbuildable is enumerated with its state, and reported by
+ *     the roll-up.
  */
 export function modelElements(
   scene: Scene,
@@ -194,8 +247,13 @@ export function modelElements(
     // so a panel's Type was unrecoverable). `identity` is that Element either way.
     const walk = (node: ElementGeometry | undefined, identity: Element): void => {
       // An element with no geometry entry at all has never been built. It is still a real, authored
-      // element — report it, with the state the build engine would have given it, so the roll-up can
-      // say so rather than quietly pretend the model is complete (filter 4).
+      // element — report it, so the roll-up can say so rather than quietly pretend the model is
+      // complete (filter 4).
+      //
+      // ⚠⚠ NEVER BUILT IS `stale`, NOT `failed`/`unbuildable` (D66 §3c, T-005). Reporting it as
+      // `unbuildable` said *"a Type refused this"* about an element nobody had asked for yet, so
+      // under lazy build a normal first paint made every aggregate call most of the building broken.
+      // `agent.ts` already answered `stale` for the same element through `geometryOf()`.
       out.push({
         id: identity.id,
         typeId: identity.typeId,
@@ -212,12 +270,8 @@ export function modelElements(
         ...(identity.classification === undefined
           ? {}
           : { classification: identity.classification }),
-        state: node?.state ?? 'failed',
-        ...(node === undefined
-          ? { failure: 'unbuildable' as const }
-          : node.failure === undefined
-            ? {}
-            : { failure: node.failure }),
+        state: node?.state ?? 'stale',
+        ...(node === undefined || node.failure === undefined ? {} : { failure: node.failure }),
         hasParts: (node?.parts.length ?? 0) > 0,
       });
       // ⚠ FILTER 1 — the TREE, not one level (rule 18): a curtain wall's column is itself composite.
