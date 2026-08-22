@@ -113,14 +113,14 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-022` |
-| branch | `task/T-022-kernel-occt-s-glue-decodes-from-growable` |
-| claimed-at | 2026-08-21T09:52:18Z |
-| status | finished — PR open, awaiting review |
+| task | `T-005` |
+| branch | `task/T-005-d66-3c-force-on-measure-and-whether-save` |
+| claimed-at | 2026-08-22T20:24:36Z |
+| status | working |
 
 <!-- END BATON -->
 
