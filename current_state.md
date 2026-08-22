@@ -630,6 +630,49 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-005 — review: the sweep's lens was narrower than the rule it swept for — 2026-08-22 — seat: hmdnah
+
+- **CHANGED:** two documentation files on the branch, **no product code**: `open_rulings.md` — **Q23 NEW**
+  (does `agent.query`'s part-scoped filter FORCE, DECLARE, or stay recipe-only?), with a recommendation and
+  a price; `docs/design/P5_step9_D66_lazy_build_design.md` §3c — one paragraph recording that the ruling
+  table is **not the whole set**, pointing at Q23, because the doc otherwise reads *"§3c is BUILT"* and
+  **T-006 is built next against it**. `handoff/hmdnah/2026-08-22-T-005-review.md` NEW; `zayd`'s `REVIEW:`
+  line above. **PR #40 APPROVED and MERGED** on `narutousomaki741`.
+- **VERIFIED:** ⚠⚠ **TWO OF THE FIVE REVERTS RE-EXECUTED HERE, not inherited.** Baseline
+  `tests/d66-force-declare.test.ts` **8 passed**. `enumerate.ts` back to `'failed'`/`'unbuildable'` ⇒
+  **1 failed | 7 passed**, `expected 'failed' to be 'stale'`; FORCE out of `projectQuantities` ⇒
+  **2 failed | 6 passed**, `expected [ …(2) ] to deeply equal []` on the deferred set. Both reproduce the
+  entry's counts and messages exactly; restored, green. **Sweep re-enumerated independently** over
+  `packages`+`apps` — the seven `.state`/`.failure` readers are real and there is no eighth, and
+  **`apps/web` holds no consumer of `modelElements` or of the four aggregates**, so the "no browser debt"
+  claim is checked, not taken. `rebuildOnly` passes `rejectOnFailure = false` ⇒ **FORCE cannot turn a
+  read-only aggregate into a D42 rejection**, the one failure mode that would have made every take-off
+  throw. `WATCHED` holds none of the four changed files; `PR shape · reserved classes` **ran and passed**
+  with **zero** labels, which is what separates *"no label"* from *"the labeller never executed"*.
+- **FOUND:** ⚠⚠ **§3c BINDS AN AGGREGATE THE SWEEP'S LENS COULD NOT SEE.** The sweep enumerated readers of
+  `ModelElement.state`/`.failure`; §3c binds *every aggregate that quantifies over the model*, and the two
+  sets differ by `agent.query`. `QueryFilter.discipline`/`.materialId` are **PART-scoped (D45)**, so they
+  read `partsOf()` — empty on a deferred element. Measured on a one-wall document:
+  `query({discipline:'structural'})` returns **1 row built, 0 rows deferred**, while the same element is
+  present in an unfiltered `query()` wearing `state: 'stale'`. Same shortfall this PR fixes for the other
+  five, on the consumer least able to notice it — but **not a regression**, identical before and after, so
+  it is filed (Q23) and not blocked. ⚠ Left unfixed deliberately: FORCE inverts the surface's documented
+  *"reads the RECIPE — no kernel op"* cost contract and a declaration channel changes an `AgentSurface`
+  shape, both design calls on a layer the reviewer does not own. ⚠ **One claim narrower than stated:**
+  *"`saveBnn` reaches no built state"* holds of its signature, but `scene.brokenRefs` **is** a build output
+  `#commit` writes into the Scene and `saveBnn` persists — so a partial document saves a shorter
+  `brokenRefs`. `NEITHER` stays the right ruling; the argument for it is *"the one built field it reaches
+  is re-derived on load by `rebuildAll`"*, not *"it reaches none"*.
+- **OWES:** **owner** — `open_rulings.md` **Q23**, unblocking nothing but freezing with `AgentSurface` at
+  P5. **`brahim`** — `zayd`'s two `## Discovered` rows are unchanged and still unclaimed. **Nothing to a
+  `pc` seat:** every claim here is document-layer and headless, so this review inherits and creates no
+  `unverified here:` debt.
+- **RISK:** additive — `pnpm state` verdict matches the diff, `freeze-boundary` green,
+  `tests/frozen-surface.snapshot.json` untouched, `SCENE_SCHEMA_VERSION` 2, no `needs-operator/*` ⇒ the
+  reviewer merges (`AGENTS.md §5`).
+- **FULL:** `handoff/hmdnah/2026-08-22-T-005-review.md`
+- **REVIEW:** n/a — this IS the review turn.
+
 ### T-005 — D66 §3c: DECLARE was never available to an enumerating aggregate, so all four FORCE — 2026-08-22 — seat: zayd
 
 - **CHANGED:** `packages/document/src/enumerate.ts` — a never-built element is **`stale` with no
@@ -678,49 +721,6 @@ is maintenance and does NOT get an entry of its own.**
   `bnn.ts` is in `WATCHED`, `tests/frozen-surface.snapshot.json` untouched ⇒ no `needs-operator/*`.
 - **FULL:** `handoff/zayd/2026-08-22-T-005-force-on-measure.md`
 - **REVIEW:** **APPROVED and MERGED** by `hmdnah` on `narutousomaki741` (PR #40, 2026-08-22) — `RISK: additive`, `PR shape` green with no `needs-operator/*` label. Two of the five reverts re-executed independently, both reproducing the quoted red. ⚠ One completeness gap filed rather than blocked: `open_rulings.md` **Q23**.
-
-### T-005 — review: the sweep's lens was narrower than the rule it swept for — 2026-08-22 — seat: hmdnah
-
-- **CHANGED:** two documentation files on the branch, **no product code**: `open_rulings.md` — **Q23 NEW**
-  (does `agent.query`'s part-scoped filter FORCE, DECLARE, or stay recipe-only?), with a recommendation and
-  a price; `docs/design/P5_step9_D66_lazy_build_design.md` §3c — one paragraph recording that the ruling
-  table is **not the whole set**, pointing at Q23, because the doc otherwise reads *"§3c is BUILT"* and
-  **T-006 is built next against it**. `handoff/hmdnah/2026-08-22-T-005-review.md` NEW; `zayd`'s `REVIEW:`
-  line above. **PR #40 APPROVED and MERGED** on `narutousomaki741`.
-- **VERIFIED:** ⚠⚠ **TWO OF THE FIVE REVERTS RE-EXECUTED HERE, not inherited.** Baseline
-  `tests/d66-force-declare.test.ts` **8 passed**. `enumerate.ts` back to `'failed'`/`'unbuildable'` ⇒
-  **1 failed | 7 passed**, `expected 'failed' to be 'stale'`; FORCE out of `projectQuantities` ⇒
-  **2 failed | 6 passed**, `expected [ …(2) ] to deeply equal []` on the deferred set. Both reproduce the
-  entry's counts and messages exactly; restored, green. **Sweep re-enumerated independently** over
-  `packages`+`apps` — the seven `.state`/`.failure` readers are real and there is no eighth, and
-  **`apps/web` holds no consumer of `modelElements` or of the four aggregates**, so the "no browser debt"
-  claim is checked, not taken. `rebuildOnly` passes `rejectOnFailure = false` ⇒ **FORCE cannot turn a
-  read-only aggregate into a D42 rejection**, the one failure mode that would have made every take-off
-  throw. `WATCHED` holds none of the four changed files; `PR shape · reserved classes` **ran and passed**
-  with **zero** labels, which is what separates *"no label"* from *"the labeller never executed"*.
-- **FOUND:** ⚠⚠ **§3c BINDS AN AGGREGATE THE SWEEP'S LENS COULD NOT SEE.** The sweep enumerated readers of
-  `ModelElement.state`/`.failure`; §3c binds *every aggregate that quantifies over the model*, and the two
-  sets differ by `agent.query`. `QueryFilter.discipline`/`.materialId` are **PART-scoped (D45)**, so they
-  read `partsOf()` — empty on a deferred element. Measured on a one-wall document:
-  `query({discipline:'structural'})` returns **1 row built, 0 rows deferred**, while the same element is
-  present in an unfiltered `query()` wearing `state: 'stale'`. Same shortfall this PR fixes for the other
-  five, on the consumer least able to notice it — but **not a regression**, identical before and after, so
-  it is filed (Q23) and not blocked. ⚠ Left unfixed deliberately: FORCE inverts the surface's documented
-  *"reads the RECIPE — no kernel op"* cost contract and a declaration channel changes an `AgentSurface`
-  shape, both design calls on a layer the reviewer does not own. ⚠ **One claim narrower than stated:**
-  *"`saveBnn` reaches no built state"* holds of its signature, but `scene.brokenRefs` **is** a build output
-  `#commit` writes into the Scene and `saveBnn` persists — so a partial document saves a shorter
-  `brokenRefs`. `NEITHER` stays the right ruling; the argument for it is *"the one built field it reaches
-  is re-derived on load by `rebuildAll`"*, not *"it reaches none"*.
-- **OWES:** **owner** — `open_rulings.md` **Q23**, unblocking nothing but freezing with `AgentSurface` at
-  P5. **`brahim`** — `zayd`'s two `## Discovered` rows are unchanged and still unclaimed. **Nothing to a
-  `pc` seat:** every claim here is document-layer and headless, so this review inherits and creates no
-  `unverified here:` debt.
-- **RISK:** additive — `pnpm state` verdict matches the diff, `freeze-boundary` green,
-  `tests/frozen-surface.snapshot.json` untouched, `SCENE_SCHEMA_VERSION` 2, no `needs-operator/*` ⇒ the
-  reviewer merges (`AGENTS.md §5`).
-- **FULL:** `handoff/hmdnah/2026-08-22-T-005-review.md`
-- **REVIEW:** n/a — this IS the review turn.
 
 ### T-022 — review (step 2, adversarial): the pin re-linked here byte-for-byte, and the branch's own new gate entry had no test — 2026-08-21 — seat: hmdnah
 
@@ -928,15 +928,15 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-005 (zayd, 2026-08-22)** |
-| branch · tip · tree | `task/T-005-d66-3c-force-on-measure-and-whether-save` · `f194f81` · clean |
+| **newest entry** | **T-005 (hmdnah, 2026-08-22)** |
+| branch · tip · tree | `task/T-005-d66-3c-force-on-measure-and-whether-save` · `3d3912d` · dirty |
 | open PRs | #40 task/T-005-d66-3c-force-on-measure-and-whether-save |
 | suite | **959 green** · 99 files · 293 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 1144 insertions(+), 146 deletions(-) (13 files) |
+| diff vs origin/main | 13 files changed, 1142 insertions(+), 144 deletions(-) (13 files) |
 | docs budget | current_state 80.4/96.0 KB · §7 28.0/32.0 KB · abstracts 6/10 · bodies 83 |
 
 _Generated 2026-08-22 by `pnpm state`._
