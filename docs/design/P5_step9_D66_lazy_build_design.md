@@ -195,6 +195,10 @@ authored byte. The one stored field it moves is `scene.brokenRefs`, which is a M
 the Types that declare `buildChildren`, rather than the whole model — is a pure optimisation with no
 correctness content, and nothing measures it yet.
 
+⚠ **THE TABLE IS NOT THE WHOLE SET.** `agent.query`'s `discipline`/`materialId` filters are PART-scoped
+(D45), so they read built parts and drop a deferred element with no signal — measured at 1 row from a full
+document against 0 from an unbuilt one. Its choice is `open_rulings.md` **Q23**, unruled.
+
 ### 3d. Eviction — NOT built, and that is a ruling, not an omission
 
 `P5_step9_D66_scale_design.md` §1a measured the WASM heap at **0.31 GB at the 10,000-element target** —
