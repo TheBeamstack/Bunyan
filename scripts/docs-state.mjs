@@ -158,11 +158,127 @@ export function parseAbstracts(src) {
   // is not tuned to "usually" clear the legacy numbers — §7 holds at most `BUDGET.maxAbstracts` (10)
   // entries at once, so no legacy number can ever coexist with a new-scheme one within a few hundred
   // of it, let alone a thousand.
+  //
+  // ⚠⚠ `.n` IS A SORT KEY AND NOTHING ELSE — IT IS NOT AN IDENTITY, AND STORING IT AS ONE COST TWO
+  // TURNS THEIR §7 ABSTRACT (T-024). `1000` means "whatever is newest right now", so a durable
+  // reference to `1000` re-resolves to a different entry the moment one is prepended. Anything that
+  // has to name an entry ACROSS a commit takes `abstractKey` below.
   const newOnes = out.filter((a) => a.n === null);
   newOnes.forEach((a, i) => {
-    a.n = 1000 - i;
+    a.n = SYNTHETIC_ENTRY_BASE - i;
   });
+  for (const a of out) a.key = abstractKey(a);
   return out;
+}
+
+/** The base of the synthetic range `parseAbstracts` mints from §7 POSITION. */
+export const SYNTHETIC_ENTRY_BASE = 1000;
+
+/**
+ * True when a number is one this parser minted from position rather than one an author wrote.
+ * The mint is `SYNTHETIC_ENTRY_BASE - i` over a §7 capped at `BUDGET.maxAbstracts`, so the whole
+ * synthetic population is `(BASE - maxAbstracts, BASE]` and no legacy entry number comes near it.
+ */
+export function isSyntheticEntryNumber(n) {
+  return (
+    Number.isInteger(n) &&
+    n > SYNTHETIC_ENTRY_BASE - BUDGET.maxAbstracts &&
+    n <= SYNTHETIC_ENTRY_BASE
+  );
+}
+
+/** The shape `abstractKey` writes for a new-scheme entry: the heading's identity fields, minus its title. */
+export const ENTRY_KEY = /^(T-\d{3}|STEWARD-[a-z0-9-]+) — (\d{4}-\d{2}-\d{2}) — ([a-z]+)$/;
+
+/**
+ * THE STABLE IDENTITY OF AN ABSTRACT — what anything durable records instead of `.n` (T-024).
+ *
+ * A legacy entry already has one: the number its author wrote. A new-scheme entry does not, so its
+ * key is the three identity fields of its own heading — id, date, seat — which are authored, survive
+ * rotation out of §7, and are greppable in the file. The title is left out because it is prose an
+ * author may correct; these three are not.
+ *
+ * ⚠ THE KEY IS NOT UNIQUE, AND §7 IS NOT THE SCOPE THAT DECIDES. The population a durable reference
+ * resolves against is §7 PLUS `docs/history.md` — invariant 10 makes the archive permanent — and
+ * collisions live in it. The generator is **any two turns by one seat on one task on one day**, which
+ * has two live routes: D88's two review steps, and `agent-start.mjs --continue`'s return of a defect
+ * to its builder. A reference resolves to that turn-pair rather than to one turn; both members carry
+ * the same date by construction, which is the half `baselineEntryIssues` checks.
+ *
+ * ⚠ NO UNIQUENESS GATE, AND NOT FOR THE REASON THIS COMMENT FIRST GAVE. A §7-scoped gate would be
+ * GREEN on most days and RED on a correct turn — the second review step, or a returned build — so it
+ * cries wolf rather than reporting a defect. The count is measured rather than stated here, because a
+ * number written into a comment is falsified by the next abstract: `tests/docs-budget.test.ts`'s
+ * "the entry key collides, and every collision is a turn-PAIR" measures it over the whole record.
+ */
+export function abstractKey(a) {
+  return a.scheme === 'legacy' ? a.n : `${a.id} — ${a.date} — ${a.seat}`;
+}
+
+/**
+ * ⚠⚠ THE POPULATION A DURABLE REFERENCE RESOLVES AGAINST: §7's WINDOW **PLUS THE ARCHIVE IT ROTATES
+ * INTO**. This is the "population that does not rot" `baselineEntryIssues` names, and until T-024's
+ * return it did not exist — every caller passed `parseAbstracts(readCurrentState(root))`, i.e. §7
+ * alone, which is a ten-entry byte-capped window that drops its oldest abstract on any turn that
+ * needs the room.
+ *
+ * ⚠⚠ WHY §7 ALONE CANNOT CARRY AN EXISTENCE CHECK, MEASURED RATHER THAN ARGUED. §7 stood at
+ * 32209 of 32768 bytes with the authorising abstract at the bottom, so its headroom was smaller than
+ * the smallest abstract it held: **one** append rotated that abstract out. A check that asks
+ * *"is it in §7?"* therefore answers *"has nobody written a turn since?"*, and goes red on a PR that
+ * moved no declaration — T-024's own failure shape, on the gate T-024 built to remove it.
+ *
+ * ⚠ THE ARCHIVE IS APPEND-ONLY BY INVARIANT 10 AND ITS HEADINGS ARE COPIED VERBATIM, in both
+ * schemes (`docs/history.md` §C's legacy numbers, §E's `T-nnn`/`STEWARD-slug`), so the union is
+ * monotone: an abstract enters it and never leaves. `parseAbstracts` is the authority on §7 and this
+ * reads only headings from the archive — a summarised entry keeps its identity fields and nothing
+ * else is needed to resolve a reference.
+ *
+ * ⚠ Archived new-scheme entries get `n: null`, NOT a synthetic position. `parseAbstracts` mints
+ * `1000 - i` from §7's array order, and minting a second series here would hand two different entries
+ * the same number — the exact confusion `.n` already cost two turns their abstract (T-024).
+ */
+export function recordedAbstracts(root) {
+  const live = parseAbstracts(readCurrentState(root));
+  const archive = readFileSync(join(root, 'docs/history.md'), 'utf8');
+  const archived = [];
+  for (const line of archive.split(/\r?\n/)) {
+    const nu = NEW_HEADING.exec(line);
+    if (nu) {
+      archived.push({
+        scheme: 'T',
+        n: null,
+        id: nu[1],
+        headline: nu[2],
+        date: nu[3],
+        seat: nu[4],
+        agent: nu[4],
+        key: `${nu[1]} — ${nu[3]} — ${nu[4]}`,
+      });
+      continue;
+    }
+    const legacy = LEGACY_HEADING.exec(line);
+    if (legacy) {
+      archived.push({
+        scheme: 'legacy',
+        n: Number(legacy[1]),
+        id: legacy[1],
+        headline: legacy[4],
+        date: legacy[2],
+        seat: legacy[3].toLowerCase(),
+        agent: legacy[3],
+        key: Number(legacy[1]),
+      });
+    }
+  }
+  if (archived.length === 0) {
+    throw new Error(
+      'docs/history.md: ZERO archived abstract headings parsed.\n' +
+        'That is a PARSER failure, not an empty archive — §7 has rotated into this file since Entry 33.\n' +
+        'Check line endings first: this is what a CRLF working tree did to §7 before Entry 80.',
+    );
+  }
+  return [...live, ...archived];
 }
 
 /**

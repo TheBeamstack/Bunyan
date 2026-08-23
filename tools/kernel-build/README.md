@@ -162,11 +162,19 @@ from `OCC_VERSION_COMPLETE` and `__EMSCRIPTEN_*__` — compile-time macros — a
 `toolchainId()`; `createOcctKernel` refuses to boot a module whose answer differs from `OCCT_BUILD_ID`.
 So a relink on a different emsdk now fails loudly instead of silently mis-stamping every `.bnn`.
 
-**Reproducibility, verified 2026-08-05 (Entry 79):** relinking on the pinned digest reproduced the
-then-committed artifact **byte for byte** — `bunyan-kernel.wasm` sha256
-`819ff12cbd627fd7d8a5e73e30b0d34f7f5b056702b23c38e218ad6784a6c696`, `bunyan-kernel.js` sha256
-`fc5b042176127d6bbaea48dafea9f3293a10c2f3059e495ea1e130bf68638345`. Step 3 alone, ~75 s. (The
-committed artifact has since moved on by the +139 bytes of `toolchainId()` itself.)
+**Reproducibility, verified 2026-08-21 (T-022):** relinking on the pinned digest reproduced the
+committed artifact **byte for byte** — `bunyan-kernel.wasm` sha256
+`f34fef311af31cd63d1804147f6f8bde58d44a07c4b864193a1fd1ac5223d56a`, and `bunyan-kernel.js` sha256
+`044baac643940196224f4e70cb2ae66997f9f8baf60e82fc8774fef4a7568db5` as the linker emits it. Step 3
+alone, 75 s. Entry 79 first proved the pin on 2026-08-05, against the artifact as it stood before that
+entry's own `toolchainId()` change, so its two hashes name nothing committed today.
+
+⚠ **The committed glue is not the linker's output.** `link.sh` runs `postlink.mjs` over
+`bunyan-kernel.js`, which rewrites both `TextDecoder.decode` sites off a view of growable memory —
+Chrome 149+ refuses one, and the kernel hangs on boot. The patched glue is sha256
+`4e5508df3f3173c717b528184ad8def2cba0c8f2f97673e5ac563d453448491a`; `bunyan-kernel.wasm` is untouched
+by it. `tests/kernel-glue-growable-decode.test.ts` asserts the shipped bytes, so a relink that drops
+the patch fails rather than ships.
 
 ## The JS↔WASM boundary: one crossing per op, not per element
 

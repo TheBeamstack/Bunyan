@@ -96,27 +96,39 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 > `current_state.md §5`'s "Later (post-freeze / v1.0.x)" list is not decomposed here — the freeze has not
 > happened, and rows nobody may claim bury rows somebody must.
 
-| ID    | Status  | Task                                                          | Area     | Machine | Risk   | Depends on |
-| ----- | ------- | ------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
-| T-001 | ready   | The perpendicular-foot snap candidate                         | apps-web | pc      | normal | —          |
-| T-002 | ready   | The two-candidate-line intersection snap                      | apps-web | pc      | normal | T-001      |
-| T-003 | ready   | The in-app open-source licences screen                        | apps-web | pc      | normal | —          |
-| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?      | document | box     | normal | —          |
-| T-005 | blocked | D66 §3c — force-on-measure, and whether `save` reads built    | document | box     | normal | T-018      |
-| T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint          | apps-web | pc      | normal | T-005      |
-| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref       | document | box     | normal | —          |
-| T-008 | done    | Q19 — the belongs-to deletion reconciliation                  | document | box     | high   | —          |
-| T-009 | done    | Q18 — a hosted void may only host on its host's base part     | document | box     | high   | —          |
-| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser         | apps-web | pc      | normal | T-009      |
-| T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`      | document | box     | high   | —          |
-| T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`         | infra    | box     | high   | —          |
-| T-013 | done    | The seat identity guard — `gh api user` must match the seat   | infra    | box     | high   | —          |
-| T-014 | done    | `--review` must read the task's `risk:`, not only the surface | infra    | box     | high   | —          |
-| T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder  | infra    | box     | high   | —          |
-| T-016 | done    | `§0b`'s baton carries the builder separately from the holder  | infra    | box     | high   | T-015      |
-| T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself    | infra    | box     | normal | —          |
-| T-018 | done    | D66's lazy-build design doc + measurement, reproduced         | document | box     | normal | —          |
-| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`      | apps-web | pc      | normal | —          |
+> **Row order is the sequence, not the id order.** `scripts/seats.mjs`'s `readyFor` takes the first
+> `ready` row a machine can satisfy, so this table's order is how the steward sequences work. **T-005
+> sits below T-024 deliberately:** its only dependent is T-006, a `pc` row, and no `pc` turn can finish
+> until T-020 lands — so building it first advances nothing, while T-020 unblocks that machine entirely.
+> **T-024 sits above T-022** because it is cheap, must land before the P5 freeze either way, and is
+> already costing turns their §7 abstract — a record loss, not a nuisance (`## Discovered`, 2026-08-19).
+
+| ID    | Status | Task                                                                    | Area     | Machine | Risk   | Depends on |
+| ----- | ------ | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
+| T-001 | ready  | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
+| T-002 | ready  | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
+| T-003 | ready  | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
+| T-004 | done   | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
+| T-006 | ready  | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | pc      | normal | T-005      |
+| T-007 | done   | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
+| T-008 | done   | Q19 — the belongs-to deletion reconciliation                            | document | box     | high   | —          |
+| T-009 | done   | Q18 — a hosted void may only host on its host's base part               | document | box     | high   | —          |
+| T-010 | ready  | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | pc      | normal | T-009      |
+| T-011 | done   | Q17a — `scene.designOptions` becomes a `SceneCollection`                | document | box     | high   | —          |
+| T-012 | done   | `--review` routes a PR whose title carries no `T-nnn`                   | infra    | box     | high   | —          |
+| T-013 | done   | The seat identity guard — `gh api user` must match the seat             | infra    | box     | high   | —          |
+| T-014 | done   | `--review` must read the task's `risk:`, not only the surface           | infra    | box     | high   | —          |
+| T-015 | done   | `agent-start.mjs --continue` returns a branch to its builder            | infra    | box     | high   | —          |
+| T-016 | done   | `§0b`'s baton carries the builder separately from the holder            | infra    | box     | high   | T-015      |
+| T-017 | done   | `docs-budget.test.ts`'s newest-first check verifies itself              | infra    | box     | normal | —          |
+| T-018 | done   | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
+| T-019 | ready  | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
+| T-020 | done   | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
+| T-021 | ready  | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
+| T-024 | done   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
+| T-022 | done   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
+| T-023 | ready  | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
+| T-005 | done   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
 
 ---
 
@@ -203,9 +215,10 @@ quantifies over the model must build what it is about to report, or declare it.
   prediction that was wrong) · `docs/decisions.md` D66
 - verify: `pnpm verify`
 - done-when:
-  - ⚠ **the unmeasured claim is measured FIRST:** does `save` read built state at all? T-018's design doc
-    says _"it should not — it writes the recipe — but that is a claim, not a measurement"_ and asks this
-    session to check before relying on the paragraph. Do that before choosing anything;
+  - ✅ **DISCHARGED BY T-018 — `save` reads no built state.** The partial and the full document
+    serialise to byte-identical `Scene` JSON, and `saveBnn` takes a `Scene`, never a `DocumentContext`
+    (`tests/d66-lazy-build-measure.test.ts`). This bullet asked the claiming session to measure that
+    first; it is measured, so start from it. ⚠ The FORCE/DECLARE choice below is untouched;
   - FORCE or DECLARE is chosen per aggregate (`projectQuantities`, schedules, the Clean Delta, `save`)
     and the choice is justified against the measurement above;
   - ⚠ **`save` is not a design call** — a save that silently omits unbuilt elements is data loss, not a
@@ -520,9 +533,11 @@ closed PR #16 (14 commits stale, real conflicts) and never landed on `main`. `T-
   - the measurement instrument is a committed test file, not a one-off script;
   - §3a (keep-live set) / §3b (first paint) / §3c (force vs. declare) are each named as a section T-005
     and T-006 can cite by number;
-  - revert-verified: the instrument's identity-comparison assertion fails if `Part.node` is read instead
-    of `Part.refs` — a weak-green shape the closed PR's own review caught once already, worth keeping as
-    a tripwire.
+  - revert-verified: the instrument's identity-comparison assertion fails if `Part.nodeId` is read
+    instead of `Part.refs` — a weak-green shape the closed PR's own review caught once already, worth
+    keeping as a tripwire. ⚠ This read `Part.node` when written, a field that has never existed
+    (`entities.ts:683`); corrected by `brahim` after the merge, and the tripwire was built against
+    `nodeId`.
 - depends-on: —
 - area: document · machine: **box** · risk: **normal**
 
@@ -550,10 +565,316 @@ D82 made). `current_state.md §5` (Amer, item 3) still names this open.
 - depends-on: —
 - area: apps-web · machine: **pc** · risk: **normal**
 
+### T-020 — The pinned vitest cannot collect `tests/protocol/*` on Windows
+
+`pnpm verify` cannot reach green on the pc for **any** task, so `agent-finish.mjs` refuses every
+`amer`/`khalihlna` turn. Measured there: `vitest run` (pinned `^2.1.8`, installed `2.1.9`) throws
+`SyntaxError: Invalid or unexpected token` collecting five `tests/protocol/*.test.ts` files, while `tsc`,
+esbuild, Vite's transform, `vite-node` and `npx vitest@latest` (4.1.10) all parse the same files cleanly
+and CI's Linux runner is green on the identical command.
+
+- implements: this file's `## Discovered` entry of 2026-08-17 · `current_state.md §6` (`verify` **is** the
+  CI step list, exactly) · `AGENTS.md §1.1` (a finish requires unconditional green)
+- verify: `pnpm verify`
+- done-when:
+  - the runner is moved to a major the pc measured green, and `package.json`'s pin and the lockfile move
+    together;
+  - ⚠ **the suite count is reported before and after, and is unchanged** — a major bump that silently
+    stops collecting a file reports _fewer_ tests and a green run, which is this defect's own shape
+    (`current_state.md §1c-7`);
+  - every vitest API the suite and `vitest.config.ts` use that changed between the two majors is
+    enumerated and each call site checked — invariant 7's backward sweep, over the config too;
+  - CI green on the self-hosted runner (D89);
+  - ⚠ **no item here claims the pc is fixed.** The box cannot reproduce a Windows-only collection
+    failure, so the entry writes `unverified here: the five protocol files collect on Windows — the pc
+seats to confirm`, and T-021 is what closes it.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — it replaces the runner every gate in `pnpm verify` depends on, including the gates that
+> would catch its own regressions.
+
+### T-021 — `pnpm verify` reaches green on the pc, confirmed there
+
+- implements: T-020's bump · `AGENTS.md §4.9` (only a pc seat may report a pc-only claim)
+- verify: `pnpm verify`, on the pc
+- done-when:
+  - the five `tests/protocol/*.test.ts` files collect and pass on the pc;
+  - `pnpm verify` exits 0 there — which it has never done;
+  - revert-verified: restoring the `^2.1.8` pin reproduces the collection `SyntaxError`;
+  - ⚠ measured **on this machine**, and it is the first turn that may tick T-020's deferred claim.
+- depends-on: T-020
+- area: infra · machine: **pc** · risk: **normal**
+
+> Split from T-020 because the fix is a dependency bump the box and CI must verify, and the failure it
+> closes reproduces only on Windows — one row would let a box seat tick a criterion it cannot run.
+
+### T-022 — `kernel-occt`'s glue decodes from growable WASM memory
+
+The shipped kernel does not boot on Chrome 149+: `TextDecoder.decode` now refuses a view whose backing
+`ArrayBuffer` is resizable, which is how Chrome exposes growable WASM memory, and
+`packages/kernel-occt/wasm/bunyan-kernel.js` decodes UTF-8 straight off `HEAPU8`. Measured on the pc —
+Chromium 145 and 148 boot, 151 hangs on "Booting OCCT kernel…" — and reproduced against unmodified `main`,
+so it is pre-existing and not `apps/web`'s.
+
+- implements: this file's `## Discovered` entry of 2026-08-17 · `current_state.md §1c-9` (**measure the
+  artifact, not the manual**) · `§6` (the link recipe) · Q14/Entry 79 (the proven toolchain pin)
+- verify: `pnpm verify`
+- done-when:
+  - the emitted `bunyan-kernel.js` no longer decodes from a view of growable memory — asserted against
+    **the artifact**, because its doc-comments and its emitted bytes have disagreed before (§1c-9);
+  - a committed test pins that, so a later relink cannot reintroduce it silently;
+  - ⚠ **the pin is re-proved or deliberately moved.** Entry 79 proved relinking on the pinned emsdk digest
+    reproduces the committed artifact byte for byte. An emsdk bump moves `tools/kernel-build/toolchain.json`
+    and re-proves it the same way; a post-link patch leaves the pin alone and belongs in the recipe, never
+    as a hand edit to a generated file;
+  - ⚠ **measure the cost before choosing.** An emsdk bump may invalidate the OCCT static libs prebuilt
+    under the current pin at `~/occt-wasm-spike/install`, turning a ~60–74 s link into a 2.5 h rebuild
+    (`current_state.md §6`); if it does, the patch path is preferred and the entry says so with the number;
+  - the suite stays green, count reported;
+  - ⚠ **no item here claims a browser boot.** Measured on box: Node 20.20.2 decodes a resizable-backed
+    view without complaint, so the runtime here cannot reproduce Chrome's refusal. The entry writes
+    `unverified here: the kernel boots on Chrome 151 — the pc seats to confirm`, and T-023 closes it;
+  - ⚠ box discipline (`§6a`): the container stays capped, and an OCCT **version** bump is out of scope.
+- depends-on: —
+- area: kernel · machine: **box** · risk: **high**
+
+> `risk: high` — it changes the committed WASM artifact and touches the toolchain pin, the two things
+> every geometric claim in the repo is measured against.
+
+### T-023 — The kernel boots on the pc's system Chrome, confirmed there
+
+- implements: T-022's fix · `AGENTS.md §4.9`
+- verify: a browser run on the pc
+- done-when:
+  - the app boots on that machine's system Chrome (151.x) with **no `BUNYAN_BROWSER_CMD` override**, and
+    the `TextDecoder` error is gone by name;
+  - console-error-free boot;
+  - revert-verified: the pre-fix artifact still hangs on the same browser;
+  - ⚠ **the workaround is removed once the fix is proven** — the persistent `BUNYAN_BROWSER_CMD` pinning
+    Chromium 148 is unset and the removal recorded, so it cannot outlive what it works around.
+- depends-on: T-022
+- area: apps-web · machine: **pc** · risk: **normal**
+
+### T-024 — `_baselinedAtEntry` names a position, so a cross-day §7 append goes red
+
+`docs-state.mjs` mints new-scheme entry numbers as `1000 - i` over §7's array order, so `1000` means
+"whatever is newest" rather than a fixed turn. `baselineEntryIssues` then compares `_baselinedAt` against
+that moving entry's date, and any turn that appends a §7 abstract on a later day than the baseline fails
+`tests/freeze-boundary.test.ts` having moved no declaration.
+
+- implements: this file's `## Discovered` entry of 2026-08-17 · `scripts/frozen-surface.mjs`'s
+  `baselineEntryIssues` · `scripts/docs-state.mjs` ("SYNTHETIC SORT KEYS") · Q15
+- verify: `pnpm verify`
+- done-when:
+  - a new-scheme abstract carries a **stable identity** — its `T-nnn`/`STEWARD-slug` with its date, or a
+    minted monotonic number — and `_baselinedAtEntry` records that, not a position;
+  - appending a §7 abstract on a later day leaves `freeze-boundary` green when no declaration moved,
+    measured on the one turn that hit it, `STEWARD-unblock-pc-and-chrome-boot`;
+  - ⚠ **the gate is repaired, not removed** — a baseline whose recorded date genuinely disagrees with the
+    entry that authorised it must still fail;
+  - ⚠ **this lands before the P5 freeze.** After it the baseline may not be rewritten without an owner
+    ruling, so today's only remedy — `pnpm state --rebaseline` to record nothing — stops being available
+    and the gate has no green path at all;
+  - revert-verified: the pre-fix scheme reproduces the red on a fixture whose newest abstract postdates
+    the baseline.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — it is the freeze gate itself, and `AGENTS.md §5` makes the P5 freeze the one
+> irreversible act.
+
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-22 — `ModelElement.hasParts` cannot be read without `state`, and nothing enforces that.**
+  A `stale` element (D66 §3c/T-005 — recipe present, solid not built) carries `hasParts: false` for the
+  same reason a pure void does, so the field alone cannot separate _"nothing to measure"_ from _"not
+  measured yet"_. All five consumers test `state !== 'valid'` first, so it is unreachable today; the
+  guarantee is a convention, which `§1c-8` calls a dirty rule that has not happened yet. Fix shape: make
+  the field tri-state, or gate it in the enumeration's own test. Found by `zayd` on T-005. Recorded, not
+  claimed.
+- **2026-08-22 — FORCE is whole-model where only the composite parents need it.** `projectQuantities`,
+  `evaluateSchedule` and `projectView` build every deferred element, but the only population the
+  enumeration actually loses is a deferred parent's D59 children — so a schedule filtered to `core.wall`
+  could build the Types that declare `buildChildren` and nothing else. Pure optimisation, no correctness
+  content, and nothing measures its size at D48's 10,000-element target. Named in
+  `docs/design/P5_step9_D66_lazy_build_design.md` §3c as not built. Found by `zayd` on T-005. Recorded,
+  not claimed.
+
+- **2026-08-21 — the seat identity gate guards the CLAIM, and the merge happens outside it.** D87's check
+  lives in `agent-start.mjs`, but a reviewer approves and merges _after_ `agent-finish.mjs` has returned,
+  so a session that reaches the merge without a fresh claim is unguarded. Measured on PR #39: the box's
+  `gh` default resolves to `Davidian-Abdo`, the PR's own author, and the session got as far as the merge
+  command with nothing checking — it stopped only because the seat read `AGENTS.md §6` itself.
+  `gh pr merge` would have succeeded, since GitHub's self-approval refusal does not extend to merge
+  (`agent-start.mjs`'s own ⚠⚠ block, measured 2026-08-15). Compounding it, `agent-finish --review` writes
+  the verdict as accomplished fact: PR #39 carried _"Verdict: APPROVED, and merged by me on
+  `narutousomaki741`"_ while the PR had **zero** reviews. Fix shape: re-run the identity gate at
+  approve/merge time, and have the finish state the verdict as owed rather than done. Found by `hmdnah`
+  merging PR #39, and by `brahim` instructing that session to skip `agent-start.mjs`. Recorded, not claimed.
+- **2026-08-21 — `current_state.md §6`'s relink recipe caps memory at `--memory=2g`, and the link fits in
+  1 GB.** Step 2 of PR #39 ran it under a hard 1 GB cgroup cap with container swap off in **78 s**, exit 0,
+  emitting a `.wasm` and glue byte-identical to the committed pair. The overstatement has a measured cost:
+  step 1 of the same PR **deferred the relink entirely** on `--memory=2g` against 1024 MB free, and recorded
+  it as an `unverified here:` a box seat could not discharge. Fix shape: correct §6's figure to what was
+  measured. Found by `hmdnah`, PR #39 step 2. Recorded, not claimed.
+- **2026-08-21 — the shipped kernel glue now has a patch step, so relinking means running `link.sh`.**
+  T-022 added `tools/kernel-build/postlink.mjs`, which rewrites both emitted `TextDecoder.decode` sites
+  after the link; `em++` invoked by hand emits the unpatched glue and reintroduces the growable-memory
+  decode. The recipe in `current_state.md §6` already runs `link.sh`, which applies it. Owed by `zayd`
+  building T-022. Recorded, not claimed.
+
+- **2026-08-21 — `frozen-surface.mjs`'s legacy half documents a skip that can no longer happen.** T-024
+  pointed `abstracts` at `recordedAbstracts`, so the legacy set never empties: **13** legacy headings in
+  the record against **0** in §7, which makes the `:315` bound always live and `:252`'s _"SKIPS once it
+  rotates, which is why that half never cries wolf"_ false. Two edges follow — `:327` reports a
+  disagreement as _"in §7"_ for an entry it resolved outside §7, and `newestLegacy` is **88** while
+  entries **89** and **90** are real turns carrying no `### N |` heading, so a baseline naming either is
+  refused as _"the newest entry that exists is 88"_. Unreachable through the writer, which mints keys only.
+  Found by `hmdnah` on PR #38 step 2; re-measured by `brahim` on `50b3fa0`. Recorded, not claimed.
+- **2026-08-21 — `docs-budget.test.ts`'s collision gate asserts a tautology in its second half.**
+  `key` equals `<id> — <date> — <seat>` for all **45** new-scheme abstracts, so grouping by key partitions
+  by exactly those three fields and the three `size === 1` checks cannot fail; they would bite only on a
+  legacy collision, of which there are **0**. The half that measures, `collisions.length > 0`, is sound.
+  Found by `hmdnah` on PR #38 step 2; re-measured by `brahim`. Recorded, not claimed.
+- **2026-08-21 — every count and line number written into `## Discovered` prose rots, and one row's has
+  twice.** The 2026-08-19 uniqueness row says **5 of 51 across 56**; step 2 measured **6 of 51 across 57**,
+  and `50b3fa0` measures **6 of 51 across 58** — the review protocol that generates key collisions also
+  generates the abstracts that move the count (`T-024 — 2026-08-19 — hmdnah` is now **×3**). The same row's
+  line numbers for the T-015 duplicate have moved twice, 2231/2300 → 2299/2368 → **2371/2440**. The code is
+  immune because the tests measure; the prose is not. **Cite a heading, never a line number, and date any
+  count.** Found by `hmdnah` on PR #38 step 2. Recorded, not claimed.
+- **2026-08-21 — `frozen-surface.d.mts:44`'s _"never the §7 parse alone"_ is overstated.**
+  `state-risk-e2e.test.ts:209`/`:250` pass the §7 parse alone, legitimately, on fixtures carrying no
+  `docs/history.md`, where `recordedAbstracts` throws by design. A doc line, not a defect. Found by
+  `hmdnah` on PR #38 step 2. Recorded, not claimed.
+
+- **2026-08-19 — an abstract's stable key `<id> — <date> — <seat>` is not unique, and §7 is not the
+  scope that decides.** Corrected on T-024's defect return; the first statement of this row named the
+  wrong scope, the wrong count and one of the two generators. Measured over `current_state.md` §7 **plus
+  `docs/history.md`** — the population invariant 10 makes permanent — **5 colliding keys of 51 distinct**
+  across 56 headings, up from the 4 of 51 step 2 measured, because step 2's own abstract created one.
+  The generator is **any two turns by one seat on one task on one day**, and it has two live routes:
+  D88's two review steps, and `agent-start.mjs --continue` returning a defect to its builder
+  (`T-011 — 2026-08-17 — zayd`, and this turn's own). A §7-scoped view is not a smaller version of the
+  same fact — it is a different one that swings turn to turn. T-024's fix does not depend on uniqueness:
+  the date is in the key, so a reference resolves to a turn-PAIR that carries one date, which is the half
+  `baselineEntryIssues` reads (pinned by `tests/docs-budget.test.ts`'s "the entry key collides, and every
+  collision is a turn-PAIR"). **No uniqueness gate, and not for the reason first given:** at §7 scope such
+  a gate is green on most days and red on a _correct_ turn — a second review step or a returned build —
+  which is cry-wolf, not invariant 10. Fix shape, if it is ever worth one: a step marker in the heading,
+  which is a §7 schema change. Found by `zayd` building T-024, corrected by `zayd` on its return.
+  Recorded, not claimed.
+- **2026-08-19 — `docs/history.md` §E holds `T-015 — review: the fix holds, backward sweep and
+weak-green clean — 2026-08-16 — seat: hmdnah` TWICE** (lines 2231 and 2300), same heading, same
+  `FULL:` path, bodies differing only in the `REVIEW:` line's wording — a rotation that copied instead of
+  moving, across two compactions. Invariant 10 makes the archive append-only, so this is not `zayd`'s to
+  edit; it is the one colliding key in the record that is **not** a turn-pair, and it is why the new
+  collision gate asserts one task/seat/day rather than distinct headlines. Found by `zayd` on T-024's
+  defect return, measuring the record for the row above. Recorded, not claimed.
+- **2026-08-19 — `reserved-classes.mjs` classes ANY diff to `tests/frozen-surface.snapshot.json` as
+  `freeze`, including a metadata-only one.** T-024's own PR moves `_baselinedAtEntry` and **0 of 214**
+  declarations, so `state.mjs` returns `RISK: additive` while CI labels it `needs-operator/freeze` and
+  the owner merges a PR that touches no contract. This is the third occurrence of the same cry-wolf
+  shape (PR #36, `--review`'s merge commands, and now this), and it is the one the `_README`'s own
+  policy makes load-bearing after the freeze. Fix shape: class `freeze` on a `surface` diff, and
+  report an audit-field-only edit as a separate, non-gating class. Found by `zayd` building T-024.
+  Recorded, not claimed.
+- **2026-08-19 — `agent-finish.mjs --review` stamps the backlog row `done` on an owner-gated PR, not only
+  prints its merge command.** `seats.reviewFlipsToDone(risk, step, contractTouching)` reads
+  `contractTouching` from `§8`'s frozen-surface row, so `reviewFlipsToDone('high', 2, false)` is `true` on
+  a PR carrying `needs-operator/freeze`: measured on PR #38's step 2, which wrote `T-024 → done` while the
+  owner had not merged and could not be made to on a reviewer's schedule. `done` is what satisfies another
+  row's `depends-on:`, so this releases dependents on an unmerged PR — nothing depends on T-024, which is
+  luck. This is `T-014`'s defect one class over: `AGENTS.md §5` names **three** owner-gated classes and
+  `reserved-classes.mjs` labels all three, while `reviewFlipsToDone` knows only `contract-touching`, so the
+  freeze and legal-figure classes walk past it. The 2026-08-18 row below covers the _printed merge command_
+  — which a human can decline — and not the row flip, which nobody sees. Fix shape: `--review` resolves the
+  reserved classes it already has a module for, and keeps the row `review` whenever any `needs-operator/*`
+  applies. Row set back to `review` by hand this turn. Found by `hmdnah`, step 2 of PR #38. Recorded, not
+  claimed. ⚠ **Fired a second time on 2026-08-20**, on the step-2 re-run that approved the same PR — it
+  printed `backlog status → done (T-024 merges immediately after this turn)` and `gh pr merge 38 --squash`
+  against a still-unmerged `needs-operator/freeze` PR. Row set back to `review` by hand again; the flip is
+  reproducible, not a one-off.
+- **2026-08-19 — the stable key `<id> — <date> — <seat>` is not the identity `agent-finish.mjs` uses, and
+  T-024 did not sweep it.** T-024 adds `EntryAbstract.key` for anything that names an entry, then leaves
+  `agent-finish.mjs:280`'s handoff gate on `find(a => a.id === task && a.seat === seat)` — a subset of the
+  key, and precisely the tuple whose collisions the same PR records. That is why a D88 step 2 passes on
+  step 1's abstract (the row below), and why §7 now carries two abstracts keyed `T-024 — 2026-08-19 —
+hmdnah`: the review protocol generates the collision the code comment says is rare. Two smaller sites of
+  the same sweep: the seven `docs-budget` messages moved `.n` → `.id`, the one field that is never unique,
+  and `isSyntheticEntryNumber` guards `(990, 1000]` while a turn appends its abstract _before_ rotating, so
+  §7's transient 11th index mints `990` and is reported as a legacy number. Found by `hmdnah`, step 2 of
+  PR #38. Recorded, not claimed.
+- **2026-08-19 — `agent-finish.mjs --review --step 2` accepts step 1's abstract and body as step 2's
+  handoff artifacts, and prints the merge commands.** Its gate checks only that _some_ §7 abstract names
+  the task and the seat, and a D88 step 1 has already written one — so a step 2 that wrote nothing of its
+  own passes. Every prior step 2 (T-011, T-012, T-013, T-014, T-016) wrote its own by hand, so the
+  convention has held by habit rather than by gate. Found by `hmdnah` finishing step 2 of PR #37. Fix
+  shape: key the gate on the step, so step 2 requires an abstract that is not step 1's. Recorded, not
+  claimed.
+- **2026-08-19 — T-024 has now cost a real turn its §7 abstract.** Step 2 of PR #37 could not append an
+  abstract dated `2026-08-19` at all: `_baselinedAtEntry` is the positional key `1000`, so it resolves to
+  whatever is newest and its date disagreed with `_baselinedAt: 2026-08-18`, reddening
+  `tests/freeze-boundary.test.ts` having moved no declaration. The only alternatives were falsifying the
+  date or re-baselining the frozen snapshot, which is owner-gated — so the abstract was archived straight
+  into `docs/history.md` §E and **§7 carries none for that turn**. ⚠ A reader looking in §7 for T-020's
+  step-2 review will not find it; the body is `handoff/hmdnah/2026-08-19-T-020-review-step2.md`. This is
+  the second measured instance after `STEWARD-unblock-pc-and-chrome-boot`, and the first where the gate
+  cost the record rather than a re-baseline. Recorded against **T-024**, already `ready`.
+
+- **2026-08-18 — `agent-finish.mjs --review` prints `gh pr merge` on an owner-gated PR, because it reads
+  `pnpm state`'s risk verdict and not `reserved-classes.mjs`'s class.** The two disagree by construction
+  on a re-baseline: PR #36 moved 0 of 214 declarations, so `state.mjs` returns `RISK: additive`, while
+  `reserved-classes.mjs` returns `⇒ OWNER-GATED` on `needs-operator/freeze` and CI applies that label.
+  Measured on #36 — both commands printed, neither run. Only `REVIEW.md` item 7's ⚠ (_"any
+  `needs-operator/*` label ⇒ you do not merge"_) stands between the printed command and a seat merging an
+  owner-gated PR, which is an instruction where `T-014` established a gate belongs — the same shape, in the
+  same script, for the freeze class instead of `risk: high`. Fix shape: `--review` resolves the reserved
+  classes it already has a module for, and suppresses the merge commands whenever one is present, rather
+  than deriving merge-ability from the frozen-surface diff alone. Found by `hmdnah` reviewing #36.
+  Recorded, not claimed.
+- **2026-08-18 — every merge lands a branch-shaped `§8` on `main`, so the next builder's
+  `agent-start.mjs` measures a disagreement and refuses.** `§8` is regenerated on the task branch, where
+  its `branch · tip · tree`, `open PRs` and `diff vs origin/main` rows describe that branch; the merge
+  commits those rows verbatim onto `main`, where they are false. Measured by `zayd` opening T-018:
+  `main`'s committed `§8` still read `RISK: contract-touching (re-baselined)` from the T-011 branch while
+  the repo measured `additive`, and the turn was refused at step 3. Already worked around twice by hand —
+  `faf7d31` is a bare `pnpm state` regen of `main` for this reason. The refusal itself is correct and is
+  the mechanism `AGENTS.md §1.1` wants (_trust the repository_); what is wrong is that a clean merge
+  guarantees the disagreement. Fix shape: either the reviewer's `--review` finish regenerates `§8` from
+  `main` after merging, or the branch-scoped rows leave the committed `§8` altogether — they describe a
+  branch, and `§8` on `main` is read as describing `main`. Found by `zayd` on T-018. Recorded, not claimed.
+
+- **2026-08-17 — ⚠⚠ `pnpm verify`'s test step cannot collect five `tests/protocol/*.test.ts` files on
+  this pc (Windows), so `pnpm verify` cannot go green here regardless of task.** `vitest run` (pinned
+  `^2.1.8`, installed `2.1.9`) throws `SyntaxError: Invalid or unexpected token` parsing an em-dash
+  (U+2014) inside each file's header block comment — reproduced independently on `pr-ready`, `agent-finish`,
+  `agent-start`, `reserved-classes` and `seats`. Not the file content: `tsc`, raw `esbuild` (two versions),
+  Vite's own transform, and `vite-node` all parse each file cleanly; `npx vitest@latest` (4.1.10) runs the
+  same file 8/8 green; CI's Linux runner is green on the identical command (PR #18). Reproduces on two
+  Node builds (24.11.0, a portable 20.18.1) — narrows to the pinned vitest/esbuild pair on Windows, not
+  Node version. Since these five files landed on `main` at Entry 91 (D82) and every branch descends from
+  it, **this blocks `agent-finish.mjs` — which requires unconditional green `pnpm verify` — for every
+  future `amer`/`khalihlna` turn on this machine**, independent of what the task touches. Fix shape: a
+  vitest major bump (2→4, per the working `@latest` run) or an esbuild-level workaround; either is
+  infra/box territory and needs cross-platform (CI) verification before landing, not a pc-side patch.
+  Found by `amer` on T-001, whose branch has real, tested, browser-verified work but no PR because of
+  this. Recorded, not claimed.
+- **2026-08-17 — this pc's system Chrome (151.0.7922.138) cannot boot the OCCT kernel at all** — hangs on
+  "Booting OCCT kernel…", throwing `Failed to execute 'decode' on 'TextDecoder': The provided ArrayBuffer
+value must not be resizable` from the kernel worker's boot path (`packages/kernel-occt/wasm/bunyan-kernel.js`).
+  Confirmed pre-existing (reproduces against unmodified `main`). A/B against cached Playwright Chromium
+  builds: 145.0.7632.6 and 148.0.7778.96 boot cleanly, 151.0.7922.34 does not — the regression window is
+  Chrome 149–151, and it is in `kernel-occt`'s boot path, not `apps/web`. ⚠ **Worked around for this
+  machine, not fixed**: `BUNYAN_BROWSER_CMD` (`scripts/seats.mjs`'s documented override) is now set as a
+  persistent Windows user env var, pinned to the cached
+  `%LOCALAPPDATA%\ms-playwright\chromium-1223\chrome-win64\chrome.exe` (148.0.7778.96) — takes effect on
+  the next fresh session/process, not the one that set it. A real fix (kernel-occt boot path handling a
+  non-resizable `ArrayBuffer`) is `zayd`'s, and needed before this machine can trust its default browser
+  again. Found by `amer` on T-001; env var set by `light_brahim` the same cycle. Recorded, not claimed.
 - **2026-08-17 — ⚠⚠ wall joins are not level-scoped, so stacking an ordinary building's storeys drops the
   miter on the storey below.** `partnersAt`/`throughWallsAt` match baselines in 2D and `indexOf` indexes
   every element in the scene with a baseline; neither consults `containerId`, the level's elevation, or the

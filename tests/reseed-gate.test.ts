@@ -111,6 +111,10 @@ describe('the re-seed gate matches GEOMETRY, not LOCATION', () => {
     // bump is a toolchain change and a toolchain change can move a golden — the same argument that
     // put `link.sh` on this list, one level up.
     expect(geometry('tools/kernel-build/toolchain.json')).toBe(true);
+    // T-022: `postlink.mjs` rewrites the glue `link.sh` emits, so it shapes the shipped artifact by
+    // the same argument that put `link.sh` here. It is also the `.mjs` in this directory that the
+    // test below asserts the OTHER two are not, so the discrimination needs pinning from both sides.
+    expect(geometry('tools/kernel-build/postlink.mjs')).toBe(true);
   });
 
   /**

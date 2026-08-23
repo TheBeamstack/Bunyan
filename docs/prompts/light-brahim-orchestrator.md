@@ -71,6 +71,13 @@ below and wait for the repo to move.
 (the subagent's own `agent-start.mjs` invocation determines this; you do not pre-filter it yourself).
 Wait for it to finish (foreground) and read its report.
 
+- ⚠⚠ **The subagent shares this working tree and leaves it checked out on its task branch when it
+  finishes.** `git checkout main` yourself before your next git operation of any kind — including a
+  direct-commit doc fix prompted by something the subagent found. Skipping this lands your commit on the
+  task branch instead of `main`, silently: `git push origin main` reports success (or "up to date")
+  either way, because it never touched the branch you meant. Measured 2026-08-17: a `docs/BACKLOG.md`
+  Discovered-entry commit landed on `task/T-001-…` this way and had to be cherry-picked onto `main` and
+  the task branch force-reset back to the subagent's own last commit after the fact.
 - If it reports `agent-start.mjs` refused because nothing is `ready` for this machine: soft pause, not a
   hard stop — reschedule a longer check (~1–2h).
 - If it reports anything else unresolved (a spec/contract defect fixed but worth flagging, a machine

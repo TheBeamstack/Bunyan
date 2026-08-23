@@ -54,6 +54,10 @@ em++ -O3 -std=c++17 \
   -sASSERTIONS=0 \
   -o /work/dist/bunyan-kernel.js
 
+# The emitted glue decodes UTF-8/UTF-16 straight off a view of growable memory, which Chrome 149+
+# refuses. Patching the linker's output keeps the digest pin intact — see postlink.mjs for why.
+node /work/postlink.mjs /work/dist/bunyan-kernel.js
+
 echo
 echo "=== ARTIFACT ==="
 ls -l /work/dist/

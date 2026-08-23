@@ -57,6 +57,7 @@ export const GEOMETRY_PATHS = [
   'tools/kernel-build/src/kernel.cpp', // the kernel's C++ ops — what link.sh actually compiles
   'tools/kernel-build/configure.sh', // OCCT's build configuration
   'tools/kernel-build/link.sh', // compiler/linker flags for the shipped module
+  'tools/kernel-build/postlink.mjs', // rewrites the glue link.sh emits, so it shapes the artifact too
 
   // ⚠ ADDED IN ENTRY 79 WITH THE DIGEST PIN (Q14), and it belongs beside `link.sh` for the same
   // reason: this file names the COMPILER. `link.sh` decides which flags OCCT is optimised with;
