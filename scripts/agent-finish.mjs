@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * scripts/agent-finish.mjs — the end of a turn (Entry 91, D82).
  *

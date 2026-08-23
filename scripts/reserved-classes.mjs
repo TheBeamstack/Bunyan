@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * scripts/reserved-classes.mjs — labels a PR with the owner-gated classes it falls into
  * (`AGENTS.md §5`), so the routing is on the PR rather than in a reviewer's memory of §8's RISK row.

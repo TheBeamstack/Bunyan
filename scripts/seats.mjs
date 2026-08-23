@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * scripts/seats.mjs — the seat registry, and the only thing that answers three questions:
  *
