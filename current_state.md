@@ -630,6 +630,34 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### STEWARD-decompose-harness-defects — the box ran out of work with five measured defects unclaimed — 2026-08-23 — seat: brahim
+
+- **CHANGED:** `docs/BACKLOG.md` — **T-025 to T-028 NEW** (four `ready` `infra`/`box` rows), T-006
+  promoted `blocked` → `ready` in the same sweep that closed T-005, and one `## Discovered` row for the
+  stranded-finish defect T-028 implements. `handoff/brahim/2026-08-23-STEWARD-decompose-harness-defects.md`
+  NEW; this abstract. No `packages/`, no `scripts/`, no snapshot byte, no code.
+- **VERIFIED:** `docs:check` **163 passed** (8 files) after the decomposition, so every new row satisfies
+  the protocol tests that read this file. `seats.mjs ready-for zayd` → **`T-026 T-025 T-028 T-027`**,
+  which is both the intended sequence and proof the rows are claimable by the box builder. Every `box`
+  row in the table read `done` before this turn and all eight `ready` rows were `pc` — the condition
+  that made the box idle.
+- **FOUND:** **The three stranded finishes had never been recorded.** `agent-finish.mjs` runs `pnpm verify`
+  in full, and a session ending inside it leaves the branch committed-but-unpushed or the tree
+  written-but-uncommitted, after which `agent-start.mjs` refuses at its own `git checkout main` with only
+  *"pull failed — resolve by hand"*. Three in one batch — T-024 step 2, T-022 step 1 (where the absent
+  `review/step-1` label would have made the next session re-run step 1, since that label is what
+  `resolveReviewStep` reads), and T-022 step 2. Each was repaired conversationally and would have left no
+  trace. ⚠ **T-026 and T-025 are one failure at two altitudes and are deliberately separate rows:** T-025
+  is a class-resolution bug inside `reviewFlipsToDone`, T-026 adds a gate where none exists, and one row
+  carrying both cannot reach green in a turn (READY criterion 9).
+- **OWES:** The **owner** — this PR's merge decision, and **Q22**/**Q23**, both still unruled and neither
+  invented here. ⚠ **No builder starts on T-025–T-028 until the owner says so** (the orchestrator's
+  phase-boundary rule). The **pc machine** — eight `ready` rows including **T-023**, which is the only
+  place T-022's fix can be proven to fix anything; `light_brahim` is not running.
+- **RISK:** additive — no declaration moved, no code, no snapshot byte.
+- **FULL:** `handoff/brahim/2026-08-23-STEWARD-decompose-harness-defects.md`
+- **REVIEW:** ⚠ **AWAITING REVIEW** — a steward PR is reviewed by whoever runs next (`AGENTS.md §1.3`).
+
 ### T-005 — review: the sweep's lens was narrower than the rule it swept for — 2026-08-22 — seat: hmdnah
 
 - **CHANGED:** one test fix and two documentation files on the branch, **no product code**:
@@ -939,17 +967,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-005 (hmdnah, 2026-08-22)** |
-| branch · tip · tree | `task/T-005-d66-3c-force-on-measure-and-whether-save` · `0543f2e` · dirty |
-| open PRs | #40 task/T-005-d66-3c-force-on-measure-and-whether-save |
-| suite | **959 green** · 99 files · 293 suites |
+| **newest entry** | **STEWARD-decompose-harness-defects (brahim, 2026-08-23)** |
+| branch · tip · tree | `brahim/2026-08-23-decompose-harness-defects` · `128e5f6` · dirty |
+| open PRs | none — main is the tip of the work |
+| suite | ⚠⚠ 958/959 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 1188 insertions(+), 144 deletions(-) (13 files) |
-| docs budget | current_state 81.5/96.0 KB · §7 29.1/32.0 KB · abstracts 6/10 · bodies 83 |
+| diff vs origin/main | 2 files changed, 128 insertions(+) (2 files) |
+| docs budget | current_state 84.0/96.0 KB · §7 31.6/32.0 KB · abstracts 7/10 · bodies 84 |
 
-_Generated 2026-08-22 by `pnpm state`._
+_Generated 2026-08-23 by `pnpm state`._
 
 <!-- END GENERATED -->
