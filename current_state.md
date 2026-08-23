@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `brahim` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-decompose-harness-defects` |
 | branch | `brahim/2026-08-23-decompose-harness-defects` |
@@ -931,14 +931,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-decompose-harness-defects (hmdnah, 2026-08-23)** |
-| branch · tip · tree | `brahim/2026-08-23-decompose-harness-defects` · `b08d70c` · dirty |
+| branch · tip · tree | `brahim/2026-08-23-decompose-harness-defects` · `d64b5ee` · clean |
 | open PRs | #41 brahim/2026-08-23-decompose-harness-defects |
 | suite | **959 green** · 99 files · 293 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 4 files changed, 385 insertions(+), 122 deletions(-) (4 files) |
+| diff vs origin/main | 5 files changed, 615 insertions(+), 122 deletions(-) (5 files) |
 | docs budget | current_state 80.5/96.0 KB · §7 28.2/32.0 KB · abstracts 6/10 · bodies 85 |
 
 _Generated 2026-08-23 by `pnpm state`._
