@@ -103,32 +103,32 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 > **T-024 sits above T-022** because it is cheap, must land before the P5 freeze either way, and is
 > already costing turns their §7 abstract — a record loss, not a nuisance (`## Discovered`, 2026-08-19).
 
-| ID    | Status  | Task                                                                    | Area     | Machine | Risk   | Depends on |
-| ----- | ------- | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
-| T-001 | ready   | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
-| T-002 | ready   | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
-| T-003 | ready   | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
-| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
-| T-006 | blocked | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | pc      | normal | T-005      |
-| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
-| T-008 | done    | Q19 — the belongs-to deletion reconciliation                            | document | box     | high   | —          |
-| T-009 | done    | Q18 — a hosted void may only host on its host's base part               | document | box     | high   | —          |
-| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | pc      | normal | T-009      |
-| T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`                | document | box     | high   | —          |
-| T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`                   | infra    | box     | high   | —          |
-| T-013 | done    | The seat identity guard — `gh api user` must match the seat             | infra    | box     | high   | —          |
-| T-014 | done    | `--review` must read the task's `risk:`, not only the surface           | infra    | box     | high   | —          |
-| T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder            | infra    | box     | high   | —          |
-| T-016 | done    | `§0b`'s baton carries the builder separately from the holder            | infra    | box     | high   | T-015      |
-| T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself              | infra    | box     | normal | —          |
-| T-018 | done    | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
-| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
-| T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
-| T-021 | ready   | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
-| T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
-| T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
-| T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
-| T-005 | done    | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
+| ID    | Status | Task                                                                    | Area     | Machine | Risk   | Depends on |
+| ----- | ------ | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
+| T-001 | ready  | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
+| T-002 | ready  | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
+| T-003 | ready  | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
+| T-004 | done   | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
+| T-006 | ready  | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | pc      | normal | T-005      |
+| T-007 | done   | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
+| T-008 | done   | Q19 — the belongs-to deletion reconciliation                            | document | box     | high   | —          |
+| T-009 | done   | Q18 — a hosted void may only host on its host's base part               | document | box     | high   | —          |
+| T-010 | ready  | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | pc      | normal | T-009      |
+| T-011 | done   | Q17a — `scene.designOptions` becomes a `SceneCollection`                | document | box     | high   | —          |
+| T-012 | done   | `--review` routes a PR whose title carries no `T-nnn`                   | infra    | box     | high   | —          |
+| T-013 | done   | The seat identity guard — `gh api user` must match the seat             | infra    | box     | high   | —          |
+| T-014 | done   | `--review` must read the task's `risk:`, not only the surface           | infra    | box     | high   | —          |
+| T-015 | done   | `agent-start.mjs --continue` returns a branch to its builder            | infra    | box     | high   | —          |
+| T-016 | done   | `§0b`'s baton carries the builder separately from the holder            | infra    | box     | high   | T-015      |
+| T-017 | done   | `docs-budget.test.ts`'s newest-first check verifies itself              | infra    | box     | normal | —          |
+| T-018 | done   | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
+| T-019 | ready  | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
+| T-020 | done   | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
+| T-021 | ready  | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
+| T-024 | done   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
+| T-022 | done   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
+| T-023 | ready  | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
+| T-005 | done   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
 
 ---
 
