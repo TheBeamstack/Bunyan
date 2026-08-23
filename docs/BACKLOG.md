@@ -777,12 +777,12 @@ overstatement cost a box seat a verification it had to record as undischarged.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
-- **2026-08-23 — root cause found and fixed: the pc collection failure was never the em-dash, it was a
-  leading shebang colliding with Vite's SSR import-hoist; T-021's done-when is still not fully green.**
-  Superseded finding, same day, below. `amer`'s clean `pnpm verify` (T-001) first re-confirmed T-020 does
-  not close the pc gap: vitest 4.1.10 (T-020's own pin) still threw `SyntaxError: Invalid or unexpected
-token` collecting all five `tests/protocol/*.test.ts` files. Root-caused by direct reproduction (Vite
-  6.4.3's `server.transformRequest(id, {ssr:true})` on each script, output checked with
+- **2026-08-23 — two real pc-only defects found and fixed (not the em-dash T-020 blamed); T-021's
+  done-when is now down to resource contention, not a correctness gap.** `amer`'s clean `pnpm verify`
+  (T-001) first re-confirmed T-020 does not close the pc gap: vitest 4.1.10 (T-020's own pin) still threw
+  `SyntaxError: Invalid or unexpected token` collecting all five `tests/protocol/*.test.ts` files.
+  **Defect 1 — a leading shebang collides with Vite's SSR import-hoist.** Root-caused by direct
+  reproduction (Vite 6.4.3's `server.transformRequest(id, {ssr:true})` on each script, output checked with
   `node --check`/`vm.SourceTextModule`): every one of the five imports a script starting
   `#!/usr/bin/env node` (`agent-start.mjs`, `agent-finish.mjs`, `pr-ready.mjs`, `reserved-classes.mjs`,
   `seats.mjs` — plus `state.mjs`, same defect, different importer), and Vite's SSR import-hoist splices
@@ -790,33 +790,42 @@ token` collecting all five `tests/protocol/*.test.ts` files. Root-caused by dire
   `__vite_ssr_import__("/scripts/seats.mjs");#!/usr/bin/env node` on one line — a bare `#` mid-statement,
   which V8 reports as the generic, position-less "Invalid or unexpected token" (no location, because the
   sourcemap and the corrupted code disagree). The two passing files (`docs-state.mjs`, `frozen-surface.mjs`)
-  carry no shebang; CRLF and the em-dash are present in ALL of them and are not the cause. None of these
-  six scripts are git-executable (`100644`, not `100755`) and every real invocation in this repo is
-  `node scripts/x.mjs`, so the shebang is dead weight — removed from all six, `node --check` clean,
-  reconfirmed fixed only once `scripts/seats.mjs` (agent-start.mjs's own transitive import) was ALSO
-  fixed, since either file's shebang alone reproduces it. **Fixed and committed directly** (light_brahim,
-  operator-authorized, given how completely it was blocking every pc turn): the shebang line removed from
-  all six scripts. A second, independent pc defect fixed alongside it: `tests/protocol/agent-start.test.ts`
-  built its fake-`gh`-on-PATH env using a literal `:` join (`` `${fakeGhDir}:${process.env.PATH}` ``, 18
-  call sites) — invalid on Windows both because `;` is the real delimiter and because a Windows path
-  itself contains `:` (`C:\...`), corrupting the joined string; fixed to `path.delimiter`.
-  **What is still NOT green, all found only now that collection finally succeeds (never before observed
-  on this pc):** `tests/protocol/agent-start.test.ts` carries **13 failures that reproduce in isolation**
-  (`pnpm verify -- tests/protocol/agent-start.test.ts` alone) — root cause is `fakeGhReporting`/
-  `fakeGhForReview` writing their `gh` stand-in as a `#!/usr/bin/env bash` script with `chmodSync(0o755)`:
-  Windows' native `child_process` spawn does not interpret a shebang and `chmodSync`'s mode bits are a
-  no-op there, so the stand-in never executes — a materially bigger fix (a real cross-platform stand-in,
-  not a one-line join) left undone. `tests/protocol/reserved-classes.test.ts` has **1 failure that
-  reproduces alone** (`still flags contract-touching when the branch also re-baselined the snapshot`,
-  `5000ms` timeout) — no shebang/PATH pattern in this file or `fixture.mjs`; looks like a real-git-ops
-  timeout margin on this machine (T-005's own precedent), not diagnosed further here.
-  `tests/protocol/agent-finish.test.ts` is **fully green alone** (17/17) but fails under the full
-  `pnpm verify`'s parallel load — contention, not a defect. `tests/document-openings.test.ts`'s
-  WASM-heap-leak case timed out once more on this full run (now 2 of 2 attempts across two sessions
-  today) — recurring under full-suite load, still not isolated to a cause. T-021 remains open: collection
-  is fixed, passing is not, for reasons now scoped precisely rather than left as one bare error string.
-  Found and fixed by `light_brahim` continuing `amer`'s T-001 turn; `apps/web`/T-001 itself untouched and
-  still green (25/25).
+  carry no shebang; CRLF and the em-dash are present in ALL of them and are not the cause. None of the six
+  scripts are git-executable (`100644`, not `100755`) and every real invocation in this repo, CI included,
+  is `node scripts/x.mjs` — the shebang is dead weight. Removed from all six.
+  **Defect 2 — the fake-`gh` test stand-in cannot run on Windows at all, by two independent mechanisms.**
+  `tests/protocol/agent-start.test.ts`'s `fakeGhReporting`/`fakeGhForReview` PATH-shadowed `gh` with a
+  `#!/usr/bin/env bash` script (`chmodSync(0o755)`, a no-op on Windows; the shebang is never interpreted
+  by native `CreateProcess` either) joined onto `PATH` with a literal `:` — wrong twice over, since `;` is
+  the real Windows delimiter and a Windows path itself contains `:` (`C:\...`), corrupting the string.
+  Fixing only the join proved the deeper problem: even a correctly-`PATH`-shadowed `gh.cmd` never runs,
+  because `execFileSync('gh', …)` on Windows neither searches `PATH`/`PATHEXT` for a bare command the way
+  a POSIX `execvp` does, nor — since CVE-2024-27980 — will spawn a `.bat`/`.cmd` file at all without
+  `shell: true` (confirmed directly: `EINVAL` even with the stand-in as the only thing on `PATH`, or
+  invoked by its own full path). **Fix shape, mirroring the existing `BUNYAN_BROWSER_CMD` precedent**:
+  `scripts/seats.mjs` exports `ghSpawn(args, options)` — every `gh` spawn across `agent-start.mjs`,
+  `agent-finish.mjs`, `pr-ready.mjs`, `reserved-classes.mjs` now goes through it, and it honors
+  `BUNYAN_GH_CMD` as a two-element JSON array `[command, ...leadingArgs]` (or a plain string, for a real
+  relocated `gh`). The test stand-in is now a single plain `.cjs` file spawned as
+  `[process.execPath, scriptPath]` — `node.exe` is a genuine executable either platform can run directly
+  with no shell, so it, not a shell script, is the thing actually invoked. Net effect on
+  `tests/protocol/agent-start.test.ts` alone: 13 failures → 4 (verified before/after).
+  **What is left, all found only now that collection and most execution finally succeed:** the 4
+  remaining `agent-start.test.ts` failures alone are pre-existing and orthogonal to both defects above —
+  one is a bare `execFileSync('node', …)` PATH-search failure structurally identical to defect 2's root
+  cause but spawning `node` itself, not `gh` (a test helper symlinks a bare `node` onto a `PATH` with
+  nothing else on it; confirmed by direct repro that this `ENOENT`s on this pc even though the symlink is
+  created successfully — same "Windows doesn't search PATH/PATHEXT for a bare command" fact, different
+  call site, not fixed here), the other 3 are `5000ms` timeouts. **Under the FULL `pnpm verify` (all 99
+  files, default concurrency), the picture is much noisier — 39 failures — but `--pool=forks --maxWorkers=2`
+  drops that to 13, and every test that still needs isolation to pass is a `5000ms`/`10000ms` timeout, not
+  a wrong answer: this is CPU contention from many more subprocess-heavy files now actually running
+  concurrently (they used to fail at collection before any of this), not a regression.** Whether to raise
+  the default test timeout, cap concurrency for this pc specifically, or leave it is an open call, not
+  decided here. `tests/document-openings.test.ts`'s WASM-heap-leak case also timed out once on the full
+  run — not reproduced when run alone; contention, not isolated to a cause. T-021 remains open, now scoped
+  to a resource-tuning question rather than a correctness gap. Found and fixed by `light_brahim`
+  continuing `amer`'s T-001 turn; `apps/web`/T-001 itself untouched and still green (25/25).
 
 - **2026-08-23 — an interrupted `agent-finish.mjs` strands the turn, and nothing recovers it.** The finish
   runs `pnpm verify` in full, several minutes, and a session ending inside it leaves the branch

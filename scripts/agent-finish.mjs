@@ -361,7 +361,10 @@ export function main(argv = process.argv.slice(2)) {
       let pr = null;
       try {
         pr = JSON.parse(
-          execFileSync('gh', ['pr', 'view', '--json', 'number'], { cwd: root, encoding: 'utf8' }),
+          seats.ghSpawn(['pr', 'view', '--json', 'number'], {
+            cwd: root,
+            encoding: 'utf8',
+          }),
         );
       } catch {
         /* leave null — the die() below explains */
@@ -378,8 +381,7 @@ export function main(argv = process.argv.slice(2)) {
       // define, and `review/step-1` does not exist on a fresh repo. Idempotent: a create on a label
       // that already exists fails with "already exists", which is not this call's problem to report.
       try {
-        execFileSync(
-          'gh',
+        seats.ghSpawn(
           [
             'label',
             'create',
@@ -398,7 +400,7 @@ export function main(argv = process.argv.slice(2)) {
         }
       }
       try {
-        execFileSync('gh', ['pr', 'edit', String(pr.number), '--add-label', seats.STEP1_LABEL], {
+        seats.ghSpawn(['pr', 'edit', String(pr.number), '--add-label', seats.STEP1_LABEL], {
           cwd: root,
           encoding: 'utf8',
         });
@@ -415,7 +417,10 @@ export function main(argv = process.argv.slice(2)) {
         let labels = null;
         try {
           labels = JSON.parse(
-            execFileSync('gh', ['pr', 'view', '--json', 'labels'], { cwd: root, encoding: 'utf8' }),
+            seats.ghSpawn(['pr', 'view', '--json', 'labels'], {
+              cwd: root,
+              encoding: 'utf8',
+            }),
           ).labels;
         } catch {
           labels = null;
@@ -553,7 +558,10 @@ export function main(argv = process.argv.slice(2)) {
     let prNumber = null;
     try {
       prNumber = JSON.parse(
-        execFileSync('gh', ['pr', 'view', '--json', 'number'], { cwd: root, encoding: 'utf8' }),
+        seats.ghSpawn(['pr', 'view', '--json', 'number'], {
+          cwd: root,
+          encoding: 'utf8',
+        }),
       ).number;
     } catch {
       /* leave null — the message below still tells the seat what to do */
@@ -648,7 +656,7 @@ export function main(argv = process.argv.slice(2)) {
   // cannot succeed.
   let existingPR = null;
   try {
-    const json = execFileSync('gh', ['pr', 'view', '--json', 'number,url,state'], {
+    const json = seats.ghSpawn(['pr', 'view', '--json', 'number,url,state'], {
       cwd: root,
       encoding: 'utf8',
     });

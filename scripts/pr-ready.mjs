@@ -14,10 +14,9 @@
  *   node scripts/pr-ready.mjs --pr 42
  *   node scripts/pr-ready.mjs --title 'T-001: something'   title check alone, no network
  */
-import { execFileSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { titleRoutes } from './seats.mjs';
+import { ghSpawn, titleRoutes } from './seats.mjs';
 
 const SELF_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -25,7 +24,7 @@ const SELF_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 function prView(root, pr, fields) {
   try {
     return JSON.parse(
-      execFileSync('gh', ['pr', 'view', String(pr), '--json', fields.join(',')], {
+      ghSpawn(['pr', 'view', String(pr), '--json', fields.join(',')], {
         cwd: root,
         encoding: 'utf8',
       }),

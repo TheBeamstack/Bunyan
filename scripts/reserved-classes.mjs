@@ -26,6 +26,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildSurface, diffSurface } from './frozen-surface.mjs';
 import { riskVerdict } from './docs-state.mjs';
+import { ghSpawn } from './seats.mjs';
 
 const SELF_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -66,11 +67,8 @@ function sh(cmd, args, cwd, fallback = null) {
     // there" and falls back — `git show <base>:<snapshot>` on a repo that has never been baselined is
     // the ordinary case, not an error, and letting git's `fatal: path … does not exist` through would
     // print a scary line under a green check. The VERDICT is never silent; only git's noise is.
-    return execFileSync(cmd, args, {
-      cwd,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim();
+    const opts = { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] };
+    return (cmd === 'gh' ? ghSpawn(args, opts) : execFileSync(cmd, args, opts)).trim();
   } catch {
     return fallback;
   }
@@ -186,7 +184,7 @@ export function syncLabels(root, pr, want) {
   for (const l of add) args.push('--add-label', l);
   for (const l of remove) args.push('--remove-label', l);
   try {
-    execFileSync('gh', args, { cwd: root, encoding: 'utf8' });
+    ghSpawn(args, { cwd: root, encoding: 'utf8' });
   } catch (e) {
     throw new Error(
       `could not apply labels to PR ${pr}: ${e.message}\n` +

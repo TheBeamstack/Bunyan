@@ -180,11 +180,13 @@ export function identityGate(seat, expectedAccount, actualLogin) {
  * explicit "unresolved" value to hand to `identityGate` rather than an exception to catch twice. */
 function resolveGhLogin(root) {
   try {
-    const out = execFileSync('gh', ['api', 'user', '--jq', '.login'], {
-      cwd: root,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    }).trim();
+    const out = seats
+      .ghSpawn(['api', 'user', '--jq', '.login'], {
+        cwd: root,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      })
+      .trim();
     return out || null;
   } catch {
     return null;
@@ -455,8 +457,7 @@ export function main(argv = process.argv.slice(2)) {
 
   let openPRs = [];
   try {
-    const json = execFileSync(
-      'gh',
+    const json = seats.ghSpawn(
       ['pr', 'list', '--state', 'open', '--json', 'number,headRefName,title', '--limit', '10'],
       { cwd: root, encoding: 'utf8' },
     );
@@ -639,8 +640,7 @@ export function main(argv = process.argv.slice(2)) {
     console.log('');
     console.log(`   Claiming PR #${mine.number} for review.`);
     try {
-      execFileSync(
-        'gh',
+      seats.ghSpawn(
         [
           'pr',
           'comment',
@@ -654,7 +654,10 @@ export function main(argv = process.argv.slice(2)) {
       console.log('   ⚠ could not comment the claim on the PR — say so in your log entry.');
     }
     try {
-      execFileSync('gh', ['pr', 'checkout', String(mine.number)], { cwd: root, stdio: 'inherit' });
+      seats.ghSpawn(['pr', 'checkout', String(mine.number)], {
+        cwd: root,
+        stdio: 'inherit',
+      });
     } catch {
       die(`could not check out PR #${mine.number}.`);
     }
@@ -680,7 +683,7 @@ export function main(argv = process.argv.slice(2)) {
     if (mineRisk === 'high') {
       try {
         labels = JSON.parse(
-          execFileSync('gh', ['pr', 'view', String(mine.number), '--json', 'labels'], {
+          seats.ghSpawn(['pr', 'view', String(mine.number), '--json', 'labels'], {
             cwd: root,
             encoding: 'utf8',
           }),

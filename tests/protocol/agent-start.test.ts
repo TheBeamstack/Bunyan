@@ -8,9 +8,9 @@
  * for.
  */
 import { execFileSync } from 'node:child_process';
-import { chmodSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { delimiter, join } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { makeFixture } from './fixture.mjs';
@@ -65,6 +65,23 @@ afterEach(() => {
 });
 
 /**
+ * A `gh` stand-in as plain Node source (CommonJS — the temp dir carries no `package.json` to make it
+ * otherwise), spawned as `[node, scriptPath]` via `BUNYAN_GH_CMD` (`scripts/seats.mjs#ghSpawn` reads
+ * it). PATH-shadowing a bare `gh` never worked on Windows (no `PATH`/`PATHEXT` search the way a POSIX
+ * `execvp` does), and a `.cmd`/`.bat` wrapper doesn't either — Node refuses to spawn one at all without
+ * `shell: true` since CVE-2024-27980. `node.exe` is a real executable either platform can run directly
+ * with no shell, so it — not a shell script — is the thing actually invoked.
+ */
+function writeGhStandin(dir: string, body: string): void {
+  writeFileSync(join(dir, 'gh.cjs'), body);
+}
+
+/** The `BUNYAN_GH_CMD` value naming the stand-in `writeGhStandin` wrote into `dir`. */
+function ghCmdIn(dir: string): string {
+  return JSON.stringify([process.execPath, join(dir, 'gh.cjs')]);
+}
+
+/**
  * The identity guard (T-013) means every spawn of `agent-start.mjs` now checks `gh api user`, and
  * THIS box's real `gh` is authenticated as exactly one account for the whole suite (`davidian-abdo`,
  * matching `zayd`/`brahim`). Tests that exercise `hmdnah`/`amer` (`narutousomaki741`) need a `gh`
@@ -79,12 +96,18 @@ function fakeGhReporting(login: string): string {
     .trim()
     .split(/\r?\n/)[0];
   const dir = mkdtempSync(join(tmpdir(), 'bunyan-fake-gh-'));
-  const script = join(dir, 'gh');
-  writeFileSync(
-    script,
-    `#!/usr/bin/env bash\nif [ "$1" = "api" ] && [ "$2" = "user" ]; then\n  echo "${login}"\n  exit 0\nfi\nexec "${realGh}" "$@"\n`,
+  writeGhStandin(
+    dir,
+    `const { spawnSync } = require('node:child_process');
+const args = process.argv.slice(2);
+if (args[0] === 'api' && args[1] === 'user') {
+  console.log(${JSON.stringify(login)});
+  process.exit(0);
+}
+const r = spawnSync(${JSON.stringify(realGh)}, args, { stdio: 'inherit' });
+process.exit(r.status ?? 1);
+`,
   );
-  chmodSync(script, 0o755);
   return dir;
 }
 
@@ -106,38 +129,40 @@ function fakeGhForReview(
     .trim()
     .split(/\r?\n/)[0];
   const dir = mkdtempSync(join(tmpdir(), 'bunyan-fake-gh-review-'));
-  const script = join(dir, 'gh');
-  const prListJson = JSON.stringify(prs).replace(/'/g, "'\\''");
-  const checkoutCases = prs
-    .map(
-      (pr) =>
-        `    ${pr.number}) git fetch -q origin "${pr.headRefName}" 2>/dev/null; git checkout -q "${pr.headRefName}" 2>/dev/null || git checkout -q -b "${pr.headRefName}" "origin/${pr.headRefName}"; exit $? ;;`,
-    )
-    .join('\n');
-  writeFileSync(
-    script,
-    `#!/usr/bin/env bash
-if [ "$1" = "api" ] && [ "$2" = "user" ]; then
-  echo "${login}"
-  exit 0
-fi
-if [ "$1" = "pr" ] && [ "$2" = "list" ]; then
-  echo '${prListJson}'
-  exit 0
-fi
-if [ "$1" = "pr" ] && [ "$2" = "comment" ]; then
-  exit 0
-fi
-if [ "$1" = "pr" ] && [ "$2" = "checkout" ]; then
-  case "$3" in
-${checkoutCases}
-    *) exit 1 ;;
-  esac
-fi
-exec "${realGh}" "$@"
+  const checkoutMap = JSON.stringify(
+    Object.fromEntries(prs.map((pr) => [String(pr.number), pr.headRefName])),
+  );
+  writeGhStandin(
+    dir,
+    `const { spawnSync, execFileSync } = require('node:child_process');
+const args = process.argv.slice(2);
+if (args[0] === 'api' && args[1] === 'user') {
+  console.log(${JSON.stringify(login)});
+  process.exit(0);
+}
+if (args[0] === 'pr' && args[1] === 'list') {
+  console.log(${JSON.stringify(JSON.stringify(prs))});
+  process.exit(0);
+}
+if (args[0] === 'pr' && args[1] === 'comment') {
+  process.exit(0);
+}
+if (args[0] === 'pr' && args[1] === 'checkout') {
+  const map = ${checkoutMap};
+  const ref = map[args[2]];
+  if (!ref) process.exit(1);
+  try { execFileSync('git', ['fetch', '-q', 'origin', ref], { stdio: 'ignore' }); } catch {}
+  try {
+    execFileSync('git', ['checkout', '-q', ref], { stdio: 'ignore' });
+  } catch {
+    execFileSync('git', ['checkout', '-q', '-b', ref, 'origin/' + ref], { stdio: 'ignore' });
+  }
+  process.exit(0);
+}
+const r = spawnSync(${JSON.stringify(realGh)}, args, { stdio: 'inherit' });
+process.exit(r.status ?? 1);
 `,
   );
-  chmodSync(script, 0o755);
   return dir;
 }
 
@@ -174,7 +199,7 @@ describe('step 0 — the identity guard, end to end (D87, T-013)', () => {
     const fakeGhDir = fakeGhReporting('narutousomaki741'); // hmdnah/amer's account, not zayd's
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).not.toBe(0);
     // ⚠ both accounts named — a guard that says only "wrong account" sends the reader to the wrong
@@ -207,7 +232,7 @@ describe('step 3 — measured vs. claimed, the load-bearing refusal', () => {
     const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/MEASURED STATE DISAGREES WITH CLAIMED STATE/);
@@ -218,7 +243,7 @@ describe('step 3 — measured vs. claimed, the load-bearing refusal', () => {
     const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).toBe(0);
     expect(r.out).toMatch(/measured state matches claimed state/);
@@ -235,7 +260,7 @@ describe('step 3 — measured vs. claimed, the load-bearing refusal', () => {
     const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/MEASURED STATE DISAGREES/);
@@ -257,7 +282,7 @@ describe('step 5 — the machine gate, the safety-critical one', () => {
     const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/No ready task this seat can satisfy/);
@@ -277,7 +302,7 @@ describe('step 5 — the machine gate, the safety-critical one', () => {
     const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd', 'T-001'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/machine: pc and seat 'zayd' is on machine: box/);
@@ -299,7 +324,7 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
     const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).toBe(0);
     expect(r.out).toMatch(/Claimed: T-001/);
@@ -336,7 +361,7 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
     const zaydGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
     extraDirs.push(zaydGhDir);
     run(['--root', fx.dir, '--no-pull', '--seat', 'zayd'], {
-      PATH: `${zaydGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(zaydGhDir),
     });
 
     const second = mkdtempSync(join(tmpdir(), 'bunyan-second-clone-'));
@@ -345,7 +370,7 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
     const fakeGhDir = fakeGhReporting('narutousomaki741');
     extraDirs.push(fakeGhDir);
     const r = run(['--root', second, '--no-pull', '--seat', 'amer', 'T-001'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/already claimed by seat 'zayd'/);
@@ -364,7 +389,7 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
     ]);
     const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
     extraDirs.push(fakeGhDir);
-    const ghEnv = { PATH: `${fakeGhDir}${delimiter}${process.env.PATH}` };
+    const ghEnv = { BUNYAN_GH_CMD: ghCmdIn(fakeGhDir) };
     run(['--root', fx.dir, '--no-pull', '--seat', 'zayd'], ghEnv);
 
     const second = mkdtempSync(join(tmpdir(), 'bunyan-second-clone-'));
@@ -475,7 +500,7 @@ describe('--continue — a defect returns to its builder, never a second door (D
     const fakeGhDir = fakeGhReporting('narutousomaki741');
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--seat', 'hmdnah', '--continue', 'T-001'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/role 'reviewer', which does not build/);
@@ -496,7 +521,7 @@ describe('--continue — a defect returns to its builder, never a second door (D
     const fakeGhDir = fakeGhReporting('narutousomaki741');
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--seat', 'amer', '--continue', 'T-001'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/T-001's builder is 'zayd', not 'amer'/);
@@ -518,7 +543,7 @@ describe('--continue — a defect returns to its builder, never a second door (D
     const fakeGhDir = fakeGhReporting('davidian-abdo'); // zayd's own account
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--seat', 'zayd', '--continue', 'T-001'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).not.toBe(0);
     expect(r.out + r.err).toMatch(/No open PR names T-001/);
@@ -549,7 +574,7 @@ describe('--continue — a defect returns to its builder, never a second door (D
     const fakeGhDir = fakeGhReporting('narutousomaki741');
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--seat', 'amer', '--continue', 'T-001'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.code).not.toBe(0);
     // Admission itself must succeed — the run fails one gate LATER, at "no open PR" (this fixture's
@@ -570,7 +595,7 @@ describe('--review routing — a titleless (STEWARD:) PR, end to end (T-012)', (
     ]);
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--seat', 'hmdnah', '--review'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.out + r.err).not.toMatch(/reviewer: \?/);
     expect(r.out).toMatch(/PR #99.*\(no T-nnn in title\).*reviewer: hmdnah.*YOURS/);
@@ -600,7 +625,7 @@ describe('--review routing — a titleless (STEWARD:) PR, end to end (T-012)', (
     ]);
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--seat', 'hmdnah', '--review'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.out).toMatch(/reviewer: NOBODY.*names no registered seat.*routes to NOBODY/s);
     expect(r.out + r.err).toMatch(/No open PR routes to this seat/);
@@ -628,7 +653,7 @@ describe('--review routing — a titleless (STEWARD:) PR, end to end (T-012)', (
     ]);
     extraDirs.push(fakeGhDir);
     const r = run(['--root', fx.dir, '--no-pull', '--seat', 'hmdnah', '--review'], {
-      PATH: `${fakeGhDir}${delimiter}${process.env.PATH}`,
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
     });
     expect(r.out).toMatch(/PR #101 {2}T-001 {2}reviewer: hmdnah.*YOURS/);
   });
