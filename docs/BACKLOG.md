@@ -129,6 +129,10 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-022 | done   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | ready  | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-005 | done   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
+| T-026 | ready  | The identity gate fires at approve/merge, not only at claim             | infra    | box     | high   | —          |
+| T-025 | ready  | `--review` keeps an owner-gated row at `review`                         | infra    | box     | high   | —          |
+| T-028 | ready  | `agent-finish.mjs` is resumable after an interrupted run                | infra    | box     | normal | —          |
+| T-027 | ready  | §6's relink cap is measured, not guessed                                | infra    | box     | normal | —          |
 
 ---
 
@@ -684,6 +688,91 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 > `risk: high` — it is the freeze gate itself, and `AGENTS.md §5` makes the P5 freeze the one
 > irreversible act.
 
+### T-026 — The identity gate fires at approve/merge, not only at claim
+
+D87's check lives in `agent-start.mjs`, but a reviewer approves and merges _after_ `agent-finish.mjs` has
+returned, so any session reaching the merge without a fresh claim acts under whatever account `gh`
+resolves to. `agent-finish --review` compounds it by writing the verdict as accomplished fact.
+
+- implements: this file's `## Discovered` entry of 2026-08-21 (the identity gate guards the CLAIM) ·
+  `scripts/agent-start.mjs`'s `identityGate` · `docs/RUNBOOK.md` §"Seat credentials" (D87) · `AGENTS.md §6`
+- verify: `pnpm verify`
+- done-when:
+  - the identity gate is callable independently of a claim, and runs before any `gh pr review` or
+    `gh pr merge` the harness prints or performs;
+  - `agent-finish --review` states its verdict as **owed** rather than performed — no abstract or PR text
+    asserts an approval or a merge that has not happened;
+  - revert-verified: a seat whose resolved `gh` login is the PR's own author is refused, and the refusal
+    names the account mismatch rather than failing generically;
+  - ⚠ **the gate is added, not moved** — `agent-start.mjs`'s existing claim-time check keeps its behaviour.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — it is the crossed-account rule, which `AGENTS.md §6` says is not optional twice. Measured
+> on PR #39: the box default resolved to the PR's author and only the seat's own reading of `AGENTS.md`
+> stopped the merge.
+
+### T-025 — `--review` keeps an owner-gated row at `review`
+
+`seats.reviewFlipsToDone` reads `contractTouching` from §8's frozen-surface row alone, so a PR carrying
+any other `needs-operator/*` class is stamped `done` and handed a `gh pr merge` command while the owner
+has not merged. `done` is what satisfies a `depends-on:`, so this releases dependents on an unmerged PR.
+
+- implements: this file's `## Discovered` entry of 2026-08-19 and its 2026-08-20 amendment
+  (`agent-finish.mjs --review` stamps the row `done`) · `scripts/seats.mjs`'s `reviewFlipsToDone` · `scripts/reserved-classes.mjs` ·
+  `AGENTS.md §5`
+- verify: `pnpm verify`
+- done-when:
+  - `--review` resolves the reserved classes through `reserved-classes.mjs`, not §8's frozen-surface row,
+    and keeps the row `review` when **any** of `AGENTS.md §5`'s three classes applies;
+  - the printed next step names the owner's merge for all three, never `gh pr merge`;
+  - revert-verified: a fixture PR carrying `needs-operator/freeze` at `RISK: additive` goes red without
+    the fix;
+  - ⚠ **this widens the class set; it does not re-decide the additive case**, which keeps merging on the
+    reviewer's own account.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — it decides whether an owner-gated row is released to its dependents. Fired twice on PR
+> #38, caught by hand both times.
+
+### T-028 — `agent-finish.mjs` is resumable after an interrupted run
+
+A finish interrupted during its multi-minute `pnpm verify` leaves work committed-but-unpushed or written
+-but-uncommitted, and `agent-start.mjs` then refuses at its own `git checkout main`, so recovery needs a
+hand-directed session that knows what the previous one was doing.
+
+- implements: this file's `## Discovered` entry of 2026-08-23 · `scripts/agent-finish.mjs` steps 1–5 ·
+  `scripts/agent-start.mjs`'s dirty-tree path · `AGENTS.md §1.1`
+- verify: `pnpm verify`
+- done-when:
+  - re-running `agent-finish.mjs` after an interrupted run completes the turn rather than starting over
+    or refusing, and is safe to run twice;
+  - `agent-start.mjs` names an interrupted finish as such when it finds one, instead of failing at the
+    pull with a message about resolving by hand;
+  - revert-verified: a fixture whose finish is killed mid-`verify` is reproducibly recovered by re-running
+    it, and is not recovered without the fix;
+  - ⚠ **no `done-when:` item here claims a fix for the session ending** — this makes the interruption
+    recoverable, not impossible.
+- depends-on: —
+- area: infra · machine: **box** · risk: **normal**
+
+### T-027 — §6's relink cap is measured, not guessed
+
+`current_state.md §6`'s relink recipe caps the container at `--memory=2g`; the link fits in 1 GB, and the
+overstatement cost a box seat a verification it had to record as undischarged.
+
+- implements: this file's `## Discovered` entry of 2026-08-21 (§6's relink recipe) · `current_state.md §6` ·
+  `current_state.md §6a` (box discipline) · `AGENTS.md §4-11`
+- verify: `pnpm verify`
+- done-when:
+  - §6's recipe carries the measured cap, stated with the measurement behind it, so the next seat can tell
+    a measurement from a guess;
+  - ⚠ **no relink is required to close this** — T-022's step-2 abstract carries the figure (78 s, exit 0,
+    output byte-identical to the committed pair); re-running it is optional and box-discipline-gated.
+- depends-on: —
+- area: infra · machine: **box** · risk: **normal**
+
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
@@ -728,6 +817,17 @@ token` collecting all five `tests/protocol/*.test.ts` files. Root-caused by dire
   is fixed, passing is not, for reasons now scoped precisely rather than left as one bare error string.
   Found and fixed by `light_brahim` continuing `amer`'s T-001 turn; `apps/web`/T-001 itself untouched and
   still green (25/25).
+
+- **2026-08-23 — an interrupted `agent-finish.mjs` strands the turn, and nothing recovers it.** The finish
+  runs `pnpm verify` in full, several minutes, and a session ending inside it leaves the branch
+  committed-but-unpushed or the tree written-but-uncommitted — after which `agent-start.mjs` refuses at its
+  own `git checkout main`, reporting only "pull failed — resolve by hand". **Three turns in one batch:**
+  T-024's step-2 re-run (committed, unpushed, no approval posted), T-022's step 1 (abstract and body
+  written, uncommitted, and the `review/step-1` label absent — which is what `resolveReviewStep` reads, so
+  the next session would have re-run step 1), and T-022's step 2. Each needed a hand-directed session that
+  knew what the previous one had been doing. The operational mitigation is to run the finish detached
+  (`nohup`), which worked every time it was used; that is a workaround, not the fix. Decomposed as
+  **T-028**. Found by `brahim` orchestrating the 2026-08-21/23 batch.
 
 - **2026-08-22 — `ModelElement.hasParts` cannot be read without `state`, and nothing enforces that.**
   A `stale` element (D66 §3c/T-005 — recipe present, solid not built) carries `hasParts: false` for the
