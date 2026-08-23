@@ -113,12 +113,12 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| builder | `zayd` |
-| role | reviewer |
+| seat | `brahim` |
+| builder | `brahim` |
+| role | steward |
 | machine | box |
-| task | `T-005` |
-| branch | `task/T-005-d66-3c-force-on-measure-and-whether-save` |
+| task | `STEWARD-decompose-harness-defects` |
+| branch | `brahim/2026-08-23-decompose-harness-defects` |
 | claimed-at | 2026-08-22T20:24:36Z |
 | status | finished — PR open, awaiting review |
 
@@ -968,14 +968,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-decompose-harness-defects (brahim, 2026-08-23)** |
-| branch · tip · tree | `brahim/2026-08-23-decompose-harness-defects` · `128e5f6` · dirty |
+| branch · tip · tree | `brahim/2026-08-23-decompose-harness-defects` · `1893c5c` · clean |
 | open PRs | none — main is the tip of the work |
-| suite | ⚠⚠ 958/959 passing — **1 FAILING** |
+| suite | **959 green** · 99 files · 293 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 2 files changed, 128 insertions(+) (2 files) |
+| diff vs origin/main | 3 files changed, 196 insertions(+), 7 deletions(-) (3 files) |
 | docs budget | current_state 84.0/96.0 KB · §7 31.6/32.0 KB · abstracts 7/10 · bodies 84 |
 
 _Generated 2026-08-23 by `pnpm state`._
