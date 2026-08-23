@@ -688,6 +688,20 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-23 — T-020's vitest bump does not close the pc-side gap it deferred; T-021's own done-when
+  is falsified on a clean run.** Resuming T-001's stale claim (open since 2026-08-17) and running
+  `pnpm verify` to natural completion: vitest 4.1.10, the version T-020 pinned and confirmed installed,
+  still throws `SyntaxError: Invalid or unexpected token` collecting all five `tests/protocol/*.test.ts`
+  files (`agent-finish`, `agent-start`, `pr-ready`, `reserved-classes`, `seats`) — the identical shape
+  T-020 was built to close. `apps/web` is unaffected: T-001's own `align.test.ts` ran 25/25 green. A
+  first, killed run also showed 3 failures in `tests/state-risk-e2e.test.ts`; the clean rerun shows only
+  1 (a single 5000ms timeout, not reproduced twice) — the other 2 were SIGTERM artifacts, so a mid-run
+  kill on this suite does not give a reliable read. A second single-occurrence 5000ms timeout appeared in
+  `tests/document-openings.test.ts`'s WASM-heap-leak case, also unreproduced twice. Fix shape: T-021
+  cannot be ticked — its done-when requires the five files to collect AND pass on the pc, and they still
+  don't — and T-020's `unverified here` claim needs reopening, not confirming. Found by `amer` on T-001,
+  whose own turn is otherwise blocked (no PR, branch pushed). Recorded, not claimed.
+
 - **2026-08-22 — `ModelElement.hasParts` cannot be read without `state`, and nothing enforces that.**
   A `stale` element (D66 §3c/T-005 — recipe present, solid not built) carries `hasParts: false` for the
   same reason a pure void does, so the field alone cannot separate _"nothing to measure"_ from _"not
