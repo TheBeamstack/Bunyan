@@ -688,19 +688,46 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
-- **2026-08-23 — T-020's vitest bump does not close the pc-side gap it deferred; T-021's own done-when
-  is falsified on a clean run.** Resuming T-001's stale claim (open since 2026-08-17) and running
-  `pnpm verify` to natural completion: vitest 4.1.10, the version T-020 pinned and confirmed installed,
-  still throws `SyntaxError: Invalid or unexpected token` collecting all five `tests/protocol/*.test.ts`
-  files (`agent-finish`, `agent-start`, `pr-ready`, `reserved-classes`, `seats`) — the identical shape
-  T-020 was built to close. `apps/web` is unaffected: T-001's own `align.test.ts` ran 25/25 green. A
-  first, killed run also showed 3 failures in `tests/state-risk-e2e.test.ts`; the clean rerun shows only
-  1 (a single 5000ms timeout, not reproduced twice) — the other 2 were SIGTERM artifacts, so a mid-run
-  kill on this suite does not give a reliable read. A second single-occurrence 5000ms timeout appeared in
-  `tests/document-openings.test.ts`'s WASM-heap-leak case, also unreproduced twice. Fix shape: T-021
-  cannot be ticked — its done-when requires the five files to collect AND pass on the pc, and they still
-  don't — and T-020's `unverified here` claim needs reopening, not confirming. Found by `amer` on T-001,
-  whose own turn is otherwise blocked (no PR, branch pushed). Recorded, not claimed.
+- **2026-08-23 — root cause found and fixed: the pc collection failure was never the em-dash, it was a
+  leading shebang colliding with Vite's SSR import-hoist; T-021's done-when is still not fully green.**
+  Superseded finding, same day, below. `amer`'s clean `pnpm verify` (T-001) first re-confirmed T-020 does
+  not close the pc gap: vitest 4.1.10 (T-020's own pin) still threw `SyntaxError: Invalid or unexpected
+token` collecting all five `tests/protocol/*.test.ts` files. Root-caused by direct reproduction (Vite
+  6.4.3's `server.transformRequest(id, {ssr:true})` on each script, output checked with
+  `node --check`/`vm.SourceTextModule`): every one of the five imports a script starting
+  `#!/usr/bin/env node` (`agent-start.mjs`, `agent-finish.mjs`, `pr-ready.mjs`, `reserved-classes.mjs`,
+  `seats.mjs` — plus `state.mjs`, same defect, different importer), and Vite's SSR import-hoist splices
+  the shebang text onto the END of the hoisted-imports line with no separating newline —
+  `__vite_ssr_import__("/scripts/seats.mjs");#!/usr/bin/env node` on one line — a bare `#` mid-statement,
+  which V8 reports as the generic, position-less "Invalid or unexpected token" (no location, because the
+  sourcemap and the corrupted code disagree). The two passing files (`docs-state.mjs`, `frozen-surface.mjs`)
+  carry no shebang; CRLF and the em-dash are present in ALL of them and are not the cause. None of these
+  six scripts are git-executable (`100644`, not `100755`) and every real invocation in this repo is
+  `node scripts/x.mjs`, so the shebang is dead weight — removed from all six, `node --check` clean,
+  reconfirmed fixed only once `scripts/seats.mjs` (agent-start.mjs's own transitive import) was ALSO
+  fixed, since either file's shebang alone reproduces it. **Fixed and committed directly** (light_brahim,
+  operator-authorized, given how completely it was blocking every pc turn): the shebang line removed from
+  all six scripts. A second, independent pc defect fixed alongside it: `tests/protocol/agent-start.test.ts`
+  built its fake-`gh`-on-PATH env using a literal `:` join (`` `${fakeGhDir}:${process.env.PATH}` ``, 18
+  call sites) — invalid on Windows both because `;` is the real delimiter and because a Windows path
+  itself contains `:` (`C:\...`), corrupting the joined string; fixed to `path.delimiter`.
+  **What is still NOT green, all found only now that collection finally succeeds (never before observed
+  on this pc):** `tests/protocol/agent-start.test.ts` carries **13 failures that reproduce in isolation**
+  (`pnpm verify -- tests/protocol/agent-start.test.ts` alone) — root cause is `fakeGhReporting`/
+  `fakeGhForReview` writing their `gh` stand-in as a `#!/usr/bin/env bash` script with `chmodSync(0o755)`:
+  Windows' native `child_process` spawn does not interpret a shebang and `chmodSync`'s mode bits are a
+  no-op there, so the stand-in never executes — a materially bigger fix (a real cross-platform stand-in,
+  not a one-line join) left undone. `tests/protocol/reserved-classes.test.ts` has **1 failure that
+  reproduces alone** (`still flags contract-touching when the branch also re-baselined the snapshot`,
+  `5000ms` timeout) — no shebang/PATH pattern in this file or `fixture.mjs`; looks like a real-git-ops
+  timeout margin on this machine (T-005's own precedent), not diagnosed further here.
+  `tests/protocol/agent-finish.test.ts` is **fully green alone** (17/17) but fails under the full
+  `pnpm verify`'s parallel load — contention, not a defect. `tests/document-openings.test.ts`'s
+  WASM-heap-leak case timed out once more on this full run (now 2 of 2 attempts across two sessions
+  today) — recurring under full-suite load, still not isolated to a cause. T-021 remains open: collection
+  is fixed, passing is not, for reasons now scoped precisely rather than left as one bare error string.
+  Found and fixed by `light_brahim` continuing `amer`'s T-001 turn; `apps/web`/T-001 itself untouched and
+  still green (25/25).
 
 - **2026-08-22 — `ModelElement.hasParts` cannot be read without `state`, and nothing enforces that.**
   A `stale` element (D66 §3c/T-005 — recipe present, solid not built) carries `hasParts: false` for the

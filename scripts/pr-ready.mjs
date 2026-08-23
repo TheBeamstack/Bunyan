@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * scripts/pr-ready.mjs — checks the opened PR's title routes (`T-nnn: ` / `STEWARD: `) and that GitHub
  * reports it MERGEABLE.

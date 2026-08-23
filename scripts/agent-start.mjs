@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * scripts/agent-start.mjs — the start of a turn. Run this before anything else (Entry 91, D82).
  *
