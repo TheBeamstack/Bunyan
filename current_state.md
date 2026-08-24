@@ -119,7 +119,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | machine | pc |
 | task | `T-001` |
 | branch | `task/T-001-the-perpendicular-foot-snap-candidate` |
-| claimed-at | 2026-08-23T11:10:33Z |
+| claimed-at | 2026-08-24T18:56:44Z |
 | status | working |
 
 <!-- END BATON -->
