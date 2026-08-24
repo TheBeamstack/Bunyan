@@ -113,14 +113,14 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
-| builder | `brahim` |
-| role | reviewer |
-| machine | box |
-| task | `STEWARD-decompose-harness-defects` |
-| branch | `brahim/2026-08-23-decompose-harness-defects` |
-| claimed-at | 2026-08-22T20:24:36Z |
-| status | finished — PR open, awaiting review |
+| seat | `amer` |
+| builder | `amer` |
+| role | builder |
+| machine | pc |
+| task | `T-021` |
+| branch | `task/T-021-pnpm-verify-reaches-green-on-the-pc-conf` |
+| claimed-at | 2026-08-24T19:08:51Z |
+| status | working |
 
 <!-- END BATON -->
 
