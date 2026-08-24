@@ -120,7 +120,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | task | `T-021` |
 | branch | `task/T-021-pnpm-verify-reaches-green-on-the-pc-conf` |
 | claimed-at | 2026-08-24T19:08:51Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -970,14 +970,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-021 (amer, 2026-08-24)** |
-| branch · tip · tree | `task/T-021-pnpm-verify-reaches-green-on-the-pc-conf` · `de8d210` · dirty |
+| branch · tip · tree | `task/T-021-pnpm-verify-reaches-green-on-the-pc-conf` · `0cd26e4` · clean |
 | open PRs | none — main is the tip of the work |
 | suite | **962 green** · 99 files · 294 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 7 files changed, 155 insertions(+), 18 deletions(-) (7 files) |
+| diff vs origin/main | 8 files changed, 269 insertions(+), 18 deletions(-) (8 files) |
 | docs budget | current_state 83.8/96.0 KB · §7 31.5/32.0 KB · abstracts 7/10 · bodies 86 |
 
 _Generated 2026-08-24 by `pnpm state`._

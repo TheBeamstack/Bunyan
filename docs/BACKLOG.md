@@ -124,7 +124,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-018 | done   | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
 | T-019 | ready  | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
 | T-020 | done   | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
-| T-021 | ready  | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
+| T-021 | review | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
 | T-024 | done   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-022 | done   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | ready  | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
