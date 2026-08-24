@@ -117,3 +117,12 @@ export declare function reviewerForBranch(
   branchName: string,
   finishingSeat?: string,
 ): BranchReviewerVerdict;
+
+/** `agent-finish.mjs`'s own `pnpm verify` spawn (T-021) — the same `BUNYAN_*_CMD`-override shape as
+ * `browserCmd` above, for a machine whose only installed `pnpm` is a `.cmd`/`.bat` shim `execFileSync`
+ * cannot run without a shell. */
+export declare function pnpmSpawn(
+  args: string[],
+  options?: Record<string, unknown>,
+  env?: NodeJS.ProcessEnv,
+): Buffer | string;

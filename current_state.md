@@ -630,6 +630,45 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-021 — `pnpm verify` reaches green on the pc, confirmed there — 2026-08-24 — seat: amer
+
+- **CHANGED:** `tests/protocol/agent-start.test.ts` — the "an UNRESOLVABLE identity" test's `gh`-less
+  PATH fixture symlinked a bare `node` (no extension); Windows PATH/PATHEXT search never matches an
+  extension-less name even though the symlink is created successfully (direct repro), the same fact
+  the file's header already documents for the `gh` stand-in — target renamed `node.exe` on `win32`.
+  `vitest.config.ts` — `testTimeout: 30000`, `pool: 'forks'`, `maxWorkers: 2` (vitest 4 top-level;
+  `poolOptions.forks.maxForks` is a DEPRECATED no-op under 4.1.10). ⚠ **Second defect, found only by
+  actually running `agent-finish.mjs`:** its `execFileSync('pnpm', ['verify'], …)` cannot spawn `pnpm`
+  on a machine whose only install is a `.cmd` shim — the identical `ghSpawn` class (`9a046e5`), one
+  call site over. `scripts/seats.mjs` — **`pnpmSpawn` NEW**, mirroring `ghSpawn`, honoring
+  `BUNYAN_PNPM_CMD` (plain path or `[nodeExePath, scriptPath]`); `scripts/seats.d.mts` gets its
+  signature (the first named import of a spawn helper from a `.ts` file — `ghSpawn` never needed one);
+  three unit tests in `tests/protocol/seats.test.ts`. `agent-finish.mjs`'s verify step now calls it.
+  `handoff/amer/2026-08-24-T-021-pnpm-verify-green-on-pc.md` NEW; this abstract. No `packages/`, no
+  `WATCHED` byte.
+- **VERIFIED:** `pnpm verify` **exit 0** on this pc — typecheck/lint/format:check green, full **99
+  files / 959 tests** green, `reseed:check` skipped (not a PR), `docs:check` (8 files/163 tests)
+  green. The five `tests/protocol/*.test.ts` files collect and pass standalone (113 tests) and inside
+  the full run. Measured before/after: default config left **18/33** of `agent-start.test.ts` alone
+  timing out (real subprocess latency — no other file was running, so not cross-file contention);
+  `--pool=forks --maxWorkers=2` alone (still 5000ms) matches the prior session's **4/33**; adding
+  `testTimeout: 30000` reached **0/33**, twice.
+- **FOUND:** ⚠ **T-021's `done-when:` revert-verification bullet, inherited from T-020, names the
+  wrong target.** *"Restoring `^2.1.8` reproduces the `SyntaxError`"* does **not** hold: reverting only
+  the vitest pin (shebang/gh-spawn fixes `2a79036`/`9a046e5` still in place) relinked to `2.1.9` and
+  all 121 `tests/protocol` tests still passed — the vitest major was never the fix (2026-08-23 entry).
+  What DOES reproduce it: reintroducing the shebang into `agent-start.mjs` on `2.1.9` — 1 file failed
+  at collection, exit 1, identical error. Reverted immediately; pin restored to `^4.1.10`/`4.1.10`
+  (`--frozen-lockfile`, confirmed via `npx vitest --version`) before the VERIFIED run. A spec defect in
+  the task's own prose (`AGENTS.md §3`), recorded here rather than reworded into the published task
+  text (invariant 10).
+- **OWES:** `brahim` — T-021's revert-verification bullet still names the falsified target; not fixed
+  here. Nothing owed to `khalihlna` — every claim was executed and measured on this exact machine.
+- **RISK:** additive — none of the changed files is `WATCHED`, `tests/freeze-boundary.test.ts` stayed
+  green (19/19) inside the full verify run, no `needs-operator/*`.
+- **FULL:** `handoff/amer/2026-08-24-T-021-pnpm-verify-green-on-pc.md`
+- **REVIEW:** pending — `khalihlna` (pc task, `AGENTS.md §1.2`).
+
 ### STEWARD-decompose-harness-defects — review: the rows are ready, and the reason given for the one split is not measured — 2026-08-23 — seat: hmdnah
 
 - **CHANGED:** no row's status, machine, risk or `done-when:` — the decomposition is accepted as written.
@@ -930,17 +969,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **STEWARD-decompose-harness-defects (hmdnah, 2026-08-23)** |
-| branch · tip · tree | `brahim/2026-08-23-decompose-harness-defects` · `d64b5ee` · clean |
-| open PRs | #41 brahim/2026-08-23-decompose-harness-defects |
-| suite | **959 green** · 99 files · 293 suites |
+| **newest entry** | **T-021 (amer, 2026-08-24)** |
+| branch · tip · tree | `task/T-021-pnpm-verify-reaches-green-on-the-pc-conf` · `de8d210` · dirty |
+| open PRs | none — main is the tip of the work |
+| suite | **962 green** · 99 files · 294 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 615 insertions(+), 122 deletions(-) (5 files) |
-| docs budget | current_state 80.5/96.0 KB · §7 28.2/32.0 KB · abstracts 6/10 · bodies 85 |
+| diff vs origin/main | 7 files changed, 155 insertions(+), 18 deletions(-) (7 files) |
+| docs budget | current_state 83.8/96.0 KB · §7 31.5/32.0 KB · abstracts 7/10 · bodies 86 |
 
-_Generated 2026-08-23 by `pnpm state`._
+_Generated 2026-08-24 by `pnpm state`._
 
 <!-- END GENERATED -->

@@ -180,6 +180,27 @@ export function ghSpawn(args, options = {}, env = process.env) {
   return execFileSync(override, args, options);
 }
 
+/**
+ * `agent-finish.mjs`'s own `pnpm verify` call, through the identical seam as `ghSpawn` above and for
+ * the identical reason (T-021): a bare `pnpm` on a machine whose only installed `pnpm` is a `pnpm.cmd`
+ * shim (this repo's `packageManager` pin has no other install path on a fresh Windows checkout) hits
+ * the same two failures `ghSpawn`'s header already documents — `execFileSync('pnpm', …)` with no
+ * extension ENOENTs (no PATH/PATHEXT search), and `execFileSync('pnpm.cmd', …)` EINVALs (Node refuses
+ * to spawn a `.cmd` without `shell: true`, CVE-2024-27980). `BUNYAN_PNPM_CMD` names a real stand-in the
+ * same way `BUNYAN_GH_CMD` does — a plain path, or a `[nodeExePath, scriptPath]` pair for a stand-in
+ * that is itself a script (corepack ships `dist/pnpm.js`, a real `.js` entry point `node.exe` — a real
+ * `.exe` — can run directly with no shell).
+ */
+export function pnpmSpawn(args, options = {}, env = process.env) {
+  const override = env.BUNYAN_PNPM_CMD;
+  if (!override) return execFileSync('pnpm', args, options);
+  if (override.trim().startsWith('[')) {
+    const [cmd, ...pre] = JSON.parse(override);
+    return execFileSync(cmd, [...pre, ...args], options);
+  }
+  return execFileSync(override, args, options);
+}
+
 function onPathCheck(name) {
   try {
     execFileSync(process.platform === 'win32' ? 'where' : 'which', [name], { stdio: 'ignore' });

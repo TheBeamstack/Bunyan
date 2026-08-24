@@ -215,9 +215,14 @@ describe('step 0 — the identity guard, end to end (D87, T-013)', () => {
     // `node` itself must still resolve (execFileSync spawns it BY NAME through this same PATH) — only
     // `gh` is missing. A symlink to the real node binary, alone in an otherwise-empty directory, gives
     // a PATH with no `gh` anywhere on it without breaking the spawn itself.
+    // ⚠ the symlink's name must carry `.exe` on Windows — confirmed by direct repro that a bare `node`
+    // (no extension) is never found via PATH/PATHEXT search even though the symlink itself is created
+    // successfully (same fact as `writeGhStandin`'s header, a different call site: no shell-less spawn
+    // resolves an extension-less name on Windows).
     const noGhDir = mkdtempSync(join(tmpdir(), 'bunyan-no-gh-'));
     extraDirs.push(noGhDir);
-    symlinkSync(process.execPath, join(noGhDir, 'node'));
+    const nodeStandinName = process.platform === 'win32' ? 'node.exe' : 'node';
+    symlinkSync(process.execPath, join(noGhDir, nodeStandinName));
     const r = run(['--root', fx.dir, '--no-pull', '--no-claim', '--seat', 'zayd'], {
       PATH: noGhDir,
     });
