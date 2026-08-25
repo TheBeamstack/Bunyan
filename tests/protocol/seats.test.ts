@@ -514,8 +514,14 @@ describe('pnpmSpawn — the same PATH/PATHEXT escape hatch as ghSpawn, for `pnpm
 
   it('with no BUNYAN_PNPM_CMD, spawns the bare `pnpm` command unchanged', () => {
     // No real `pnpm` need resolve here — a bad command still proves the override was NOT consulted,
-    // by throwing ENOENT/EINVAL for `pnpm` itself rather than running a stand-in.
-    expect(() => pnpmSpawn(['--version'], { stdio: 'ignore' }, {})).toThrow();
+    // by throwing ENOENT/EINVAL for `pnpm` itself rather than running a stand-in. ⚠ PATH must be
+    // pointed at an empty directory: on a machine (or CI runner) whose real `pnpm` IS a bare,
+    // shell-lessly-spawnable executable on PATH, `execFileSync('pnpm', …)` succeeds instead of
+    // throwing, and the assertion goes false-negative — this is what failed CI (a Linux runner
+    // resolves a real `pnpm`; only Windows's `.cmd`-shim shape throws). Empty PATH makes the ENOENT
+    // universal instead of an accident of this pc's install shape (review finding, khalihlna).
+    dir = mkdtempSync(join(tmpdir(), 'bunyan-no-pnpm-'));
+    expect(() => pnpmSpawn(['--version'], { stdio: 'ignore', env: { PATH: dir } }, {})).toThrow();
   });
 
   it('BUNYAN_PNPM_CMD as a plain path spawns that path directly, with the given args', () => {
