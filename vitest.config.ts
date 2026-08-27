@@ -40,6 +40,13 @@ export default defineConfig({
     // one review-routing case (a `pushSteward` git branch + a `--review` `agent-start.mjs` spawn) hit
     // the wall once; 30000ms gave it headroom without masking a real hang (a hang fails on ANY timeout).
     testTimeout: 30000,
+    // khalihlna review of PR #42 (T-021): `testTimeout` does not cover `beforeEach`/`afterEach` —
+    // vitest times hooks against the separate `hookTimeout`, still its 10000ms default. Reproduced on
+    // this pc: a full `pnpm verify` run failed `tests/protocol/seats.test.ts`'s `makeFixture()`
+    // `beforeEach` (a git-repo fixture, the same subprocess cost this file already measured) with "Hook
+    // timed out in 10000ms" — the same file passed clean in isolation immediately after, confirming
+    // full-suite contention, not a hang. Matched to `testTimeout` for the same reason.
+    hookTimeout: 30000,
     // Reduces worker-vs-subprocess CPU contention across the full suite (99 files): the pc measured
     // 39 failures at default concurrency vs. 13 at `--pool=forks --maxWorkers=2`, all timeouts, not
     // wrong answers — `tests/protocol/*` and the other `execFileSync`-heavy suites (`reseed-gate-e2e`,
