@@ -207,7 +207,7 @@ export function main(argv = process.argv.slice(2)) {
   hr();
   console.log('1. Verification — pnpm verify');
   try {
-    execFileSync('pnpm', ['verify'], { cwd: root, stdio: 'inherit' });
+    seats.pnpmSpawn(['verify'], { cwd: root, stdio: 'inherit' });
   } catch {
     die('pnpm verify FAILED. A turn does not end red — fix what it reported above.');
   }

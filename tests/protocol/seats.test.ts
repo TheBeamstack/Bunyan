@@ -4,13 +4,15 @@
  * — see `agent-start.test.ts`'s header for why the split).
  */
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   builderFor,
   canClaim,
   dependsOn,
   machineOf,
+  pnpmSpawn,
   readRegistry,
   readyFor,
   reviewerFor,
@@ -497,5 +499,56 @@ describe('the two-step review gate (D88, T-014)', () => {
   // long (maximum is 100 characters)".
   it("STEP1_LABEL_DESCRIPTION fits GitHub's 100-character label description limit", () => {
     expect(STEP1_LABEL_DESCRIPTION.length).toBeLessThanOrEqual(100);
+  });
+});
+
+// T-021: `agent-finish.mjs`'s own `pnpm verify` call goes through this seam — a machine whose only
+// installed `pnpm` is a `.cmd` shim (this pc) cannot spawn a bare `pnpm` at all (`execFileSync` neither
+// searches PATH/PATHEXT for it nor, since CVE-2024-27980, will run a `.cmd` without `shell: true`).
+// `BUNYAN_PNPM_CMD` is the same NAME-a-stand-in escape hatch `BUNYAN_GH_CMD` already gives `ghSpawn`.
+describe('pnpmSpawn — the same PATH/PATHEXT escape hatch as ghSpawn, for `pnpm` (T-021)', () => {
+  let dir: string;
+  afterEach(() => {
+    if (dir) rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('with no BUNYAN_PNPM_CMD, spawns the bare `pnpm` command unchanged', () => {
+    // No real `pnpm` need resolve here — a bad command still proves the override was NOT consulted,
+    // by throwing ENOENT/EINVAL for `pnpm` itself rather than running a stand-in. ⚠ PATH must be
+    // pointed at an empty directory: on a machine (or CI runner) whose real `pnpm` IS a bare,
+    // shell-lessly-spawnable executable on PATH, `execFileSync('pnpm', …)` succeeds instead of
+    // throwing, and the assertion goes false-negative — this is what failed CI (a Linux runner
+    // resolves a real `pnpm`; only Windows's `.cmd`-shim shape throws). Empty PATH makes the ENOENT
+    // universal instead of an accident of this pc's install shape (review finding, khalihlna).
+    dir = mkdtempSync(join(tmpdir(), 'bunyan-no-pnpm-'));
+    expect(() => pnpmSpawn(['--version'], { stdio: 'ignore', env: { PATH: dir } }, {})).toThrow();
+  });
+
+  it('BUNYAN_PNPM_CMD as a plain path spawns that path directly, with the given args', () => {
+    // A plain override names a real executable (`pnpm`/`gh` living at an unusual absolute path) —
+    // `node.exe` itself is one, so the "args" are `[scriptPath, ...realArgs]`, unpacked with nothing
+    // prepended (the un-nested branch), distinct from the `[nodeExePath, scriptPath]` array form below.
+    dir = mkdtempSync(join(tmpdir(), 'bunyan-pnpm-standin-'));
+    const script = join(dir, 'standin.cjs');
+    writeFileSync(script, `console.log(JSON.stringify(process.argv.slice(2)));`);
+    const out = pnpmSpawn(
+      [script, 'verify'],
+      { encoding: 'utf8' },
+      { BUNYAN_PNPM_CMD: process.execPath },
+    );
+    expect(JSON.parse(out.toString().trim())).toEqual(['verify']);
+  });
+
+  it('BUNYAN_PNPM_CMD as a [nodeExePath, scriptPath] pair runs the script with node, args appended', () => {
+    dir = mkdtempSync(join(tmpdir(), 'bunyan-pnpm-standin-'));
+    const script = join(dir, 'standin.cjs');
+    writeFileSync(script, `console.log(JSON.stringify(process.argv.slice(2)));`);
+    const override = JSON.stringify([process.execPath, script]);
+    const out = pnpmSpawn(
+      ['verify', '--extra'],
+      { encoding: 'utf8' },
+      { BUNYAN_PNPM_CMD: override },
+    );
+    expect(JSON.parse(out.toString().trim())).toEqual(['verify', '--extra']);
   });
 });
