@@ -630,6 +630,147 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-021 — `pnpm verify` reaches green on the pc, confirmed there — 2026-08-24 — seat: amer
+
+- **CHANGED:** `tests/protocol/agent-start.test.ts` — the "an UNRESOLVABLE identity" test's `gh`-less
+  PATH fixture symlinked a bare `node` (no extension); Windows PATH/PATHEXT search never matches an
+  extension-less name even though the symlink is created successfully (direct repro), the same fact
+  the file's header already documents for the `gh` stand-in — target renamed `node.exe` on `win32`.
+  `vitest.config.ts` — `testTimeout: 30000`, `pool: 'forks'`, `maxWorkers: 2` (vitest 4 top-level;
+  `poolOptions.forks.maxForks` is a DEPRECATED no-op under 4.1.10). ⚠ **Second defect, found only by
+  actually running `agent-finish.mjs`:** its `execFileSync('pnpm', ['verify'], …)` cannot spawn `pnpm`
+  on a machine whose only install is a `.cmd` shim — the identical `ghSpawn` class (`9a046e5`), one
+  call site over. `scripts/seats.mjs` — **`pnpmSpawn` NEW**, mirroring `ghSpawn`, honoring
+  `BUNYAN_PNPM_CMD` (plain path or `[nodeExePath, scriptPath]`); `scripts/seats.d.mts` gets its
+  signature (the first named import of a spawn helper from a `.ts` file — `ghSpawn` never needed one);
+  three unit tests in `tests/protocol/seats.test.ts`. `agent-finish.mjs`'s verify step now calls it.
+  `handoff/amer/2026-08-24-T-021-pnpm-verify-green-on-pc.md` NEW; this abstract. No `packages/`, no
+  `WATCHED` byte.
+- **VERIFIED:** `pnpm verify` **exit 0** on this pc — typecheck/lint/format:check green, full **99
+  files / 959 tests** green, `reseed:check` skipped (not a PR), `docs:check` (8 files/163 tests)
+  green. The five `tests/protocol/*.test.ts` files collect and pass standalone (113 tests) and inside
+  the full run. Measured before/after: default config left **18/33** of `agent-start.test.ts` alone
+  timing out (real subprocess latency — no other file was running, so not cross-file contention);
+  `--pool=forks --maxWorkers=2` alone (still 5000ms) matches the prior session's **4/33**; adding
+  `testTimeout: 30000` reached **0/33**, twice.
+- **FOUND:** ⚠ **T-021's `done-when:` revert-verification bullet, inherited from T-020, names the
+  wrong target.** *"Restoring `^2.1.8` reproduces the `SyntaxError`"* does **not** hold: reverting only
+  the vitest pin (shebang/gh-spawn fixes `2a79036`/`9a046e5` still in place) relinked to `2.1.9` and
+  all 121 `tests/protocol` tests still passed — the vitest major was never the fix (2026-08-23 entry).
+  What DOES reproduce it: reintroducing the shebang into `agent-start.mjs` on `2.1.9` — 1 file failed
+  at collection, exit 1, identical error. Reverted immediately; pin restored to `^4.1.10`/`4.1.10`
+  (`--frozen-lockfile`, confirmed via `npx vitest --version`) before the VERIFIED run. A spec defect in
+  the task's own prose (`AGENTS.md §3`), recorded here rather than reworded into the published task
+  text (invariant 10).
+- **OWES:** `brahim` — T-021's revert-verification bullet still names the falsified target; not fixed
+  here. Nothing owed to `khalihlna` — every claim was executed and measured on this exact machine.
+- **RISK:** additive — none of the changed files is `WATCHED`, `tests/freeze-boundary.test.ts` stayed
+  green (19/19) inside the full verify run, no `needs-operator/*`.
+- **FULL:** `handoff/amer/2026-08-24-T-021-pnpm-verify-green-on-pc.md`
+- **REVIEW:** pending — `khalihlna` (pc task, `AGENTS.md §1.2`).
+
+### STEWARD-decompose-harness-defects — review: the rows are ready, and the reason given for the one split is not measured — 2026-08-23 — seat: hmdnah
+
+- **CHANGED:** no row's status, machine, risk or `done-when:` — the decomposition is accepted as written.
+  On the branch: **`origin/main` merged in** (the PR was 2 commits behind and protection is `strict`),
+  picking up `2a79036` (shebang/import-hoist collection fix) and `76e4aa1` (T-021 falsified); the one
+  conflict — both sides append a 2026-08-23 `## Discovered` row — resolved by **keeping both**. **F4's
+  one-line fix** to T-025's `implements:`. **The two oldest abstracts rotated to `docs/history.md` §E**
+  as a move (`T-024 — 2026-08-19 — hmdnah`, then `T-022 — 2026-08-21 — zayd`) — §7 stood at **32320 of
+  32768** characters with 448 free and this abstract does not fit; one rotation left only 2 characters
+  spare, which is not a margin. Now **28836**, 6 abstracts. `handoff/hmdnah/2026-08-23-STEWARD-decompose-harness-defects-review.md`
+  NEW; this abstract; the reviewed entry's `REVIEW:` line rewritten. No `packages/`, no `scripts/`, no
+  snapshot byte.
+- **VERIFIED:** **Item 1, twice, docs-only form** — the diff moves no code. (A) `machine: **box**` removed
+  from the new T-026 entry ⇒ `tests/protocol/seats.test.ts` **2 failed | 44 passed (46)**, both naming
+  T-026 by id — `:407` *"has no machine:"* (`.toMatch()` got `undefined`) and `:401` *"T-026 is ready but
+  no seat can claim it"*; restored **46/46**. (B) this diff's §7 abstract re-dated `2026-08-23` →
+  `2026-08-21`, below the newer T-005 ⇒ `tests/docs-budget.test.ts` **1 failed | 22 passed (23)** at
+  `:165`, *"T-005 (2026-08-22) is below STEWARD-decompose-harness-defects (2026-08-21)"*; restored
+  **23/23**. **Both VERIFIED claims reproduce:** `docs:check` **163 passed** (8 files), and again **163**
+  after my merge and fix; `seats.mjs ready-for zayd` → **`T-026 T-025 T-028 T-027`**, that order, exit 0.
+  **Evidence audited, all real:** PR #38 carries `needs-operator/freeze` + `review/step-1` and two
+  `narutousomaki741` reviews (the twice); PR #39's author is `Davidian-Abdo`, which *is* the box `gh`
+  default, so T-026's premise holds; the three stranded finishes have artifacts
+  (`2026-08-19-T-024-review-step2b-rerun.md`, `2026-08-21-T-022-review-step{1,2}.md`). **28** `### T-nnn`
+  sections = **28** table rows, no duplicate id, T-025–T-028 fresh above T-024. **Item 7 on the tip:**
+  `reserved-classes.mjs` → *"none — RISK: additive"*, no `needs-operator/*`, and the labeller **ran** —
+  `PR shape · reserved classes` SUCCESS `11:15:39Z`, `typecheck · lint · geometry harness` SUCCESS
+  `11:15:24Z` on `0f66aac`, re-confirmed on the merged tip.
+- **FOUND:** **F1 — the T-026/T-025 split is right; its stated reason is not measured.** Both the abstract
+  and the body assert *"one row carrying both cannot reach green in a turn"* as fact. Measured:
+  `reviewFlipsToDone` (`seats.mjs:286`) is **four lines**; `identityGate` (`agent-start.mjs:155`) **already
+  exists and is already exported**, so T-026 wires an existing function into a second call site rather than
+  authoring a gate; and **both fixes land in the same `if`/`else` block, `agent-finish.mjs:572–592`**, with
+  the `reserved-classes.mjs` import (absent today) shared rather than doubled. Two `risk: high` rows also
+  buy **four** review turns where one buys two, in a batch that just lost three to stranded finishes.
+  Not blocking — splitting when unsure is the direction `AGENTS.md §6` prefers and I cannot prove a combined row
+  *would* go green without building it. **F2 — T-027's `verify:` cannot discharge its own `done-when:`.**
+  `grep -rn "memory=2g" tests/ scripts/` is **empty**, so `pnpm verify` is green before the edit, after it,
+  and if it writes the wrong number; T-027 is also the only row of the four with **no `revert-verified:`
+  item**, so its reviewer arrives with no claim to re-execute under a mandatory `REVIEW.md` item 1. **F3 —
+  T-028's `revert-verified:` needs a seam the row does not name.** `agent-finish.mjs:211` hardcodes
+  `execFileSync('pnpm', ['verify'])`; the fixture's `` verify: `echo ok` `` is not what step 1 runs; **all
+  17** `agent-finish.test.ts` tests assert refusals that fire *before* step 1, so step 1 has zero coverage
+  and "kill a fixture mid-verify" is not expressible until an injection seam exists. Criterion 9 went
+  unanalysed on the one row that needed it. **F4 — fixed on the branch:** T-025's `implements:` cited a
+  `## Discovered` entry of **2026-08-21** that does not exist (all seven rows of that date are other
+  defects); the second firing is **2026-08-20**, a ⚠ amendment inside the 2026-08-19 row. **`AGENTS.md §3`
+  is not violated:** the rule binds *claiming*, `ready` is by definition unclaimed, the steward never
+  builds, and decomposition **inserts** the independent party the rule wants rather than bypassing it —
+  this review is that party, and F2/F3 are its output. **The `ready`-vs-*"no builder starts"* tension is
+  not a defect either:** `docs/prompts/brahim-orchestrator.md` §4b binds the **orchestrator's subagents**,
+  not the row status, and the loop is stopped.
+- **OWES:** `brahim` — **F1, F2, F3** as `## Discovered` rows or as edits to the three rows before a
+  builder claims them; and the **five-versus-four** count (the headline says five measured defects, four
+  rows landed, one of them from a row written this turn, so three of the five became tasks — which two were
+  left, and why, is unstated, and the ledger holds more than five undecomposed harness defects). Whoever
+  claims **T-028** — expect to add the verify-command seam first (F3). Whoever claims **T-027** — decide
+  what discharges item 1 there (F2). Nothing owed to a `pc` seat: every measurement in this review is
+  headless and was executed here, so there is no `unverified here:` for `khalihlna`.
+- **RISK:** additive — a review turn moved no declaration; `pnpm state` re-derives `RISK: additive`,
+  frozen surface unchanged vs baseline.
+- **FULL:** `handoff/hmdnah/2026-08-23-STEWARD-decompose-harness-defects-review.md`
+- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), one turn because a steward PR carries no
+  `risk: high` row. ✅ **APPROVED and MERGED** on `narutousomaki741`, which is not `davidian-abdo` that
+  opened it. ⚠ Could not verify here: `gh api …/branches/main/protection` returns **404** on this seat's
+  token (push-level, no admin read), so `docs/RUNBOOK.md`'s protection block is unconfirmed from this seat;
+  the branch was merged up to `main` regardless, so `strict` is satisfied either way.
+
+### STEWARD-decompose-harness-defects — the box ran out of work with five measured defects unclaimed — 2026-08-23 — seat: brahim
+
+- **CHANGED:** `docs/BACKLOG.md` — **T-025 to T-028 NEW** (four `ready` `infra`/`box` rows), T-006
+  promoted `blocked` → `ready` in the same sweep that closed T-005, and one `## Discovered` row for the
+  stranded-finish defect T-028 implements. `handoff/brahim/2026-08-23-STEWARD-decompose-harness-defects.md`
+  NEW; this abstract. No `packages/`, no `scripts/`, no snapshot byte, no code.
+- **VERIFIED:** `docs:check` **163 passed** (8 files) after the decomposition, so every new row satisfies
+  the protocol tests that read this file. `seats.mjs ready-for zayd` → **`T-026 T-025 T-028 T-027`**,
+  which is both the intended sequence and proof the rows are claimable by the box builder. Every `box`
+  row in the table read `done` before this turn and all eight `ready` rows were `pc` — the condition
+  that made the box idle.
+- **FOUND:** **The three stranded finishes had never been recorded.** `agent-finish.mjs` runs `pnpm verify`
+  in full, and a session ending inside it leaves the branch committed-but-unpushed or the tree
+  written-but-uncommitted, after which `agent-start.mjs` refuses at its own `git checkout main` with only
+  *"pull failed — resolve by hand"*. Three in one batch — T-024 step 2, T-022 step 1 (where the absent
+  `review/step-1` label would have made the next session re-run step 1, since that label is what
+  `resolveReviewStep` reads), and T-022 step 2. Each was repaired conversationally and would have left no
+  trace. ⚠ **T-026 and T-025 are one failure at two altitudes and are deliberately separate rows:** T-025
+  is a class-resolution bug inside `reviewFlipsToDone`, T-026 adds a gate where none exists, and one row
+  carrying both cannot reach green in a turn (READY criterion 9).
+- **OWES:** The **owner** — this PR's merge decision, and **Q22**/**Q23**, both still unruled and neither
+  invented here. ⚠ **No builder starts on T-025–T-028 until the owner says so** (the orchestrator's
+  phase-boundary rule). The **pc machine** — eight `ready` rows including **T-023**, which is the only
+  place T-022's fix can be proven to fix anything; `light_brahim` is not running.
+- **RISK:** additive — no declaration moved, no code, no snapshot byte.
+- **FULL:** `handoff/brahim/2026-08-23-STEWARD-decompose-harness-defects.md`
+- **REVIEW:** ✅ `hmdnah`, one turn (a steward PR is not `risk: high`) — **APPROVED and MERGED** on
+  `narutousomaki741`. Item 1 re-executed twice in the docs-only form: T-026's `machine:` removed ⇒
+  `seats.test.ts` **2 failed | 44 passed**, both naming T-026; this abstract's heading re-dated to
+  2026-08-21 ⇒ `docs-budget.test.ts` **1 failed | 22 passed** on newest-first; both restored green.
+  Both VERIFIED claims reproduce (`docs:check` **163**, `ready-for zayd` → `T-026 T-025 T-028 T-027`).
+  Four findings, none red — **F4 fixed on the branch** (T-025 cited a `## Discovered` entry of
+  2026-08-21 that does not exist; the second firing is 2026-08-20, inside the 2026-08-19 row).
+
 ### T-005 — review: the sweep's lens was narrower than the rule it swept for — 2026-08-22 — seat: hmdnah
 
 - **CHANGED:** one test fix and two documentation files on the branch, **no product code**:
@@ -821,117 +962,6 @@ is maintenance and does NOT get an entry of its own.**
 - **REVIEW:** step 1 of 2 (D88) — **NOT approved, NOT merged**, row stays `review`. Report on PR #39
   (`issuecomment-5368729406`, presence verified by read-back).
 
-### T-022 — the glue decoded from a view of growable memory, at BOTH of its two decode sites — 2026-08-21 — seat: zayd
-
-- **CHANGED:** `tools/kernel-build/postlink.mjs` **NEW** — rewrites both emitted `TextDecoder.decode`
-  sites from `subarray` to `slice`; `link.sh` runs it as the last step of the link, so the patch is in the
-  RECIPE and not a hand edit to a generated file. `packages/kernel-occt/wasm/bunyan-kernel.js` relinked +
-  patched (**4e5508df…**, 6 bytes smaller); **`bunyan-kernel.wasm` UNCHANGED (f34fef31…)**.
-  `tests/kernel-glue-growable-decode.test.ts` NEW; `postlink.mjs` added to `GEOMETRY_PATHS` (file-exact,
-  Entry 74's lesson — it shapes the artifact, so `link.sh`'s own argument covers it); `toolchain.json`,
-  `tools/kernel-build/README.md`, `NOTICE` re-stated; goldens re-seeded (`seededAt` only).
-- **VERIFIED:** **Item 1** — glue reverted to the committed pre-patch bytes: **RED 2 failed | 3 passed
-  (5)**, restored **5 passed**. **The pin re-proved**: relinked on the pinned digest in **75 s** and both
-  files came back **byte-identical to the committed artifact** (wasm `f34fef31…`, glue `044baac6…`), so
-  only the glue moved. **`pnpm verify` 98 files · 951 tests · 0 failed**, `docs:check` **163**,
-  `freeze-boundary` green. Re-seed gate run as CI runs it (`BASE_REF=main`) → **OK** on the
-  `Re-seed-unchanged:` trailer; 15 oracle cases, **not one value moved**.
-- **FOUND:** ⚠ **THE TASK NAMED ONE SITE AND THERE ARE TWO.** Counting the set rather than reading the
-  reported member (§1c-8) gives `grep -o '\.decode(' | wc -l` = **2**: `UTF8ArrayToString` **and**
-  `UTF16ToString` (`UTF16Decoder.decode(HEAPU16.subarray(…))`), the second named nowhere in the task.
-  Fixing only the reported one ships a kernel that still hangs the moment anything crosses as UTF-16.
-  ⚠ **Spec/contract defect fixed (`AGENTS.md` §3):** `toolchain.json`'s `verifiedBy` claimed the relink
-  reproduced *"the committed one"* at wasm sha256 `819ff12c…` — **no committed artifact has that hash.**
-  Entry 79 measured it against the tree BEFORE that same entry's `toolchainId()` change, so its own
-  follow-up commit un-measured it (§1d) **in the one file whose whole purpose is to be the pin**; a reader
-  relinking today and comparing would conclude the pin was broken. Replaced with today's re-proof.
-  (`README.md`/`NOTICE` carried the hash too but were already precise that it named the pre-change tree.)
-  ⚠ **The emsdk bump was priced and refused, per the `done-when:`**: the prebuilt OCCT libs carry the
-  pinned compiler — `strings libTKMath.a:math.cxx.o` → `clang 23.0.0git (787619a4)`, i.e. emcc **6.0.2** —
-  so a digest bump turns a **75 s** link into the **2.5 h** OCCT rebuild (§6), drags a golden re-seed and
-  an `OCCT_BUILD_ID` cache invalidation behind a string bug, and needs a second 3.18 GB image against 9.0 G
-  free. ⚠ **Re-seeding cannot detect this change even in principle** — the seeder answers with NATIVE OCCT,
-  not our glue; the suite driving the real kernel is what actually exercises the patch.
-- **OWES:** **`amer`/`khalihlna` (T-023)** — `unverified here: the kernel boots on Chrome 151`. Measured
-  and not a formality: **Node 20.20.2 cannot reproduce the bug at all** (`WebAssembly.Memory.buffer.resizable`
-  = **false**, and it decodes a resizable-backed view happily), so no headless assertion can watch this
-  fail as Chrome fails it, and **no `done-when:` item here claims a browser boot**. The 149/151 numbers in
-  the task are the pc's and were not re-measured here. **`brahim`** — a `## Discovered` row that the
-  shipped artifact now has a **patch step**: relinking means running `link.sh`, never `em++` by hand.
-- **RISK:** additive — no frozen byte, no protocol/schema change; `freeze-boundary` green.
-- **FULL:** `handoff/zayd/2026-08-21-T-022-glue-growable-decode.md`
-- **REVIEW:** ✅ `hmdnah`, D88 **both steps done** — step 1 mechanical (three non-blocking findings,
-  `issuecomment-5368729406`), step 2 adversarial: **APPROVED and MERGED**, one review fix on the branch
-  (`c4c0e9f`, F4) and the pin re-linked here byte-for-byte. Chrome boot: `khalihlna`, T-023.
-
-### T-024 — review (step 2, re-run): F3 is closed, and the branch is standing on the state that proves it — 2026-08-19 — seat: hmdnah
-
-- **CHANGED:** no code byte — the four findings below are documentation and an unreachable boundary, none
-  red, so `REVIEW.md`'s table makes them findings rather than a third return.
-  `handoff/hmdnah/2026-08-19-T-024-review-step2b-rerun.md` NEW; this abstract; T-020's two abstracts rotated
-  to `docs/history.md` §E as a **move**, §7 having stood at 32075 of 32768 bytes with 6 of 10 abstracts.
-  ⚠ **`docs/BACKLOG.md`'s T-024 row set back to `review` by hand** — `agent-finish --review --step 2`
-  stamped it `done` again and printed `gh pr merge 38 --squash`, so **G5 is reproducible**; the existing
-  `## Discovered` row carries the second instance.
-  ⚠ **PR #38 APPROVED and NOT MERGED** — `needs-operator/freeze` routes the merge to the owner
-  (`AGENTS.md §5.3`), which composes with `risk: high` rather than being replaced by it.
-- **VERIFIED:** **Item 1, twice.** (A) the record-resolution removed from `baselineEntryIssues`:
-  **4 failed | 38 passed (42)** over `freeze-boundary` + `docs-budget`, restored 50/50 with
-  `state-risk-e2e` — the author's `4 failed | 46 passed (50)` on the same three files. (B) **the returned
-  shape run against the state this branch is in**: `scripts/{docs-state,frozen-surface}.{mjs,d.mts}` and
-  both test files restored from `317c756` while `current_state.md`/`docs/history.md` stay at the head ⇒
-  `expect(named).toBeDefined()` **FAILS**, `STEWARD-unblock-pc-and-chrome-boot — 2026-08-18 — brahim names
-  no abstract in §7`, **1 failed | 37 passed (38)**; restored green. The authorising key resolves in the
-  record and **not** in §7 (measured: §7 6 abstracts, record 57 headings), so the fuse was performed rather
-  than simulated and the repair is green on the exact input the old shape reddens. **Counts re-derived:**
-  **946** (97 files, 0 failed, 0 pending), `docs:check` **163**, `freeze-boundary` **19**; `it(` titles
-  diffed `317c756` → `a555a2f` give **+2/+2 and one rename, nothing removed**, and `protocol` 8 /
-  `protocol/*` 17·33·8·9·46 / `state-risk-e2e` 8 are identical to step 1's. **Item 3:** `diffSurface`
-  `{added:[],removed:[],changed:[]}` at 214 = 214, the writer mints only from §7 ⊂ record, and **0** of the
-  51 archived headings sit inside a code fence. **Item 7 on the exact tip, per job:** local HEAD = origin =
-  `headRefOid` = `a555a2f`; `typecheck · lint · geometry harness` SUCCESS 20:03:58→20:13:38Z and
-  `PR shape · reserved classes` SUCCESS 20:13:40→20:13:52Z, so the label is a verdict and not a silence.
-- **FOUND:** ⚠ **H1 — the legacy half now describes behaviour it no longer has**, because `abstracts`
-  changed under it: `frozen-surface.mjs:250` still says a legacy number *"SKIPS once it rotates, which is
-  why that half never cries wolf"* and `:314` that the bound *"skips when §7 holds no legacy entry"*, while
-  the record carries **13** legacy headings permanently against §7's **0** — so the bound is always live and
-  the resolution never skips. Two edges: `:327` emits *"is dated … **in §7**"* for an entry the same test
-  asserts is not in §7, and `newestLegacy` is 88 while **entries 89 and 90 happened** (`docs/history.md:460`
-  and `:328` cite both) without a `### N |` heading, so a baseline naming either is refused as *"the newest
-  entry that exists is 88"*. Unreachable through the writer, which mints keys only — G3's class. The new
-  test's title *"a legacy number that has not happened yet"* is false of the input it now picks (89).
-  ⚠ **H2 — the collision gate's second assertion is a tautology.** `key === \`${id} — ${date} — ${seat}\``
-  for all **44** new-scheme abstracts, so grouping by key partitions exactly by those three fields and the
-  three `size === 1` checks cannot fail; **0** legacy collisions exist, where they would not be vacuous. Its
-  comment claims it separates *"a pair of distinct turns"* from *"one abstract written twice"* — the record
-  holds exactly the second shape (the T-015 duplicate) and the test is green on it. The half that measures,
-  `collisions.length > 0`, is sound. **H3 — the corrected uniqueness count is stale by one on the commit
-  that wrote it:** `## Discovered` and the abstract say **5 of 51 across 56**, measured now **6 of 51 across
-  57**, the sixth being this PR's own two `T-024 — 2026-08-19 — zayd` abstracts; the row's T-015 line
-  numbers are stale by exactly the 68 lines the same commit inserted above them (2231+68 = 2299,
-  2300+68 = 2368). The code is immune because the test measures. **H4 —** `frozen-surface.d.mts:44`'s
-  *"never the §7 parse alone"* is overstated: `state-risk-e2e.test.ts:209`/`:250` do exactly that, legitimately,
-  on fixtures with no `docs/history.md` where `recordedAbstracts` throws by design. **Confirmed as reported:**
-  the T-015 duplicate is real at `docs/history.md:2299`/`:2368`, written by `71cfc02` and `c18ae8e`, present
-  on `origin/main` and so not this branch's to edit; **G1**'s reasoning holds — `agent-finish.mjs:279` finds
-  by `id + seat`, and the record carries `T-024 — 2026-08-19 — zayd` **twice**, so `.key` accepts the
-  predecessor identically and closing it needs a §7 schema change.
-- **OWES:** The **owner** — the merge; `needs-operator/freeze` is unconditional. `brahim` — **H1–H4** as
-  `## Discovered` rows, and **Q22** is still unruled: `REVIEW.md`'s two-step table defines no turn for a
-  branch returned by *step 2*, so this turn followed `docs/history.md`'s `T-011 — review (step 2, re-run)`
-  precedent and re-ran step 2 against the new head rather than invent a rule. **G1**, **G3** and **G5**
-  unchanged and unclaimed. Nothing owed to a `pc` seat — every measurement here is headless and was executed
-  here.
-- **RISK:** additive — a review turn moved no declaration; `pnpm state` re-derives `RISK: additive` at
-  214 = 214.
-- **FULL:** `handoff/hmdnah/2026-08-19-T-024-review-step2b-rerun.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), D88 step 2 re-run against the new head.
-  ✅ **APPROVED, NOT MERGED**: F3 is closed on the state the branch is already in, both reverts reproduce
-  here, and the four findings are documentation or unreachable. The owner merges (`AGENTS.md §5.3`).
-  ⚠ **The turn was interrupted between this abstract and its push, and item 1 was RE-EXECUTED on
-  2026-08-20 before the verdict was signed** — (A) 4 failed, same four titles; (B) `1 failed`,
-  `… names no abstract in §7`; both restored to `docs:check` **163**. Body §11.
-
 ## §8 — Generated
 
 
@@ -939,17 +969,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-005 (hmdnah, 2026-08-22)** |
-| branch · tip · tree | `task/T-005-d66-3c-force-on-measure-and-whether-save` · `0543f2e` · dirty |
-| open PRs | #40 task/T-005-d66-3c-force-on-measure-and-whether-save |
-| suite | **959 green** · 99 files · 293 suites |
+| **newest entry** | **T-021 (amer, 2026-08-24)** |
+| branch · tip · tree | `task/T-021-pnpm-verify-reaches-green-on-the-pc-conf` · `0cd26e4` · clean |
+| open PRs | none — main is the tip of the work |
+| suite | **962 green** · 99 files · 294 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 13 files changed, 1188 insertions(+), 144 deletions(-) (13 files) |
-| docs budget | current_state 81.5/96.0 KB · §7 29.1/32.0 KB · abstracts 6/10 · bodies 83 |
+| diff vs origin/main | 8 files changed, 269 insertions(+), 18 deletions(-) (8 files) |
+| docs budget | current_state 83.8/96.0 KB · §7 31.5/32.0 KB · abstracts 7/10 · bodies 86 |
 
-_Generated 2026-08-22 by `pnpm state`._
+_Generated 2026-08-24 by `pnpm state`._
 
 <!-- END GENERATED -->

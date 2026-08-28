@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /**
  * `pnpm state` — REGENERATE THE MACHINE-KNOWABLE FACTS.
  *

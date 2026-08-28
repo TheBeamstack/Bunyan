@@ -124,11 +124,15 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-018 | done   | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
 | T-019 | ready  | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
 | T-020 | done   | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
-| T-021 | ready  | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
+| T-021 | review | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
 | T-024 | done   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-022 | done   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | ready  | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-005 | done   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
+| T-026 | ready  | The identity gate fires at approve/merge, not only at claim             | infra    | box     | high   | —          |
+| T-025 | ready  | `--review` keeps an owner-gated row at `review`                         | infra    | box     | high   | —          |
+| T-028 | ready  | `agent-finish.mjs` is resumable after an interrupted run                | infra    | box     | normal | —          |
+| T-027 | ready  | §6's relink cap is measured, not guessed                                | infra    | box     | normal | —          |
 
 ---
 
@@ -684,9 +688,155 @@ that moving entry's date, and any turn that appends a §7 abstract on a later da
 > `risk: high` — it is the freeze gate itself, and `AGENTS.md §5` makes the P5 freeze the one
 > irreversible act.
 
+### T-026 — The identity gate fires at approve/merge, not only at claim
+
+D87's check lives in `agent-start.mjs`, but a reviewer approves and merges _after_ `agent-finish.mjs` has
+returned, so any session reaching the merge without a fresh claim acts under whatever account `gh`
+resolves to. `agent-finish --review` compounds it by writing the verdict as accomplished fact.
+
+- implements: this file's `## Discovered` entry of 2026-08-21 (the identity gate guards the CLAIM) ·
+  `scripts/agent-start.mjs`'s `identityGate` · `docs/RUNBOOK.md` §"Seat credentials" (D87) · `AGENTS.md §6`
+- verify: `pnpm verify`
+- done-when:
+  - the identity gate is callable independently of a claim, and runs before any `gh pr review` or
+    `gh pr merge` the harness prints or performs;
+  - `agent-finish --review` states its verdict as **owed** rather than performed — no abstract or PR text
+    asserts an approval or a merge that has not happened;
+  - revert-verified: a seat whose resolved `gh` login is the PR's own author is refused, and the refusal
+    names the account mismatch rather than failing generically;
+  - ⚠ **the gate is added, not moved** — `agent-start.mjs`'s existing claim-time check keeps its behaviour.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — it is the crossed-account rule, which `AGENTS.md §6` says is not optional twice. Measured
+> on PR #39: the box default resolved to the PR's author and only the seat's own reading of `AGENTS.md`
+> stopped the merge.
+
+### T-025 — `--review` keeps an owner-gated row at `review`
+
+`seats.reviewFlipsToDone` reads `contractTouching` from §8's frozen-surface row alone, so a PR carrying
+any other `needs-operator/*` class is stamped `done` and handed a `gh pr merge` command while the owner
+has not merged. `done` is what satisfies a `depends-on:`, so this releases dependents on an unmerged PR.
+
+- implements: this file's `## Discovered` entry of 2026-08-19 and its 2026-08-20 amendment
+  (`agent-finish.mjs --review` stamps the row `done`) · `scripts/seats.mjs`'s `reviewFlipsToDone` · `scripts/reserved-classes.mjs` ·
+  `AGENTS.md §5`
+- verify: `pnpm verify`
+- done-when:
+  - `--review` resolves the reserved classes through `reserved-classes.mjs`, not §8's frozen-surface row,
+    and keeps the row `review` when **any** of `AGENTS.md §5`'s three classes applies;
+  - the printed next step names the owner's merge for all three, never `gh pr merge`;
+  - revert-verified: a fixture PR carrying `needs-operator/freeze` at `RISK: additive` goes red without
+    the fix;
+  - ⚠ **this widens the class set; it does not re-decide the additive case**, which keeps merging on the
+    reviewer's own account.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+> `risk: high` — it decides whether an owner-gated row is released to its dependents. Fired twice on PR
+> #38, caught by hand both times.
+
+### T-028 — `agent-finish.mjs` is resumable after an interrupted run
+
+A finish interrupted during its multi-minute `pnpm verify` leaves work committed-but-unpushed or written
+-but-uncommitted, and `agent-start.mjs` then refuses at its own `git checkout main`, so recovery needs a
+hand-directed session that knows what the previous one was doing.
+
+- implements: this file's `## Discovered` entry of 2026-08-23 · `scripts/agent-finish.mjs` steps 1–5 ·
+  `scripts/agent-start.mjs`'s dirty-tree path · `AGENTS.md §1.1`
+- verify: `pnpm verify`
+- done-when:
+  - re-running `agent-finish.mjs` after an interrupted run completes the turn rather than starting over
+    or refusing, and is safe to run twice;
+  - `agent-start.mjs` names an interrupted finish as such when it finds one, instead of failing at the
+    pull with a message about resolving by hand;
+  - revert-verified: a fixture whose finish is killed mid-`verify` is reproducibly recovered by re-running
+    it, and is not recovered without the fix;
+  - ⚠ **no `done-when:` item here claims a fix for the session ending** — this makes the interruption
+    recoverable, not impossible.
+- depends-on: —
+- area: infra · machine: **box** · risk: **normal**
+
+### T-027 — §6's relink cap is measured, not guessed
+
+`current_state.md §6`'s relink recipe caps the container at `--memory=2g`; the link fits in 1 GB, and the
+overstatement cost a box seat a verification it had to record as undischarged.
+
+- implements: this file's `## Discovered` entry of 2026-08-21 (§6's relink recipe) · `current_state.md §6` ·
+  `current_state.md §6a` (box discipline) · `AGENTS.md §4-11`
+- verify: `pnpm verify`
+- done-when:
+  - §6's recipe carries the measured cap, stated with the measurement behind it, so the next seat can tell
+    a measurement from a guess;
+  - ⚠ **no relink is required to close this** — T-022's step-2 abstract carries the figure (78 s, exit 0,
+    output byte-identical to the committed pair); re-running it is optional and box-discipline-gated.
+- depends-on: —
+- area: infra · machine: **box** · risk: **normal**
+
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
+
+- **2026-08-23 — two real pc-only defects found and fixed (not the em-dash T-020 blamed); T-021's
+  done-when is now down to resource contention, not a correctness gap.** `amer`'s clean `pnpm verify`
+  (T-001) first re-confirmed T-020 does not close the pc gap: vitest 4.1.10 (T-020's own pin) still threw
+  `SyntaxError: Invalid or unexpected token` collecting all five `tests/protocol/*.test.ts` files.
+  **Defect 1 — a leading shebang collides with Vite's SSR import-hoist.** Root-caused by direct
+  reproduction (Vite 6.4.3's `server.transformRequest(id, {ssr:true})` on each script, output checked with
+  `node --check`/`vm.SourceTextModule`): every one of the five imports a script starting
+  `#!/usr/bin/env node` (`agent-start.mjs`, `agent-finish.mjs`, `pr-ready.mjs`, `reserved-classes.mjs`,
+  `seats.mjs` — plus `state.mjs`, same defect, different importer), and Vite's SSR import-hoist splices
+  the shebang text onto the END of the hoisted-imports line with no separating newline —
+  `__vite_ssr_import__("/scripts/seats.mjs");#!/usr/bin/env node` on one line — a bare `#` mid-statement,
+  which V8 reports as the generic, position-less "Invalid or unexpected token" (no location, because the
+  sourcemap and the corrupted code disagree). The two passing files (`docs-state.mjs`, `frozen-surface.mjs`)
+  carry no shebang; CRLF and the em-dash are present in ALL of them and are not the cause. None of the six
+  scripts are git-executable (`100644`, not `100755`) and every real invocation in this repo, CI included,
+  is `node scripts/x.mjs` — the shebang is dead weight. Removed from all six.
+  **Defect 2 — the fake-`gh` test stand-in cannot run on Windows at all, by two independent mechanisms.**
+  `tests/protocol/agent-start.test.ts`'s `fakeGhReporting`/`fakeGhForReview` PATH-shadowed `gh` with a
+  `#!/usr/bin/env bash` script (`chmodSync(0o755)`, a no-op on Windows; the shebang is never interpreted
+  by native `CreateProcess` either) joined onto `PATH` with a literal `:` — wrong twice over, since `;` is
+  the real Windows delimiter and a Windows path itself contains `:` (`C:\...`), corrupting the string.
+  Fixing only the join proved the deeper problem: even a correctly-`PATH`-shadowed `gh.cmd` never runs,
+  because `execFileSync('gh', …)` on Windows neither searches `PATH`/`PATHEXT` for a bare command the way
+  a POSIX `execvp` does, nor — since CVE-2024-27980 — will spawn a `.bat`/`.cmd` file at all without
+  `shell: true` (confirmed directly: `EINVAL` even with the stand-in as the only thing on `PATH`, or
+  invoked by its own full path). **Fix shape, mirroring the existing `BUNYAN_BROWSER_CMD` precedent**:
+  `scripts/seats.mjs` exports `ghSpawn(args, options)` — every `gh` spawn across `agent-start.mjs`,
+  `agent-finish.mjs`, `pr-ready.mjs`, `reserved-classes.mjs` now goes through it, and it honors
+  `BUNYAN_GH_CMD` as a two-element JSON array `[command, ...leadingArgs]` (or a plain string, for a real
+  relocated `gh`). The test stand-in is now a single plain `.cjs` file spawned as
+  `[process.execPath, scriptPath]` — `node.exe` is a genuine executable either platform can run directly
+  with no shell, so it, not a shell script, is the thing actually invoked. Net effect on
+  `tests/protocol/agent-start.test.ts` alone: 13 failures → 4 (verified before/after).
+  **What is left, all found only now that collection and most execution finally succeed:** the 4
+  remaining `agent-start.test.ts` failures alone are pre-existing and orthogonal to both defects above —
+  one is a bare `execFileSync('node', …)` PATH-search failure structurally identical to defect 2's root
+  cause but spawning `node` itself, not `gh` (a test helper symlinks a bare `node` onto a `PATH` with
+  nothing else on it; confirmed by direct repro that this `ENOENT`s on this pc even though the symlink is
+  created successfully — same "Windows doesn't search PATH/PATHEXT for a bare command" fact, different
+  call site, not fixed here), the other 3 are `5000ms` timeouts. **Under the FULL `pnpm verify` (all 99
+  files, default concurrency), the picture is much noisier — 39 failures — but `--pool=forks --maxWorkers=2`
+  drops that to 13, and every test that still needs isolation to pass is a `5000ms`/`10000ms` timeout, not
+  a wrong answer: this is CPU contention from many more subprocess-heavy files now actually running
+  concurrently (they used to fail at collection before any of this), not a regression.** Whether to raise
+  the default test timeout, cap concurrency for this pc specifically, or leave it is an open call, not
+  decided here. `tests/document-openings.test.ts`'s WASM-heap-leak case also timed out once on the full
+  run — not reproduced when run alone; contention, not isolated to a cause. T-021 remains open, now scoped
+  to a resource-tuning question rather than a correctness gap. Found and fixed by `light_brahim`
+  continuing `amer`'s T-001 turn; `apps/web`/T-001 itself untouched and still green (25/25).
+
+- **2026-08-23 — an interrupted `agent-finish.mjs` strands the turn, and nothing recovers it.** The finish
+  runs `pnpm verify` in full, several minutes, and a session ending inside it leaves the branch
+  committed-but-unpushed or the tree written-but-uncommitted — after which `agent-start.mjs` refuses at its
+  own `git checkout main`, reporting only "pull failed — resolve by hand". **Three turns in one batch:**
+  T-024's step-2 re-run (committed, unpushed, no approval posted), T-022's step 1 (abstract and body
+  written, uncommitted, and the `review/step-1` label absent — which is what `resolveReviewStep` reads, so
+  the next session would have re-run step 1), and T-022's step 2. Each needed a hand-directed session that
+  knew what the previous one had been doing. The operational mitigation is to run the finish detached
+  (`nohup`), which worked every time it was used; that is a workaround, not the fix. Decomposed as
+  **T-028**. Found by `brahim` orchestrating the 2026-08-21/23 batch.
 
 - **2026-08-22 — `ModelElement.hasParts` cannot be read without `state`, and nothing enforces that.**
   A `stale` element (D66 §3c/T-005 — recipe present, solid not built) carries `hasParts: false` for the
