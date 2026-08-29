@@ -3068,3 +3068,42 @@ same as `current_state.md` §7.
 - **FULL:** `handoff/brahim/2026-08-15-STEWARD-scaffolding-ci-labels-backlog.md`
 - **REVIEW:** Reviewed and merged (`STEWARD:` PR, this branch) — the account/PR bookkeeping is not
   preserved here; see the handoff body and `docs/decisions.md` D87 for what it settled.
+
+### T-022 — review (step 1, mechanical): the revert reproduces, and 949 of 951 tests pass on the defective glue — 2026-08-21 — seat: hmdnah
+
+- **CHANGED:** nothing on the branch — F1–F3 are documentation the builder owns.
+  `handoff/hmdnah/2026-08-21-T-022-review-step1.md` NEW; this abstract and the `REVIEW:` line below. PR #39 **not approved and not merged** — step 1 never does (`T-014`).
+  ⚠ **T-024's step-1 review abstract rotated to `docs/history.md` §E as a move, body left in `handoff/`**
+  — §7 stood at 32740 of 32768 chars with 6 of 10 abstracts once the entry below lost its stale
+  `AWAITING REVIEW` marker, 28 chars of headroom; 27411 after the rotation.
+- **VERIFIED:** **Item 1, re-executed, not inherited.** The fix reverted by applying `postlink.mjs`'s exact inverse to
+  the committed glue ⇒ **RED 2 failed | 3 passed (5)**; restored ⇒ **GREEN 5 passed**.
+  ⚠ The reverted file hashes to **`044baac6…`**, byte-identical to the pre-`postlink` linker output in
+  `toolchain.json`, so the committed glue differs from that output by **exactly the two documented rewrites
+  and nothing else** — what the new `postlink` field asserts in prose. **Item 4:** the `.decode(` sweep
+  boundary checked independently — `crypto.getRandomValues` is the only other TypedArray→Web-API handoff
+  whose sole caller passes a standalone buffer, never a heap view; the other nine
+  `subarray` sites are MEMFS-internal ⇒ **no third exposed site**. The pinned digest matches this box's
+  image; re-seed gate `OK`, goldens diff **one line** (`seededAt`); `docs:check` 163, `freeze-boundary` 19. **Item 7:** `pnpm state` ⇒ `RISK: additive`, matching the diff; CI **green on
+  the exact tip** (`head_sha` `465642a0…` = the PR head), and the labeller **did execute** (`PR shape` 12 s) ⇒ **no `needs-operator/*`** is a verdict, not a silence.
+- **FOUND:** three findings, none blocking, none code. **F1 — ⚠⚠ the suite's 951 green is not evidence for
+  this fix.** §7 says re-seeding cannot detect the change, then offers the suite as what does. Measured
+  with the pre-patch glue in the tree: **2 failed | 949 passed (951)** — the only two detectors in the repo
+  are this PR's own text assertions, and **all 40 goldens pass on the defective glue**, as does every test
+  driving the real WASM through it. The cause, §9's own measurement reproduced here: Node's
+  `WebAssembly.Memory.buffer.resizable` is `false` and it decodes a resizable-backed view happily, so the
+  suite **exercises** the glue but **cannot discriminate** patched from unpatched. §9 is accurate; §7's
+  sentence should match it. ⇒ **T-023 is load-bearing, not a formality.** **F2 — the §4 perf table has no
+  method and does not reproduce**: four warmed runs spread the 256 KB delta over −40…+116 % against a
+  claimed +13 %, and its 64 B row has `slice` 44 % *faster* than `subarray`, impossible for `subarray` plus
+  a copy. **F3 — §3(a)'s paste is not verbatim**, though its compiler and commit check out.
+- **OWES:** **step 2** — items 2, 3, 6, and item 7 re-confirmed before merging; F1 is item 6's whole
+  question. **`zayd`** —
+  F1's §7 wording. **`khalihlna`/`amer` (T-023)** — `unverified here: the kernel boots on Chrome 151 with
+  this artifact`, which F1 sharpens: there is **no** headless evidence for the boot. **A box seat** — `unverified here: the 75 s relink reproduces wasm f34fef31… and glue
+  044baac6… on the pinned digest`, not re-run here because `--memory=2g` against 1024 MB free RAM and
+  exhausted swap would breach `§4-11`; the pin's *inputs* were verified instead.
+- **RISK:** additive
+- **FULL:** `handoff/hmdnah/2026-08-21-T-022-review-step1.md`
+- **REVIEW:** step 1 of 2 (D88) — **NOT approved, NOT merged**, row stays `review`. Report on PR #39
+  (`issuecomment-5368729406`, presence verified by read-back).

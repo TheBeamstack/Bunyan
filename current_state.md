@@ -630,6 +630,38 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-001 — the perpendicular-foot snap candidate — 2026-08-28 — seat: amer
+
+- **CHANGED:** nothing new this turn beyond the merge itself — the feature (`apps/web/src/tool/align.ts`'s
+  `referenceEdges`/`perpendicularFeet`/`perpendicularCandidates`, wired into `Viewport.ts`/
+  `ViewportCanvas.tsx`) was built and browser-verified in the 2026-08-17 session (`415b1c7`), which could
+  not close because 5 `tests/protocol/*.test.ts` files failed to collect on this Windows pc. **Merged
+  `origin/main` into this branch** (`5e1afbf`) to pick up T-020/T-021's fix for exactly that (PR #42): one
+  conflict, in `current_state.md §0b`'s claim baton — resolved keeping HEAD's own live T-001 claim over
+  `main`'s stale, already-closed T-021 baton. `handoff/amer/2026-08-28-T-001-perpendicular-foot-snap-candidate.md`
+  NEW; this abstract.
+- **VERIFIED:** `pnpm verify` **exit 0** on this pc, post-merge — typecheck/lint/format:check green, full
+  **99 files / 974 tests** green (343.91s), `reseed:check` skipped (not a PR), `docs:check` (8 files/166
+  tests) green (166.85s). `tests/freeze-boundary.test.ts` stayed green inside the run (19/19). Browser
+  verification unchanged from the 2026-08-17 session (real OCCT kernel, real pointer events, Playwright
+  against Chromium 148) — not re-run this turn, no browser-affecting code changed.
+- **FOUND:** T-021's own `pnpm verify` fix (`seats.pnpmSpawn`, honoring `BUNYAN_PNPM_CMD`) still ENOENTs
+  from `agent-finish.mjs` on this pc unless `BUNYAN_PNPM_CMD` is set for the session — this machine's only
+  bare `pnpm` on `PATH` is a POSIX shebang script, unusable by `execFileSync` with no shell. Set it to
+  T-021's own documented value (`["C:/Program Files/nodejs/node.exe", ".../corepack/dist/pnpm.js"]`); no
+  code defect, a session-environment gap. Also saw `tests/protocol/agent-start.test.ts` and
+  `seats.test.ts` each drop one test to a 30000ms timeout on a standalone `docs:check` run — both passed
+  clean (166/166) on an immediate rerun and inside the full `verify` run: real subprocess latency under
+  full-suite contention, exactly as `vitest.config.ts`'s own header already documents, not a regression.
+- **OWES:** `brahim`/`zayd` — `agent-finish.mjs` needs `BUNYAN_PNPM_CMD` set by hand on this pc; worth a
+  line in `Amer_Prompt.md` or `docs/RUNBOOK.md` so a fresh session doesn't rediscover it. Not fixed here
+  per invariant 10, only recorded. Nothing owed to `khalihlna` beyond the standing PR review — every claim
+  is executed and measured on this exact machine, no `unverified here:` marker.
+- **RISK:** additive — `SnapKind` already declared `'perpendicular'`, so no frozen byte moved;
+  `tests/freeze-boundary.test.ts` green (19/19).
+- **FULL:** `handoff/amer/2026-08-28-T-001-perpendicular-foot-snap-candidate.md`
+- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.**
+
 ### T-021 — `pnpm verify` reaches green on the pc, confirmed there — 2026-08-24 — seat: amer
 
 - **CHANGED:** `tests/protocol/agent-start.test.ts` — the "an UNRESOLVABLE identity" test's `gh`-less
@@ -923,45 +955,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-21-T-022-review-step2.md`
 - **REVIEW:** step 2 of 2 (D88) — **APPROVED and MERGED** by `hmdnah` on `narutousomaki741`. Report on PR #39.
 
-### T-022 — review (step 1, mechanical): the revert reproduces, and 949 of 951 tests pass on the defective glue — 2026-08-21 — seat: hmdnah
-
-- **CHANGED:** nothing on the branch — F1–F3 are documentation the builder owns.
-  `handoff/hmdnah/2026-08-21-T-022-review-step1.md` NEW; this abstract and the `REVIEW:` line below. PR #39 **not approved and not merged** — step 1 never does (`T-014`).
-  ⚠ **T-024's step-1 review abstract rotated to `docs/history.md` §E as a move, body left in `handoff/`**
-  — §7 stood at 32740 of 32768 chars with 6 of 10 abstracts once the entry below lost its stale
-  `AWAITING REVIEW` marker, 28 chars of headroom; 27411 after the rotation.
-- **VERIFIED:** **Item 1, re-executed, not inherited.** The fix reverted by applying `postlink.mjs`'s exact inverse to
-  the committed glue ⇒ **RED 2 failed | 3 passed (5)**; restored ⇒ **GREEN 5 passed**.
-  ⚠ The reverted file hashes to **`044baac6…`**, byte-identical to the pre-`postlink` linker output in
-  `toolchain.json`, so the committed glue differs from that output by **exactly the two documented rewrites
-  and nothing else** — what the new `postlink` field asserts in prose. **Item 4:** the `.decode(` sweep
-  boundary checked independently — `crypto.getRandomValues` is the only other TypedArray→Web-API handoff
-  whose sole caller passes a standalone buffer, never a heap view; the other nine
-  `subarray` sites are MEMFS-internal ⇒ **no third exposed site**. The pinned digest matches this box's
-  image; re-seed gate `OK`, goldens diff **one line** (`seededAt`); `docs:check` 163, `freeze-boundary` 19. **Item 7:** `pnpm state` ⇒ `RISK: additive`, matching the diff; CI **green on
-  the exact tip** (`head_sha` `465642a0…` = the PR head), and the labeller **did execute** (`PR shape` 12 s) ⇒ **no `needs-operator/*`** is a verdict, not a silence.
-- **FOUND:** three findings, none blocking, none code. **F1 — ⚠⚠ the suite's 951 green is not evidence for
-  this fix.** §7 says re-seeding cannot detect the change, then offers the suite as what does. Measured
-  with the pre-patch glue in the tree: **2 failed | 949 passed (951)** — the only two detectors in the repo
-  are this PR's own text assertions, and **all 40 goldens pass on the defective glue**, as does every test
-  driving the real WASM through it. The cause, §9's own measurement reproduced here: Node's
-  `WebAssembly.Memory.buffer.resizable` is `false` and it decodes a resizable-backed view happily, so the
-  suite **exercises** the glue but **cannot discriminate** patched from unpatched. §9 is accurate; §7's
-  sentence should match it. ⇒ **T-023 is load-bearing, not a formality.** **F2 — the §4 perf table has no
-  method and does not reproduce**: four warmed runs spread the 256 KB delta over −40…+116 % against a
-  claimed +13 %, and its 64 B row has `slice` 44 % *faster* than `subarray`, impossible for `subarray` plus
-  a copy. **F3 — §3(a)'s paste is not verbatim**, though its compiler and commit check out.
-- **OWES:** **step 2** — items 2, 3, 6, and item 7 re-confirmed before merging; F1 is item 6's whole
-  question. **`zayd`** —
-  F1's §7 wording. **`khalihlna`/`amer` (T-023)** — `unverified here: the kernel boots on Chrome 151 with
-  this artifact`, which F1 sharpens: there is **no** headless evidence for the boot. **A box seat** — `unverified here: the 75 s relink reproduces wasm f34fef31… and glue
-  044baac6… on the pinned digest`, not re-run here because `--memory=2g` against 1024 MB free RAM and
-  exhausted swap would breach `§4-11`; the pin's *inputs* were verified instead.
-- **RISK:** additive
-- **FULL:** `handoff/hmdnah/2026-08-21-T-022-review-step1.md`
-- **REVIEW:** step 1 of 2 (D88) — **NOT approved, NOT merged**, row stays `review`. Report on PR #39
-  (`issuecomment-5368729406`, presence verified by read-back).
-
 ## §8 — Generated
 
 
@@ -969,17 +962,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-021 (amer, 2026-08-24)** |
-| branch · tip · tree | `task/T-021-pnpm-verify-reaches-green-on-the-pc-conf` · `0cd26e4` · clean |
+| **newest entry** | **T-001 (amer, 2026-08-28)** |
+| branch · tip · tree | `task/T-001-the-perpendicular-foot-snap-candidate` · `5e1afbf` · dirty |
 | open PRs | none — main is the tip of the work |
-| suite | **962 green** · 99 files · 294 suites |
+| suite | ⚠⚠ 972/974 passing — **2 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 269 insertions(+), 18 deletions(-) (8 files) |
-| docs budget | current_state 83.8/96.0 KB · §7 31.5/32.0 KB · abstracts 7/10 · bodies 86 |
+| diff vs origin/main | 6 files changed, 431 insertions(+), 51 deletions(-) (6 files) |
+| docs budget | current_state 82.8/96.0 KB · §7 30.5/32.0 KB · abstracts 7/10 · bodies 87 |
 
-_Generated 2026-08-24 by `pnpm state`._
+_Generated 2026-08-29 by `pnpm state`._
 
 <!-- END GENERATED -->
