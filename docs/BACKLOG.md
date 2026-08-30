@@ -105,7 +105,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 
 | ID    | Status | Task                                                                    | Area     | Machine | Risk   | Depends on |
 | ----- | ------ | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
-| T-001 | review | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
+| T-001 | done   | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
 | T-002 | ready  | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
 | T-003 | ready  | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
 | T-004 | done   | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |

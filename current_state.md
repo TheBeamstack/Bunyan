@@ -113,9 +113,9 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `amer` |
+| seat | `khalihlna` |
 | builder | `amer` |
-| role | builder |
+| role | reviewer |
 | machine | pc |
 | task | `T-001` |
 | branch | `task/T-001-the-perpendicular-foot-snap-candidate` |
@@ -944,14 +944,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-001 (khalihlna, 2026-08-30)** |
-| branch · tip · tree | `task/T-001-the-perpendicular-foot-snap-candidate` · `94adb00` · dirty |
+| branch · tip · tree | `task/T-001-the-perpendicular-foot-snap-candidate` · `305263c` · clean |
 | open PRs | #43 task/T-001-the-perpendicular-foot-snap-candidate |
 | suite | **974 green** · 99 files · 297 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 603 insertions(+), 104 deletions(-) (8 files) |
+| diff vs origin/main | 9 files changed, 682 insertions(+), 104 deletions(-) (9 files) |
 | docs budget | current_state 80.7/96.0 KB · §7 28.4/32.0 KB · abstracts 7/10 · bodies 88 |
 
 _Generated 2026-08-30 by `pnpm state`._
