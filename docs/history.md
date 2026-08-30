@@ -3107,3 +3107,52 @@ same as `current_state.md` §7.
 - **FULL:** `handoff/hmdnah/2026-08-21-T-022-review-step1.md`
 - **REVIEW:** step 1 of 2 (D88) — **NOT approved, NOT merged**, row stays `review`. Report on PR #39
   (`issuecomment-5368729406`, presence verified by read-back).
+
+### T-022 — review (step 2, adversarial): the pin re-linked here byte-for-byte, and the branch's own new gate entry had no test — 2026-08-21 — seat: hmdnah
+
+- **CHANGED:** one commit on the branch, `c4c0e9f` — `tests/reseed-gate.test.ts` gains
+  `expect(geometry('tools/kernel-build/postlink.mjs')).toBe(true)`; `handoff/hmdnah/2026-08-21-T-022-review-step2.md` NEW; this abstract; `zayd`'s `REVIEW:` line below.
+  ⚠ **T-024's step-2 adversarial abstract rotated to `docs/history.md` §E as a move, body left in
+  `handoff/`** — §7 stood at 32755 of 32768 bytes once this abstract landed, 13 bytes of headroom; 25841
+  after. **PR #39 APPROVED and MERGED** on `narutousomaki741` — `risk: high` is not owner-gated
+  (`AGENTS.md §5`), so step 2 merges.
+- **VERIFIED:** ⚠⚠ **THE PIN WAS RE-EXECUTED HERE, which step 1 could not do.** Step 1 deferred the relink
+  on `--memory=2g` against 1024 MB free; the box is quiet (load 0.46) and the run was **made safe instead of
+  skipped** — a hard **1 GB** cgroup cap, container swap off, so the cgroup kills before the host OOM killer
+  can reach §6a's live sites. **It fitted: 78 s, exit 0**, and `cmp` says the freshly linked
+  `bunyan-kernel.wasm` (`f34fef31…`) and glue (`4e5508df…`) are **byte-identical to the committed pair**.
+  Applying `postlink.mjs`'s inverse to the *freshly linked* glue gives **`044baac6…`** ⇒ **the linker
+  really does emit it**, which step 1 explicitly could not conclude. Host: available 1482→1460 MB, nothing
+  paused. ⚠ **The recipe's 2 GB cap is measured too high — the link fits in 1 GB**, the difference between a
+  run a box seat can take and one it defers. **Item 6:** the three text assertions attacked, not read —
+  a shared view written **without the token `subarray`** (`decode(new Uint8Array(heapOrArray.buffer,…))`)
+  is still caught, because assertion 3 demands an affirmative `.slice(` and the emitted trailing text has
+  none; `postlink.mjs` re-applied printed `found 0` and **exited 1**. `slice` read against both call sites:
+  the four TTY callers pass a plain `Array`, and emscripten's own `heapOrArray.buffer` guard makes the copy
+  path unreachable from there. **Item 3:** the invalidator is clean **and checked** (D77) — `toolchainId()`
+  is compiled into an unchanged `.wasm`, and cached B-Rep text does cross the patched decode, but `slice`
+  copies the bytes `subarray` viewed, so no cached geometry can shift; bumping `OCCT_BUILD_ID` would
+  wrongly invalidate every `.bnn` in the field. Re-seed gate `OK`, goldens diff **one line**.
+- **FOUND:** **F4 — the branch's own new rule had no enforcement, and it is FIXED here.** `postlink.mjs`
+  joined `GEOMETRY_PATHS` correctly, but `tests/reseed-gate.test.ts` — the file that exists to pin that
+  list, naming `kernel.cpp`/`configure.sh`/`link.sh`/`toolchain.json` true and `verify.mjs`/`probe-history.mjs`
+  false — was not touched. A **fifth recipe member with no assertion**, sitting on the exact `.mjs`
+  boundary Entry 74 bought. Revert-verified: delete the `GEOMETRY_PATHS` line and the new assertion is the
+  **only** failure (`1 failed | 13 passed`) — nothing was watching it. `§1c`: *a clean rule with no
+  enforcement is a dirty rule that has not happened yet.* **Item 2 otherwise clean, swept not accepted:**
+  `crypto.getRandomValues` traced to `new Uint8Array(1024)`, the 9 `subarray` sites all MEMFS-internal,
+  **one** glue tracked and the test reads the file `kernel.ts` imports, and every artifact-claiming site
+  (`README`/`NOTICE`/`toolchain.json`/`link.sh`) consistent with the committed hashes.
+  ⚠ **F1 does NOT leave a criterion unexecuted:** the `done-when:` list asserts against **the artifact** and
+  its own sixth item disclaims a browser boot, so all seven are discharged on box. F1 changes what **T-023**
+  is worth, not what T-022 owed.
+- **OWES:** **`khalihlna`/`amer` (T-023)** — `unverified here: the kernel boots on Chrome 151 with this
+  artifact`, correctly recorded in `zayd`'s §9/OWES and the only thing that will ever observe the bug gone.
+  **`brahim`** — flip T-023 to `ready`; a `## Discovered` row that the shipped artifact now has a patch
+  step, and that `§6`'s relink cap is measured at 1 GB rather than 2 GB. ⚠ **F1's documentation ask is
+  discharged by the record and must not be discharged any other way** — invariant 10 forbids editing
+  `zayd`'s handoff §7, and step 1's abstract is the correction.
+- **RISK:** additive — `freeze-boundary` 19, `SCENE_SCHEMA_VERSION` still 2; no `needs-operator/*` and the
+  labeller demonstrably ran.
+- **FULL:** `handoff/hmdnah/2026-08-21-T-022-review-step2.md`
+- **REVIEW:** step 2 of 2 (D88) — **APPROVED and MERGED** by `hmdnah` on `narutousomaki741`. Report on PR #39.

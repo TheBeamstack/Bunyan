@@ -630,6 +630,32 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-001 — review: the browser claim was inherited, not re-executed, until now — 2026-08-30 — seat: khalihlna
+
+- **CHANGED:** nothing on the branch — this review's finding was a gap in verification, not in code.
+  `handoff/khalihlna/2026-08-30-T-001-review.md` NEW; this abstract; the build entry's `REVIEW:` line
+  below, and T-021's (a missed record from this seat's prior turn).
+- **VERIFIED:** Item 1, re-executed for real. No browser-driving tool was preinstalled in this session;
+  installed `playwright-core` into a scratch dir, launched the dev server (Windows reserves TCP
+  5121–5220, `netsh interface ipv4 show excludedportrange`, so port 5999), computed the exact camera
+  projection from `Viewport.ts`'s hardcoded params (no `three` dependency needed), and replayed the
+  perpendicular-foot gesture against the real demo scene. RED (feature reverted via `git checkout main
+  --`): committed wall `end.y≈0` — the coincident `'extension'` guide, the only mechanism left. GREEN
+  (restored, run twice): `end.y=52.5` both times, byte-identical — a real, edge-derived value no guide
+  mechanism can produce, decisive because `SNAP_PRIORITY` ranks `perpendicular` strictly above
+  `extension`. Full method in the handoff body.
+- **FOUND:** `pnpm verify`'s first run hit a confirmed flake (`agent-start.test.ts`'s clone-resume case,
+  30000ms timeout under full-suite contention, 14.3s clean alone) — the documented class
+  `vitest.config.ts` already names for this file, not a regression. Second run: 974/974 clean.
+- **OWES:** `brahim` — T-021's own review (PR #42) never got a `khalihlna` §7 abstract/handoff body;
+  missed at the time, not backfilled with a fabricated date (invariant 10), its stale `REVIEW: pending`
+  line corrected below instead.
+- **RISK:** additive — confirmed via `pnpm state`, `tests/freeze-boundary.test.ts` green (19/19), no
+  `needs-operator/*` label.
+- **FULL:** `handoff/khalihlna/2026-08-30-T-001-review.md`
+- **REVIEW:** step of one (D88 does not apply — `risk: normal`) — **APPROVED and MERGED** by `khalihlna`
+  on `Davidian-Abdo`, PR #43.
+
 ### T-001 — the perpendicular-foot snap candidate — 2026-08-28 — seat: amer
 
 - **CHANGED:** nothing new this turn beyond the merge itself — the feature (`apps/web/src/tool/align.ts`'s
@@ -660,7 +686,9 @@ is maintenance and does NOT get an entry of its own.**
 - **RISK:** additive — `SnapKind` already declared `'perpendicular'`, so no frozen byte moved;
   `tests/freeze-boundary.test.ts` green (19/19).
 - **FULL:** `handoff/amer/2026-08-28-T-001-perpendicular-foot-snap-candidate.md`
-- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.**
+- **REVIEW:** **APPROVED and MERGED** by `khalihlna` on `Davidian-Abdo` (PR #43, 2026-08-30) —
+  `RISK: additive`, green CI, no `needs-operator/*`. Item 1 re-executed with a Playwright driver built
+  for this turn — see the review's own abstract above.
 
 ### T-021 — `pnpm verify` reaches green on the pc, confirmed there — 2026-08-24 — seat: amer
 
@@ -699,7 +727,9 @@ is maintenance and does NOT get an entry of its own.**
 - **RISK:** additive — none of the changed files is `WATCHED`, `tests/freeze-boundary.test.ts` stayed
   green (19/19) inside the full verify run, no `needs-operator/*`.
 - **FULL:** `handoff/amer/2026-08-24-T-021-pnpm-verify-green-on-pc.md`
-- **REVIEW:** pending — `khalihlna` (pc task, `AGENTS.md §1.2`).
+- **REVIEW:** **APPROVED and MERGED** by `khalihlna` on `Davidian-Abdo` (PR #42, 2026-08-28) —
+  `RISK: additive`, green CI. ⚠ This turn never wrote its own §7 abstract/handoff body — corrected in
+  T-001's review entry's `OWES:` field (2026-08-30) rather than backfilled here with a fabricated date.
 
 ### STEWARD-decompose-harness-defects — review: the rows are ready, and the reason given for the one split is not measured — 2026-08-23 — seat: hmdnah
 
@@ -906,55 +936,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/zayd/2026-08-22-T-005-force-on-measure.md`
 - **REVIEW:** **APPROVED and MERGED** by `hmdnah` on `narutousomaki741` (PR #40, 2026-08-22) — `RISK: additive`, `PR shape` green with no `needs-operator/*` label. Two of the five reverts re-executed independently, both reproducing the quoted red. ⚠ One completeness gap filed rather than blocked: `open_rulings.md` **Q23**.
 
-### T-022 — review (step 2, adversarial): the pin re-linked here byte-for-byte, and the branch's own new gate entry had no test — 2026-08-21 — seat: hmdnah
-
-- **CHANGED:** one commit on the branch, `c4c0e9f` — `tests/reseed-gate.test.ts` gains
-  `expect(geometry('tools/kernel-build/postlink.mjs')).toBe(true)`; `handoff/hmdnah/2026-08-21-T-022-review-step2.md` NEW; this abstract; `zayd`'s `REVIEW:` line below.
-  ⚠ **T-024's step-2 adversarial abstract rotated to `docs/history.md` §E as a move, body left in
-  `handoff/`** — §7 stood at 32755 of 32768 bytes once this abstract landed, 13 bytes of headroom; 25841
-  after. **PR #39 APPROVED and MERGED** on `narutousomaki741` — `risk: high` is not owner-gated
-  (`AGENTS.md §5`), so step 2 merges.
-- **VERIFIED:** ⚠⚠ **THE PIN WAS RE-EXECUTED HERE, which step 1 could not do.** Step 1 deferred the relink
-  on `--memory=2g` against 1024 MB free; the box is quiet (load 0.46) and the run was **made safe instead of
-  skipped** — a hard **1 GB** cgroup cap, container swap off, so the cgroup kills before the host OOM killer
-  can reach §6a's live sites. **It fitted: 78 s, exit 0**, and `cmp` says the freshly linked
-  `bunyan-kernel.wasm` (`f34fef31…`) and glue (`4e5508df…`) are **byte-identical to the committed pair**.
-  Applying `postlink.mjs`'s inverse to the *freshly linked* glue gives **`044baac6…`** ⇒ **the linker
-  really does emit it**, which step 1 explicitly could not conclude. Host: available 1482→1460 MB, nothing
-  paused. ⚠ **The recipe's 2 GB cap is measured too high — the link fits in 1 GB**, the difference between a
-  run a box seat can take and one it defers. **Item 6:** the three text assertions attacked, not read —
-  a shared view written **without the token `subarray`** (`decode(new Uint8Array(heapOrArray.buffer,…))`)
-  is still caught, because assertion 3 demands an affirmative `.slice(` and the emitted trailing text has
-  none; `postlink.mjs` re-applied printed `found 0` and **exited 1**. `slice` read against both call sites:
-  the four TTY callers pass a plain `Array`, and emscripten's own `heapOrArray.buffer` guard makes the copy
-  path unreachable from there. **Item 3:** the invalidator is clean **and checked** (D77) — `toolchainId()`
-  is compiled into an unchanged `.wasm`, and cached B-Rep text does cross the patched decode, but `slice`
-  copies the bytes `subarray` viewed, so no cached geometry can shift; bumping `OCCT_BUILD_ID` would
-  wrongly invalidate every `.bnn` in the field. Re-seed gate `OK`, goldens diff **one line**.
-- **FOUND:** **F4 — the branch's own new rule had no enforcement, and it is FIXED here.** `postlink.mjs`
-  joined `GEOMETRY_PATHS` correctly, but `tests/reseed-gate.test.ts` — the file that exists to pin that
-  list, naming `kernel.cpp`/`configure.sh`/`link.sh`/`toolchain.json` true and `verify.mjs`/`probe-history.mjs`
-  false — was not touched. A **fifth recipe member with no assertion**, sitting on the exact `.mjs`
-  boundary Entry 74 bought. Revert-verified: delete the `GEOMETRY_PATHS` line and the new assertion is the
-  **only** failure (`1 failed | 13 passed`) — nothing was watching it. `§1c`: *a clean rule with no
-  enforcement is a dirty rule that has not happened yet.* **Item 2 otherwise clean, swept not accepted:**
-  `crypto.getRandomValues` traced to `new Uint8Array(1024)`, the 9 `subarray` sites all MEMFS-internal,
-  **one** glue tracked and the test reads the file `kernel.ts` imports, and every artifact-claiming site
-  (`README`/`NOTICE`/`toolchain.json`/`link.sh`) consistent with the committed hashes.
-  ⚠ **F1 does NOT leave a criterion unexecuted:** the `done-when:` list asserts against **the artifact** and
-  its own sixth item disclaims a browser boot, so all seven are discharged on box. F1 changes what **T-023**
-  is worth, not what T-022 owed.
-- **OWES:** **`khalihlna`/`amer` (T-023)** — `unverified here: the kernel boots on Chrome 151 with this
-  artifact`, correctly recorded in `zayd`'s §9/OWES and the only thing that will ever observe the bug gone.
-  **`brahim`** — flip T-023 to `ready`; a `## Discovered` row that the shipped artifact now has a patch
-  step, and that `§6`'s relink cap is measured at 1 GB rather than 2 GB. ⚠ **F1's documentation ask is
-  discharged by the record and must not be discharged any other way** — invariant 10 forbids editing
-  `zayd`'s handoff §7, and step 1's abstract is the correction.
-- **RISK:** additive — `freeze-boundary` 19, `SCENE_SCHEMA_VERSION` still 2; no `needs-operator/*` and the
-  labeller demonstrably ran.
-- **FULL:** `handoff/hmdnah/2026-08-21-T-022-review-step2.md`
-- **REVIEW:** step 2 of 2 (D88) — **APPROVED and MERGED** by `hmdnah` on `narutousomaki741`. Report on PR #39.
-
 ## §8 — Generated
 
 
@@ -962,17 +943,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-001 (amer, 2026-08-28)** |
-| branch · tip · tree | `task/T-001-the-perpendicular-foot-snap-candidate` · `29e5aca` · clean |
-| open PRs | none — main is the tip of the work |
+| **newest entry** | **T-001 (khalihlna, 2026-08-30)** |
+| branch · tip · tree | `task/T-001-the-perpendicular-foot-snap-candidate` · `94adb00` · dirty |
+| open PRs | #43 task/T-001-the-perpendicular-foot-snap-candidate |
 | suite | **974 green** · 99 files · 297 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 7 files changed, 522 insertions(+), 53 deletions(-) (7 files) |
-| docs budget | current_state 82.8/96.0 KB · §7 30.5/32.0 KB · abstracts 7/10 · bodies 87 |
+| diff vs origin/main | 8 files changed, 603 insertions(+), 104 deletions(-) (8 files) |
+| docs budget | current_state 80.7/96.0 KB · §7 28.4/32.0 KB · abstracts 7/10 · bodies 88 |
 
-_Generated 2026-08-29 by `pnpm state`._
+_Generated 2026-08-30 by `pnpm state`._
 
 <!-- END GENERATED -->
