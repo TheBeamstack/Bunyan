@@ -14,7 +14,7 @@ import { Viewport, type PickResult } from './Viewport';
 import type { RenderPart } from './Viewport';
 import type { RenderGateway } from './RenderGateway';
 import { faceCandidate, type SnapHit, type SnapKind } from '../tool/snap';
-import { guideCandidates } from '../tool/align';
+import { guideCandidates, perpendicularCandidates } from '../tool/align';
 import { encodeSubShapeRef, type Vec3 } from '@bunyan/protocol';
 
 /** A pointer that moves more than this (CSS px) between down and up is an orbit drag, not a pick. */
@@ -159,6 +159,11 @@ export function ViewportCanvas({
             anchor === null ? [] : [anchor],
           )
         : [];
+      // ⚠ Same ordering reason as the guides (Entry 80): a perpendicular foot is a snap CANDIDATE, so it
+      // must exist before `chooseSnap` runs. It is measured from the anchor, so it fires only mid-gesture.
+      const feet = authoringRef.current
+        ? viewport.perpendicularAt(cursor, SNAP_TOLERANCE_PX, snapToRef.current, anchor)
+        : [];
 
       const snap = viewport.snapAt(
         cursor,
@@ -175,12 +180,16 @@ export function ViewportCanvas({
                 }),
               ]),
           ...guideCandidates(guides),
+          ...perpendicularCandidates(feet),
         ],
         snapToRef.current,
       );
 
       viewport.setSnapMarker(snap === null ? null : snap.point);
-      viewport.setGuideLines(guides.map((guide) => guide.line));
+      viewport.setGuideLines([
+        ...guides.map((guide) => guide.line),
+        ...feet.map((foot) => foot.line),
+      ]);
 
       // The rubber band: from the collected anchor to wherever the cursor resolves right now. Snap wins
       // over the free ground point, so the preview shows the point that would actually be committed.

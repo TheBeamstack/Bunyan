@@ -1,6 +1,7 @@
 /**
- * ALIGNMENT GUIDES — P4.5 design §4.3, *"when the cursor is aligned with a live reference point, draw a
- * dashed guide line and snap to it."*
+ * DERIVED SNAP CANDIDATES — P4.5 design §4.3's app-produced kinds: the axis GUIDE (*"when the cursor is
+ * aligned with a live reference point, draw a dashed guide line and snap to it"*) and the PERPENDICULAR
+ * foot (below, from the gesture anchor onto a reference edge).
  *
  * ⚠⚠ WHAT THIS FILE IS, IN ONE SENTENCE: **a guide is a RENDERING of a Tier-1 candidate, and its point
  * is a Tier-1 candidate of its own** — nothing here touches the model, mints an identity, or calls the
@@ -166,4 +167,140 @@ function withAxis(point: Vec3, axis: 0 | 1 | 2, value: number): Vec3 {
   const out: [number, number, number] = [point[0], point[1], point[2]];
   out[axis] = value;
   return out;
+}
+
+/* ================================================================================================
+ * THE PERPENDICULAR FOOT — P4.5 design §4.3's other derived kind. Entry 84 shipped the axis guide and
+ * named this the next one, "the same shape (a derived line, a foot on it), in the same module, with the
+ * same identity rule." It is that shape: a fixed point, computed from the gesture anchor and a reference
+ * EDGE rather than a reference POINT and a world axis.
+ * ================================================================================================ */
+
+/**
+ * ⚠ THE KIND A FOOT CANDIDATE CARRIES. `SnapKind` already declares `'perpendicular'` and `SNAP_PRIORITY`
+ * already ranks it (Q3) — this file is the first producer, not a new slot.
+ */
+export const PERPENDICULAR_SNAP_KIND: SnapKind = 'perpendicular';
+
+export interface PerpendicularFoot {
+  /** The reference edge the foot is perpendicular TO — its two ends, in world mm. */
+  readonly edge: readonly [Vec3, Vec3];
+  /** The gesture anchor the foot is measured FROM. Fixed for the whole gesture, unlike a guide's cursor-
+   *  dependent foot: a perpendicular is a relationship between the anchor and the edge, not the cursor. */
+  readonly anchor: Vec3;
+  /** The foot itself: the point on the edge's line nearest the anchor — what a click would commit. */
+  readonly point: Vec3;
+  /** What to draw: the right-angle indicator, anchor to foot. Two points; the renderer dashes it. */
+  readonly line: readonly [Vec3, Vec3];
+  /** How far the foot projects from the cursor, in CSS pixels — the same instrument `chooseSnap` uses. */
+  readonly pixelDistance: number;
+}
+
+export interface PerpendicularOptions {
+  /** The point the perpendicular is measured FROM — the in-progress gesture's own anchor. */
+  readonly anchor: Vec3;
+  /** Where the cursor is on screen, in canvas CSS pixels — a foot only fires within `tolerancePx` of it. */
+  readonly cursorPx: readonly [number, number];
+  /** Candidate reference edges. See `referenceEdges` for how one is built without geometric matching. */
+  readonly edges: readonly (readonly [Vec3, Vec3])[];
+  readonly project: Project;
+  readonly tolerancePx: number;
+  /**
+   * ⚠ Below this the anchor is already ON the edge's line and the foot IS the anchor — a degenerate,
+   * direction-less "perpendicular" exactly as `alignmentGuides`' `minSpanMm` refuses for a guide.
+   */
+  readonly minSpanMm?: number;
+}
+
+/**
+ * The perpendicular foot from `anchor` onto each reference edge's line, within pixel tolerance of the
+ * cursor — the CAD-familiar "perpendicular" osnap: while drawing FROM a point, land the next one square
+ * onto an existing edge.
+ *
+ * ⚠ THE FOOT DOES NOT DEPEND ON THE CURSOR'S POSITION ALONG THE LINE, only on whether the cursor is near
+ * enough to it on screen to mean it — unlike an axis guide, whose foot slides with the cursor. `anchor`
+ * and `edge` alone fix the point; nearer geometry (`vector algebra: project anchor onto the line through
+ * edge[0]/edge[1]`) is the whole computation, and it is done once per edge, not once per pointer move
+ * per edge times a cursor coordinate.
+ *
+ * ⚠ THE FOOT IS NOT CLAMPED TO THE SEGMENT. A real perpendicular can land past either end of the edge
+ * that is visible — this is the same "deferred perpendicular" every CAD tool offers, and clamping would
+ * silently refuse a valid, useful foot just outside the drawn extent for no geometric reason.
+ */
+export function perpendicularFeet(options: PerpendicularOptions): PerpendicularFoot[] {
+  const { anchor, cursorPx, edges, project, tolerancePx } = options;
+  const minSpanMm = options.minSpanMm ?? 1;
+  const out: PerpendicularFoot[] = [];
+
+  for (const edge of edges) {
+    const [a, b] = edge;
+    const dir: Vec3 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const lenSq = dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2];
+    if (lenSq < 1) continue; // a zero-length edge has no direction to be perpendicular to
+
+    const toAnchor: Vec3 = [anchor[0] - a[0], anchor[1] - a[1], anchor[2] - a[2]];
+    const t = (toAnchor[0] * dir[0] + toAnchor[1] * dir[1] + toAnchor[2] * dir[2]) / lenSq;
+    const point: Vec3 = [a[0] + dir[0] * t, a[1] + dir[1] * t, a[2] + dir[2] * t];
+
+    if (distance(point, anchor) < minSpanMm) continue; // the anchor is already ON this edge's line
+
+    const screen = project(point);
+    if (screen === null) continue;
+    const pixelDistance = Math.hypot(screen[0] - cursorPx[0], screen[1] - cursorPx[1]);
+    if (pixelDistance > tolerancePx) continue;
+
+    out.push({ edge, anchor, point, line: [anchor, point], pixelDistance });
+  }
+  return out;
+}
+
+/**
+ * The feet, as snap candidates for `chooseSnap`.
+ *
+ * ⚠⚠ NO `ref`, NO `elementId`, NO `nodeId` — Entry 84's rule for the guide, applied to this kind for the
+ * same reason: the foot is a point on the LINE through an edge, not a point ON the edge (it is not even
+ * clamped to it), so it is on no sub-shape whichever edge it was measured against. A hosted-void tool
+ * therefore declines a perpendicular foot exactly as it declines a guide.
+ */
+export function perpendicularCandidates(feet: readonly PerpendicularFoot[]): SnapCandidate[] {
+  return feet.map((foot) => ({ point: foot.point, kind: PERPENDICULAR_SNAP_KIND }));
+}
+
+/**
+ * Which Tier-1 candidates may serve as a perpendicular reference EDGE — reconstructed from the two
+ * `'endpoint'` candidates that share an edge's `ref`, never from which points happen to sit near each
+ * other.
+ *
+ * ⚠⚠ WHY BY `ref` AND NOT BY PROXIMITY. Pairing the two nearest endpoints into a line would be exactly
+ * the geometric-index anti-pattern D1 exists to forbid one layer up — a "derived" identity built by
+ * matching *positions* rather than reading the one the model already assigned. `ref` is that identity:
+ * `edgeCandidates` (`tool/snap.ts`) stamps every endpoint of one tessellated edge with the SAME `ref`, so
+ * grouping by it recovers exactly the edge the mesh drew, never two ends of two different walls that
+ * happen to be close together.
+ *
+ * A `ref` that does not resolve to exactly two endpoints is skipped rather than guessed at — a degenerate
+ * polyline (`edgeCandidates` already refuses one under two vertices) or any future candidate that reuses
+ * a `ref` for something else must not silently become a fabricated edge.
+ */
+export function referenceEdges(
+  candidates: readonly SnapCandidate[],
+): ReadonlyArray<readonly [Vec3, Vec3]> {
+  const byRef = new Map<string, Vec3[]>();
+  for (const candidate of candidates) {
+    if (candidate.kind !== 'endpoint' || candidate.ref === undefined) continue;
+    const points = byRef.get(candidate.ref);
+    if (points === undefined) byRef.set(candidate.ref, [candidate.point]);
+    else points.push(candidate.point);
+  }
+
+  const out: (readonly [Vec3, Vec3])[] = [];
+  for (const points of byRef.values()) {
+    if (points.length !== 2) continue;
+    out.push([points[0]!, points[1]!]);
+  }
+  return out;
+}
+
+function distance(a: Vec3, b: Vec3): number {
+  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 }

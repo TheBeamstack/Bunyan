@@ -19,10 +19,15 @@ import { describe, expect, it } from 'vitest';
 import type { Vec3 } from '@bunyan/protocol';
 import {
   GUIDE_SNAP_KIND,
+  PERPENDICULAR_SNAP_KIND,
   alignmentGuides,
   guideCandidates,
+  perpendicularCandidates,
+  perpendicularFeet,
+  referenceEdges,
   referencePoints,
   type AlignmentOptions,
+  type PerpendicularOptions,
 } from './align';
 import { SNAP_PRIORITY, chooseSnap, rankOf, type Project, type SnapCandidate } from './snap';
 import { OPENING_TOOL, SELECT_TOOL, WALL_TOOL } from './tools';
@@ -272,5 +277,167 @@ describe('⚠⚠ which candidates may be a REFERENCE — and the lattice that mu
         }),
       ).toEqual([]);
     }
+  });
+});
+
+/**
+ * PERPENDICULAR FOOT tests (T-001, P4.5 §4.3's second derived kind). Hostile to the same three shapes as
+ * the guide tests, plus the one new question this kind adds — is the foot built from the ruled edge
+ * IDENTITY (`ref`) or from geometric proximity, the D1 anti-pattern one layer up:
+ *   (a) a foot that carries an identity — Entry-80's rule, applied to a point on no sub-shape;
+ *   (b) a foot that outranks or is outranked wrongly — Q3's array, not restated but asserted BY PLACE;
+ *   (c) a foot that is degenerate — the anchor already on the reference edge's line;
+ *   (d) a reference edge reconstructed by matching nearby points instead of reading the `ref` the mesh
+ *       already stamped on both of an edge's ends.
+ */
+function foot(overrides: Partial<PerpendicularOptions> = {}): ReturnType<typeof perpendicularFeet> {
+  return perpendicularFeet({
+    anchor: [2000, 2000, 0],
+    cursorPx: [2000, 0],
+    edges: [
+      [
+        [0, 0, 0],
+        [4000, 0, 0],
+      ],
+    ],
+    project: flat,
+    tolerancePx: 12,
+    ...overrides,
+  });
+}
+
+describe('when a perpendicular foot fires', () => {
+  it('lands where the anchor projects perpendicular onto the edge’s line', () => {
+    const feet = foot();
+    expect(feet).toHaveLength(1);
+    expect(feet[0]?.point).toEqual([2000, 0, 0]);
+    expect(feet[0]?.anchor).toEqual([2000, 2000, 0]);
+    expect(feet[0]?.pixelDistance).toBe(0);
+  });
+
+  it('does not fire when the foot is off the cursor by more than the tolerance', () => {
+    expect(foot({ cursorPx: [2000, 13] })).toEqual([]);
+    expect(foot({ cursorPx: [2000, 11] })).toHaveLength(1);
+  });
+
+  it('⚠ refuses the DEGENERATE foot — an anchor already ON the edge’s line has no perpendicular', () => {
+    expect(foot({ anchor: [1000, 0, 0], cursorPx: [1000, 0] })).toEqual([]);
+    // The threshold is real, not `=== 0`: half a millimetre off is still degenerate.
+    expect(foot({ anchor: [1000, 0.5, 0], cursorPx: [1000, 0] })).toEqual([]);
+    expect(foot({ anchor: [1000, 2, 0], cursorPx: [1000, 0] })).toHaveLength(1);
+  });
+
+  it('skips an edge with no direction (its two ends coincide) rather than throwing', () => {
+    expect(
+      foot({
+        edges: [
+          [
+            [10, 10, 0],
+            [10, 10, 0],
+          ],
+        ],
+      }),
+    ).toEqual([]);
+  });
+
+  it('⚠ is NOT clamped to the segment — a foot past either end is still a valid perpendicular', () => {
+    // Anchor sits past the edge's [4000,0,0] end; the foot follows the LINE, not the drawn extent.
+    const feet = foot({ anchor: [6000, 500, 0], cursorPx: [6000, 0] });
+    expect(feet[0]?.point).toEqual([6000, 0, 0]);
+  });
+
+  it('drops a foot the camera cannot see rather than drawing to it', () => {
+    const behind: Project = () => null;
+    expect(foot({ project: behind })).toEqual([]);
+  });
+
+  it('draws the indicator FROM the anchor TO the foot, and nothing else', () => {
+    const feet = foot();
+    expect(feet[0]?.line).toEqual([
+      [2000, 2000, 0],
+      [2000, 0, 0],
+    ]);
+  });
+});
+
+describe('⚠⚠ what a perpendicular candidate CARRIES — the Entry-80 rule, applied to this kind too', () => {
+  it('carries NO ref, NO elementId and NO nodeId, however the edge was found', () => {
+    const [candidate] = perpendicularCandidates(foot());
+    expect(candidate?.point).toEqual([2000, 0, 0]);
+    expect(candidate?.kind).toBe(PERPENDICULAR_SNAP_KIND);
+    expect(candidate === undefined ? [] : Object.keys(candidate)).toEqual(['point', 'kind']);
+  });
+
+  it('⚠ sits in the RULED slot without adding one: midpoint/grid beat it, it beats extension/face/free', () => {
+    // The ruling (Q3, owner, 2026-07-30) is a single array; this asserts the foot's place IN it rather
+    // than re-stating the array, so re-ruling the order re-rules this too.
+    expect(SNAP_PRIORITY).toContain(PERPENDICULAR_SNAP_KIND);
+    expect(rankOf('endpoint')).toBeLessThan(rankOf(PERPENDICULAR_SNAP_KIND));
+    expect(rankOf('intersection')).toBeLessThan(rankOf(PERPENDICULAR_SNAP_KIND));
+    expect(rankOf('midpoint')).toBeLessThan(rankOf(PERPENDICULAR_SNAP_KIND));
+    expect(rankOf('grid')).toBeLessThan(rankOf(PERPENDICULAR_SNAP_KIND));
+    expect(rankOf(PERPENDICULAR_SNAP_KIND)).toBeLessThan(rankOf(GUIDE_SNAP_KIND));
+    expect(rankOf(PERPENDICULAR_SNAP_KIND)).toBeLessThan(rankOf('face'));
+    expect(rankOf(PERPENDICULAR_SNAP_KIND)).toBeLessThan(rankOf('free'));
+
+    // Driven, not just ranked: a grid point 10 px away beats a perpendicular foot dead under the cursor.
+    const grid: SnapCandidate = { point: [2000, 0, 0], kind: 'grid' };
+    const winner = chooseSnap(
+      [{ ...grid, point: [2010, 0, 0] }, ...perpendicularCandidates(foot())],
+      flat,
+      [2000, 0],
+      12,
+      null,
+    );
+    expect(winner?.kind).toBe('grid');
+  });
+});
+
+describe('⚠⚠ which candidates may form a REFERENCE EDGE — by `ref`, never by proximity', () => {
+  it('pairs the two endpoints that share a `ref` into one edge', () => {
+    const at = (point: Vec3, kind: SnapCandidate['kind'], ref?: string): SnapCandidate => ({
+      point,
+      kind,
+      ...(ref === undefined ? {} : { ref }),
+    });
+    const edges = referenceEdges([
+      at([0, 0, 0], 'endpoint', 'wall-1.structure/edge/e0'),
+      at([4000, 0, 0], 'endpoint', 'wall-1.structure/edge/e0'),
+      at([2000, 0, 0], 'midpoint', 'wall-1.structure/edge/e0'), // same ref, wrong KIND — not an end
+      at([4000, 0, 0], 'endpoint', 'wall-2.structure/edge/e0'), // a different edge's OWN pair
+      at([4000, 3000, 0], 'endpoint', 'wall-2.structure/edge/e0'),
+      at([9000, 9000, 0], 'endpoint'), // no ref at all — cannot be paired
+    ]);
+    expect(edges).toEqual([
+      [
+        [0, 0, 0],
+        [4000, 0, 0],
+      ],
+      [
+        [4000, 0, 0],
+        [4000, 3000, 0],
+      ],
+    ]);
+  });
+
+  it('skips a `ref` that does not resolve to exactly two endpoints, rather than guessing', () => {
+    const at = (point: Vec3, ref: string): SnapCandidate => ({ point, kind: 'endpoint', ref });
+    expect(referenceEdges([at([0, 0, 0], 'lone-ref')])).toEqual([]);
+    expect(
+      referenceEdges([
+        at([0, 0, 0], 'triple-ref'),
+        at([1, 0, 0], 'triple-ref'),
+        at([2, 0, 0], 'triple-ref'),
+      ]),
+    ).toEqual([]);
+  });
+
+  it('never pairs two DIFFERENT edges’ ends by how close together they happen to be', () => {
+    // Two near-coincident points a millimetre apart, but different `ref`s — the geometric-matching
+    // failure mode D1 forbids one layer up. Proximity must not stand in for identity here either.
+    const at = (point: Vec3, ref: string): SnapCandidate => ({ point, kind: 'endpoint', ref });
+    expect(
+      referenceEdges([at([0, 0, 0], 'wall-a/edge/0'), at([0, 1, 0], 'wall-b/edge/0')]),
+    ).toEqual([]); // each `ref` alone has only ONE endpoint — neither resolves to a pair
   });
 });
