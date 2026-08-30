@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ THE SCHEDULES BODY (D58 row Ⓐ, `P5_step6B_schedules_design.md`) — the body that turns a
  * `ScheduleDefinition` into rows. The third and last consumer `enumerate.ts` was built to serve.

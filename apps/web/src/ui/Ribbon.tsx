@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `Ribbon` — one button per command, GENERATED from the registry (`describeCommands`). **This is the
  * P4 ribbon criterion, and it is the exact mirror of the agent tool list** (D21): the same

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE CLEAN DELTA JSON SCHEMA — the other half of the ⑥ deliverable, and the artifact Planitor D11 makes
  * **the contract itself**: *"the Clean Delta Package becomes ONE VERSIONED JSON SCHEMA, and every repo

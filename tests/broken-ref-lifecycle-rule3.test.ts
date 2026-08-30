@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ DOMAIN RULES 1 AND 3, SWEPT BACKWARD — *"the recipe is the source of truth; geometry is derived and
  * disposable"* and *"broken references fail loudly (marked, **manually retargeted**), never silently

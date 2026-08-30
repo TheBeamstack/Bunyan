@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE ASSOCIATIVITY MODEL — a member's GEOMETRY follows its datum constraints (D50 step 0b). Entry 34,
  * 2026-07-16. Executes D52 (height derived) and D53 (constraints first-class), against the real OCCT kernel.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * The REAL kernel: upstream OCCT 7.9.3, compiled to WebAssembly, behind the same
  * `KernelImplementation` interface the mock implements.

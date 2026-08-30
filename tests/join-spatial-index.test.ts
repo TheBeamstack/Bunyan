@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ THE JOIN SPATIAL INDEX — correctness under the failure mode it introduces (Entry 61,
  * `review_P5.md` #3). Pure TS, no kernel.

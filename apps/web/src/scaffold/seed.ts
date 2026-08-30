@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * SCAFFOLD demo scene — a first building to render, authored the only way anything is authored: through
  * `doc.execute` (D19). Every call here is a command an agent could issue verbatim through

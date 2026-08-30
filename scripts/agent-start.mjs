@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * scripts/agent-start.mjs — the start of a turn. Run this before anything else (Entry 91, D82).
  *

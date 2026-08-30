@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `PropertyPanel` — the selected element's parameters, editable. **This is what makes the wall a wall
  * you can change rather than a picture of one**, and it is the P4 property-panel criterion.

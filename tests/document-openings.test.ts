@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * OPENINGS, HOSTS, AND THE BROKEN-REFERENCE STATE — the canonical parametric relationship, at the
  * document level (`core_logic` §3.6; domain rule 3; **D39**, owner ruling 2026-07-13).

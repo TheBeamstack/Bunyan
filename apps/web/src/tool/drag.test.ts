@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * DRAG PLANNER tests (P4.5 §9 + D23). Headless and pure — there is no document here, which is the point:
  * the planner PROPOSES and the document DISPOSES, so everything below is about the proposal being right.

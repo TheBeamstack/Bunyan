@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * Pure statistics for the scale harness (plan P4 step 9b) — kept in their own module, with NO three.js
  * import, so they can be unit-tested in plain Node like the rest of the suite (the harness itself pulls

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ DOMAIN RULE 15, THE SECOND HALF OF D72 — *"a quantity must also be the RIGHT MEASUREMENT."* Real
  * OCCT, headless.

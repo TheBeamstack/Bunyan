@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THREE HOLES ENTRY 13'S AUDIT FOUND, CLOSED — and the tests that keep them closed.
  *

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE TOOL REGISTRY — P4.5 design §2, the app-layer list of what a pointing device can author.
  *

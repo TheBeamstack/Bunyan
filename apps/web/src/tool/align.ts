@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * DERIVED SNAP CANDIDATES — P4.5 design §4.3's app-produced kinds: the axis GUIDE (*"when the cursor is
  * aligned with a live reference point, draw a dashed guide line and snap to it"*) and the PERPENDICULAR

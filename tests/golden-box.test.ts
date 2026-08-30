@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * P1 exit criterion: "the golden/invariant harness passes on the known box (reference-build oracle
  * AND regression snapshot), bounds pass."

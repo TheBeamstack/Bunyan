@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * PERSISTENT NAMING ON AN EXTRUDED PROFILE — the op three of the five MVP types are built from.
  *

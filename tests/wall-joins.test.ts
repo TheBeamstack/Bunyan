@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * WALL-TO-WALL JOINS (D50 step 0c, `P5_step0c_design.md`) — against the REAL OCCT kernel, headless.
  *

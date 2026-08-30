@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * React wrapper around the imperative `Viewport`. Owns the `<canvas>`, wires a `ResizeObserver`, pushes
  * the desired scene down on change, and turns pointer events into picks, hovers and tool input. The

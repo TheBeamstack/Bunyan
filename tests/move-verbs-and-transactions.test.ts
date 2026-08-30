@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE FIVE MOVE VERBS + `transactionId` ATOMICITY — P4.5 rows ⓑ and ⓘ, owner-ruled Q4/Q5 (2026-07-30).
  * Against the REAL OCCT kernel. Entry 72.

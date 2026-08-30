@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE SKETCH CONSTRAINT SOLVER (D50 §0d, `P5_step0d_design.md`) — real planegcs, headless, against the
  * real OCCT kernel. Entry 40, 2026-07-18. Executes D50 §0d + D26 (the no-permute invariant).

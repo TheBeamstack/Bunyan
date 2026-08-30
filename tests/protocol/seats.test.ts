@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `scripts/seats.mjs` — the registry, the machine gate, and reviewer routing. Pure functions, so this
  * imports and calls them directly (unlike `agent-start`/`agent-finish`, which are exercised by spawning

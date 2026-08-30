@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Run the naming probe and print what OCCT's history ACTUALLY reports.
 //
 // The question this answers (spec §4.5): "OCCT history is robust for faces but weakest for edges and

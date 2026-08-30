@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE FORMAT-CODEC SEAM — domain rule 5, made load-bearing (Entry 60, the rule-5 backward sweep).
  *

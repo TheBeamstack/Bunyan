@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `@bunyan/types` — the shipped MVP `BimObjectType`s (P5). These are the REAL, registered building
  * elements, distinct from the exercise fixtures in `tests/fixtures/bim-types.ts`. The document engine

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * scripts/pr-ready.mjs — checks the opened PR's title routes (`T-nnn: ` / `STEWARD: `) and that GitHub
  * reports it MERGEABLE.

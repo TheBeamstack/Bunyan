@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE CURTAIN WALL — the canonical D59 nesting probe (`core_logic.md` §9a), built end-to-end against the
  * real kernel to validate the composition contract (Freeze-Gate row Ⓑ, owner-ruled 2026-07-22, Model A).

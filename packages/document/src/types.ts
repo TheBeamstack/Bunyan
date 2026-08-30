@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `BimObjectType` — the governing contract (`core_logic.md` §3.4, spec §4.1).
  *

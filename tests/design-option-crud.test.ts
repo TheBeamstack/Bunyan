@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE DESIGN-OPTION CRUD (D85/Q17a — `P5_step6D_design_options_crud_design.md` §4/§5).
  *

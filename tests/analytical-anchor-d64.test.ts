@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * D64 (FREEZE GATE row Ⓔ) — THE ANALYTICAL-ANCHOR RE-EXAMINATION, ruled from EVIDENCE.
  *

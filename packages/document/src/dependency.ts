@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE TYPED DEPENDENCY GRAPH (D50 step 0a) — "what must rebuild when this entity changes?"
  *

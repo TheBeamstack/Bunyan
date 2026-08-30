@@ -2,8 +2,20 @@
 Bunyan — third-party notices
 ================================================================================
 
-Bunyan is Copyright (c) 2026 the Bunyan authors, and is distributed under the
-GNU Affero General Public License, version 3. The full text is in `LICENSE`.
+Bunyan is a Beamstack project — https://beam-stack.com.
+
+Copyright (C) 2026 Beamstack. "Beamstack" is the trading name of a sole
+proprietorship of Abdellah Daoudi (Kingdom of Morocco) pending incorporation;
+"Beamstack" is a trademark registered with OMPIC. Where a natural or legal
+person is required, the copyright holder of record is Abdellah Daoudi
+<askdaoudi@gmail.com>.
+
+Licensed under the GNU Affero General Public License, version 3, only
+(SPDX: AGPL-3.0-only). The full text is in `LICENSE`. This project is on the
+Open tier of the Beamstack License Framework —
+https://github.com/TheBeamstack/beamstack-licensing. Trademark policy:
+`TRADEMARKS.md` — no licence grants rights in the "Beamstack" or "Bunyan"
+names or the Beamstack logo; a fork must rename.
 
 This file is the attribution notice for third-party software that Bunyan uses
 or redistributes. It is not a summary: where a licence obliges us to state

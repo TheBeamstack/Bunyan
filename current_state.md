@@ -456,6 +456,7 @@ AND geometry from `scene.json` alone · **D19 is a MACHINE check** · the model 
 | D43 | An unknown OR FUTURE type: the document OPENS, the element is `failed`+visible+PRESERVED VERBATIM. | D78–D80 | The schedules body · the schedule CRUD · **the five move verbs + `transactionId` atomicity.** |
 | D81 | The plan/section unit ships `mode:'cut'` only; `SectionCurve.nodeId?` and `ParamField.refTo`'s four members are reserved. | D82 | **THE BUILD MODEL BECOMES FIVE SEATS** — `brahim`/`zayd`/`hmdnah`/`amer`/`khalihlna`, crossed GitHub accounts, `T-nnn` succeeds `Entry N` going forward. See `AGENTS.md`. |
 | D83–D88 | Q19 cascade+surface · Q18 host-face rule · Q17a designOptions CRUD (contract-touching) · Q17c broken ref · seat credentials env-scoped (D87) · `risk: high` two-step review (D88). One-line index not yet backfilled per-row; full text in `docs/decisions.md`. | D89 | **CI runs on a self-hosted runner** (`bunyan-oracle-runner`) while the repo stays private — GitHub-hosted minutes exhausted, going public blocked on Q11. |
+| D90 | **Bunyan is formally BLF-Open** under the Beamstack License Framework (BLF-D6) — AGPL-3.0-only + commercial, unchanged; the sibling Beamstack Community License was evaluated and declined for Bunyan specifically. SPDX headers, `NOTICE`, `TRADEMARKS.md`, `CONTRIBUTING.md`, `README.md` aligned to the framework; `CLA.md` unchanged in substance. | | |
 
 ---
 
@@ -629,6 +630,30 @@ exceeds budget. When it does: move the oldest abstracts' summaries into `docs/hi
 checking their durable lessons are already in §1–§5.** The bodies stay in `handoff/` forever. **Compaction
 is maintenance and does NOT get an entry of its own.**
 
+
+### STEWARD-blf-open-alignment — Bunyan is formally BLF-Open; SPDX/NOTICE/TRADEMARKS/CONTRIBUTING aligned, no licence text changed — 2026-08-30 — seat: brahim
+
+- **CHANGED:** SPDX headers added to all 216 tracked source files (`SPDX-FileCopyrightText: 2026
+  Beamstack <https://beam-stack.com>` + `SPDX-License-Identifier: AGPL-3.0-only`), mechanical, then
+  `prettier --write .` (no further changes — already matched house style). `NOTICE` gained a
+  Beamstack copyright/brand block at its head; every existing OCCT/planegcs/MIT section below
+  untouched. `TRADEMARKS.md`, `CONTRIBUTING.md`, `README.md` NEW. `CLA.md` gained one cross-reference
+  note; substance unchanged. `docs/decisions.md` D90; this abstract.
+  `handoff/brahim/2026-08-30-STEWARD-blf-open-alignment.md` NEW.
+- **VERIFIED:** `pnpm verify` — see this turn's commit for the run this abstract was written against.
+  `tests/notice-attribution.test.ts` reads `NOTICE` for dependency names present, not a fixed
+  structure — unaffected by the added header block.
+- **FOUND:** the owner's own Beamstack License Framework (BLF-D2/BLF-D6, decided the same day)
+  independently reaches the conclusion this turn's research already had: BCL is explicitly not OSI
+  open source, and Bunyan's D15 makes that label the point, so Bunyan is BLF-Open — AGPL-3.0-only,
+  unmodified — never BLF-Community.
+- **OWES:** nothing new — `T-003` (the in-app licences screen) stays `ready`, unaffected; incorporation
+  remains the trigger for `CLA.md`'s `<LEGAL ENTITY>` fill-in and `open_rulings.md` Q11/Q12, both
+  untouched this turn per the owner's explicit instruction.
+- **RISK:** additive — no `packages/` source touched beyond header comments; `LICENSE` and every
+  manifest's `license` field were already `AGPL-3.0-only` and needed no edit.
+- **FULL:** `handoff/brahim/2026-08-30-STEWARD-blf-open-alignment.md`
+- **REVIEW:** operator-directed, this session.
 
 ### T-001 — review: the browser claim was inherited, not re-executed, until now — 2026-08-30 — seat: khalihlna
 
@@ -943,16 +968,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-001 (khalihlna, 2026-08-30)** |
-| branch · tip · tree | `task/T-001-the-perpendicular-foot-snap-candidate` · `305263c` · clean |
-| open PRs | #43 task/T-001-the-perpendicular-foot-snap-candidate |
+| **newest entry** | **STEWARD-blf-open-alignment (brahim, 2026-08-30)** |
+| branch · tip · tree | `brahim/2026-08-30-blf-open-alignment` · `3bf03aa` · dirty |
+| open PRs | none — main is the tip of the work |
 | suite | **974 green** · 99 files · 297 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 9 files changed, 682 insertions(+), 104 deletions(-) (9 files) |
-| docs budget | current_state 80.7/96.0 KB · §7 28.4/32.0 KB · abstracts 7/10 · bodies 88 |
+| diff vs origin/main | 220 files changed, 690 insertions(+), 2 deletions(-) (220 files) |
+| docs budget | current_state 82.9/96.0 KB · §7 30.3/32.0 KB · abstracts 8/10 · bodies 89 |
 
 _Generated 2026-08-30 by `pnpm state`._
 

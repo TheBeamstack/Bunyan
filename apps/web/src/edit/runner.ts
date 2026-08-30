@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE EDIT RUNNER — how the browser hot path dispatches a rapid stream of edits (a drag) without
  * corrupting the document or flooding the kernel.

@@ -1,5 +1,10 @@
 # Bunyan Contributor License Agreement (Individual)
 
+> Bunyan is on the **BLF-Open** tier of the
+> [Beamstack License Framework](https://github.com/TheBeamstack/beamstack-licensing) (BLF-D6). This
+> agreement is compatible with the framework's canonical CLA (BLF-D3) and is kept as-is rather than
+> replaced with it.
+
 > **⚠ TWO THINGS TO SETTLE BEFORE THE FIRST EXTERNAL PULL REQUEST, AND ONLY THE OWNER CAN SETTLE THEM.**
 >
 > 1. **`<LEGAL ENTITY>` below is a placeholder.** A CLA is an agreement with a legal counterparty, and

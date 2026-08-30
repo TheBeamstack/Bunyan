@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * P4's incremental-redraw exit criterion, asserted by COUNTING (not timing): a one-element edit
  * re-tessellates only the parts that changed. `planRedraw` is pure, so this runs in Node with no GPU —

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * Tool state machine tests (P4.5 §2) — and what they actually assert is DOMAIN RULE 19: a tool collects
  * input, only a command changes the model, and an in-progress interaction is not model state.

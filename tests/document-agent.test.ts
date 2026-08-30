@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE AGENT SURFACE — P3's agent exit criteria, discharged (D19–D23, spec §4.6).
  *

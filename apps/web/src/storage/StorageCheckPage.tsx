@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * Renders the browser storage self-check (`runStorageCheck`) — the in-browser "test" for the
  * IndexedDB-backed `StorageAdapter`, which the headless box cannot run. Auto-runs on mount, shows a

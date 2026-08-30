@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE DOCUMENTATION LAYER — RESERVED anchoring shapes (D58, Freeze-Gate row Ⓐ; `P5_step5A_documentation_
  * anchoring_design.md`).

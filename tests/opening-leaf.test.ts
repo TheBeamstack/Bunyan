@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⓙ — A HOSTED ELEMENT BUILDS A SOLID, NOT ONLY A HOLE (P5 step 5, `review_P5.md` #2) — against the REAL
  * OCCT kernel, headless.

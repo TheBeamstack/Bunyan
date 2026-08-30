@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE EDGE-BUFFER ALLOCATOR (P4 step 9(b), the batching rewrite) — tested without a GL context.
  *

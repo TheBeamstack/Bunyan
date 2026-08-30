@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ SCAFFOLD BIM OBJECT TYPES — NOT THE SHIPPED TYPES.
  *

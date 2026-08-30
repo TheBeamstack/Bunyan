@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ THE MODEL ENUMERATION QUERY — the one query that answers *"what elements are actually in this
  * model?"*, and the project-wide quantity roll-up built on it (`P5_step6A_enumeration_design.md`).

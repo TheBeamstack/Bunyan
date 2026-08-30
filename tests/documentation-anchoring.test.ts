@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * DOCUMENTATION ANCHORING (D58, Freeze-Gate row Ⓐ; `P5_step5A_documentation_anchoring_design.md`) — the
  * WIDENED gate ⑨. Real OCCT where geometry matters; pure for the reservation proofs.

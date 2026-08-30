@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * The re-seed gate (spec §9; imp-plan P1 step 8, cross-cutting practice #2).
  *

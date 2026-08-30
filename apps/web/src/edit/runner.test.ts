@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * The first test that lives inside `apps/web` — its existence is half of P4 step 0's point: before the
  * gate could see this directory, a test here could not run at all (`vitest.config.ts` collected only

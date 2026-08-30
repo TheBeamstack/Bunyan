@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ALIGNMENT GUIDE tests (P4.5 §4.3). Headless: the projection is injected, so there is no camera and no
  * three.js — only the rules that decide whether the cursor is aligned and what a click there would mean.

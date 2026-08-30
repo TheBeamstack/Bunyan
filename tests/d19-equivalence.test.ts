@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE D19 EQUIVALENCE TEST — the P4 exit criterion, and the enforcement mechanism for the whole
  * agent-native decision.

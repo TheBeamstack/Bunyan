@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE RE-SEED GATE'S *VALUE* CHECK — what actually changed in a golden, with the clock ignored (Q16).
  *

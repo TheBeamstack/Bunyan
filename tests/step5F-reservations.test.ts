@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ROW Ⓕ — THE LAST PRE-FREEZE RESERVATIONS (D62 MEP · D63 DWG · D65 Design Options / phase filters / area
  * schemes). Design: `P5_step5F_reservations_design.md`. Owner-ruled 2026-07-24.

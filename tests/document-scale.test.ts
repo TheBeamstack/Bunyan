@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ **THE D29 MEASUREMENT.** The owner deferred the `geometry-cache.brep` ship/drop call to *this*
  * moment — "**decide at P3 step 4, WITH the measured rebuild cost of a real model in hand**" — because

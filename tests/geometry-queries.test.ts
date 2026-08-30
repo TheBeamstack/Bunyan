@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE GEOMETRIC QUERY OPS (decision D23) — `bounds`, `distance`, `classifyPoint`.
  *

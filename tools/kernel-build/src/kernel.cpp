@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Bunyan kernel — the C++ side of the protocol seam.
 //
 // THE ARCHITECTURAL POINT, stated once: JavaScript never touches OCCT. It calls *our* operations

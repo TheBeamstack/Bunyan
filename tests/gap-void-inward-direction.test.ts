@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ A HOSTED VOID CUTS ALONG THE HOST'S INWARD NORMAL, ON WHICHEVER FACE IT IS HOSTED — a gap found by
  * modelling (Zayd, dev box, 2026-07-15) and closed the same day. See `current_state.md` Entry.

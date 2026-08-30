@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE INTEGRITY GATES — the validation gaps the P3 review found (`P3_correction_plan.md` §1[7]), and
  * the D44/D45 rulings that closed two of them.

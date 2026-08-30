@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * Unit test for the PURE helpers in `documentStorage` (plan P4 step 5 / persistence). The IndexedDB
  * adapter itself is browser-only (verified by the `storage-check` page), but the key derivation and the

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ DOMAIN RULE 14, SWEPT BACKWARD — *"A model is ISSUED, not merely saved… and `change_type` is READ
  * from the edit log, never inferred by diffing geometry"* (D34/D40/D41, `core_logic.md` §8.14, §3.12a).

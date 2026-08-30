@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * D67 / ROW Ⓖ — THE DESIGN-OPTION EXCLUSION **CASCADE** (design: `P5_step5G_option_cascade_design.md`).
  * Owner-ruled 2026-07-25 during the pre-freeze adversarial sweep the owner authorised in place of freezing.

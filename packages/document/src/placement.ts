@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE PLACEMENT ALGEBRA — and the ONE RULE the five move verbs turn on (P4.5 §9/§10, owner-ruled Q4/Q5,
  * 2026-07-30).
