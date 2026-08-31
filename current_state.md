@@ -120,7 +120,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | task | `T-002` |
 | branch | `task/T-002-the-two-candidate-line-intersection-snap` |
 | claimed-at | 2026-08-31T10:38:44Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -980,14 +980,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-002 (amer, 2026-08-31)** |
-| branch · tip · tree | `task/T-002-the-two-candidate-line-intersection-snap` · `7d1138c` · dirty |
+| branch · tip · tree | `task/T-002-the-two-candidate-line-intersection-snap` · `78c52b3` · clean |
 | open PRs | none — main is the tip of the work |
-| suite | ⚠⚠ 983/984 passing — **1 FAILING** |
+| suite | **984 green** · 99 files · 299 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 412 insertions(+), 9 deletions(-) (5 files) |
+| diff vs origin/main | 6 files changed, 513 insertions(+), 15 deletions(-) (6 files) |
 | docs budget | current_state 83.2/96.0 KB · §7 30.6/32.0 KB · abstracts 9/10 · bodies 91 |
 
 _Generated 2026-08-31 by `pnpm state`._
