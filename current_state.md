@@ -631,6 +631,34 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### STEWARD-blf-open-alignment — review: the re-seed gate's trailer had no bypass for a zero-golden diff, and CI proved it — 2026-08-31 — seat: khalihlna
+
+- **CHANGED:** reverted the SPDX header on the 14 files `scripts/reseed-paths.mjs`'s `GEOMETRY_PATHS`
+  watches (verified zero diff vs `main` for each); prettier fix for `docs/BACKLOG.md`; a `docs/
+  BACKLOG.md` Discovered entry; this abstract; `handoff/khalihlna/2026-08-31-STEWARD-blf-open-alignment-review.md`
+  NEW.
+- **VERIFIED:** item 1 re-executed — reverted `NOTICE`'s brand block, confirmed
+  `tests/notice-attribution.test.ts` unaffected either way, restored. The load-bearing finding: CI run
+  `33335482669` was genuinely RED (`re-seed gate FAILED`, naming exactly the 14 files above); CI run
+  `33376138958` (after this turn's fix, commit `0016690`) is GREEN, both jobs, `10m16s` main job.
+  `pnpm verify` run twice locally, 974/974 both times.
+- **FOUND:** `check-reseed.mjs`'s `Re-seed-unchanged:` trailer is only read in its SECOND failure
+  branch (a golden touched but its payload unchanged) — the FIRST branch
+  (`touchedGoldens.length === 0`) exits before ever reading a trailer, so a comment-only header on a
+  watched path has no sanctioned way to pass short of actually re-seeding. `gh auth status` on this
+  pc reports `narutousomaki741` active, not `Davidian-Abdo` as `RUNBOOK.md`'s table states — worked
+  around via `GH_TOKEN=$(gh auth token --user Davidian-Abdo)` (D87 forbids `gh auth switch`), not
+  fixed. A seat-identity slip mid-review — this PR's `brahim/…` branch prefix mechanically routes to
+  `hmdnah` (box), corrected by the owner to `khalihlna` (this session ran on pc); the `hmdnah` attempt
+  took no write action before stopping.
+- **OWES:** `zayd` — the 14 excluded files still need SPDX headers, alongside a real re-seed on the
+  pinned native-OCCT environment. `brahim` — the re-seed-gate trailer gap (Discovered, 2026-08-30) and
+  the `RUNBOOK.md`/`gh auth status` discrepancy both want a look.
+- **RISK:** additive — `tests/freeze-boundary.test.ts` green (19/19) every run, no `needs-operator/*`.
+- **FULL:** `handoff/khalihlna/2026-08-31-STEWARD-blf-open-alignment-review.md`
+- **REVIEW:** step of one (D88 does not apply — `risk: normal`) — **APPROVED and MERGED** by
+  `khalihlna` on `Davidian-Abdo`, PR #44.
+
 ### STEWARD-blf-open-alignment — Bunyan is formally BLF-Open; SPDX/NOTICE/TRADEMARKS/CONTRIBUTING aligned, no licence text changed — 2026-08-30 — seat: brahim
 
 - **CHANGED:** SPDX headers added to 202 of 216 tracked source files (`SPDX-FileCopyrightText: 2026
@@ -655,7 +683,8 @@ is maintenance and does NOT get an entry of its own.**
 - **RISK:** additive — no `packages/` source touched beyond header comments; `LICENSE` and every
   manifest's `license` field were already `AGPL-3.0-only` and needed no edit.
 - **FULL:** `handoff/brahim/2026-08-30-STEWARD-blf-open-alignment.md`
-- **REVIEW:** operator-directed, this session.
+- **REVIEW:** **APPROVED and MERGED** by `khalihlna` on `Davidian-Abdo` (PR #44, 2026-08-31) — one
+  fix commit landed first (the re-seed-gate finding above); see the review's own abstract above.
 
 ### T-001 — review: the browser claim was inherited, not re-executed, until now — 2026-08-30 — seat: khalihlna
 
@@ -914,55 +943,6 @@ is maintenance and does NOT get an entry of its own.**
 - **FULL:** `handoff/hmdnah/2026-08-22-T-005-review.md`
 - **REVIEW:** n/a — this IS the review turn.
 
-### T-005 — D66 §3c: DECLARE was never available to an enumerating aggregate, so all four FORCE — 2026-08-22 — seat: zayd
-
-- **CHANGED:** `packages/document/src/enumerate.ts` — a never-built element is **`stale` with no
-  `failure`**, not `failed`/`unbuildable`; **`deferredElements(scene, geometryOf, ids?)` NEW** (the FORCE
-  set, one function so four call sites cannot each derive it differently); `ModelElement.state` widens by
-  the one member `ElementGeometry['state']` structurally cannot carry. `document.ts` — private
-  `#forceBuild()`, called by `projectQuantities`, `evaluateSchedule` and `projectView`. `cleandelta.ts` —
-  the same force **bounded to the delta**, via the public `rebuildOnly`, so **no public API was added**.
-  `bnn.ts` — one sentence recording that `saveBnn` needs neither. `tests/d66-force-declare.test.ts` **NEW**
-  (**+8**); `tests/d66-lazy-build-measure.test.ts`'s §3c case rewritten and moved last, since it asserted
-  the behaviour this turn removes; `docs/design/P5_step9_D66_lazy_build_design.md` §3c carries the ruling;
-  two `## Discovered` rows. No frozen byte — none of the four files is in `WATCHED`, `SCENE_SCHEMA_VERSION`
-  stays 2.
-- **VERIFIED:** `pnpm verify` green, all six gates; suite **959 green · 99 files**. **Revert-verified five
-  times, one per changed line, each restored:** `enumerate.ts` back to `'unbuildable'` ⇒ **1 failed | 7
-  passed** (`expected 'failed' to be 'stale'`); FORCE out of `projectQuantities` ⇒ **2 failed | 6 passed**
-  (`row for row: expected 3 to be 16`); out of `evaluateSchedule` ⇒ **1 failed** (`[] vs [ …(6) ]`); out of
-  `projectView` ⇒ **1 failed** (`[ …(2) ] vs [ …(8) ]`); out of the Clean Delta ⇒ **1 failed**
-  (`[ Array(1) ] vs [ …(17) ]`); restored **8 passed**. ⚠ The `enumerate.ts` revert bites because §1 puts a
-  deferred element and a genuinely refused one (D43's unknown type) in **one document**, so the revert
-  collapses them onto each other rather than changing a string. **FORCE is a build, not an edit** (rule
-  17): journal, undo stack and `revision` all unchanged after a take-off — asserted.
-- **FOUND:** ⚠⚠ **THE CHOICE WAS NOT A CHOICE — DECLARE WAS NEVER AVAILABLE TO AN ENUMERATING AGGREGATE.**
-  A declaration can only name what it can see, and a **deferred parent's D59 children are not enumerated
-  at all**: deriving children IS the build, so an unbuilt curtain wall yields **0 panel rows against a
-  full document's 6**, with nothing left to declare them by. The design doc offered FORCE and DECLARE as
-  two live options per aggregate; measured, only `save` — which reaches no built state — has a second
-  option. ⇒ `projectQuantities`/`evaluateSchedule`/`projectView` FORCE the whole model, the Clean Delta
-  FORCEs bounded to the delta (owner ruling Q2's scope, symmetric with its prior rebuild), `saveBnn`
-  neither. ⚠ **The two roads into the document already disagreed:** `agent.ts:151` answered `'stale'` for
-  the same element `enumerate.ts` called `unbuildable`, and the enumeration was the wrong one. ⚠ **The
-  backward sweep counted rather than sampled** — seven readers of `.state`/`.failure`, five now FORCE,
-  `unbuildable()` reads the geometry map and was already right, `QueryGateway` is unrelated; nothing
-  switches on the union, so widening it breaks no exhaustive check. ⚠ **One site swept and NOT fixed:**
-  `ModelElement.hasParts` is `false` on a `stale` element for the same reason it is on a pure void, so the
-  field alone cannot separate *"nothing to measure"* from *"not measured yet"* — unreachable today because
-  every consumer reads `state` first, which is a convention and not a guarantee (`§1c-8`). Documented on
-  the field and filed.
-- **OWES:** **`brahim`** — two `## Discovered` rows, unclaimed: `hasParts` needing `state` read first, and
-  that FORCE is whole-model where only the composite parents need it (pure optimisation, unmeasured, named
-  in the design doc as not built). **T-006** (D66 §3a/§3b, `machine: pc`) is what this unblocks — its
-  `depends-on: T-005` is now satisfiable. **Nothing is owed to a `pc` seat**: every aggregate here is
-  document-layer, every measurement is headless and was executed here, so this turn creates no
-  `unverified here:` debt.
-- **RISK:** additive — `freeze-boundary` green, none of `enumerate.ts`/`document.ts`/`cleandelta.ts`/
-  `bnn.ts` is in `WATCHED`, `tests/frozen-surface.snapshot.json` untouched ⇒ no `needs-operator/*`.
-- **FULL:** `handoff/zayd/2026-08-22-T-005-force-on-measure.md`
-- **REVIEW:** **APPROVED and MERGED** by `hmdnah` on `narutousomaki741` (PR #40, 2026-08-22) — `RISK: additive`, `PR shape` green with no `needs-operator/*` label. Two of the five reverts re-executed independently, both reproducing the quoted red. ⚠ One completeness gap filed rather than blocked: `open_rulings.md` **Q23**.
-
 ## §8 — Generated
 
 
@@ -970,17 +950,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **STEWARD-blf-open-alignment (brahim, 2026-08-30)** |
-| branch · tip · tree | `brahim/2026-08-30-blf-open-alignment` · `3bf03aa` · dirty |
-| open PRs | none — main is the tip of the work |
+| **newest entry** | **STEWARD-blf-open-alignment (khalihlna, 2026-08-31)** |
+| branch · tip · tree | `brahim/2026-08-30-blf-open-alignment` · `0016690` · dirty |
+| open PRs | #44 brahim/2026-08-30-blf-open-alignment |
 | suite | **974 green** · 99 files · 297 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 220 files changed, 690 insertions(+), 2 deletions(-) (220 files) |
-| docs budget | current_state 82.9/96.0 KB · §7 30.3/32.0 KB · abstracts 8/10 · bodies 89 |
+| diff vs origin/main | 212 files changed, 937 insertions(+), 56 deletions(-) (212 files) |
+| docs budget | current_state 80.7/96.0 KB · §7 28.1/32.0 KB · abstracts 8/10 · bodies 90 |
 
-_Generated 2026-08-30 by `pnpm state`._
+_Generated 2026-08-31 by `pnpm state`._
 
 <!-- END GENERATED -->

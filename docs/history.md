@@ -3069,6 +3069,55 @@ same as `current_state.md` §7.
 - **REVIEW:** Reviewed and merged (`STEWARD:` PR, this branch) — the account/PR bookkeeping is not
   preserved here; see the handoff body and `docs/decisions.md` D87 for what it settled.
 
+### T-005 — D66 §3c: DECLARE was never available to an enumerating aggregate, so all four FORCE — 2026-08-22 — seat: zayd
+
+- **CHANGED:** `packages/document/src/enumerate.ts` — a never-built element is **`stale` with no
+  `failure`**, not `failed`/`unbuildable`; **`deferredElements(scene, geometryOf, ids?)` NEW** (the FORCE
+  set, one function so four call sites cannot each derive it differently); `ModelElement.state` widens by
+  the one member `ElementGeometry['state']` structurally cannot carry. `document.ts` — private
+  `#forceBuild()`, called by `projectQuantities`, `evaluateSchedule` and `projectView`. `cleandelta.ts` —
+  the same force **bounded to the delta**, via the public `rebuildOnly`, so **no public API was added**.
+  `bnn.ts` — one sentence recording that `saveBnn` needs neither. `tests/d66-force-declare.test.ts` **NEW**
+  (**+8**); `tests/d66-lazy-build-measure.test.ts`'s §3c case rewritten and moved last, since it asserted
+  the behaviour this turn removes; `docs/design/P5_step9_D66_lazy_build_design.md` §3c carries the ruling;
+  two `## Discovered` rows. No frozen byte — none of the four files is in `WATCHED`, `SCENE_SCHEMA_VERSION`
+  stays 2.
+- **VERIFIED:** `pnpm verify` green, all six gates; suite **959 green · 99 files**. **Revert-verified five
+  times, one per changed line, each restored:** `enumerate.ts` back to `'unbuildable'` ⇒ **1 failed | 7
+  passed** (`expected 'failed' to be 'stale'`); FORCE out of `projectQuantities` ⇒ **2 failed | 6 passed**
+  (`row for row: expected 3 to be 16`); out of `evaluateSchedule` ⇒ **1 failed** (`[] vs [ …(6) ]`); out of
+  `projectView` ⇒ **1 failed** (`[ …(2) ] vs [ …(8) ]`); out of the Clean Delta ⇒ **1 failed**
+  (`[ Array(1) ] vs [ …(17) ]`); restored **8 passed**. ⚠ The `enumerate.ts` revert bites because §1 puts a
+  deferred element and a genuinely refused one (D43's unknown type) in **one document**, so the revert
+  collapses them onto each other rather than changing a string. **FORCE is a build, not an edit** (rule
+  17): journal, undo stack and `revision` all unchanged after a take-off — asserted.
+- **FOUND:** ⚠⚠ **THE CHOICE WAS NOT A CHOICE — DECLARE WAS NEVER AVAILABLE TO AN ENUMERATING AGGREGATE.**
+  A declaration can only name what it can see, and a **deferred parent's D59 children are not enumerated
+  at all**: deriving children IS the build, so an unbuilt curtain wall yields **0 panel rows against a
+  full document's 6**, with nothing left to declare them by. The design doc offered FORCE and DECLARE as
+  two live options per aggregate; measured, only `save` — which reaches no built state — has a second
+  option. ⇒ `projectQuantities`/`evaluateSchedule`/`projectView` FORCE the whole model, the Clean Delta
+  FORCEs bounded to the delta (owner ruling Q2's scope, symmetric with its prior rebuild), `saveBnn`
+  neither. ⚠ **The two roads into the document already disagreed:** `agent.ts:151` answered `'stale'` for
+  the same element `enumerate.ts` called `unbuildable`, and the enumeration was the wrong one. ⚠ **The
+  backward sweep counted rather than sampled** — seven readers of `.state`/`.failure`, five now FORCE,
+  `unbuildable()` reads the geometry map and was already right, `QueryGateway` is unrelated; nothing
+  switches on the union, so widening it breaks no exhaustive check. ⚠ **One site swept and NOT fixed:**
+  `ModelElement.hasParts` is `false` on a `stale` element for the same reason it is on a pure void, so the
+  field alone cannot separate *"nothing to measure"* from *"not measured yet"* — unreachable today because
+  every consumer reads `state` first, which is a convention and not a guarantee (`§1c-8`). Documented on
+  the field and filed.
+- **OWES:** **`brahim`** — two `## Discovered` rows, unclaimed: `hasParts` needing `state` read first, and
+  that FORCE is whole-model where only the composite parents need it (pure optimisation, unmeasured, named
+  in the design doc as not built). **T-006** (D66 §3a/§3b, `machine: pc`) is what this unblocks — its
+  `depends-on: T-005` is now satisfiable. **Nothing is owed to a `pc` seat**: every aggregate here is
+  document-layer, every measurement is headless and was executed here, so this turn creates no
+  `unverified here:` debt.
+- **RISK:** additive — `freeze-boundary` green, none of `enumerate.ts`/`document.ts`/`cleandelta.ts`/
+  `bnn.ts` is in `WATCHED`, `tests/frozen-surface.snapshot.json` untouched ⇒ no `needs-operator/*`.
+- **FULL:** `handoff/zayd/2026-08-22-T-005-force-on-measure.md`
+- **REVIEW:** **APPROVED and MERGED** by `hmdnah` on `narutousomaki741` (PR #40, 2026-08-22) — `RISK: additive`, `PR shape` green with no `needs-operator/*` label. Two of the five reverts re-executed independently, both reproducing the quoted red. ⚠ One completeness gap filed rather than blocked: `open_rulings.md` **Q23**.
+
 ### T-022 — review (step 1, mechanical): the revert reproduces, and 949 of 951 tests pass on the defective glue — 2026-08-21 — seat: hmdnah
 
 - **CHANGED:** nothing on the branch — F1–F3 are documentation the builder owns.
