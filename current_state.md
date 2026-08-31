@@ -120,7 +120,7 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | task | `T-003` |
 | branch | `task/T-003-the-in-app-open-source-licences-screen` |
 | claimed-at | 2026-08-31T12:17:24Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -962,14 +962,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **T-003 (amer, 2026-08-31)** |
-| branch · tip · tree | `task/T-003-the-in-app-open-source-licences-screen` · `b48ed5c` · dirty |
+| branch · tip · tree | `task/T-003-the-in-app-open-source-licences-screen` · `fe9f5db` · clean |
 | open PRs | none — main is the tip of the work |
-| suite | ⚠⚠ 985/987 passing — **2 FAILING** |
+| suite | **987 green** · 100 files · 301 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 4 files changed, 166 insertions(+), 64 deletions(-) (4 files) |
+| diff vs origin/main | 8 files changed, 369 insertions(+), 64 deletions(-) (8 files) |
 | docs budget | current_state 81.4/96.0 KB · §7 28.8/32.0 KB · abstracts 9/10 · bodies 92 |
 
 _Generated 2026-08-31 by `pnpm state`._

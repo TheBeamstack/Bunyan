@@ -107,7 +107,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | ----- | ------ | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
 | T-001 | done   | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
 | T-002 | review | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
-| T-003 | ready  | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
+| T-003 | review | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
 | T-004 | done   | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
 | T-006 | ready  | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | pc      | normal | T-005      |
 | T-007 | done   | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
