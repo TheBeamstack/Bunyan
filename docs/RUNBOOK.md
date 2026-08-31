@@ -68,6 +68,23 @@ which is why `T-013` makes this a refusal rather than a convention.
 The token needs scope `repo` (classic), or Contents read/write + Pull requests read/write + Metadata
 read (fine-grained, scoped to this repository). The account must already be a collaborator with `push`.
 
+## The pc's `pnpm` needs `BUNYAN_PNPM_CMD`
+
+`agent-finish.mjs`'s own `pnpm verify` call goes through `seats.pnpmSpawn` (`execFileSync`, no shell,
+CVE-2024-27980). This pc's only `pnpm` on `PATH` is a POSIX shebang script — `execFileSync` can't run it,
+and Node won't shell out to `pnpm.cmd` without `shell: true`. Export this once per session before
+`agent-finish.mjs` (T-021, re-confirmed T-001 Entry 2026-08-28 and T-003 2026-08-31 — both hit the same
+gap before this line existed):
+
+```bash
+export BUNYAN_PNPM_CMD='["C:/Program Files/nodejs/node.exe","C:/Program Files/nodejs/node_modules/corepack/dist/pnpm.js"]'
+```
+
+⚠ Skipping this doesn't just fail loudly at step 1 — a review turn that hits it can still finish the
+review on GitHub (approve + merge) and then silently fail to write its own §7 abstract, leaving the
+merged PR's `REVIEW:` line stale (T-002, 2026-08-31). Set it before **every** `agent-finish.mjs` run on
+this machine, build or review.
+
 Run this the day either changes:
 
 ```bash

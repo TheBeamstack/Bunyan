@@ -41,7 +41,10 @@ Then, in order (`REVIEW.md`): re-execute the claim in the real browser · check 
 sections `implements:` named · check every `done-when:` item was _executed_, here · `RISK: additive` →
 you merge it, on your own account; `RISK: contract-touching` → approve, tell the owner.
 
-Finish with: `node scripts/agent-finish.mjs --seat khalihlna <T-nnn> --review`
+Finish with: `node scripts/agent-finish.mjs --seat khalihlna <T-nnn> --review` — first export
+`BUNYAN_PNPM_CMD` (`docs/RUNBOOK.md` "The pc's `pnpm` needs `BUNYAN_PNPM_CMD`"), or step 1 fails and a
+GitHub-side merge you already did is left with no §7 abstract and a stale `REVIEW:` line on the built
+PR's own entry (T-002, 2026-08-31).
 
 ## No state lives here
 

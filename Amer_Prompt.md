@@ -76,7 +76,9 @@ node scripts/agent-finish.mjs --seat amer T-nnn
 build` · `pnpm verify` at the repo root **is** the CI step list, exactly. `pnpm` is not on PATH here
   and `corepack pnpm verify` is not a substitute — drop `%USERPROFILE%\bin\pnpm.cmd`
   (`@echo off` + `corepack pnpm %*`) once, prepend that directory to `PATH` for the command. `gh` is
-  installed and authenticated as `narutousomaki741`, this machine's own account.
+  installed and authenticated as `narutousomaki741`, this machine's own account. **`agent-finish.mjs`
+  needs `BUNYAN_PNPM_CMD` set too** — `docs/RUNBOOK.md` "The pc's `pnpm` needs `BUNYAN_PNPM_CMD`", exact
+  export line there; skipping it fails `agent-finish.mjs` outright at step 1.
 - **Standing API facts that have bitten before:** `planDelete()` is gone (use `dryRun`); `discipline`
   lives on the part; ids are opaque ULIDs (never parse or render them — use `element.name`); `mass` may
   be absent (render "—", never "0 kg"); on save persist `saveBnn(scene, { journal: doc.changeFeed(),
