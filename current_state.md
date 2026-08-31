@@ -631,6 +631,35 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-003 — review: the screen renders, byte-identical, console-error-free — re-executed in the real browser — 2026-08-31 — seat: khalihlna
+
+- **CHANGED:** nothing on the branch beyond this review's own record —
+  `handoff/khalihlna/2026-08-31-T-003-review.md` NEW; this abstract; the build entry's `REVIEW:` line
+  below.
+- **VERIFIED:** Item 1, both halves, re-executed here. **Headless:** stubbed `licenseTexts.ts`'s
+  `NOTICE_TEXT` export ⇒ `licenseTexts.test.ts` **1 failed | 2 passed (3)**,
+  `expected 'REVERT-VERIFICATION STUB…' to be '…the real NOTICE text'`; restored ⇒ **3 passed (3)**,
+  `git status` clean. **Browser, for real (this seat carries no `unverified here:` exception):**
+  `playwright-core` installed into a scratch dir, real dev server (`vite --port 5300`, bound on `[::1]`
+  not `127.0.0.1` — worth carrying forward), `BUNYAN_BROWSER_CMD`'s Chromium. Booted the app, waited for
+  `Kernel:` (real OCCT boot), clicked "Licences": dialog renders the `NOTICE` heading + full text
+  (mentions OCCT), all 10 `.license-section` headings present and byte-identical in name to
+  `ls licenses/` on disk, console errors identical before/after (the one pre-existing 404, no new one),
+  Close dismisses it. `pnpm verify` re-run in full, locally — **exit 0, 100 files / 987 tests**,
+  `docs:check` **8 files / 166 tests** — matches the build entry's quoted figures exactly.
+- **FOUND:** nothing red. Cross-checked the build entry's claim that PR #45 (T-002) was
+  "APPROVED and MERGED by khalihlna on Davidian-Abdo" against `gh pr view 45` — `MERGED`,
+  `mergedBy: Davidian-Abdo`, real. The "8 files" vs working-tree "9 files" figures reconcile: `fe9f5db`
+  (code+docs, 8 files) vs `9d81ab7` (`agent-finish.mjs`'s own status-flip commit) — no discrepancy.
+- **OWES:** nothing new to a `pc` seat — every claim here, browser included, is executed on this exact
+  machine. `brahim`/`zayd` — `BUNYAN_PNPM_CMD` documentation, but that landed on `main` directly
+  (`af8613f`) ahead of this review, so already discharged.
+- **RISK:** additive — confirmed independently: `tests/freeze-boundary.test.ts` 19/19 green,
+  CI's `PR shape · reserved classes` SUCCESS with zero labels, no `needs-operator/*`.
+- **FULL:** `handoff/khalihlna/2026-08-31-T-003-review.md`
+- **REVIEW:** n/a — this IS the review turn. **APPROVED and MERGED** by `khalihlna` on `Davidian-Abdo`
+  (PR #46, merge commit `ec21a92`).
+
 ### T-003 — the in-app open-source licences screen — 2026-08-31 — seat: amer
 
 - **CHANGED:** `apps/web/src/ui/LicensesScreen.tsx` NEW — a modal (`Ribbon`'s `CommandDialog` shape),
@@ -659,7 +688,9 @@ is maintenance and does NOT get an entry of its own.**
   unactioned. `CLA.md` untouched — Q11/Q12 remain owner-only.
 - **RISK:** additive — no contract surface, no `SnapKind`, no frozen byte moved.
 - **FULL:** `handoff/amer/2026-08-31-T-003-in-app-licences-screen.md`
-- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.**
+- **REVIEW:** **APPROVED and MERGED** by `khalihlna` on `Davidian-Abdo` (PR #46, 2026-08-31) —
+  `RISK: additive`, green CI, no `needs-operator/*`. Item 1 re-executed, both halves, in the review's own
+  session — see the review's own abstract above.
 
 ### T-002 — the two-candidate-line intersection snap — 2026-08-31 — seat: amer
 
@@ -961,16 +992,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-003 (amer, 2026-08-31)** |
-| branch · tip · tree | `task/T-003-the-in-app-open-source-licences-screen` · `fe9f5db` · clean |
+| **newest entry** | **T-003 (khalihlna, 2026-08-31)** |
+| branch · tip · tree | `task/T-003-the-in-app-open-source-licences-screen` · `ec21a92` · dirty |
 | open PRs | none — main is the tip of the work |
 | suite | **987 green** · 100 files · 301 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 369 insertions(+), 64 deletions(-) (8 files) |
-| docs budget | current_state 81.4/96.0 KB · §7 28.8/32.0 KB · abstracts 9/10 · bodies 92 |
+| diff vs origin/main | 1 file changed, 37 insertions(+), 6 deletions(-) (1 files) |
+| docs budget | current_state 84.0/96.0 KB · §7 31.3/32.0 KB · abstracts 10/10 · bodies 93 |
 
 _Generated 2026-08-31 by `pnpm state`._
 
