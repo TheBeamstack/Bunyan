@@ -27,8 +27,8 @@ gh label create needs-operator/freeze --color 5319E7 \
 `403 — "Upgrade to GitHub Pro or make this repository public"`:
 
 ```
-gh api repos/Davidian-Abdo/Bunyan/branches/main/protection
-gh api repos/Davidian-Abdo/Bunyan/rulesets
+gh api repos/TheBeamstack/Bunyan/branches/main/protection
+gh api repos/TheBeamstack/Bunyan/rulesets
 ```
 
 `Bunyan` is private on a free personal plan; the token is `ADMIN`, so access is not the issue. This
@@ -71,7 +71,7 @@ read (fine-grained, scoped to this repository). The account must already be a co
 Run this the day either changes:
 
 ```bash
-gh api -X PUT repos/Davidian-Abdo/Bunyan/branches/main/protection --input - <<'JSON'
+gh api -X PUT repos/TheBeamstack/Bunyan/branches/main/protection --input - <<'JSON'
 {
   "required_status_checks": {
     "strict": true,
@@ -114,14 +114,14 @@ repo is private and single-owner (D87/Q13), so no stranger's fork can ever get a
 on it.
 
 **To re-register** (token expires, or a new runner instance): `gh api -X POST
-repos/Davidian-Abdo/Bunyan/actions/runners/registration-token --jq .token`, then on the runner box, from
-`~/actions-runner`: `./config.sh --url https://github.com/Davidian-Abdo/Bunyan --token <token> --labels
+repos/TheBeamstack/Bunyan/actions/runners/registration-token --jq .token`, then on the runner box, from
+`~/actions-runner`: `./config.sh --url https://github.com/TheBeamstack/Bunyan --token <token> --labels
 bunyan-oracle,self-hosted,arm64 --name bunyan-oracle-runner --unattended --replace`, then `sudo
 ./svc.sh install && sudo ./svc.sh start`. Needs `gh` installed on the runner itself (not bundled — a
 GitHub-hosted image has it, a bare self-hosted one does not; installed via the official apt repo, see
 `cli.github.com/packages`) since `pr-shape`'s job calls it directly.
 
-**To check it's alive:** `gh api repos/Davidian-Abdo/Bunyan/actions/runners --jq '.runners[]'` — expect
+**To check it's alive:** `gh api repos/TheBeamstack/Bunyan/actions/runners --jq '.runners[]'` — expect
 `status: online`.
 
 ## Deliberately absent
