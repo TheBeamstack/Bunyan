@@ -117,10 +117,10 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 | builder | `amer` |
 | role | builder |
 | machine | pc |
-| task | `T-002` |
-| branch | `task/T-002-the-two-candidate-line-intersection-snap` |
-| claimed-at | 2026-08-31T10:38:44Z |
-| status | finished — PR open, awaiting review |
+| task | `T-003` |
+| branch | `task/T-003-the-in-app-open-source-licences-screen` |
+| claimed-at | 2026-08-31T12:17:24Z |
+| status | working |
 
 <!-- END BATON -->
 
