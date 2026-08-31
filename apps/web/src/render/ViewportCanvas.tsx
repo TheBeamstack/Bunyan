@@ -17,7 +17,11 @@ import { Viewport, type PickResult } from './Viewport';
 import type { RenderPart } from './Viewport';
 import type { RenderGateway } from './RenderGateway';
 import { faceCandidate, type SnapHit, type SnapKind } from '../tool/snap';
-import { guideCandidates, perpendicularCandidates } from '../tool/align';
+import {
+  guideCandidates,
+  lineIntersectionCandidates,
+  perpendicularCandidates,
+} from '../tool/align';
 import { encodeSubShapeRef, type Vec3 } from '@bunyan/protocol';
 
 /** A pointer that moves more than this (CSS px) between down and up is an orbit drag, not a pick. */
@@ -167,6 +171,12 @@ export function ViewportCanvas({
       const feet = authoringRef.current
         ? viewport.perpendicularAt(cursor, SNAP_TOLERANCE_PX, snapToRef.current, anchor)
         : [];
+      // ⚠ Same ordering reason again (Entry 80, T-002): a line-line crossing is a snap CANDIDATE too, so
+      // it must exist before `chooseSnap` runs. Gated on `authoringRef` like the other two derived kinds
+      // — Select collects no point, so there is nothing a crossing could ever be offered to.
+      const crossings = authoringRef.current
+        ? viewport.intersectionsAt(cursor, SNAP_TOLERANCE_PX, snapToRef.current)
+        : [];
 
       const snap = viewport.snapAt(
         cursor,
@@ -184,6 +194,7 @@ export function ViewportCanvas({
               ]),
           ...guideCandidates(guides),
           ...perpendicularCandidates(feet),
+          ...lineIntersectionCandidates(crossings),
         ],
         snapToRef.current,
       );

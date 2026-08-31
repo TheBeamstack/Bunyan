@@ -22,14 +22,18 @@ import { describe, expect, it } from 'vitest';
 import type { Vec3 } from '@bunyan/protocol';
 import {
   GUIDE_SNAP_KIND,
+  LINE_INTERSECTION_SNAP_KIND,
   PERPENDICULAR_SNAP_KIND,
   alignmentGuides,
   guideCandidates,
+  lineIntersectionCandidates,
+  lineIntersections,
   perpendicularCandidates,
   perpendicularFeet,
   referenceEdges,
   referencePoints,
   type AlignmentOptions,
+  type LineIntersectionOptions,
   type PerpendicularOptions,
 } from './align';
 import { SNAP_PRIORITY, chooseSnap, rankOf, type Project, type SnapCandidate } from './snap';
@@ -442,5 +446,192 @@ describe('⚠⚠ which candidates may form a REFERENCE EDGE — by `ref`, never 
     expect(
       referenceEdges([at([0, 0, 0], 'wall-a/edge/0'), at([0, 1, 0], 'wall-b/edge/0')]),
     ).toEqual([]); // each `ref` alone has only ONE endpoint — neither resolves to a pair
+  });
+});
+
+/**
+ * TWO-CANDIDATE-LINE INTERSECTION tests (T-002, P4.5 §4.3's third derived kind). Hostile to the same
+ * shapes the perpendicular tests are, plus the two new ways THIS kind can be wrong while looking right:
+ *   (a) an intersection that carries an identity — Entry-80's rule, applied to a point on NEITHER line;
+ *   (b) an intersection that outranks or is outranked wrongly — Q3's array, asserted BY PLACE;
+ *   (c) an intersection clamped to a finite segment when the real crossing is past either edge's end;
+ *   (d) an intersection reported for lines that are genuinely skew (different levels) rather than a
+ *       mesh-deflection hair off coplanar — the Tier-1-is-approximate guard-rail (§4.1/§4.4) applied to
+ *       two lines instead of one.
+ */
+function intersect(
+  overrides: Partial<LineIntersectionOptions> = {},
+): ReturnType<typeof lineIntersections> {
+  return lineIntersections({
+    cursorPx: [2000, 0],
+    lines: [
+      [
+        [0, 0, 0],
+        [4000, 0, 0],
+      ],
+      [
+        [2000, -4000, 0],
+        [2000, 4000, 0],
+      ],
+    ],
+    project: flat,
+    tolerancePx: 12,
+    ...overrides,
+  });
+}
+
+describe('when a line-line intersection fires', () => {
+  it('lands where the two lines cross', () => {
+    const hits = intersect();
+    expect(hits).toHaveLength(1);
+    expect(hits[0]?.point).toEqual([2000, 0, 0]);
+    expect(hits[0]?.pixelDistance).toBe(0);
+  });
+
+  it('does not fire when the crossing is off the cursor by more than the tolerance', () => {
+    expect(intersect({ cursorPx: [2013, 0] })).toEqual([]);
+    expect(intersect({ cursorPx: [2011, 0] })).toHaveLength(1);
+  });
+
+  it('⚠ is NOT clamped to either segment — a crossing past both drawn extents is still valid', () => {
+    // Line A only spans x∈[0,1000]; line B only spans y∈[-1000,1000] at x=5000. Extended, they cross at
+    // (5000,0,0) — nowhere near either drawn segment.
+    const hits = intersect({
+      cursorPx: [5000, 0],
+      lines: [
+        [
+          [0, 0, 0],
+          [1000, 0, 0],
+        ],
+        [
+          [5000, -1000, 0],
+          [5000, 1000, 0],
+        ],
+      ],
+    });
+    expect(hits[0]?.point).toEqual([5000, 0, 0]);
+  });
+
+  it('skips two parallel lines — there is no single crossing to report', () => {
+    expect(
+      intersect({
+        cursorPx: [2000, 50],
+        lines: [
+          [
+            [0, 0, 0],
+            [4000, 0, 0],
+          ],
+          [
+            [0, 100, 0],
+            [4000, 100, 0],
+          ],
+        ],
+      }),
+    ).toEqual([]);
+  });
+
+  it('⚠ refuses a NEAR-parallel crossing too — under `minAngleDeg` the point is not stable', () => {
+    // Both lines lie in z=0, so any non-parallel pair here truly meets (gap 0) — only the angle decides.
+    const lines: readonly (readonly [Vec3, Vec3])[] = [
+      [
+        [0, 0, 0],
+        [1000, 0, 0],
+      ],
+      [
+        [0, 100, 0],
+        [1000, 110, 0], // ~0.57° off parallel
+      ],
+    ];
+    expect(intersect({ lines, cursorPx: [0, 0], tolerancePx: 1_000_000 })).toEqual([]);
+    // The threshold is real, not decorative: lowering it below the actual ~0.57° admits the same pair.
+    expect(
+      intersect({ lines, cursorPx: [0, 0], tolerancePx: 1_000_000, minAngleDeg: 0.1 }),
+    ).toHaveLength(1);
+  });
+
+  it('skips a degenerate (zero-length) line rather than throwing', () => {
+    expect(
+      intersect({
+        lines: [
+          [
+            [10, 10, 0],
+            [10, 10, 0],
+          ],
+          [
+            [2000, -4000, 0],
+            [2000, 4000, 0],
+          ],
+        ],
+      }),
+    ).toEqual([]);
+  });
+
+  it('⚠⚠ refuses a genuinely SKEW crossing — Tier 1 is approximate, and a real gap is not a mesh hair', () => {
+    // Coplanar-in-x/y but 1000 mm apart in z: two edges at different levels that only LOOK like they
+    // cross from this projection. Default `maxGapMm` (5, the display mesh's own chord error) refuses it.
+    const skew: readonly (readonly [Vec3, Vec3])[] = [
+      [
+        [0, 0, 0],
+        [4000, 0, 0],
+      ],
+      [
+        [2000, -4000, 1000],
+        [2000, 4000, 1000],
+      ],
+    ];
+    expect(intersect({ lines: skew })).toEqual([]);
+    // ⚠ And the guard is a real threshold, not a `=== 0` check: raising it far enough accepts the same
+    // pair, landing at the MIDPOINT of the two lines' closest approach — never one line's point alone.
+    const hits = intersect({ lines: skew, maxGapMm: 2000 });
+    expect(hits[0]?.point).toEqual([2000, 0, 500]);
+  });
+
+  it('drops a crossing the camera cannot see rather than reporting it', () => {
+    const behind: Project = () => null;
+    expect(intersect({ project: behind })).toEqual([]);
+  });
+});
+
+describe('⚠⚠ what an intersection candidate CARRIES — the Entry-80 rule, applied to this kind too', () => {
+  it('carries NO ref, NO elementId and NO nodeId, however the two edges were found', () => {
+    const [candidate] = lineIntersectionCandidates(intersect());
+    expect(candidate?.point).toEqual([2000, 0, 0]);
+    expect(candidate?.kind).toBe(LINE_INTERSECTION_SNAP_KIND);
+    expect(candidate === undefined ? [] : Object.keys(candidate)).toEqual(['point', 'kind']);
+  });
+
+  it('⚠ sits in the RULED slot without adding one: only endpoint beats it', () => {
+    // The ruling (Q3, owner, 2026-07-30) is a single array; this asserts the crossing's place IN it
+    // rather than re-stating the array, so re-ruling the order re-rules this too.
+    expect(SNAP_PRIORITY).toContain(LINE_INTERSECTION_SNAP_KIND);
+    expect(rankOf('endpoint')).toBeLessThan(rankOf(LINE_INTERSECTION_SNAP_KIND));
+    expect(rankOf(LINE_INTERSECTION_SNAP_KIND)).toBeLessThan(rankOf('midpoint'));
+    expect(rankOf(LINE_INTERSECTION_SNAP_KIND)).toBeLessThan(rankOf('grid'));
+    expect(rankOf(LINE_INTERSECTION_SNAP_KIND)).toBeLessThan(rankOf(PERPENDICULAR_SNAP_KIND));
+    expect(rankOf(LINE_INTERSECTION_SNAP_KIND)).toBeLessThan(rankOf(GUIDE_SNAP_KIND));
+    expect(rankOf(LINE_INTERSECTION_SNAP_KIND)).toBeLessThan(rankOf('face'));
+    expect(rankOf(LINE_INTERSECTION_SNAP_KIND)).toBeLessThan(rankOf('free'));
+
+    // Driven, not just ranked: an endpoint 10 px away beats a crossing dead under the cursor.
+    const endpoint: SnapCandidate = { point: [2010, 0, 0], kind: 'endpoint', ref: 'wall-1…edge' };
+    const winner = chooseSnap(
+      [endpoint, ...lineIntersectionCandidates(intersect())],
+      flat,
+      [2000, 0],
+      12,
+      null,
+    );
+    expect(winner?.kind).toBe('endpoint');
+
+    // And it beats a midpoint dead under the cursor the other way.
+    const midpoint: SnapCandidate = { point: [2010, 0, 0], kind: 'midpoint' };
+    const winnerOther = chooseSnap(
+      [midpoint, ...lineIntersectionCandidates(intersect())],
+      flat,
+      [2000, 0],
+      12,
+      null,
+    );
+    expect(winnerOther?.kind).toBe(LINE_INTERSECTION_SNAP_KIND);
   });
 });
