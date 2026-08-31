@@ -52,6 +52,7 @@ import {
 import { encodeSubShapeRef } from '@bunyan/protocol';
 import { Ribbon } from './ui/Ribbon';
 import { PropertyPanel } from './ui/PropertyPanel';
+import { LicensesScreen } from './ui/LicensesScreen';
 import { formatError, isSuperseded } from './edit/runner';
 import type { Dispatch } from './edit/runner';
 import { withUiRefresh } from './edit/agentRefresh';
@@ -114,6 +115,8 @@ export function App() {
   const [banner, setBanner] = useState<string | null>(null);
   // Bumped after every committed edit — the signal that the document changed under React's feet.
   const [version, bump] = useReducer((n: number) => n + 1, 0);
+  // T-003 — the in-app open-source-licences screen. App-layer only; touches no document state.
+  const [showLicenses, setShowLicenses] = useState(false);
 
   /** The primary selection — what the property panel and quantities show. Last one added (see above). */
   const selectedId = useMemo<ElementId | null>(() => {
@@ -593,6 +596,15 @@ export function App() {
           {status.kind === 'ready' && `Kernel: ${kernelLabel}`}
           {status.kind === 'error' && `Error: ${status.message}`}
         </span>
+        <button
+          type="button"
+          className="header-link-button"
+          onClick={() => {
+            setShowLicenses(true);
+          }}
+        >
+          Licences
+        </button>
         {banner !== null && (
           <span className="banner" role="alert">
             {banner}
@@ -777,6 +789,13 @@ export function App() {
           )}
         </aside>
       </main>
+      {showLicenses && (
+        <LicensesScreen
+          onClose={() => {
+            setShowLicenses(false);
+          }}
+        />
+      )}
     </div>
   );
 }
