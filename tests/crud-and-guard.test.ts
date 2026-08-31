@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE MISSING CRUD + THE REFUSE-OR-RETARGET GUARD (D50 step 0e/0f, D51 generalised). Entry 35, 2026-07-17.
  * Designed in `P5_step0e_design.md` (owner-approved). Against the real OCCT kernel.

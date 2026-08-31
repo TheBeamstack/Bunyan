@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ **THE LAZY-BUILD INSTRUMENT (D66, T-018).** The measurements
  * `docs/design/P5_step9_D66_lazy_build_design.md` is written from — it is a committed test file rather

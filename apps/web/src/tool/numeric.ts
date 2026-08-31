@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * NUMERIC ENTRY — P4.5 design §6, the thing that makes a CAD tool precise rather than approximate.
  *

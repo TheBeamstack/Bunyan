@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // Judge a freshly-linked WASM kernel against the goldens seeded offline from a NATIVE OCCT build.
 //
 // A disagreement here means OUR code is wrong (spec §9.0) — the WASM build, the op wiring, or the

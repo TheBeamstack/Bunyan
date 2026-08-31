@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE TYPED DEPENDENCY GRAPH (D50 step 0a) — the rebuild invalidator is now a DECLARED graph, and the
  * once-missing edge is in it. Entry 33, 2026-07-16.

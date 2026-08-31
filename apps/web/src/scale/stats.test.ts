@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * Unit test for the scale harness's pure percentile helper (plan P4 step 9b). The harness's frame-time
  * number (axis b) is a percentile over per-frame durations, so the percentile itself must be correct —

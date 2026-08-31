@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * A HOSTED DOOR HOLDS ITS POSITION WHEN ITS WALL IS JOINED (Revit's model — owner-ruled 2026-07-21).
  *

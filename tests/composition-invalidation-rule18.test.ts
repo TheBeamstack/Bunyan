@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ DOMAIN RULE 18, SWEPT BACKWARD — *"An element may own child ELEMENTS, not only parts"* (D59,
  * `core_logic.md` §8.18), against the INVALIDATOR, which was written before children existed.

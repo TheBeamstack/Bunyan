@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE DOCUMENT MODEL, ON REAL GEOMETRY (P3 steps 1–2; D30, D31, D33, D35, D36).
  *

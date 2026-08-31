@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ DOMAIN RULE 13 — *"An element's `id` IS its PEI, and it survives every rebuild, resize and
  * RE-ISSUE."* Real OCCT, headless. (Entry 60's follow-on backward sweep.)

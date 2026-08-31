@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * GATE ⑨ — 2D-ANNOTATION ANCHORING survives a resize (Freeze-Gate ⑨, D49) — real OCCT, headless.
  *

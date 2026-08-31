@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE SKETCH-SOLVER SEAM (D50 §0d, `P5_step0d_design.md`) — the 2D constraint solver, injected the way
  * the kernel is (D19 precedent), so `@bunyan/document` never hard-depends on a solver implementation.

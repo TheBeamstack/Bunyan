@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * DESIGN OPTIONS — the D65 shapes (Freeze-Gate row Ⓕ; `P5_step5F_reservations_design.md`).
  * Owner-ruled 2026-07-24: **reserve the shapes AND write the exclusion invariant into the frozen contract**

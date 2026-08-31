@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * PERSISTENT NAMING — REVOLVE. Identity, not millimetres. `golden-revolve.test.ts` proves the solid is
  * the right shape; this proves you can still find the same face on it tomorrow.

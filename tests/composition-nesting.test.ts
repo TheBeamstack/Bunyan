@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * D59 — ELEMENT COMPOSITION / NESTING (Freeze-Gate row Ⓑ, owner-ruled 2026-07-22 Model A) — against the
  * REAL OCCT kernel, headless. The design: `P5_step5B_composition_nesting_design.md`.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `SubShapeRef` — the stable identity of a face/edge/vertex (spec §4.5, core_logic §3.9).
  *

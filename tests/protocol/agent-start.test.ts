@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `scripts/agent-start.mjs`, exercised by SPAWNING it — the same reasoning mdo gives for testing
  * `agent-start.sh` this way: every refusal here is a gate the whole protocol rests on, and a test

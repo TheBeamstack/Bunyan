@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE UI-REFRESH GAP, CLOSED AND PINNED (P4 — the D19 equivalence work). Entry 26 found that an agent edit
  * through `window.bunyan.execute` mutated the document but did NOT refresh the React view, because it

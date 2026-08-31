@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * FIXTURE BIM OBJECT TYPES — registered, never hard-coded (domain rule 5).
  *

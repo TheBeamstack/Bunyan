@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * MEP SYSTEMS & CONNECTORS — RESERVED shapes (D62, Freeze-Gate row Ⓕ; `P5_step5F_reservations_design.md`).
  * Owner-ruled 2026-07-24: **Q1 = FULL RESERVE** — the system collection, the element-side connector list and

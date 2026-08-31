@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ **D66 §3c — FORCE vs DECLARE, per aggregate (T-005).**
  * `docs/design/P5_step9_D66_lazy_build_design.md` §3c is the design; this is what discharges it.

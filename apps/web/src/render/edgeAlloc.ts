@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE EDGE-BUFFER ALLOCATOR — pure, and therefore measurable headlessly (P4 step 9(b), the batching
  * rewrite; design in `P4_step9_renderer_batching_design.md` §7).

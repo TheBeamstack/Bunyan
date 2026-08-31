@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ `pnpm state`'s RISK VERDICT, ACTUALLY EXECUTED — the half `freeze-boundary.test.ts` cannot reach.
  *

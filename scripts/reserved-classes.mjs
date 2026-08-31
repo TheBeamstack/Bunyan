@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * scripts/reserved-classes.mjs — labels a PR with the owner-gated classes it falls into
  * (`AGENTS.md §5`), so the routing is on the PR rather than in a reviewer's memory of §8's RISK row.

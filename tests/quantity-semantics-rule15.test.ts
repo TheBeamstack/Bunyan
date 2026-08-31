@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ DOMAIN RULE 15 — *"A quantity is MEASURED, never reconstructed"* / *"it must never emit a WRONG one
  * wearing the `exact` badge."* Real OCCT, headless. (Entry 60's follow-on backward sweep.)

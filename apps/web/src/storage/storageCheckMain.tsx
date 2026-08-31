@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /** Entry point for the storage self-check page (`storage-check.html`). */
 
 import { createRoot } from 'react-dom/client';

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * D61 — THE FAMILY-DEFINITION DATA-FORMAT SEAM (Freeze-Gate row Ⓓ; `P5_step5D_family_seam_design.md`).
  * Owner-ruled 2026-07-22: Q1 = embedded in `scene.json`; Q2 = a FULLY-SHAPED grammar now; Q3 = prefixed ULID.

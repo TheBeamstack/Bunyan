@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE SPATIAL-QUERY SEAM — Tier 2 of the P4.5 snap design (§4), and the seam the plan said was missing.
  *

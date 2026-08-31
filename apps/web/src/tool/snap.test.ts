@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * Tier-1 snap index tests (P4.5 §4). Headless: the projection is injected, so there is no camera and no
  * three.js — only the logic that decides WHERE a click lands.

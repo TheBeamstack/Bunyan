@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `scripts/reserved-classes.mjs` — the three owner-gated classes, detected against a REAL git history
  * in a fixture repo rather than by grepping the script.

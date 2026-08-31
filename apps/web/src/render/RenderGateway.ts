@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * The RENDER seam — how the renderer turns a part's `ShapeHandle` into triangles, and the ONLY kernel
  * op the browser hot path is allowed to reach for.

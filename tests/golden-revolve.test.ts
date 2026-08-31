@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE GOLDENS FOR REVOLVE — the last op P2 step 1 named that had never been built, and the half of
  * GenericSolid that `extrude` does not cover.

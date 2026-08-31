@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE VIEW BODY — a drawing is a PROJECTION of the B-Rep, and this file is where that becomes true.
  *

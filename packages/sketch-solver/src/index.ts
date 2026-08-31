@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `@bunyan/sketch-solver` — the 2D constraint solver, planegcs behind the `@bunyan/document` seam (D50 §0d).
  *

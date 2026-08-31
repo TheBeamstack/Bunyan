@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE GLUE MUST NOT DECODE FROM A VIEW OF GROWABLE MEMORY — T-022.
  *

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 // probe.cpp — A MEASUREMENT INSTRUMENT. It is NOT part of the shipped kernel.
 //
 // WHY THIS FILE EXISTS (spec §4.5, current_state.md §5 task 1). Persistent naming is the #1 risk in

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ THE MODEL REVISION — the ONE new concept the ecosystem costs us (D34), and the anchor D40 gave it.
  *

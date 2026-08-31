@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * ⚠⚠ DOMAIN RULE 4, SWEPT BACKWARD — *"failed operations reject and preserve the last-good state; no
  * partial or auto-invented geometry"* — at the granularity the rule is actually about. Real OCCT,

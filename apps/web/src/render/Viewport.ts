@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * The three.js scene manager — kernel meshes → a BATCHED scene, orbit camera, grid, axes.
  *

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE TIER-1 SNAP INDEX — P4.5 design §4.1, the browser-side half of the ruled two-tier seam (owner Q2).
  *

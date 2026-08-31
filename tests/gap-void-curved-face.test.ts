@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * THE ELEVENTH GAP — A HOSTED VOID ON A CURVED FACE (a duct through a ROUND column). Found by modelling,
  * fixed the same day, revert-verified. Entry 30, 2026-07-16.

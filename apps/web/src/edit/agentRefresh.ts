@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * CLOSE THE UI-REFRESH GAP (P4 — the D19 equivalence work; the gap Entry 26 found).
  *

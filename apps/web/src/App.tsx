@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * The P4 shell. Boots the kernel through `bootstrap()`, seeds a scaffold wall through the command
  * layer, and gives it an editing UI: a registry-generated ribbon and a schema-driven property panel.

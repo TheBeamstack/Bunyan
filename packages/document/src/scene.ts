@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `Scene` — the parametric truth. **This object IS `scene.json`** (spec §6): serialize it and you have
  * the file; parse the file and you have the model.

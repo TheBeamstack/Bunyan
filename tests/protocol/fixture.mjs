@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * A throwaway git repository shaped enough for `scripts/{seats,agent-start,agent-finish,state}.mjs`
  * to run against via `--root`, exactly the reason mdo's own `agent-start.sh --root`/`--no-pull` exist:

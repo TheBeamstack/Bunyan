@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * SUB-SHAPE PICKING — the pure resolution half (P4 step 4). No three.js here on purpose: the raycast that
  * produces a hit triangle lives in `Viewport` (it needs the camera + renderer), but turning that triangle

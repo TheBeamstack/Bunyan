@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * VIEW FILTER — headless assertions for the pure visibility logic (P4.5 design §7). GL draws nothing
  * here; this is all decision logic, so it is verified in Node per the standing split.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * App-facing helpers over the `IndexedDbStore` (plan P4 step 5 / persistence) — the glue between the
  * document layer's `.bnn` codec + `Autosave` and the React shell.

@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * `.bnn` — SAVE, LOAD, MIGRATE, ISSUE, RECOVER (P3 steps 4–7; D34, D38).
  *

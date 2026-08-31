@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
+// SPDX-License-Identifier: AGPL-3.0-only
+
 /**
  * The dispatcher contract (spec §3, §6.2): correlation, coalescing, cancellation, and the
  * memory discipline that keeps a superseded edit from leaking a solid on the WASM heap.
