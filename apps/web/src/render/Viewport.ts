@@ -48,12 +48,15 @@ import {
 } from '../tool/snap';
 import {
   GUIDE_SNAP_KIND,
+  LINE_INTERSECTION_SNAP_KIND,
   PERPENDICULAR_SNAP_KIND,
   alignmentGuides,
+  lineIntersections,
   perpendicularFeet,
   referenceEdges,
   referencePoints,
   type AlignmentGuide,
+  type LineIntersection,
   type PerpendicularFoot,
 } from '../tool/align';
 
@@ -408,6 +411,35 @@ export class Viewport {
       anchor,
       cursorPx,
       edges: referenceEdges(near),
+      project: this.project,
+      tolerancePx,
+    });
+  }
+
+  /**
+   * The line-line intersections near the cursor (design §4.3's third derived kind, T-002) — the
+   * candidates to feed back into `snapAt`. Unlike the perpendicular foot, there is no gesture anchor
+   * here: a crossing is a relationship between two edges alone, so the reference edges are gathered
+   * around the CURSOR's own ground point, the same place `guidesAt` looks.
+   *
+   * ⚠ No new overlay line is drawn for this kind (unlike a guide or a perpendicular foot): both lines a
+   * crossing is built from are already-drawn model edges, so a second dashed copy would be redundant —
+   * `setSnapMarker` already shows the crossing itself once it wins.
+   */
+  intersectionsAt(
+    cursorPx: readonly [number, number],
+    tolerancePx = 12,
+    allow: readonly SnapKind[] | null = null,
+  ): LineIntersection[] {
+    if (this.#disposed) return [];
+    if (allow !== null && !allow.includes(LINE_INTERSECTION_SNAP_KIND)) return [];
+    const cursor = this.groundPointAt(cursorPx);
+    if (cursor === null) return [];
+
+    const near = this.#ensureSnapIndex().near(cursor, GUIDE_REFERENCE_RADIUS_MM);
+    return lineIntersections({
+      cursorPx,
+      lines: referenceEdges(near),
       project: this.project,
       tolerancePx,
     });

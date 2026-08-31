@@ -631,6 +631,35 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-002 — the two-candidate-line intersection snap — 2026-08-31 — seat: amer
+
+- **CHANGED:** `apps/web/src/tool/align.ts` gained `lineIntersections`/`lineIntersectionCandidates` (+
+  internal `closestPointsBetweenLines`) — the third P4.5 §4.3 derived snap kind, `'intersection'`, built
+  from pairs of `referenceEdges` lines, not clamped to either segment, guarded against zero-length,
+  near-parallel (`minAngleDeg`) and genuinely-skew (`maxGapMm`) pairs. Wired into
+  `apps/web/src/render/Viewport.ts` (`intersectionsAt`, gathered around the cursor, no anchor needed) and
+  `apps/web/src/render/ViewportCanvas.tsx`'s pointer-move pipeline. 12 new tests in
+  `apps/web/src/tool/align.test.ts`. `handoff/amer/2026-08-31-T-002-two-candidate-line-intersection-snap.md`
+  NEW; this abstract.
+- **VERIFIED:** `pnpm verify` **exit 0** — 99 files / 984 tests green (385.99s), `docs:check` 8 files / 166
+  tests green (92.21s), `tests/freeze-boundary.test.ts` 19/19 (no frozen byte moved — `'intersection'` was
+  already a declared `SnapKind`). **Browser-verified for real** (real OCCT kernel, real tessellated mesh,
+  real pointer events, `playwright-core` driving `BUNYAN_BROWSER_CMD`'s own Chromium against the dev
+  server on port 5300, outside Windows' excluded 5121–5220 range): seeded two walls whose centrelines
+  cross, extended, at a world point that is ALSO an exact grid point — a real, present, lower-ranked
+  competitor at the identical pixel. ON: `kind: 'intersection'`. OFF (`intersectionsAt` stubbed to `[]`,
+  T-001's own verification pattern): the same pixel resolves `kind: 'grid'` instead — confirming Q3's
+  ranked order, not geometry, decides. Re-confirmed after `git stash`/`git stash pop` restored the code,
+  byte-identical diff before and after.
+- **FOUND:** one `Failed to load resource: 404` on every boot — reproduced identically on clean `main`
+  (`git stash`), URL never surfaced through Playwright's page-level network events (almost certainly a
+  kernel-Worker request, which those events don't observe). Pre-existing, branch-unrelated; not chased.
+- **OWES:** nothing new. P4.5 §4.3's Tier-1 candidate set now has a producer for every declared `SnapKind`
+  except `'vertex'`, which the design itself defers until the kernel exports vertices.
+- **RISK:** additive — no `SnapKind`/contract surface added, only a producer for an already-declared one.
+- **FULL:** `handoff/amer/2026-08-31-T-002-two-candidate-line-intersection-snap.md`
+- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.**
+
 ### STEWARD-blf-open-alignment — review: the re-seed gate's trailer had no bypass for a zero-golden diff, and CI proved it — 2026-08-31 — seat: khalihlna
 
 - **CHANGED:** reverted the SPDX header on the 14 files `scripts/reseed-paths.mjs`'s `GEOMETRY_PATHS`
@@ -950,16 +979,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **STEWARD-blf-open-alignment (khalihlna, 2026-08-31)** |
-| branch · tip · tree | `brahim/2026-08-30-blf-open-alignment` · `0016690` · dirty |
-| open PRs | #44 brahim/2026-08-30-blf-open-alignment |
-| suite | **974 green** · 99 files · 297 suites |
+| **newest entry** | **T-002 (amer, 2026-08-31)** |
+| branch · tip · tree | `task/T-002-the-two-candidate-line-intersection-snap` · `7d1138c` · dirty |
+| open PRs | none — main is the tip of the work |
+| suite | ⚠⚠ 983/984 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 212 files changed, 937 insertions(+), 56 deletions(-) (212 files) |
-| docs budget | current_state 80.7/96.0 KB · §7 28.1/32.0 KB · abstracts 8/10 · bodies 90 |
+| diff vs origin/main | 5 files changed, 412 insertions(+), 9 deletions(-) (5 files) |
+| docs budget | current_state 83.2/96.0 KB · §7 30.6/32.0 KB · abstracts 9/10 · bodies 91 |
 
 _Generated 2026-08-31 by `pnpm state`._
 

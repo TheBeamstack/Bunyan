@@ -3,8 +3,9 @@
 
 /**
  * DERIVED SNAP CANDIDATES — P4.5 design §4.3's app-produced kinds: the axis GUIDE (*"when the cursor is
- * aligned with a live reference point, draw a dashed guide line and snap to it"*) and the PERPENDICULAR
- * foot (below, from the gesture anchor onto a reference edge).
+ * aligned with a live reference point, draw a dashed guide line and snap to it"*), the PERPENDICULAR
+ * foot (from the gesture anchor onto a reference edge), and the two-candidate-LINE INTERSECTION (T-002,
+ * below both — where two reference edges, extended, cross).
  *
  * ⚠⚠ WHAT THIS FILE IS, IN ONE SENTENCE: **a guide is a RENDERING of a Tier-1 candidate, and its point
  * is a Tier-1 candidate of its own** — nothing here touches the model, mints an identity, or calls the
@@ -306,4 +307,143 @@ export function referenceEdges(
 
 function distance(a: Vec3, b: Vec3): number {
   return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
+
+/* ================================================================================================
+ * THE TWO-CANDIDATE-LINE INTERSECTION — P4.5 design §4.3's third derived kind (T-002). The same shape
+ * once more: a fixed point, computed from two REFERENCE EDGES (`referenceEdges` again, never proximity)
+ * extended to infinite lines — a room's corner is most often past where either wall was actually drawn,
+ * the same reason the perpendicular foot above is not clamped to its segment either.
+ * ================================================================================================ */
+
+/**
+ * ⚠ THE KIND THIS CANDIDATE CARRIES. `SnapKind` already declares `'intersection'` and `SNAP_PRIORITY`
+ * already ranks it (Q3, directly below `'endpoint'`) — this file is the first producer, not a new slot.
+ */
+export const LINE_INTERSECTION_SNAP_KIND: SnapKind = 'intersection';
+
+export interface LineIntersection {
+  /** The two reference lines that cross here, each an edge extended to infinity. */
+  readonly lines: readonly [readonly [Vec3, Vec3], readonly [Vec3, Vec3]];
+  /** The crossing itself: what a click would commit. */
+  readonly point: Vec3;
+  readonly pixelDistance: number;
+}
+
+export interface LineIntersectionOptions {
+  readonly cursorPx: readonly [number, number];
+  /** Candidate lines to intersect pairwise — see `referenceEdges` for how one is built without matching. */
+  readonly lines: readonly (readonly [Vec3, Vec3])[];
+  readonly project: Project;
+  readonly tolerancePx: number;
+  /**
+   * ⚠ Tier 1 is approximate (§4.1): two edges that are exactly coplanar in the recipe can still read as a
+   * hair SKEW here, the display mesh's own chord error propagated through two lines instead of one. Below
+   * this gap (mm — the closest distance between the two lines) the crossing is real; above it the lines
+   * are genuinely skew (two edges at different levels) and there is no honest point to offer.
+   */
+  readonly maxGapMm?: number;
+  /** Below this angle (degrees) the lines are near-parallel and "where they cross" is not a stable point. */
+  readonly minAngleDeg?: number;
+}
+
+/**
+ * The intersection of every pair of `lines`, within pixel tolerance of the cursor — the CAD-familiar
+ * "intersection" osnap extended past what either edge was actually drawn: the ArchiCAD/Revit "apparent
+ * intersection" a room's corner needs when the two walls that form it don't quite reach each other.
+ *
+ * ⚠ NOT CLAMPED TO EITHER SEGMENT, for the same reason `perpendicularFeet` is not: the two edges' own
+ * `line` direction is the whole computation, not where either was drawn to stop.
+ */
+export function lineIntersections(options: LineIntersectionOptions): LineIntersection[] {
+  const { cursorPx, lines, project, tolerancePx } = options;
+  const maxGapMm = options.maxGapMm ?? 5; // the display mesh's own chord error (`DISPLAY_DEFLECTION_MM`)
+  const minAngleDeg = options.minAngleDeg ?? 1;
+  const minSin = Math.sin((minAngleDeg * Math.PI) / 180);
+  const out: LineIntersection[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    for (let j = i + 1; j < lines.length; j++) {
+      const lineA = lines[i]!;
+      const lineB = lines[j]!;
+      const closest = closestPointsBetweenLines(lineA, lineB, minSin);
+      if (closest === null) continue; // parallel, near-parallel, or a zero-length line
+      if (closest.gap > maxGapMm) continue; // genuinely skew — no honest point to offer
+
+      const point = midpoint(closest.pointOnA, closest.pointOnB);
+      const screen = project(point);
+      if (screen === null) continue;
+      const pixelDistance = Math.hypot(screen[0] - cursorPx[0], screen[1] - cursorPx[1]);
+      if (pixelDistance > tolerancePx) continue;
+
+      out.push({ lines: [lineA, lineB], point, pixelDistance });
+    }
+  }
+  return out;
+}
+
+/**
+ * The crossings, as snap candidates for `chooseSnap`.
+ *
+ * ⚠⚠ NO `ref`, NO `elementId`, NO `nodeId` — Entry 84's rule, applied to this kind for the same reason as
+ * the guide and the perpendicular foot: the crossing is a point on NEITHER line's own edge (it is not even
+ * clamped to either), so it is on no sub-shape whichever two edges it was measured against. A hosted-void
+ * tool therefore declines an intersection exactly as it declines the other two derived kinds.
+ */
+export function lineIntersectionCandidates(hits: readonly LineIntersection[]): SnapCandidate[] {
+  return hits.map((hit) => ({ point: hit.point, kind: LINE_INTERSECTION_SNAP_KIND }));
+}
+
+/**
+ * The two points nearest each other on two 3D lines (Vec3 point pairs, not clamped to either segment),
+ * and the gap between them — `null` when the lines are degenerate or too close to parallel to answer.
+ *
+ * ⚠ THE PARALLEL GUARD IS THE SINE OF THE ANGLE BETWEEN THE DIRECTIONS, not the denominator of the usual
+ * closest-point solve: the denominator is `|dA × dB|²`, which is a length⁴ quantity and has no tolerance
+ * that means the same thing at every model scale. `sin` is scale-free, so `minAngleDeg` means the same
+ * thing for two edges a metre apart and two edges a kilometre apart.
+ */
+function closestPointsBetweenLines(
+  lineA: readonly [Vec3, Vec3],
+  lineB: readonly [Vec3, Vec3],
+  minSin: number,
+): { readonly pointOnA: Vec3; readonly pointOnB: Vec3; readonly gap: number } | null {
+  const [a0, a1] = lineA;
+  const [b0, b1] = lineB;
+  const dA: Vec3 = [a1[0] - a0[0], a1[1] - a0[1], a1[2] - a0[2]];
+  const dB: Vec3 = [b1[0] - b0[0], b1[1] - b0[1], b1[2] - b0[2]];
+  const lenA = Math.hypot(dA[0], dA[1], dA[2]);
+  const lenB = Math.hypot(dB[0], dB[1], dB[2]);
+  if (lenA < 1 || lenB < 1) return null; // a zero-length line has no direction
+
+  const cross: Vec3 = [
+    dA[1] * dB[2] - dA[2] * dB[1],
+    dA[2] * dB[0] - dA[0] * dB[2],
+    dA[0] * dB[1] - dA[1] * dB[0],
+  ];
+  const sinAngle = Math.hypot(cross[0], cross[1], cross[2]) / (lenA * lenB);
+  if (sinAngle < minSin) return null; // near-parallel — no stable crossing
+
+  const w0: Vec3 = [a0[0] - b0[0], a0[1] - b0[1], a0[2] - b0[2]];
+  const a = dot(dA, dA);
+  const b = dot(dA, dB);
+  const c = dot(dB, dB);
+  const d = dot(dA, w0);
+  const e = dot(dB, w0);
+  const denom = a * c - b * b;
+  if (Math.abs(denom) < 1e-9) return null; // guarded above too; belt for a near-zero-length edge
+
+  const sc = (b * e - c * d) / denom;
+  const tc = (a * e - b * d) / denom;
+  const pointOnA: Vec3 = [a0[0] + dA[0] * sc, a0[1] + dA[1] * sc, a0[2] + dA[2] * sc];
+  const pointOnB: Vec3 = [b0[0] + dB[0] * tc, b0[1] + dB[1] * tc, b0[2] + dB[2] * tc];
+  return { pointOnA, pointOnB, gap: distance(pointOnA, pointOnB) };
+}
+
+function dot(a: Vec3, b: Vec3): number {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
+function midpoint(a: Vec3, b: Vec3): Vec3 {
+  return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2];
 }
