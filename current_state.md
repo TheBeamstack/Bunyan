@@ -631,6 +631,36 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-003 — the in-app open-source licences screen — 2026-08-31 — seat: amer
+
+- **CHANGED:** `apps/web/src/ui/LicensesScreen.tsx` NEW — a modal (`Ribbon`'s `CommandDialog` shape),
+  reachable from a new "Licences" header button in `App.tsx`. Renders `NOTICE` in full, then every
+  `licenses/*.txt`, none summarised. `apps/web/src/ui/licenseTexts.ts` NEW — sources both via Vite's
+  `?raw` import and `import.meta.glob` directly off the repo-root `NOTICE`/`licenses/` files, so nothing
+  here is hand-copied or can drift from what `tests/notice-attribution.test.ts` already keeps honest.
+  3 new headless tests (`licenseTexts.test.ts`): byte-identical to the on-disk `NOTICE`, exactly the
+  on-disk `licenses/` set (none missing/stale/extra), and a non-vacuous-glob guard.
+- **VERIFIED:** `pnpm verify` exit 0 — 100 files / 987 tests green, docs:check 8 files / 166 tests green,
+  `freeze-boundary` 19/19 (no `SnapKind`/contract surface touched — this is UI only). Browser-verified for
+  real (Playwright driving `BUNYAN_BROWSER_CMD`'s Chromium against the dev server on port 5300): booted
+  the app, clicked "Licences", confirmed the dialog renders the `NOTICE` heading, both OCCT license texts
+  (`OCCT_LGPL_EXCEPTION.txt`, `OCCT-LICENSE_LGPL_21.txt`) and all 10 `licenses/*.txt` files present on
+  disk. Console errors identical before/after opening the screen — one pre-existing `Failed to load
+  resource: 404` already documented branch-unrelated in T-002's own review; no new error.
+- **FOUND:** ⚠ **`BUNYAN_PNPM_CMD` recurred a third time** (T-001 Entry 2026-08-28 first documented it,
+  never fixed in `Amer_Prompt.md`/`RUNBOOK.md` as that entry's own OWES asked). This turn's
+  `agent-finish.mjs` failed step 1 outright (`execFileSync('pnpm', …)` with no shell ENOENTs on this
+  machine's shebang-only `pnpm`) until set to T-021's documented value. **Consequence, not just
+  recurrence:** `khalihlna`'s T-002 review turn hit the identical gap, merged PR #45 on GitHub, then could
+  not complete its own `agent-finish.mjs --review` — leaving T-002's `REVIEW:` line stale until corrected
+  above.
+- **OWES:** **`brahim`/`zayd`** — add `BUNYAN_PNPM_CMD` to `Amer_Prompt.md`/`Khalihlna_Prompt.md`/
+  `docs/RUNBOOK.md` for real this time; a third recurrence is the cost of the second one's OWES going
+  unactioned. `CLA.md` untouched — Q11/Q12 remain owner-only.
+- **RISK:** additive — no contract surface, no `SnapKind`, no frozen byte moved.
+- **FULL:** `handoff/amer/2026-08-31-T-003-in-app-licences-screen.md`
+- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.**
+
 ### T-002 — the two-candidate-line intersection snap — 2026-08-31 — seat: amer
 
 - **CHANGED:** `apps/web/src/tool/align.ts` gained `lineIntersections`/`lineIntersectionCandidates` (+
@@ -658,7 +688,13 @@ is maintenance and does NOT get an entry of its own.**
   except `'vertex'`, which the design itself defers until the kernel exports vertices.
 - **RISK:** additive — no `SnapKind`/contract surface added, only a producer for an already-declared one.
 - **FULL:** `handoff/amer/2026-08-31-T-002-two-candidate-line-intersection-snap.md`
-- **REVIEW:** ⚠ **AWAITING REVIEW — this is the open PR.**
+- **REVIEW:** **APPROVED and MERGED** by `khalihlna` on `Davidian-Abdo` (PR #45, 2026-08-31) —
+  `RISK: additive`, green CI, no `needs-operator/*`. Item 1 re-executed with a fresh Playwright driver:
+  revert → `kind: 'grid'`, restore → `kind: 'intersection'` at `[1947.5, 1052.5, 0]`, twice. ⚠ This line
+  was stale (still carried the pending-review marker) because the reviewing session merged on GitHub but
+  never completed its own `agent-finish.mjs --review` run — corrected here, from the review's own PR
+  comment, rather than backfilled as a separate dated entry (invariant 10). Root cause likely the same
+  `BUNYAN_PNPM_CMD` gap this turn (T-003) also hit and documents below.
 
 ### STEWARD-blf-open-alignment — review: the re-seed gate's trailer had no bypass for a zero-golden diff, and CI proved it — 2026-08-31 — seat: khalihlna
 
@@ -918,60 +954,6 @@ is maintenance and does NOT get an entry of its own.**
   Four findings, none red — **F4 fixed on the branch** (T-025 cited a `## Discovered` entry of
   2026-08-21 that does not exist; the second firing is 2026-08-20, inside the 2026-08-19 row).
 
-### T-005 — review: the sweep's lens was narrower than the rule it swept for — 2026-08-22 — seat: hmdnah
-
-- **CHANGED:** one test fix and two documentation files on the branch, **no product code**:
-  `tests/d66-lazy-build-measure.test.ts` — an explicit **`120_000`** timeout on the §3c case, which this
-  PR turned into a whole-model build while leaving it on the 5 s default; `open_rulings.md` — **Q23 NEW**
-  (does `agent.query`'s part-scoped filter FORCE, DECLARE, or stay recipe-only?), with a recommendation and
-  a price; `docs/design/P5_step9_D66_lazy_build_design.md` §3c — one paragraph recording that the ruling
-  table is **not the whole set**, pointing at Q23, because the doc otherwise reads *"§3c is BUILT"* and
-  **T-006 is built next against it**. `handoff/hmdnah/2026-08-22-T-005-review.md` NEW; `zayd`'s `REVIEW:`
-  line above. **PR #40 APPROVED and MERGED** on `narutousomaki741`.
-- **VERIFIED:** ⚠⚠ **TWO OF THE FIVE REVERTS RE-EXECUTED HERE, not inherited.** Baseline
-  `tests/d66-force-declare.test.ts` **8 passed**. `enumerate.ts` back to `'failed'`/`'unbuildable'` ⇒
-  **1 failed | 7 passed**, `expected 'failed' to be 'stale'`; FORCE out of `projectQuantities` ⇒
-  **2 failed | 6 passed**, `expected [ …(2) ] to deeply equal []` on the deferred set. Both reproduce the
-  entry's counts and messages exactly; restored, green. **Sweep re-enumerated independently** over
-  `packages`+`apps` — the seven `.state`/`.failure` readers are real and there is no eighth, and
-  **`apps/web` holds no consumer of `modelElements` or of the four aggregates**, so the "no browser debt"
-  claim is checked, not taken. `rebuildOnly` passes `rejectOnFailure = false` ⇒ **FORCE cannot turn a
-  read-only aggregate into a D42 rejection**, the one failure mode that would have made every take-off
-  throw. `WATCHED` holds none of the four changed files; `PR shape · reserved classes` **ran and passed**
-  with **zero** labels, which is what separates *"no label"* from *"the labeller never executed"*.
-  ⚠⚠ **AND `pnpm verify` GREEN ON THE BOX WAS NOT GREEN CI — THIS PR IS WHERE THE TWO DISAGREED.** The
-  first push went red on the self-hosted runner: `d66-lazy-build-measure.test.ts`'s §3c case
-  **`Test timed out in 5000ms`**, `1 failed | 958 passed`. Cause is this PR's own change — the turn
-  rewrote that case (its §8) so it calls `projectQuantities()`, which after this same PR **FORCES a
-  whole-model rebuild**, turning a pure read into real OCCT work on the 5 s default while the file's own
-  `beforeAll` already carries `900_000`. **Measured both sides: 3892 ms on this box, over 5000 ms on the
-  runner** — a one-second margin, so the machine decided the verdict and the author could not have seen
-  it. Fixed on the branch with an explicit `120_000` and a comment saying it builds. ⚠ The PR's own new
-  `tests/d66-force-declare.test.ts` is unaffected — small fixture, passed on the runner in the same job.
-- **FOUND:** ⚠⚠ **§3c BINDS AN AGGREGATE THE SWEEP'S LENS COULD NOT SEE.** The sweep enumerated readers of
-  `ModelElement.state`/`.failure`; §3c binds *every aggregate that quantifies over the model*, and the two
-  sets differ by `agent.query`. `QueryFilter.discipline`/`.materialId` are **PART-scoped (D45)**, so they
-  read `partsOf()` — empty on a deferred element. Measured on a one-wall document:
-  `query({discipline:'structural'})` returns **1 row built, 0 rows deferred**, while the same element is
-  present in an unfiltered `query()` wearing `state: 'stale'`. Same shortfall this PR fixes for the other
-  five, on the consumer least able to notice it — but **not a regression**, identical before and after, so
-  it is filed (Q23) and not blocked. ⚠ Left unfixed deliberately: FORCE inverts the surface's documented
-  *"reads the RECIPE — no kernel op"* cost contract and a declaration channel changes an `AgentSurface`
-  shape, both design calls on a layer the reviewer does not own. ⚠ **One claim narrower than stated:**
-  *"`saveBnn` reaches no built state"* holds of its signature, but `scene.brokenRefs` **is** a build output
-  `#commit` writes into the Scene and `saveBnn` persists — so a partial document saves a shorter
-  `brokenRefs`. `NEITHER` stays the right ruling; the argument for it is *"the one built field it reaches
-  is re-derived on load by `rebuildAll`"*, not *"it reaches none"*.
-- **OWES:** **owner** — `open_rulings.md` **Q23**, unblocking nothing but freezing with `AgentSurface` at
-  P5. **`brahim`** — `zayd`'s two `## Discovered` rows are unchanged and still unclaimed. **Nothing to a
-  `pc` seat:** every claim here is document-layer and headless, so this review inherits and creates no
-  `unverified here:` debt.
-- **RISK:** additive — `pnpm state` verdict matches the diff, `freeze-boundary` green,
-  `tests/frozen-surface.snapshot.json` untouched, `SCENE_SCHEMA_VERSION` 2, no `needs-operator/*` ⇒ the
-  reviewer merges (`AGENTS.md §5`).
-- **FULL:** `handoff/hmdnah/2026-08-22-T-005-review.md`
-- **REVIEW:** n/a — this IS the review turn.
-
 ## §8 — Generated
 
 
@@ -979,16 +961,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-002 (amer, 2026-08-31)** |
-| branch · tip · tree | `task/T-002-the-two-candidate-line-intersection-snap` · `78c52b3` · clean |
+| **newest entry** | **T-003 (amer, 2026-08-31)** |
+| branch · tip · tree | `task/T-003-the-in-app-open-source-licences-screen` · `b48ed5c` · dirty |
 | open PRs | none — main is the tip of the work |
-| suite | **984 green** · 99 files · 299 suites |
+| suite | ⚠⚠ 985/987 passing — **2 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 6 files changed, 513 insertions(+), 15 deletions(-) (6 files) |
-| docs budget | current_state 83.2/96.0 KB · §7 30.6/32.0 KB · abstracts 9/10 · bodies 91 |
+| diff vs origin/main | 4 files changed, 166 insertions(+), 64 deletions(-) (4 files) |
+| docs budget | current_state 81.4/96.0 KB · §7 28.8/32.0 KB · abstracts 9/10 · bodies 92 |
 
 _Generated 2026-08-31 by `pnpm state`._
 

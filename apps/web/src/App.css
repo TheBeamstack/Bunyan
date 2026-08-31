@@ -54,6 +54,22 @@ body,
   color: #7fb069;
 }
 
+.header-link-button {
+  margin-left: auto;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #9aa0a6;
+  background: transparent;
+  border: 1px solid #333a42;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.header-link-button:hover {
+  color: #e6e8ea;
+  border-color: #4a525c;
+}
+
 .app-body {
   position: relative;
   flex: 1;
@@ -415,6 +431,38 @@ body,
   justify-content: flex-end;
   gap: 8px;
   margin-top: 18px;
+}
+
+/* ---- The licences screen (T-003) — a wide variant of the same modal shape --------------------- */
+
+.modal-wide {
+  width: min(880px, 94vw);
+}
+
+.license-section {
+  margin-top: 16px;
+}
+
+.license-section h4 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #c7ccd1;
+}
+
+.license-text {
+  margin: 0;
+  padding: 12px;
+  max-height: 40vh;
+  overflow: auto;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #c7ccd1;
+  background: #14171a;
+  border: 1px solid #2a2f36;
+  border-radius: 6px;
 }
 
 .view-filter {

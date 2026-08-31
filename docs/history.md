@@ -1328,6 +1328,59 @@ titled by its task id instead, so this section's headings are `T-nnn`/`STEWARD-s
 same as `current_state.md` §7.
 
 
+### T-005 — review: the sweep's lens was narrower than the rule it swept for — 2026-08-22 — seat: hmdnah
+
+- **CHANGED:** one test fix and two documentation files on the branch, **no product code**:
+  `tests/d66-lazy-build-measure.test.ts` — an explicit **`120_000`** timeout on the §3c case, which this
+  PR turned into a whole-model build while leaving it on the 5 s default; `open_rulings.md` — **Q23 NEW**
+  (does `agent.query`'s part-scoped filter FORCE, DECLARE, or stay recipe-only?), with a recommendation and
+  a price; `docs/design/P5_step9_D66_lazy_build_design.md` §3c — one paragraph recording that the ruling
+  table is **not the whole set**, pointing at Q23, because the doc otherwise reads *"§3c is BUILT"* and
+  **T-006 is built next against it**. **PR #40 APPROVED and MERGED** on `narutousomaki741`.
+- **VERIFIED:** ⚠⚠ **TWO OF THE FIVE REVERTS RE-EXECUTED HERE, not inherited.** Baseline
+  `tests/d66-force-declare.test.ts` **8 passed**. `enumerate.ts` back to `'failed'`/`'unbuildable'` ⇒
+  **1 failed | 7 passed**, `expected 'failed' to be 'stale'`; FORCE out of `projectQuantities` ⇒
+  **2 failed | 6 passed**, `expected [ …(2) ] to deeply equal []` on the deferred set. Both reproduce the
+  entry's counts and messages exactly; restored, green. **Sweep re-enumerated independently** over
+  `packages`+`apps` — the seven `.state`/`.failure` readers are real and there is no eighth, and
+  **`apps/web` holds no consumer of `modelElements` or of the four aggregates**, so the "no browser debt"
+  claim is checked, not taken. `rebuildOnly` passes `rejectOnFailure = false` ⇒ **FORCE cannot turn a
+  read-only aggregate into a D42 rejection**, the one failure mode that would have made every take-off
+  throw. `WATCHED` holds none of the four changed files; `PR shape · reserved classes` **ran and passed**
+  with **zero** labels, which is what separates *"no label"* from *"the labeller never executed"*.
+  ⚠⚠ **AND `pnpm verify` GREEN ON THE BOX WAS NOT GREEN CI — THIS PR IS WHERE THE TWO DISAGREED.** The
+  first push went red on the self-hosted runner: `d66-lazy-build-measure.test.ts`'s §3c case
+  **`Test timed out in 5000ms`**, `1 failed | 958 passed`. Cause is this PR's own change — the turn
+  rewrote that case (its §8) so it calls `projectQuantities()`, which after this same PR **FORCES a
+  whole-model rebuild**, turning a pure read into real OCCT work on the 5 s default while the file's own
+  `beforeAll` already carries `900_000`. **Measured both sides: 3892 ms on this box, over 5000 ms on the
+  runner** — a one-second margin, so the machine decided the verdict and the author could not have seen
+  it. Fixed on the branch with an explicit `120_000` and a comment saying it builds. ⚠ The PR's own new
+  `tests/d66-force-declare.test.ts` is unaffected — small fixture, passed on the runner in the same job.
+- **FOUND:** ⚠⚠ **§3c BINDS AN AGGREGATE THE SWEEP'S LENS COULD NOT SEE.** The sweep enumerated readers of
+  `ModelElement.state`/`.failure`; §3c binds *every aggregate that quantifies over the model*, and the two
+  sets differ by `agent.query`. `QueryFilter.discipline`/`.materialId` are **PART-scoped (D45)**, so they
+  read `partsOf()` — empty on a deferred element. Measured on a one-wall document:
+  `query({discipline:'structural'})` returns **1 row built, 0 rows deferred**, while the same element is
+  present in an unfiltered `query()` wearing `state: 'stale'`. Same shortfall this PR fixes for the other
+  five, on the consumer least able to notice it — but **not a regression**, identical before and after, so
+  it is filed (Q23) and not blocked. ⚠ Left unfixed deliberately: FORCE inverts the surface's documented
+  *"reads the RECIPE — no kernel op"* cost contract and a declaration channel changes an `AgentSurface`
+  shape, both design calls on a layer the reviewer does not own. ⚠ **One claim narrower than stated:**
+  *"`saveBnn` reaches no built state"* holds of its signature, but `scene.brokenRefs` **is** a build output
+  `#commit` writes into the Scene and `saveBnn` persists — so a partial document saves a shorter
+  `brokenRefs`. `NEITHER` stays the right ruling; the argument for it is *"the one built field it reaches
+  is re-derived on load by `rebuildAll`"*, not *"it reaches none"*.
+- **OWES:** **owner** — `open_rulings.md` **Q23**, unblocking nothing but freezing with `AgentSurface` at
+  P5. **`brahim`** — `zayd`'s two `## Discovered` rows are unchanged and still unclaimed. **Nothing to a
+  `pc` seat:** every claim here is document-layer and headless, so this review inherits and creates no
+  `unverified here:` debt.
+- **RISK:** additive — `pnpm state` verdict matches the diff, `freeze-boundary` green,
+  `tests/frozen-surface.snapshot.json` untouched, `SCENE_SCHEMA_VERSION` 2, no `needs-operator/*` ⇒ the
+  reviewer merges (`AGENTS.md §5`).
+- **FULL:** `handoff/hmdnah/2026-08-22-T-005-review.md`
+- **REVIEW:** n/a — this IS the review turn.
+
 ### T-022 — the glue decoded from a view of growable memory, at BOTH of its two decode sites — 2026-08-21 — seat: zayd
 
 - **CHANGED:** `tools/kernel-build/postlink.mjs` **NEW** — rewrites both emitted `TextDecoder.decode`
