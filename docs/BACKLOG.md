@@ -777,6 +777,20 @@ overstatement cost a box seat a verification it had to record as undischarged.
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
 
+- **2026-08-30 — the re-seed gate's `Re-seed-unchanged:` trailer has no effect when zero goldens
+  were touched, only when goldens were touched but their payload didn't move.** Found reviewing PR
+  #44 (BLF-Open alignment, `docs/decisions.md` D90): adding a comment-only SPDX header to a file in
+  `scripts/reseed-paths.mjs`'s `GEOMETRY_PATHS` trips `check-reseed.mjs`'s FIRST failure branch
+  (`touchedGoldens.length === 0` ⇒ immediate `process.exit(1)`, no trailer read at all) — the trailer
+  is only consulted in the SECOND branch (a golden file was re-seeded but its values didn't move). A
+  genuinely no-op change to a watched path therefore has no sanctioned way to pass the gate short of
+  actually running the seeder (`tools/oracle/`, pinned native-OCCT toolchain, box-only in practice)
+  to bump `seededAt` on an unrelated golden, purely so the trailer has something to attach to.
+  Worked around for D90 by excluding the 14 affected files from that PR's SPDX sweep, left for a
+  `zayd`/box turn. Not fixed here — the gate's own design may be intentional (forcing an actual
+  re-seed run rather than trusting an author's claim about _any_ geometry-path touch, not only a
+  payload-preserving one), or may want a third branch. Found by `khalihlna` reviewing PR #44.
+
 - **2026-08-23 — two real pc-only defects found and fixed (not the em-dash T-020 blamed); T-021's
   done-when is now down to resource contention, not a correctness gap.** `amer`'s clean `pnpm verify`
   (T-001) first re-confirmed T-020 does not close the pc gap: vitest 4.1.10 (T-020's own pin) still threw

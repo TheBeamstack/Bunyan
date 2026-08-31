@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
-// SPDX-License-Identifier: AGPL-3.0-only
-
 /**
  * THE GEOMETRY CACHE'S VERIFICATION HALF (D29, owner ruling 2026-07-14: SHIP).
  *

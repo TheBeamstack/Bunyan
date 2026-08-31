@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
-// SPDX-License-Identifier: AGPL-3.0-only
-
 /**
  * THE OPENING — the real, shipped hosted element (P5 step 5), and the type that resolves Freeze-Gate ⓙ.
  *

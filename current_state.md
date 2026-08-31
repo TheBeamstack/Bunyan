@@ -633,9 +633,11 @@ is maintenance and does NOT get an entry of its own.**
 
 ### STEWARD-blf-open-alignment — Bunyan is formally BLF-Open; SPDX/NOTICE/TRADEMARKS/CONTRIBUTING aligned, no licence text changed — 2026-08-30 — seat: brahim
 
-- **CHANGED:** SPDX headers added to all 216 tracked source files (`SPDX-FileCopyrightText: 2026
+- **CHANGED:** SPDX headers added to 202 of 216 tracked source files (`SPDX-FileCopyrightText: 2026
   Beamstack <https://beam-stack.com>` + `SPDX-License-Identifier: AGPL-3.0-only`), mechanical, then
-  `prettier --write .` (no further changes — already matched house style). `NOTICE` gained a
+  `prettier --write .` (no further changes — already matched house style). The remaining 14 —
+  `scripts/reseed-paths.mjs`'s `GEOMETRY_PATHS` exactly — excluded this pass (`khalihlna` review
+  finding, `docs/decisions.md` D90). `NOTICE` gained a
   Beamstack copyright/brand block at its head; every existing OCCT/planegcs/MIT section below
   untouched. `TRADEMARKS.md`, `CONTRIBUTING.md`, `README.md` NEW. `CLA.md` gained one cross-reference
   note; substance unchanged. `docs/decisions.md` D90; this abstract.

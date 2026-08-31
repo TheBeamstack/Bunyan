@@ -1,6 +1,3 @@
-// SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
-// SPDX-License-Identifier: AGPL-3.0-only
-
 /**
  * THE WALL — the real, shipped D52 baseline wall (P5 step 3, pulled forward with 0c per the owner's Q4).
  *

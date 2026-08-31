@@ -19,12 +19,22 @@ change.
 
 ## 2. What changed
 
-- **SPDX headers** added to all 216 tracked `.ts`/`.tsx`/`.mjs`/`.cpp`/`.h`
+- **SPDX headers** added to 202 of 216 tracked `.ts`/`.tsx`/`.mjs`/`.cpp`/`.h`
   files — `SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>` +
   `SPDX-License-Identifier: AGPL-3.0-only`, none existed before. Mechanical
   insertion (script, not hand-edited per file) + `prettier --write .`;
   prettier made no further changes, confirming the inserted lines already
-  matched house style.
+  matched house style. **The remaining 14 files — `scripts/reseed-paths.mjs`'s
+  `GEOMETRY_PATHS` exactly — were reverted after CI caught a real gap**: the
+  re-seed gate is path-based, not content-aware, so a comment-only header on
+  a watched file still trips "geometry changed, no golden re-seeded," and
+  its only escape hatch (a `Re-seed-unchanged:` commit trailer) applies only
+  when a golden file WAS touched but its payload didn't move — not when
+  none was touched at all, which is what a bare header addition does. This
+  session cannot re-run the seeder correctly (`tools/oracle/` needs the
+  pinned native-OCCT toolchain, `cadquery-ocp`, which this pc cannot
+  faithfully reproduce), so those 14 headers are left for a `zayd`/box turn
+  that also re-seeds goldens for real.
 - **`NOTICE`** — a Beamstack copyright/brand block added at the head
   (mirrors `templates/NOTICE` in the framework repo); every existing
   OCCT/planegcs/MIT attribution section below it is untouched, byte-for-byte.
