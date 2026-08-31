@@ -113,14 +113,14 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `khalihlna` |
+| seat | `amer` |
 | builder | `amer` |
-| role | reviewer |
+| role | builder |
 | machine | pc |
-| task | `T-001` |
-| branch | `task/T-001-the-perpendicular-foot-snap-candidate` |
-| claimed-at | 2026-08-28T18:46:25Z |
-| status | finished — PR open, awaiting review |
+| task | `T-002` |
+| branch | `task/T-002-the-two-candidate-line-intersection-snap` |
+| claimed-at | 2026-08-31T10:38:44Z |
+| status | working |
 
 <!-- END BATON -->
 
