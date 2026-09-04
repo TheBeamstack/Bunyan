@@ -180,8 +180,10 @@ export function identityGate(seat, expectedAccount, actualLogin) {
 }
 
 /** `gh api user --jq .login`, or `null` on any failure — never throws, so the caller always has an
- * explicit "unresolved" value to hand to `identityGate` rather than an exception to catch twice. */
-function resolveGhLogin(root) {
+ * explicit "unresolved" value to hand to `identityGate` rather than an exception to catch twice.
+ * ⚠ Exported (T-026) — the claim-time call below is no longer the only place that must know WHO `gh`
+ * is authenticated as: `agent-finish.mjs` re-runs the same check independently at review/approve time. */
+export function resolveGhLogin(root) {
   try {
     const out = seats
       .ghSpawn(['api', 'user', '--jq', '.login'], {

@@ -4,7 +4,12 @@
 /**
  * scripts/agent-finish.mjs — the end of a turn (Entry 91, D82).
  *
- *   0. establish WHO is finishing (seat → role + machine)
+ *   0. establish WHO is finishing (seat → role + machine); for a `--review` turn, RE-RUN the identity
+ *      guard independently of the claim (D87, T-013; T-026) — a review approves/merges well after
+ *      `agent-start.mjs`'s own claim-time check ran, in a session that may not even be the one that
+ *      claimed it, so a mis-set/forgotten per-seat `GH_TOKEN` must be caught again here, before
+ *      anything below — including the backlog status flip and the `gh pr review`/`gh pr merge`
+ *      commands this script prints in step 5.
  *   1. run `pnpm verify` in full — a turn does not end red
  *   2. regenerate current_state.md's §8 (`node scripts/state.mjs`)
  *   3. refuse without: a §7 abstract naming this seat and task, a linked handoff body under
@@ -29,7 +34,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as seats from './seats.mjs';
 import { parseAbstracts } from './docs-state.mjs';
-import { renderBaton, parseBaton } from './agent-start.mjs';
+import { renderBaton, parseBaton, identityGate, resolveGhLogin } from './agent-start.mjs';
 
 const SELF_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -85,6 +90,54 @@ export function setRowStatus(backlogPath, taskId, next) {
  */
 export function resolveBuilder(review, priorBaton, seat) {
   return review ? (priorBaton?.builder ?? seat) : seat;
+}
+
+/**
+ * The closing message for a `--review` finish (T-026). This script never calls `gh pr review`/`gh pr
+ * merge` itself — it prints the exact command for the seat to run next — so the wording must never
+ * read as already performed: an abstract or handoff body written from a "Review complete"/"APPROVED"
+ * headline, before the printed command has actually run, is the exact overstatement measured on PR
+ * #39 (a PR with ZERO reviews, recorded as "Verdict: APPROVED, and merged by me"). Every branch below
+ * states approval/merge as OWED. Pure so the wording is unit-testable without a fixture that reaches
+ * `pnpm verify` (this suite's own stated scope limit).
+ */
+export function reviewClosingLines({
+  task,
+  seat,
+  role,
+  machine,
+  riskHighStep1,
+  reviewContractTouching,
+  prNumber,
+}) {
+  const who = `${seat} (${role} on ${machine})`;
+  if (riskHighStep1) {
+    return [
+      `Step 1 complete: ${task}   seat: ${who}`,
+      '',
+      "MECHANICAL REVIEW ONLY (D88) — no approval, no merge. The row stays 'review'.",
+      `PR labeled '${seats.STEP1_LABEL}' — step 2 runs in a separate session, same seat.`,
+      'Post your report (REVIEW.md items 1, 4, 5, 7) on the PR, then stop.',
+    ];
+  }
+  if (reviewContractTouching) {
+    return [
+      `Mechanical review complete: ${task}   seat: ${who}`,
+      '',
+      "RISK: contract-touching — approval is OWED, not yet performed, and the merge is the owner's:",
+      prNumber ? `  gh pr review ${prNumber} --approve` : '  gh pr review <n> --approve',
+      'Run it, then tell the owner it needs their merge. You do not merge this one.',
+    ];
+  }
+  return [
+    `Mechanical review complete: ${task}   seat: ${who}`,
+    '',
+    'RISK: additive — approval and merge are OWED, not yet performed. Run this, on your own account:',
+    prNumber
+      ? `  gh pr review ${prNumber} --approve && gh pr merge ${prNumber} --squash`
+      : '  gh pr review <n> --approve && gh pr merge <n> --squash',
+    'Then pull again before doing anything else.',
+  ];
 }
 
 function parseArgs(argv) {
@@ -157,6 +210,27 @@ export function main(argv = process.argv.slice(2)) {
     console.log(
       '   ⚠ a steward finishing a build task — the steward never builds. That is the defect, if true.',
     );
+  }
+
+  // ---- the identity guard, RE-RUN independently of the claim (D87, T-013; T-026) -----------------
+  // ⚠⚠ WHY THIS IS HERE, NOT ONLY IN `agent-start.mjs`: that script's gate guards the CLAIM; a review
+  // approves and merges well after that call returned, in a session that may not even be the one that
+  // claimed it (`--continue`, T-015) — and may have skipped `agent-start.mjs` altogether. Measured on
+  // PR #39: the box's default `gh` identity WAS the PR's own author, and nothing between the claim and
+  // `gh pr merge` re-checked it. This runs before anything else a review turn does — before `pnpm
+  // verify`, before the backlog status flip, before the push — using the SAME pure `identityGate` the
+  // claim already uses, so a wrong account is refused here exactly as it would be at claim time.
+  if (review) {
+    let account;
+    try {
+      account = seats.accountOf(root, seat);
+    } catch (e) {
+      die(e.message);
+    }
+    const ghLogin = resolveGhLogin(root);
+    const idGate = identityGate(seat, account, ghLogin);
+    if (!idGate.ok) die(idGate.reason);
+    console.log(`   ✓ gh identity: ${ghLogin} — matches seat '${seat}' (${account})`);
   }
 
   // -------------------------------------------------------------------------- the machine gate ----
@@ -569,36 +643,16 @@ export function main(argv = process.argv.slice(2)) {
     } catch {
       /* leave null — the message below still tells the seat what to do */
     }
-    if (isTask && risk === 'high' && step === 1) {
-      console.log(`Step 1 complete: ${task}   seat: ${seat} (${role} on ${machine})`);
-      console.log('');
-      console.log("MECHANICAL REVIEW ONLY (D88) — no approval, no merge. The row stays 'review'.");
-      console.log(
-        `PR labeled '${seats.STEP1_LABEL}' — step 2 runs in a separate session, same seat.`,
-      );
-      console.log('Post your report (REVIEW.md items 1, 4, 5, 7) on the PR, then stop.');
-      return;
-    }
-    if (reviewContractTouching) {
-      console.log(`Review complete: ${task}   seat: ${seat} (${role} on ${machine})`);
-      console.log('');
-      console.log(
-        'RISK: contract-touching — approve it, then tell the owner it needs their merge.',
-      );
-      console.log(
-        prNumber ? `  gh pr review ${prNumber} --approve` : '  gh pr review <n> --approve',
-      );
-      console.log('You do not merge this one. Stop here.');
-    } else {
-      console.log(`Review complete: ${task}   seat: ${seat} (${role} on ${machine})`);
-      console.log('');
-      console.log('RISK: additive — approve it, on your own account, then merge it yourself:');
-      console.log(
-        prNumber
-          ? `  gh pr review ${prNumber} --approve && gh pr merge ${prNumber} --squash`
-          : '  gh pr review <n> --approve && gh pr merge <n> --squash',
-      );
-      console.log('Then pull again before doing anything else.');
+    for (const line of reviewClosingLines({
+      task,
+      seat,
+      role,
+      machine,
+      riskHighStep1: isTask && risk === 'high' && step === 1,
+      reviewContractTouching,
+      prNumber,
+    })) {
+      console.log(line);
     }
     return;
   }

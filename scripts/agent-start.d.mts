@@ -61,3 +61,9 @@ export declare function identityGate(
   expectedAccount: string,
   actualLogin: string | null,
 ): { ok: boolean; reason?: string };
+
+/**
+ * `gh api user --jq .login`, or `null` on any failure (T-026) — exported so `agent-finish.mjs` can
+ * re-run the identity guard independently of a claim, at review/approve time.
+ */
+export declare function resolveGhLogin(root: string): string | null;

@@ -23,4 +23,19 @@ export declare function resolveBuilder(
   seat: string,
 ): string;
 
+/**
+ * The closing message lines for a `--review` finish (T-026) — approval/merge stated as OWED, never as
+ * already performed, since this script only prints the `gh pr review`/`gh pr merge` command rather
+ * than running it. `prNumber` is `null` when the PR number could not be resolved.
+ */
+export declare function reviewClosingLines(args: {
+  task: string;
+  seat: string;
+  role: string;
+  machine: string;
+  riskHighStep1: boolean;
+  reviewContractTouching: boolean;
+  prNumber: number | null;
+}): string[];
+
 export declare function main(argv?: string[]): void;

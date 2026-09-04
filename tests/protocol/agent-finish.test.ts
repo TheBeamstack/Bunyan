@@ -11,15 +11,19 @@
  * seat identity and the machine gate at tick time (ADR-0007 E3's "the gate fires where the claim is
  * actually made" reasoning, ported — a `--incomplete` branch can be resumed by a different seat, and a
  * task's `machine:` can be edited between the claim and the tick, so claim-time and finish-time need
- * their OWN gate, not one shared check).
+ * their OWN gate, not one shared check). ⚠ T-026's identity re-check ALSO fires before step 1 (`review`
+ * refuses before `pnpm verify` on a wrong `gh` login), so every `--review` fixture run below now needs
+ * a `gh` stand-in reporting the reviewing seat's own account — `hmdnah`/`amer` are `narutousomaki741`,
+ * never this box's real ambient `davidian-abdo`.
  */
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { makeFixture } from './fixture.mjs';
-import { resolveBuilder, setRowStatus } from '../../scripts/agent-finish.mjs';
+import { fakeGhReporting, ghCmdIn } from './gh-stub.mjs';
+import { resolveBuilder, reviewClosingLines, setRowStatus } from '../../scripts/agent-finish.mjs';
 
 const REPO = fileURLToPath(new URL('../..', import.meta.url));
 const AGENT_FINISH = join(REPO, 'scripts/agent-finish.mjs');
@@ -34,11 +38,15 @@ function isSpawnFailure(e: unknown): e is SpawnFailure {
   return typeof e === 'object' && e !== null;
 }
 
-function run(args: string[]): { code: number; out: string; err: string } {
+function run(
+  args: string[],
+  envOverride?: Record<string, string | undefined>,
+): { code: number; out: string; err: string } {
   try {
     const out = execFileSync('node', [AGENT_FINISH, ...args], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
+      env: envOverride ? { ...process.env, ...envOverride } : process.env,
     });
     return { code: 0, out, err: '' };
   } catch (e: unknown) {
@@ -52,9 +60,22 @@ function run(args: string[]): { code: number; out: string; err: string } {
 }
 
 let fx: ReturnType<typeof makeFixture>;
+let extraDirs: string[] = [];
 afterEach(() => {
   fx?.cleanup();
+  for (const d of extraDirs) rmSync(d, { recursive: true, force: true });
+  extraDirs = [];
 });
+
+/** `hmdnah`'s own account (`docs/seats/README.md`/the fixture's `SEATS_TABLE`), as a ready-to-use
+ * `BUNYAN_GH_CMD` env override — every `--review` fixture run needs this, or the real ambient `gh`
+ * (`davidian-abdo` on this box) fails T-026's identity re-check before reaching what the test means to
+ * exercise. */
+function hmdnahGhEnv(): Record<string, string> {
+  const dir = fakeGhReporting('narutousomaki741');
+  extraDirs.push(dir);
+  return { BUNYAN_GH_CMD: ghCmdIn(dir) };
+}
 
 describe('step 0 — seat identity', () => {
   it('refuses with no seat', () => {
@@ -69,6 +90,67 @@ describe('step 0 — seat identity', () => {
     const r = run(['--root', fx.dir, '--seat', 'zayd']);
     expect(r.code).not.toBe(0);
     expect(r.err).toMatch(/usage: agent-finish\.mjs/);
+  });
+});
+
+describe('the identity guard, RE-RUN at review/approve time (D87, T-013; T-026)', () => {
+  // `agent-start.mjs`'s own gate guards the CLAIM; a review approves and merges well after that call
+  // returned, in a session that may not even be the one that claimed it. Measured on PR #39: the box's
+  // default `gh` identity WAS the PR's own author (`davidian-abdo`, `zayd`/`khalihlna`'s account) and
+  // nothing between the claim and `gh pr merge` re-checked it — this closes that gap independently of
+  // whether `agent-start.mjs` ever ran this turn.
+
+  it("REFUSES a review finish when gh reports an account other than the SEAT's own", () => {
+    fx = makeFixture([
+      { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'normal' },
+    ]);
+    // hmdnah's own account is narutousomaki741 — report the OTHER account instead, exactly PR #39's
+    // shape: the box's ambient identity resolves to the PR's own author (davidian-abdo).
+    const fakeGhDir = fakeGhReporting('davidian-abdo');
+    extraDirs.push(fakeGhDir);
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review'], {
+      BUNYAN_GH_CMD: ghCmdIn(fakeGhDir),
+    });
+    expect(r.code).not.toBe(0);
+    // ⚠ both accounts named — a refusal that says only "wrong account" sends the reader to the wrong
+    // per-seat token file (docs/RUNBOOK.md "Seat credentials").
+    expect(r.out + r.err).toContain('davidian-abdo');
+    expect(r.out + r.err).toContain('narutousomaki741');
+    // Refused before ANYTHING a review turn does — no verify, no backlog flip, no push.
+    expect(r.out).not.toMatch(/1\. Verification/);
+    expect(r.out).not.toMatch(/risk\/step gate/);
+  });
+
+  it('an UNRESOLVABLE identity is a hard refusal, never a silent skip', () => {
+    fx = makeFixture([
+      { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'normal' },
+    ]);
+    // A `gh` that fails outright (no stand-in reachable) rather than reporting any login.
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review'], {
+      BUNYAN_GH_CMD: JSON.stringify([process.execPath, join(fx.dir, 'no-such-gh.cjs')]),
+    });
+    expect(r.code).not.toBe(0);
+    expect(r.out + r.err).toMatch(/REFUSAL, never a skip/);
+  });
+
+  it('a PLAIN (non-review) finish is unaffected — this guard is scoped to --review', () => {
+    // Never mocks gh at all: if this guard fired unconditionally, it would spawn gh here too and
+    // either hang/fail on an unmocked call or print a confirmation line that never used to exist.
+    fx = makeFixture([
+      { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'normal' },
+    ]);
+    const r = run(['--root', fx.dir, '--seat', 'zayd', 'T-001']);
+    expect(r.out).not.toMatch(/gh identity/);
+    expect(r.out).toMatch(/✓ machine gate: T-001 is machine: box, seat is on box/);
+  });
+
+  it('a CORRECTLY authenticated review clears the guard, through to the risk/step gate', () => {
+    fx = makeFixture([
+      { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'normal' },
+    ]);
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review'], hmdnahGhEnv());
+    expect(r.out).toMatch(/✓ gh identity: narutousomaki741 — matches seat 'hmdnah'/);
+    expect(r.out).toMatch(/✓ risk\/step gate: risk: normal, single review turn/);
   });
 });
 
@@ -162,7 +244,7 @@ describe('the risk/step gate — `--review` must read risk:, not only the frozen
     fx = makeFixture([
       { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'high' },
     ]);
-    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review']);
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review'], hmdnahGhEnv());
     expect(r.code).not.toBe(0);
     expect(r.err).toMatch(/requires --step 1 or --step 2/);
     // Fails BEFORE `pnpm verify` — cheap to catch a usage error before a full verify run.
@@ -173,7 +255,10 @@ describe('the risk/step gate — `--review` must read risk:, not only the frozen
     fx = makeFixture([
       { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'normal' },
     ]);
-    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review', '--step', '1']);
+    const r = run(
+      ['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review', '--step', '1'],
+      hmdnahGhEnv(),
+    );
     expect(r.code).not.toBe(0);
     expect(r.err).toMatch(/only risk: high uses a two-step review/);
   });
@@ -185,7 +270,7 @@ describe('the risk/step gate — `--review` must read risk:, not only the frozen
     const p = join(fx.dir, 'docs/BACKLOG.md');
     // Same trick the machine-gate suite uses: blank the field to simulate a mis-decomposed row.
     writeFileSync(p, readFileSync(p, 'utf8').replace('risk: **high**', 'risk:'));
-    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review']);
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review'], hmdnahGhEnv());
     expect(r.code).not.toBe(0);
     expect(r.err).toMatch(/no readable 'risk:' field/);
   });
@@ -194,9 +279,16 @@ describe('the risk/step gate — `--review` must read risk:, not only the frozen
     fx = makeFixture([
       { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'high' },
     ]);
-    const r1 = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review', '--step', '1']);
+    const ghEnv = hmdnahGhEnv();
+    const r1 = run(
+      ['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review', '--step', '1'],
+      ghEnv,
+    );
     expect(r1.out).toMatch(/✓ risk\/step gate: risk: high, step 1 of 2/);
-    const r2 = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review', '--step', '2']);
+    const r2 = run(
+      ['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review', '--step', '2'],
+      ghEnv,
+    );
     expect(r2.out).toMatch(/✓ risk\/step gate: risk: high, step 2 of 2/);
   });
 
@@ -204,7 +296,7 @@ describe('the risk/step gate — `--review` must read risk:, not only the frozen
     fx = makeFixture([
       { id: 'T-001', status: 'ready', title: 'x', area: 'kernel', machine: 'box', risk: 'normal' },
     ]);
-    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review']);
+    const r = run(['--root', fx.dir, '--seat', 'hmdnah', 'T-001', '--review'], hmdnahGhEnv());
     expect(r.out).toMatch(/✓ risk\/step gate: risk: normal, single review turn/);
   });
 });
@@ -261,5 +353,64 @@ describe('resolveBuilder — the §0b baton `builder` field survives a review fi
     // Even resuming someone else's incomplete branch (T-015's --continue) is a BUILD finish, not a
     // review one — the finishing seat is who actually built it this time.
     expect(resolveBuilder(false, { seat: 'zayd', builder: 'zayd' }, 'amer')).toBe('amer');
+  });
+});
+
+describe('reviewClosingLines — the verdict is OWED, never performed (T-026)', () => {
+  // This script never calls `gh pr review`/`gh pr merge` itself — it prints the command for the seat
+  // to run next. Measured on PR #39: a handoff body recorded "Verdict: APPROVED, and merged by me" for
+  // a PR that carried ZERO reviews. None of these three branches may read as already done.
+  const base = {
+    task: 'T-001',
+    seat: 'hmdnah',
+    role: 'reviewer',
+    machine: 'box',
+    prNumber: 7,
+  };
+
+  it('risk: high step 1 — explicitly no approval, no merge', () => {
+    const lines = reviewClosingLines({
+      ...base,
+      riskHighStep1: true,
+      reviewContractTouching: false,
+    });
+    const text = lines.join('\n');
+    expect(text).toMatch(/no approval, no merge/);
+    expect(text).not.toMatch(/APPROVED|merged/i);
+  });
+
+  it("contract-touching — approval stated as OWED, not performed; the merge is the owner's", () => {
+    const lines = reviewClosingLines({
+      ...base,
+      riskHighStep1: false,
+      reviewContractTouching: true,
+    });
+    const text = lines.join('\n');
+    expect(text).toMatch(/OWED, not yet performed/);
+    expect(text).not.toMatch(/Review complete/); // "complete" read as done, measured on PR #39
+    expect(text).toMatch(/gh pr review 7 --approve/);
+    expect(text).not.toContain('gh pr merge'); // never this reviewer's to run
+  });
+
+  it('additive — approval AND merge stated as OWED, not performed', () => {
+    const lines = reviewClosingLines({
+      ...base,
+      riskHighStep1: false,
+      reviewContractTouching: false,
+    });
+    const text = lines.join('\n');
+    expect(text).toMatch(/OWED, not yet performed/);
+    expect(text).not.toMatch(/Review complete/);
+    expect(text).toMatch(/gh pr review 7 --approve && gh pr merge 7 --squash/);
+  });
+
+  it('falls back to a placeholder PR number when it could not be resolved', () => {
+    const lines = reviewClosingLines({
+      ...base,
+      prNumber: null,
+      riskHighStep1: false,
+      reviewContractTouching: false,
+    });
+    expect(lines.join('\n')).toMatch(/gh pr review <n> --approve && gh pr merge <n> --squash/);
   });
 });

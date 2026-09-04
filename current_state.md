@@ -635,6 +635,35 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### T-026 — The identity gate fires at approve/merge, not only at claim — 2026-09-04 — seat: zayd
+
+- **CHANGED:** `scripts/agent-start.mjs` — `resolveGhLogin` exported (was private), so a second call site
+  can reuse it (+ `agent-start.d.mts`). `scripts/agent-finish.mjs` — a `--review` finish now re-runs
+  `identityGate` at the very top of `main()`, before the machine gate, the risk/step gate, `pnpm verify`,
+  the backlog status flip and the push; the three inline "Review complete" `console.log` blocks are
+  replaced by one pure, exported `reviewClosingLines(...)`, wording every branch as approval/merge **OWED**,
+  never performed (+ `agent-finish.d.mts`). `tests/protocol/gh-stub.mjs` (+ `.d.mts`) NEW — the `gh`
+  stand-in `agent-start.test.ts` already had, factored out so `agent-finish.test.ts` can share it rather
+  than duplicate it (`AGENTS.md §7.2`). `tests/protocol/agent-start.test.ts` — imports the stand-in instead
+  of defining it. `tests/protocol/agent-finish.test.ts` — 4 new identity-guard tests, 4 new
+  `reviewClosingLines` tests, and a `gh` stand-in added to every pre-existing `--review`/`hmdnah` test (the
+  new gate would otherwise refuse them on this box's real ambient `davidian-abdo`).
+- **VERIFIED:** `pnpm verify` full, green — typecheck (incl. `apps/web`), lint, `format:check`, **test: 995
+  passed (100 files)**, `reseed:check` (no `BASE_REF` here — skips), **docs:check: 174 passed (8 files)**.
+  `tests/freeze-boundary.test.ts` green inside that 174; every changed file is under `scripts/`/`tests/`, so
+  mechanical `RISK: additive`. `agent-start.test.ts` **33 passed (33)**, behaviourally unchanged after the
+  stand-in extraction; `agent-finish.test.ts` **25 passed (25)**.
+- **FOUND:** nothing new — this closes the `## Discovered` row of 2026-08-21 (measured on PR #39: the
+  box's default `gh` identity was the PR's own author, and the reviewer's own handoff body recorded
+  "Verdict: APPROVED, and merged by me" for a PR carrying zero reviews).
+- **OWES:** `hmdnah` — this is `risk: high` (D88's two-step review); both turns land here, same seat.
+  Nothing owed to a `pc` seat.
+- **RISK:** additive (mechanical, frozen surface untouched) — task-level `risk: high` per `docs/BACKLOG.md`
+  (the crossed-account rule, `AGENTS.md §6`).
+- **FULL:** `handoff/zayd/2026-09-04-T-026-identity-gate-at-review.md`
+- **REVIEW:** pending.
+
+
 ### STEWARD-x001-seven-seat-roster — the seven-seat roster adopted, and the two gaps adopting it opens — 2026-09-04 — seat: brahim
 
 - **CHANGED:** `docs/seats/README.md` — **seven rows**, `mahjob` (manager) and `hamadi` (custodian) added,
@@ -936,16 +965,16 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `brahim/2026-09-04-x001-seven-seat-roster` · `1be9f2b` · clean |
+| **newest entry** | **T-026 (zayd, 2026-09-04)** |
+| branch · tip · tree | `task/T-026-the-identity-gate-fires-at-approve-merge` · `980f258` · dirty |
 | open PRs | none — main is the tip of the work |
-| suite | **987 green** · 100 files · 301 suites |
+| suite | ⚠⚠ 994/995 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 8 files changed, 689 insertions(+), 259 deletions(-) (8 files) |
-| docs budget | current_state 78.5/96.0 KB · §7 25.4/32.0 KB · abstracts 9/10 · bodies 94 |
+| diff vs origin/main | 7 files changed, 309 insertions(+), 153 deletions(-) (7 files) |
+| docs budget | current_state 81.1/96.0 KB · §7 28.0/32.0 KB · abstracts 10/10 · bodies 95 |
 
 _Generated 2026-09-04 by `pnpm state`._
 
