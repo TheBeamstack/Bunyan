@@ -117,12 +117,12 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `amer` |
-| builder | `amer` |
-| role | builder |
-| machine | pc |
-| task | `T-003` |
-| branch | `task/T-003-the-in-app-open-source-licences-screen` |
+| seat | `brahim` |
+| builder | `brahim` |
+| role | steward |
+| machine | box |
+| task | `STEWARD-x001-seven-seat-roster` |
+| branch | `brahim/2026-09-04-x001-seven-seat-roster` |
 | claimed-at | 2026-08-31T12:17:24Z |
 | status | finished — PR open, awaiting review |
 
@@ -935,14 +935,14 @@ is maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `brahim/2026-09-04-x001-seven-seat-roster` · `e2a11d8` · dirty |
+| branch · tip · tree | `brahim/2026-09-04-x001-seven-seat-roster` · `1be9f2b` · clean |
 | open PRs | none — main is the tip of the work |
-| suite | ⚠⚠ 985/987 passing — **2 FAILING** |
+| suite | **987 green** · 100 files · 301 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 409 insertions(+), 253 deletions(-) (5 files) |
+| diff vs origin/main | 8 files changed, 689 insertions(+), 259 deletions(-) (8 files) |
 | docs budget | current_state 78.5/96.0 KB · §7 25.4/32.0 KB · abstracts 9/10 · bodies 94 |
 
 _Generated 2026-09-04 by `pnpm state`._
