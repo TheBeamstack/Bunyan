@@ -130,7 +130,14 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 ## BLOCKED
 
-*(none)*
+**`hmdnah` cannot review PR #48 (T-026, `risk: high`) — no GitHub token provisioned on the box for that
+seat.** `node scripts/agent-start.mjs --seat hmdnah --review` refused: `gh` is authenticated as
+`Davidian-Abdo`, but seat `hmdnah` must run as `narutousomaki741` (D87). Per `docs/RUNBOOK.md` "Seat
+credentials" the fix is `export GH_TOKEN=$(cat ~/.config/bunyan/hmdnah.token)`, but `~/.config/bunyan/`
+does not exist on this box at all — no token file for `hmdnah` anywhere on the machine. `gh auth switch`
+is explicitly forbidden (D87) as a workaround. **Needs the operator to provision
+`~/.config/bunyan/hmdnah.token` (mode 600) with a valid token for `narutousomaki741`** before T-026's
+two-step review (D88, step 1) can start. No review work was performed; PR #48 is untouched.
 
 <!-- Judged with HTML comments and blank lines REMOVED, so a note explaining this gate cannot itself
      trip it (the mdo lesson, ported rather than rediscovered). Prose counts: write `*(none)*` and
