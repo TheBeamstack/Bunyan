@@ -2,7 +2,7 @@
 
 **What this file is.** The **cross-session, cross-seat, cross-machine handoff log** for Bunyan. It lives
 in the repo and travels with the code between the local PC (`amer`, `khalihlna`) and the Hetzner dev box
-(`zayd`, `hmdnah`, `brahim`), per `cross_projects_policy.md` §9.
+(`zayd`, `hmdnah`, `brahim`, `mahjob`, `hamadi`), per `cross_projects_policy.md` §9.
 
 **Why it exists.** So the next seat does **not** re-derive context, does **not** make false assumptions
 about what is built, and does **not** redo verified work.
@@ -77,17 +77,21 @@ truth for the B-Rep; meshes and 2D views are disposable. Everything else follows
 **never a geometric index.** It is assigned when an op runs and propagated forward, never recovered by
 matching geometry afterwards.
 
-**Actors** — roles are by *environment*, not seniority. **Adopted 2026-08-14 (D82):** the two agents became
-five seats, with review moved onto an account the matching builder does not hold — see `AGENTS.md`.
+**Actors.** Seven seats, org-wide — a seat *is* a role, and its `machine:` is an **autonomy class** (`box`
+unattended, `pc` attended), not a host. The registry is `docs/seats/README.md`; `AGENTS.md §0` summarises
+it. Adopted from `TheBeamstack/diwan` `docs/adr/0002-two-box-topology-and-the-capability-model.md` §2.2,
+ratified 2026-09-04, superseding the five-seat roster D82 adopted 2026-08-14.
 
-| Seat | Role | Where | GitHub account | Owns |
+| Seat | Role | Machine | GitHub account | Owns |
 | --- | --- | --- | --- | --- |
 | **Architect** (the owner/human) | — | — | — | Contracts, scope, AEC correctness, merge arbitration. **All contract changes are owner-gated**, and the owner merges any PR whose `RISK` is `contract-touching`. |
-| **brahim** (agent) | steward/orchestrator | Hetzner dev box | `davidian-abdo` | Backlog readiness, sequencing, spec integrity, `docs/decisions.md`, closing the loop between turns. **Never builds.** |
-| **Amer** (agent) | builder | Local PC, **real browser** | `narutousomaki741` | Browser hot path: three.js/WebGPU, tessellation consumer + picking, React shell, ribbon/property panels, persistence adapters, service worker/PWA, `window.bunyan` wiring. |
-| **khalihlna** (agent) | reviewer | Local PC, **real browser** | `davidian-abdo` | Review of anything only a browser can verify — `apps/web` PRs, re-executed, not merely read. |
-| **Zayd** (agent) | builder | Hetzner dev box, **headless** | `davidian-abdo` | Kernel: OCCT WASM builds, worker API, naming resolver, regression harness + offline golden seeding, IFC importer, CI, release pipeline. **And the document model — `@bunyan/document`, `@bunyan/types`, `@bunyan/sketch-solver`.** |
-| **hmdnah** (agent) | reviewer | Hetzner dev box, **headless** | `narutousomaki741` | Adversarial review of box-verifiable claims — kernel, document model, CI. |
+| **brahim** (agent) | steward/orchestrator | box | `davidian-abdo` | Backlog readiness, sequencing, spec integrity, `docs/decisions.md`, closing the loop between turns. **Never builds.** |
+| **Amer** (agent) | builder | pc, **real browser** | `narutousomaki741` | Browser hot path: three.js/WebGPU, tessellation consumer + picking, React shell, ribbon/property panels, persistence adapters, service worker/PWA, `window.bunyan` wiring. |
+| **khalihlna** (agent) | reviewer | pc, **real browser** | `davidian-abdo` | Review of anything only a browser can verify — `apps/web` PRs, re-executed, not merely read. |
+| **Zayd** (agent) | builder | box, **headless** | `davidian-abdo` | Kernel: OCCT WASM builds, worker API, naming resolver, regression harness + offline golden seeding, IFC importer, CI, release pipeline. **And the document model — `@bunyan/document`, `@bunyan/types`, `@bunyan/sketch-solver`.** |
+| **hmdnah** (agent) | reviewer | box, **headless** | `narutousomaki741` | Adversarial review of box-verifiable claims — kernel, document model, CI. |
+| **mahjob** (agent) | manager | box | `narutousomaki741` | Org-wide: cross-repo sequencing (`diwan` `CROSS.md`), infrastructure, cost — here, `bunyan-oracle-runner`. **Never builds**, never merges its own PR. |
+| **hamadi** (agent) | custodian | box | `narutousomaki741` | The public surface — releases, advisories, Dependabot triage. **Never builds**, never merges its own PR. |
 
 Also read the box-local `../cross_projects_policy.md` and `../last_session_work.md` **if you are on the dev
 box** (they are not in this repo and do not travel).
@@ -96,7 +100,7 @@ box** (they are not in this repo and do not travel).
 
 **The claim is pushed before work begins**, ported from mdo's ADR-0007 Δ8. Before Entry 91 there was no
 claim mechanism at all — two builders coordinated purely through `TASK`/`FRESH` prose and an ordinary git
-conflict on §7 if they ever collided. With five seats and two machines that is no longer good enough: an
+conflict on §7 if they ever collided. With seven seats and two machines that is no longer good enough: an
 unpushed claim is invisible across machines, and two sessions can start the same `T-nnn`.
 
 This block is the claim on **this branch only**; the full picture across every live branch is
@@ -631,6 +635,46 @@ checking their durable lessons are already in §1–§5.** The bodies stay in `h
 is maintenance and does NOT get an entry of its own.**
 
 
+### STEWARD-x001-seven-seat-roster — the seven-seat roster adopted, and the two gaps adopting it opens — 2026-09-04 — seat: brahim
+
+- **CHANGED:** `docs/seats/README.md` — **seven rows**, `mahjob` (manager) and `hamadi` (custodian) added,
+  and a seat's `machine:` restated as an **autonomy class** (`box` unattended, `pc` attended) rather than a
+  host. `AGENTS.md §0` (the roster it must agree with), §1's stale *"three shapes, one per role"*, §6's
+  *"Five prompt files"*; `current_state.md §0`'s Actors table and its two "five seats" sentences.
+  `Mahjob_Prompt.md`/`Hamadi_Prompt.md` NEW, four standing facts each. `docs/BACKLOG.md` — **T-029, T-030
+  NEW and `ready`; T-031 NEW and `blocked`**, plus one `## Discovered` row. **No `scripts/`, no
+  `packages/`, no snapshot byte, no code** — `brahim` never builds.
+- **VERIFIED:** `pnpm docs:check` **166 passed (8 files)** with the seven-seat table, so the roster change
+  is inert against every gate reading it. `seats.mjs list` returns all seven rows — its header's claim that
+  nothing hardcodes a seat name, measured rather than believed. **The `any` collapse, on the CLI:**
+  `seats.mjs reviewer-for any` (no finishing seat) → **`hmdnah`**, a `box` reviewer picked by a hardcoded
+  default and reported as an answer; `reviewer-for any amer` → `khalihlna`. **The cited line numbers, at
+  HEAD:** `reviewerFor:403` exact (the collapse line); `builderFor:471` off by one (`472`/`473`);
+  **`reviewerForBranch` has no `any` branch at all** — `:454`'s `m` is a *seat's* machine, so it inherits
+  the collapse through the call rather than containing one. ADR-0002 §2.1's `392`/`442`/`467` are the
+  function declarations and are exact.
+- **FOUND:** **Two defects, both measured, neither fixed here (`AGENTS.md §3`) — they are T-030.**
+  **(a)** `agent-start.mjs:576` dies *"A steward does not review build work"* (exit 1, run here), so
+  `docs/seats/README.md`'s new routing of `mahjob`/`hamadi` PRs to `brahim` cannot execute — Bunyan's copy
+  of `diwan` ADR-0001 §0.1 defect 1, found there at mdo's `agent-start.sh:482`. **(b)**
+  `agent-start.mjs:755`'s `/^\| (T-\d{3}) \| ready \|/gm` matches **0** ready rows where
+  `seats.readyFor` matches **8**, because prettier pads the status cell — **the steward's entire readiness
+  view has been silently empty**, printing its heading and no rows, which reads exactly like "nothing is
+  ready". PR #19 fixed that same padded-table defect in `seats.mjs` and never swept it back into
+  `agent-start.mjs`: invariant 7 caught in the script that enforces the protocol.
+- **OWES:** The **next seat** — `T-029` and `T-030` are `ready` for the box builder; `T-029` carries its
+  own pre-fix measurements so the claim starts from evidence. **`T-031` (`requires:`) is deliberately
+  `blocked`** on `maitre_d_ouvrage`'s `T-106`, which is not a Bunyan row: ADR-0002 §5 orders Bunyan's port
+  at step **E** after mdo's step **D** — *"the proven diff, ported — never simultaneously with D"* — and
+  `T-106` is in flight now. `brahim` flips it when mdo's PR merges. ⚠ `unverified here: a mahjob or hamadi
+  turn starts cleanly` — `identityGate` needs `narutousomaki741` and this session holds `davidian-abdo`;
+  a `narutousomaki741` session to confirm. `diwan/scripts/roster-check.sh` was not run (`diwan` is not
+  cloned here); the table was compared row by row against `diwan/docs/seats/README.md` read via `gh api`.
+- **RISK:** additive — prose and backlog rows only; no declaration moved, no code, no snapshot byte.
+- **FULL:** `handoff/brahim/2026-09-04-STEWARD-x001-seven-seat-roster.md`
+- **REVIEW:** pending — `diwan` `CROSS.md` `X-001`'s Bunyan child.
+
+
 ### T-003 — review: the screen renders, byte-identical, console-error-free — re-executed in the real browser — 2026-08-31 — seat: khalihlna
 
 - **CHANGED:** nothing on the branch beyond this review's own record —
@@ -883,108 +927,6 @@ is maintenance and does NOT get an entry of its own.**
   `RISK: additive`, green CI. ⚠ This turn never wrote its own §7 abstract/handoff body — corrected in
   T-001's review entry's `OWES:` field (2026-08-30) rather than backfilled here with a fabricated date.
 
-### STEWARD-decompose-harness-defects — review: the rows are ready, and the reason given for the one split is not measured — 2026-08-23 — seat: hmdnah
-
-- **CHANGED:** no row's status, machine, risk or `done-when:` — the decomposition is accepted as written.
-  On the branch: **`origin/main` merged in** (the PR was 2 commits behind and protection is `strict`),
-  picking up `2a79036` (shebang/import-hoist collection fix) and `76e4aa1` (T-021 falsified); the one
-  conflict — both sides append a 2026-08-23 `## Discovered` row — resolved by **keeping both**. **F4's
-  one-line fix** to T-025's `implements:`. **The two oldest abstracts rotated to `docs/history.md` §E**
-  as a move (`T-024 — 2026-08-19 — hmdnah`, then `T-022 — 2026-08-21 — zayd`) — §7 stood at **32320 of
-  32768** characters with 448 free and this abstract does not fit; one rotation left only 2 characters
-  spare, which is not a margin. Now **28836**, 6 abstracts. `handoff/hmdnah/2026-08-23-STEWARD-decompose-harness-defects-review.md`
-  NEW; this abstract; the reviewed entry's `REVIEW:` line rewritten. No `packages/`, no `scripts/`, no
-  snapshot byte.
-- **VERIFIED:** **Item 1, twice, docs-only form** — the diff moves no code. (A) `machine: **box**` removed
-  from the new T-026 entry ⇒ `tests/protocol/seats.test.ts` **2 failed | 44 passed (46)**, both naming
-  T-026 by id — `:407` *"has no machine:"* (`.toMatch()` got `undefined`) and `:401` *"T-026 is ready but
-  no seat can claim it"*; restored **46/46**. (B) this diff's §7 abstract re-dated `2026-08-23` →
-  `2026-08-21`, below the newer T-005 ⇒ `tests/docs-budget.test.ts` **1 failed | 22 passed (23)** at
-  `:165`, *"T-005 (2026-08-22) is below STEWARD-decompose-harness-defects (2026-08-21)"*; restored
-  **23/23**. **Both VERIFIED claims reproduce:** `docs:check` **163 passed** (8 files), and again **163**
-  after my merge and fix; `seats.mjs ready-for zayd` → **`T-026 T-025 T-028 T-027`**, that order, exit 0.
-  **Evidence audited, all real:** PR #38 carries `needs-operator/freeze` + `review/step-1` and two
-  `narutousomaki741` reviews (the twice); PR #39's author is `Davidian-Abdo`, which *is* the box `gh`
-  default, so T-026's premise holds; the three stranded finishes have artifacts
-  (`2026-08-19-T-024-review-step2b-rerun.md`, `2026-08-21-T-022-review-step{1,2}.md`). **28** `### T-nnn`
-  sections = **28** table rows, no duplicate id, T-025–T-028 fresh above T-024. **Item 7 on the tip:**
-  `reserved-classes.mjs` → *"none — RISK: additive"*, no `needs-operator/*`, and the labeller **ran** —
-  `PR shape · reserved classes` SUCCESS `11:15:39Z`, `typecheck · lint · geometry harness` SUCCESS
-  `11:15:24Z` on `0f66aac`, re-confirmed on the merged tip.
-- **FOUND:** **F1 — the T-026/T-025 split is right; its stated reason is not measured.** Both the abstract
-  and the body assert *"one row carrying both cannot reach green in a turn"* as fact. Measured:
-  `reviewFlipsToDone` (`seats.mjs:286`) is **four lines**; `identityGate` (`agent-start.mjs:155`) **already
-  exists and is already exported**, so T-026 wires an existing function into a second call site rather than
-  authoring a gate; and **both fixes land in the same `if`/`else` block, `agent-finish.mjs:572–592`**, with
-  the `reserved-classes.mjs` import (absent today) shared rather than doubled. Two `risk: high` rows also
-  buy **four** review turns where one buys two, in a batch that just lost three to stranded finishes.
-  Not blocking — splitting when unsure is the direction `AGENTS.md §6` prefers and I cannot prove a combined row
-  *would* go green without building it. **F2 — T-027's `verify:` cannot discharge its own `done-when:`.**
-  `grep -rn "memory=2g" tests/ scripts/` is **empty**, so `pnpm verify` is green before the edit, after it,
-  and if it writes the wrong number; T-027 is also the only row of the four with **no `revert-verified:`
-  item**, so its reviewer arrives with no claim to re-execute under a mandatory `REVIEW.md` item 1. **F3 —
-  T-028's `revert-verified:` needs a seam the row does not name.** `agent-finish.mjs:211` hardcodes
-  `execFileSync('pnpm', ['verify'])`; the fixture's `` verify: `echo ok` `` is not what step 1 runs; **all
-  17** `agent-finish.test.ts` tests assert refusals that fire *before* step 1, so step 1 has zero coverage
-  and "kill a fixture mid-verify" is not expressible until an injection seam exists. Criterion 9 went
-  unanalysed on the one row that needed it. **F4 — fixed on the branch:** T-025's `implements:` cited a
-  `## Discovered` entry of **2026-08-21** that does not exist (all seven rows of that date are other
-  defects); the second firing is **2026-08-20**, a ⚠ amendment inside the 2026-08-19 row. **`AGENTS.md §3`
-  is not violated:** the rule binds *claiming*, `ready` is by definition unclaimed, the steward never
-  builds, and decomposition **inserts** the independent party the rule wants rather than bypassing it —
-  this review is that party, and F2/F3 are its output. **The `ready`-vs-*"no builder starts"* tension is
-  not a defect either:** `docs/prompts/brahim-orchestrator.md` §4b binds the **orchestrator's subagents**,
-  not the row status, and the loop is stopped.
-- **OWES:** `brahim` — **F1, F2, F3** as `## Discovered` rows or as edits to the three rows before a
-  builder claims them; and the **five-versus-four** count (the headline says five measured defects, four
-  rows landed, one of them from a row written this turn, so three of the five became tasks — which two were
-  left, and why, is unstated, and the ledger holds more than five undecomposed harness defects). Whoever
-  claims **T-028** — expect to add the verify-command seam first (F3). Whoever claims **T-027** — decide
-  what discharges item 1 there (F2). Nothing owed to a `pc` seat: every measurement in this review is
-  headless and was executed here, so there is no `unverified here:` for `khalihlna`.
-- **RISK:** additive — a review turn moved no declaration; `pnpm state` re-derives `RISK: additive`,
-  frozen surface unchanged vs baseline.
-- **FULL:** `handoff/hmdnah/2026-08-23-STEWARD-decompose-harness-defects-review.md`
-- **REVIEW:** n/a — this IS the review turn (`AGENTS.md §1.2`), one turn because a steward PR carries no
-  `risk: high` row. ✅ **APPROVED and MERGED** on `narutousomaki741`, which is not `davidian-abdo` that
-  opened it. ⚠ Could not verify here: `gh api …/branches/main/protection` returns **404** on this seat's
-  token (push-level, no admin read), so `docs/RUNBOOK.md`'s protection block is unconfirmed from this seat;
-  the branch was merged up to `main` regardless, so `strict` is satisfied either way.
-
-### STEWARD-decompose-harness-defects — the box ran out of work with five measured defects unclaimed — 2026-08-23 — seat: brahim
-
-- **CHANGED:** `docs/BACKLOG.md` — **T-025 to T-028 NEW** (four `ready` `infra`/`box` rows), T-006
-  promoted `blocked` → `ready` in the same sweep that closed T-005, and one `## Discovered` row for the
-  stranded-finish defect T-028 implements. `handoff/brahim/2026-08-23-STEWARD-decompose-harness-defects.md`
-  NEW; this abstract. No `packages/`, no `scripts/`, no snapshot byte, no code.
-- **VERIFIED:** `docs:check` **163 passed** (8 files) after the decomposition, so every new row satisfies
-  the protocol tests that read this file. `seats.mjs ready-for zayd` → **`T-026 T-025 T-028 T-027`**,
-  which is both the intended sequence and proof the rows are claimable by the box builder. Every `box`
-  row in the table read `done` before this turn and all eight `ready` rows were `pc` — the condition
-  that made the box idle.
-- **FOUND:** **The three stranded finishes had never been recorded.** `agent-finish.mjs` runs `pnpm verify`
-  in full, and a session ending inside it leaves the branch committed-but-unpushed or the tree
-  written-but-uncommitted, after which `agent-start.mjs` refuses at its own `git checkout main` with only
-  *"pull failed — resolve by hand"*. Three in one batch — T-024 step 2, T-022 step 1 (where the absent
-  `review/step-1` label would have made the next session re-run step 1, since that label is what
-  `resolveReviewStep` reads), and T-022 step 2. Each was repaired conversationally and would have left no
-  trace. ⚠ **T-026 and T-025 are one failure at two altitudes and are deliberately separate rows:** T-025
-  is a class-resolution bug inside `reviewFlipsToDone`, T-026 adds a gate where none exists, and one row
-  carrying both cannot reach green in a turn (READY criterion 9).
-- **OWES:** The **owner** — this PR's merge decision, and **Q22**/**Q23**, both still unruled and neither
-  invented here. ⚠ **No builder starts on T-025–T-028 until the owner says so** (the orchestrator's
-  phase-boundary rule). The **pc machine** — eight `ready` rows including **T-023**, which is the only
-  place T-022's fix can be proven to fix anything; `light_brahim` is not running.
-- **RISK:** additive — no declaration moved, no code, no snapshot byte.
-- **FULL:** `handoff/brahim/2026-08-23-STEWARD-decompose-harness-defects.md`
-- **REVIEW:** ✅ `hmdnah`, one turn (a steward PR is not `risk: high`) — **APPROVED and MERGED** on
-  `narutousomaki741`. Item 1 re-executed twice in the docs-only form: T-026's `machine:` removed ⇒
-  `seats.test.ts` **2 failed | 44 passed**, both naming T-026; this abstract's heading re-dated to
-  2026-08-21 ⇒ `docs-budget.test.ts` **1 failed | 22 passed** on newest-first; both restored green.
-  Both VERIFIED claims reproduce (`docs:check` **163**, `ready-for zayd` → `T-026 T-025 T-028 T-027`).
-  Four findings, none red — **F4 fixed on the branch** (T-025 cited a `## Discovered` entry of
-  2026-08-21 that does not exist; the second firing is 2026-08-20, inside the 2026-08-19 row).
-
 ## §8 — Generated
 
 
@@ -992,17 +934,17 @@ is maintenance and does NOT get an entry of its own.**
 
 | | |
 | --- | --- |
-| **newest entry** | **T-003 (khalihlna, 2026-08-31)** |
-| branch · tip · tree | `task/T-003-the-in-app-open-source-licences-screen` · `ec21a92` · dirty |
+| **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
+| branch · tip · tree | `brahim/2026-09-04-x001-seven-seat-roster` · `e2a11d8` · dirty |
 | open PRs | none — main is the tip of the work |
-| suite | **987 green** · 100 files · 301 suites |
+| suite | ⚠⚠ 985/987 passing — **2 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 1 file changed, 37 insertions(+), 6 deletions(-) (1 files) |
-| docs budget | current_state 84.0/96.0 KB · §7 31.3/32.0 KB · abstracts 10/10 · bodies 93 |
+| diff vs origin/main | 5 files changed, 409 insertions(+), 253 deletions(-) (5 files) |
+| docs budget | current_state 78.5/96.0 KB · §7 25.4/32.0 KB · abstracts 9/10 · bodies 94 |
 
-_Generated 2026-08-31 by `pnpm state`._
+_Generated 2026-09-04 by `pnpm state`._
 
 <!-- END GENERATED -->

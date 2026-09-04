@@ -103,36 +103,39 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 > **T-024 sits above T-022** because it is cheap, must land before the P5 freeze either way, and is
 > already costing turns their §7 abstract — a record loss, not a nuisance (`## Discovered`, 2026-08-19).
 
-| ID    | Status | Task                                                                    | Area     | Machine | Risk   | Depends on |
-| ----- | ------ | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
-| T-001 | done   | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
-| T-002 | review | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
-| T-003 | review | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
-| T-004 | done   | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
-| T-006 | ready  | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | pc      | normal | T-005      |
-| T-007 | done   | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
-| T-008 | done   | Q19 — the belongs-to deletion reconciliation                            | document | box     | high   | —          |
-| T-009 | done   | Q18 — a hosted void may only host on its host's base part               | document | box     | high   | —          |
-| T-010 | ready  | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | pc      | normal | T-009      |
-| T-011 | done   | Q17a — `scene.designOptions` becomes a `SceneCollection`                | document | box     | high   | —          |
-| T-012 | done   | `--review` routes a PR whose title carries no `T-nnn`                   | infra    | box     | high   | —          |
-| T-013 | done   | The seat identity guard — `gh api user` must match the seat             | infra    | box     | high   | —          |
-| T-014 | done   | `--review` must read the task's `risk:`, not only the surface           | infra    | box     | high   | —          |
-| T-015 | done   | `agent-start.mjs --continue` returns a branch to its builder            | infra    | box     | high   | —          |
-| T-016 | done   | `§0b`'s baton carries the builder separately from the holder            | infra    | box     | high   | T-015      |
-| T-017 | done   | `docs-budget.test.ts`'s newest-first check verifies itself              | infra    | box     | normal | —          |
-| T-018 | done   | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
-| T-019 | ready  | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
-| T-020 | done   | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
-| T-021 | review | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
-| T-024 | done   | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
-| T-022 | done   | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
-| T-023 | ready  | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
-| T-005 | done   | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
-| T-026 | ready  | The identity gate fires at approve/merge, not only at claim             | infra    | box     | high   | —          |
-| T-025 | ready  | `--review` keeps an owner-gated row at `review`                         | infra    | box     | high   | —          |
-| T-028 | ready  | `agent-finish.mjs` is resumable after an interrupted run                | infra    | box     | normal | —          |
-| T-027 | ready  | §6's relink cap is measured, not guessed                                | infra    | box     | normal | —          |
+| ID    | Status  | Task                                                                    | Area     | Machine | Risk   | Depends on |
+| ----- | ------- | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
+| T-001 | done    | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
+| T-002 | review  | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
+| T-003 | review  | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
+| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
+| T-006 | ready   | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | pc      | normal | T-005      |
+| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
+| T-008 | done    | Q19 — the belongs-to deletion reconciliation                            | document | box     | high   | —          |
+| T-009 | done    | Q18 — a hosted void may only host on its host's base part               | document | box     | high   | —          |
+| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | pc      | normal | T-009      |
+| T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`                | document | box     | high   | —          |
+| T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`                   | infra    | box     | high   | —          |
+| T-013 | done    | The seat identity guard — `gh api user` must match the seat             | infra    | box     | high   | —          |
+| T-014 | done    | `--review` must read the task's `risk:`, not only the surface           | infra    | box     | high   | —          |
+| T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder            | infra    | box     | high   | —          |
+| T-016 | done    | `§0b`'s baton carries the builder separately from the holder            | infra    | box     | high   | T-015      |
+| T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself              | infra    | box     | normal | —          |
+| T-018 | done    | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
+| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
+| T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
+| T-021 | review  | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
+| T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
+| T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
+| T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
+| T-005 | done    | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
+| T-026 | ready   | The identity gate fires at approve/merge, not only at claim             | infra    | box     | high   | —          |
+| T-025 | ready   | `--review` keeps an owner-gated row at `review`                         | infra    | box     | high   | —          |
+| T-028 | ready   | `agent-finish.mjs` is resumable after an interrupted run                | infra    | box     | normal | —          |
+| T-027 | ready   | §6's relink cap is measured, not guessed                                | infra    | box     | normal | —          |
+| T-029 | ready   | `seats.mjs`'s three functions collapse `machine: any` to `box`          | infra    | box     | high   | —          |
+| T-030 | ready   | A steward cannot review, and its readiness view lists nothing           | infra    | box     | high   | —          |
+| T-031 | blocked | `requires:` supersedes a task's `machine:`                              | infra    | box     | high   | T-029      |
 
 ---
 
@@ -773,9 +776,96 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: —
 - area: infra · machine: **box** · risk: **normal**
 
+### T-029 — `seats.mjs`'s three functions collapse `machine: any` to `box`
+
+`reviewerFor`, `reviewerForBranch` and `builderFor` resolve a `machine: any` task by silently defaulting to
+`box` when no finishing seat is passed, so an `any` task run on the pc routes its review to `hmdnah` and its
+branch ownership to `zayd` — a machine nothing on the task proves the work ran on.
+
+- implements: `TheBeamstack/diwan` `docs/adr/0001-seven-seat-architecture.md` §0.1 defect 3 (ratified
+  2026-09-01) · §3.2's ratified "a seat's `machine:` is never `any`" · `docs/seats/README.md`
+- verify: `pnpm verify`
+- done-when:
+  - **measured before the fix**: `reviewerFor(root,'any')` and `builderFor(root,'<any task>')` with no
+    finishing seat each return the `box` seat, and the returned value carries nothing saying it was a
+    default — paste both outputs;
+  - an `any` task with no finishing seat no longer resolves to a machine: the caller is told the machine is
+    unresolved, in the shape `reviewerForBranch` already uses for an unroutable branch
+    (`seat: null` plus a `reason`), never by picking one;
+  - `reviewerForBranch` is checked rather than assumed — its `m` comes from a **seat's** machine and is
+    therefore never `any`, so state in the diff whether it needed a change at all;
+  - `readRegistry` refuses a seat row whose machine is not `box` or `pc`, naming the row — the Bunyan half
+    of ADR-0001 §0.1 defect 2 (`seat.sh` never validates a seat's own machine);
+  - `tests/protocol/seats.test.ts` covers each, and its fixture registry gains the two seats
+    `docs/seats/README.md` now carries so the fixture stops describing a roster that no longer exists;
+  - ⚠ **two existing tests currently bless the defect and must be rewritten, not deleted** —
+    `seats.test.ts`'s _"`machine: any` resolves to the builder sharing the FINISHING seat's machine, **else
+    box**"_ asserts the hardcoded default as intended behaviour, and `agent-start.test.ts`'s _"a
+    `machine: any` task admits the caller's OWN builder, never a hardcoded box default"_ covers only the
+    case where a finishing seat **is** given, so it passes while its own title is false for the case that
+    matters (`REVIEW.md` §6);
+  - ⚠ **no `requires:` parsing** — that is T-031, and ADR-0002 §5 orders it after `maitre_d_ouvrage`.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+### T-030 — A steward cannot review, and its readiness view lists nothing
+
+Two defects in `scripts/agent-start.mjs`, both measured 2026-09-04, both consequences of prose that already
+ships. `:576` dies with _"A steward does not review build work"_ for any `--review` by a steward — but
+`docs/seats/README.md` now routes `mahjob`'s and `hamadi`'s PRs to `brahim`, and that routing cannot
+execute. `:755`'s `/^\| (T-\d{3}) \| ready \|/gm` matches **0** of the 8 ready rows, because prettier pads
+the status cell (`| ready  |`, two spaces) — so the steward's whole readiness view is silently empty. That
+is the defect PR #19 fixed in `seats.mjs` and did not sweep back into `agent-start.mjs` (`AGENTS.md §4-7`).
+
+- implements: `TheBeamstack/diwan` `docs/adr/0001-seven-seat-architecture.md` §0.1 defect 1 (the same
+  refusal, found in `maitre_d_ouvrage`'s `agent-start.sh:482`) · `docs/seats/README.md` · `AGENTS.md §4-7`
+- verify: `pnpm verify`
+- done-when:
+  - **measured before the fix, both pasted**: `node -e` over the committed `docs/BACKLOG.md` showing
+    `:755`'s regex returning **0** while `seats.readyFor`'s returns every `ready` row in the same file
+    (8 when this row was written, and the count moves); and `--seat brahim --review` dying;
+  - a steward may take the review limb for a `manager` or `custodian` PR **and for nothing else** — the
+    `T-028` reasoning behind the original refusal is preserved for builder work, not deleted;
+  - the ready-row regex tolerates the padding the committed table actually has, asserted against a
+    **padded** fixture — `tests/protocol/fixture.mjs` already pads for exactly this reason;
+  - both are covered in `tests/protocol/agent-start.test.ts`.
+- depends-on: —
+- area: infra · machine: **box** · risk: **high**
+
+### T-031 — `requires:` supersedes a task's `machine:`
+
+A task declares the capabilities it needs and each is probed at turn start; a seat lacking one refuses the
+turn and **leaves the task claimable**, never re-routing it. A task's `machine:` is retained as
+informational provenance.
+
+- implements: `TheBeamstack/diwan` `docs/adr/0002-two-box-topology-and-the-capability-model.md` §2.1, §2.3
+  and §5 step E · `CROSS.md` `X-001`
+- verify: `pnpm verify`
+- done-when:
+  - `docs/BACKLOG.md`'s grammar carries `requires:`, every row has one, and `machine:` is documented as
+    provenance;
+  - `canClaim` probes each declared capability instead of comparing the seat's machine to the task's;
+  - a refused turn prints what was asked for, what was found, and that the row stays `ready` (§2.3);
+  - review routing is **unchanged** — role + account crossing, never capability (§2.3);
+  - the whole thing lands as **one** PR, after a builder turn and never mid-turn.
+- depends-on: T-029 · ⚠ **and `maitre_d_ouvrage`'s `T-106`, which is not a Bunyan row.** ADR-0002 §5 orders
+  Bunyan's port at step **E**, after mdo's step **D**, and says explicitly "the proven diff, ported — never
+  simultaneously with D". `T-106` is in flight now; porting a mechanism whose shape is not yet proven is
+  what this row is blocked on. `brahim` flips it to `ready` when mdo's PR has merged.
+- area: infra · machine: **box** · risk: **high**
+
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
+
+- **2026-09-04 — `REVIEW.md`'s "GitHub itself refuses the Entry 74 self-merge" is false, and
+  `.github/workflows/ci.yml:91` names a test that does not exist.** GitHub refuses an approval from the
+  PR's own author; it does not refuse the _merge_, which is what Entry 74 did. What actually refuses it
+  here is `agent-start.mjs`'s `identityGate` (T-013). Separately, ci.yml's comment describes
+  `tests/prompt-sync.test.ts` as the gate `HEAD_REF` exists for, and there is no such file — the env vars
+  are set for a gate that no longer runs. `diwan` `docs/adr/0001-seven-seat-architecture.md` §8 already
+  names the `REVIEW.md` correction as Bunyan's; it is **not** part of `CROSS.md` `X-001`, whose Bunyan
+  child is the roster and `seats.mjs` only, so it is recorded here rather than folded into that PR.
 
 - **2026-08-30 — the re-seed gate's `Re-seed-unchanged:` trailer has no effect when zero goldens
   were touched, only when goldens were touched but their payload didn't move.** Found reviewing PR
