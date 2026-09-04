@@ -129,7 +129,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-005 | done    | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
-| T-026 | ready   | The identity gate fires at approve/merge, not only at claim             | infra    | box     | high   | —          |
+| T-026 | review  | The identity gate fires at approve/merge, not only at claim             | infra    | box     | high   | —          |
 | T-025 | ready   | `--review` keeps an owner-gated row at `review`                         | infra    | box     | high   | —          |
 | T-028 | ready   | `agent-finish.mjs` is resumable after an interrupted run                | infra    | box     | normal | —          |
 | T-027 | ready   | §6's relink cap is measured, not guessed                                | infra    | box     | normal | —          |
