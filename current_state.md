@@ -117,14 +117,14 @@ copy of this block) before deciding what a builder may claim. `scripts/agent-fin
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
-| builder | `brahim` |
-| role | steward |
+| seat | `zayd` |
+| builder | `zayd` |
+| role | builder |
 | machine | box |
-| task | `STEWARD-x001-seven-seat-roster` |
-| branch | `brahim/2026-09-04-x001-seven-seat-roster` |
-| claimed-at | 2026-08-31T12:17:24Z |
-| status | finished — PR open, awaiting review |
+| task | `T-026` |
+| branch | `task/T-026-the-identity-gate-fires-at-approve-merge` |
+| claimed-at | 2026-09-04T22:57:30Z |
+| status | working |
 
 <!-- END BATON -->
 
