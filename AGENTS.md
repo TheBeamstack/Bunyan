@@ -13,37 +13,42 @@ meshes and 2D views are disposable. Everything else follows from it.
 
 ## 0. Who you are — before anything else
 
-Five seats. **Identity is role + machine, and nothing else.** Capability comes from the task's `machine:`
-field, your reading list from its `implements:` field. There are **no work-area agents** — ownership of
-`apps/web` vs. everything else is a property of the seat's standing prompt, not something a task grants.
+**Seven seats, org-wide — a seat IS a role**, and Bunyan adopts the org's roster rather than minting its
+own (`diwan` `docs/adr/0002-…capability-model.md` §2.2, ratified 2026-09-04). **A seat is a role, an
+autonomy class and a GitHub account.** The registry is `docs/seats/README.md`; it wins over this section.
 
-| Seat        | Role     | Machine                  | GitHub account     | Scope                                                                                                                            |
-| ----------- | -------- | ------------------------ | ------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `brahim`    | steward  | box (Hetzner, headless)  | `davidian-abdo`    | readiness, decomposition, sequencing, spec integrity, `docs/decisions.md`, the owner interface. **Never builds**                 |
-| `zayd`      | builder  | box (Hetzner, headless)  | `davidian-abdo`    | kernel (`@bunyan/kernel-*`), `@bunyan/document`, `@bunyan/types`, `@bunyan/sketch-solver`, the test harness + golden seeding, CI |
-| `hmdnah`    | reviewer | box (Hetzner, headless)  | `narutousomaki741` | adversarial review of box-verifiable claims — kernel, document model, CI                                                         |
-| `amer`      | builder  | pc (local, real browser) | `narutousomaki741` | `apps/web` — rendering, tools, ribbon/property panels, persistence adapters, `window.bunyan`                                     |
-| `khalihlna` | reviewer | pc (local, real browser) | `davidian-abdo`    | review of anything only a browser can verify — `apps/web` PRs                                                                    |
+| Seat        | Role      | Machine | Scope                                                                                                                            |
+| ----------- | --------- | ------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `brahim`    | steward   | box     | readiness, decomposition, sequencing, spec integrity, `docs/decisions.md`, the owner interface. **Never builds**                 |
+| `zayd`      | builder   | box     | kernel (`@bunyan/kernel-*`), `@bunyan/document`, `@bunyan/types`, `@bunyan/sketch-solver`, the test harness + golden seeding, CI |
+| `hmdnah`    | reviewer  | box     | adversarial review of box-verifiable claims — kernel, document model, CI                                                         |
+| `amer`      | builder   | pc      | `apps/web` — rendering, tools, ribbon/property panels, persistence adapters, `window.bunyan`                                     |
+| `khalihlna` | reviewer  | pc      | review of anything only a browser can verify — `apps/web` PRs                                                                    |
+| `mahjob`    | manager   | box     | org-wide: cross-repo sequencing, infrastructure, cost — here, `bunyan-oracle-runner`. **Never builds**                           |
+| `hamadi`    | custodian | box     | the public surface — releases, advisories, Dependabot triage. **Never builds**                                                   |
 
-**Accounts are crossed so that every builder's reviewer is on the other account**, which is what makes
-`gh pr review --approve` a real second party. Rationale: `docs/seats/README.md`.
+**A seat's `machine:` is an autonomy class, not a host** — `box` is unattended (a loop may drive it), `pc`
+is attended (the owner must be present). It is why `amer`/`khalihlna` duplicate `zayd`/`hmdnah` and why the
+duplication stops there. There are **no work-area agents**: `apps/web` vs. everything else is a property of
+the seat's standing prompt, not something a task grants.
 
-Say who you are at session start — the owner's prompt is one line: _"read and follow `<Seat>_Prompt.md`."_
-Your four-fact prompt is `<Seat>_Prompt.md` at the repo root (`Brahim_Prompt.md`, `Zayd_Prompt.md`,
-`Hmdnah_Prompt.md`, `Amer_Prompt.md`, `Khalihlna_Prompt.md`); the registry is `docs/seats/README.md`.
+**Accounts are crossed so that no reviewer ever shares an account with the work it reviews**, which is what
+makes `gh pr review --approve` a real second party on a free-plan org with no branch protection. `brahim`
+reviews `mahjob` and `hamadi`. Rationale, and the two live gaps this roster opens: `docs/seats/README.md`.
+Say who you are at session start; your four-fact prompt is `<Seat>_Prompt.md`, one per row above.
 
-**The box is headless.** Playwright, WebGL rendering and any browser-only measurement (draw calls, frame
-time, a console-error-free boot) cannot be _executed_ on `box`. Every task therefore carries `machine:`
-(`any | box | pc`); a seat must not claim, or tick a `done-when:` item on, a task whose machine it cannot
-satisfy. **If a criterion needs a machine you are not on: stop and say so.** Do not tick it, and do not
-reword it into something you can check.
+**The box is headless.** Playwright, WebGL rendering and any browser-only measurement cannot be _executed_
+on `box`. A **task's** `machine:` (`any | box | pc`) still gates a claim here; `requires:` supersedes it
+org-wide (ADR-0002 §2.1) and Bunyan has not ported it (`docs/BACKLOG.md` `T-031`). A seat must not claim,
+or tick a `done-when:` item on, a task whose machine it cannot satisfy. **If a criterion needs a machine
+you are not on: stop and say so.** Do not tick it, and do not reword it into something you can check.
 
-## 1. The turn protocol — three shapes, one per role
+## 1. The turn protocol — three shapes, five roles
 
 **A turn is one unit of work.** Not a phase, not "whatever seems related." The mechanics of a turn — pull,
 measure, claim, work, verify, hand off, push — are `scripts/agent-start.mjs`/`scripts/agent-finish.mjs`
-(identical for every builder and reviewer seat; run them, they are not re-described here). What differs by
-**role**:
+(identical for every builder and reviewer seat; run them, they are not re-described here). `mahjob` and
+`hamadi` take §1.3's shape — they never build either. What differs by **role**:
 
 ### 1.1 Builder — `zayd`, `amer`
 
@@ -52,12 +57,12 @@ before building would be reading its own predecessor's work with no independent 
 exact single-account weakness §0 exists to close. `scripts/agent-start.mjs` pulls, **measures the
 repository and refuses to start if what it finds disagrees with `current_state.md §8` as committed** —
 _"trust the previous session's prose"_ becomes _"trust the repository."_ It then claims **one** task — the
-first `ready` row in `docs/BACKLOG.md` your machine can satisfy and nobody has already claimed — and
-**pushes that claim before any work begins** (§0b; a claim visible only on your machine is invisible to
-the other one). Do the task. `prettier --write` the files you touched, then `scripts/agent-finish.mjs`,
-which runs `pnpm verify` in full, regenerates §8, refuses without a `§7` abstract and a linked
-`handoff/<seat>/` body, and prints the exact `gh pr create` command. Open the PR with exactly that, and
-**stop**. You never merge the PR you just opened, and you never merge anyone else's either.
+first unclaimed `ready` row in `docs/BACKLOG.md` your machine can satisfy — and **pushes that claim before
+any work begins** (§0b; a claim visible only on your machine is invisible to the other one). Do the task.
+`prettier --write` what you touched, then `scripts/agent-finish.mjs`: it runs `pnpm verify` in full,
+regenerates §8, refuses without a `§7` abstract and a linked `handoff/<seat>/` body, and prints the exact
+`gh pr create` command. Open the PR with exactly that, and **stop**. You never merge the PR you just
+opened, and you never merge anyone else's either.
 
 ### 1.2 Reviewer — `hmdnah`, `khalihlna`
 
@@ -69,43 +74,40 @@ which is never the account that opened it (§0). `RISK: contract-touching` → a
 needs their merge. Either way, rewrite that entry's `REVIEW:` line before you do anything else.
 
 This is why review is routed by machine: a `pc` task's review goes to `khalihlna`, **never** to `hmdnah`,
-who cannot re-execute a browser claim. **And a `risk: high` task takes two review turns** (D88,
-`REVIEW.md`): step 1 is mechanical and does not approve, step 2 is adversarial and merges — same seat,
-separate sessions, and a defect step 1 proves goes back to the builder on the existing claim with the row
-still `review`. `risk: high` is not owner-gated (§5).
+who cannot re-execute a browser claim. **A `risk: high` task takes two review turns**, same seat, separate
+sessions, and only step 2 approves — the split, and what a proven defect does to the row, are `REVIEW.md`
+(D88). `risk: high` is not owner-gated (§5).
 
 ### 1.3 Steward/orchestrator — `brahim`
 
-**Never builds. Closes the loop** — no other seat can see past its own session, so a fifth seat threads
+**Never builds. Closes the loop** — no other seat can see past its own session, so a separate seat threads
 them rather than builders planning their own succession. A `brahim` turn **decides what is `ready`** and
-which `machine:` it needs, and keeps `docs/decisions.md`/`open_rulings.md` honest. **Seats
-decide what they take**; the steward never claims on another seat's behalf. A pure bookkeeping act
-(flipping a `blocked` row to `ready`) is a direct commit to `main`; decomposition or a spec fix is a
-`STEWARD:`-titled PR, reviewed by whoever runs next.
+which machine it needs, and keeps `docs/decisions.md`/`open_rulings.md` honest. **Seats decide what they
+take**; the steward never claims on another seat's behalf. A pure bookkeeping act (flipping a `blocked` row
+to `ready`) is a direct commit to `main`; decomposition or a spec fix is a `STEWARD:`-titled PR, reviewed
+by whoever runs next. `mahjob` and `hamadi` take this shape too, and `brahim` reviews their PRs (§0).
 
-**The default mode is two persistent sessions**, one per machine, each running the `loop` skill:
-`brahim` on box (decides readiness, spawns `zayd`/`hmdnah`) and `light_brahim` on pc (decides nothing,
-spawns `amer`/`khalihlna` from what `brahim` already committed). Their full protocol, including the
-dependency-closure and review-batching policy, is `docs/prompts/brahim-orchestrator.md` and
+**The default mode is two persistent sessions**, one per machine, each running the `loop` skill — `brahim`
+on box, `light_brahim` on pc, which decides nothing and spawns only from what `brahim` already committed.
+Full protocol, including dependency closure and review batching: `docs/prompts/brahim-orchestrator.md` and
 `docs/prompts/light-brahim-orchestrator.md`; `touch docs/.loop-stop` halts both at the next cycle.
 
 ## 2. What you read, and when _(do not read everything)_
 
-`current_state.md` is the router and is read in full, every session — that has not changed, and its own
-`§0` orientation table says which document answers which question. This file, your own `<Seat>_Prompt.md`,
-and `current_state.md §1c` (the trap list) are the standing always-read set.
+`current_state.md` is the router and is read in full, every session; its own `§0` orientation table says
+which document answers which question. This file, your own `<Seat>_Prompt.md`, and `current_state.md §1c`
+(the trap list) are the standing always-read set.
 
-**`docs/contracts/` is the source of truth, and it changes rarely.** `core_logic.md` (the domain model —
-what the app _means_), `architecture.md` (layers, worker protocol, registries — how it is _built_),
-`V1.0.0_spec.md` (scope, decisions D1–D66 — what _ships first_)
-and `v1.0.0_imp_plan.md` (phases, exit criteria, the freeze gate) are read **on demand**, per
+**`docs/contracts/` is the source of truth, and it changes rarely.** `core_logic.md` (the domain model),
+`architecture.md` (layers, worker protocol, registries), `V1.0.0_spec.md` (scope, D1–D66) and
+`v1.0.0_imp_plan.md` (phases, exit criteria, the freeze gate) are read **on demand**, per
 `current_state.md §0`'s reading order — not every session, but never worked around either.
 `docs/design/*`, `docs/decisions.md` and `docs/history.md` are reference, read on lookup.
 
-**Precedence, stated because it was never written down before:** `docs/contracts/` wins over
-`v1.0.0_imp_plan.md`'s own phase narrative, which wins over anything in `current_state.md`,
-`open_rulings.md` or an entry's prose. If a build reveals a contract doc is wrong, fix the contract doc and
-say so in your entry — never let a plan or a status file silently contradict the source of truth.
+**Precedence:** `docs/contracts/` wins over `v1.0.0_imp_plan.md`'s own phase narrative, which wins over
+anything in `current_state.md`, `open_rulings.md` or an entry's prose. If a build reveals a contract doc is
+wrong, fix the contract doc and say so in your entry — never let a plan or a status file silently
+contradict the source of truth.
 
 **What you leave:** an abstract in `current_state.md §7` (the eight mandatory fields) and its full body at
 `handoff/<seat>/<date>-<slug>.md`. **An abstract's heading is `### T-nnn — <title> — <date> — seat:
@@ -160,14 +162,13 @@ buys a second review turn (§1.2) rather than the owner's merge. CI labels each 
 1. **`RISK: contract-touching`** — any diff `tests/freeze-boundary.test.ts` flags against the frozen
    surface. Decided by a machine, not by a reviewer's judgement; the reviewer approves, the owner merges.
 2. **A legal/contractual figure** — today exactly `CLA.md`'s `<LEGAL ENTITY>` (`open_rulings.md` Q11/Q12).
-3. **The P5 freeze itself** — the one irreversible act. Once it happens, `tests/frozen-surface.snapshot.json`
-   may not move without an owner ruling, full stop.
+3. **The P5 freeze itself** — the one irreversible act. After it, `tests/frozen-surface.snapshot.json` may
+   not move without an owner ruling, full stop.
 
 ## 6. Rules that are easy to get wrong
 
-- **The claim is pushed before work begins; a live claim on YOUR machine is a full stop**, on the
-  _other_ machine it is not (two machines work in parallel; `agent-start.mjs` reads every `task/*`
-  branch's own `§0b`, not just this one's).
+- **The claim is pushed before work begins; a live claim on YOUR machine is a full stop**, on the _other_
+  machine it is not (`agent-start.mjs` reads every `task/*` branch's own `§0b`, not just this one's).
 - **The author never merges their own entry** — the reviewer is by construction a later session, on the
   crossed account (§0). This had to be learned the expensive way once (Entry 74's self-merge, fixed in
   Entry 75 — `docs/design/handoff_system_design.md` §7); it is not optional twice.
@@ -175,9 +176,8 @@ buys a second review turn (§1.2) rather than the owner's merge. CI labels each 
 - **`docs/BACKLOG.md`'s `ready` rows are the steward's act.** A builder that finds nothing ready for its
   machine says so and stops — `scripts/agent-start.mjs` refuses the claim rather than let a seat widen a
   `machine:` field to make something claimable.
-- **Five prompt files, each carrying no state.** `zayd` never writes `Amer_Prompt.md` — there is nothing
-  left in either to write. What the other seat needs to know travels in the entry's `OWES:` field and the
-  PR it reviews.
+- **A prompt file carries no state and no seat writes another's** (`docs/seats/README.md`). What the
+  other seat needs travels in the entry's `OWES:` field and the PR it reviews.
 
 ## 7. How you write — binding on every seat, and on any subagent a seat spawns
 
@@ -196,5 +196,5 @@ Owner ruling, 2026-08-15. Applies to comments, docs, entries, PR bodies and comm
 
 ## 8. Keeping this file true
 
-**Maintained, not frozen.** When a protocol step or an invariant changes, update it in the same PR as the
-change. Hard cap **200 lines**; if something new must go in, something else becomes a pointer.
+**Maintained, not frozen.** Update a protocol step or an invariant in the same PR as the change. Hard cap
+**200 lines**; if something new must go in, something else becomes a pointer.
