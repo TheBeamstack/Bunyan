@@ -133,7 +133,7 @@ a row that actually names the pending PR's task in its own `depends-on:` waits.
 | T-025 | ready   | `--review` keeps an owner-gated row at `review`                         | infra    | box     | high   | —          |
 | T-028 | ready   | `agent-finish.mjs` is resumable after an interrupted run                | infra    | box     | normal | —          |
 | T-027 | ready   | §6's relink cap is measured, not guessed                                | infra    | box     | normal | —          |
-| T-029 | ready   | `seats.mjs`'s three functions collapse `machine: any` to `box`          | infra    | box     | high   | —          |
+| T-029 | ready   | `seats.mjs` collapses `machine: any` to `box` in two functions          | infra    | box     | high   | —          |
 | T-030 | ready   | A steward cannot review, and its readiness view lists nothing           | infra    | box     | high   | —          |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                              | infra    | box     | high   | T-029      |
 
@@ -776,15 +776,24 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: —
 - area: infra · machine: **box** · risk: **normal**
 
-### T-029 — `seats.mjs`'s three functions collapse `machine: any` to `box`
+### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
-`reviewerFor`, `reviewerForBranch` and `builderFor` resolve a `machine: any` task by silently defaulting to
-`box` when no finishing seat is passed, so an `any` task run on the pc routes its review to `hmdnah` and its
-branch ownership to `zayd` — a machine nothing on the task proves the work ran on.
+`reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
+finishing seat is passed, so an `any` task run on the pc routes its review to `hmdnah` and its branch
+ownership to `zayd` — a machine nothing on the task proves the work ran on. **Two functions, not the three
+ADR-0001 §0.1 ratified**; `reviewerForBranch` has no `any` branch of its own (see `done-when`).
 
 - implements: `TheBeamstack/diwan` `docs/adr/0001-seven-seat-architecture.md` §0.1 defect 3 (ratified
   2026-09-01) · §3.2's ratified "a seat's `machine:` is never `any`" · `docs/seats/README.md`
 - verify: `pnpm verify`
+- ⚠ **re-measure the line numbers before you start; do not trust the ones below.** They are pinned to
+  `scripts/seats.mjs` blob `509b299` (last touched `9b792e6`, 2026-08-31): `reviewerFor` declared `439`
+  with the collapse at `449`/`450`; `builderFor` declared `514` with the collapse at `519`/`520`;
+  `reviewerForBranch` declared `489`, `500` is `const m = machineOf(root, fromSeat)`, **no `any` branch**.
+  **These numbers have already moved twice under people who cited them** — ADR-0001 §0.1 quoted
+  `403`/`454`/`471` and ADR-0002 §2.1 quoted `392`/`442`/`467`, both accurate when written; and this row's
+  own first draft repeated the stale set, having measured minutes before a `git pull` moved the file ~47
+  lines. A bare line number is a claim with a shelf life. `grep -n`, then cite the blob you measured.
 - done-when:
   - **measured before the fix**: `reviewerFor(root,'any')` and `builderFor(root,'<any task>')` with no
     finishing seat each return the `box` seat, and the returned value carries nothing saying it was a
@@ -857,6 +866,24 @@ informational provenance.
 ## Discovered
 
 _(unplanned findings land here — never claimed in the same turn that found them, per `AGENTS.md §3`)_
+
+- **2026-09-04 — a GitHub Actions job's `runner_name` reads `""` even after it has completed
+  successfully, so it is not evidence about whether anything picked the job up.** PR #47's run
+  33877624825 sat `queued` for **55.6 minutes** (created 13:21:41Z, first job started 14:17:17Z) while
+  `gh api repos/TheBeamstack/Bunyan/actions/runners` reported `bunyan-oracle-runner` `status=online
+busy=false` with matching labels. Two readers independently took `runner_name: ""` on the queued jobs
+  as proof nothing had claimed them and diagnosed a wedged listener. **It was queue latency and there was
+  nothing wrong**: the run finished `success`, and the same field still reads `""` on both completed jobs.
+  A null was read as a negative — `current_state.md §1c-7`'s pattern, a signal trusted without anyone
+  checking what it reads when the proposition is _true_. The only sound liveness check is whether a job
+  eventually starts. ⚠ **A queued run is not a failed one, and 13 minutes is not a diagnosis.**
+- **2026-09-04 — the single-runner queue delay is now measured on two repos, and Bunyan is the worse
+  one.** 55.6 min of queue for ~11 min of work here (run 33877624825, updated 14:28:10Z), against
+  `maitre_d_ouvrage`'s measured 39 min wall-clock for 23 min of work on its own single runner. Two data
+  points, two runners, one cause: one self-hosted VM serialising every job. Recorded as independent
+  evidence for `OWNER-ACTIONS.md` **OA-008**. ⚠ Not a Bunyan work item — the runner is infrastructure and
+  `mahjob`'s, and ADR-0002 §2.10 puts this VM on the deletion path once Bunyan goes public, so the delay
+  may be retired rather than repaired. Nothing on the runner was touched.
 
 - **2026-09-04 — `REVIEW.md`'s "GitHub itself refuses the Entry 74 self-merge" is false, and
   `.github/workflows/ci.yml:91` names a test that does not exist.** GitHub refuses an approval from the

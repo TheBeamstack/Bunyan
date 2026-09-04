@@ -648,11 +648,13 @@ is maintenance and does NOT get an entry of its own.**
   is inert against every gate reading it. `seats.mjs list` returns all seven rows — its header's claim that
   nothing hardcodes a seat name, measured rather than believed. **The `any` collapse, on the CLI:**
   `seats.mjs reviewer-for any` (no finishing seat) → **`hmdnah`**, a `box` reviewer picked by a hardcoded
-  default and reported as an answer; `reviewer-for any amer` → `khalihlna`. **The cited line numbers, at
-  HEAD:** `reviewerFor:403` exact (the collapse line); `builderFor:471` off by one (`472`/`473`);
-  **`reviewerForBranch` has no `any` branch at all** — `:454`'s `m` is a *seat's* machine, so it inherits
-  the collapse through the call rather than containing one. ADR-0002 §2.1's `392`/`442`/`467` are the
-  function declarations and are exact.
+  default and reported as an answer; `reviewer-for any amer` → `khalihlna`. **The collapse is in TWO
+  functions, not the three ADR-0001 §0.1 ratified** — measured against `seats.mjs` blob `509b299`
+  (`9b792e6`, 2026-08-31): `reviewerFor` declared `439`, collapse `449`/`450`; `builderFor` declared `514`,
+  collapse `519`/`520`; **`reviewerForBranch` (`489`) has none** — its `500` is
+  `const m = machineOf(root, fromSeat)`, a *seat's* machine, so never `any`. ⚠ ADR-0001's `403`/`454`/`471`
+  and ADR-0002's `392`/`442`/`467` were accurate when written and have drifted; this entry's own first
+  draft repeated the stale set, measured minutes before `agent-start.mjs`'s pull moved the file ~47 lines.
 - **FOUND:** **Two defects, both measured, neither fixed here (`AGENTS.md §3`) — they are T-030.**
   **(a)** `agent-start.mjs:576` dies *"A steward does not review build work"* (exit 1, run here), so
   `docs/seats/README.md`'s new routing of `mahjob`/`hamadi` PRs to `brahim` cannot execute — Bunyan's copy

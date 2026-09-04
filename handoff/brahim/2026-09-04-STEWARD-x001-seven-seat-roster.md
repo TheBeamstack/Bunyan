@@ -72,17 +72,21 @@ making an approval mean anything (ADR-0001 §1.2). No rows were merged.
 
 ## 4. What was verified by running, not by reading
 
-**The three line numbers in the brief and in ADR-0001 §0.1, checked against `HEAD` (`grep -n`):**
+**The `any` collapse is in TWO functions, not the three ADR-0001 §0.1 ratified.** Measured with `grep -n`
+against `scripts/seats.mjs` blob **`509b299`** (last touched `9b792e6`, 2026-08-31) — pinned, because a
+bare line number is a claim with a shelf life and these have now moved twice under people who cited them:
 
-| Cited | What is actually there |
-| --- | --- |
-| `reviewerFor:403` | **exact** — `403` is `m = finishingSeat ? machineOf(root, finishingSeat) : 'box'`, the collapse itself |
-| `builderFor:471` | **off by one** — `471` is `if (!m) throw`; the collapse is `472`/`473` |
-| `reviewerForBranch:454` | **`reviewerForBranch` has no `any` branch of its own.** `454` is `return { ...reviewerFor(root, m, finishingSeat), reason: null }`, and its `m` comes from `machineOf(root, fromSeat)` — a *seat's* machine, so it is `box` or `pc` and never `any`. It inherits the collapse through the call rather than containing one |
+| Function | Declared | The `any` collapse |
+| --- | --- | --- |
+| `reviewerFor` | `439` | **`449`/`450`** — `m = finishingSeat ? machineOf(root, finishingSeat) : 'box'` |
+| `builderFor` | `514` | **`519`/`520`** — the same two lines |
+| `reviewerForBranch` | `489` | **none.** `500` is `const m = machineOf(root, fromSeat)` — a *seat's* machine, so `box` or `pc` and never `any`. It reaches `reviewerFor`'s collapse through the call, but the branch is unreachable by that path |
 
-ADR-0002 §2.1's numbers (`392`, `442`, `467`) are the three **function declarations** and are exact.
-`T-029` therefore asks the claiming seat to state whether `reviewerForBranch` needed a change at all,
-rather than assuming a third edit that may not exist.
+ADR-0001 §0.1's `403`/`454`/`471` and ADR-0002 §2.1's `392`/`442`/`467` were both accurate when written and
+have since drifted. ⚠ **This document's own first draft quoted `403`/`454`/`471` as HEAD numbers and was
+wrong**: they were measured minutes before `agent-start.mjs`'s `git pull --ff-only` advanced `main`, which
+moved the file ~47 lines. Corrected here rather than left standing. `T-029` asks the claiming seat to
+re-measure rather than trust any of these.
 
 **The collapse, on the CLI:**
 
