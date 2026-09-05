@@ -1,0 +1,108 @@
+# .agent.toml — Bunyan's binding to the canonical scaffolding in `diwan`.
+#
+# Schema: `diwan/docs/seats/BINDINGS.md` and `diwan/scripts/protocol.py` `Config`. Every value here
+# is measured from this repo, not copied from the example: `[commands]` from `package.json` and
+# `.github/workflows/ci.yml`, `[frozen_surface]` from `scripts/frozen-surface.mjs` `WATCHED`,
+# `[reseed]` from `scripts/reseed-paths.mjs`, `[reserved]` from `scripts/reserved-classes.mjs`,
+# `[log]` from `scripts/docs-state.mjs` `BUDGET`, `[git]` from this repo's local git config.
+#
+# Repo-specific invariants, owner-gated classes and product facts are `docs/INVARIANTS.md`.
+
+[repo]
+name     = "Bunyan"
+language = "node"
+diwan    = "../diwan"
+
+[paths]
+state     = "docs/CURRENT_STATE.md"
+backlog   = "docs/BACKLOG.md"
+phase_log = "docs/PHASE_LOG.md"
+handoff   = "handoff"
+docs      = "docs"
+lock      = "docs/.turn-lock"
+stop      = "docs/.loop-stop"          # the live kill switch, named by both orchestrator prompts
+seats     = "docs/seats/README.md"     # `scripts/seats.mjs` parses this file today; do not move it
+blockers  = "docs/BLOCKERS.md"
+# ⚠ NOT `docs/DECISIONS.md`. `docs/decisions.md` already exists here (the ratified-ruling register,
+# D1–D88), and the pc runs Windows — where the two names are the same file. A case-only collision
+# would silently overwrite the ruling register on the one machine that cannot see it happen.
+decisions = "docs/OWNER-DECISIONS.md"
+
+[commands]
+# `pnpm verify` = typecheck && lint && format:check && test && reseed:check && docs:check, and it is
+# CI's step list exactly (`package.json`; `.github/workflows/ci.yml` runs the same six in order).
+# ⚠ `lint` and `typecheck` are deliberately NOT declared: `verify` already runs both, and declaring
+# them would run eslint and tsc a second time on every turn.
+verify = "pnpm verify"
+test   = "pnpm test"
+
+[git]
+# ⚠ MEASURED FROM `git config --local`, and it is a placeholder address. Identity here is per SEAT,
+# not per repo — `docs/seats/README.md` crosses `davidian-abdo` and `narutousomaki741` so no reviewer
+# shares an account with the work it reviews, and `scripts/agent-start.mjs`'s identity gate refuses a
+# turn whose `gh` login does not match the seat's row. Treat these two values as the fallback for a
+# commit made outside a seat's turn; the roster wins inside one.
+author_name  = "narutousomaki741"
+author_email = "narutousomaki741@example.com"
+
+[log]
+# `scripts/docs-state.mjs` `BUDGET.history` = 400 KB, measured post-migration with headroom.
+# The canonical defaults (48 KB cap) would refuse every turn here: PHASE_LOG.md is 92 KB today.
+# warn/roll keep the canonical proportions of the cap.
+warn_bytes = 204800
+roll_bytes = 344064
+fail_bytes = 409600
+
+[review]
+# D88: a `risk: high` row gets two review turns in separate sessions. Not owner-gated — step 2 merges.
+two_step_high_risk = true
+step1_label        = "review/step-1"
+
+# The frozen surface (D13, and the P5 freeze). PRESENT ⇒ the gate applies.
+# `contract-touching` and `freeze` are decided from this table; they need no `[reserved]` entry.
+[frozen_surface]
+baseline = "tests/frozen-surface.snapshot.json"
+watched = [
+  # the kernel message protocol — already frozen (v1, D13)
+  "packages/protocol/src/subshape.ts",
+  "packages/protocol/src/ops.ts",
+  "packages/protocol/src/envelope.ts",
+  "packages/protocol/src/failures.ts",
+  "packages/protocol/src/mesh.ts",
+  "packages/protocol/src/version.ts",
+  # the document contracts that freeze at P5
+  "packages/document/src/entities.ts",
+  "packages/document/src/scene.ts",
+  "packages/document/src/schema.ts",
+  "packages/document/src/types.ts",
+  "packages/document/src/undo.ts",
+  "packages/document/src/revision.ts",
+  "packages/document/src/documentation.ts",
+  "packages/document/src/families.ts",
+  "packages/document/src/systems.ts",
+  "packages/document/src/designoptions.ts",
+]
+
+# The re-seed gate (spec §9). PRESENT ⇒ the gate applies.
+# ⚠ Every source entry names SOURCE, never a package root: `packages/kernel-occt/` matches its
+# `package.json`, and the gate's first real execution refused a licence field for exactly that.
+[reseed]
+goldens     = ["tests/goldens/"]
+clock_field = "seededAt"               # stamped every run; excluded from the payload hash (Q16)
+sources = [
+  "packages/kernel-mock/src/box.ts",
+  "packages/kernel-occt/src/",
+  "packages/kernel-occt/wasm/",
+  "packages/types/src/",
+  "tools/kernel-build/src/kernel.cpp",
+  "tools/kernel-build/configure.sh",
+  "tools/kernel-build/link.sh",
+  "tools/kernel-build/postlink.mjs",
+  "tools/kernel-build/toolchain.json",
+]
+
+# The one reserved class not derived from `[frozen_surface]` (`docs/INVARIANTS.md §2.2`).
+# Any `CLA.md` change flags: under-labelling costs the licence, over-labelling costs one click.
+[reserved."needs-operator/legal-figure"]
+paths   = ["CLA.md"]
+removed = ["CLA.md::<LEGAL ENTITY>"]
