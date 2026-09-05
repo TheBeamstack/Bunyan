@@ -55,7 +55,7 @@ export interface EntryAbstract {
    *
    * ⚠ THE OLD REASON GIVEN HERE WAS FALSE, and Entry 76's correction missed this fourth copy of it
    * (found Entry 80). It said these docs are "prettier-formatted at `printWidth: 100`, so the line
-   * break is placed by sentence length rather than by the author" — but `current_state.md`, the only
+   * break is placed by sentence length rather than by the author" — but `docs/CURRENT_STATE.md`, the only
    * file this parser opens, is in `.prettierignore`. The wrapping is placed BY HAND, which makes
    * `fieldsFull` more necessary rather than less: nothing maintains those breaks and no gate watches
    * them. See `parseAbstracts` in `docs-state.mjs`.
@@ -80,7 +80,7 @@ export declare function abstractKey(a: {
 }): number | string;
 
 /**
- * An abstract as the ARCHIVE carries it — identity fields only, parsed from a `docs/history.md`
+ * An abstract as the ARCHIVE carries it — identity fields only, parsed from a `docs/PHASE_LOG.md`
  * heading. `EntryAbstract` is structurally one of these plus §7's parsed body.
  */
 export interface RecordedAbstract {
@@ -96,7 +96,7 @@ export interface RecordedAbstract {
 }
 
 /**
- * §7's window PLUS `docs/history.md` — the population a durable reference resolves against, and the
+ * §7's window PLUS `docs/PHASE_LOG.md` — the population a durable reference resolves against, and the
  * only one that does not rot. **Throws** if the archive parses to zero headings, for the reason
  * `newestAbstract` throws on an empty §7. See the implementation.
  */

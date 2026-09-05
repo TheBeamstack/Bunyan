@@ -20,7 +20,7 @@
  *
  * ⚠ Every rewrite is REQUIRED to match. An emsdk bump that reshapes the emitted text makes this
  * script fail loudly rather than silently ship an unpatched artifact — a patch that quietly matches
- * nothing is the "gate that skips itself" failure (`current_state.md §1d`).
+ * nothing is the "gate that skips itself" failure (`docs/CURRENT_STATE.md §1d`).
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';

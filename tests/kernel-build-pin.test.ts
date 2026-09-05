@@ -71,8 +71,8 @@ describe('the kernel toolchain is pinned by digest (Q14)', () => {
       ['tools/kernel-build/link.sh', read('tools/kernel-build/link.sh')],
       ['tools/kernel-build/probe.sh', read('tools/kernel-build/probe.sh')],
       ['tools/kernel-build/configure.sh', read('tools/kernel-build/configure.sh')],
-      ...codeBlocks(read('current_state.md')).map(
-        (b, i) => ['current_state.md (code block ' + String(i + 1) + ')', b] as [string, string],
+      ...codeBlocks(read('docs/CURRENT_STATE.md')).map(
+        (b, i) => ['docs/CURRENT_STATE.md (code block ' + String(i + 1) + ')', b] as [string, string],
       ),
     ];
 

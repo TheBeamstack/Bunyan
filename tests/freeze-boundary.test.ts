@@ -9,7 +9,7 @@
  * Until 2026-07-31 the question *"did this change touch a frozen shape?"* was answered by an agent
  * remembering to ask. This project's own backward sweep scores memory-enforced rules at NINE DIRTY
  * OUT OF EIGHTEEN, and its transferable finding is that **a rule holds when violating it is LOUD**
- * (`current_state.md` §1c-8). This is that loudness, for the one rule where being wrong is permanent.
+ * (`docs/CURRENT_STATE.md` §1c-8). This is that loudness, for the one rule where being wrong is permanent.
  *
  * WHAT A FAILURE MEANS. Not necessarily a mistake — it means the PR is **contract-touching**, so:
  *   1. it is `RISK: contract-touching` and the **OWNER merges it**, not the reviewing agent; and
@@ -82,7 +82,7 @@ describe('the frozen surface', () => {
 
   it('watches every file that carries a shape freezing at P5', () => {
     // A frozen shape in an unwatched file is invisible to this gate — the one way it can be wrong.
-    // These are the files current_state.md §2 names as freezing; keep the two lists in step.
+    // These are the files docs/CURRENT_STATE.md §2 names as freezing; keep the two lists in step.
     for (const rel of [
       'packages/protocol/src/subshape.ts',
       'packages/document/src/entities.ts',
@@ -234,7 +234,7 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
    * ⚠⚠ THE GATE MUST SURVIVE §7's ROTATION, AND THIS IS THE TEST THAT SAYS SO.
    *
    * `parseAbstracts` reads §7, whose own rotation rule caps it at ten abstracts. Entry **76** is a
-   * real entry — its abstract is in `docs/history.md` §C, its body is
+   * real entry — its abstract is in `docs/PHASE_LOG.md` §C, its body is
    * `handoff/zayd/2026-08-02-entry74-late-review.md` — and it is NOT in §7. A baseline naming it is a
    * repo that has not touched a frozen shape in a while, which is the CORRECT state, and after the P5
    * freeze it is the MANDATORY one: `_README` says the file may not be updated without an owner ruling.
@@ -294,7 +294,7 @@ describe('the baseline file records WHICH ENTRY authorised it (Q15)', () => {
       `_baselinedAtEntry ${String(real.key)} names no abstract in the record`,
     ]);
 
-    // ⚠ The legacy form: §7 holds no `### N | …` entry any more, but `docs/history.md` §C holds
+    // ⚠ The legacy form: §7 holds no `### N | …` entry any more, but `docs/PHASE_LOG.md` §C holds
     // thirteen, so this is measured against the real record rather than a fixture.
     const legacy = recorded.filter((a) => a.scheme === 'legacy');
     expect(legacy.length, '§7 and the archive hold no legacy abstract — the premise is gone').toBe(
@@ -416,7 +416,7 @@ describe('the baseline names an entry, not a position (T-024)', () => {
     const named = recorded.find((a) => a.key === snapshot._baselinedAtEntry);
     expect(
       named,
-      `${String(snapshot._baselinedAtEntry)} names no abstract in §7 or docs/history.md`,
+      `${String(snapshot._baselinedAtEntry)} names no abstract in §7 or docs/PHASE_LOG.md`,
     ).toBeDefined();
     expect(named?.date).toBe(snapshot._baselinedAt);
     expect(baselineEntryIssues(snapshot, recorded)).toEqual([]);

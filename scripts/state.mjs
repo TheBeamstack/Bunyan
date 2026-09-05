@@ -15,7 +15,7 @@
  * been discharged on the assumption that they did. That count happened ONCE, during a sweep. Now it
  * happens every session.
  *
- * ⚠ WHAT IT WRITES, AND NOTHING ELSE: `current_state.md` §8, between the GENERATED markers.
+ * ⚠ WHAT IT WRITES, AND NOTHING ELSE: `docs/CURRENT_STATE.md` §8, between the GENERATED markers.
  *
  * ⚠⚠ SUPERSEDED 2026-08-14 (D82, Entry 91): this used to ALSO rewrite `<Agent>_Prompt.md`'s §2 FRESH
  * block, for the running agent only. Prompt files are now fully stateless (`docs/BACKLOG.md` is the
@@ -38,7 +38,7 @@
  * commit's own content), `suite` (`.vitest-summary.json` is gitignored, so a fresh checkout has
  * either a stale local artifact or none at all — it is a point-in-time report, not a reproducible fact
  * of the committed tree), and `docs budget` (SELF-REFERENTIAL: its `current_state` figure is
- * `size('current_state.md')`, read from disk BEFORE this run's own §8 write lands there — so the
+ * `size('docs/CURRENT_STATE.md')`, read from disk BEFORE this run's own §8 write lands there — so the
  * figure a write pass embeds always describes the file's size one generation before the write that
  * embeds it, and a second, independent measurement pass a moment later correctly sees a different,
  * larger number. Found BY this gate, on its own first real exercise — nothing before `--check-only`
@@ -139,7 +139,7 @@ if (existsSync(summaryPath)) {
 //
 // ⚠ EACH COUNT IS LABELLED FOR EXACTLY WHAT IT MEASURES, and that is not pedantry. The rule-5 sweep
 // counted the RUNTIME registry (51 types — mostly test fixtures); these count the SHIPPED SOURCE.
-// Two different denominators for the same noun is precisely how `current_state.md` §1c-8's ledger
+// Two different denominators for the same noun is precisely how `docs/CURRENT_STATE.md` §1c-8's ledger
 // says a written-down number goes wrong, so the label travels with the number.
 const readSrc = (rel) => (existsSync(join(ROOT, rel)) ? readFileSync(join(ROOT, rel), 'utf8') : '');
 
@@ -223,7 +223,7 @@ const {
 } = riskVerdict(moved, rebaselining || baselineRewritten);
 
 // ── the docs ─────────────────────────────────────────────────────────────────────────────────────
-const csPath = join(ROOT, 'current_state.md');
+const csPath = join(ROOT, 'docs/CURRENT_STATE.md');
 let cs = readFileSync(csPath, 'utf8');
 const abstracts = parseAbstracts(cs);
 // ⚠ THROWS on an empty parse rather than writing `(none)` / `ENTRY ?` into main's prompt — see
@@ -289,14 +289,14 @@ const generated = `
 | schema | \`SCENE_SCHEMA_VERSION\` ${schemaVersion} |
 | **frozen surface** | **RISK: ${riskLabel}** — ${riskDetail} |
 | diff vs origin/main | ${diffStat} (${diffFiles} files) |
-| docs budget | current_state ${kb(size('current_state.md'))}/${kb(BUDGET.currentState)} KB · §7 ${kb(sec7Len)}/${kb(BUDGET.section7)} KB · abstracts ${abstracts.length}/${BUDGET.maxAbstracts} · bodies ${bodies.length} |
+| docs budget | current_state ${kb(size('docs/CURRENT_STATE.md'))}/${kb(BUDGET.currentState)} KB · §7 ${kb(sec7Len)}/${kb(BUDGET.section7)} KB · abstracts ${abstracts.length}/${BUDGET.maxAbstracts} · bodies ${bodies.length} |
 
 _Generated ${new Date().toISOString().slice(0, 10)} by \`pnpm state\`._
 `;
 
 const m = MARKERS.state;
 if (!cs.includes(m.begin) || !cs.includes(m.end)) {
-  console.error('✖ current_state.md is missing its GENERATED markers.');
+  console.error('✖ docs/CURRENT_STATE.md is missing its GENERATED markers.');
   process.exit(1);
 }
 
@@ -329,7 +329,7 @@ if (checkOnly) {
     console.error(
       '\n  The repository is the authority, not the prose. Either the previous turn did not run\n' +
         '  `pnpm state` before committing, or someone hand-edited the generated block.\n' +
-        '  Resolve by:  pnpm state   (rewrites the block from reality), then re-read `current_state.md`.',
+        '  Resolve by:  pnpm state   (rewrites the block from reality), then re-read `docs/CURRENT_STATE.md`.',
     );
     process.exit(1);
   }
@@ -349,12 +349,12 @@ writeFileSync(csPath, withFileEol(readFileSync(csPath, 'utf8'), cs));
 // Every prompt file is now the four static facts only — no §2 DYNAMIC block, no per-agent FRESH
 // marker, no "which entry is main on" tracking here. That question is answered by
 // `scripts/agent-start.mjs`'s measured-vs-claimed refusal instead: it re-measures the repository and
-// refuses to start a turn on any disagreement with what `current_state.md`'s own §8 claims, which is
+// refuses to start a turn on any disagreement with what `docs/CURRENT_STATE.md`'s own §8 claims, which is
 // a strictly stronger guarantee than a session eyeballing a FRESH number and deciding whether to
 // trust it. `MARKERS.fresh` stays exported (harmless, currently unused) rather than deleted outright,
 // so a reader of `docs-state.mjs` mid-migration can still see what the retired mechanism looked like.
 
-console.log(`✔ current_state.md §8 regenerated.`);
+console.log(`✔ docs/CURRENT_STATE.md §8 regenerated.`);
 console.log(`  newest entry ${newest.id} (${newest.seat}) · RISK: ${riskLabel} · ${testLine}`);
 if (risk === 'contract-touching') {
   console.log('  ⚠⚠ contract-touching ⇒ the OWNER merges this PR, not the reviewing agent.');

@@ -11,7 +11,7 @@ The manual, single-turn shape below (§1.3's `agent-start.mjs`/`agent-finish.mjs
 — for a one-off decomposition, or if the owner would rather drive a turn directly — and it is exactly
 what the loop itself runs at step 4b (a phase boundary) and 4a (a bookkeeping sweep, direct-committed
 instead). This file carries **no state** (see `docs/seats/README.md`): what is done, next and blocked
-lives in `current_state.md` and `docs/BACKLOG.md`, both read in full.
+lives in `docs/CURRENT_STATE.md` and `docs/BACKLOG.md`, both read in full.
 
 - **role:** steward / orchestrator
 - **machine:** box (Hetzner, headless)
@@ -43,7 +43,7 @@ one. Never resolve the awkwardness by widening a criterion.
 node scripts/agent-start.mjs --seat brahim --no-claim
 ```
 
-Read `current_state.md` in full, every abstract landed since your last turn, and `open_rulings.md`.
+Read `docs/CURRENT_STATE.md` in full, every abstract landed since your last turn, and `open_rulings.md`.
 Leave behind: statuses that are true, `ready` rows in `docs/BACKLOG.md` that satisfy every READY
 criterion, and a §7 abstract whose body is in `handoff/brahim/`. **The turn ends by naming which seat
 should run next** — the owner's one-line prompt is only ever correct if something upstream decided who

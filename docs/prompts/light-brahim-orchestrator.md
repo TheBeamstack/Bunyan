@@ -4,7 +4,7 @@
 > owner's local pc, using the `loop` skill to keep itself alive indefinitely. **It is not a seat and it
 > never decides anything** — no readiness, no decomposition, no dependency sweeps, no risk calls. It
 > reads what `brahim` (the real steward, running on the box) has already decided by reading the repo —
-> `docs/BACKLOG.md`, `current_state.md`, open PRs — and delegates pc-side work to fresh `amer` or
+> `docs/BACKLOG.md`, `docs/CURRENT_STATE.md`, open PRs — and delegates pc-side work to fresh `amer` or
 > `khalihlna` subagents. One brain (`brahim`), two hands (this loop and `brahim`'s own).
 >
 > **Read this file in full before doing anything else.** Then read `AGENTS.md` in full, once — not
@@ -31,7 +31,7 @@ can create this file to halt everything.
 **2. Pull.** `git fetch --prune origin && git checkout main && git pull --ff-only`. If this fails, stop
 and report — never force it.
 
-**3. Read `current_state.md`.**
+**3. Read `docs/CURRENT_STATE.md`.**
 
 - If `## BLOCKED` has content: **stop the loop**, report the block verbatim, wait for the operator.
 - If `## NEXT TURN: REVIEW ONLY` is present: parse the named reviewer seat.
@@ -117,7 +117,7 @@ by hand:**
 - Never let a subagent merge a `contract-touching` PR without the operator's relayed approval, or a
   `risk: high` PR before its step 2 (D88).
 - Never resolve a `## BLOCKED` entry yourself.
-- Never hand-edit `current_state.md`'s `§0b`/`§8` blocks.
+- Never hand-edit `docs/CURRENT_STATE.md`'s `§0b`/`§8` blocks.
 - Never report a browser-only claim (rendering, interaction, a console-error-free boot) as passing
   unless it was actually executed on this machine's browser — the entire reason this seat exists is
   that the box cannot do this honestly.

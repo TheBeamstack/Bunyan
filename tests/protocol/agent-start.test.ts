@@ -259,7 +259,7 @@ describe('step 3 — measured vs. claimed, the load-bearing refusal', () => {
 
   it('REFUSES again if the committed §8 is hand-edited after the fact', () => {
     fx = makeFixture();
-    const csPath = join(fx.dir, 'current_state.md');
+    const csPath = join(fx.dir, 'docs/CURRENT_STATE.md');
     const cs = readFileSync(csPath, 'utf8').replace(
       /newest entry\*\* \| \*\*[^|]+/,
       'newest entry** | **HAND-EDITED',
@@ -337,7 +337,7 @@ describe('step 5 — a successful claim is pushed before work begins', () => {
     expect(r.code).toBe(0);
     expect(r.out).toMatch(/Claimed: T-001/);
 
-    const cs = readFileSync(join(fx.dir, 'current_state.md'), 'utf8');
+    const cs = readFileSync(join(fx.dir, 'docs/CURRENT_STATE.md'), 'utf8');
     expect(cs).toMatch(/\| seat \| `zayd` \|/);
     expect(cs).toMatch(/\| builder \| `zayd` \|/); // T-016: written once, at the claim
     expect(cs).toMatch(/\| task \| `T-001` \|/);

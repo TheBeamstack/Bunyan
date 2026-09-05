@@ -72,7 +72,7 @@ jobs:
       # Two things, both of which used to be enforced by an agent remembering:
       #   * the doc BUDGET + the eight-field entry-abstract schema + §8 freshness. The old rotation
       #     rule was a COUNT while entry sizes doubled underneath it, and it failed measurably —
-      #     a compaction took current_state.md 377 KB -> 296 KB and it was back to 393 KB the SAME DAY.
+      #     a compaction took docs/CURRENT_STATE.md 377 KB -> 296 KB and it was back to 393 KB the SAME DAY.
       #   * the FROZEN SURFACE. A diff against tests/frozen-surface.snapshot.json means the PR is
       #     `RISK: contract-touching`, so the OWNER merges it rather than the reviewing agent — and
       #     after the P5 freeze, re-baselining that file requires an owner ruling. That policy IS

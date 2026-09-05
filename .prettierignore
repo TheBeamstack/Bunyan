@@ -12,12 +12,12 @@ docs/contracts/v1.0.0_imp_plan.md
 docs/archive/Miqdar_v1.0.0_spec.md
 docs/archive/Miqdar_normative_register.md
 
-# The handoff record — same rationale. `current_state.md` is regenerated in part by `pnpm state`
+# The handoff record — same rationale. `docs/CURRENT_STATE.md` is regenerated in part by `pnpm state`
 # (§8), and the entry bodies in `handoff/` are extracted verbatim from it, so reformatting either
 # would create diff noise against a machine-written block and against the permanent record.
-current_state.md
+docs/CURRENT_STATE.md
 docs/decisions.md
-docs/history.md
+docs/PHASE_LOG.md
 handoff/
 
 # ⚠⚠ THE LEGAL FILES — REFORMATTING THEM IS NOT A STYLE CHANGE, IT IS AN ALTERATION. `LICENSE` and

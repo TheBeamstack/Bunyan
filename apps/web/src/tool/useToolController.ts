@@ -9,7 +9,7 @@
  *                                                  commits ONE Command through Dispatch ─► DocumentContext
  *
  * ⚠ THOSE TWO NAMES USED TO READ `SnapGateway` AND `PreviewLayer`, AND NEITHER HAS EVER EXISTED (found
- * reviewing Entry 80, which struck the same two phantoms out of `current_state.md` §5 and stopped one
+ * reviewing Entry 80, which struck the same two phantoms out of `docs/CURRENT_STATE.md` §5 and stopped one
  * file short of this one — `grep` the name, then count what it hits, §1c-8). The snap seam is
  * `Viewport.snapAt` reached through the `previewFrom`/`snapTo` props; the overlay is
  * `Viewport.setPreviewLine`. `docs/design/P4.5_interaction_model_design.md` still uses both names, and

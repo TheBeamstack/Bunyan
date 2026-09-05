@@ -25,7 +25,7 @@ export declare function parseBaton(currentStateSrc: string): Record<string, stri
 /** Renders a full `<!-- BEGIN BATON -->…<!-- END BATON -->` block from a claim's fields. */
 export declare function renderBaton(claim: Baton): string;
 
-/** Splices `block` into `current_state.md`'s §0b markers and writes the file. */
+/** Splices `block` into `docs/CURRENT_STATE.md`'s §0b markers and writes the file. */
 export declare function writeBaton(currentStateMdPath: string, block: string): void;
 
 export declare function main(argv?: string[]): void;

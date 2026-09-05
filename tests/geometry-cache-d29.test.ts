@@ -526,7 +526,7 @@ describe('D29 — the geometry cache: a cached solid keeps its identities, or it
    *
    * Entry 71 closed with *"the rest is **170 embind boundary crossings per solid** to drain the
    * signature vector … the obvious next lever — a memory view, as `tessellate` already does"*, and that
-   * sentence became a planned unit of work in `current_state.md` §5 and both prompt files. **It was
+   * sentence became a planned unit of work in `docs/CURRENT_STATE.md` §5 and both prompt files. **It was
    * never measured.** It is a SUBTRACTION RESIDUE: a native breakdown was scaled ×3 for WASM, and
    * whatever the scaled parts failed to explain was attributed to the crossings.
    *

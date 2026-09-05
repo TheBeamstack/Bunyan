@@ -40,7 +40,7 @@
  * solid — in the SLOPE. The slope is what decides whether 16,000 solids fit in a tab.
  *
  * ⚠ NO WALL-CLOCK OR THRESHOLD ASSERTION (the standing rule, cf. `document-scale.test.ts`): the number
- * is a DECISION INPUT, printed and recorded in `current_state.md`, not a CI gate that flakes. The
+ * is a DECISION INPUT, printed and recorded in `docs/CURRENT_STATE.md`, not a CI gate that flakes. The
  * assertions here are about CORRECTNESS at scale (memory grows with solids; solids stay live; nothing
  * breaks) and about the MEASUREMENT being sound (a positive marginal slope).
  */

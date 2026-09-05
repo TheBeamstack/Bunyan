@@ -65,7 +65,7 @@ const runState = (...args: string[]): string =>
 
 /** The `RISK:` word `state.mjs` writes into §8 — what a reviewer actually reads. */
 const riskInSection8 = (): string => {
-  const m = /\*\*RISK: ([^*]+)\*\*/.exec(read('current_state.md'));
+  const m = /\*\*RISK: ([^*]+)\*\*/.exec(read('docs/CURRENT_STATE.md'));
   return m?.[1]?.trim() ?? '(no RISK row in §8)';
 };
 
@@ -112,7 +112,7 @@ beforeAll(() => {
   for (const rel of WATCHED) {
     write(rel, rel === SUBJECT ? "export type SubShapeKind = 'face' | 'edge';\n" : '');
   }
-  write('current_state.md', CURRENT_STATE);
+  write('docs/CURRENT_STATE.md', CURRENT_STATE);
   mkdirSync(join(repo, 'tests'), { recursive: true }); // where `--rebaseline` writes the baseline
 
   git('init', '-q', '-b', 'main', '.');
@@ -209,7 +209,7 @@ describe('the RISK verdict `pnpm state` actually prints (Q15)', () => {
       _baselinedAtEntry: number | string;
       _baselinedAt: string;
     };
-    const abstracts = parseAbstracts(read('current_state.md'));
+    const abstracts = parseAbstracts(read('docs/CURRENT_STATE.md'));
 
     // The premise, measured: no §7 entry is dated today, so a clock-stamped date disagrees.
     expect(abstracts.map((a) => a.date)).not.toContain(new Date().toISOString().slice(0, 10));
@@ -225,14 +225,14 @@ describe('the RISK verdict `pnpm state` actually prints (Q15)', () => {
    * `_baselinedAtEntry` held `.n`, which for a five-seat entry is `1000 - i` over §7's array order —
    * so it named whatever was newest, and prepending the next turn's abstract re-pointed it at an
    * entry whose date is not the baseline's. Two turns hit it; the second archived its abstract into
-   * `docs/history.md` rather than falsify a date or re-baseline, and §7 carries none for that turn.
+   * `docs/PHASE_LOG.md` rather than falsify a date or re-baseline, and §7 carries none for that turn.
    * The generator writes the authorising entry's own key now, so the append is invisible to the gate.
    */
   it('⚠⚠ stays green when a LATER-DATED abstract is appended above the baseline’s entry', () => {
     const before = JSON.parse(read(SNAP)) as { _baselinedAtEntry: number | string };
     write(
-      'current_state.md',
-      read('current_state.md').replace(
+      'docs/CURRENT_STATE.md',
+      read('docs/CURRENT_STATE.md').replace(
         '### T-024 — the entry that authorises the baseline',
         [
           '### T-025 — the next turn, a day later — 2026-08-06 — seat: hmdnah',
@@ -250,7 +250,7 @@ describe('the RISK verdict `pnpm state` actually prints (Q15)', () => {
       _baselinedAtEntry: number | string;
       _baselinedAt: string;
     };
-    const abstracts = parseAbstracts(read('current_state.md'));
+    const abstracts = parseAbstracts(read('docs/CURRENT_STATE.md'));
 
     // The premise, measured: the newest abstract now postdates the baseline, and the baseline moved
     // no byte — which is the exact input the positional key could not survive.

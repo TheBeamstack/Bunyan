@@ -16,7 +16,7 @@ import { join } from 'node:path';
  *
  * The old rule compacted at "more than 20 entries". Entry sizes then roughly DOUBLED (Entry 61 was
  * 5,540 B; Entry 71 was 22,716 B), so a count-based threshold could not see the file growing. It
- * failed measurably: the 2026-07-30 compaction took current_state.md 377 KB -> 296 KB and it was back
+ * failed measurably: the 2026-07-30 compaction took docs/CURRENT_STATE.md 377 KB -> 296 KB and it was back
  * to 393 KB the same day — larger than before the maintenance ran.
  *
  * Budgets are set from the measured post-migration size plus real headroom, so a normal session never
@@ -34,15 +34,15 @@ export const BUDGET = {
 export const ABSTRACT_FIELDS = ['CHANGED', 'VERIFIED', 'FOUND', 'OWES', 'RISK', 'FULL', 'REVIEW'];
 
 export function readCurrentState(root) {
-  return readFileSync(join(root, 'current_state.md'), 'utf8');
+  return readFileSync(join(root, 'docs/CURRENT_STATE.md'), 'utf8');
 }
 
 /** `§7 … §8` — the entry-abstract section, exclusive of the generated block. */
 export function section7(src) {
   const start = src.indexOf('## §7 — Entry abstracts');
   const end = src.indexOf('## §8 — Generated');
-  if (start < 0) throw new Error('current_state.md: §7 heading not found');
-  if (end < 0) throw new Error('current_state.md: §8 heading not found');
+  if (start < 0) throw new Error('docs/CURRENT_STATE.md: §7 heading not found');
+  if (end < 0) throw new Error('docs/CURRENT_STATE.md: §8 heading not found');
   return src.slice(start, end);
 }
 
@@ -62,7 +62,7 @@ export function section7(src) {
  *
  * ⚠ AND THE REASON IS NOT THE ONE THIS COMMENT USED TO GIVE. It said these documents are
  * "prettier-formatted at `printWidth: 100`, so the line break is placed by sentence length, not by
- * the author". **False about the only file this parser ever opens:** `current_state.md` is listed in
+ * the author". **False about the only file this parser ever opens:** `docs/CURRENT_STATE.md` is listed in
  * `.prettierignore`, so prettier never touches it — measured with `--ignore-path /dev/null`, it does
  * not conform, and **288 lines would change** if it did. Its wrapping is placed BY HAND. That makes
  * `fieldsFull` MORE necessary, not less: no formatter maintains those breaks, nothing keeps them
@@ -74,7 +74,7 @@ export function section7(src) {
  * THIS PARSER WORKING ON AMER'S BOX AND RETURNING AN EMPTY ARRAY THERE (found Entry 80).
  *
  * The local PC has `core.autocrlf=true`, so every text file in its working tree is CRLF — 920 CRLF
- * pairs in `current_state.md`, measured. Splitting on `\n` then leaves a `\r` at the end of every
+ * pairs in `docs/CURRENT_STATE.md`, measured. Splitting on `\n` then leaves a `\r` at the end of every
  * line, and the heading regex below ends `\| (.+)$`: JS `.` does not match `\r`, and `$` without the
  * `m` flag does not match before one. So NO heading ever matched, `parseAbstracts` returned `[]`, and
  * gate six failed five ways on that box while CI (Linux, LF) stayed green.
@@ -202,7 +202,7 @@ export const ENTRY_KEY = /^(T-\d{3}|STEWARD-[a-z0-9-]+) — (\d{4}-\d{2}-\d{2}) 
  * author may correct; these three are not.
  *
  * ⚠ THE KEY IS NOT UNIQUE, AND §7 IS NOT THE SCOPE THAT DECIDES. The population a durable reference
- * resolves against is §7 PLUS `docs/history.md` — invariant 10 makes the archive permanent — and
+ * resolves against is §7 PLUS `docs/PHASE_LOG.md` — invariant 10 makes the archive permanent — and
  * collisions live in it. The generator is **any two turns by one seat on one task on one day**, which
  * has two live routes: D88's two review steps, and `agent-start.mjs --continue`'s return of a defect
  * to its builder. A reference resolves to that turn-pair rather than to one turn; both members carry
@@ -232,7 +232,7 @@ export function abstractKey(a) {
  * moved no declaration — T-024's own failure shape, on the gate T-024 built to remove it.
  *
  * ⚠ THE ARCHIVE IS APPEND-ONLY BY INVARIANT 10 AND ITS HEADINGS ARE COPIED VERBATIM, in both
- * schemes (`docs/history.md` §C's legacy numbers, §E's `T-nnn`/`STEWARD-slug`), so the union is
+ * schemes (`docs/PHASE_LOG.md` §C's legacy numbers, §E's `T-nnn`/`STEWARD-slug`), so the union is
  * monotone: an abstract enters it and never leaves. `parseAbstracts` is the authority on §7 and this
  * reads only headings from the archive — a summarised entry keeps its identity fields and nothing
  * else is needed to resolve a reference.
@@ -243,7 +243,7 @@ export function abstractKey(a) {
  */
 export function recordedAbstracts(root) {
   const live = parseAbstracts(readCurrentState(root));
-  const archive = readFileSync(join(root, 'docs/history.md'), 'utf8');
+  const archive = readFileSync(join(root, 'docs/PHASE_LOG.md'), 'utf8');
   const archived = [];
   for (const line of archive.split(/\r?\n/)) {
     const nu = NEW_HEADING.exec(line);
@@ -276,7 +276,7 @@ export function recordedAbstracts(root) {
   }
   if (archived.length === 0) {
     throw new Error(
-      'docs/history.md: ZERO archived abstract headings parsed.\n' +
+      'docs/PHASE_LOG.md: ZERO archived abstract headings parsed.\n' +
         'That is a PARSER failure, not an empty archive — §7 has rotated into this file since Entry 33.\n' +
         'Check line endings first: this is what a CRLF working tree did to §7 before Entry 80.',
     );
@@ -294,14 +294,14 @@ export function recordedAbstracts(root) {
  * `**(none)**` into §8 and `ENTRY ?` into the prompt, and the push would have briefed the NEXT
  * session with a question mark where its "am I behind?" check belongs.
  *
- * That is `current_state.md` §1c's own lesson about OCCT's `Modified()` — silence read as an answer.
+ * That is `docs/CURRENT_STATE.md` §1c's own lesson about OCCT's `Modified()` — silence read as an answer.
  * A parser that finds nothing has not discovered that there are no entries; it has failed. The
  * only safe thing it can do is say so and stop before anything is written.
  */
 export function newestAbstract(abstracts) {
   if (!abstracts.length) {
     throw new Error(
-      'current_state.md: §7 parsed to ZERO abstracts.\n' +
+      'docs/CURRENT_STATE.md: §7 parsed to ZERO abstracts.\n' +
         'That is a PARSER failure, not an empty section — §7 is never empty in this repo.\n' +
         'Check line endings first: this is what a CRLF working tree did before Entry 80.',
     );

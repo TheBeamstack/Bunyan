@@ -102,5 +102,5 @@ place is a fact that stays true; a fact copied seven times is a fact that drifts
 | ------------------------ | ------------------------------------------------------------------------------- |
 | _What is next?_          | `docs/BACKLOG.md` — the only source, and its `ready` rows are the steward's act |
 | _Am I current?_          | `scripts/agent-start.mjs`'s measured-vs-claimed refusal — it measures the repo  |
-| _Who is working now?_    | `current_state.md §0b`, the live claim, pushed before work begins               |
+| _Who is working now?_    | `docs/CURRENT_STATE.md §0b`, the live claim, pushed before work begins               |
 | _What did I just learn?_ | the entry's `§7` abstract + `handoff/<seat>/` body; durable traps go to `§1d`   |

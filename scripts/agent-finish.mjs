@@ -6,7 +6,7 @@
  *
  *   0. establish WHO is finishing (seat → role + machine)
  *   1. run `pnpm verify` in full — a turn does not end red
- *   2. regenerate current_state.md's §8 (`node scripts/state.mjs`)
+ *   2. regenerate docs/CURRENT_STATE.md's §8 (`node scripts/state.mjs`)
  *   3. refuse without: a §7 abstract naming this seat and task, a linked handoff body under
  *      handoff/<seat>/, and (for a task, non --incomplete) a `done` row in docs/BACKLOG.md
  *   4. write NEXT TURN: REVIEW ONLY — naming the resolved reviewer seat — when the task is
@@ -218,7 +218,7 @@ export function main(argv = process.argv.slice(2)) {
 
   // --------------------------------------------------------- 2. regenerate the measured section ---
   hr();
-  console.log('2. Regenerating current_state.md §8');
+  console.log('2. Regenerating docs/CURRENT_STATE.md §8');
   const branchNow = git(['rev-parse', '--abbrev-ref', 'HEAD'], root);
   if (branchNow !== 'main') {
     // Commit this turn's work before measuring — measuring the tree that will become main means
@@ -276,13 +276,13 @@ export function main(argv = process.argv.slice(2)) {
   // ------------------------------------------------------------------------- 3. handoff checks ---
   hr();
   console.log('3. Handoff artifacts');
-  const csPath = join(root, 'current_state.md');
+  const csPath = join(root, 'docs/CURRENT_STATE.md');
   const cs = readFileSync(csPath, 'utf8');
   const abstracts = parseAbstracts(cs);
   const newestOfMine = abstracts.find((a) => a.id === task && a.seat === seat);
   if (!newestOfMine) {
     die(
-      `current_state.md §7 has no heading naming BOTH ${task} and seat '${seat}'.\n\n` +
+      `docs/CURRENT_STATE.md §7 has no heading naming BOTH ${task} and seat '${seat}'.\n\n` +
         `  Use:  ### ${task} — <title> — ${new Date().toISOString().slice(0, 10)} — seat: ${seat}`,
     );
   }
@@ -326,7 +326,7 @@ export function main(argv = process.argv.slice(2)) {
         '   • turn marked INCOMPLETE — branch stays open for the next seat, status untouched',
       );
       if (!cs.includes(task))
-        die('An incomplete turn MUST record what is and is not done in current_state.md.');
+        die('An incomplete turn MUST record what is and is not done in docs/CURRENT_STATE.md.');
     }
   }
 

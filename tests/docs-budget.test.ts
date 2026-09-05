@@ -4,7 +4,7 @@
 /**
  * THE DOC GATES — gate six of `pnpm verify`, and therefore of CI.
  *
- * ⚠⚠ WHY IT EXISTS. `current_state.md` is read IN FULL, by BOTH agents, on EVERY session, so its
+ * ⚠⚠ WHY IT EXISTS. `docs/CURRENT_STATE.md` is read IN FULL, by BOTH agents, on EVERY session, so its
  * length is a cost paid on every run. It grew **5.9× in eleven days** (67 KB → 394 KB) under a
  * rotation rule that was expressed as a COUNT ("more than 20 entries") while entry sizes doubled
  * underneath it. That rule then failed measurably: the 2026-07-30 compaction took the file
@@ -14,7 +14,7 @@
  * ledger scores memory-enforced rules at NINE DIRTY OUT OF EIGHTEEN; the two rules that never rotted
  * (`units-rule7`, `d19-boundary`) are the two with a test behind them.
  *
- * WHAT A FAILURE MEANS: compact §7 (move the oldest abstracts' summaries into `docs/history.md`,
+ * WHAT A FAILURE MEANS: compact §7 (move the oldest abstracts' summaries into `docs/PHASE_LOG.md`,
  * AFTER checking their durable lessons are already in §1–§5), or run `pnpm state`. Never raise a
  * budget to make a failure go away without saying so in the entry.
  */
@@ -43,7 +43,7 @@ const bodies = entryBodies(ROOT);
 /**
  * ⚠ THE BUDGET IS ABOUT THE COMMITTED FILE, AND ON A CRLF WORKING TREE THAT IS NOT THE FILE ON DISK.
  *
- * `core.autocrlf=true` on the local PC adds one byte per line — ~920 of them to `current_state.md`,
+ * `core.autocrlf=true` on the local PC adds one byte per line — ~920 of them to `docs/CURRENT_STATE.md`,
  * which put §7 at **32.05 KB against a 32 KB budget there while CI measured 31.7 KB**. A gate whose
  * verdict depends on which box checked the repo out is not a gate; normalising here makes both boxes
  * measure the thing that is actually stored. (Found alongside the parser defect, Entry 80.)
@@ -58,7 +58,7 @@ const kb = (n: number) => `${(n / 1024).toFixed(1)} KB`;
 /**
  * A field's COMPLETE text, continuation lines included. ⚠ Never read `fields.REVIEW` for a marker
  * check — it is only the first physical line, and the author's hand decides where that line ends.
- * (`current_state.md` is in `.prettierignore`; the formatter has never touched these breaks.)
+ * (`docs/CURRENT_STATE.md` is in `.prettierignore`; the formatter has never touched these breaks.)
  */
 const reviewText = (a: EntryAbstract) => a.fieldsFull?.REVIEW ?? a.fields.REVIEW ?? '';
 
@@ -86,12 +86,12 @@ const outOfDateOrder = (list: EntryAbstract[]) =>
   });
 
 describe('the handoff docs stay within budget', () => {
-  it('current_state.md is under its byte budget', () => {
-    const n = bytes('current_state.md');
+  it('docs/CURRENT_STATE.md is under its byte budget', () => {
+    const n = bytes('docs/CURRENT_STATE.md');
     expect(
       n,
-      `current_state.md is ${kb(n)}, over its ${kb(BUDGET.currentState)} budget.\n` +
-        'Compact §7: move the oldest abstracts into docs/history.md — AFTER checking their durable\n' +
+      `docs/CURRENT_STATE.md is ${kb(n)}, over its ${kb(BUDGET.currentState)} budget.\n` +
+        'Compact §7: move the oldest abstracts into docs/PHASE_LOG.md — AFTER checking their durable\n' +
         'lessons are already promoted into §1–§5. That check is what makes compression safe.',
     ).toBeLessThanOrEqual(BUDGET.currentState);
   });
@@ -101,9 +101,9 @@ describe('the handoff docs stay within budget', () => {
     expect(abstracts.length).toBeLessThanOrEqual(BUDGET.maxAbstracts);
   });
 
-  it('decisions.md and history.md are under budget', () => {
+  it('decisions.md and docs/PHASE_LOG.md are under budget', () => {
     expect(bytes('docs/decisions.md')).toBeLessThanOrEqual(BUDGET.decisions);
-    expect(bytes('docs/history.md')).toBeLessThanOrEqual(BUDGET.history);
+    expect(bytes('docs/PHASE_LOG.md')).toBeLessThanOrEqual(BUDGET.history);
   });
 });
 
@@ -145,12 +145,12 @@ describe('every §7 abstract is well formed', () => {
       expect(existsSync(join(ROOT, p)), `Entry ${String(a.key)}: ${p} does not exist`).toBe(true);
     }
     // The converse is deliberately weaker: a body may outlive its abstract (that is what rotation
-    // does), but it must then be indexed in docs/history.md so nothing becomes unreachable.
-    const history = readFileSync(join(ROOT, 'docs/history.md'), 'utf8');
+    // does), but it must then be indexed in docs/PHASE_LOG.md so nothing becomes unreachable.
+    const history = readFileSync(join(ROOT, 'docs/PHASE_LOG.md'), 'utf8');
     const referenced = new Set(abstracts.map((a) => a.fields.FULL?.replace(/`/g, '').trim()));
     for (const b of bodies) {
       if (referenced.has(b)) continue;
-      expect(history, `${b} has no abstract and is not indexed in docs/history.md`).toContain(b);
+      expect(history, `${b} has no abstract and is not indexed in docs/PHASE_LOG.md`).toContain(b);
     }
   });
 
@@ -321,10 +321,10 @@ describe('every §7 abstract is well formed', () => {
 });
 
 describe('the generated blocks are present and current', () => {
-  it('current_state.md §8 has been generated', () => {
+  it('docs/CURRENT_STATE.md §8 has been generated', () => {
     const g = generatedBlock(src, MARKERS.state.begin, MARKERS.state.end);
-    expect(g, 'current_state.md is missing its GENERATED markers').not.toBeNull();
-    expect(g!.body, 'current_state.md §8 has never been generated — run `pnpm state`.').not.toMatch(
+    expect(g, 'docs/CURRENT_STATE.md is missing its GENERATED markers').not.toBeNull();
+    expect(g!.body, 'docs/CURRENT_STATE.md §8 has never been generated — run `pnpm state`.').not.toMatch(
       /not yet generated/,
     );
     expect(g!.body).toMatch(/newest entry/);
@@ -342,7 +342,7 @@ describe('the generated blocks are present and current', () => {
 
   // ⚠⚠ SUPERSEDED 2026-08-14 (D82, Entry 91): 'both prompts still carry their FRESH markers' is
   // retired along with the §2 DYNAMIC block it guarded. Prompts are stateless now — see
-  // `current_state.md §1d` and `AGENTS.md` for what replaced the mechanism this test protected.
+  // `docs/CURRENT_STATE.md §1d` and `AGENTS.md` for what replaced the mechanism this test protected.
 });
 
 describe('the doc tree is intact', () => {
@@ -355,7 +355,7 @@ describe('the doc tree is intact', () => {
       'docs/contracts/V1.0.0_spec.md',
       'docs/contracts/v1.0.0_imp_plan.md',
       'docs/decisions.md',
-      'docs/history.md',
+      'docs/PHASE_LOG.md',
       'docs/reviews/review_prompt.md',
       'docs/design/handoff_system_design.md',
       'REVIEW.md',
@@ -375,7 +375,7 @@ describe('the doc tree is intact', () => {
     for (const p of [
       'docs/contracts/core_logic.md',
       'docs/contracts/v1.0.0_imp_plan.md',
-      'current_state.md',
+      'docs/CURRENT_STATE.md',
       'handoff/',
     ]) {
       expect(ignore, `.prettierignore does not exempt ${p}`).toContain(p);
@@ -387,7 +387,7 @@ describe('the doc tree is intact', () => {
  * ⚠⚠ THE GATE READ THE FILE AS IT WAS COMMITTED, NOT AS IT IS CHECKED OUT — and on Amer's box those
  * are different files (found Entry 80, the first Amer session under this handoff system).
  *
- * The local PC has `core.autocrlf=true`, so `current_state.md` arrives in the working tree with 920
+ * The local PC has `core.autocrlf=true`, so `docs/CURRENT_STATE.md` arrives in the working tree with 920
  * CRLF pairs. `parseAbstracts` split on `\n`, leaving `\r` on every line, and its heading regex ends
  * `\| (.+)$` — JS `.` does not match `\r` and `$` (no `m` flag) does not match before one. So no
  * heading matched, `abstracts` was `[]`, and FIVE of this file's tests failed there while CI stayed
@@ -426,7 +426,7 @@ describe('the entry key collides, and every collision is a turn-PAIR', () => {
   }
   const collisions = [...byKey.values()].filter((g) => g.length > 1);
 
-  it('collisions exist across §7 + docs/history.md — the population invariant 10 makes permanent', () => {
+  it('collisions exist across §7 + docs/PHASE_LOG.md — the population invariant 10 makes permanent', () => {
     expect(
       collisions.length,
       'no colliding key in the record — the claim in `abstractKey` is now false',

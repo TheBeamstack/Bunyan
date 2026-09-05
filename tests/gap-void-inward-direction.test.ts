@@ -3,7 +3,7 @@
 
 /**
  * ⚠⚠ A HOSTED VOID CUTS ALONG THE HOST'S INWARD NORMAL, ON WHICHEVER FACE IT IS HOSTED — a gap found by
- * modelling (Zayd, dev box, 2026-07-15) and closed the same day. See `current_state.md` Entry.
+ * modelling (Zayd, dev box, 2026-07-15) and closed the same day. See `docs/CURRENT_STATE.md` Entry.
  *
  * THE METHOD, AGAIN: model something a building has, on a shape nobody cut, against the REAL kernel. A
  * hosted void had only ever been cut through a WALL, and only ever hosted on that wall's INTERIOR

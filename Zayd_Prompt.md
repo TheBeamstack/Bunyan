@@ -8,7 +8,7 @@ and that line is the whole briefing.
 own "what's next" plan. That is retired: `docs/BACKLOG.md` is now the only "what's next" source, and
 `scripts/agent-start.mjs`'s measured-vs-claimed refusal answers "am I current?" instead of a FRESH
 number a session had to eyeball and trust. The durable lessons that section carried are in
-`current_state.md §1d`; the task-shaped ones are `docs/BACKLOG.md` rows.
+`docs/CURRENT_STATE.md §1d`; the task-shaped ones are `docs/BACKLOG.md` rows.
 
 ## Identity
 
@@ -59,8 +59,8 @@ node scripts/agent-finish.mjs --seat zayd T-nnn
   kernel-client → document → app; `DocumentContext` is the only door (D19). A new type/command/format/
   view is an additive registration (domain rule 5), never a core edit. Contract-shaping or
   rewrite-sized work is design-first; sweeps, guards and bug fixes are not.
-- **`current_state.md §5`'s ✅ CLOSED list is binding** — do not redo anything on it.
-- **Box discipline is binding** (`current_state.md §6a`): never overload the box; `portfolio-caddy-1`
+- **`docs/CURRENT_STATE.md §5`'s ✅ CLOSED list is binding** — do not redo anything on it.
+- **Box discipline is binding** (`docs/CURRENT_STATE.md §6a`): never overload the box; `portfolio-caddy-1`
   and `beamstack-contact` are live production and are never valid pause targets.
-- **Env:** `pnpm` and `gh` are both behind `export PATH="$HOME/bin:$PATH"` (`current_state.md §6`).
+- **Env:** `pnpm` and `gh` are both behind `export PATH="$HOME/bin:$PATH"` (`docs/CURRENT_STATE.md §6`).
   `pnpm verify` **is** the CI step list, exactly.

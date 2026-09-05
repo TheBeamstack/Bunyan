@@ -6,7 +6,7 @@ _parametric recipe_, and meshes/2D views are disposable projections of it. **The
 invariant:** B-Rep is the source of truth; the parametric recipe is the source of truth for the B-Rep;
 meshes and 2D views are disposable. Everything else follows from it.
 
-**State:** not here — `current_state.md` is the router, read in full every session.
+**State:** not here — `docs/CURRENT_STATE.md` is the router, read in full every session.
 
 **Adopted 2026-08-14 (D82).** The five-seat protocol and the scripts enforcing it; reasoning in
 `docs/decisions.md` **D82**.
@@ -55,7 +55,7 @@ measure, claim, work, verify, hand off, push — are `scripts/agent-start.mjs`/`
 **Review is no longer your first act** — that job is `hmdnah`'s or `khalihlna`'s alone: a builder reviewing
 before building would be reading its own predecessor's work with no independent account behind it, the
 exact single-account weakness §0 exists to close. `scripts/agent-start.mjs` pulls, **measures the
-repository and refuses to start if what it finds disagrees with `current_state.md §8` as committed** —
+repository and refuses to start if what it finds disagrees with `docs/CURRENT_STATE.md §8` as committed** —
 _"trust the previous session's prose"_ becomes _"trust the repository."_ It then claims **one** task — the
 first unclaimed `ready` row in `docs/BACKLOG.md` your machine can satisfy — and **pushes that claim before
 any work begins** (§0b; a claim visible only on your machine is invisible to the other one). Do the task.
@@ -94,22 +94,22 @@ Full protocol, including dependency closure and review batching: `docs/prompts/b
 
 ## 2. What you read, and when _(do not read everything)_
 
-`current_state.md` is the router and is read in full, every session; its own `§0` orientation table says
-which document answers which question. This file, your own `<Seat>_Prompt.md`, and `current_state.md §1c`
+`docs/CURRENT_STATE.md` is the router and is read in full, every session; its own `§0` orientation table says
+which document answers which question. This file, your own `<Seat>_Prompt.md`, and `docs/CURRENT_STATE.md §1c`
 (the trap list) are the standing always-read set.
 
 **`docs/contracts/` is the source of truth, and it changes rarely.** `core_logic.md` (the domain model),
 `architecture.md` (layers, worker protocol, registries), `V1.0.0_spec.md` (scope, D1–D66) and
 `v1.0.0_imp_plan.md` (phases, exit criteria, the freeze gate) are read **on demand**, per
-`current_state.md §0`'s reading order — not every session, but never worked around either.
-`docs/design/*`, `docs/decisions.md` and `docs/history.md` are reference, read on lookup.
+`docs/CURRENT_STATE.md §0`'s reading order — not every session, but never worked around either.
+`docs/design/*`, `docs/decisions.md` and `docs/PHASE_LOG.md` are reference, read on lookup.
 
 **Precedence:** `docs/contracts/` wins over `v1.0.0_imp_plan.md`'s own phase narrative, which wins over
-anything in `current_state.md`, `open_rulings.md` or an entry's prose. If a build reveals a contract doc is
+anything in `docs/CURRENT_STATE.md`, `open_rulings.md` or an entry's prose. If a build reveals a contract doc is
 wrong, fix the contract doc and say so in your entry — never let a plan or a status file silently
 contradict the source of truth.
 
-**What you leave:** an abstract in `current_state.md §7` (the eight mandatory fields) and its full body at
+**What you leave:** an abstract in `docs/CURRENT_STATE.md §7` (the eight mandatory fields) and its full body at
 `handoff/<seat>/<date>-<slug>.md`. **An abstract's heading is `### T-nnn — <title> — <date> — seat:
 <seat>`**, or `### STEWARD-<slug> — …` for a turn with no task; entries 1–90 keep theirs (D82).
 
@@ -139,7 +139,7 @@ contradict the source of truth.
    `scene.json` directly; `apps/web` builds against the document layer, never the kernel client.
 7. **A new rule binds the next consumer and nothing else.** Adding a correctness rule to a mature codebase
    guarantees nothing about code written _before_ it — sweep backward, enumerate every existing site the
-   rule governs, and check each one (`current_state.md §1c-8`; nine of eighteen domain rules came back
+   rule governs, and check each one (`docs/CURRENT_STATE.md §1c-8`; nine of eighteen domain rules came back
    dirty the one time this was done exhaustively).
 8. **A green test proves only what it asserts.** For every exit criterion, read the test that discharges it
    and ask what it would take to pass while the criterion is false (`REVIEW.md` §6, "weak green").
@@ -147,10 +147,10 @@ contradict the source of truth.
    everything with logic in it is headless-verified. Only `amer`/`khalihlna` may report a browser claim as
    passing — `zayd`/`hmdnah` write `unverified here` and it is `amer`'s or `khalihlna`'s first action, next
    session, to clear it.
-10. **Nothing is deleted from the record.** Entries roll to `docs/history.md`, decisions live in
+10. **Nothing is deleted from the record.** Entries roll to `docs/PHASE_LOG.md`, decisions live in
     `docs/decisions.md`, handoff bodies live in `handoff/<seat>/` — never overwritten, never rewritten
     after the fact. A correction is a new entry saying what is now wrong, not an edit to the old one.
-11. **Box discipline is binding** (`current_state.md §6a`). `zayd` and `hmdnah` never overload the Hetzner
+11. **Box discipline is binding** (`docs/CURRENT_STATE.md §6a`). `zayd` and `hmdnah` never overload the Hetzner
     box; `portfolio-caddy-1` and `beamstack-contact` are live production and are never valid pause targets.
 
 ## 5. Owner-gated — three classes, and only three

@@ -1,8 +1,9 @@
 # RUNBOOK — the controls that live on GitHub, not in the repo
 
-Labels, branch protection and repository settings: clicked once on an account, with nothing in the repo
-re-checking them afterwards. Run by the owner, or by `brahim` with `gh` authenticated as an admin.
-`AGENTS.md §5` is the policy this implements.
+**What it is, and who reads it when.** The account-side settings nothing in the repo re-checks: labels,
+branch protection, seat credentials, the CI runner. Read by the owner, or by `brahim` with `gh`
+authenticated as an admin, when one of them needs setting or has failed. `AGENTS.md §5` is the policy
+this implements.
 
 ## Reserved-class labels
 
@@ -23,23 +24,13 @@ gh label create needs-operator/freeze --color 5319E7 \
 
 ## Branch protection
 
-**Status: blocked by the repository's plan, not by anything in the repo.** Both APIs return
-`403 — "Upgrade to GitHub Pro or make this repository public"`:
-
-```
-gh api repos/TheBeamstack/Bunyan/branches/main/protection
-gh api repos/TheBeamstack/Bunyan/rulesets
-```
-
-`Bunyan` is private on a free personal plan; the token is `ADMIN`, so access is not the issue. This
-supersedes `open_rulings.md` Q13's original objection — a second account now exists, so the question is
-**public, Pro, or neither**. ⚠ Going public invites the first external PR, and Q11/Q12 (`CLA.md`'s
-counterparty and a lawyer's read) are unruled.
-
-⚠⚠ **RULED 2026-08-15 — NEITHER (D87).** The repository stays private and unprotected, so **nothing on
-GitHub's side refuses a self-approving merge**. The `agent-start.mjs` identity guard (`T-013`) is the
-only enforcement. ⚠ **Q11 must be answered before this is revisited** — an unnamed CLA counterparty is
-safe only while nothing external can arrive.
+**Status: unavailable, and ⚠⚠ RULED 2026-08-15 — NEITHER (D87).** Both
+`gh api repos/TheBeamstack/Bunyan/branches/main/protection` and `…/rulesets` return
+`403 — "Upgrade to GitHub Pro or make this repository public"`; the token is `ADMIN`, so the plan is the
+blocker, not access. The repo stays private and unprotected, so **nothing on GitHub's side refuses a
+self-approving merge** — the `agent-start.mjs` identity guard (`T-013`) is the only enforcement.
+⚠ **Q11 must be answered before this is revisited**: an unnamed CLA counterparty is safe only while
+nothing external can arrive.
 
 ## Seat credentials
 
@@ -61,29 +52,27 @@ this export:
 
 ⚠ **`gh auth switch` is rejected**: the active account is global in `hosts.yml`, and each machine runs
 more than one seat, so a concurrent seat would inherit whichever identity was switched to last.
-⚠⚠ **Verify before any write call** — `gh api user --jq .login` must equal the seat's account from
+⚠⚠ **Verify before any write call** — `gh api user --jq .login` must equal
 `node scripts/seats.mjs account <seat>`. A silent fallback to the default identity is a self-approval,
-which is why `T-013` makes this a refusal rather than a convention.
+which is why `T-013` makes it a refusal rather than a convention.
 
 The token needs scope `repo` (classic), or Contents read/write + Pull requests read/write + Metadata
 read (fine-grained, scoped to this repository). The account must already be a collaborator with `push`.
 
 ## The pc's `pnpm` needs `BUNYAN_PNPM_CMD`
 
-`agent-finish.mjs`'s own `pnpm verify` call goes through `seats.pnpmSpawn` (`execFileSync`, no shell,
-CVE-2024-27980). This pc's only `pnpm` on `PATH` is a POSIX shebang script — `execFileSync` can't run it,
-and Node won't shell out to `pnpm.cmd` without `shell: true`. Export this once per session before
-`agent-finish.mjs` (T-021, re-confirmed T-001 Entry 2026-08-28 and T-003 2026-08-31 — both hit the same
-gap before this line existed):
+`agent-finish.mjs`'s `pnpm verify` goes through `seats.pnpmSpawn` (`execFileSync`, no shell,
+CVE-2024-27980), and this pc's only `pnpm` on `PATH` is a POSIX shebang script it cannot run. Export this
+once per session before `agent-finish.mjs` (T-021; the gap recurred on T-001 and T-003 before this line
+existed):
 
 ```bash
 export BUNYAN_PNPM_CMD='["C:/Program Files/nodejs/node.exe","C:/Program Files/nodejs/node_modules/corepack/dist/pnpm.js"]'
 ```
 
-⚠ Skipping this doesn't just fail loudly at step 1 — a review turn that hits it can still finish the
-review on GitHub (approve + merge) and then silently fail to write its own §7 abstract, leaving the
-merged PR's `REVIEW:` line stale (T-002, 2026-08-31). Set it before **every** `agent-finish.mjs` run on
-this machine, build or review.
+⚠ Skipping it does not merely fail at step 1: a review turn can still approve and merge on GitHub and
+then silently fail to write its own §7 abstract, leaving the merged PR's `REVIEW:` line stale (T-002).
+Set it before **every** `agent-finish.mjs` run on this machine, build or review.
 
 Run this the day either changes:
 
@@ -122,13 +111,10 @@ bunyan-oracle]` in `ci.yml`), not GitHub-hosted — GitHub-hosted minutes ran ou
 raised right now; going public for the free public-repo tier is blocked on Q11.
 
 **The box:** owner-provisioned Oracle Cloud Ampere A1, arm64, 1 OCPU, 8GB RAM, Ubuntu 24.04. SSH as
-`ubuntu`, key `devbox-hetzner` (this box's own `~/.ssh/id_ed25519.pub`). Registered under
-`~/actions-runner`, running as a systemd service (`sudo ./svc.sh status|stop|start`, from that
-directory) so it survives reboots and reconnects on its own.
-
-**Why this carries no external-PR risk**, the usual reason GitHub warns against self-hosted runners: the
-repo is private and single-owner (D87/Q13), so no stranger's fork can ever get a workflow to execute code
-on it.
+`ubuntu`, key `devbox-hetzner`. Registered under `~/actions-runner` as a systemd service
+(`sudo ./svc.sh status|stop|start`), so it survives reboots and reconnects on its own. **No external-PR
+risk** — the usual reason GitHub warns against self-hosted runners — because the repo is private and
+single-owner (D87/Q13).
 
 **To re-register** (token expires, or a new runner instance): `gh api -X POST
 repos/TheBeamstack/Bunyan/actions/runners/registration-token --jq .token`, then on the runner box, from

@@ -7,7 +7,7 @@
  *   0. establish WHO is running (seat → role + machine + GitHub account), and REFUSE unless
  *      `gh api user --jq .login` matches that account (D87, T-013) — see `identityGate` below
  *   1. pull
- *   2. print current_state.md's orientation + live-claim sections
+ *   2. print docs/CURRENT_STATE.md's orientation + live-claim sections
  *   3. measure the repo (`node scripts/state.mjs --check-only`) and REFUSE if measured disagrees
  *      with §8 as committed
  *   4. show live claims (`git ls-remote 'refs/heads/task/*'`, each branch's own §0b), the
@@ -123,7 +123,7 @@ export function writeBaton(csPath, block) {
   const src = readFileSync(csPath, 'utf8');
   const a = src.indexOf(BATON_BEGIN);
   const b = src.indexOf(BATON_END);
-  if (a < 0 || b < 0) throw new Error('current_state.md has no §0b BATON markers.');
+  if (a < 0 || b < 0) throw new Error('docs/CURRENT_STATE.md has no §0b BATON markers.');
   writeFileSync(csPath, src.slice(0, a) + block + src.slice(b + BATON_END.length));
 }
 
@@ -149,7 +149,7 @@ function stripComments(src) {
  * `resolveReviewStep` are pulled out of `main()`.
  *
  * `actualLogin` is `null` when identity could not be resolved AT ALL — `gh` missing, unauthenticated,
- * or offline. ⚠ That is a REFUSAL, never a silent skip (`current_state.md §1d`: a gate's hard part is
+ * or offline. ⚠ That is a REFUSAL, never a silent skip (`docs/CURRENT_STATE.md §1d`: a gate's hard part is
  * the skip; Entry 88 shipped three defects of exactly this shape). Comparison is case-insensitive —
  * GitHub logins are case-preserving but not case-sensitive for identity (`Davidian-Abdo` ==
  * `davidian-abdo`).
@@ -207,7 +207,7 @@ function liveClaims(root) {
     .map((l) => l.replace(/.*refs\/heads\//, ''));
   const out = [];
   for (const branch of branches) {
-    const cs = tryGit(['show', `origin/${branch}:current_state.md`], root);
+    const cs = tryGit(['show', `origin/${branch}:docs/CURRENT_STATE.md`], root);
     const baton = cs ? parseBaton(cs) : null;
     out.push({
       branch,
@@ -308,7 +308,7 @@ export function main(argv = process.argv.slice(2)) {
     continueTask,
   } = parseArgs(argv);
   let wantTask = wantTaskArg;
-  const csPath = join(root, 'current_state.md');
+  const csPath = join(root, 'docs/CURRENT_STATE.md');
 
   // ------------------------------------------------------------------------------------- 0. seat --
   hr();
@@ -378,9 +378,9 @@ export function main(argv = process.argv.slice(2)) {
 
   // ------------------------------------------------------------------------------ 2. claimed state --
   hr();
-  console.log('2. Claimed state — current_state.md');
+  console.log('2. Claimed state — docs/CURRENT_STATE.md');
   if (!existsSync(csPath))
-    die('current_state.md is missing. This repo has no claimed state to trust.');
+    die('docs/CURRENT_STATE.md is missing. This repo has no claimed state to trust.');
   const csHead = readFileSync(csPath, 'utf8').split(/\r?\n/).slice(0, 130).join('\n');
   console.log(csHead);
 
@@ -388,7 +388,7 @@ export function main(argv = process.argv.slice(2)) {
   hr();
   console.log('3. Measured state');
   // Prefer the ROOT's own copy of state.mjs; fall back to this script's own repo. A throwaway test
-  // fixture carries docs/ and current_state.md but no scripts/ of its own, and reading one
+  // fixture carries docs/ and docs/CURRENT_STATE.md but no scripts/ of its own, and reading one
   // repository's state through another's state.mjs would measure neither correctly.
   const stateScript = existsSync(join(root, 'scripts/state.mjs'))
     ? join(root, 'scripts/state.mjs')
@@ -791,7 +791,7 @@ export function main(argv = process.argv.slice(2)) {
 
   // ---- builder ---------------------------------------------------------------------------------
   if (reviewOnly)
-    die('current_state.md says NEXT TURN: REVIEW ONLY. A builder seat claims nothing now.');
+    die('docs/CURRENT_STATE.md says NEXT TURN: REVIEW ONLY. A builder seat claims nothing now.');
 
   const backlogPath = join(root, 'docs/BACKLOG.md');
   if (!existsSync(backlogPath)) die('docs/BACKLOG.md does not exist — nothing is claimable.');

@@ -47,7 +47,7 @@ This is the opposite of `opencascade.js`, and it is deliberate:
 ## Build
 
 Needs Docker. **~2.5 h compile on 2 cores; the link takes seconds.** Cap the memory — this box hosts
-live public sites (see `current_state.md` §6a).
+live public sites (see `docs/CURRENT_STATE.md` §6a).
 
 ```bash
 SPIKE=$HOME/occt-wasm-spike            # keep OCCT source OUT of the repo and OFF tmpfs (/tmp is RAM here)
@@ -189,7 +189,7 @@ into owned typed arrays synchronously; never hold one across an `await`.
 
 ## Licensing: settled — **the static link STANDS**
 
-**Bunyan is AGPL-3.0** (owner ruling, `current_state.md` §4e / Entry 6). LGPL-2.1's relink obligation
+**Bunyan is AGPL-3.0** (owner ruling, `docs/CURRENT_STATE.md` §4e / Entry 6). LGPL-2.1's relink obligation
 exists so a user can rebuild against their own OCCT — **public, buildable source satisfies that
 automatically.** So the static link stays and we keep the small artifact.
 

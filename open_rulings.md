@@ -2,7 +2,7 @@
 
 **What this is.** Every question waiting on an owner ruling, in one place, each with a recommendation and
 a price. Before this file existed the same eight questions were spread across a prompt file's §2, a design
-doc's §7, three entries' NEXT sections and `current_state.md` §4j — so no one could see the queue, and one
+doc's §7, three entries' NEXT sections and `docs/CURRENT_STATE.md` §4j — so no one could see the queue, and one
 blocking question sat unanswered across three sessions.
 
 **How an agent uses it.**
@@ -54,7 +54,7 @@ _(none)_ — `Q17a` was struck on 2026-08-15 as **D85**, having stood here since
 ## ✅ RULED — struck from the queue
 
 Recorded here only long enough to stop them being re-asked; the ruling itself lives in
-`docs/decisions.md`, and the session that earned it in `handoff/` or `docs/history.md`.
+`docs/decisions.md`, and the session that earned it in `handoff/` or `docs/PHASE_LOG.md`.
 
 - **⚠⚠ Q17a + Q17b + Q17c + Q18 + Q19 — the five that blocked a backlog row, all ruled by the owner in
   chat 2026-08-15, all as recommended.** Recorded as **D83** (Q19 — cascade **plus** surface, over both

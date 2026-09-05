@@ -185,7 +185,7 @@ export function buildSurface(root) {
  * remember to retype* — with not even a self-assertion, and on the audit trail back to the ruling
  * that permits touching the freeze.
  *
- * ⇒ The entry identity is now PASSED IN, from the `current_state.md` §7 parse the same run performs.
+ * ⇒ The entry identity is now PASSED IN, from the `docs/CURRENT_STATE.md` §7 parse the same run performs.
  * `...prev` survives only to keep fields this function does not own (`_README`), and every field this
  * function DOES own is written on every rebaseline, so none of them can be stale by omission.
  *
@@ -215,9 +215,9 @@ export function baselineSnapshot(prev, surface, { entry, at }) {
  * Returns the reasons `_baselinedAtEntry`/`_baselinedAt` are wrong. Empty ⇒ they are sound.
  *
  * ⚠ WHY IT IS NOT `abstracts.includes(entry)`, WHICH IS WHAT ENTRY 83 WROTE AND ENTRY 84's REVIEW
- * TOOK APART. `parseAbstracts` reads `current_state.md` §7, and §7 is a **rotating ten-entry
+ * TOOK APART. `parseAbstracts` reads `docs/CURRENT_STATE.md` §7, and §7 is a **rotating ten-entry
  * window** — the rotation rule at its own head says so, and this repo already proves it: entries
- * **76** and **67** are real (abstracts in `docs/history.md` §C, bodies in `handoff/`) and are not
+ * **76** and **67** are real (abstracts in `docs/PHASE_LOG.md` §C, bodies in `handoff/`) and are not
  * in §7. So `includes` does not test *"names an entry that exists"*; it tests *"names an entry that
  * has not rotated out yet"*, and those two come apart the moment the baseline sits still for ten
  * entries.
@@ -233,7 +233,7 @@ export function baselineSnapshot(prev, surface, { entry, at }) {
  * re-resolved to a different entry every time one was prepended, and the cross-field check below
  * then compared the baseline's date against an entry it never authorised. Any turn appending a §7
  * abstract on a later day went RED having moved no declaration; two turns hit it, and the second
- * lost its abstract to `docs/history.md` rather than falsify a date or re-baseline. A new-scheme
+ * lost its abstract to `docs/PHASE_LOG.md` rather than falsify a date or re-baseline. A new-scheme
  * baseline now records `abstractKey` — `<id> — <date> — <seat>` — and a synthetic number is refused
  * outright, so the position cannot come back through the file it was written into.
  *

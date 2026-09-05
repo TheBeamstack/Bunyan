@@ -24,7 +24,7 @@
  *
  * ⚠ NOTE THERE IS NO TIMING ASSERTION HERE. A wall-clock threshold in CI is a flake generator, and the
  * number this file exists to produce is a **decision input**, not a gate. The assertions are about
- * CORRECTNESS at scale; the timing is printed, and recorded in `current_state.md` where the ruling is.
+ * CORRECTNESS at scale; the timing is printed, and recorded in `docs/CURRENT_STATE.md` where the ruling is.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -258,7 +258,7 @@ describe('a realistic building — the D29 measurement', () => {
       [
         '',
         '  ╔══════════════════════════════════════════════════════════════════════════╗',
-        '  ║  D29 — THE MEASUREMENT (P3 step 4). Recorded in current_state.md.        ║',
+        '  ║  D29 — THE MEASUREMENT (P3 step 4). Recorded in docs/CURRENT_STATE.md.        ║',
         '  ╚══════════════════════════════════════════════════════════════════════════╝',
         `     building        : ${String(STOREYS)} storeys, ${String(elements)} elements, ${String(parts)} solids (parts)`,
         `     .bnn size       : ${(bytes.length / 1024).toFixed(1)} KB zipped`,

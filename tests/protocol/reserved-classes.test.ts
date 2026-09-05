@@ -5,7 +5,7 @@
  * `scripts/reserved-classes.mjs` — the three owner-gated classes, detected against a REAL git history
  * in a fixture repo rather than by grepping the script.
  *
- * ⚠⚠ WHY IT IS EXECUTED AND NOT GREPPED. This repo's own ledger (`current_state.md §1c-7`) records
+ * ⚠⚠ WHY IT IS EXECUTED AND NOT GREPPED. This repo's own ledger (`docs/CURRENT_STATE.md §1c-7`) records
  * five gates that were believed to work because nothing ever ran them — the re-seed gate went 73
  * entries without executing once. A labeller is exactly that shape of thing: it is invisible when it
  * silently does nothing, because "no label" is also what an additive PR looks like. So every case

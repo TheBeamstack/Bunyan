@@ -26,7 +26,7 @@ nothing about it needs you to interpret intent.
 **2. Pull.** `git fetch --prune origin && git checkout main && git pull --ff-only`. If this fails, stop
 and report — never force it.
 
-**3. Read `current_state.md`.**
+**3. Read `docs/CURRENT_STATE.md`.**
 
 - If `## BLOCKED` has content: **stop the loop**, report the block verbatim, wait for the operator. You
   do not attempt to resolve it — that is exactly what `## BLOCKED` means.
@@ -133,7 +133,7 @@ it (a summary can drift from the source; the file is the source):
 - Never let a subagent merge a `contract-touching` PR without the operator's approval having been
   explicitly relayed back to you first, or a `risk: high` PR before its step 2 (D88).
 - Never resolve a `## BLOCKED` entry yourself.
-- Never hand-edit `current_state.md`'s `§0b`/`§8` blocks — only the scripts touch those, inside a
+- Never hand-edit `docs/CURRENT_STATE.md`'s `§0b`/`§8` blocks — only the scripts touch those, inside a
   subagent's own turn.
 - Never widen a `machine:` field, flip a dependency's status by hand outside the sweep above, or reword
   a `done-when:` item to make something claimable. A subagent reporting that a criterion needs a machine

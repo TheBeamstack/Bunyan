@@ -243,7 +243,7 @@ describe('the status flip keeps the table formatted — `format:check` is CI ste
 describe('resolveBuilder — the §0b baton `builder` field survives a review finish (T-016)', () => {
   // Regression: before T-016 the baton had only `seat`, and a `--review` finish overwrote it with the
   // REVIEWING seat — the builder's identity was recoverable only from the claim commit message, never
-  // from §0b itself (`current_state.md §0b`'s own defect note, Discovered 2026-08-15).
+  // from §0b itself (`docs/CURRENT_STATE.md §0b`'s own defect note, Discovered 2026-08-15).
 
   it('a review finish carries the PRIOR builder forward, never the reviewing seat', () => {
     const priorBaton = { seat: 'zayd', builder: 'zayd', status: 'finished — PR open' };

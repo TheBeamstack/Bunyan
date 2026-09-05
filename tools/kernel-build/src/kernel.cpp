@@ -22,7 +22,7 @@
 // ⚠ Everything below rests on measurements, not on the literature. `tools/kernel-build/probe.cpp`
 // measured what OCCT 7.9.3's history actually reports for a cylinder, three booleans and two fillets
 // (including a fillet on a boolean-made edge — the case the spec calls the hardest). Read
-// current_state.md Entry 9 before changing the naming rules; the numbers there are why they are what
+// docs/CURRENT_STATE.md Entry 9 before changing the naming rules; the numbers there are why they are what
 // they are.
 
 #include <emscripten/bind.h>
@@ -2042,7 +2042,7 @@ Measure measure(int handle, int kind, int index) {
     //
     // Calling BRepGProp::LinearProperties on a *solid* sums every edge once per adjoining face, so a
     // box reports 45,600 mm for edges that total 22,800 mm. That exact bug was caught by the
-    // closed-form check when the goldens were first seeded (current_state.md §4a(2)) — it is OUR
+    // closed-form check when the goldens were first seeded (docs/CURRENT_STATE.md §4a(2)) — it is OUR
     // misuse of OCCT's API, not an OCCT defect, and it is the reason the closed-form tier exists.
     TopTools_IndexedMapOfShape edgeMap;
     TopExp::MapShapes(s, TopAbs_EDGE, edgeMap);

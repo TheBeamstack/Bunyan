@@ -66,7 +66,7 @@ function backlogSrc(rows) {
   return `# BACKLOG\n\n| ID | Status | Task | Area | Machine | Risk | Depends on |\n|---|---|---|---|---|---|---|\n${table}\n${entries}\n`;
 }
 
-const CURRENT_STATE = (extraAbstract = '') => `# Fixture — current_state.md
+const CURRENT_STATE = (extraAbstract = '') => `# Fixture — docs/CURRENT_STATE.md
 
 ## §0b — Live claim (this branch)
 
@@ -123,7 +123,7 @@ export function makeFixture(rows = [], { measured = true } = {}) {
   mkdirSync(join(dir, 'docs/seats'), { recursive: true });
   writeFileSync(join(dir, 'docs/seats/README.md'), SEATS_TABLE);
   writeFileSync(join(dir, 'docs/BACKLOG.md'), backlogSrc(rows));
-  writeFileSync(join(dir, 'current_state.md'), CURRENT_STATE());
+  writeFileSync(join(dir, 'docs/CURRENT_STATE.md'), CURRENT_STATE());
   for (const rel of WATCHED) {
     mkdirSync(dirname(join(dir, rel)), { recursive: true });
     writeFileSync(join(dir, rel), 'export {};\n');

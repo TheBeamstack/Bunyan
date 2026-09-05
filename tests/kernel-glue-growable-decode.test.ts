@@ -16,7 +16,7 @@
  * bumping the digest moves the compiler, and the OCCT static libs prebuilt under the current pin are
  * stamped with the pinned emcc's clang — a 75 s link would become a 2.5 h OCCT rebuild.
  *
- * ⚠⚠ THIS ASSERTS AGAINST THE ARTIFACT, NOT AGAINST THE RECIPE (`current_state.md §1c-9`). A test
+ * ⚠⚠ THIS ASSERTS AGAINST THE ARTIFACT, NOT AGAINST THE RECIPE (`docs/CURRENT_STATE.md §1c-9`). A test
  * that read `postlink.mjs` would prove only that we still intend to patch; the emitted bytes are the
  * thing that ships, and they have disagreed with their own doc-comments in this project before. The
  * committed glue is therefore read and scanned.

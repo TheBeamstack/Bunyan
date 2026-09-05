@@ -117,7 +117,7 @@ export function main(argv = process.argv.slice(2)) {
         `PR ${pr} is not mergeable: ${mergeable}` +
           (mergeStateStatus ? ` (${mergeStateStatus})` : '') +
           `\n    GitHub calls this "Pull Request has merge conflicts". Merge origin/main into the\n` +
-          `    branch and re-push — and if the conflict is in current_state.md §0b/§8, take EITHER\n` +
+          `    branch and re-push — and if the conflict is in docs/CURRENT_STATE.md §0b/§8, take EITHER\n` +
           `    side and let \`pnpm state\` re-measure. Never hand-resolve those markers.`,
       );
     }

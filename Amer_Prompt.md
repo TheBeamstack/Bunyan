@@ -7,7 +7,7 @@ and that line is the whole briefing.
 `§2 DYNAMIC` block (`FRESH`/`TASK`/`NEW`) that `pnpm state` and you rewrote every session. That is
 retired: `docs/BACKLOG.md` is now the only "what's next" source, and `scripts/agent-start.mjs`'s
 measured-vs-claimed refusal answers "am I current?" instead. The durable process/tooling lessons that
-`NEW` carried are in `current_state.md §1d`; the still-open engineering work (the whole-element drag
+`NEW` carried are in `docs/CURRENT_STATE.md §1d`; the still-open engineering work (the whole-element drag
 wiring, the two remaining derived snap kinds, Q18) is `docs/BACKLOG.md` rows — nothing in the original
 text was lost, it is exactly where the last five entries' full account already lives:
 `handoff/amer/2026-08-08-e89-drag-handles.md` and its neighbours.
@@ -71,7 +71,7 @@ node scripts/agent-finish.mjs --seat amer T-nnn
   (D19); an element is its ordered PARTS (D30) — tessellate each, keep each addressable. A new
   capability is an additive registration (domain rule 5), never a core edit. Contract-shaping or
   rewrite-sized work is design-first; ordinary features and fixes are not.
-- **`current_state.md §5`'s ✅ CLOSED list is binding** — do not redo anything on it.
+- **`docs/CURRENT_STATE.md §5`'s ✅ CLOSED list is binding** — do not redo anything on it.
 - **Env (local pc):** `pnpm install` · `pnpm --filter @bunyan/web dev` · `pnpm --filter @bunyan/web
 build` · `pnpm verify` at the repo root **is** the CI step list, exactly. `pnpm` is not on PATH here
   and `corepack pnpm verify` is not a substitute — drop `%USERPROFILE%\bin\pnpm.cmd`

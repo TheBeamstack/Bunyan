@@ -33,7 +33,7 @@
  * measurement would then be of the harness's own history, not of the model's size.
  *
  * ⚠ NO WALL-CLOCK OR THRESHOLD ASSERTION (the standing rule this repo applies to every timing harness):
- * the number is a DECISION INPUT, printed and recorded in `current_state.md §1a`, not a CI gate that
+ * the number is a DECISION INPUT, printed and recorded in `docs/CURRENT_STATE.md §1a`, not a CI gate that
  * flakes on a loaded box. The assertions are about CORRECTNESS at scale and about the MEASUREMENT being
  * sound (a positive marginal slope).
  *
@@ -375,7 +375,7 @@ describe('the scale harness — build cost per element (T-004)', () => {
       [
         '',
         '  ╔══════════════════════════════════════════════════════════════════════════════╗',
-        '  ║  SCALE HARNESS — BUILD COST PER ELEMENT (T-004). To current_state.md §1a.    ║',
+        '  ║  SCALE HARNESS — BUILD COST PER ELEMENT (T-004). To docs/CURRENT_STATE.md §1a.    ║',
         '  ╚══════════════════════════════════════════════════════════════════════════════╝',
         ...rows,
         '  ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈',

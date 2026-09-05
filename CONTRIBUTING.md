@@ -10,7 +10,7 @@ Read `LICENSE` before you start.
 `pnpm install`, then `pnpm verify` (typecheck, lint, format check, the full
 test suite, the re-seed gate, the docs gate — the exact CI step list). The
 project's own conventions, architecture, and contract documents are read in
-the order `AGENTS.md` and `current_state.md` describe; start there.
+the order `AGENTS.md` and `docs/CURRENT_STATE.md` describe; start there.
 
 ## Pull requests
 
