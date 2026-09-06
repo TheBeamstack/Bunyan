@@ -112,3 +112,9 @@ place is a fact that stays true; a fact copied seven times is a fact that drifts
 | _Am I current?_          | `scripts/agent-start.mjs`'s measured-vs-claimed refusal — it measures the repo  |
 | _Who is working now?_    | `docs/CURRENT_STATE.md §0b`, the live claim, pushed before work begins          |
 | _What did I just learn?_ | the entry's `§7` abstract + `handoff/<seat>/` body; durable traps go to `§1d`   |
+
+**What class each of those is, and its budget, is `diwan/docs/OUTPUT-DISCIPLINE.md §4`** — the abstract
+is schema'd, a new `handoff/<seat>/` file is 60 lines with free prose under 20, and `diwan`'s
+`gates.py` fails the turn on a violation. The rule they serve is `diwan/AGENTS.md §5`; neither is
+restated here. Whether what you wrote is *true* is a separate question with a separate instruction:
+name the command that measured it (`OUTPUT-DISCIPLINE.md §3.1`).
