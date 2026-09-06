@@ -833,6 +833,10 @@ informational provenance.
 _(unplanned findings; never claimed in the same turn that found them, per `AGENTS.md §3`. Each line: the
 finding, the fix shape where one is known, and its disposition.)_
 
+**A finding becomes a task through a mechanism, not by hand** (R12): the steward runs
+`$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
+READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
+
 - **2026-09-04 — a GitHub Actions job's `runner_name` reads `""` even after it completes successfully**,
   so it is not evidence that nothing picked the job up. PR #47's run 33877624825 sat `queued` 55.6 min
   while the runner reported `online busy=false`; two readers diagnosed a wedged listener. It was queue
