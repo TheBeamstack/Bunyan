@@ -16,6 +16,7 @@ docs/archive/Miqdar_normative_register.md
 # (§8), and the entry bodies in `handoff/` are extracted verbatim from it, so reformatting either
 # would create diff noise against a machine-written block and against the permanent record.
 docs/CURRENT_STATE.md
+docs/CURRENT_STATE-reference.md
 docs/decisions.md
 docs/PHASE_LOG.md
 handoff/

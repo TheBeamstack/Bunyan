@@ -13,15 +13,15 @@ standing fact of the seat's prompt, never a task grant.
 
 <!-- BEGIN SEATS -->
 
-| Seat      | Role      | Machine | GitHub account   | Prompt              |
-| --------- | --------- | ------- | ---------------- | ------------------- |
-| brahim    | steward   | box     | davidian-abdo    | Brahim_Prompt.md    |
-| zayd      | builder   | box     | davidian-abdo    | Zayd_Prompt.md      |
-| hmdnah    | reviewer  | box     | narutousomaki741 | Hmdnah_Prompt.md    |
-| amer      | builder   | pc      | narutousomaki741 | Amer_Prompt.md      |
-| khalihlna | reviewer  | pc      | davidian-abdo    | Khalihlna_Prompt.md |
-| mahjob    | manager   | box     | narutousomaki741 | Mahjob_Prompt.md    |
-| hamadi    | custodian | box     | narutousomaki741 | Hamadi_Prompt.md    |
+| Seat      | Role      | Machine | GitHub account   | Prompt                           |
+| --------- | --------- | ------- | ---------------- | -------------------------------- |
+| brahim    | steward   | box     | davidian-abdo    | ../diwan/docs/seats/brahim.md    |
+| zayd      | builder   | box     | davidian-abdo    | ../diwan/docs/seats/zayd.md      |
+| hmdnah    | reviewer  | box     | narutousomaki741 | ../diwan/docs/seats/hmdnah.md    |
+| amer      | builder   | pc      | narutousomaki741 | ../diwan/docs/seats/amer.md      |
+| khalihlna | reviewer  | pc      | davidian-abdo    | ../diwan/docs/seats/khalihlna.md |
+| mahjob    | manager   | box     | narutousomaki741 | ../diwan/docs/seats/mahjob.md    |
+| hamadi    | custodian | box     | narutousomaki741 | ../diwan/docs/seats/hamadi.md    |
 
 <!-- END SEATS -->
 
@@ -91,8 +91,10 @@ Set out in full in `AGENTS.md §1`. In one line each:
 
 ## Why these files carry no state
 
-Each prompt at the repo root holds a handful of **standing facts** — name, role, autonomy class, GitHub
-account, and what its machine cannot verify — and nothing else. The shared mechanics of a turn live in
+Each prompt holds a handful of **standing facts** — name, role, autonomy class, GitHub account, and
+what its machine cannot verify — and nothing else. The prompts themselves are **canonical in `diwan`**
+(`../diwan/docs/seats/`), which the Prompt column above points at: the seven `<Seat>_Prompt.md` files
+this repo carried at its root were deleted in `8364028`, and this table is the one place that says so. The shared mechanics of a turn live in
 `AGENTS.md §1`, once, so seven prompts do not carry seven copies of the same loop. A fact that lives in one
 place is a fact that stays true; a fact copied seven times is a fact that drifts once.
 
@@ -102,5 +104,5 @@ place is a fact that stays true; a fact copied seven times is a fact that drifts
 | ------------------------ | ------------------------------------------------------------------------------- |
 | _What is next?_          | `docs/BACKLOG.md` — the only source, and its `ready` rows are the steward's act |
 | _Am I current?_          | `scripts/agent-start.mjs`'s measured-vs-claimed refusal — it measures the repo  |
-| _Who is working now?_    | `docs/CURRENT_STATE.md §0b`, the live claim, pushed before work begins               |
+| _Who is working now?_    | `docs/CURRENT_STATE.md §0b`, the live claim, pushed before work begins          |
 | _What did I just learn?_ | the entry's `§7` abstract + `handoff/<seat>/` body; durable traps go to `§1d`   |
