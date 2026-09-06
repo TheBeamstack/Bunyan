@@ -72,21 +72,15 @@ claim. `scripts/agent-finish.mjs` writes the final `status` line and pushes it a
 
 <!-- END BATON -->
 
+<!-- BEGIN BLOCKED — rendered from docs/BLOCKERS.md by blocked.py; a hand-edit fails `gates.py docs` (RULINGS.md R15) -->
+
 ## BLOCKED
 
-**`hmdnah` cannot review PR #48 (T-026, `risk: high`) — no GitHub token provisioned on the box for that
-seat.** `node scripts/agent-start.mjs --seat hmdnah --review` refused: `gh` is authenticated as
-`Davidian-Abdo`, but seat `hmdnah` must run as `narutousomaki741` (D87). Per `docs/RUNBOOK.md` "Seat
-credentials" the fix is `export GH_TOKEN=$(cat ~/.config/bunyan/hmdnah.token)`, but `~/.config/bunyan/`
-does not exist on this box at all — no token file for `hmdnah` anywhere on the machine. `gh auth switch`
-is explicitly forbidden (D87) as a workaround. **Needs the operator to provision
-`~/.config/bunyan/hmdnah.token` (mode 600) with a valid token for `narutousomaki741`** before T-026's
-two-step review (D88, step 1) can start. No review work was performed; PR #48 is untouched.
+- **B-20260906-01** — `scope: item` · `item: T-026` — hmdnah's review credential is named by seat and stored by account
+  - need: resolve a seat's token from `~/.config/beamstack/<account>.token` as well as `~/.config/bunyan/<seat>.token` in `scripts/agent-start.mjs`, correct `docs/RUNBOOK.md` "Seat credentials" to state both, and carry the change on its own `T-nnn` row
+  - opened 2026-09-06T21:00Z by brahim · recorded in `docs/BLOCKERS.md`
 
-<!-- Judged with HTML comments and blank lines REMOVED, so a note explaining this gate cannot itself
-     trip it (the mdo lesson, ported rather than rediscovered). Prose counts: write `*(none)*` and
-     nothing else, or record a real block. A `## BLOCKED` entry stops BOTH orchestrator loops — the
-     mechanism this is for, not a general-purpose notes field. -->
+<!-- END BLOCKED -->
 
 ---
 
