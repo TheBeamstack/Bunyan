@@ -4,12 +4,16 @@
 > mechanically (`docs/BACKLOG.md`'s `T-001`), it reads this file, not `AGENTS.md`, so the two cannot drift
 > into silently disagreeing sources of truth.
 
-**A seat is a role, an autonomy class and a GitHub account.** Seven seats exist org-wide and a seat _is_ a
-role — `TheBeamstack/diwan` `docs/seats/README.md` is the canonical roster, and Bunyan adopts it rather
-than minting seats of its own (`diwan` `docs/adr/0002-two-box-topology-and-the-capability-model.md` §2.2,
-ratified 2026-09-04). Capability comes from a task's `requires:` field, probed at turn start; the reading
-list comes from its `implements:`. There are **no work-area agents** — `apps/web` vs. everything else is a
-standing fact of the seat's prompt, never a task grant.
+**A seat is a role, an autonomy class and a GitHub account.** Eight seats exist org-wide and a seat _is_ a
+role — `TheBeamstack/diwan` `docs/seats/README.md` is the canonical roster, and Bunyan adopts the subset it
+uses rather than minting seats of its own (`diwan` `docs/adr/0002-two-box-topology-and-the-capability-model.md`
+§2.2, ratified 2026-09-04). Capability comes from a task's `requires:` field, probed at turn start; the
+reading list comes from its `implements:`. There are **no work-area agents** — `apps/web` vs. everything
+else is a standing fact of the seat's prompt, never a task grant.
+
+`custodian` is retired as a role (`diwan` R20, 2026-09-06): `hamadi` is now a **steward**, of the org-wide
+custodial lane rather than of this repo. Bunyan does not register `salek` (`diwan` R20/R21) — that seat's
+lane is the contribution pipeline (`Jiwar`), which this repo has no part in.
 
 <!-- BEGIN SEATS -->
 
@@ -21,14 +25,15 @@ standing fact of the seat's prompt, never a task grant.
 | amer      | builder   | pc      | narutousomaki741 | ../diwan/docs/seats/amer.md      |
 | khalihlna | reviewer  | pc      | davidian-abdo    | ../diwan/docs/seats/khalihlna.md |
 | mahjob    | manager   | box     | narutousomaki741 | ../diwan/docs/seats/mahjob.md    |
-| hamadi    | custodian | box     | narutousomaki741 | ../diwan/docs/seats/hamadi.md    |
+| hamadi    | steward   | box     | narutousomaki741 | ../diwan/docs/seats/hamadi.md    |
 
 <!-- END SEATS -->
 
-All seven rows are registered, not a subset. `mahjob` and `hamadi` are org-wide seats that reach into this
-repo rather than optional ones: `mahjob` owns `bunyan-oracle-runner` and its cost (ADR-0002 §2.10), and
-`hamadi` owns the public surface Bunyan acquires the moment it stops being private (the same §2.10 makes
-that a sequenced outcome, not a hypothetical).
+All seven rows Bunyan has a use for are registered — the eighth, `salek`, is the contribution lane's
+steward and has none here. `mahjob` and `hamadi` are org-wide seats that reach into this repo rather than
+optional ones: `mahjob` owns `bunyan-oracle-runner` and its cost (ADR-0002 §2.10), and `hamadi` owns the
+public surface Bunyan acquires the moment it stops being private (the same §2.10 makes that a sequenced
+outcome, not a hypothetical).
 
 ## What a machine means
 
@@ -79,13 +84,13 @@ Set out in full in `AGENTS.md §1`. In one line each:
   open a PR, stop. ⚠ Reviews nothing, including the PR open at t=0 (`AGENTS.md §1.1`).
 - **reviewer** (`hmdnah`, `khalihlna`) — claims **no task**; claims the open PR, and re-executes its claim
   (revert the fix, paste the red output) before anything else. Must therefore sit where it can run it.
-- **steward** (`brahim`) — never builds. Owns readiness, sequencing, spec integrity, `docs/decisions.md`
-  and the owner interface, for this repo.
+- **steward** (`brahim`, `hamadi`) — never builds. `brahim` owns readiness, sequencing, spec integrity,
+  `docs/decisions.md` and the owner interface, for this repo. `hamadi` is a *different* steward, of the
+  org-wide custodial lane rather than of Bunyan specifically (`diwan` R20): public surface — releases,
+  advisories, Dependabot triage. Never builds, never merges its own PR. One role name, two lanes.
 - **manager** (`mahjob`) — org-wide technical authority: cross-repo sequencing (`diwan` `CROSS.md`), all
   infrastructure, cost. Ranks above a repo's steward in ordering only, never in privilege. Never builds,
   never merges its own PR.
-- **custodian** (`hamadi`) — public surface: releases, advisories, Dependabot triage. Never builds, never
-  merges its own PR. Horizontally scalable: a second custodian is a row here plus a prompt file.
 
 `light_brahim` is **not a seat** — it is an orchestrator loop that claims nothing, so it holds no row.
 
