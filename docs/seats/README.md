@@ -26,6 +26,7 @@ lane is the contribution pipeline (`Jiwar`), which this repo has no part in.
 | khalihlna | reviewer  | pc      | davidian-abdo    | ../diwan/docs/seats/khalihlna.md |
 | mahjob    | manager   | box     | narutousomaki741 | ../diwan/docs/seats/mahjob.md    |
 | hamadi    | steward   | box     | narutousomaki741 | ../diwan/docs/seats/hamadi.md    |
+| salek     | steward   | box     | davidian-abdo    | ../diwan/docs/seats/salek.md     |
 
 <!-- END SEATS -->
 
