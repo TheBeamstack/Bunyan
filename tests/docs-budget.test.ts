@@ -324,9 +324,10 @@ describe('the generated blocks are present and current', () => {
   it('docs/CURRENT_STATE.md §8 has been generated', () => {
     const g = generatedBlock(src, MARKERS.state.begin, MARKERS.state.end);
     expect(g, 'docs/CURRENT_STATE.md is missing its GENERATED markers').not.toBeNull();
-    expect(g!.body, 'docs/CURRENT_STATE.md §8 has never been generated — run `pnpm state`.').not.toMatch(
-      /not yet generated/,
-    );
+    expect(
+      g!.body,
+      'docs/CURRENT_STATE.md §8 has never been generated — run `pnpm state`.',
+    ).not.toMatch(/not yet generated/);
     expect(g!.body).toMatch(/newest entry/);
   });
 

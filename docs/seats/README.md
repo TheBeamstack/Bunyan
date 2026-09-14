@@ -17,16 +17,16 @@ lane is the contribution pipeline (`Jiwar`), which this repo has no part in.
 
 <!-- BEGIN SEATS -->
 
-| Seat      | Role      | Machine | GitHub account   | Prompt                           |
-| --------- | --------- | ------- | ---------------- | -------------------------------- |
-| brahim    | steward   | box     | davidian-abdo    | ../diwan/docs/seats/brahim.md    |
-| zayd      | builder   | box     | davidian-abdo    | ../diwan/docs/seats/zayd.md      |
-| hmdnah    | reviewer  | box     | narutousomaki741 | ../diwan/docs/seats/hmdnah.md    |
-| amer      | builder   | pc      | narutousomaki741 | ../diwan/docs/seats/amer.md      |
-| khalihlna | reviewer  | pc      | davidian-abdo    | ../diwan/docs/seats/khalihlna.md |
-| mahjob    | manager   | box     | narutousomaki741 | ../diwan/docs/seats/mahjob.md    |
-| hamadi    | steward   | box     | davidian-abdo    | ../diwan/docs/seats/hamadi.md    |
-| salek     | steward   | box     | davidian-abdo    | ../diwan/docs/seats/salek.md     |
+| Seat      | Role     | Machine | GitHub account   | Prompt                           |
+| --------- | -------- | ------- | ---------------- | -------------------------------- |
+| brahim    | steward  | box     | davidian-abdo    | ../diwan/docs/seats/brahim.md    |
+| zayd      | builder  | box     | davidian-abdo    | ../diwan/docs/seats/zayd.md      |
+| hmdnah    | reviewer | box     | narutousomaki741 | ../diwan/docs/seats/hmdnah.md    |
+| amer      | builder  | pc      | narutousomaki741 | ../diwan/docs/seats/amer.md      |
+| khalihlna | reviewer | pc      | davidian-abdo    | ../diwan/docs/seats/khalihlna.md |
+| mahjob    | manager  | box     | narutousomaki741 | ../diwan/docs/seats/mahjob.md    |
+| hamadi    | steward  | box     | davidian-abdo    | ../diwan/docs/seats/hamadi.md    |
+| salek     | steward  | box     | davidian-abdo    | ../diwan/docs/seats/salek.md     |
 
 <!-- END SEATS -->
 
@@ -86,7 +86,7 @@ Set out in full in `AGENTS.md §1`. In one line each:
 - **reviewer** (`hmdnah`, `khalihlna`) — claims **no task**; claims the open PR, and re-executes its claim
   (revert the fix, paste the red output) before anything else. Must therefore sit where it can run it.
 - **steward** (`brahim`, `hamadi`) — never builds. `brahim` owns readiness, sequencing, spec integrity,
-  `docs/decisions.md` and the owner interface, for this repo. `hamadi` is a *different* steward, of the
+  `docs/decisions.md` and the owner interface, for this repo. `hamadi` is a _different_ steward, of the
   org-wide custodial lane rather than of Bunyan specifically (`diwan` R20): public surface — releases,
   advisories, Dependabot triage. Never builds, never merges its own PR. One role name, two lanes.
 - **manager** (`mahjob`) — org-wide technical authority: cross-repo sequencing (`diwan` `CROSS.md`), all
@@ -116,5 +116,5 @@ place is a fact that stays true; a fact copied seven times is a fact that drifts
 **What class each of those is, and its budget, is `diwan/docs/OUTPUT-DISCIPLINE.md §4`** — the abstract
 is schema'd, a new `handoff/<seat>/` file is 60 lines with free prose under 20, and `diwan`'s
 `gates.py` fails the turn on a violation. The rule they serve is `diwan/AGENTS.md §5`; neither is
-restated here. Whether what you wrote is *true* is a separate question with a separate instruction:
+restated here. Whether what you wrote is _true_ is a separate question with a separate instruction:
 name the command that measured it (`OUTPUT-DISCIPLINE.md §3.1`).
