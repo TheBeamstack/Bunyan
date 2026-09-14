@@ -104,28 +104,14 @@ regardless.
 
 ⚠ `contexts` are check-**run** names (`name:` in `ci.yml`); renaming a job there strands the required check.
 
-## Self-hosted CI runner
+## CI runner
 
-**Ruled 2026-08-16 (D89).** Both CI jobs run on `bunyan-oracle-runner` (`runs-on: [self-hosted,
-bunyan-oracle]` in `ci.yml`), not GitHub-hosted — GitHub-hosted minutes ran out and billing can't be
-raised right now; going public for the free public-repo tier is blocked on Q11.
+**Ruled 2026-09-14 (D91).** Both CI jobs run on GitHub-hosted arm64, `runs-on: ${{ vars.CI_RUNNER ||
+'ubuntu-24.04-arm' }}` in `ci.yml`: the repo is public, so it uses the free public-repo tier, and a
+self-hosted runner on a public repo would execute fork PRs on owner hardware. A repository variable
+`CI_RUNNER` overrides the label.
 
-**The box:** owner-provisioned Oracle Cloud Ampere A1, arm64, 1 OCPU, 8GB RAM, Ubuntu 24.04. SSH as
-`ubuntu`, key `devbox-hetzner`. Registered under `~/actions-runner` as a systemd service
-(`sudo ./svc.sh status|stop|start`), so it survives reboots and reconnects on its own. **No external-PR
-risk** — the usual reason GitHub warns against self-hosted runners — because the repo is private and
-single-owner (D87/Q13).
-
-**To re-register** (token expires, or a new runner instance): `gh api -X POST
-repos/TheBeamstack/Bunyan/actions/runners/registration-token --jq .token`, then on the runner box, from
-`~/actions-runner`: `./config.sh --url https://github.com/TheBeamstack/Bunyan --token <token> --labels
-bunyan-oracle,self-hosted,arm64 --name bunyan-oracle-runner --unattended --replace`, then `sudo
-./svc.sh install && sudo ./svc.sh start`. Needs `gh` installed on the runner itself (not bundled — a
-GitHub-hosted image has it, a bare self-hosted one does not; installed via the official apt repo, see
-`cli.github.com/packages`) since `pr-shape`'s job calls it directly.
-
-**To check it's alive:** `gh api repos/TheBeamstack/Bunyan/actions/runners --jq '.runners[]'` — expect
-`status: online`.
+**To check a run:** `gh pr checks <n> --repo TheBeamstack/Bunyan`.
 
 ## Deliberately absent
 
