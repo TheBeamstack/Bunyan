@@ -28,7 +28,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { baselineEntryIssues, WATCHED } from '../scripts/frozen-surface.mjs';
-import { parseAbstracts } from '../scripts/docs-state.mjs';
+import { parseAbstracts, MARKERS } from '../scripts/docs-state.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const SNAP = 'tests/frozen-surface.snapshot.json';
@@ -98,8 +98,8 @@ const CURRENT_STATE = `# state
 
 ## §8 — Generated
 
-<!-- BEGIN GENERATED — written by \`pnpm state\`. Never hand-edit. -->
-<!-- END GENERATED -->
+${MARKERS.state.begin}
+${MARKERS.state.end}
 `;
 
 beforeAll(() => {

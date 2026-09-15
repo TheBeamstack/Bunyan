@@ -123,6 +123,11 @@ export declare function riskVerdict(
   rebaselined?: boolean,
 ): { risk: 'additive' | 'contract-touching'; label: string; detail: string };
 export declare function entryBodies(root: string): string[];
+/**
+ * A body's path as it read BEFORE R34 (`90a9b30`) archived it — the `archive/` segment stripped.
+ * See the implementation for why a body is indexed under either path.
+ */
+export declare function archiveCanonical(p: string): string;
 export declare function generatedBlock(
   src: string,
   begin: string,

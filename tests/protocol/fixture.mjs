@@ -17,6 +17,12 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { WATCHED } from '../../scripts/frozen-surface.mjs';
+// ⚠ THE MARKER TEXT COMES FROM HERE, NOT A SECOND HARDCODED COPY. `d53ff91` renamed the marker in
+// `docs/CURRENT_STATE.md` to name its generator and did not update this fixture's own copy of the
+// string — a second home for one fact, drifting the moment one of them changed. `state.mjs --root`
+// against this fixture then fails "missing GENERATED markers" for a reason with nothing to do with
+// whatever the test itself is exercising.
+import { MARKERS } from '../../scripts/docs-state.mjs';
 
 function git(args, cwd) {
   execFileSync('git', args, { cwd, stdio: 'ignore' });
@@ -90,11 +96,11 @@ ${extraAbstract}### 1 | 2026-01-01 | zayd | the fixture's own genesis entry
 
 ## §8 — Generated
 
-<!-- BEGIN GENERATED — written by \`pnpm state\`. Never hand-edit. -->
+${MARKERS.state.begin}
 
 (not yet generated)
 
-<!-- END GENERATED -->
+${MARKERS.state.end}
 `;
 
 /**
