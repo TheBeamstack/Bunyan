@@ -31,6 +31,7 @@ import {
   newestAbstract,
   recordedAbstracts,
   entryBodies,
+  archiveCanonical,
   generatedBlock,
   MARKERS,
   type EntryAbstract,
@@ -146,11 +147,19 @@ describe('every §7 abstract is well formed', () => {
     }
     // The converse is deliberately weaker: a body may outlive its abstract (that is what rotation
     // does), but it must then be indexed in docs/PHASE_LOG.md so nothing becomes unreachable.
+    //
+    // ⚠ R34 (`90a9b30`) archived 94 bodies to `handoff/archive/<seat>/` without editing them, and
+    // without rewriting the paths already written into docs/PHASE_LOG.md's prose before the move —
+    // that prose is dated evidence of what was true when it was written. A body is indexed if the
+    // history names it under EITHER its current path or the pre-archive path it moved from.
     const history = readFileSync(join(ROOT, 'docs/PHASE_LOG.md'), 'utf8');
     const referenced = new Set(abstracts.map((a) => a.fields.FULL?.replace(/`/g, '').trim()));
     for (const b of bodies) {
       if (referenced.has(b)) continue;
-      expect(history, `${b} has no abstract and is not indexed in docs/PHASE_LOG.md`).toContain(b);
+      expect(
+        history.includes(b) || history.includes(archiveCanonical(b)),
+        `${b} has no abstract and is not indexed in docs/PHASE_LOG.md`,
+      ).toBe(true);
     }
   });
 
