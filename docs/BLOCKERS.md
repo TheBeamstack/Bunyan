@@ -11,6 +11,7 @@ perform and no `cleared:` anyone can stamp — which is the state B-20260906-01 
 from, and the reason it is a record rather than prose.
 
 ## B-20260906-01 hmdnah's review credential is named by seat and stored by account
+
 - opened: 2026-09-06T21:00Z
 - by: brahim
 - scope: item
