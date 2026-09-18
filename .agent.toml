@@ -58,6 +58,21 @@ fail_bytes = 409600
 two_step_high_risk = true
 step1_label        = "review/step-1"
 
+# The admission summary (R16/R32, `diwan/docs/LANE-CONTRACT.md`). This lane's steward publishes its
+# own summary at cycle end and the manager reads THAT, rather than measuring this repo from outside
+# on every admission decision. `"backlog"` is the shared built-in: `diwan/scripts/lane_summary.py`
+# runs `admission.measure_backlog` — the SAME reader the manager's counts-only fallback uses, so the
+# two cannot disagree about this repo — over the `[paths] backlog` bound above, against this
+# checkout's own coherent revision, and maps the `[paths] blockers` register and the `[paths] stop`
+# marker beside it. No second parser, no new binding, no new file in this repo.
+#
+# ⚠ NOT AN R47 ADOPTION. This repo declares no `[cycle] evidence`, so a cycle here still ends the
+# three ways R1 fixes and CANNOT end quiet; what counts as work in this lane is a separate decision
+# and is not made here. The only thing this key changes is that a completed steward cycle now
+# leaves a measurement behind.
+[cycle]
+summary_adapter = "backlog"
+
 # The frozen surface (D13, and the P5 freeze). PRESENT ⇒ the gate applies.
 # `contract-touching` and `freeze` are decided from this table; they need no `[reserved]` entry.
 [frozen_surface]
