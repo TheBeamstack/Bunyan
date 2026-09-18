@@ -37,13 +37,16 @@ verify = "pnpm verify"
 test   = "pnpm test"
 
 [git]
+# R53, 2026-09-08: this pair must be a ROW in diwan/scripts/accounts.toml, and `gates.py docs`
+# refuses it otherwise. The address was `narutousomaki741@example.com`, which attributes to
+# NOBODY GitHub can resolve — a placeholder that no check had ever looked at.
 # ⚠ MEASURED FROM `git config --local`, and it is a placeholder address. Identity here is per SEAT,
 # not per repo — `docs/seats/README.md` crosses `davidian-abdo` and `narutousomaki741` so no reviewer
 # shares an account with the work it reviews, and `scripts/agent-start.mjs`'s identity gate refuses a
 # turn whose `gh` login does not match the seat's row. Treat these two values as the fallback for a
 # commit made outside a seat's turn; the roster wins inside one.
 author_name  = "narutousomaki741"
-author_email = "narutousomaki741@example.com"
+author_email = "narutousomaki741@gmail.com"
 
 [log]
 # `scripts/docs-state.mjs` `BUDGET.history` = 400 KB, measured post-migration with headroom.
