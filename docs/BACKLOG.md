@@ -79,8 +79,8 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | ID    | Status  | Task                                                                    | Area     | Machine | Risk   | Depends on |
 | ----- | ------- | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
 | T-001 | done    | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
-| T-002 | review  | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
-| T-003 | review  | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
+| T-002 | done    | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
+| T-003 | done    | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
 | T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
 | T-006 | ready   | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | pc      | normal | T-005      |
 | T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
@@ -97,7 +97,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-018 | done    | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
-| T-021 | review  | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
+| T-021 | done    | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
 | T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
 | T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
