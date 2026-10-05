@@ -79,9 +79,6 @@ claim. `scripts/agent-finish.mjs` writes the final `status` line and pushes it a
 - **B-20260906-01** — `scope: item` · `item: T-026` — hmdnah's review credential is named by seat and stored by account
   - need: resolve a seat's token from `~/.config/beamstack/<account>.token` as well as `~/.config/bunyan/<seat>.token` in `scripts/agent-start.mjs`, correct `docs/RUNBOOK.md` "Seat credentials" to state both, and carry the change on its own `T-nnn` row
   - opened 2026-09-06T21:00Z by brahim · recorded in `docs/BLOCKERS.md`
-- **B-20260930-01** — `scope: loop` · `item: -` — agent_start.py refuses every Bunyan turn on the state.mjs-owned generated block
-  - need: make `measure.compare` in diwan skip or compare-only a generated block stamped by another generator instead of refusing, so start can run on Bunyan without restamping `pnpm state`'s marker
-  - opened 2026-09-30T11:57Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
