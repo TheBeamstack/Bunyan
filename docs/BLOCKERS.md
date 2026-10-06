@@ -45,3 +45,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh pr view 54; git -C /home/ubuntu/projects/Bunyan log -1 --format='%an <%ae>' 6feb54d`
 - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
 - cleared: -
+
+## B-20261006-02 PR #55 cannot be reviewed across accounts: hmdnah's gh writes run as the author
+
+- opened: 2026-10-06T02:00Z
+- by: brahim-loop
+- scope: item
+- item: PR#55
+- what: routing PR #55 (zayd, Davidian-Abdo) to hmdnah would post, approve and merge it as Davidian-Abdo, the author's own account
+- why: `require_identity` checks the passed seat (`agent_start.py:1066`), but every `gh(cfg, …)` call omits `seat=` (`agent_start.py:683,686`, `agent_merge.py:222,454`), so `seat_credential(seat=None)` with `AGENT_SEAT` unset returns `unseated` and gh runs on the ambient login (`protocol.py:1362-1364`); PR #54's start-posted "Review claimed by seat hmdnah" comment is authored Davidian-Abdo
+- evidence: `gh pr view 54 --json comments --jq '.comments[0].author.login'; gh api user --jq .login`
+- need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #55 to hmdnah
+- cleared: -

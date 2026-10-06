@@ -82,6 +82,9 @@ claim. `scripts/agent-finish.mjs` writes the final `status` line and pushes it a
 - **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
   - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
   - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261006-02** — `scope: item` · `item: PR#55` — PR #55 cannot be reviewed across accounts: hmdnah's gh writes run as the author
+  - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #55 to hmdnah
+  - opened 2026-10-06T02:00Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

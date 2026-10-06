@@ -18,3 +18,15 @@ of rulings already made, in its own grammar, never read by the turn protocol. Th
 - expires: 2026-10-13
 - ANSWER:
 - answered: -
+
+## D-20261006-02 T-029 fixes seats.mjs functions only the dead agent-\*.mjs call
+
+- opened: 2026-10-06T02:00Z
+- by: brahim-loop
+- item: T-029
+- asks: whether to retire T-029, whose `reviewerFor`/`builderFor` are imported only by `scripts/agent-start.mjs` and `agent-finish.mjs` (see D-20261006-01); the live scripts `reserved-classes.mjs` and `pr-ready.mjs` import only `ghSpawn` and `titleRoutes`
+- options: retire | keep
+- default-if-silent: retire
+- expires: 2026-10-13
+- ANSWER:
+- answered: -
