@@ -837,6 +837,9 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-06 — `tools/kernel-build/README.md` step 3 still links at `--memory=2g`** after T-027 set
+  `docs/CURRENT_STATE-reference.md §6` to the measured 1 GB; the same unmeasured 2g caps `probe.sh` and
+  README's probe/configure/compile steps, whose own footprints nobody has measured. Recorded, not claimed.
 - **2026-09-04 — a GitHub Actions job's `runner_name` reads `""` even after it completes successfully**,
   so it is not evidence that nothing picked the job up. PR #47's run 33877624825 sat `queued` 55.6 min
   while the runner reported `online busy=false`; two readers diagnosed a wedged listener. It was queue

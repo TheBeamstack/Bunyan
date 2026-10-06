@@ -263,6 +263,13 @@ Newest first. Full bodies in `handoff/`. Entries dated **2026-08-24 and later** 
 everything at or before **2026-08-23** was rolled to its outcome on 2026-09-05 (see the rotation rule).
 
 
+### T-027 — §6's relink cap is measured, not guessed — 2026-10-06 — seat: zayd
+
+- **CHANGED:** `docs/CURRENT_STATE-reference.md §6` relink recipe `--memory=2g` → `--memory=1g --memory-swap=1g`, citing hmdnah's T-022 step-2 run (78 s, exit 0, byte-identical, hard 1 GB cgroup, swap off); README step 3 / `probe.sh` 2g recorded in `## Discovered`.
+- **VERIFIED:** `pnpm verify` exit 0 (100 files / 987 tests; docs:check 166) after a one-blank-line Prettier fix to `docs/OWNER-DECISIONS.md`, red on `main` since `a837280`; no relink re-run (optional per `done-when:`).
+- **RISK:** additive — docs only. **FULL:** `handoff/zayd/2026-10-06-T-027-relink-cap-measured.md`. **REVIEW:** pending.
+
+
 ### STEWARD-decompose-harness-defects — review: the rows are ready, and the reason given for the one split is not measured — 2026-08-23 — seat: hmdnah
 
 Five measured defects decomposed into rows; a steward turn, no code. **F1 — the T-026/T-025 split is right, its stated reason is not measured.** `RISK: additive`. Body `handoff/hmdnah/2026-08-23-STEWARD-decompose-harness-defects-review.md`. **REVIEW: this IS the review turn — ✅ APPROVED and MERGED** on `narutousomaki741`. ⚠ Unverified here: branch protection (`gh api …/protection` 404 on a push-level token).

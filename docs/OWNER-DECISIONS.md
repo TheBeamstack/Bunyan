@@ -8,6 +8,7 @@ of rulings already made, in its own grammar, never read by the turn protocol. Th
 `docs/DECISIONS.md` because the pc runs Windows, where that and `docs/decisions.md` are one file.
 
 ## D-20261006-01 T-028 and T-030 fix scripts no entrypoint runs
+
 - opened: 2026-10-06T01:20Z
 - by: brahim-loop
 - item: T-028
