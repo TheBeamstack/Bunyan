@@ -57,18 +57,18 @@ every live branch is `git ls-remote --heads origin 'refs/heads/task/*'`, which `
 prints and reads (each branch carries its own copy of this block) before deciding what a builder may
 claim. `scripts/agent-finish.mjs` writes the final `status` line and pushes it as the last act of a turn.
 
-<!-- BEGIN BATON — written by agent-start.mjs; pushed before work begins -->
+<!-- BEGIN BATON — written by agent_start.py; pushed before work begins -->
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
-| builder | `brahim` |
-| role | steward |
+| seat | `zayd` |
+| builder | `zayd` |
+| role | builder |
 | machine | box |
-| task | `STEWARD-x001-seven-seat-roster` |
-| branch | `brahim/2026-09-04-x001-seven-seat-roster` |
-| claimed-at | 2026-08-31T12:17:24Z |
-| status | finished — PR open, awaiting review |
+| task | `T-027` |
+| branch | `task/T-027-6-s-relink-cap-is-measured-not-guessed` |
+| claimed-at | 2026-10-06T01:07:12Z |
+| status | working |
 
 <!-- END BATON -->
 
