@@ -263,6 +263,13 @@ Newest first. Full bodies in `handoff/`. Entries dated **2026-08-24 and later** 
 everything at or before **2026-08-23** was rolled to its outcome on 2026-09-05 (see the rotation rule).
 
 
+### T-025 — `--review` keeps an owner-gated row at `review` — 2026-10-06 — seat: zayd
+
+- **CHANGED:** `agent-finish.mjs --review` resolves the owner gate via `reviewOwnerClasses` → `reserved-classes.mjs` `detectReservedClasses` (all three classes), not §8's frozen-surface row; `seats.reviewFlipsToDone` takes the class list; new `seats.reviewNextStep` prints the owner's merge for any class, `gh pr merge` only for none.
+- **VERIFIED:** `pnpm verify` exit 0 (100 files / 990 tests); revert-verified — §8 reading restored, the fixture `needs-operator/freeze` PR at `RISK: additive` goes red (`expected [] to deeply equal [ 'freeze' ]`).
+- **RISK:** additive — no `WATCHED` file touched. **FULL:** `handoff/zayd/2026-10-06-T-025-review-owner-gated-classes.md`. **REVIEW:** pending — `risk: high`, D88 two steps.
+
+
 ### STEWARD-decompose-harness-defects — review: the rows are ready, and the reason given for the one split is not measured — 2026-08-23 — seat: hmdnah
 
 Five measured defects decomposed into rows; a steward turn, no code. **F1 — the T-026/T-025 split is right, its stated reason is not measured.** `RISK: additive`. Body `handoff/hmdnah/2026-08-23-STEWARD-decompose-harness-defects-review.md`. **REVIEW: this IS the review turn — ✅ APPROVED and MERGED** on `narutousomaki741`. ⚠ Unverified here: branch protection (`gh api …/protection` 404 on a push-level token).
