@@ -16,6 +16,8 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { detectReservedClasses, RESERVED_CLASSES } from '../../scripts/reserved-classes.mjs';
+import { reviewOwnerClasses } from '../../scripts/agent-finish.mjs';
+import { reviewFlipsToDone, reviewNextStep } from '../../scripts/seats.mjs';
 import { makeFixture } from './fixture.mjs';
 
 let fx: ReturnType<typeof makeFixture>;
@@ -133,6 +135,36 @@ describe('freeze — the baseline itself moved', () => {
     // Metadata-only: the SURFACE did not move, so this is `freeze` alone. The two questions are
     // genuinely separate, and collapsing them would drop the P5 ruling's own case.
     expect(scan.classes).not.toContain('contract-touching');
+  });
+});
+
+/**
+ * T-025: `agent-finish.mjs --review` read §8's frozen-surface row alone, so a PR in another reserved
+ * class was stamped `done` and handed `gh pr merge` (PR #38, twice). This fixture is that PR: a
+ * re-baselined snapshot, §8 saying `RISK: additive`.
+ */
+describe('--review keeps an owner-gated row at `review` (T-025)', () => {
+  it('a needs-operator/freeze PR at RISK: additive stays `review` and is not handed gh pr merge', () => {
+    fx = baselinedFixture();
+    branchWith(fx.dir, 'task/T-025-freeze-additive', () => {
+      const p = join(fx.dir, SNAP);
+      const snap = JSON.parse(readFileSync(p, 'utf8')) as Record<string, unknown>;
+      snap._baselinedAtEntry = 999;
+      writeFileSync(p, JSON.stringify(snap, null, 2) + '\n');
+      writeFileSync(
+        join(fx.dir, 'docs/CURRENT_STATE.md'),
+        '| **frozen surface** | **RISK: additive** — nothing moved |\n',
+      );
+    });
+
+    const gated = reviewOwnerClasses(fx.dir, { base: 'main' });
+    expect(gated).toEqual(['freeze']);
+    expect(reviewFlipsToDone('normal', null, gated)).toBe(false);
+    expect(reviewFlipsToDone('high', 2, gated)).toBe(false);
+    const labelOf = (id: string) => RESERVED_CLASSES.find((c) => c.id === id)?.label ?? id;
+    const next = reviewNextStep(38, gated, labelOf).join('\n');
+    expect(next).not.toContain('gh pr merge');
+    expect(next).toContain('needs-operator/freeze');
   });
 });
 

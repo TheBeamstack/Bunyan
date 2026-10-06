@@ -21,6 +21,7 @@ import {
   reviewerFor,
   reviewerForBranch,
   reviewFlipsToDone,
+  reviewNextStep,
   reviewStepFor,
   reviewStepGate,
   roleOf,
@@ -468,20 +469,22 @@ describe('the two-step review gate (D88, T-014)', () => {
 
   describe('reviewFlipsToDone — the exact decision T-014 exists to correct', () => {
     it('risk: high step 1 does NOT flip to done — the T-008/PR #23 defect this task closes', () => {
-      expect(reviewFlipsToDone('high', 1, false)).toBe(false);
+      expect(reviewFlipsToDone('high', 1, [])).toBe(false);
     });
 
     it('risk: high step 2 DOES flip to done', () => {
-      expect(reviewFlipsToDone('high', 2, false)).toBe(true);
+      expect(reviewFlipsToDone('high', 2, [])).toBe(true);
     });
 
     it('risk: normal flips to done regardless of step — unchanged from before T-014', () => {
-      expect(reviewFlipsToDone('normal', null, false)).toBe(true);
+      expect(reviewFlipsToDone('normal', null, [])).toBe(true);
     });
 
-    it('contract-touching never flips, at any risk/step', () => {
-      expect(reviewFlipsToDone('high', 2, true)).toBe(false);
-      expect(reviewFlipsToDone('normal', null, true)).toBe(false);
+    it('any one of the three reserved classes never flips, at any risk/step (T-025)', () => {
+      for (const id of ['contract-touching', 'legal-figure', 'freeze']) {
+        expect(reviewFlipsToDone('high', 2, [id])).toBe(false);
+        expect(reviewFlipsToDone('normal', null, [id])).toBe(false);
+      }
     });
 
     it('REVERT-VERIFIED: the pre-T-014 formula stamps a risk: high step 1 `done` — this is the bug', () => {
@@ -490,7 +493,25 @@ describe('the two-step review gate (D88, T-014)', () => {
       const preT014Formula = (_risk: string, _step: number | null, contractTouching: boolean) =>
         !contractTouching;
       expect(preT014Formula('high', 1, false)).toBe(true); // RED: the old code stamps 'done'
-      expect(reviewFlipsToDone('high', 1, false)).toBe(false); // GREEN: the fix leaves it 'review'
+      expect(reviewFlipsToDone('high', 1, [])).toBe(false); // GREEN: the fix leaves it 'review'
+    });
+  });
+
+  describe('reviewNextStep — the printed next step after a review (T-025)', () => {
+    it('names the owner and never `gh pr merge`, for each of the three classes', () => {
+      for (const id of ['contract-touching', 'legal-figure', 'freeze']) {
+        const text = reviewNextStep(38, [id]).join('\n');
+        expect(text).not.toContain('gh pr merge');
+        expect(text).toContain('gh pr review 38 --approve');
+        expect(text).toMatch(/the owner merges it/);
+        expect(text).toContain(id);
+      }
+    });
+
+    it('an additive PR keeps the reviewer-merges line', () => {
+      expect(reviewNextStep(38, []).join('\n')).toContain(
+        'gh pr review 38 --approve && gh pr merge 38 --squash',
+      );
     });
   });
 

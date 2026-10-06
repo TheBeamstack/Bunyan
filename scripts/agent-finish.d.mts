@@ -23,4 +23,7 @@ export declare function resolveBuilder(
   seat: string,
 ): string;
 
+/** The reserved-class ids a `--review` finish keeps at `review` — `detectReservedClasses().classes` (T-025). */
+export declare function reviewOwnerClasses(root: string, opts?: { base?: string }): string[];
+
 export declare function main(argv?: string[]): void;

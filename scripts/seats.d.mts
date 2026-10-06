@@ -64,8 +64,15 @@ export declare function reviewStepGate(
 export declare function reviewFlipsToDone(
   risk: string | undefined,
   step: number | null,
-  contractTouching: boolean,
+  ownerGated: readonly string[],
 ): boolean;
+
+/** The next-step lines a completed `--review` prints; `gh pr merge` only when `ownerGated` is empty (T-025). */
+export declare function reviewNextStep(
+  prNumber: number | null | undefined,
+  ownerGated: readonly string[],
+  labelOf?: (id: string) => string,
+): string[];
 
 export interface ClaimVerdict {
   ok: boolean;

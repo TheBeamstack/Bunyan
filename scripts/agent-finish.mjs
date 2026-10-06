@@ -30,8 +30,21 @@ import { fileURLToPath } from 'node:url';
 import * as seats from './seats.mjs';
 import { parseAbstracts } from './docs-state.mjs';
 import { renderBaton, parseBaton } from './agent-start.mjs';
+import { detectReservedClasses, RESERVED_CLASSES } from './reserved-classes.mjs';
 
 const SELF_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+const labelOf = (id) => RESERVED_CLASSES.find((c) => c.id === id)?.label ?? id;
+
+/**
+ * The owner-gated classes a `--review` finish must honour (T-025): every id `reserved-classes.mjs`
+ * detects, the same detector CI labels the PR with. Before T-025 this read §8's frozen-surface row
+ * alone, so a `freeze` or `legal-figure` PR at `RISK: additive` was stamped `done` and handed
+ * `gh pr merge` (PR #38, twice).
+ */
+export function reviewOwnerClasses(root, { base } = {}) {
+  return detectReservedClasses(root, { base }).classes;
+}
 
 function hr() {
   console.log('─'.repeat(74));
@@ -334,7 +347,7 @@ export function main(argv = process.argv.slice(2)) {
   hr();
   console.log('4. Risk and review routing');
   const BANNER = /^## NEXT TURN: REVIEW ONLY/m;
-  let reviewContractTouching = false;
+  let reviewOwnerGated = [];
   if (review) {
     if (BANNER.test(cs)) {
       const cleared = cs.replace(
@@ -346,16 +359,22 @@ export function main(argv = process.argv.slice(2)) {
     } else {
       console.log('   (no REVIEW ONLY banner to clear)');
     }
-    // ⚠⚠ THE STATUS FLIP THAT MAKES A DEPENDENCY REAL. `additive` ⇒ this reviewer is about to run
-    // `gh pr merge` itself (printed below), so `review` → `done` here is correct, not premature — the
-    // approval IS the gate, the merge command is its immediate, certain continuation. A
-    // `contract-touching` PR waits on the OWNER's own timing, so the row stays `review`; brahim's
-    // readiness sweep confirms the merge later via `gh pr list --state merged` and flips it then — the
-    // backstop for exactly the case this script cannot promise.
-    const surfaceRow = cs.match(
-      /\| \*\*frozen surface\*\* \| \*\*RISK: (additive|contract-touching)/,
+    // ⚠⚠ THE STATUS FLIP THAT MAKES A DEPENDENCY REAL. A PR in none of `AGENTS.md §5`'s three classes
+    // ⇒ this reviewer is about to run `gh pr merge` itself (printed below), so `review` → `done` is
+    // correct, not premature. An owner-gated PR waits on the OWNER's merge, so the row stays `review`;
+    // the steward's readiness sweep flips it once `gh pr list --state merged` shows the merge.
+    try {
+      reviewOwnerGated = reviewOwnerClasses(root);
+    } catch (e) {
+      die(
+        `could not resolve the reserved classes for this PR, refusing to default to additive: ${e.message}`,
+      );
+    }
+    console.log(
+      reviewOwnerGated.length
+        ? `   ⚠ owner-gated: ${reviewOwnerGated.map(labelOf).join(', ')}`
+        : '   reserved classes: none — additive',
     );
-    reviewContractTouching = surfaceRow?.[1] === 'contract-touching';
 
     // ── D88's two-step review (T-014) ─────────────────────────────────────────────────────────
     // `risk` was already resolved and validated against `step` by the gate above `pnpm verify`; this
@@ -443,17 +462,14 @@ export function main(argv = process.argv.slice(2)) {
         }
         console.log(`   ✓ '${seats.STEP1_LABEL}' confirmed — step 2 may complete this review`);
       }
-      // ⚠⚠ THE DECISION THIS TASK EXISTS TO FIX, now one pure call instead of an inline
-      // `!reviewContractTouching` — the old shape flipped `done` on ANY non-contract-touching review,
-      // with no notion of steps (T-008/PR #23's defect). `seats.reviewFlipsToDone` is what a revert of
-      // THIS call reproduces: risk: high leaves the row `review` after step 1 stamps `done` again.
-      if (seats.reviewFlipsToDone(risk, step, reviewContractTouching)) {
+      // ⚠⚠ One pure call (T-014): the old inline shape flipped `done` on ANY non-contract-touching
+      // review, with no notion of steps (T-008/PR #23), and T-025 widened its third argument from
+      // §8's frozen-surface row to all three reserved classes (PR #38).
+      if (seats.reviewFlipsToDone(risk, step, reviewOwnerGated)) {
         setRowStatus(backlogPath, task, 'done');
         console.log(`   ✓ backlog status → done (${task} merges immediately after this turn)`);
-      } else {
-        console.log(
-          `   risk: contract-touching — ${task} stays 'review' until the owner merges it`,
-        );
+      } else if (reviewOwnerGated.length) {
+        console.log(`   owner-gated — ${task} stays 'review' until the owner merges it`);
       }
     }
   } else {
@@ -579,27 +595,9 @@ export function main(argv = process.argv.slice(2)) {
       console.log('Post your report (REVIEW.md items 1, 4, 5, 7) on the PR, then stop.');
       return;
     }
-    if (reviewContractTouching) {
-      console.log(`Review complete: ${task}   seat: ${seat} (${role} on ${machine})`);
-      console.log('');
-      console.log(
-        'RISK: contract-touching — approve it, then tell the owner it needs their merge.',
-      );
-      console.log(
-        prNumber ? `  gh pr review ${prNumber} --approve` : '  gh pr review <n> --approve',
-      );
-      console.log('You do not merge this one. Stop here.');
-    } else {
-      console.log(`Review complete: ${task}   seat: ${seat} (${role} on ${machine})`);
-      console.log('');
-      console.log('RISK: additive — approve it, on your own account, then merge it yourself:');
-      console.log(
-        prNumber
-          ? `  gh pr review ${prNumber} --approve && gh pr merge ${prNumber} --squash`
-          : '  gh pr review <n> --approve && gh pr merge <n> --squash',
-      );
-      console.log('Then pull again before doing anything else.');
-    }
+    console.log(`Review complete: ${task}   seat: ${seat} (${role} on ${machine})`);
+    console.log('');
+    for (const line of seats.reviewNextStep(prNumber, reviewOwnerGated, labelOf)) console.log(line);
     return;
   }
 

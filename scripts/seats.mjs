@@ -326,13 +326,36 @@ export function reviewStepGate(risk, step) {
  * review turns (measured on T-008/PR #23). Pure so the defect and its fix are both directly testable
  * without spawning `gh` — flip the formula in a test to see the bug this closes.
  *
- * `contractTouching` keeps the row `review` regardless of risk, same as before this task: that PR
- * waits on the owner's own merge timing, never a reviewer's.
+ * `ownerGated` is the list of `reserved-classes.mjs` class ids the PR falls into (T-025). Any one of
+ * `AGENTS.md §5`'s three keeps the row `review` regardless of risk: that PR waits on the owner's
+ * merge, and `done` would release its dependents early. ⚠ An empty array is truthy, so this tests
+ * `.length` — a bare `if (ownerGated)` would keep every additive row at `review`.
  */
-export function reviewFlipsToDone(risk, step, contractTouching) {
-  if (contractTouching) return false;
+export function reviewFlipsToDone(risk, step, ownerGated) {
+  if (ownerGated.length > 0) return false;
   if (risk === 'high') return step === 2;
   return true;
+}
+
+/**
+ * The next-step lines a completed `--review` prints (T-025). An owner-gated PR is approved and handed
+ * to the owner, naming each class; only a PR in none of the three is merged by the reviewer, and only
+ * then does the text carry `gh pr merge`. `labelOf` maps a class id to its `needs-operator/*` label.
+ */
+export function reviewNextStep(prNumber, ownerGated, labelOf = (id) => id) {
+  const n = prNumber ?? '<n>';
+  if (ownerGated.length > 0) {
+    return [
+      `OWNER-GATED (${ownerGated.map(labelOf).join(', ')}) — approve it; the owner merges it (AGENTS.md §5).`,
+      `  gh pr review ${n} --approve`,
+      'You do not merge this one. Tell the owner it needs their merge, then stop.',
+    ];
+  }
+  return [
+    'RISK: additive — approve it, on your own account, then merge it yourself:',
+    `  gh pr review ${n} --approve && gh pr merge ${n} --squash`,
+    'Then pull again before doing anything else.',
+  ];
 }
 
 function readBacklog(root) {
