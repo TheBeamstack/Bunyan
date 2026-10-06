@@ -68,7 +68,7 @@ claim. `scripts/agent-finish.mjs` writes the final `status` line and pushes it a
 | task | `T-027` |
 | branch | `task/T-027-6-s-relink-cap-is-measured-not-guessed` |
 | claimed-at | 2026-10-06T01:07:12Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -203,3 +203,5 @@ maintenance and does NOT get an entry of its own.**
 _Generated 2026-09-15 by `pnpm state`._
 
 <!-- END GENERATED -->
+
+last-verified-at: 89a8da83a1baeca9a5a320d192106c5230b47bad

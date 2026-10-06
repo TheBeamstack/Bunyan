@@ -105,7 +105,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-026 | ready   | The identity gate fires at approve/merge, not only at claim             | infra    | box     | high   | —          |
 | T-025 | ready   | `--review` keeps an owner-gated row at `review`                         | infra    | box     | high   | —          |
 | T-028 | ready   | `agent-finish.mjs` is resumable after an interrupted run                | infra    | box     | normal | —          |
-| T-027 | ready   | §6's relink cap is measured, not guessed                                | infra    | box     | normal | —          |
+| T-027 | review  | §6's relink cap is measured, not guessed                                | infra    | box     | normal | —          |
 | T-029 | ready   | `seats.mjs` collapses `machine: any` to `box` in two functions          | infra    | box     | high   | —          |
 | T-030 | ready   | A steward cannot review, and its readiness view lists nothing           | infra    | box     | high   | —          |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                              | infra    | box     | high   | T-029      |
