@@ -33,3 +33,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 $DIWAN/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan; echo $?`
 - need: make `measure.compare` in diwan skip or compare-only a generated block stamped by another generator instead of refusing, so start can run on Bunyan without restamping `pnpm state`'s marker
 - cleared: 2026-10-05T20:05Z
+
+## B-20261006-01 PR #54 step-1 review finish cannot complete under hmdnah's identity
+
+- opened: 2026-10-06T00:48Z
+- by: brahim-loop
+- scope: item
+- item: PR#54
+- what: hmdnah's step-1 report is posted on PR #54 but its finish exited 3; review commit 6feb54d sits unpushed on the box checkout authored Davidian-Abdo, and PR #54 carries no `review/step-1` label, so step 2 cannot route
+- why: `agent_finish.py:720` labels with `gh pr edit`, which gh 2.45.0 fails on the Projects-classic GraphQL deprecation; `protocol.git_identity` (`protocol.py:1331-1401`) and the label call take identity from `AGENT_SEAT`/env rather than `--seat`, so a loop-spawned hmdnah commits as the launcher's seat; an `AGENT_SEAT=hmdnah` prefix is refused by this session's permissions and `gh api user` returns Davidian-Abdo
+- evidence: `gh pr view 54; git -C /home/ubuntu/projects/Bunyan log -1 --format='%an <%ae>' 6feb54d`
+- need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
+- cleared: -
