@@ -19,6 +19,7 @@ docs/CURRENT_STATE.md
 docs/CURRENT_STATE-reference.md
 docs/decisions.md
 docs/PHASE_LOG.md
+docs/phase-log-*.md
 handoff/
 
 # ⚠⚠ THE LEGAL FILES — REFORMATTING THEM IS NOT A STYLE CHANGE, IT IS AN ALTERATION. `LICENSE` and

@@ -15,10 +15,9 @@ run. It carries what you need to act accurately; everything else is one hop away
 | how it is BUILT (layers, protocol, registries) | **`docs/contracts/architecture.md`** |
 | what SHIPS first (scope, D1–D66) | **`docs/contracts/V1.0.0_spec.md`** |
 | the phases, exit criteria, and **THE FREEZE GATE** | **`docs/contracts/v1.0.0_imp_plan.md`** |
-| what the owner still owes a decision on | **`open_rulings.md`** |
+| what the owner still owes a decision on | **`docs/OWNER-DECISIONS.md`** |
 | how to review a PR | **`REVIEW.md`** |
 | the GitHub-side controls (labels, credentials, runner) | **`docs/RUNBOOK.md`** |
-| how this handoff system works and why | **`docs/design/handoff_system_design.md`** |
 
 **How to use it.**
 
@@ -115,7 +114,7 @@ which sweep was taken instead of freezing, and why — is `docs/PHASE_LOG.md` §
 ## §5 — Live priorities
 
 **⚠ LIVE WORK ONLY.** Open, claimable work is `docs/BACKLOG.md`; the owner's open questions are
-`open_rulings.md`; the narrative of finished work is `docs/PHASE_LOG.md`. Neither of the last two is a
+`docs/OWNER-DECISIONS.md`; the narrative of finished work is `docs/PHASE_LOG.md`. Neither of the last two is a
 task list.
 
 ### The freeze

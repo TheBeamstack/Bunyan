@@ -29,12 +29,6 @@ test   = "pnpm test"
 author_name  = "narutousomaki741"
 author_email = "narutousomaki741@gmail.com"
 
-[log]
-# = `scripts/docs-state.mjs` `BUDGET.history`; above the canonical cap because PHASE_LOG.md has not been rolled.
-warn_bytes = 204800
-roll_bytes = 344064
-fail_bytes = 409600
-
 [review]
 # D88: a `risk: high` row gets two review turns in separate sessions. Not owner-gated — step 2 merges.
 two_step_high_risk = true
