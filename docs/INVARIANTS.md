@@ -51,8 +51,7 @@ elsewhere as `AGENTS.md §5.N`.
 
 1. **`RISK: contract-touching`** — any diff `tests/freeze-boundary.test.ts` flags against the frozen
    surface. Decided by a machine, not a reviewer's judgement; the reviewer approves, the owner merges.
-2. **A legal/contractual figure** — today exactly `CLA.md`'s `<LEGAL ENTITY>` (`open_rulings.md`
-   Q11/Q12). Any `CLA.md` change flags: under-labelling costs the licence, over-labelling costs a
+2. **A legal/contractual figure** — today exactly `CLA.md`'s `<LEGAL ENTITY>` (D87, D89). Any `CLA.md` change flags: under-labelling costs the licence, over-labelling costs a
    click.
 3. **The P5 freeze itself** — the one irreversible act. After it, `tests/frozen-surface.snapshot.json`
    may not move without an owner ruling.
@@ -66,11 +65,11 @@ elsewhere as `AGENTS.md §5.N`.
 and `docs/PHASE_LOG.md` are reference, read on lookup.
 
 **Precedence:** `docs/contracts/` > `v1.0.0_imp_plan.md`'s phase narrative > `docs/CURRENT_STATE.md`,
-`open_rulings.md` or an entry's prose. If a build reveals a contract doc is wrong, fix the contract doc
+`docs/OWNER-DECISIONS.md` or an entry's prose. If a build reveals a contract doc is wrong, fix the contract doc
 and say so in the entry.
 
-`docs/decisions.md` is the ratified-ruling register (D1–D88). `open_rulings.md` is the owner's open
-question list; a missing decision goes there with a recommendation and a cost-if-deferred.
+`docs/decisions.md` is the ratified-ruling register (D1–D88). `docs/OWNER-DECISIONS.md` is the owner's open
+question list (`diwan/AGENTS.md §3.2`).
 
 ## 4. The frozen surface
 

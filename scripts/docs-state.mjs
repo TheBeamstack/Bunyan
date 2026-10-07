@@ -233,7 +233,10 @@ export function abstractKey(a) {
  */
 export function recordedAbstracts(root) {
   const live = parseAbstracts(readCurrentState(root));
-  const archive = readFileSync(join(root, 'docs/PHASE_LOG.md'), 'utf8');
+  const volumes = readdirSync(join(root, 'docs')).filter((f) => /^phase-log-.+\.md$/.test(f));
+  const archive = [...volumes.sort(), 'PHASE_LOG.md']
+    .map((f) => readFileSync(join(root, 'docs', f), 'utf8'))
+    .join('\n');
   const archived = [];
   for (const line of archive.split(/\r?\n/)) {
     const nu = NEW_HEADING.exec(line);

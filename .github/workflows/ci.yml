@@ -65,7 +65,7 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
           HEAD_REF: ${{ github.sha }}
 
-      # GATE 6 — the handoff docs (added 2026-07-31, `docs/design/handoff_system_design.md`).
+      # GATE 6 — the handoff docs (added 2026-07-31).
       #
       # Two things, both of which used to be enforced by an agent remembering:
       #   * the doc BUDGET + the eight-field entry-abstract schema + §8 freshness. The old rotation
