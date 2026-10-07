@@ -7,8 +7,9 @@ This is **not** `docs/decisions.md`, which is the ratified-ruling register (`D1`
 of rulings already made, in its own grammar, never read by the turn protocol. The name is not
 `docs/DECISIONS.md` because the pc runs Windows, where that and `docs/decisions.md` are one file.
 
-D-20261007-01…11 are `open_rulings.md`'s open rows, moved 2026-10-07; each row's recommendation
-(the default) and cost-if-deferred: `git show 5a4b9aa:open_rulings.md`.
+D-20261007-02…08 and -11 are `open_rulings.md`'s open rows, moved 2026-10-07; each row's
+recommendation (the default) and cost-if-deferred: `git show 5a4b9aa:open_rulings.md`. Not moved:
+Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22 (retired protocol).
 
 ## D-20261006-01 T-028 and T-030 fix scripts no entrypoint runs
 
@@ -31,18 +32,6 @@ D-20261007-01…11 are `open_rulings.md`'s open rows, moved 2026-10-07; each row
 - options: retire | keep
 - default-if-silent: retire
 - expires: 2026-10-13
-- ANSWER:
-- answered: -
-
-## D-20261007-01 Q4: whether v1.0.0 owes a sheet
-
-- opened: 2026-10-07T19:25Z
-- by: brahim
-- item: Q4
-- asks: Does v1.0.0 owe a SHEET?
-- options: no | yes
-- default-if-silent: no
-- expires: 2026-10-14
 - ANSWER:
 - answered: -
 
@@ -126,30 +115,6 @@ D-20261007-01…11 are `open_rulings.md`'s open rows, moved 2026-10-07; each row
 - asks: Which verbs deserve a button in the GENERATED ribbon, given that some commands refuse by design? The ribbon is generated from `describeCommands` (D47: _"the ribbon rendered a FORM over `argsSchema` where it should have activated a TOOL"_), so every registered command becomes a control. Two already should not be: `core.array` refuses by design, and `core.move` refuses on every element the demo scene contains (Q8, measured). A button whose every press is a typed failure teaches a user that the ribbon lies.
 - options: app-list | descriptor-flag
 - default-if-silent: app-list
-- expires: 2026-10-14
-- ANSWER:
-- answered: -
-
-## D-20261007-09 Q21: whether a correction to a live BACKLOG instruction is silent
-
-- opened: 2026-10-07T19:25Z
-- by: brahim
-- item: Q21
-- asks: When a live instruction in `docs/BACKLOG.md` is found factually wrong, is the correction silent or does it carry an inline note of what it said before? `AGENTS.md §7.3` forbids narration in the file that changed; invariant 10 says nothing is deleted from the record and a correction is a new entry, not an edit. In a planning file the two genuinely conflict.
-- options: silent | inline-note
-- default-if-silent: silent
-- expires: 2026-10-14
-- ANSWER:
-- answered: -
-
-## D-20261007-10 Q22: what reviews a branch returned by D88 step 2
-
-- opened: 2026-10-07T19:25Z
-- by: brahim
-- item: Q22
-- asks: What reviews the branch a D88 defect return leaves behind, when the return is made by step 2? `REVIEW.md` says a defect either step proves goes back to the builder on the existing claim and that step 2 "reviews what the fix left behind" — which describes a return made by step 1. T-024 is the first return made by step 2, so the repaired branch has no reviewing turn defined at all: both of the task's two review turns are spent.
-- options: step-2 | step-1
-- default-if-silent: step-2
 - expires: 2026-10-14
 - ANSWER:
 - answered: -
