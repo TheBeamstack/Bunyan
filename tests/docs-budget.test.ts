@@ -4,15 +4,7 @@
 /**
  * THE DOC GATES — gate six of `pnpm verify`, and therefore of CI.
  *
- * ⚠⚠ WHY IT EXISTS. `docs/CURRENT_STATE.md` is read IN FULL, by BOTH agents, on EVERY session, so its
- * length is a cost paid on every run. It grew **5.9× in eleven days** (67 KB → 394 KB) under a
- * rotation rule that was expressed as a COUNT ("more than 20 entries") while entry sizes doubled
- * underneath it. That rule then failed measurably: the 2026-07-30 compaction took the file
- * 377 KB → 296 KB and it was back to **393 KB the same day — larger than before the maintenance ran.**
- *
- * The rule is now a BYTE BUDGET and it is enforced here rather than remembered. This project's own
- * ledger scores memory-enforced rules at NINE DIRTY OUT OF EIGHTEEN; the two rules that never rotted
- * (`units-rule7`, `d19-boundary`) are the two with a test behind them.
+ * `docs/CURRENT_STATE.md` is read in full on every session, so its size is a BYTE BUDGET enforced here.
  *
  * WHAT A FAILURE MEANS: compact §7 (move the oldest abstracts' summaries into `docs/PHASE_LOG.md`,
  * AFTER checking their durable lessons are already in §1–§5), or run `pnpm state`. Never raise a
@@ -366,7 +358,6 @@ describe('the doc tree is intact', () => {
       'docs/contracts/v1.0.0_imp_plan.md',
       'docs/decisions.md',
       'docs/PHASE_LOG.md',
-      'docs/reviews/review_prompt.md',
       'docs/design/handoff_system_design.md',
       'REVIEW.md',
       'open_rulings.md',

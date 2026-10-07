@@ -11,17 +11,7 @@
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-/**
- * ⚠ THE ROTATION RULE IS A BYTE BUDGET, NOT A COUNT — and that is the whole point.
- *
- * The old rule compacted at "more than 20 entries". Entry sizes then roughly DOUBLED (Entry 61 was
- * 5,540 B; Entry 71 was 22,716 B), so a count-based threshold could not see the file growing. It
- * failed measurably: the 2026-07-30 compaction took docs/CURRENT_STATE.md 377 KB -> 296 KB and it was back
- * to 393 KB the same day — larger than before the maintenance ran.
- *
- * Budgets are set from the measured post-migration size plus real headroom, so a normal session never
- * trips them and a drifting one always does.
- */
+/** Byte budgets, not counts: the measured post-migration size plus real headroom. */
 export const BUDGET = {
   currentState: 96 * 1024, // measured 54 KB after the migration
   section7: 32 * 1024, // measured ~13 KB for ten abstracts
