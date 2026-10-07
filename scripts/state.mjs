@@ -2,26 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- * `pnpm state` — REGENERATE THE MACHINE-KNOWABLE FACTS.
- *
- * ⚠⚠ WHY. Before 2026-07-31 every one of these was typed by hand into prose and could drift silently:
- * `613 green` · `all five gates 0` · `21 ops + 3 reserved` · `51 types · 39 commands · 1 codec · 0 views`
- * · `SCENE_SCHEMA_VERSION 2` · the FRESH entry number in both prompt files (that last one, ⚠ AS OF
- * ENTRY 91, no longer exists — see below).
- *
- * The `registries` line matters most. Counting what is actually registered — **51 types, 39 commands,
- * 1 codec (inside a test), 0 views** — is what exposed domain rule 5 as half-false: two of the four
- * registries carried no behaviour and nothing dispatched through either, and a freeze-gate row had
- * been discharged on the assumption that they did. That count happened ONCE, during a sweep. Now it
- * happens every session.
- *
- * ⚠ WHAT IT WRITES, AND NOTHING ELSE: `docs/CURRENT_STATE.md` §8, between the GENERATED markers.
- *
- * ⚠⚠ SUPERSEDED 2026-08-14 (D82, Entry 91): this used to ALSO rewrite `<Agent>_Prompt.md`'s §2 FRESH
- * block, for the running agent only. Prompt files are now fully stateless (`docs/BACKLOG.md` is the
- * only "what's next" source), so there is nothing left to write there — `scripts/agent-start.mjs`'s
- * measured-vs-claimed refusal answers "am I current?" instead, which is a script REFUSING a turn on
- * disagreement rather than a session reading a number and deciding whether to trust it.
+ * `pnpm state` — regenerate the machine-knowable facts into `docs/CURRENT_STATE.md` §8, between the
+ * GENERATED markers, and nothing else.
  *
  * Usage:
  *   pnpm state                 measure and write §8

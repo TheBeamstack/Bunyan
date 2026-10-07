@@ -12,8 +12,7 @@ again moves back, it is not copied.
 `docs/contracts/core_logic.md` (what the app means) · **2.** `docs/contracts/architecture.md` (how it is
 built) · **3.** `docs/contracts/V1.0.0_spec.md` (what ships first) · **4.**
 `docs/contracts/v1.0.0_imp_plan.md` (phases, exit criteria, **THE FREEZE GATE**). Design docs are
-`docs/design/`; `docs/reviews/review_prompt.md` is the standing phase-level adversarial brief, a
-different instrument from `REVIEW.md`'s per-PR checklist. ⚠ `docs/PHASE_LOG.md` is **not** in the
+`docs/design/`. ⚠ `docs/PHASE_LOG.md` is **not** in the
 reading order — it is a reference, opened when you are stuck.
 
 

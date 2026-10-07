@@ -57,7 +57,7 @@ every live branch is `git ls-remote --heads origin 'refs/heads/task/*'`, which `
 prints and reads (each branch carries its own copy of this block) before deciding what a builder may
 claim. `scripts/agent-finish.mjs` writes the final `status` line and pushes it as the last act of a turn.
 
-<!-- BEGIN BATON — written by agent-start.mjs; pushed before work begins -->
+<!-- BEGIN BATON — written by agent_start.py; pushed before work begins -->
 
 | Field | Value |
 |---|---|
