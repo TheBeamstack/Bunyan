@@ -57,3 +57,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh pr view 54 --json comments --jq '.comments[0].author.login'; gh api user --jq .login`
 - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #55 to hmdnah
 - cleared: -
+
+## B-20261008-01 PR #61 cannot be reviewed across accounts: B-20261006-02's cause still holds
+
+- opened: 2026-10-08T21:40Z
+- by: brahim-loop
+- scope: item
+- item: PR#61
+- what: routing PR #61 (zayd, Davidian-Abdo) to hmdnah would claim-comment and merge it as Davidian-Abdo, the author's own account
+- why: diwan `agent_start.py:611,614` and `agent_merge.py:185,391` still call `gh(cfg, …)` with no `seat=`, so they run unseated on the ambient login, although `~/.config/beamstack/narutousomaki741.token` exists
+- evidence: `grep -n 'gh(cfg' /home/ubuntu/projects/diwan/scripts/agent_start.py /home/ubuntu/projects/diwan/scripts/agent_merge.py; gh api user --jq .login`
+- need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #61 to hmdnah
+- cleared: -

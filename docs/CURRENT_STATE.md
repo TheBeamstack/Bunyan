@@ -81,6 +81,9 @@ builder may claim.
 - **B-20261006-02** — `scope: item` · `item: PR#55` — PR #55 cannot be reviewed across accounts: hmdnah's gh writes run as the author
   - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #55 to hmdnah
   - opened 2026-10-06T02:00Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261008-01** — `scope: item` · `item: PR#61` — PR #61 cannot be reviewed across accounts: B-20261006-02's cause still holds
+  - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #61 to hmdnah
+  - opened 2026-10-08T21:40Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
