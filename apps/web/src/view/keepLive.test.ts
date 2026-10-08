@@ -111,9 +111,7 @@ describe('keepLiveSet — camera, selection, and what only a build can surface',
   });
 
   it('keeps an element the recipe cannot place', () => {
-    const scene = fixture([
-      wall('free', 'L0', 90_000, { params: { width: 1 } } as unknown as Partial<Element>),
-    ]);
+    const scene = fixture([wall('free', 'L0', 90_000, { params: { width: 1 } })]);
     expect(keepLiveSet(scene, seesX(-1000, 10_000), [], registered)).toContain('free');
   });
 });

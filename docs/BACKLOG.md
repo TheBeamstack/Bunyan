@@ -377,6 +377,18 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-08 — `window.bunyan`'s mutators bypass the app's document lock** (T-006). `App` serialises
+  `dispatch`/undo/redo and lazy builds through `edit/docLock.ts`; the agent surface calls `doc.execute`
+  directly, so an agent edit can commit while a lazy build is mid-flight. Fix shape: route
+  `withUiRefresh`'s mutators through the same lock. Recorded, not claimed.
+- **2026-10-08 — a deferred element's broken `hostRef` surfaces only once it is built** (T-006). The
+  keep-live set keeps an unregistered Type and a missing host live, both decidable from the recipe; a
+  `hostRef` naming a face the host no longer has is measured by the build, so an out-of-view one is
+  absent from the Problems panel until the camera reaches it (domain rule 3). Recorded, not claimed.
+- **2026-10-08 — T-006 makes D-20261007-11 (Q23) reachable from the app.** An opened file now boots
+  with only the keep-live set built, so `agent.query({discipline})` drops deferred elements in the
+  shipped app, not only in a test. Recorded for the owner's answer; not claimed.
+
 - **2026-09-04 — a GitHub Actions job's `runner_name` reads `""` even after it completes successfully**,
   so it is not evidence that nothing picked the job up. PR #47's run 33877624825 sat `queued` 55.6 min
   while the runner reported `online busy=false`; two readers diagnosed a wedged listener. It was queue
