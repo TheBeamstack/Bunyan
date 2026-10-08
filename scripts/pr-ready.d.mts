@@ -5,6 +5,9 @@
  * is pure apart from the `view` call it takes as a parameter, and is unit-tested by injecting one.
  */
 
+/** `true` when a PR title carries a routable `T-nnn:` / `STEWARD:` prefix. */
+export declare function titleRoutes(title: string | undefined): boolean;
+
 export interface MergeableView {
   mergeable: string | null;
   mergeStateStatus: string | null;

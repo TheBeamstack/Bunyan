@@ -10,10 +10,7 @@
  * still in. A test that could not reproduce it would be a test of the happy path wearing its name.
  */
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { mergeableState } from '../../scripts/pr-ready.mjs';
-import { PR_TITLE_RE, titleRoutes } from '../../scripts/seats.mjs';
+import { mergeableState, titleRoutes } from '../../scripts/pr-ready.mjs';
 
 describe('the title predicate', () => {
   it('accepts the two routable shapes', () => {
@@ -31,20 +28,6 @@ describe('the title predicate', () => {
   it('requires the separator, so `T-001` alone does not route', () => {
     expect(titleRoutes('T-001 the versioned entity pattern')).toBe(false);
     expect(titleRoutes('T-1: too few digits')).toBe(false);
-  });
-
-  /**
-   * ⚠ ONE REGEX, TWO CALLERS. `agent-finish.mjs` refuses to print a `gh pr create` line for a title
-   * that does not route, and this CI step re-asks on the PR that actually exists. If the check ever
-   * grows a second copy of the pattern, the two can disagree — and the one that is wrong is
-   * whichever one nobody ran.
-   */
-  it('is the same regex agent-finish.mjs routes on', () => {
-    const finish = readFileSync(join(process.cwd(), 'scripts/agent-finish.mjs'), 'utf8');
-    expect(finish, 'agent-finish.mjs no longer calls seats.titleRoutes').toMatch(
-      /seats\.titleRoutes\(title\)/,
-    );
-    expect(PR_TITLE_RE.source).toContain('STEWARD');
   });
 });
 

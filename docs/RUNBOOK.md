@@ -28,7 +28,7 @@ gh label create needs-operator/freeze --color 5319E7 \
 `gh api repos/TheBeamstack/Bunyan/branches/main/protection` and `…/rulesets` return
 `403 — "Upgrade to GitHub Pro or make this repository public"`; the token is `ADMIN`, so the plan is the
 blocker, not access. The repo stays private and unprotected, so **nothing on GitHub's side refuses a
-self-approving merge** — the `agent-start.mjs` identity guard (`T-013`) is the only enforcement.
+self-approving merge** — diwan's `require_identity` (`scripts/protocol.py`) is the only enforcement.
 ⚠ **Q11 must be answered before this is revisited**: an unnamed CLA counterparty is safe only while
 nothing external can arrive.
 
@@ -38,11 +38,11 @@ nothing external can arrive.
 **machine's own default** reads a token file for its turn:
 
 ```bash
-export GH_TOKEN=$(cat ~/.config/bunyan/<seat>.token)
+export GH_TOKEN=$(cat ~/.config/beamstack/<account>.token)
 ```
 
-The file is `~/.config/bunyan/<seat>.token`, mode **600**, and lives outside the repo — **per machine**,
-never synced or committed. Each machine's `gh` default covers two of the five seats; the other two need
+The file is `~/.config/beamstack/<account>.token` (diwan's `seat_credential`, named by the seat's
+ACCOUNT), mode **600**, and lives outside the repo — **per machine**, never synced or committed. Each machine's `gh` default covers two of the five seats; the other two need
 this export:
 
 | Machine | Default identity (`GH_TOKEN` unset)       | Needs a token file            |
@@ -53,26 +53,11 @@ this export:
 ⚠ **`gh auth switch` is rejected**: the active account is global in `hosts.yml`, and each machine runs
 more than one seat, so a concurrent seat would inherit whichever identity was switched to last.
 ⚠⚠ **Verify before any write call** — `gh api user --jq .login` must equal
-`node scripts/seats.mjs account <seat>`. A silent fallback to the default identity is a self-approval,
+the seat's account in `docs/seats/README.md`. A silent fallback to the default identity is a self-approval,
 which is why `T-013` makes it a refusal rather than a convention.
 
 The token needs scope `repo` (classic), or Contents read/write + Pull requests read/write + Metadata
 read (fine-grained, scoped to this repository). The account must already be a collaborator with `push`.
-
-## The pc's `pnpm` needs `BUNYAN_PNPM_CMD`
-
-`agent-finish.mjs`'s `pnpm verify` goes through `seats.pnpmSpawn` (`execFileSync`, no shell,
-CVE-2024-27980), and this pc's only `pnpm` on `PATH` is a POSIX shebang script it cannot run. Export this
-once per session before `agent-finish.mjs` (T-021; the gap recurred on T-001 and T-003 before this line
-existed):
-
-```bash
-export BUNYAN_PNPM_CMD='["C:/Program Files/nodejs/node.exe","C:/Program Files/nodejs/node_modules/corepack/dist/pnpm.js"]'
-```
-
-⚠ Skipping it does not merely fail at step 1: a review turn can still approve and merge on GitHub and
-then silently fail to write its own §7 abstract, leaving the merged PR's `REVIEW:` line stale (T-002).
-Set it before **every** `agent-finish.mjs` run on this machine, build or review.
 
 Run this the day either changes:
 
@@ -115,6 +100,6 @@ self-hosted runner on a public repo would execute fork PRs on owner hardware. A 
 
 ## Deliberately absent
 
-- **CODEOWNERS** — reviewer routing is by `machine:` (`scripts/seats.mjs`'s `reviewerFor`), and a
+- **CODEOWNERS** — reviewer routing is diwan's `reviewer_for` (`scripts/protocol.py`), and a
   path-based owner would be a second router that can disagree.
 - **Protection on `task/*`** — CI already runs on every `pull_request`.

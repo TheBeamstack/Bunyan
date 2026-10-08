@@ -79,8 +79,8 @@ jobs:
       # ⚠ `pnpm verify` runs this too: a local gate that is a strict SUBSET of CI is a
       #   false-negative generator, and this repo has been bitten by exactly that.
       #
-      # ⚠ RENAMED AT ENTRY 91. `docs:check` also runs `tests/protocol/` now — the seat registry, the
-      # machine gate, dependency closure, the claim/finish scripts and the two gates below. That was
+      # ⚠ RENAMED AT ENTRY 91. `docs:check` also runs `tests/protocol/` now — the two gates below
+      # (the node claim/finish scripts and seat registry it once covered were retired 2026-10-08). That was
       # true the moment `package.json`'s `docs:check` grew the path; the step name saying otherwise is
       # how a suite ends up running for months while everyone believes it needs wiring.
       - name: Handoff docs + freeze boundary + seat protocol
@@ -124,9 +124,8 @@ jobs:
           node-version: 20
 
       # The title must route (`T-nnn: ` / `STEWARD: `) and GitHub must report the PR MERGEABLE.
-      # `agent-finish.mjs` already refuses to PRINT a non-routing title — this asks the PR that
-      # actually got opened, because `--fill`, a hand-typed title and `gh pr edit --title` all reach
-      # GitHub without passing through that script.
+      # This asks the PR that actually got opened, because `--fill`, a hand-typed title and
+      # `gh pr edit --title` all reach GitHub without any script checking the title first.
       - name: PR title routes · mergeable
         run: node scripts/pr-ready.mjs --pr "${{ github.event.pull_request.number }}"
         env:
