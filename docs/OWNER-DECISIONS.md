@@ -20,7 +20,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: retire | keep
 - default-if-silent: retire
 - expires: 2026-10-13
-- ANSWER:
+- ANSWER: retire
 - answered: -
 
 ## D-20261006-02 T-029 fixes seats.mjs functions only the dead agent-\*.mjs call
@@ -32,7 +32,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: retire | keep
 - default-if-silent: retire
 - expires: 2026-10-13
-- ANSWER:
+- ANSWER: retire
 - answered: -
 
 ## D-20261007-02 Q5: who chooses the section-curve discretisation tolerance
