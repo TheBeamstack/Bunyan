@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-006` |
 | branch | `task/T-006-d66-3a-b-the-keep-live-set-and-a-lazy-fi` |
 | claimed-at | 2026-10-08T21:03:29Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -202,3 +202,5 @@ maintenance and does NOT get an entry of its own.**
 _Generated 2026-09-15 by `pnpm state`._
 
 <!-- END GENERATED -->
+
+last-verified-at: 5c608787413472374a2d1d67b8277e5502eae597
