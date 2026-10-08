@@ -69,3 +69,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `grep -n 'gh(cfg' /home/ubuntu/projects/diwan/scripts/agent_start.py /home/ubuntu/projects/diwan/scripts/agent_merge.py; gh api user --jq .login`
 - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #61 to hmdnah
 - cleared: -
+
+## B-20261008-02 builder start refuses: the merge-result verify runs in a worktree with no node_modules
+
+- opened: 2026-10-08T22:04Z
+- by: zayd
+- scope: item
+- item: T-010
+- what: zayd's start exited 3 before any claim or work on T-010, because its predecessor-PR check on PR #61 failed `pnpm verify`
+- why: diwan `protocol.py:689-699` `run_gate_on_tree` runs `pnpm verify` in a fresh `.git/agent-gate-worktree` that has no `node_modules`, so typecheck fails with `sh: 1: tsc: not found` on any merge result, independent of PR #61's diff
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat zayd --pr 61 --dry-run; echo $?`
+- need: make diwan `run_gate_on_tree` install or link dependencies in the gate worktree before running `[commands] verify`, then re-run zayd's start on T-010
+- cleared: -
