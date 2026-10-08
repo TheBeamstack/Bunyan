@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
-| builder | `brahim` |
-| role | steward |
+| seat | `zayd` |
+| builder | `zayd` |
+| role | builder |
 | machine | box |
-| task | `STEWARD-x001-seven-seat-roster` |
-| branch | `brahim/2026-09-04-x001-seven-seat-roster` |
-| claimed-at | 2026-08-31T12:17:24Z |
-| status | finished — PR open, awaiting review |
+| task | `T-006` |
+| branch | `task/T-006-d66-3a-b-the-keep-live-set-and-a-lazy-fi` |
+| claimed-at | 2026-10-08T21:03:29Z |
+| status | working |
 
 <!-- END BATON -->
 
