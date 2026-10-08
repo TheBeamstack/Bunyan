@@ -20,7 +20,7 @@ from, and the reason it is a record rather than prose.
 - why: the credential is PRESENT on both machines and the runbook names a path only box 1 has. `docs/RUNBOOK.md` "Seat credentials" and D87 say `~/.config/bunyan/<seat>.token`; box 1 has `~/.config/bunyan/hmdnah.token` (40 bytes) and box 2 has no `~/.config/bunyan/` at all, while box 2 does hold `~/.config/beamstack/narutousomaki741.token` (40 bytes) — the same secret under the ACCOUNT `hmdnah` holds (diwan R23, `diwan/docs/seats/README.md`). This is a PATH MISMATCH between a per-repo seat-named file and a shared account-named one, not a missing secret. It supersedes the `## BLOCKED` prose this record replaces, which claimed `~/.config/bunyan/` "does not exist on this box at all" — false on box 1, and true of box 2 only.
 - evidence: `ls -ld ~/.config/bunyan; ls -l ~/.config/beamstack/` run on box 1 and on box 2 — file names, modes and sizes only; no token was read, copied or moved
 - need: resolve a seat's token from `~/.config/beamstack/<account>.token` as well as `~/.config/bunyan/<seat>.token` in `scripts/agent-start.mjs`, correct `docs/RUNBOOK.md` "Seat credentials" to state both, and carry the change on its own `T-nnn` row
-- cleared: -
+- cleared: 2026-10-08T14:16Z
 
 ## B-20260930-01 agent_start.py refuses every Bunyan turn on the state.mjs-owned generated block
 

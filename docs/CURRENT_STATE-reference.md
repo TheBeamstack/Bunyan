@@ -423,7 +423,6 @@ cp $REPO/dist/bunyan-kernel.{js,wasm} $HOME/projects/Bunyan/packages/kernel-occt
 - ⚠ **`verify` = the CI step list, EXACTLY**: a local gate that is a strict SUBSET of CI is a
   false-negative generator. `.prettierrc` has `endOfLine:"auto"` so `format:check` is green on both
   Windows (CRLF) and CI (LF).
-- ⚠ On the pc, **export `BUNYAN_PNPM_CMD` before every `agent-finish.mjs` run** — see `docs/RUNBOOK.md`.
 - ⚠⚠ **`.prettierignore` LISTS PATHS.** A stale entry does not error — it silently stops exempting a
   file, and `format:check` is CI step 3, which failed silently for six sessions once already. **Move a
   prose doc, move its line, same commit.**

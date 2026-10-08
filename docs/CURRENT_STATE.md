@@ -52,9 +52,9 @@ derivation path (`nodeId` + `role` + `occurrence`), assigned when an op runs and
 
 **The claim is pushed before work begins.** An unpushed claim is invisible across machines, and two
 sessions can start the same `T-nnn`. This block is the claim on **this branch only**; the picture across
-every live branch is `git ls-remote --heads origin 'refs/heads/task/*'`, which `scripts/agent-start.mjs`
-prints and reads (each branch carries its own copy of this block) before deciding what a builder may
-claim. `scripts/agent-finish.mjs` writes the final `status` line and pushes it as the last act of a turn.
+every live branch is `git ls-remote --heads origin 'refs/heads/task/*'`, which diwan's
+`scripts/agent_start.py` reads (each branch carries its own copy of this block) before deciding what a
+builder may claim.
 
 <!-- BEGIN BATON — written by agent_start.py; pushed before work begins -->
 
@@ -75,9 +75,6 @@ claim. `scripts/agent-finish.mjs` writes the final `status` line and pushes it a
 
 ## BLOCKED
 
-- **B-20260906-01** — `scope: item` · `item: T-026` — hmdnah's review credential is named by seat and stored by account
-  - need: resolve a seat's token from `~/.config/beamstack/<account>.token` as well as `~/.config/bunyan/<seat>.token` in `scripts/agent-start.mjs`, correct `docs/RUNBOOK.md` "Seat credentials" to state both, and carry the change on its own `T-nnn` row
-  - opened 2026-09-06T21:00Z by brahim · recorded in `docs/BLOCKERS.md`
 - **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
   - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
   - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`

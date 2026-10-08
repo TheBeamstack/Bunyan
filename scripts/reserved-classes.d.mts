@@ -1,7 +1,7 @@
 /**
  * Types for `reserved-classes.mjs` — the three owner-gated classes (`AGENTS.md §5`).
  *
- * ⚠ Plain Node ESM, no build step, same reasoning as `seats.d.mts`/`docs-state.d.mts`.
+ * ⚠ Plain Node ESM, no build step, same reasoning as `docs-state.d.mts`.
  */
 
 export type ReservedClassId = 'contract-touching' | 'legal-figure' | 'freeze';

@@ -5,9 +5,8 @@
  * scripts/pr-ready.mjs — checks the opened PR's title routes (`T-nnn: ` / `STEWARD: `) and that GitHub
  * reports it MERGEABLE.
  *
- * ⚠ `agent-finish.mjs` already refuses to PRINT a non-routing title, but that binds only a seat that
- * ran it; `--fill`, a hand-typed title and `gh pr edit --title` all reach GitHub without it. The regex
- * is `seats.mjs`'s `PR_TITLE_RE` so the two cannot disagree.
+ * ⚠ `--fill`, a hand-typed title and `gh pr edit --title` all reach GitHub without any script
+ * checking the title first, so this re-asks on the PR that actually got opened.
  *
  * ⚠⚠ `mergeable` is computed asynchronously and starts as `UNKNOWN`, so a single read on a push is
  * usually `UNKNOWN`. Passing on it makes the gate decorative and failing on it makes CI flaky — this
@@ -19,9 +18,18 @@
  */
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ghSpawn, titleRoutes } from './seats.mjs';
+import { ghSpawn } from './reserved-classes.mjs';
 
 const SELF_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+/** `T-nnn: ` / `STEWARD: ` — the only two routable PR-title prefixes: a task turn, or a steward turn
+ * carrying no task. */
+const PR_TITLE_RE = /^(T-\d{3}: |STEWARD: )/;
+
+/** `true` when a PR title carries a routable `T-nnn:` / `STEWARD:` prefix. */
+export function titleRoutes(title) {
+  return PR_TITLE_RE.test(title ?? '');
+}
 
 /** `gh pr view` as JSON, or `null` when gh cannot answer. */
 function prView(root, pr, fields) {

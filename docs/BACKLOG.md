@@ -1,7 +1,7 @@
 # BACKLOG
 
 **What it is, and who reads it when.** The forward-planning artifact: every claimable unit of work, its
-readiness and its sequence. Read by a builder or reviewer at claim time (`scripts/agent-start.mjs`), and
+readiness and its sequence. Read by a builder or reviewer at claim time (diwan's `agent_start.py`), and
 maintained by `brahim`, who owns readiness and sequencing (D82, `AGENTS.md §1.3`). Seats decide what
 they take. `T-nnn` succeeds `Entry N` as the working unit; a steward turn carries no `T-nnn` and titles
 its PR `STEWARD: …`.
@@ -25,27 +25,16 @@ All of the below, or it is not ready and **must not be claimed**:
 6. an **`area:`** — `kernel | document | apps-web | infra | design`. A reading-profile hint and a
    grouping key. **Not an identity and not a claim filter** — package ownership is a separate standing
    fact in `docs/seats/README.md`;
-7. a **`machine:`** — `any | box | pc`. Where the task must be **executed**;
+7. a **`machine:`** — `any | box | pc`, informational (below);
 8. a **`risk:`** flag (`normal` | `high`), set at decomposition and **auto-`high`** when a task touches
    persistent naming (D1), the kernel identity cache (D29), the frozen surface, or `dependency.ts`'s
    invalidator. ⚠ `risk: high` buys a **two-step review** (D88, `REVIEW.md`); a mechanically-detected
    `RISK: contract-touching` buys the **owner's merge** (`AGENTS.md §5`). Either makes
-   `scripts/agent-finish.mjs` write `NEXT TURN: REVIEW ONLY`, naming the resolved reviewer seat;
+   diwan's `agent_finish.py` write `NEXT TURN: REVIEW ONLY`, naming the resolved reviewer seat;
 9. small enough to reach a green `pnpm verify` in one turn.
 
-### `machine:` — the one that is safety-critical
-
-`any` — neither machine's absence changes the result. `box` — the Hetzner dev box, headless: no
-Playwright, no WebGL, no browser-only measurement. `pc` — the owner's local PC, **the only machine here
-with a real browser**.
-
-`scripts/agent-start.mjs` refuses a task whose `machine:` the seat cannot satisfy, and for `pc` it
-**probes for a real browser** rather than trusting the label (`BUNYAN_BROWSER_CMD=/path` overrides by
-naming an executable, never a boolean bypass). Without the field a box session would tick a `done-when:`
-item it could not have checked — the failure `AGENTS.md §0`'s invariant 9 exists to prevent.
-
-**A `done-when:` list that mixes machines is a task that needs splitting**, not a `machine:` value chosen
-generously.
+A task's `machine:` is informational; what it needs is `requires:`, probed on the machine running the
+turn (`diwan/AGENTS.md §0`).
 
 ## Status values
 
@@ -53,20 +42,20 @@ Four, and `done` means **merged** — nothing earlier in the list does.
 
 - **`blocked`** — waiting on `depends-on:` or a `docs/OWNER-DECISIONS.md` answer.
 - **`ready`** — every READY criterion is met, nobody has claimed it, and every `depends-on:` id is `done`.
-- **`review`** — the builder finished and its PR is open. `agent-finish.mjs` sets this; a builder
+- **`review`** — the builder finished and its PR is open. `agent_finish.py` sets this; a builder
   finishing with no open `done-when:` item is refused unless the row already reads `review`.
-- **`done`** — the PR **merged**. Only a reviewer's `agent-finish.mjs --review` (additive risk) or
+- **`done`** — the PR **merged**. Only a reviewer's `agent_finish.py --review` (additive risk) or
   `brahim`'s readiness sweep (confirming via `gh pr list --state merged`) ever writes this.
 
-**Why the extra state.** A dependency is satisfied by `done`, never by `review` — `seats.mjs`'s
-`canClaim` refuses mechanically on this. Collapsing `review` into `done` at build-finish time would let a
+**Why the extra state.** A dependency is satisfied by `done`, never by `review` — diwan's
+`can_claim` refuses mechanically on this. Collapsing `review` into `done` at build-finish time would let a
 dependent start against unreviewed work. Only a row naming the pending PR's task waits.
 
 ---
 
 ## Backlog
 
-> **Row order is the sequence, not the id order.** `scripts/seats.mjs`'s `readyFor` takes the first
+> **Row order is the sequence, not the id order.** diwan's `ready_for` takes the first
 > `ready` row a machine can satisfy, so this table's order is how the steward sequences work.
 >
 > ⚠ **PRs #16 and #17 predated `T-nnn` and were closed 2026-08-15 by owner ruling** — too stale against
@@ -104,12 +93,12 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
 | T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
 | T-005 | done    | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
-| T-026 | ready   | The identity gate fires at approve/merge, not only at claim             | infra    | box     | high   | —          |
-| T-025 | ready   | `--review` keeps an owner-gated row at `review`                         | infra    | box     | high   | —          |
-| T-028 | ready   | `agent-finish.mjs` is resumable after an interrupted run                | infra    | box     | normal | —          |
+| T-026 | blocked | The identity gate fires at approve/merge, not only at claim             | infra    | box     | high   | —          |
+| T-025 | blocked | `--review` keeps an owner-gated row at `review`                         | infra    | box     | high   | —          |
+| T-028 | blocked | `agent-finish.mjs` is resumable after an interrupted run                | infra    | box     | normal | —          |
 | T-027 | ready   | §6's relink cap is measured, not guessed                                | infra    | box     | normal | —          |
-| T-029 | ready   | `seats.mjs` collapses `machine: any` to `box` in two functions          | infra    | box     | high   | —          |
-| T-030 | ready   | A steward cannot review, and its readiness view lists nothing           | infra    | box     | high   | —          |
+| T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions          | infra    | box     | high   | —          |
+| T-030 | blocked | A steward cannot review, and its readiness view lists nothing           | infra    | box     | high   | —          |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                              | infra    | box     | high   | T-029      |
 
 ---
@@ -203,6 +192,10 @@ resolves to. `agent-finish --review` compounds it by writing the verdict as acco
   - ⚠ **the gate is added, not moved** — `agent-start.mjs`'s existing claim-time check keeps its behaviour.
 - depends-on: —
 - area: infra · machine: **box** · risk: **high**
+- note: `blocked` 2026-10-08 (steward): superseded, not done (nothing merged for it). It fixes the node
+  turn engine (`scripts/agent-*.mjs`, `scripts/seats.mjs`), retired on the owner's answer to D-20261006-01 and
+  deleted by `STEWARD: retire the node turn engine`; the live start/finish are diwan's `agent_start.py`/
+  `agent_finish.py`.
 
 > `risk: high` — it is the crossed-account rule, which `AGENTS.md §6` says is not optional twice. Measured
 > on PR #39: the box default resolved to the PR's author and only the seat's own reading of `AGENTS.md`
@@ -228,6 +221,10 @@ has not merged. `done` is what satisfies a `depends-on:`, so this releases depen
     reviewer's own account.
 - depends-on: —
 - area: infra · machine: **box** · risk: **high**
+- note: `blocked` 2026-10-08 (steward): superseded, not done (nothing merged for it). It fixes the node
+  turn engine (`scripts/agent-*.mjs`, `scripts/seats.mjs`), retired on the owner's answer to D-20261006-01 and
+  deleted by `STEWARD: retire the node turn engine`; the live start/finish are diwan's `agent_start.py`/
+  `agent_finish.py`.
 
 > `risk: high` — it decides whether an owner-gated row is released to its dependents. Fired twice on PR
 > #38, caught by hand both times.
@@ -252,6 +249,10 @@ hand-directed session that knows what the previous one was doing.
     recoverable, not impossible.
 - depends-on: —
 - area: infra · machine: **box** · risk: **normal**
+- note: `blocked` 2026-10-08 (steward): superseded, not done (nothing merged for it). It fixes the node
+  turn engine (`scripts/agent-*.mjs`, `scripts/seats.mjs`), retired on the owner's answer to D-20261006-01 and
+  deleted by `STEWARD: retire the node turn engine`; the live start/finish are diwan's `agent_start.py`/
+  `agent_finish.py`.
 
 ### T-027 — §6's relink cap is measured, not guessed
 
@@ -306,6 +307,10 @@ ADR-0001 §0.1 ratified**; `reviewerForBranch` has no `any` branch of its own (s
   - ⚠ **no `requires:` parsing** — that is T-031, and ADR-0002 §5 orders it after `maitre_d_ouvrage`.
 - depends-on: —
 - area: infra · machine: **box** · risk: **high**
+- note: `blocked` 2026-10-08 (steward): superseded, not done (nothing merged for it). It fixes the node
+  turn engine (`scripts/agent-*.mjs`, `scripts/seats.mjs`), retired on the owner's answer to D-20261006-02 and
+  deleted by `STEWARD: retire the node turn engine`; the live start/finish are diwan's `agent_start.py`/
+  `agent_finish.py`.
 
 ### T-030 — A steward cannot review, and its readiness view lists nothing
 
@@ -330,6 +335,10 @@ is the defect PR #19 fixed in `seats.mjs` and did not sweep back into `agent-sta
   - both are covered in `tests/protocol/agent-start.test.ts`.
 - depends-on: —
 - area: infra · machine: **box** · risk: **high**
+- note: `blocked` 2026-10-08 (steward): superseded, not done (nothing merged for it). It fixes the node
+  turn engine (`scripts/agent-*.mjs`, `scripts/seats.mjs`), retired on the owner's answer to D-20261006-01 and
+  deleted by `STEWARD: retire the node turn engine`; the live start/finish are diwan's `agent_start.py`/
+  `agent_finish.py`.
 
 ### T-031 — `requires:` supersedes a task's `machine:`
 
@@ -352,6 +361,9 @@ informational provenance.
   simultaneously with D". `T-106` is in flight now; porting a mechanism whose shape is not yet proven is
   what this row is blocked on. `brahim` flips it to `ready` when mdo's PR has merged.
 - area: infra · machine: **box** · risk: **high**
+- note: `blocked` 2026-10-08 (steward): superseded, not done (nothing merged for it). `requires:` is
+  diwan's job, in `scripts/protocol.py` (owner, 2026-10-08), not a port into this repo; T-029, which it
+  depends on, fixed `scripts/seats.mjs`, deleted with the node turn engine.
 
 ## Discovered
 

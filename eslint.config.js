@@ -25,13 +25,9 @@ export default tseslint.config(
           // ⚠ A `.d.mts` belongs here ONLY WHEN NOTHING under `tests/**/*.ts` imports its sibling
           // `.mjs` — once something does, the project service finds it THROUGH that import, and
           // listing it here too is a conflict ("included by allowDefaultProject but also found in the
-          // project service"). `docs-state.d.mts`/`frozen-surface.d.mts`/`seats.d.mts` are all reached
-          // this way (`tests/docs-budget.test.ts`, `tests/freeze-boundary.test.ts`,
-          // `tests/protocol/seats.test.ts`). `agent-start.d.mts` JOINED them at T-015: its own
-          // `findTaskPR` is now unit-tested directly (`tests/protocol/agent-start.test.ts` imports
-          // `../../scripts/agent-start.mjs`, alongside its existing spawn-based tests), so it is no
-          // longer listed here either — the same conflict this comment describes, hit for real the
-          // first time something DID import it.
+          // project service"). `docs-state.d.mts`/`frozen-surface.d.mts`/`pr-ready.d.mts` are all
+          // reached this way (`tests/docs-budget.test.ts`, `tests/freeze-boundary.test.ts`,
+          // `tests/protocol/pr-ready.test.ts`).
           allowDefaultProject: [
             'vitest.config.ts',
             'eslint.config.js',

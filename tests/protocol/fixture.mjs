@@ -2,10 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- * A throwaway git repository shaped enough for `scripts/{seats,agent-start,agent-finish,state}.mjs`
- * to run against via `--root`, exactly the reason mdo's own `agent-start.sh --root`/`--no-pull` exist:
- * a test cannot assert "the script refuses a claim already held by another seat" against the LIVE
- * repository — it would have to push a real claim to it.
+ * A throwaway git repository shaped enough for `scripts/{reserved-classes,state}.mjs` to run against
+ * via `--root`: a test cannot label or measure against the LIVE repository.
  *
  * ⚠ `frozen-surface.mjs`'s `buildSurface()` reads every `WATCHED` path with no existence guard, so a
  * bare fixture with no `packages/` tree crashes `state.mjs` outright — not a defect this fixture is
@@ -27,21 +25,6 @@ import { MARKERS } from '../../scripts/docs-state.mjs';
 function git(args, cwd) {
   execFileSync('git', args, { cwd, stdio: 'ignore' });
 }
-
-const SEATS_TABLE = `# Seats — the registry
-
-<!-- BEGIN SEATS -->
-
-| Seat | Role | Machine | GitHub account | Prompt |
-|---|---|---|---|---|
-| brahim | steward | box | davidian-abdo | Brahim_Prompt.md |
-| zayd | builder | box | davidian-abdo | Zayd_Prompt.md |
-| hmdnah | reviewer | box | narutousomaki741 | Hmdnah_Prompt.md |
-| amer | builder | pc | narutousomaki741 | Amer_Prompt.md |
-| khalihlna | reviewer | pc | davidian-abdo | Khalihlna_Prompt.md |
-
-<!-- END SEATS -->
-`;
 
 function backlogSrc(rows) {
   // ⚠ PADDED, because prettier pads every markdown table to its widest cell and `docs/BACKLOG.md` is
@@ -76,7 +59,7 @@ const CURRENT_STATE = (extraAbstract = '') => `# Fixture — docs/CURRENT_STATE.
 
 ## §0b — Live claim (this branch)
 
-<!-- BEGIN BATON — written by agent-start.mjs; pushed before work begins -->
+<!-- BEGIN BATON — written by agent_start.py; pushed before work begins -->
 
 *(no live claim on this branch)*
 
@@ -111,8 +94,7 @@ ${MARKERS.state.end}
  *
  * `measured` (default `true`) — `main`'s genesis commit carries a REAL, self-consistent §8, computed
  * by actually running `state.mjs` before the first commit — mirroring the invariant every real `main`
- * has (`agent-finish.mjs` regenerates and commits §8 before a PR can even be opened, so `main` is never
- * stale). Pass `false` only to test the un-measured state itself (§8 still says "not yet generated").
+ * has (§8 is regenerated and committed before a PR can even be opened, so `main` is never stale). Pass `false` only to test the un-measured state itself (§8 still says "not yet generated").
  *
  * Returns `{ dir, origin, cleanup() }`.
  */
@@ -126,8 +108,7 @@ export function makeFixture(rows = [], { measured = true } = {}) {
   git(['config', 'user.name', 'fixture'], dir);
   git(['remote', 'add', 'origin', origin], dir);
 
-  mkdirSync(join(dir, 'docs/seats'), { recursive: true });
-  writeFileSync(join(dir, 'docs/seats/README.md'), SEATS_TABLE);
+  mkdirSync(join(dir, 'docs'), { recursive: true });
   writeFileSync(join(dir, 'docs/BACKLOG.md'), backlogSrc(rows));
   writeFileSync(join(dir, 'docs/CURRENT_STATE.md'), CURRENT_STATE());
   for (const rel of WATCHED) {

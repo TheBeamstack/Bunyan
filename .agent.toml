@@ -14,7 +14,7 @@ handoff   = "handoff"
 docs      = "docs"
 lock      = "docs/.turn-lock"
 stop      = "docs/.loop-stop"          # the live kill switch, named by both orchestrator prompts
-seats     = "docs/seats/README.md"     # `scripts/seats.mjs` parses this file today; do not move it
+seats     = "docs/seats/README.md"     # diwan's `read_registry` gates claims on this copy
 blockers  = "docs/BLOCKERS.md"
 # ⚠ NOT `docs/DECISIONS.md`: on the Windows pc it is the same file as `docs/decisions.md` (the D-register).
 decisions = "docs/OWNER-DECISIONS.md"
