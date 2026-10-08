@@ -73,11 +73,11 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-002 | done    | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
 | T-003 | done    | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
 | T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
-| T-006 | ready   | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | pc      | normal | T-005      |
+| T-006 | ready   | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | box     | normal | T-005      |
 | T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
 | T-008 | done    | Q19 — the belongs-to deletion reconciliation                            | document | box     | high   | —          |
 | T-009 | done    | Q18 — a hosted void may only host on its host's base part               | document | box     | high   | —          |
-| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | pc      | normal | T-009      |
+| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | box     | normal | T-009      |
 | T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`                | document | box     | high   | —          |
 | T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`                   | infra    | box     | high   | —          |
 | T-013 | done    | The seat identity guard — `gh api user` must match the seat             | infra    | box     | high   | —          |
@@ -86,7 +86,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-016 | done    | `§0b`'s baton carries the builder separately from the holder            | infra    | box     | high   | T-015      |
 | T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself              | infra    | box     | normal | —          |
 | T-018 | done    | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
-| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | pc      | normal | —          |
+| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | box     | normal | —          |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
 | T-021 | done    | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
 | T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
@@ -118,7 +118,8 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
   - ⚠ eviction is **not** built here — §3d rules it unnecessary at the measured 0.31 GB heap
     (_"build lazily; evict later, or never"_).
 - depends-on: T-005
-- area: apps-web · machine: **pc** · risk: **normal**
+- requires: browser
+- area: apps-web · machine: **box** · risk: **normal**
 
 ### T-010 — Q18 — two doors on one wall, confirmed in the browser
 
@@ -130,10 +131,11 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
   - ⚠ measured **in the browser on this machine** — `AGENTS.md §4.9`: only `amer`/`khalihlna` may report
     this as passing.
 - depends-on: T-009
-- area: apps-web · machine: **pc** · risk: **normal**
+- requires: browser
+- area: apps-web · machine: **box** · risk: **normal**
 
-> ⚠ Split from T-009 because the rule is headless (box) and the gesture is browser-only (pc); one row
-> would let a box seat tick a criterion it cannot run.
+> ⚠ Split from T-009 because the rule is headless and the gesture needs a browser (`requires: browser`);
+> one row would let a seat with no browser tick a criterion it cannot run.
 
 ### T-019 — The move-tool gizmo + corner-drag, redone against `main`
 
@@ -157,7 +159,8 @@ D82 made). `docs/CURRENT_STATE.md §5` (Amer, item 3) still names this open.
   - ⚠ **out of scope, named so it is not assumed shipped:** whole-element drag (`dragPlans()` + `dryRun`
     probe-and-route) is not wired to any gesture here — a later task.
 - depends-on: —
-- area: apps-web · machine: **pc** · risk: **normal**
+- requires: browser
+- area: apps-web · machine: **box** · risk: **normal**
 
 ### T-023 — The kernel boots on the pc's system Chrome, confirmed there
 
