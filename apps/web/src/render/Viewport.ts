@@ -37,6 +37,7 @@ import type { RenderPart } from './RenderPart';
 import { planRedraw, type CachedPart } from './reconcile';
 import { resolveFacePick, type PickResult } from './pick';
 import { PartBatch } from './PartBatch';
+import type { CameraView } from '../view/keepLive';
 import {
   SnapIndex,
   chooseSnap,
@@ -297,6 +298,36 @@ export class Viewport {
    * P4.5 — the tool layer's view of the viewport. All READ-ONLY except the preview, which draws
    * overlay geometry and never touches the model (design §4/§5, domain rule 19).
    * ============================================================================================= */
+
+  /**
+   * The camera as the keep-live set reads it (D66 §3a, `view/keepLive.ts`): a frustum test and the orbit
+   * target. A snapshot — the next orbit does not move it.
+   */
+  view(): CameraView {
+    this.#camera.updateMatrixWorld();
+    const frustum = new THREE.Frustum().setFromProjectionMatrix(
+      new THREE.Matrix4().multiplyMatrices(
+        this.#camera.projectionMatrix,
+        this.#camera.matrixWorldInverse,
+      ),
+    );
+    const t = this.#controls.target;
+    return {
+      sees: (box) =>
+        frustum.intersectsBox(
+          new THREE.Box3(new THREE.Vector3(...box.min), new THREE.Vector3(...box.max)),
+        ),
+      target: [t.x, t.y, t.z],
+    };
+  }
+
+  /** Call `listener` whenever an orbit gesture ends. Returns the unsubscribe. */
+  onViewChange(listener: () => void): () => void {
+    this.#controls.addEventListener('end', listener);
+    return () => {
+      this.#controls.removeEventListener('end', listener);
+    };
+  }
 
   /**
    * World millimetres → canvas CSS pixels, or `null` when the point is behind the camera.

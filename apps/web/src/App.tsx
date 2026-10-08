@@ -54,6 +54,9 @@ import { Ribbon } from './ui/Ribbon';
 import { PropertyPanel } from './ui/PropertyPanel';
 import { LicensesScreen } from './ui/LicensesScreen';
 import { formatError, isSuperseded } from './edit/runner';
+import { createDocLock } from './edit/docLock';
+import { buildKeepLive } from './view/keepLive';
+import type { CameraView } from './view/keepLive';
 import type { Dispatch } from './edit/runner';
 import { withUiRefresh } from './edit/agentRefresh';
 import {
@@ -115,6 +118,13 @@ export function App() {
   const [banner, setBanner] = useState<string | null>(null);
   // Bumped after every committed edit — the signal that the document changed under React's feet.
   const [version, bump] = useReducer((n: number) => n + 1, 0);
+  // Bumped after every lazy-build batch (D66 §3b). NOT `version`: a build is not an edit, so it must
+  // not trigger autosave (domain rule 17); it only changes what is drawable.
+  const [built, bumpBuilt] = useReducer((n: number) => n + 1, 0);
+  /** The camera as last reported by the viewport — the keep-live set's input. Runtime state only. */
+  const [view, setView] = useState<CameraView | null>(null);
+  /** Edits and lazy builds both commit into the document; this serialises them (`edit/docLock.ts`). */
+  const docLock = useMemo(createDocLock, []);
   // T-003 — the in-app open-source-licences screen. App-layer only; touches no document state.
   const [showLicenses, setShowLicenses] = useState(false);
 
@@ -223,6 +233,18 @@ export function App() {
     };
   }, []);
 
+  // ---- Lazy build (D66 §3a/§3b, T-006). An opened file boots with nothing built; whenever the camera
+  //      settles or the selection moves, build what is now kept live and not yet built — the camera's
+  //      level first, then outward, redrawing after each batch. The first batch IS the first paint. ----
+  useEffect(() => {
+    if (app === null || view === null) return;
+    docLock
+      .run(() => buildKeepLive(app.doc, view, selection, bumpBuilt))
+      .catch((error: unknown) => {
+        setBanner(formatError(error));
+      });
+  }, [app, view, selection, docLock]);
+
   // ---- Autosave (plan P4 step 5). After a real edit, debounce, then snapshot the whole `.bnn` into the
   //      ring. ⚠ The journal is `changeFeed()`, NEVER `history()` (the moat-losing bug). Recovery is an
   //      ordinary load of the snapshot, so it goes through the exact path a normal open does. ----------
@@ -302,7 +324,7 @@ export function App() {
     ): Promise<UndoableEdit | null> => {
       if (app === null) return null;
       try {
-        const edit = await app.doc.execute(commandId, args, options ?? {});
+        const edit = await docLock.run(() => app.doc.execute(commandId, args, options ?? {}));
         setBanner(null);
         bump();
         return edit;
@@ -312,7 +334,7 @@ export function App() {
         return null;
       }
     },
-    [app],
+    [app, docLock],
   );
 
   const onEditError = (e: unknown): void => {
@@ -320,12 +342,12 @@ export function App() {
   };
   const undo = useCallback(() => {
     if (app === null) return;
-    void app.doc.undo().then(bump, onEditError);
-  }, [app]);
+    void docLock.run(() => app.doc.undo()).then(bump, onEditError);
+  }, [app, docLock]);
   const redo = useCallback(() => {
     if (app === null) return;
-    void app.doc.redo().then(bump, onEditError);
-  }, [app]);
+    void docLock.run(() => app.doc.redo()).then(bump, onEditError);
+  }, [app, docLock]);
 
   // ---- Derived state. Recomputed whenever the document changes (`version`) or selection moves. -----
 
@@ -390,7 +412,7 @@ export function App() {
       });
     }
     return out;
-  }, [app, elements, version, selection, hoveredId, filter]);
+  }, [app, elements, version, built, selection, hoveredId, filter]);
 
   /** The types + disciplines actually present in the scene — the universe the View filter offers. */
   const present = useMemo(() => {
@@ -407,7 +429,7 @@ export function App() {
       label: app.doc.registries.types.get(id)?.label ?? id,
     }));
     return { types, disciplines: [...disciplines].sort() };
-  }, [app, elements, version]);
+  }, [app, elements, version, built]);
 
   /**
    * ⚠ THE TWO FAILURE STATES THE DOCUMENT MODEL EXISTS TO EXPOSE (P4 step 10). An element the app cannot
@@ -419,7 +441,7 @@ export function App() {
   const problems = useMemo(() => {
     if (app === null) return { unbuildable: [], broken: [] };
     return { unbuildable: app.doc.unbuildable(), broken: app.doc.brokenRefs() };
-  }, [app, version]);
+  }, [app, version, built]);
 
   const unbuildableIds = useMemo(
     () => new Set(problems.unbuildable.map((u) => u.elementId)),
@@ -675,6 +697,7 @@ export function App() {
             authoring={tool.authoring}
             onPick={onPick}
             onPointerSample={onPointerSample}
+            onViewChange={setView}
           />
         )}
         {/* The tool status line (design §2/§6) — the prompt for the input being collected, and the

@@ -73,7 +73,7 @@ export interface KernelMeta {
 /**
  * A document to boot FROM — a scene loaded from a stored `.bnn` (persistence, plan P4 step 5). Absent ⇒
  * the app boots empty and the shell seeds its demo scene. Present ⇒ the doc is constructed over this
- * scene and every solid is rebuilt from the recipe (the D29 cold-load path) before the app is handed back.
+ * scene with nothing built; the caller builds the keep-live set from the recipe (D66 §3b).
  */
 export interface InitialDocument {
   readonly scene: Scene;
@@ -121,9 +121,8 @@ export async function bootstrap(initial?: InitialDocument): Promise<BunyanApp> {
       : { scene: initial.scene, journal: initial.journal, revision: initial.revision }),
   });
 
-  // Opening a saved file: rebuild every solid from the recipe (scene.json alone — the D29 cold-load
-  // path). A demo boot has no scene here, so there is nothing to rebuild.
-  if (initial !== undefined) await doc.rebuildAll();
+  // Opening a saved file builds NOTHING here (D66 §3b, T-006): the caller builds what the camera sees
+  // with `rebuildOnly` (`view/keepLive.ts`), and every aggregate FORCES the rest (§3c).
 
   // ⚠ The agent surface is CREATED here but NOT wired to `window` here. Under React StrictMode the boot
   // effect mounts twice, and the first (discarded) app is disposed before it is ever seeded — so wiring
