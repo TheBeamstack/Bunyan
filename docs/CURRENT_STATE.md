@@ -87,6 +87,9 @@ builder may claim.
 - **B-20261008-02** — `scope: item` · `item: T-010` — builder start refuses: the merge-result verify runs in a worktree with no node_modules
   - need: make diwan `run_gate_on_tree` install or link dependencies in the gate worktree before running `[commands] verify`, then re-run zayd's start on T-010
   - opened 2026-10-08T22:04Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261009-01** — `scope: loop` · `item: -` — no seat can run a turn: B-20261008-02's cause refuses every builder start, not only T-010
+  - need: make diwan `run_gate_on_tree` install or link dependencies in the gate worktree before running `[commands] verify`
+  - opened 2026-10-09T07:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
