@@ -4,22 +4,14 @@
 /**
  * THE DOC GATES — gate six of `pnpm verify`, and therefore of CI.
  *
- * ⚠⚠ WHY IT EXISTS. `docs/CURRENT_STATE.md` is read IN FULL, by BOTH agents, on EVERY session, so its
- * length is a cost paid on every run. It grew **5.9× in eleven days** (67 KB → 394 KB) under a
- * rotation rule that was expressed as a COUNT ("more than 20 entries") while entry sizes doubled
- * underneath it. That rule then failed measurably: the 2026-07-30 compaction took the file
- * 377 KB → 296 KB and it was back to **393 KB the same day — larger than before the maintenance ran.**
- *
- * The rule is now a BYTE BUDGET and it is enforced here rather than remembered. This project's own
- * ledger scores memory-enforced rules at NINE DIRTY OUT OF EIGHTEEN; the two rules that never rotted
- * (`units-rule7`, `d19-boundary`) are the two with a test behind them.
+ * `docs/CURRENT_STATE.md` is read in full on every session, so its size is a BYTE BUDGET enforced here.
  *
  * WHAT A FAILURE MEANS: compact §7 (move the oldest abstracts' summaries into `docs/PHASE_LOG.md`,
  * AFTER checking their durable lessons are already in §1–§5), or run `pnpm state`. Never raise a
  * budget to make a failure go away without saying so in the entry.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -152,7 +144,10 @@ describe('every §7 abstract is well formed', () => {
     // without rewriting the paths already written into docs/PHASE_LOG.md's prose before the move —
     // that prose is dated evidence of what was true when it was written. A body is indexed if the
     // history names it under EITHER its current path or the pre-archive path it moved from.
-    const history = readFileSync(join(ROOT, 'docs/PHASE_LOG.md'), 'utf8');
+    const history = readdirSync(join(ROOT, 'docs'))
+      .filter((f) => f === 'PHASE_LOG.md' || /^phase-log-.+\.md$/.test(f))
+      .map((f) => readFileSync(join(ROOT, 'docs', f), 'utf8'))
+      .join('\n');
     const referenced = new Set(abstracts.map((a) => a.fields.FULL?.replace(/`/g, '').trim()));
     for (const b of bodies) {
       if (referenced.has(b)) continue;
@@ -242,7 +237,7 @@ describe('every §7 abstract is well formed', () => {
   /**
    * ⚠⚠ WHAT THIS CATCHES, AND WHY IT IS WORTH A TEST.
    *
-   * The owner ruled (`handoff_system_design.md` §11, decision 5) that **the REVIEWING agent merges**
+   * The owner ruled (`git show 5a4b9aa:docs/design/handoff_system_design.md` §11, decision 5) that **the REVIEWING agent merges**
    * an additive PR. The reviewer is by construction a LATER session — `REVIEW.md`'s own justification
    * is that *"a fresh session has genuinely lost the author's working state, which is what makes a
    * self-review worth doing at all."* So an entry is supposed to land as an OPEN PR and be merged by
@@ -366,10 +361,8 @@ describe('the doc tree is intact', () => {
       'docs/contracts/v1.0.0_imp_plan.md',
       'docs/decisions.md',
       'docs/PHASE_LOG.md',
-      'docs/reviews/review_prompt.md',
-      'docs/design/handoff_system_design.md',
       'REVIEW.md',
-      'open_rulings.md',
+      'docs/OWNER-DECISIONS.md',
     ]) {
       expect(
         existsSync(join(ROOT, p)),

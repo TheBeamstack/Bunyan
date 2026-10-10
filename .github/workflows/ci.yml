@@ -60,13 +60,12 @@ jobs:
       - name: Re-seed gate
         run: node scripts/check-reseed.mjs
         # ⚠ Unchanged by entry 88. This gate diffs `base...head` (THREE dots, a merge-base diff), for
-        # which `github.sha` — the merge commit on a pull_request — gives the right answer. The
-        # prompt-sync gate below needs the PR's real head instead, and says why there.
+        # which `github.sha` — the merge commit on a pull_request — gives the right answer.
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
           HEAD_REF: ${{ github.sha }}
 
-      # GATE 6 — the handoff docs (added 2026-07-31, `docs/design/handoff_system_design.md`).
+      # GATE 6 — the handoff docs (added 2026-07-31).
       #
       # Two things, both of which used to be enforced by an agent remembering:
       #   * the doc BUDGET + the eight-field entry-abstract schema + §8 freshness. The old rotation
@@ -80,28 +79,12 @@ jobs:
       # ⚠ `pnpm verify` runs this too: a local gate that is a strict SUBSET of CI is a
       #   false-negative generator, and this repo has been bitten by exactly that.
       #
-      # ⚠ RENAMED AT ENTRY 91. `docs:check` also runs `tests/protocol/` now — the seat registry, the
-      # machine gate, dependency closure, the claim/finish scripts and the two gates below. That was
+      # ⚠ RENAMED AT ENTRY 91. `docs:check` also runs `tests/protocol/` now — the two gates below
+      # (the node claim/finish scripts and seat registry it once covered were retired 2026-10-08). That was
       # true the moment `package.json`'s `docs:check` grew the path; the step name saying otherwise is
       # how a suite ends up running for months while everyone believes it needs wiring.
       - name: Handoff docs + freeze boundary + seat protocol
         run: pnpm docs:check
-        # ⚠⚠ THE PROMPT-SYNC GATE NEEDS THE BASE SHA, AND FOR ENTRY 73's REASON.
-        # `tests/prompt-sync.test.ts` asserts that `Zayd_Prompt.md` on the branch is byte-identical to
-        # main's once loop step 10(a) has pushed it — the invariant `pnpm state` silently breaks, which
-        # GitHub then reports as the unrecognisable "Pull Request has merge conflicts".
-        #
-        # It reads the same `pull_request.base.sha` the re-seed gate reads, rather than `origin/main`.
-        # ⚠ MEASURED since: `origin/main` DOES exist here — checkout fetches
-        # `+refs/heads/*:refs/remotes/origin/*` under `fetch-depth: 0`. The SHA is still preferred,
-        # because it needs no ref to exist at all, and a gate resting on an unmeasured property of this
-        # checkout is precisely how the re-seed gate above never executed for 73 entries.
-        # Absent (a `push` to main), the gate skips.
-        #
-        # ⚠⚠ `HEAD_REF` IS `pull_request.head.sha`, **NOT** `github.sha`. On a pull_request the checked-out
-        # HEAD is `refs/pull/N/merge` — a merge commit that CONTAINS main — so the gate's "no conflict is
-        # possible" skip would fire on every PR and the check would be green and useless. Measured on its
-        # own first CI run: `HEAD is now at 7fd391f Merge 4a9cd10 into b96c3a3`.
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha }}
           HEAD_REF: ${{ github.event.pull_request.head.sha }}
@@ -141,9 +124,8 @@ jobs:
           node-version: 20
 
       # The title must route (`T-nnn: ` / `STEWARD: `) and GitHub must report the PR MERGEABLE.
-      # `agent-finish.mjs` already refuses to PRINT a non-routing title — this asks the PR that
-      # actually got opened, because `--fill`, a hand-typed title and `gh pr edit --title` all reach
-      # GitHub without passing through that script.
+      # This asks the PR that actually got opened, because `--fill`, a hand-typed title and
+      # `gh pr edit --title` all reach GitHub without any script checking the title first.
       - name: PR title routes · mergeable
         run: node scripts/pr-ready.mjs --pr "${{ github.event.pull_request.number }}"
         env:

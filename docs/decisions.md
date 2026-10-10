@@ -13,7 +13,8 @@ and the index is the bug. A ruling is amended **here**, and the index line moves
 revert-verifications — is in `handoff/<seat>/`, or summarized in `docs/PHASE_LOG.md` for older turns.
 
 **Provenance.** Extracted verbatim from `docs/CURRENT_STATE.md` §4 on 2026-07-31 by the handoff-system
-migration (`docs/design/handoff_system_design.md` §13). Nothing was reworded.
+migration (`handoff_system_design.md` §13, deleted 2026-10-07: `git show 5a4b9aa:docs/design/handoff_system_design.md`).
+Nothing was reworded.
 
 ---
 

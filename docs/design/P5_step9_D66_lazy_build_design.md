@@ -4,7 +4,8 @@
 `tests/d66-lazy-build-measure.test.ts`. **§3c is BUILT** (`zayd`, 2026-08-22, T-005) — its ruling and its
 tripwire, `tests/d66-force-declare.test.ts`.
 **Predecessor:** `P5_step9_D66_scale_design.md` (the contract half — reserve nothing).
-**Successor:** **T-006** builds §3a and §3b.
+**§3a/§3b are BUILT** (`zayd`, 2026-10-08, T-006) — `apps/web/src/view/keepLive.ts`, measured in
+`apps/web/first-paint.html`.
 
 **What lazy build is.** Build only the elements somebody is about to look at, and build the rest when
 they are asked for. It is recipe-is-truth exercised on a subset, which is why `P5_step9_D66_scale_design.md`
@@ -229,9 +230,9 @@ a full build; what `projectQuantities` and `saveBnn` do about deferred elements.
 
 **Not measured here, and named so it is not assumed:**
 
-- **The first-paint improvement in a real browser** — `machine: pc`, T-006's, and only `amer`/`khalihlna`
-  may report it (`AGENTS.md §4.9`). _unverified here: lazy first paint improves time-to-first-pixel —
-  `khalihlna` to confirm._
+- **The first-paint improvement on a hardware GPU.** T-006 measured it in headless Chromium 153 with
+  SwiftShader on the box: 87.5 % of elements deferred (11 of 88), median first paint 12.7–14.9 s →
+  3.5–3.7 s, **71.0–76.8 % removed** over two runs, against §3b's 89.8 % / 85.8 % headless.
 - **The real keep-live set from a camera frustum.** §3a's headless stand-in is a subset chosen by hand.
 - **Behaviour at 10,000 elements.** Every number here is measured over 22–88 elements; the projection to
   D48's target is an extrapolation of ~114×, which the R² entitles but does not prove.

@@ -12,8 +12,7 @@ again moves back, it is not copied.
 `docs/contracts/core_logic.md` (what the app means) · **2.** `docs/contracts/architecture.md` (how it is
 built) · **3.** `docs/contracts/V1.0.0_spec.md` (what ships first) · **4.**
 `docs/contracts/v1.0.0_imp_plan.md` (phases, exit criteria, **THE FREEZE GATE**). Design docs are
-`docs/design/`; `docs/reviews/review_prompt.md` is the standing phase-level adversarial brief, a
-different instrument from `REVIEW.md`'s per-PR checklist. ⚠ `docs/PHASE_LOG.md` is **not** in the
+`docs/design/`. ⚠ `docs/PHASE_LOG.md` is **not** in the
 reading order — it is a reference, opened when you are stuck.
 
 
@@ -426,7 +425,6 @@ cp $REPO/dist/bunyan-kernel.{js,wasm} $HOME/projects/Bunyan/packages/kernel-occt
 - ⚠ **`verify` = the CI step list, EXACTLY**: a local gate that is a strict SUBSET of CI is a
   false-negative generator. `.prettierrc` has `endOfLine:"auto"` so `format:check` is green on both
   Windows (CRLF) and CI (LF).
-- ⚠ On the pc, **export `BUNYAN_PNPM_CMD` before every `agent-finish.mjs` run** — see `docs/RUNBOOK.md`.
 - ⚠⚠ **`.prettierignore` LISTS PATHS.** A stale entry does not error — it silently stops exempting a
   file, and `format:check` is CI step 3, which failed silently for six sessions once already. **Move a
   prose doc, move its line, same commit.**

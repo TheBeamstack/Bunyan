@@ -15,10 +15,9 @@ run. It carries what you need to act accurately; everything else is one hop away
 | how it is BUILT (layers, protocol, registries) | **`docs/contracts/architecture.md`** |
 | what SHIPS first (scope, D1–D66) | **`docs/contracts/V1.0.0_spec.md`** |
 | the phases, exit criteria, and **THE FREEZE GATE** | **`docs/contracts/v1.0.0_imp_plan.md`** |
-| what the owner still owes a decision on | **`open_rulings.md`** |
+| what the owner still owes a decision on | **`docs/OWNER-DECISIONS.md`** |
 | how to review a PR | **`REVIEW.md`** |
 | the GitHub-side controls (labels, credentials, runner) | **`docs/RUNBOOK.md`** |
-| how this handoff system works and why | **`docs/design/handoff_system_design.md`** |
 
 **How to use it.**
 
@@ -53,9 +52,9 @@ derivation path (`nodeId` + `role` + `occurrence`), assigned when an op runs and
 
 **The claim is pushed before work begins.** An unpushed claim is invisible across machines, and two
 sessions can start the same `T-nnn`. This block is the claim on **this branch only**; the picture across
-every live branch is `git ls-remote --heads origin 'refs/heads/task/*'`, which `scripts/agent-start.mjs`
-prints and reads (each branch carries its own copy of this block) before deciding what a builder may
-claim. `scripts/agent-finish.mjs` writes the final `status` line and pushes it as the last act of a turn.
+every live branch is `git ls-remote --heads origin 'refs/heads/task/*'`, which diwan's
+`scripts/agent_start.py` reads (each branch carries its own copy of this block) before deciding what a
+builder may claim.
 
 <!-- BEGIN BATON — written by agent_start.py; pushed before work begins -->
 
@@ -76,12 +75,12 @@ claim. `scripts/agent-finish.mjs` writes the final `status` line and pushes it a
 
 ## BLOCKED
 
-- **B-20260906-01** — `scope: item` · `item: T-026` — hmdnah's review credential is named by seat and stored by account
-  - need: resolve a seat's token from `~/.config/beamstack/<account>.token` as well as `~/.config/bunyan/<seat>.token` in `scripts/agent-start.mjs`, correct `docs/RUNBOOK.md` "Seat credentials" to state both, and carry the change on its own `T-nnn` row
-  - opened 2026-09-06T21:00Z by brahim · recorded in `docs/BLOCKERS.md`
 - **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
   - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
   - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261010-02** — `scope: item` · `item: T-010` — T-010's browser measurement cannot run: launching Chromium needs an approval no one can grant
+  - need: allow the Playwright Chromium binary in the box loop's Claude Code permission settings, then re-run zayd's start on T-010
+  - opened 2026-10-10T21:35Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -112,7 +111,7 @@ which sweep was taken instead of freezing, and why — is `docs/PHASE_LOG.md` §
 ## §5 — Live priorities
 
 **⚠ LIVE WORK ONLY.** Open, claimable work is `docs/BACKLOG.md`; the owner's open questions are
-`open_rulings.md`; the narrative of finished work is `docs/PHASE_LOG.md`. Neither of the last two is a
+`docs/OWNER-DECISIONS.md`; the narrative of finished work is `docs/PHASE_LOG.md`. Neither of the last two is a
 task list.
 
 ### The freeze
@@ -190,17 +189,17 @@ maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `refinement/ci-hosted-arm` · `f5f37db` · dirty |
-| open PRs | #50 refinement/ci-hosted-arm · #49 refinement/r53-identity |
-| suite | **987 green** · 100 files · 301 suites |
+| branch · tip · tree | `task/T-027-6-s-relink-cap-is-measured-not-guessed` · `dfff4fb` · dirty |
+| open PRs | #63 steward/owner-rulings-q5-q10 · #55 task/T-027-6-s-relink-cap-is-measured-not-guessed |
+| suite | **898 green** · 99 files · 275 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 12 files changed, 97 insertions(+), 56 deletions(-) (12 files) |
-| docs budget | current_state 12.5/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 94 |
+| diff vs origin/main | 61 files changed, 2553 insertions(+), 6618 deletions(-) (61 files) |
+| docs budget | current_state 12.7/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 97 |
 
-_Generated 2026-09-15 by `pnpm state`._
+_Generated 2026-10-10 by `pnpm state`._
 
 <!-- END GENERATED -->
 

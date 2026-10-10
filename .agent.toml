@@ -1,11 +1,4 @@
-# .agent.toml — Bunyan's binding to the canonical scaffolding in `diwan`.
-#
-# Schema: `diwan/docs/seats/BINDINGS.md` and `diwan/scripts/protocol.py` `Config`. Every value here
-# is measured from this repo, not copied from the example: `[commands]` from `package.json` and
-# `.github/workflows/ci.yml`, `[frozen_surface]` from `scripts/frozen-surface.mjs` `WATCHED`,
-# `[reseed]` from `scripts/reseed-paths.mjs`, `[reserved]` from `scripts/reserved-classes.mjs`,
-# `[log]` from `scripts/docs-state.mjs` `BUDGET`, `[git]` from this repo's local git config.
-#
+# .agent.toml — Bunyan's binding to `diwan` (schema: `diwan/docs/seats/BINDINGS.md`).
 # Repo-specific invariants, owner-gated classes and product facts are `docs/INVARIANTS.md`.
 
 [repo]
@@ -21,60 +14,27 @@ handoff   = "handoff"
 docs      = "docs"
 lock      = "docs/.turn-lock"
 stop      = "docs/.loop-stop"          # the live kill switch, named by both orchestrator prompts
-seats     = "docs/seats/README.md"     # `scripts/seats.mjs` parses this file today; do not move it
+seats     = "docs/seats/README.md"     # diwan's `read_registry` gates claims on this copy
 blockers  = "docs/BLOCKERS.md"
-# ⚠ NOT `docs/DECISIONS.md`. `docs/decisions.md` already exists here (the ratified-ruling register,
-# D1–D88), and the pc runs Windows — where the two names are the same file. A case-only collision
-# would silently overwrite the ruling register on the one machine that cannot see it happen.
+# ⚠ NOT `docs/DECISIONS.md`: on the Windows pc it is the same file as `docs/decisions.md` (the D-register).
 decisions = "docs/OWNER-DECISIONS.md"
 
 [commands]
-# `pnpm verify` = typecheck && lint && format:check && test && reseed:check && docs:check, and it is
-# CI's step list exactly (`package.json`; `.github/workflows/ci.yml` runs the same six in order).
-# ⚠ `lint` and `typecheck` are deliberately NOT declared: `verify` already runs both, and declaring
-# them would run eslint and tsc a second time on every turn.
+# `lint`/`typecheck` are not declared: `verify` already runs both (CI's six steps, in order).
 verify = "pnpm verify"
 test   = "pnpm test"
 
 [git]
-# R53, 2026-09-08: this pair must be a ROW in diwan/scripts/accounts.toml, and `gates.py docs`
-# refuses it otherwise. The address was `narutousomaki741@example.com`, which attributes to
-# NOBODY GitHub can resolve — a placeholder that no check had ever looked at.
-# ⚠ MEASURED FROM `git config --local`, and it is a placeholder address. Identity here is per SEAT,
-# not per repo — `docs/seats/README.md` crosses `davidian-abdo` and `narutousomaki741` so no reviewer
-# shares an account with the work it reviews, and `scripts/agent-start.mjs`'s identity gate refuses a
-# turn whose `gh` login does not match the seat's row. Treat these two values as the fallback for a
-# commit made outside a seat's turn; the roster wins inside one.
+# The fallback for a commit made outside a seat's turn; inside one the seat roster wins.
 author_name  = "narutousomaki741"
 author_email = "narutousomaki741@gmail.com"
-
-[log]
-# `scripts/docs-state.mjs` `BUDGET.history` = 400 KB, measured post-migration with headroom.
-# The canonical defaults (48 KB cap) would refuse every turn here: PHASE_LOG.md is 92 KB today.
-# warn/roll keep the canonical proportions of the cap.
-warn_bytes = 204800
-roll_bytes = 344064
-fail_bytes = 409600
 
 [review]
 # D88: a `risk: high` row gets two review turns in separate sessions. Not owner-gated — step 2 merges.
 two_step_high_risk = true
 step1_label        = "review/step-1"
 
-# The admission summary (R16/R32, `diwan/docs/LANE-CONTRACT.md`). This lane's steward publishes its
-# own summary at cycle end and the manager reads THAT, rather than measuring this repo from outside
-# on every admission decision. `"backlog"` is the shared built-in: `diwan/scripts/lane_summary.py`
-# runs `admission.measure_backlog` — the SAME reader the manager's counts-only fallback uses, so the
-# two cannot disagree about this repo — over the `[paths] backlog` bound above, against this
-# checkout's own coherent revision, and maps the `[paths] blockers` register and the `[paths] stop`
-# marker beside it. No second parser, no new binding, no new file in this repo.
-#
-# R47, 2026-09-24. Same steward as `maitre_d_ouvrage`, same scope (`diwan/docs/seats/brahim.md`
-# §"Scope": spec integrity, backlog readiness, phase decomposition, sequencing, ADRs, the owner
-# interface) — none of which is a task branch, a PR or a change to `[paths] state`. Measured
-# across the last 80 commits on `main`: 18 touch ONLY the paths below and nothing else, so a
-# cycle that does exactly this lane's own routing/sequencing work refused at exit 21 forever,
-# and could never lawfully end quiet either (R47's second half needs this table present at all).
+# R47: evidence = the paths this lane's steward cycle changes (routing/sequencing work, no task branch).
 [cycle]
 summary_adapter = "backlog"
 evidence = [
@@ -85,8 +45,7 @@ evidence = [
   "handoff/",                # sequencing/routing — a turn ends by naming which seat is next
 ]
 
-# The frozen surface (D13, and the P5 freeze). PRESENT ⇒ the gate applies.
-# `contract-touching` and `freeze` are decided from this table; they need no `[reserved]` entry.
+# The frozen surface (D13, P5 freeze): `contract-touching` and `freeze` are decided from this table.
 [frozen_surface]
 baseline = "tests/frozen-surface.snapshot.json"
 watched = [
@@ -110,9 +69,7 @@ watched = [
   "packages/document/src/designoptions.ts",
 ]
 
-# The re-seed gate (spec §9). PRESENT ⇒ the gate applies.
-# ⚠ Every source entry names SOURCE, never a package root: `packages/kernel-occt/` matches its
-# `package.json`, and the gate's first real execution refused a licence field for exactly that.
+# The re-seed gate (spec §9). ⚠ Every source entry names SOURCE, never a package root.
 [reseed]
 goldens     = ["tests/goldens/"]
 clock_field = "seededAt"               # stamped every run; excluded from the payload hash (Q16)
@@ -129,7 +86,6 @@ sources = [
 ]
 
 # The one reserved class not derived from `[frozen_surface]` (`docs/INVARIANTS.md §2.2`).
-# Any `CLA.md` change flags: under-labelling costs the licence, over-labelling costs one click.
 [reserved."needs-operator/legal-figure"]
 paths   = ["CLA.md"]
 removed = ["CLA.md::<LEGAL ENTITY>"]

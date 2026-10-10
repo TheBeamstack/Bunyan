@@ -20,7 +20,7 @@ from, and the reason it is a record rather than prose.
 - why: the credential is PRESENT on both machines and the runbook names a path only box 1 has. `docs/RUNBOOK.md` "Seat credentials" and D87 say `~/.config/bunyan/<seat>.token`; box 1 has `~/.config/bunyan/hmdnah.token` (40 bytes) and box 2 has no `~/.config/bunyan/` at all, while box 2 does hold `~/.config/beamstack/narutousomaki741.token` (40 bytes) — the same secret under the ACCOUNT `hmdnah` holds (diwan R23, `diwan/docs/seats/README.md`). This is a PATH MISMATCH between a per-repo seat-named file and a shared account-named one, not a missing secret. It supersedes the `## BLOCKED` prose this record replaces, which claimed `~/.config/bunyan/` "does not exist on this box at all" — false on box 1, and true of box 2 only.
 - evidence: `ls -ld ~/.config/bunyan; ls -l ~/.config/beamstack/` run on box 1 and on box 2 — file names, modes and sizes only; no token was read, copied or moved
 - need: resolve a seat's token from `~/.config/beamstack/<account>.token` as well as `~/.config/bunyan/<seat>.token` in `scripts/agent-start.mjs`, correct `docs/RUNBOOK.md` "Seat credentials" to state both, and carry the change on its own `T-nnn` row
-- cleared: -
+- cleared: 2026-10-08T14:16Z
 
 ## B-20260930-01 agent_start.py refuses every Bunyan turn on the state.mjs-owned generated block
 
@@ -44,4 +44,76 @@ from, and the reason it is a record rather than prose.
 - why: `agent_finish.py:720` labels with `gh pr edit`, which gh 2.45.0 fails on the Projects-classic GraphQL deprecation; `protocol.git_identity` (`protocol.py:1331-1401`) and the label call take identity from `AGENT_SEAT`/env rather than `--seat`, so a loop-spawned hmdnah commits as the launcher's seat; an `AGENT_SEAT=hmdnah` prefix is refused by this session's permissions and `gh api user` returns Davidian-Abdo
 - evidence: `gh pr view 54; git -C /home/ubuntu/projects/Bunyan log -1 --format='%an <%ae>' 6feb54d`
 - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
+- cleared: -
+
+## B-20261006-02 PR #55 cannot be reviewed across accounts: hmdnah's gh writes run as the author
+
+- opened: 2026-10-06T02:00Z
+- by: brahim-loop
+- scope: item
+- item: PR#55
+- what: routing PR #55 (zayd, Davidian-Abdo) to hmdnah would post, approve and merge it as Davidian-Abdo, the author's own account
+- why: `require_identity` checks the passed seat (`agent_start.py:1066`), but every `gh(cfg, …)` call omits `seat=` (`agent_start.py:683,686`, `agent_merge.py:222,454`), so `seat_credential(seat=None)` with `AGENT_SEAT` unset returns `unseated` and gh runs on the ambient login (`protocol.py:1362-1364`); PR #54's start-posted "Review claimed by seat hmdnah" comment is authored Davidian-Abdo
+- evidence: `gh pr view 54 --json comments --jq '.comments[0].author.login'; gh api user --jq .login`
+- need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #55 to hmdnah
+- cleared: 2026-10-10T21:44Z
+
+## B-20261008-01 PR #61 cannot be reviewed across accounts: B-20261006-02's cause still holds
+
+- opened: 2026-10-08T21:40Z
+- by: brahim-loop
+- scope: item
+- item: PR#61
+- what: routing PR #61 (zayd, Davidian-Abdo) to hmdnah would claim-comment and merge it as Davidian-Abdo, the author's own account
+- why: diwan `agent_start.py:611,614` and `agent_merge.py:185,391` still call `gh(cfg, …)` with no `seat=`, so they run unseated on the ambient login, although `~/.config/beamstack/narutousomaki741.token` exists
+- evidence: `grep -n 'gh(cfg' /home/ubuntu/projects/diwan/scripts/agent_start.py /home/ubuntu/projects/diwan/scripts/agent_merge.py; gh api user --jq .login`
+- need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #61 to hmdnah
+- cleared: 2026-10-10T21:44Z
+
+## B-20261008-02 builder start refuses: the merge-result verify runs in a worktree with no node_modules
+
+- opened: 2026-10-08T22:04Z
+- by: zayd
+- scope: item
+- item: T-010
+- what: zayd's start exited 3 before any claim or work on T-010, because its predecessor-PR check on PR #61 failed `pnpm verify`
+- why: diwan `protocol.py:689-699` `run_gate_on_tree` runs `pnpm verify` in a fresh `.git/agent-gate-worktree` that has no `node_modules`, so typecheck fails with `sh: 1: tsc: not found` on any merge result, independent of PR #61's diff
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat zayd --pr 61 --dry-run; echo $?`
+- need: make diwan `run_gate_on_tree` install or link dependencies in the gate worktree before running `[commands] verify`, then re-run zayd's start on T-010
+- cleared: 2026-10-10T17:38Z
+
+## B-20261009-01 no seat can run a turn: B-20261008-02's cause refuses every builder start, not only T-010
+
+- opened: 2026-10-09T07:34Z
+- by: brahim-loop
+- scope: loop
+- item: -
+- what: corrects B-20261008-02's scope; zayd's start exited 3 on 2026-10-09 with T-019 `ready`, and the only reviews (PR #55, #61) are held by B-20261006-02 and B-20261008-01
+- why: `agent_start.py:286-324` `obligations` dry-runs every open box PR before any claim and refuses on exit 7; `agent_merge.py --dry-run` on PR #61 exits 7 with `sh: 1: tsc: not found` and "node_modules missing" in `.git/agent-gate-worktree`
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat zayd --pr 61 --dry-run; echo $?`
+- need: make diwan `run_gate_on_tree` install or link dependencies in the gate worktree before running `[commands] verify`
+- cleared: 2026-10-10T17:38Z
+
+## B-20261010-01 PR #63 cannot be merged by zayd: GitHub refuses an approval from the PR's own account
+
+- opened: 2026-10-10T21:35Z
+- by: zayd
+- scope: item
+- item: PR#63
+- what: zayd reviewed STEWARD PR #63 (no defect found; preflight and merge-result `pnpm verify` OK) and `agent_merge.py` refused at step 4, nothing merged
+- why: PR #63's author is Davidian-Abdo, zayd's own account, and `gh pr review --approve` returns "Can not approve your own pull request (addPullRequestReview)"
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --seat zayd --pr 63; gh pr review 63 --approve --body probe`
+- need: route PR #63 to hmdnah's merge once B-20261006-02's seated `gh()` credential fix lands
+- cleared: 2026-10-10T21:44Z
+
+## B-20261010-02 T-010's browser measurement cannot run: launching Chromium needs an approval no one can grant
+
+- opened: 2026-10-10T21:35Z
+- by: zayd
+- scope: item
+- item: T-010
+- what: zayd resumed its T-010 claim and stopped before the first edit; no code changed
+- why: `browser_cmd()` finds `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome`, so the `requires: browser` probe passes, but the unattended session's tool permissions refuse to launch it ("This command requires approval")
+- evidence: `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome --headless=new --remote-debugging-port=9333 about:blank`, run from a `claude -p` zayd turn
+- need: allow the Playwright Chromium binary in the box loop's Claude Code permission settings, then re-run zayd's start on T-010
 - cleared: -
