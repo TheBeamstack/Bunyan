@@ -57,3 +57,12 @@ Body: `handoff/hmdnah/2026-10-10-T-006-review.md`
 Read-only R39 finding: diwan `agent_merge.py` `step_remeasure` splices `measure.py`'s block over Bunyan's
 `state.mjs` §8 block with no owner check; fix and restore order named. No code changed.
 Body: `handoff/brahim/2026-10-10-B-20261010-03-diagnosis.md`
+
+## STEWARD-owner-rulings-q5-q10 — owner answers Q5–Q10 recorded as D92–D97, built as T-033–T-038 — 2026-10-10 — seat: brahim
+
+- Acted on `D-20261007-02…07` and stamped `answered:`; `-08`/`-11` pending, untouched.
+- Rows: T-033 (Q10), T-034 (Q9), T-037 (Q5) ready builds; T-035 (Q8), T-038 (Q6) ready design docs;
+  T-036 (Q7) blocked on T-035, since `core.copy` refuses every baseline wall today (`placement.ts:348`).
+- Rebased onto `main` 2026-10-11 and renumbered from T-033 (`backlog.py next-id`), as `main`'s a68b995 took T-032.
+- Next: `hmdnah` reviews this PR once B-20261010-03 is cleared.
+- Body: `handoff/brahim/2026-10-10-STEWARD-owner-rulings-q5-q10-d92-d97.md`
