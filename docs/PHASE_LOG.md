@@ -39,6 +39,19 @@ identity fields, and compressing a body never moves the population a reference r
 **Sealed volumes** (never edited again): `docs/phase-log-01.md` — §A–§E, Entries 1–88 and the
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07.
 
+## T-027 — §6's relink cap is measured, not guessed — 2026-10-06 — seat: zayd
+
+`docs/CURRENT_STATE-reference.md §6` relink recipe `--memory=2g` → `--memory=1g --memory-swap=1g`, citing
+hmdnah's T-022 step-2 run (78 s, exit 0, byte-identical, hard 1 GB cgroup, swap off). Docs only; no relink
+re-run (optional per `done-when:`); README step 3 / `probe.sh` 2g recorded in `## Discovered`.
+Body: `handoff/zayd/2026-10-06-T-027-relink-cap-measured.md`
+
+## T-027 — PR #55 brought up to date with main — 2026-10-10 — seat: zayd
+
+Merged `origin/main` to clear #55's conflicts (BACKLOG, PHASE_LOG); §8 restored to its `pnpm state` block,
+which `401e22d` replaced with a `measure.py` one and so turned `main` red. `pnpm verify` exit 0 (898 tests).
+Body: `handoff/zayd/2026-10-10-T-027-merge-main.md`
+
 ## T-006 — the keep-live set and a lazy first paint — 2026-10-08 — seat: zayd
 
 An opened `.bnn` now builds only what the camera sees (`view/keepLive.ts`, `rebuildOnly` per level,
