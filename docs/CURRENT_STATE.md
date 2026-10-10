@@ -81,6 +81,15 @@ builder may claim.
 - **B-20261006-02** — `scope: item` · `item: PR#55` — PR #55 cannot be reviewed across accounts: hmdnah's gh writes run as the author
   - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #55 to hmdnah
   - opened 2026-10-06T02:00Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261008-01** — `scope: item` · `item: PR#61` — PR #61 cannot be reviewed across accounts: B-20261006-02's cause still holds
+  - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #61 to hmdnah
+  - opened 2026-10-08T21:40Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261010-01** — `scope: item` · `item: PR#63` — PR #63 cannot be merged by zayd: GitHub refuses an approval from the PR's own account
+  - need: route PR #63 to hmdnah's merge once B-20261006-02's seated `gh()` credential fix lands
+  - opened 2026-10-10T21:35Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261010-02** — `scope: item` · `item: T-010` — T-010's browser measurement cannot run: launching Chromium needs an approval no one can grant
+  - need: allow the Playwright Chromium binary in the box loop's Claude Code permission settings, then re-run zayd's start on T-010
+  - opened 2026-10-10T21:35Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

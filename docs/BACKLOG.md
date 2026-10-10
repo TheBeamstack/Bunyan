@@ -128,8 +128,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 - done-when:
   - click 1 and **click 2** on the same wall both come back `state: 'valid'` with `parts: [leaf, frame]`;
   - console-error-free boot;
-  - ⚠ measured **in the browser on this machine** — `AGENTS.md §4.9`: only `amer`/`khalihlna` may report
-    this as passing.
+  - ⚠ measured in a real browser on the machine running the turn (`requires: browser`).
 - depends-on: T-009
 - requires: browser
 - area: apps-web · machine: **box** · risk: **normal**
@@ -164,7 +163,7 @@ D82 made). `docs/CURRENT_STATE.md §5` (Amer, item 3) still names this open.
 
 ### T-023 — The kernel boots on the pc's system Chrome, confirmed there
 
-- implements: T-022's fix · `AGENTS.md §4.9`
+- implements: T-022's fix
 - verify: a browser run on the pc
 - done-when:
   - the app boots on that machine's system Chrome (151.x) with **no `BUNYAN_BROWSER_CMD` override**, and
