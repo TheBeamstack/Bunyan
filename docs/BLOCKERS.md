@@ -93,3 +93,27 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat zayd --pr 61 --dry-run; echo $?`
 - need: make diwan `run_gate_on_tree` install or link dependencies in the gate worktree before running `[commands] verify`
 - cleared: 2026-10-10T17:38Z
+
+## B-20261010-01 PR #63 cannot be merged by zayd: GitHub refuses an approval from the PR's own account
+
+- opened: 2026-10-10T21:35Z
+- by: zayd
+- scope: item
+- item: PR#63
+- what: zayd reviewed STEWARD PR #63 (no defect found; preflight and merge-result `pnpm verify` OK) and `agent_merge.py` refused at step 4, nothing merged
+- why: PR #63's author is Davidian-Abdo, zayd's own account, and `gh pr review --approve` returns "Can not approve your own pull request (addPullRequestReview)"
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --seat zayd --pr 63; gh pr review 63 --approve --body probe`
+- need: route PR #63 to hmdnah's merge once B-20261006-02's seated `gh()` credential fix lands
+- cleared: -
+
+## B-20261010-02 T-010's browser measurement cannot run: launching Chromium needs an approval no one can grant
+
+- opened: 2026-10-10T21:35Z
+- by: zayd
+- scope: item
+- item: T-010
+- what: zayd resumed its T-010 claim and stopped before the first edit; no code changed
+- why: `browser_cmd()` finds `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome`, so the `requires: browser` probe passes, but the unattended session's tool permissions refuse to launch it ("This command requires approval")
+- evidence: `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome --headless=new --remote-debugging-port=9333 about:blank`, run from a `claude -p` zayd turn
+- need: allow the Playwright Chromium binary in the box loop's Claude Code permission settings, then re-run zayd's start on T-010
+- cleared: -
