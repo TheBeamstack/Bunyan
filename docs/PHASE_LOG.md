@@ -51,3 +51,10 @@ Body: `handoff/zayd/2026-10-08-T-006-keep-live-lazy-first-paint.md`
 Approved: revert of `keepLiveSet`'s keep-live guards went red (2 of 9) and green restored; browser re-run
 73.3 % of first paint removed (11 of 88 built). Fixed test-first: a future-version Type is now kept live (D43).
 Body: `handoff/hmdnah/2026-10-10-T-006-review.md`
+
+## T-010 — two doors on one wall, confirmed in the browser — 2026-10-10 — seat: zayd
+
+Headless Chromium 153 on the box, driven by `tools/browser-check/two-doors.mjs`: both floor-seated doors
+on Wall 1 `valid`, `[leaf, frame]`, no broken ref. The boot's one console error, a `/favicon.ico` 404, is
+gone (`index.html` icon link); the driver exits 1 without it and 0 with it.
+Body: `handoff/zayd/2026-10-10-T-010-two-doors-browser.md`

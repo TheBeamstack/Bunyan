@@ -77,7 +77,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
 | T-008 | done    | Q19 — the belongs-to deletion reconciliation                            | document | box     | high   | —          |
 | T-009 | done    | Q18 — a hosted void may only host on its host's base part               | document | box     | high   | —          |
-| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | box     | normal | T-009      |
+| T-010 | review  | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | box     | normal | T-009      |
 | T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`                | document | box     | high   | —          |
 | T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`                   | infra    | box     | high   | —          |
 | T-013 | done    | The seat identity guard — `gh api user` must match the seat             | infra    | box     | high   | —          |
