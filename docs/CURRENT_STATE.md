@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
-| builder | `brahim` |
-| role | steward |
+| seat | `hmdnah` |
+| builder | `zayd` |
+| role | reviewer |
 | machine | box |
-| task | `STEWARD-x001-seven-seat-roster` |
-| branch | `brahim/2026-09-04-x001-seven-seat-roster` |
-| claimed-at | 2026-08-31T12:17:24Z |
-| status | finished — PR open, awaiting review |
+| task | `T-006` |
+| branch | `task/T-006-d66-3a-b-the-keep-live-set-and-a-lazy-fi` |
+| claimed-at | 2026-10-08T21:03:29Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -78,15 +78,6 @@ builder may claim.
 - **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
   - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
   - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261006-02** — `scope: item` · `item: PR#55` — PR #55 cannot be reviewed across accounts: hmdnah's gh writes run as the author
-  - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #55 to hmdnah
-  - opened 2026-10-06T02:00Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261008-01** — `scope: item` · `item: PR#61` — PR #61 cannot be reviewed across accounts: B-20261006-02's cause still holds
-  - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #61 to hmdnah
-  - opened 2026-10-08T21:40Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261010-01** — `scope: item` · `item: PR#63` — PR #63 cannot be merged by zayd: GitHub refuses an approval from the PR's own account
-  - need: route PR #63 to hmdnah's merge once B-20261006-02's seated `gh()` credential fix lands
-  - opened 2026-10-10T21:35Z by zayd · recorded in `docs/BLOCKERS.md`
 - **B-20261010-02** — `scope: item` · `item: T-010` — T-010's browser measurement cannot run: launching Chromium needs an approval no one can grant
   - need: allow the Playwright Chromium binary in the box loop's Claude Code permission settings, then re-run zayd's start on T-010
   - opened 2026-10-10T21:35Z by zayd · recorded in `docs/BLOCKERS.md`
@@ -211,3 +202,5 @@ maintenance and does NOT get an entry of its own.**
 _Generated 2026-09-15 by `pnpm state`._
 
 <!-- END GENERATED -->
+
+last-verified-at: f32300188cc4f6eee8f9041e7cc68121f181f962
