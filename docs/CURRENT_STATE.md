@@ -81,6 +81,9 @@ builder may claim.
 - **B-20261010-02** — `scope: item` · `item: T-010` — T-010's browser measurement cannot run: launching Chromium needs an approval no one can grant
   - need: allow the Playwright Chromium binary in the box loop's Claude Code permission settings, then re-run zayd's start on T-010
   - opened 2026-10-10T21:35Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261010-03** — `scope: item` · `item: PR#55` — agent_merge's re-measure overwrites the state.mjs §8 block, so every merge turns main red
+  - need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
+  - opened 2026-10-10T23:20Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

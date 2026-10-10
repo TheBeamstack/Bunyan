@@ -117,3 +117,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome --headless=new --remote-debugging-port=9333 about:blank`, run from a `claude -p` zayd turn
 - need: allow the Playwright Chromium binary in the box loop's Claude Code permission settings, then re-run zayd's start on T-010
 - cleared: -
+
+## B-20261010-03 agent_merge's re-measure overwrites the state.mjs §8 block, so every merge turns main red
+
+- opened: 2026-10-10T23:20Z
+- by: brahim-loop
+- scope: item
+- item: PR#55
+- what: `main` is red at 401e22d, and merging PR #55 or PR #63 through `agent_merge.py` re-breaks it
+- why: `agent_merge.py` step 5 (401e22d, "state: re-measure main on the merge of PR #61") replaced the `scripts/state.mjs`-stamped §8 block of `docs/CURRENT_STATE.md` with a `measure.py` one, and `tests/docs-budget.test.ts` fails "missing its GENERATED markers" and "§8 agrees with §7 about which entry is newest" (CI run 38092485883); B-20260930-01's foreign-block cause, now in the merge step
+- evidence: `gh run view 38092485883 --log-failed | grep FAIL; git show --stat 401e22d`
+- need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
+- cleared: -
