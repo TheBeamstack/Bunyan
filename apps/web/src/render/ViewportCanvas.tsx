@@ -16,6 +16,7 @@ import { useEffect, useRef } from 'react';
 import { Viewport, type PickResult } from './Viewport';
 import type { RenderPart } from './Viewport';
 import type { RenderGateway } from './RenderGateway';
+import type { CameraView } from '../view/keepLive';
 import { faceCandidate, type SnapHit, type SnapKind } from '../tool/snap';
 import {
   guideCandidates,
@@ -47,6 +48,7 @@ export function ViewportCanvas({
   authoring,
   onPick,
   onPointerSample,
+  onViewChange,
 }: {
   readonly render: RenderGateway;
   readonly parts: readonly RenderPart[];
@@ -70,6 +72,8 @@ export function ViewportCanvas({
   readonly onPick?: (pick: PickResult | null, event: { readonly additive: boolean }) => void;
   /** The pointer moved: what it is over, what it snaps to, where it meets the ground. */
   readonly onPointerSample?: (sample: PointerSample) => void;
+  /** The camera settled — on mount, on resize and when an orbit ends. Feeds the keep-live set (D66 §3a). */
+  readonly onViewChange?: (view: CameraView) => void;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const viewportRef = useRef<Viewport | null>(null);
@@ -78,6 +82,8 @@ export function ViewportCanvas({
   onPickRef.current = onPick;
   const onSampleRef = useRef(onPointerSample);
   onSampleRef.current = onPointerSample;
+  const onViewRef = useRef(onViewChange);
+  onViewRef.current = onViewChange;
   // The live preview anchor, read inside the move handler without re-registering it.
   const previewFromRef = useRef<Vec3 | null>(previewFrom ?? null);
   previewFromRef.current = previewFrom ?? null;
@@ -96,12 +102,17 @@ export function ViewportCanvas({
     const viewport = new Viewport(canvas, render);
     viewportRef.current = viewport;
 
+    const reportView = (): void => onViewRef.current?.(viewport.view());
     const observer = new ResizeObserver((entries) => {
       const box = entries[0]?.contentRect;
-      if (box !== undefined) viewport.resize(box.width, box.height);
+      if (box === undefined) return;
+      viewport.resize(box.width, box.height);
+      reportView();
     });
     observer.observe(canvas);
     viewport.resize(canvas.clientWidth, canvas.clientHeight);
+    reportView();
+    const stopViewChange = viewport.onViewChange(reportView);
 
     const cursorOf = (e: PointerEvent): [number, number] => {
       const rect = canvas.getBoundingClientRect();
@@ -226,6 +237,7 @@ export function ViewportCanvas({
     canvas.addEventListener('pointerleave', onPointerLeave);
 
     return () => {
+      stopViewChange();
       observer.disconnect();
       canvas.removeEventListener('pointerdown', onPointerDown);
       canvas.removeEventListener('pointerup', onPointerUp);
