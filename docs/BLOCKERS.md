@@ -69,3 +69,27 @@ from, and the reason it is a record rather than prose.
 - evidence: `grep -n 'gh(cfg' /home/ubuntu/projects/diwan/scripts/agent_start.py /home/ubuntu/projects/diwan/scripts/agent_merge.py; gh api user --jq .login`
 - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #61 to hmdnah
 - cleared: -
+
+## B-20261008-02 builder start refuses: the merge-result verify runs in a worktree with no node_modules
+
+- opened: 2026-10-08T22:04Z
+- by: zayd
+- scope: item
+- item: T-010
+- what: zayd's start exited 3 before any claim or work on T-010, because its predecessor-PR check on PR #61 failed `pnpm verify`
+- why: diwan `protocol.py:689-699` `run_gate_on_tree` runs `pnpm verify` in a fresh `.git/agent-gate-worktree` that has no `node_modules`, so typecheck fails with `sh: 1: tsc: not found` on any merge result, independent of PR #61's diff
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat zayd --pr 61 --dry-run; echo $?`
+- need: make diwan `run_gate_on_tree` install or link dependencies in the gate worktree before running `[commands] verify`, then re-run zayd's start on T-010
+- cleared: 2026-10-10T17:38Z
+
+## B-20261009-01 no seat can run a turn: B-20261008-02's cause refuses every builder start, not only T-010
+
+- opened: 2026-10-09T07:34Z
+- by: brahim-loop
+- scope: loop
+- item: -
+- what: corrects B-20261008-02's scope; zayd's start exited 3 on 2026-10-09 with T-019 `ready`, and the only reviews (PR #55, #61) are held by B-20261006-02 and B-20261008-01
+- why: `agent_start.py:286-324` `obligations` dry-runs every open box PR before any claim and refuses on exit 7; `agent_merge.py --dry-run` on PR #61 exits 7 with `sh: 1: tsc: not found` and "node_modules missing" in `.git/agent-gate-worktree`
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat zayd --pr 61 --dry-run; echo $?`
+- need: make diwan `run_gate_on_tree` install or link dependencies in the gate worktree before running `[commands] verify`
+- cleared: 2026-10-10T17:38Z

@@ -49,7 +49,8 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: builder | owner
 - default-if-silent: builder
 - expires: 2026-10-15
-- ANSWER:
+- ANSWER: builder
+- free-text: the builder choses it but he must be aware that bunyan is meant to comprete with revit
 - answered: -
 
 ## D-20261007-03 Q6: whether to wire the D29 `.bnn` half for v1.0.0
@@ -68,7 +69,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: no | yes
 - default-if-silent: no
 - expires: 2026-10-15
-- ANSWER:
+- ANSWER: yes
 - answered: -
 
 ## D-20261007-04 Q7: whether `core.copy` deep-copies a host's openings
@@ -86,7 +87,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: refuse | deep-copy
 - default-if-silent: refuse
 - expires: 2026-10-15
-- ANSWER:
+- ANSWER: deep-copy
 - answered: -
 
 ## D-20261007-05 Q8: whether the BASELINE refusal is the right strictness
@@ -106,7 +107,8 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: keep | translate
 - default-if-silent: keep
 - expires: 2026-10-15
-- ANSWER:
+- ANSWER: translate
+- free-text: a propre solution myst be found not limited to just either drop moving wals or make a general comand have wal specific knowledge in order to builde a bunyan that can rival Revit,Arhcicad and Rhino
 - answered: -
 
 ## D-20261007-06 Q9: whether `FamilyDefinition` gets a way to declare billable faces
@@ -125,7 +127,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: reserve | no
 - default-if-silent: reserve
 - expires: 2026-10-15
-- ANSWER:
+- ANSWER: reserve
 - answered: -
 
 ## D-20261007-07 Q10: whether `Dimension.anchors` excludes the free `point` anchor
@@ -143,7 +145,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: narrow | keep
 - default-if-silent: narrow
 - expires: 2026-10-15
-- ANSWER:
+- ANSWER: narrow
 - answered: -
 
 ## D-20261007-08 Q20: which verbs get a button in the generated ribbon
