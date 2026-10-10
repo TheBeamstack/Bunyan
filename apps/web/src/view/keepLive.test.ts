@@ -133,7 +133,7 @@ describe('buildKeepLive — rebuildOnly, batch by batch, and nothing persisted',
     const calls: (readonly ElementId[])[] = [];
     const doc = {
       scene,
-      registries: { types: { get: () => ({}) } },
+      registries: { types: { get: () => ({ version: 1 }) } },
       geometryOf: (id: ElementId) => (built.has(id) ? { parts: [] } : undefined),
       rebuildOnly: (ids: Iterable<ElementId>) => {
         const batch = [...ids];
@@ -155,6 +155,16 @@ describe('buildKeepLive — rebuildOnly, batch by batch, and nothing persisted',
     expect(count).toBe(3);
     // A second pass over the same view builds nothing.
     expect(await buildKeepLive(doc, seesX(-1000, 10_000, 4000), [], () => undefined)).toBe(0);
+  });
+
+  it('builds an out-of-view element authored against a future Type version (D43)', async () => {
+    const scene = fixture([wall('future', 'L0', 90_000, { typeVersion: 2 })]);
+    const { doc, calls } = fakeDoc(scene);
+    (doc as unknown as { registries: unknown }).registries = {
+      types: { get: () => ({ version: 1 }) },
+    };
+    await buildKeepLive(doc, seesX(-1000, 10_000), [], () => undefined);
+    expect(calls.flat()).toContain('future');
   });
 
   it('never writes the set into the document — scene.json is byte-identical', async () => {

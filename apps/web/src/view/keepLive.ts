@@ -72,19 +72,19 @@ export function recipeBounds(scene: Scene, element: Element): Bounds | undefined
 
 /**
  * The keep-live set: every element the camera can see, plus the selection, plus every element whose
- * failure only a build can surface — an unregistered Type (D43: an unbuildable element must not be
+ * failure only a build can surface — an unknown or future Type (D43: an unbuildable element must not be
  * invisible) and a host that does not exist (domain rule 3). Both fail fast; neither is deferred.
  */
 export function keepLiveSet(
   scene: Scene,
   view: CameraView,
   selection: Iterable<ElementId>,
-  isRegistered: (typeId: string) => boolean,
+  isKnown: (typeId: string, typeVersion: number) => boolean,
 ): readonly ElementId[] {
   const out = new Set<ElementId>();
   for (const id of selection) if (scene.elements[id] !== undefined) out.add(id);
   for (const element of Object.values(scene.elements)) {
-    if (!isRegistered(element.typeId)) out.add(element.id);
+    if (!isKnown(element.typeId, element.typeVersion)) out.add(element.id);
     else if (element.hostId !== undefined && scene.elements[element.hostId] === undefined) {
       out.add(element.id);
     } else {
@@ -149,12 +149,10 @@ export async function buildKeepLive(
   painted: (batch: readonly ElementId[]) => void,
 ): Promise<number> {
   const scene = doc.scene;
-  const live = keepLiveSet(
-    scene,
-    view,
-    selection,
-    (t) => doc.registries.types.get(t) !== undefined,
-  );
+  const live = keepLiveSet(scene, view, selection, (t, v) => {
+    const type = doc.registries.types.get(t);
+    return type !== undefined && v <= type.version;
+  });
   const deferred = live.filter((id) => doc.geometryOf(id) === undefined);
   const batches = orderByContainer(scene, deferred, view.target[2]);
   for (const batch of batches) {
