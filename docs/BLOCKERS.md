@@ -56,7 +56,7 @@ from, and the reason it is a record rather than prose.
 - why: `require_identity` checks the passed seat (`agent_start.py:1066`), but every `gh(cfg, …)` call omits `seat=` (`agent_start.py:683,686`, `agent_merge.py:222,454`), so `seat_credential(seat=None)` with `AGENT_SEAT` unset returns `unseated` and gh runs on the ambient login (`protocol.py:1362-1364`); PR #54's start-posted "Review claimed by seat hmdnah" comment is authored Davidian-Abdo
 - evidence: `gh pr view 54 --json comments --jq '.comments[0].author.login'; gh api user --jq .login`
 - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #55 to hmdnah
-- cleared: -
+- cleared: 2026-10-10T21:44Z
 
 ## B-20261008-01 PR #61 cannot be reviewed across accounts: B-20261006-02's cause still holds
 
@@ -68,7 +68,7 @@ from, and the reason it is a record rather than prose.
 - why: diwan `agent_start.py:611,614` and `agent_merge.py:185,391` still call `gh(cfg, …)` with no `seat=`, so they run unseated on the ambient login, although `~/.config/beamstack/narutousomaki741.token` exists
 - evidence: `grep -n 'gh(cfg' /home/ubuntu/projects/diwan/scripts/agent_start.py /home/ubuntu/projects/diwan/scripts/agent_merge.py; gh api user --jq .login`
 - need: make diwan's `gh()` calls in `agent_start.py` and `agent_merge.py` run under the `--seat` seat's credential, then route PR #61 to hmdnah
-- cleared: -
+- cleared: 2026-10-10T21:44Z
 
 ## B-20261008-02 builder start refuses: the merge-result verify runs in a worktree with no node_modules
 
@@ -104,7 +104,7 @@ from, and the reason it is a record rather than prose.
 - why: PR #63's author is Davidian-Abdo, zayd's own account, and `gh pr review --approve` returns "Can not approve your own pull request (addPullRequestReview)"
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --seat zayd --pr 63; gh pr review 63 --approve --body probe`
 - need: route PR #63 to hmdnah's merge once B-20261006-02's seated `gh()` credential fix lands
-- cleared: -
+- cleared: 2026-10-10T21:44Z
 
 ## B-20261010-02 T-010's browser measurement cannot run: launching Chromium needs an approval no one can grant
 
