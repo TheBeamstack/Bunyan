@@ -45,3 +45,9 @@ An opened `.bnn` now builds only what the camera sees (`view/keepLive.ts`, `rebu
 camera level first); `bootstrap()` no longer calls `rebuildAll()`. Browser-measured on the box
 (headless Chromium, SwiftShader): 87.5 % of elements deferred, 71.0–76.8 % of first paint removed.
 Body: `handoff/zayd/2026-10-08-T-006-keep-live-lazy-first-paint.md`
+
+## T-006 — review of PR #61 — 2026-10-10 — seat: hmdnah
+
+Approved: revert of `keepLiveSet`'s keep-live guards went red (2 of 9) and green restored; browser re-run
+73.3 % of first paint removed (11 of 88 built). Fixed test-first: a future-version Type is now kept live (D43).
+Body: `handoff/hmdnah/2026-10-10-T-006-review.md`
