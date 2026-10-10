@@ -80,7 +80,7 @@ from, and the reason it is a record rather than prose.
 - why: diwan `protocol.py:689-699` `run_gate_on_tree` runs `pnpm verify` in a fresh `.git/agent-gate-worktree` that has no `node_modules`, so typecheck fails with `sh: 1: tsc: not found` on any merge result, independent of PR #61's diff
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat zayd --pr 61 --dry-run; echo $?`
 - need: make diwan `run_gate_on_tree` install or link dependencies in the gate worktree before running `[commands] verify`, then re-run zayd's start on T-010
-- cleared: -
+- cleared: 2026-10-10T18:05Z
 
 ## B-20261009-01 no seat can run a turn: B-20261008-02's cause refuses every builder start, not only T-010
 
@@ -92,4 +92,4 @@ from, and the reason it is a record rather than prose.
 - why: `agent_start.py:286-324` `obligations` dry-runs every open box PR before any claim and refuses on exit 7; `agent_merge.py --dry-run` on PR #61 exits 7 with `sh: 1: tsc: not found` and "node_modules missing" in `.git/agent-gate-worktree`
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat zayd --pr 61 --dry-run; echo $?`
 - need: make diwan `run_gate_on_tree` install or link dependencies in the gate worktree before running `[commands] verify`
-- cleared: -
+- cleared: 2026-10-10T18:05Z
