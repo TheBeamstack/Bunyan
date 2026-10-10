@@ -46,6 +46,12 @@ hmdnah's T-022 step-2 run (78 s, exit 0, byte-identical, hard 1 GB cgroup, swap 
 re-run (optional per `done-when:`); README step 3 / `probe.sh` 2g recorded in `## Discovered`.
 Body: `handoff/zayd/2026-10-06-T-027-relink-cap-measured.md`
 
+## T-027 — PR #55 brought up to date with main — 2026-10-10 — seat: zayd
+
+Merged `origin/main` to clear #55's conflicts (BACKLOG, PHASE_LOG); §8 restored to its `pnpm state` block,
+which `401e22d` replaced with a `measure.py` one and so turned `main` red. `pnpm verify` exit 0 (898 tests).
+Body: `handoff/zayd/2026-10-10-T-027-merge-main.md`
+
 ## T-006 — the keep-live set and a lazy first paint — 2026-10-08 — seat: zayd
 
 An opened `.bnn` now builds only what the camera sees (`view/keepLive.ts`, `rebuildOnly` per level,
