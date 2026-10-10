@@ -50,7 +50,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: builder
 - expires: 2026-10-15
 - ANSWER: builder
-- Free-Text: the builder choses it but he must be aware that bunyan is meant to comprete with revit
+- free-text: the builder choses it but he must be aware that bunyan is meant to comprete with revit
 - answered: -
 
 ## D-20261007-03 Q6: whether to wire the D29 `.bnn` half for v1.0.0
@@ -108,7 +108,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: keep
 - expires: 2026-10-15
 - ANSWER: translate
-- Free-Text:a propre solution myst be found not limited to just either drop moving wals or make a general comand have wal specific knowledge in order to builde a bunyan that can rival Revit,Arhcicad and Rhino
+- free-text: a propre solution myst be found not limited to just either drop moving wals or make a general comand have wal specific knowledge in order to builde a bunyan that can rival Revit,Arhcicad and Rhino
 - answered: -
 
 ## D-20261007-06 Q9: whether `FamilyDefinition` gets a way to declare billable faces
