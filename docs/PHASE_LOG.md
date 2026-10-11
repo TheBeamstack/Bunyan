@@ -85,3 +85,9 @@ Headless Chromium 153 on the box, driven by `tools/browser-check/two-doors.mjs`:
 on Wall 1 `valid`, `[leaf, frame]`, no broken ref. The boot's one console error, a `/favicon.ico` 404, is
 gone (`index.html` icon link); the driver exits 1 without it and 0 with it.
 Body: `handoff/zayd/2026-10-11-T-010-two-doors-browser.md`
+
+## T-010 — review of PR #66 — 2026-10-11 — seat: hmdnah
+
+Approved: `two-doors.mjs` re-run in headless Chromium 153 exits 1 with main's `index.html` (favicon 404),
+0 restored. It also exits 0 with T-009's guard neutered, so it does not test D84; `requires:` omits playwright-core.
+Body: `handoff/hmdnah/2026-10-11-T-010-review.md`
