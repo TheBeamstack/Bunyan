@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-HANDOVER-H-20261011-13` |
-| branch | `custodianship/T-006-security-settings` |
-| claimed-at | 2026-10-08T21:03:29Z |
-| status | merged — PR #64 merged by `hmdnah` at 2026-10-11T21:45:33Z |
+| task | `T-010` |
+| branch | `task/T-010-q18-two-doors-on-one-wall-confirmed-in-t` |
+| claimed-at | 2026-10-11T22:02:04Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 8b892b917ade7075cd8180dc7a2a023ce8e6865f
+last-verified-at: c9a5aeca57324105f36c6c95a05b11f6f01d32b5
