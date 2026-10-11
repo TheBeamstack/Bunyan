@@ -78,9 +78,6 @@ builder may claim.
 - **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
   - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
   - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261011-05** — `scope: item` · `item: PR#63` — PR #63's steward finish refuses: B-20261010-03 is a record heading in two files on main
-  - need: make docs/PHASE_LOG.md's 2026-10-10 B-20261010-03 diagnosis abstract carry `see: docs/BLOCKERS.md#B-20261010-03` instead of a heading that names the id, then re-run brahim's finish for STEWARD-owner-rulings-q5-q10
-  - opened 2026-10-11T20:54Z by brahim · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
