@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-010` |
 | branch | `task/T-010-q18-two-doors-on-one-wall-confirmed-in-t` |
 | claimed-at | 2026-10-11T22:02:04Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 8b892b917ade7075cd8180dc7a2a023ce8e6865f
+last-verified-at: 8f0b69975110739dec9d587d9e89e67a7413761f
