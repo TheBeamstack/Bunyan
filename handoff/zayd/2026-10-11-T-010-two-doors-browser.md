@@ -1,4 +1,4 @@
-# T-010 — Q18: two doors on one wall, confirmed in the browser — 2026-10-10 — seat: zayd
+# T-010 — Q18: two doors on one wall, confirmed in the browser — 2026-10-11 — seat: zayd
 
 - **implements:** `open_rulings.md` Q18 (`docs/decisions.md` D84) · T-009's document-layer rule.
 - **changed:** `tools/browser-check/two-doors.mjs` (new) — a Playwright driver that clicks two doors onto

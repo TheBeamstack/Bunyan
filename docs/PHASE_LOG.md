@@ -79,9 +79,9 @@ Approved: Custodianship's `verify-handovers.py` went FAILED (rc=1) on a mirror w
 PR #64's copy, PENDING/0 failed (rc=0) on the real one; the record's `gh api` evidence re-ran as stated.
 Body: `handoff/hmdnah/2026-10-11-STEWARD-HANDOVER-H-20261011-13-review.md`
 
-## T-010 — two doors on one wall, confirmed in the browser — 2026-10-10 — seat: zayd
+## T-010 — two doors on one wall, confirmed in the browser — 2026-10-11 — seat: zayd
 
 Headless Chromium 153 on the box, driven by `tools/browser-check/two-doors.mjs`: both floor-seated doors
 on Wall 1 `valid`, `[leaf, frame]`, no broken ref. The boot's one console error, a `/favicon.ico` 404, is
 gone (`index.html` icon link); the driver exits 1 without it and 0 with it.
-Body: `handoff/zayd/2026-10-10-T-010-two-doors-browser.md`
+Body: `handoff/zayd/2026-10-11-T-010-two-doors-browser.md`
