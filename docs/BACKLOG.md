@@ -87,6 +87,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself              | infra    | box     | normal | —          |
 | T-018 | done    | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | box     | normal | —          |
+| T-032 | ready | Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds | frontend | box | normal | — |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
 | T-021 | done    | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
 | T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
@@ -160,6 +161,17 @@ D82 made). `docs/CURRENT_STATE.md §5` (Amer, item 3) still names this open.
 - depends-on: —
 - requires: browser
 - area: apps-web · machine: **box** · risk: **normal**
+
+### T-032 — Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds
+- outcome: `withUiRefresh` takes the `DocLock` and runs `execute`, `undo`, `redo` and `dryRun` through `lock.run`, so an agent call cannot commit or free the kernel heap while `buildKeepLive` or a human edit is in flight; `options` forwarding is unchanged
+- implements: `docs/decisions.md` D66 · `docs/design/P5_step9_D66_lazy_build_design.md` §2 (the safety condition) and §3b · D19–D23 (D19, surface equivalence) · provenance: `## Discovered` 2026-10-08 (T-006)
+- done-when: in `apps/web/src/edit/agentRefresh.test.ts`, with a lock task held open, the wrapped `execute`, `undo`, `redo` and `dryRun` do not call the inner agent until it settles — test-first, red against current `main`
+- done-when: lock tasks and agent calls run in call order, and a rejected agent call does not jam the lock for the next task
+- done-when: the existing `options`/`transactionId` forwarding test stays green and `notify` still fires only after a successful commit
+- done-when: `App.tsx` passes its `docLock` into `withUiRefresh` (one line, checked by the reviewer — not reachable headlessly)
+- verify: pnpm verify
+- depends-on: — · area: frontend · machine: box · risk: normal
+- note: diagnosed headless-only by a brahim R39 subagent, 2026-10-11: no browser needed, no `[frozen_surface]` file touched
 
 ### T-023 — The kernel boots on the pc's system Chrome, confirmed there
 
@@ -376,10 +388,6 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
-- **2026-10-08 — `window.bunyan`'s mutators bypass the app's document lock** (T-006). `App` serialises
-  `dispatch`/undo/redo and lazy builds through `edit/docLock.ts`; the agent surface calls `doc.execute`
-  directly, so an agent edit can commit while a lazy build is mid-flight. Fix shape: route
-  `withUiRefresh`'s mutators through the same lock. Recorded, not claimed.
 - **2026-10-08 — a deferred element's broken `hostRef` surfaces only once it is built** (T-006). The
   keep-live set keeps an unregistered Type and a missing host live, both decidable from the recipe; a
   `hostRef` naming a face the host no longer has is measured by the build, so an out-of-view one is

@@ -129,3 +129,39 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh run view 38092485883 --log-failed | grep FAIL; git show --stat 401e22d`
 - need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
 - cleared: -
+
+## B-20261011-01 T-019 cannot be built on the box: B-20261010-02's cause still holds
+
+- opened: 2026-10-11T00:33Z
+- by: brahim-loop
+- scope: item
+- item: T-019
+- what: T-019, the one `ready` box row left, was not delegated; its `done-when:` needs two browser-measured items (`changeFeed()` growth, orbit-suppression projection) and `requires: browser`
+- why: launching the Playwright Chromium from this loop session is refused ("requires approval"), as B-20261010-02 measured for T-019's sibling T-010; the fix is open as diwan PR #90 (BROWSER1), unmerged
+- evidence: `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome --headless=new --no-sandbox --dump-dom about:blank`, run from the brahim loop session; `gh -R TheBeamstack/diwan pr view 90 --json state`
+- need: merge diwan PR #90 into the box loop's permissions, then delegate T-019 to a zayd turn
+- cleared: -
+
+## B-20261011-02 agent-start refuses every seat: c4d7d28 added a handoff body with no abstract and no re-measure
+
+- opened: 2026-10-11T01:06Z
+- by: zayd
+- scope: item
+- item: T-032
+- what: zayd could not claim T-032; start refused at step 3, and even past it `pnpm verify` is red on `main`, so no claim can reach green
+- why: c4d7d28 added `handoff/brahim/2026-10-10-B-20261010-03-diagnosis.md` without re-measuring, so §8 says 96 bodies against 97 measured (start exit 6), and the body has no §7 abstract or PHASE_LOG index (`docs-budget.test.ts` "points at a body that exists", a third failure beside B-20261010-03's two); rewriting §8 on `main` is B-20261010-03's block, not a builder's write
+- evidence: `python3 $DIWAN/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan; echo $?` (6) · `npx vitest run tests/docs-budget.test.ts` (3 failed)
+- need: index the B-20261010-03 diagnosis body in `docs/PHASE_LOG.md` and re-measure §8 in one steward commit to `main`
+- cleared: 2026-10-11T02:05Z
+
+## B-20261011-03 PR #63, the act on owner answers D-20261007-02..07, conflicts with main on T-032
+
+- opened: 2026-10-11T01:38Z
+- by: brahim-loop
+- scope: item
+- item: PR#63
+- what: the six answered records still read `answered: -` on `main`; PR #63 stamps them and sequences T-032..T-037 with D92–D97, but cannot merge
+- why: a68b995 allocated T-032 on `main` (the docLock row) after PR #63 numbered its Q10 row T-032 by hand, so `git merge-tree` of PR #63's head onto 1b1cd74 exits 1; merging is also held by B-20261010-03
+- evidence: `git merge-tree --write-tree origin/main origin/steward/owner-rulings-q5-q10; echo $?`
+- need: rebase PR #63 onto `main` as a brahim turn, renumbering its rows through `backlog.py next-id` from T-033, then route it to hmdnah once B-20261010-03 is cleared
+- cleared: -

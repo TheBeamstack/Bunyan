@@ -52,6 +52,12 @@ Approved: revert of `keepLiveSet`'s keep-live guards went red (2 of 9) and green
 73.3 % of first paint removed (11 of 88 built). Fixed test-first: a future-version Type is now kept live (D43).
 Body: `handoff/hmdnah/2026-10-10-T-006-review.md`
 
+## B-20261010-03 — diagnosis — 2026-10-10 — seat: brahim
+
+Read-only R39 finding: diwan `agent_merge.py` `step_remeasure` splices `measure.py`'s block over Bunyan's
+`state.mjs` §8 block with no owner check; fix and restore order named. No code changed.
+Body: `handoff/brahim/2026-10-10-B-20261010-03-diagnosis.md`
+
 ## T-010 — two doors on one wall, confirmed in the browser — 2026-10-10 — seat: zayd
 
 Headless Chromium 153 on the box, driven by `tools/browser-check/two-doors.mjs`: both floor-seated doors

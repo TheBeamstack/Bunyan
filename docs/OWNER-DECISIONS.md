@@ -188,3 +188,22 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-15
 - ANSWER:
 - answered: -
+
+## D-20261011-01 whether to restore the §8 marker by hand once, so `main` goes green before diwan's fix
+
+- opened: 2026-10-11T01:20Z
+- by: brahim-loop
+- item: B-20261011-02
+- asks: whether a steward may restore the `scripts/state.mjs` BEGIN marker of `docs/CURRENT_STATE.md` §8 by hand, once, so `pnpm state` can regenerate the block
+- context: `main` has been red since 401e22d: a diwan merge script rewrote §8, the state section that `pnpm state`
+  owns, with its own marker (B-20261010-03). `pnpm state` now refuses to run because its marker is gone, and the
+  protocol forbids hand-editing a script-written block, so no seat can claim work (B-20261011-02).
+  restore: a steward puts the one marker line back by hand, runs `pnpm state`, and `main` goes green now;
+  the next merge through `agent_merge.py` breaks it again until diwan's fix lands.
+  wait: nothing changes until diwan's `agent_merge.py` fix lands; box building stays stopped until then.
+  The default (wait) keeps the no-hand-edit rule without exception.
+- options: restore | wait
+- default-if-silent: wait
+- expires: 2026-10-18
+- ANSWER:
+- answered: -

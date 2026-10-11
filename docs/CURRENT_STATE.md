@@ -84,6 +84,15 @@ builder may claim.
 - **B-20261010-03** — `scope: item` · `item: PR#55` — agent_merge's re-measure overwrites the state.mjs §8 block, so every merge turns main red
   - need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
   - opened 2026-10-10T23:20Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261011-01** — `scope: item` · `item: T-019` — T-019 cannot be built on the box: B-20261010-02's cause still holds
+  - need: merge diwan PR #90 into the box loop's permissions, then delegate T-019 to a zayd turn
+  - opened 2026-10-11T00:33Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261011-02** — `scope: item` · `item: T-032` — agent-start refuses every seat: c4d7d28 added a handoff body with no abstract and no re-measure
+  - need: index the B-20261010-03 diagnosis body in `docs/PHASE_LOG.md` and re-measure §8 in one steward commit to `main`
+  - opened 2026-10-11T01:06Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261011-03** — `scope: item` · `item: PR#63` — PR #63, the act on owner answers D-20261007-02..07, conflicts with main on T-032
+  - need: rebase PR #63 onto `main` as a brahim turn, renumbering its rows through `backlog.py next-id` from T-033, then route it to hmdnah once B-20261010-03 is cleared
+  - opened 2026-10-11T01:38Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -192,12 +201,12 @@ maintenance and does NOT get an entry of its own.**
 | Probe | Measured |
 |---|---|
 | branch | `main` |
-| head | `4b85c87` |
+| head | `2d32750` |
 | worktree | clean |
-| last commit | 2026-10-10T22:43:21Z |
+| last commit | 2026-10-11T02:02:33Z |
 | AGENTS.md size | 11/200 |
-| PHASE_LOG bytes | 3243/49152 |
-| handoff archive | 96 bodies |
+| PHASE_LOG bytes | 3564/49152 |
+| handoff archive | 97 bodies |
 | seats | 7 registered |
 | frozen surface | **RISK: additive** — unchanged vs baseline |
 | `app/` | absent |
