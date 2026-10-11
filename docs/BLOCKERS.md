@@ -128,7 +128,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_merge.py` step 5 (401e22d, "state: re-measure main on the merge of PR #61") replaced the `scripts/state.mjs`-stamped §8 block of `docs/CURRENT_STATE.md` with a `measure.py` one, and `tests/docs-budget.test.ts` fails "missing its GENERATED markers" and "§8 agrees with §7 about which entry is newest" (CI run 38092485883); B-20260930-01's foreign-block cause, now in the merge step
 - evidence: `gh run view 38092485883 --log-failed | grep FAIL; git show --stat 401e22d`
 - need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
-- cleared: -
+- cleared: 2026-10-11T20:16Z
 
 ## B-20261011-01 T-019 cannot be built on the box: B-20261010-02's cause still holds
 
@@ -140,7 +140,7 @@ from, and the reason it is a record rather than prose.
 - why: launching the Playwright Chromium from this loop session is refused ("requires approval"), as B-20261010-02 measured for T-019's sibling T-010; the fix is open as diwan PR #90 (BROWSER1), unmerged
 - evidence: `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome --headless=new --no-sandbox --dump-dom about:blank`, run from the brahim loop session; `gh -R TheBeamstack/diwan pr view 90 --json state`
 - need: merge diwan PR #90 into the box loop's permissions, then delegate T-019 to a zayd turn
-- cleared: -
+- cleared: 2026-10-11T20:16Z
 
 ## B-20261011-02 agent-start refuses every seat: c4d7d28 added a handoff body with no abstract and no re-measure
 
@@ -176,4 +176,4 @@ from, and the reason it is a record rather than prose.
 - why: `pnpm verify` fails on `main` at 07d8fc0 (CI run 38105275133: `docs-budget.test.ts` "§8 has been generated" and "§8 agrees with §7"), `agent_finish.py` exits 7 on a red gate, `agent_merge.py` step 3 refuses a red merge result, and diwan `agent_merge.py` `step_remeasure` (line 405) still has no foreign-block guard; D-20261011-01, the interim restore, is pending to 2026-10-18
 - evidence: `npx vitest run tests/docs-budget.test.ts` in /home/ubuntu/projects/Bunyan on `main` (2 failed)
 - need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
-- cleared: -
+- cleared: 2026-10-11T20:16Z
