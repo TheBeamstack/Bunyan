@@ -78,3 +78,9 @@ Body: `handoff/brahim/2026-10-11-STEWARD-owner-rulings-q5-q10-rebase.md`
 Approved: Custodianship's `verify-handovers.py` went FAILED (rc=1) on a mirror whose `need:` disagreed with
 PR #64's copy, PENDING/0 failed (rc=0) on the real one; the record's `gh api` evidence re-ran as stated.
 Body: `handoff/hmdnah/2026-10-11-STEWARD-HANDOVER-H-20261011-13-review.md`
+
+## STEWARD-HANDOVER-H-20261011-15 — review of PR #65 — 2026-10-11 — seat: hmdnah
+
+Approved: `verify-handovers.py` FAILED (rc=1) on a mirror whose `what:` disagreed with PR #65's copy, 0 failed
+(rc=0) on the real one. Merged `main` into the branch keeping H-20261011-13 and -15 byte-identical (add/add).
+Body: `handoff/hmdnah/2026-10-11-STEWARD-HANDOVER-H-20261011-15-review.md`
