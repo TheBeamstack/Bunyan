@@ -4,6 +4,7 @@ Append-only, one record per handover. Only `cleared:` is ever edited, by the ste
 (TheBeamstack/diwan `docs/seats/hamadi.md`, R22).
 
 ## H-20261011-15 Bunyan: the public repository description carries a stray `**`; proposed text removes it
+
 - opened: 2026-10-11T10:38Z
 - by: zayd
 - from: Custodianship
