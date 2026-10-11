@@ -466,11 +466,6 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
-- **2026-10-11 — the camera drifts with no input, so "byte-identical projection" cannot hold** (T-019).
-  `Viewport.#tick` calls `OrbitControls.update()` every frame; a fixed world point's projection moves
-  ~5e-13 px per second idle, measured with `tools/browser-check/corner-drag.mjs`. T-019's done-when asks
-  for byte-identical; the drag shows ≤3e-12 px against 54 px for an unsuppressed orbit. Fix shape: update
-  the controls only on input, or reword the criterion (steward). Recorded, not claimed.
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
   turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:

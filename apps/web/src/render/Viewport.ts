@@ -649,7 +649,9 @@ export class Viewport {
   }
 
   readonly #tick = (): void => {
-    this.#controls.update();
+    // ⚠ No `#controls.update()` here: three r171's input handlers call it themselves, and with damping
+    // and autoRotate off a per-frame call only re-derives the camera from spherical coordinates, drifting
+    // it ~1e-12 px with no input — which broke T-019's byte-identical projection (`corner-drag.mjs`).
     this.#renderer.render(this.#scene, this.#camera);
   };
 

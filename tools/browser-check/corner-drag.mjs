@@ -12,9 +12,8 @@
 // and a fixed world point's projection stays put through the gesture while the SAME drag with nothing
 // selected (the control) orbits the camera.
 //
-// ⚠ The projection is NOT byte-identical, even idle: `OrbitControls.update()` runs every frame
-// (`Viewport.#tick`) and re-derives the camera from spherical coordinates, drifting ~1e-13 px per second
-// with no input. So `orbitSuppressed` is "moved under 1e-6 px", reported beside the raw pixels.
+// ⚠ `orbitSuppressed` is BYTE-IDENTICAL, as T-019's done-when words it: a per-frame
+// `OrbitControls.update()` once drifted the camera ~1e-12 px with no input, and a tolerance hid it.
 
 const arg = (name, fallback) => {
   const i = process.argv.indexOf(`--${name}`);
@@ -142,7 +141,7 @@ const checks = {
     same(dropped.wall1.start, before.wall1.start) && same(dropped.wall2.end, before.wall2.end),
   oneTransaction: dropEdits.length === 2 && txIds.size === 1 && !txIds.has(undefined),
   oneUndoRestores: same(undone.wall1, before.wall1) && same(undone.wall2, before.wall2),
-  orbitSuppressed: Object.values(drift).every((d) => d < 1e-6),
+  orbitSuppressed: [during, dropped, undone].every((s) => same(s.fixedPx, before.fixedPx)),
   controlOrbits: moved(control) > 10,
   controlCommitsNothing: control.feed === undone.feed,
   diagnosticsEmpty: [before, during, dropped, undone].every(
