@@ -105,3 +105,10 @@ Approved with a reviewer fix: projection drift ≤2.6e-12 px was not byte-identi
 redundant `OrbitControls.update()` removed, `corner-drag.mjs` tightened to byte-identity, red before, 0 after.
 Item 1: `handles.ts` z → 0 fails the Level-elevation test; restored, 10 pass.
 Body: `handoff/hmdnah/2026-10-11-T-019-review.md`
+
+## T-032 — agent edits wait on the document lock — 2026-10-11 — seat: zayd
+
+`withUiRefresh` takes `App`'s `DocLock` and runs `execute`/`undo`/`redo`/`dryRun` through `lock.run`, so an
+agent call cannot commit while `buildKeepLive` or a human edit holds it. Two tests, red on main's wrapper,
+green after; `pnpm verify` green (910 tests). `App.tsx`'s one-line wiring is reviewer-checked.
+Body: `handoff/zayd/2026-10-11-T-032-agent-doclock.md`

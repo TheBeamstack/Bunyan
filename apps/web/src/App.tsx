@@ -229,7 +229,7 @@ export function App() {
         // or StrictMode's discarded first mount races its dead, unseeded document onto the global.
         // ⚠ Wrapped so an agent edit REFRESHES THE VIEW like a human edit does (the D19 equivalence gap
         // Entry 26 found): `bump` is React's stable reducer dispatch, safe to close over here.
-        window.bunyan = withUiRefresh(bunyan.agent, bump);
+        window.bunyan = withUiRefresh(bunyan.agent, bump, docLock);
 
         setApp(bunyan);
         // `setSelection` is a setState (stable), so the boot effect keeps its empty dep list.

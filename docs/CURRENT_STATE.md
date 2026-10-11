@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-019` |
-| branch | `task/T-019-the-move-tool-gizmo-corner-drag-redone-a` |
-| claimed-at | 2026-10-11T22:40:44Z |
-| status | merged — PR #67 merged by `hmdnah` at 2026-10-11T23:23:58Z |
+| task | `T-032` |
+| branch | `task/T-032-agent-edits-through-window-bunyan-wait-o` |
+| claimed-at | 2026-10-11T23:32:22Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -206,4 +206,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: c194eab5b348f79ecffe7584c04868ec3bd44095
+last-verified-at: e2bbba1f6bf84db11679373b05d12b07d6325d51
