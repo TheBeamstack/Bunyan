@@ -201,12 +201,12 @@ maintenance and does NOT get an entry of its own.**
 | Probe | Measured |
 |---|---|
 | branch | `main` |
-| head | `4b85c87` |
+| head | `2d32750` |
 | worktree | clean |
-| last commit | 2026-10-10T22:43:21Z |
+| last commit | 2026-10-11T02:02:33Z |
 | AGENTS.md size | 11/200 |
-| PHASE_LOG bytes | 3243/49152 |
-| handoff archive | 96 bodies |
+| PHASE_LOG bytes | 3564/49152 |
+| handoff archive | 97 bodies |
 | seats | 7 registered |
 | frozen surface | **RISK: additive** — unchanged vs baseline |
 | `app/` | absent |
