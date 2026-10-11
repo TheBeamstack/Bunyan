@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-010` |
-| branch | `task/T-010-q18-two-doors-on-one-wall-confirmed-in-t` |
-| claimed-at | 2026-10-11T22:02:04Z |
-| status | merged — PR #66 merged by `hmdnah` at 2026-10-11T22:39:47Z |
+| task | `T-019` |
+| branch | `task/T-019-the-move-tool-gizmo-corner-drag-redone-a` |
+| claimed-at | 2026-10-11T22:40:44Z |
+| status | working |
 
 <!-- END BATON -->
 
