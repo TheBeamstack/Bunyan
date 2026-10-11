@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-HANDOVER-H-20261011-13` |
-| branch | `custodianship/T-006-security-settings` |
+| task | `STEWARD-HANDOVER-H-20261011-15` |
+| branch | `custodianship/T-007-descriptions` |
 | claimed-at | 2026-10-08T21:03:29Z |
-| status | merged — PR #64 merged by `hmdnah` at 2026-10-11T21:45:33Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -200,4 +200,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 8b892b917ade7075cd8180dc7a2a023ce8e6865f
+last-verified-at: 38d1159fb63457c00a31f8c7929916bce13fff89
