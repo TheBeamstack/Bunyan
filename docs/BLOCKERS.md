@@ -129,3 +129,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh run view 38092485883 --log-failed | grep FAIL; git show --stat 401e22d`
 - need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
 - cleared: -
+
+## B-20261011-01 T-019 cannot be built on the box: B-20261010-02's cause still holds
+
+- opened: 2026-10-11T00:33Z
+- by: brahim-loop
+- scope: item
+- item: T-019
+- what: T-019, the one `ready` box row left, was not delegated; its `done-when:` needs two browser-measured items (`changeFeed()` growth, orbit-suppression projection) and `requires: browser`
+- why: launching the Playwright Chromium from this loop session is refused ("requires approval"), as B-20261010-02 measured for T-019's sibling T-010; the fix is open as diwan PR #90 (BROWSER1), unmerged
+- evidence: `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome --headless=new --no-sandbox --dump-dom about:blank`, run from the brahim loop session; `gh -R TheBeamstack/diwan pr view 90 --json state`
+- need: merge diwan PR #90 into the box loop's permissions, then delegate T-019 to a zayd turn
+- cleared: -
