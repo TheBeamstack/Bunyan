@@ -86,7 +86,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-016 | done    | `§0b`'s baton carries the builder separately from the holder                                      | infra    | box     | high     | T-015      |
 | T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself                                        | infra    | box     | normal   | —          |
 | T-018 | done    | D66's lazy-build design doc + measurement, reproduced                                             | document | box     | normal   | —          |
-| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                                          | apps-web | box     | normal   | —          |
+| T-019 | done    | The move-tool gizmo + corner-drag, redone against `main`                                          | apps-web | box     | normal   | —          |
 | T-032 | ready   | Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds | frontend | box     | normal   | —          |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows                                    | infra    | box     | high     | —          |
 | T-021 | done    | `pnpm verify` reaches green on the pc, confirmed there                                            | infra    | pc      | normal   | T-020      |

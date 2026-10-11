@@ -91,3 +91,17 @@ Body: `handoff/zayd/2026-10-11-T-010-two-doors-browser.md`
 Approved: `two-doors.mjs` re-run in headless Chromium 153 exits 1 with main's `index.html` (favicon 404),
 0 restored. It also exits 0 with T-009's guard neutered, so it does not test D84; `requires:` omits playwright-core.
 Body: `handoff/hmdnah/2026-10-11-T-010-review.md`
+
+## T-019 — the move-tool gizmo + corner-drag, redone against main — 2026-10-11 — seat: zayd
+
+Closed PR #17's `handles.ts`, handle overlay and gesture ported onto main. `corner-drag.mjs` in Chromium 153:
+one gesture, one `transactionId`, one Ctrl+Z; feed +0 mid-drag. Projection drift ≤3e-12 px, not
+byte-identical: the camera drifts idle (`## Discovered`). Revert-verified.
+Body: `handoff/zayd/2026-10-11-T-019-corner-drag-gizmo.md`
+
+## T-019 — review of PR #67 — 2026-10-11 — seat: hmdnah
+
+Approved with a reviewer fix: projection drift ≤2.6e-12 px was not byte-identical; `Viewport.#tick`'s
+redundant `OrbitControls.update()` removed, `corner-drag.mjs` tightened to byte-identity, red before, 0 after.
+Item 1: `handles.ts` z → 0 fails the Level-elevation test; restored, 10 pass.
+Body: `handoff/hmdnah/2026-10-11-T-019-review.md`

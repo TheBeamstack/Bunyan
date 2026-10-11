@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-010` |
-| branch | `task/T-010-q18-two-doors-on-one-wall-confirmed-in-t` |
-| claimed-at | 2026-10-11T22:02:04Z |
-| status | merged — PR #66 merged by `hmdnah` at 2026-10-11T22:39:47Z |
+| task | `T-019` |
+| branch | `task/T-019-the-move-tool-gizmo-corner-drag-redone-a` |
+| claimed-at | 2026-10-11T22:40:44Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 096da79caee17eac49c87497ac1e151f2db31883
+last-verified-at: 2c353c8edd87545ab54a0b85d1c077073ea876eb
