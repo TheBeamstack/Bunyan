@@ -66,7 +66,7 @@ builder may claim.
 | machine | box |
 | task | `T-010` |
 | branch | `task/T-010-q18-two-doors-on-one-wall-confirmed-in-t` |
-| claimed-at | 2026-10-11T03:09:55Z |
+| claimed-at | 2026-10-11T22:02:04Z |
 | status | working |
 
 <!-- END BATON -->
