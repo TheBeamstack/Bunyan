@@ -17,6 +17,7 @@ Append-only, one record per handover. Only `cleared:` is ever edited, by the ste
 - cleared: 2026-10-11T22:10Z
 
 ## H-20261011-15 Bunyan: the public repository description carries a stray `**`; proposed text removes it
+
 - opened: 2026-10-11T10:38Z
 - by: zayd
 - from: Custodianship
