@@ -90,6 +90,9 @@ builder may claim.
 - **B-20261011-02** — `scope: item` · `item: T-032` — agent-start refuses every seat: c4d7d28 added a handoff body with no abstract and no re-measure
   - need: index the B-20261010-03 diagnosis body in `docs/PHASE_LOG.md` and re-measure §8 in one steward commit to `main`
   - opened 2026-10-11T01:06Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261011-03** — `scope: item` · `item: PR#63` — PR #63, the act on owner answers D-20261007-02..07, conflicts with main on T-032
+  - need: rebase PR #63 onto `main` as a brahim turn, renumbering its rows through `backlog.py next-id` from T-033, then route it to hmdnah once B-20261010-03 is cleared
+  - opened 2026-10-11T01:38Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

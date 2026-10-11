@@ -153,3 +153,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 $DIWAN/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan; echo $?` (6) · `npx vitest run tests/docs-budget.test.ts` (3 failed)
 - need: index the B-20261010-03 diagnosis body in `docs/PHASE_LOG.md` and re-measure §8 in one steward commit to `main`
 - cleared: -
+
+## B-20261011-03 PR #63, the act on owner answers D-20261007-02..07, conflicts with main on T-032
+
+- opened: 2026-10-11T01:38Z
+- by: brahim-loop
+- scope: item
+- item: PR#63
+- what: the six answered records still read `answered: -` on `main`; PR #63 stamps them and sequences T-032..T-037 with D92–D97, but cannot merge
+- why: a68b995 allocated T-032 on `main` (the docLock row) after PR #63 numbered its Q10 row T-032 by hand, so `git merge-tree` of PR #63's head onto 1b1cd74 exits 1; merging is also held by B-20261010-03
+- evidence: `git merge-tree --write-tree origin/main origin/steward/owner-rulings-q5-q10; echo $?`
+- need: rebase PR #63 onto `main` as a brahim turn, renumbering its rows through `backlog.py next-id` from T-033, then route it to hmdnah once B-20261010-03 is cleared
+- cleared: -
