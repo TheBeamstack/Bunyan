@@ -165,3 +165,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `git merge-tree --write-tree origin/main origin/steward/owner-rulings-q5-q10; echo $?`
 - need: rebase PR #63 onto `main` as a brahim turn, renumbering its rows through `backlog.py next-id` from T-033, then route it to hmdnah once B-20261010-03 is cleared
 - cleared: -
+
+## B-20261011-04 no builder or reviewer turn can finish: B-20261010-03 keeps main red, not only PR #55
+
+- opened: 2026-10-11T16:10Z
+- by: brahim-loop
+- scope: loop
+- item: -
+- what: corrects B-20261010-03's scope, as B-20261009-01 did B-20261008-02's; zayd's T-010 work is pushed at e98ec07 since 03:10Z with no PR, and PRs #55 and #63 cannot merge
+- why: `pnpm verify` fails on `main` at 07d8fc0 (CI run 38105275133: `docs-budget.test.ts` "§8 has been generated" and "§8 agrees with §7"), `agent_finish.py` exits 7 on a red gate, `agent_merge.py` step 3 refuses a red merge result, and diwan `agent_merge.py` `step_remeasure` (line 405) still has no foreign-block guard; D-20261011-01, the interim restore, is pending to 2026-10-18
+- evidence: `npx vitest run tests/docs-budget.test.ts` in /home/ubuntu/projects/Bunyan on `main` (2 failed)
+- need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
+- cleared: -
