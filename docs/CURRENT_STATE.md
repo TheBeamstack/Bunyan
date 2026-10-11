@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-010` |
 | branch | `task/T-010-q18-two-doors-on-one-wall-confirmed-in-t` |
 | claimed-at | 2026-10-11T22:02:04Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 8f0b69975110739dec9d587d9e89e67a7413761f
+last-verified-at: c9a5aeca57324105f36c6c95a05b11f6f01d32b5
