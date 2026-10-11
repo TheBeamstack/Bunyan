@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-006` |
-| branch | `task/T-006-d66-3a-b-the-keep-live-set-and-a-lazy-fi` |
+| task | `STEWARD-owner-rulings-q5-q10` |
+| branch | `steward/owner-rulings-q5-q10` |
 | claimed-at | 2026-10-08T21:03:29Z |
-| status | merged — PR #61 merged by `hmdnah` at 2026-10-10T22:43:26Z |
+| status | merged — PR #63 merged by `hmdnah` at 2026-10-11T21:17:36Z |
 
 <!-- END BATON -->
 
@@ -200,4 +200,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 4b85c871fc9401ea63f97cde4362a7cf897bb704
+last-verified-at: 632383825481f5871318bac2e29b83f782f8e7b8
