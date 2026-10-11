@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-019` |
 | branch | `task/T-019-the-move-tool-gizmo-corner-drag-redone-a` |
 | claimed-at | 2026-10-11T22:40:44Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 096da79caee17eac49c87497ac1e151f2db31883
+last-verified-at: 23daa52f075ba4a988c839dab14f43bbd47d5fc5
