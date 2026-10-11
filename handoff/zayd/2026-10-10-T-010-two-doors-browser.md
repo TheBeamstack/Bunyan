@@ -13,7 +13,7 @@
   - measured in a real browser on this machine — headless Chromium 153.0.8010.12 (Playwright build 1243,
     linux-arm64), driven through `playwright-core` 1.60.0 from a node script, against `pnpm --dir apps/web
     dev`, on the tree merged with `origin/main` 614f791; re-run 2026-10-11 on the tree merged with
-    `bdc74bb`, same result (exit 0; exit 1 with the icon link removed).
+    `07d8fc0`, same result (exit 0; exit 1 with the icon link removed).
 - **verified:**
   - `node tools/browser-check/two-doors.mjs --playwright <playwright-core/index.mjs> --browser <chrome>`:
     exit 1 with `index.html` stashed (bootErrors = the favicon 404, both doors valid), exit 0 restored.
