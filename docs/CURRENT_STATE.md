@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-032` |
 | branch | `task/T-032-agent-edits-through-window-bunyan-wait-o` |
 | claimed-at | 2026-10-11T23:32:22Z |
-| status | finished — PR open, awaiting review |
+| status | merged — PR #68 merged by `hmdnah` at 2026-10-11T23:59:52Z |
 
 <!-- END BATON -->
 
@@ -206,4 +206,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: e2bbba1f6bf84db11679373b05d12b07d6325d51
+last-verified-at: d235b3668a0a4508adf786ab26d89ff433a90ae2
