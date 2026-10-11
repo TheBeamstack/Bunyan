@@ -116,7 +116,7 @@ from, and the reason it is a record rather than prose.
 - why: `browser_cmd()` finds `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome`, so the `requires: browser` probe passes, but the unattended session's tool permissions refuse to launch it ("This command requires approval")
 - evidence: `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome --headless=new --remote-debugging-port=9333 about:blank`, run from a `claude -p` zayd turn
 - need: allow the Playwright Chromium binary in the box loop's Claude Code permission settings, then re-run zayd's start on T-010
-- cleared: -
+- cleared: 2026-10-11T02:45Z
 
 ## B-20261010-03 agent_merge's re-measure overwrites the state.mjs §8 block, so every merge turns main red
 
