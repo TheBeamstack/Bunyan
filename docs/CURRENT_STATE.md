@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-019` |
 | branch | `task/T-019-the-move-tool-gizmo-corner-drag-redone-a` |
 | claimed-at | 2026-10-11T22:40:44Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #67 merged by `hmdnah` at 2026-10-11T23:23:58Z |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 2c353c8edd87545ab54a0b85d1c077073ea876eb
+last-verified-at: c194eab5b348f79ecffe7584c04868ec3bd44095
