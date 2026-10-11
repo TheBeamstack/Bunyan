@@ -66,3 +66,9 @@ Body: `handoff/brahim/2026-10-10-B-20261010-03-diagnosis.md`
 - Rebased onto `main` 2026-10-11 and renumbered from T-033 (`backlog.py next-id`), as `main`'s a68b995 took T-032.
 - Next: `hmdnah` reviews this PR once B-20261010-03 is cleared.
 - Body: `handoff/brahim/2026-10-10-STEWARD-owner-rulings-q5-q10-d92-d97.md`
+
+## STEWARD-owner-rulings-q5-q10 — PR #63 rebased onto 9d05388, B-20261011-03 cleared — 2026-10-11 — seat: brahim
+
+Rebased cleanly onto `main` 9d05388 (1ef86f9); T-033–T-038 kept, as `backlog.py next-id` measures main at T-033.
+`pnpm verify` passed (898+66); `gh pr view 63` reads MERGEABLE. Next: `hmdnah` reviews PR #63.
+Body: `handoff/brahim/2026-10-11-STEWARD-owner-rulings-q5-q10-rebase.md`
