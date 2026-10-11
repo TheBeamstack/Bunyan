@@ -4,6 +4,7 @@ Append-only, one record per handover. Only `cleared:` is ever edited, by the ste
 (TheBeamstack/diwan `docs/seats/hamadi.md`, R22).
 
 ## H-20261011-13 Bunyan: secret scanning, push protection, Dependabot alerts and Dependabot security updates are disabled on this public repo
+
 - opened: 2026-10-11T10:04Z
 - by: zayd
 - from: Custodianship
