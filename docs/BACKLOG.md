@@ -67,40 +67,46 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 >
 > A `done` row's `### T-nnn` entry is sealed in `docs/backlog-phase-01.md`.
 
-| ID    | Status  | Task                                                                    | Area     | Machine | Risk   | Depends on |
-| ----- | ------- | ----------------------------------------------------------------------- | -------- | ------- | ------ | ---------- |
-| T-001 | done    | The perpendicular-foot snap candidate                                   | apps-web | pc      | normal | —          |
-| T-002 | done    | The two-candidate-line intersection snap                                | apps-web | pc      | normal | T-001      |
-| T-003 | done    | The in-app open-source licences screen                                  | apps-web | pc      | normal | —          |
-| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?                | document | box     | normal | —          |
-| T-006 | done    | D66 §3a/b — the keep-live set and a lazy first paint                    | apps-web | box     | normal | T-005      |
-| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                 | document | box     | normal | —          |
-| T-008 | done    | Q19 — the belongs-to deletion reconciliation                            | document | box     | high   | —          |
-| T-009 | done    | Q18 — a hosted void may only host on its host's base part               | document | box     | high   | —          |
-| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser                   | apps-web | box     | normal | T-009      |
-| T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`                | document | box     | high   | —          |
-| T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`                   | infra    | box     | high   | —          |
-| T-013 | done    | The seat identity guard — `gh api user` must match the seat             | infra    | box     | high   | —          |
-| T-014 | done    | `--review` must read the task's `risk:`, not only the surface           | infra    | box     | high   | —          |
-| T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder            | infra    | box     | high   | —          |
-| T-016 | done    | `§0b`'s baton carries the builder separately from the holder            | infra    | box     | high   | T-015      |
-| T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself              | infra    | box     | normal | —          |
-| T-018 | done    | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
-| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | box     | normal | —          |
-| T-032 | ready | Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds | frontend | box | normal | — |
-| T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
-| T-021 | done    | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
-| T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
-| T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                  | kernel   | box     | high   | —          |
-| T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there             | apps-web | pc      | normal | T-022      |
-| T-005 | done    | D66 §3c — force-on-measure, and whether `save` reads built              | document | box     | normal | T-018      |
-| T-026 | blocked | The identity gate fires at approve/merge, not only at claim             | infra    | box     | high   | —          |
-| T-025 | blocked | `--review` keeps an owner-gated row at `review`                         | infra    | box     | high   | —          |
-| T-028 | blocked | `agent-finish.mjs` is resumable after an interrupted run                | infra    | box     | normal | —          |
-| T-027 | ready   | §6's relink cap is measured, not guessed                                | infra    | box     | normal | —          |
-| T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions          | infra    | box     | high   | —          |
-| T-030 | blocked | A steward cannot review, and its readiness view lists nothing           | infra    | box     | high   | —          |
-| T-031 | blocked | `requires:` supersedes a task's `machine:`                              | infra    | box     | high   | T-029      |
+| ID    | Status  | Task                                                                                              | Area     | Machine | Risk     | Depends on |
+| ----- | ------- | ------------------------------------------------------------------------------------------------- | -------- | ------- | -------- | ---------- |
+| T-001 | done    | The perpendicular-foot snap candidate                                                             | apps-web | pc      | normal   | —          |
+| T-002 | done    | The two-candidate-line intersection snap                                                          | apps-web | pc      | normal   | T-001      |
+| T-003 | done    | The in-app open-source licences screen                                                            | apps-web | pc      | normal   | —          |
+| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?                                          | document | box     | normal   | —          |
+| T-006 | done    | D66 §3a/b — the keep-live set and a lazy first paint                                              | apps-web | box     | normal   | T-005      |
+| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                                           | document | box     | normal   | —          |
+| T-008 | done    | Q19 — the belongs-to deletion reconciliation                                                      | document | box     | high     | —          |
+| T-009 | done    | Q18 — a hosted void may only host on its host's base part                                         | document | box     | high     | —          |
+| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser                                             | apps-web | box     | normal   | T-009      |
+| T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`                                          | document | box     | high     | —          |
+| T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`                                             | infra    | box     | high     | —          |
+| T-013 | done    | The seat identity guard — `gh api user` must match the seat                                       | infra    | box     | high     | —          |
+| T-014 | done    | `--review` must read the task's `risk:`, not only the surface                                     | infra    | box     | high     | —          |
+| T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder                                      | infra    | box     | high     | —          |
+| T-016 | done    | `§0b`'s baton carries the builder separately from the holder                                      | infra    | box     | high     | T-015      |
+| T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself                                        | infra    | box     | normal   | —          |
+| T-018 | done    | D66's lazy-build design doc + measurement, reproduced                                             | document | box     | normal   | —          |
+| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                                          | apps-web | box     | normal   | —          |
+| T-032 | ready   | Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds | frontend | box     | normal   | —          |
+| T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows                                    | infra    | box     | high     | —          |
+| T-021 | done    | `pnpm verify` reaches green on the pc, confirmed there                                            | infra    | pc      | normal   | T-020      |
+| T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red                           | infra    | box     | high     | —          |
+| T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                                            | kernel   | box     | high     | —          |
+| T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there                                       | apps-web | pc      | normal   | T-022      |
+| T-005 | done    | D66 §3c — force-on-measure, and whether `save` reads built                                        | document | box     | normal   | T-018      |
+| T-026 | blocked | The identity gate fires at approve/merge, not only at claim                                       | infra    | box     | high     | —          |
+| T-025 | blocked | `--review` keeps an owner-gated row at `review`                                                   | infra    | box     | high     | —          |
+| T-028 | blocked | `agent-finish.mjs` is resumable after an interrupted run                                          | infra    | box     | normal   | —          |
+| T-027 | ready   | §6's relink cap is measured, not guessed                                                          | infra    | box     | normal   | —          |
+| T-033 | ready   | Q10 — `Dimension.anchors` excludes the free `point` anchor                                        | document | box     | **high** | —          |
+| T-034 | ready   | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                            | document | box     | **high** | —          |
+| T-035 | ready   | Q8 — design: moving a D52 baseline wall, properly                                                 | design   | box     | normal   | —          |
+| T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                    | document | box     | **high** | T-035      |
+| T-037 | ready   | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                    | kernel   | box     | normal   | —          |
+| T-038 | ready   | Q6 — design: the D29 cache in the `.bnn`                                                          | design   | box     | **high** | —          |
+| T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —          |
+| T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —          |
+| T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029      |
 
 ---
 
@@ -163,6 +169,7 @@ D82 made). `docs/CURRENT_STATE.md §5` (Amer, item 3) still names this open.
 - area: apps-web · machine: **box** · risk: **normal**
 
 ### T-032 — Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds
+
 - outcome: `withUiRefresh` takes the `DocLock` and runs `execute`, `undo`, `redo` and `dryRun` through `lock.run`, so an agent call cannot commit or free the kernel heap while `buildKeepLive` or a human edit is in flight; `options` forwarding is unchanged
 - implements: `docs/decisions.md` D66 · `docs/design/P5_step9_D66_lazy_build_design.md` §2 (the safety condition) and §3b · D19–D23 (D19, surface equivalence) · provenance: `## Discovered` 2026-10-08 (T-006)
 - done-when: in `apps/web/src/edit/agentRefresh.test.ts`, with a lock task held open, the wrapped `execute`, `undo`, `redo` and `dryRun` do not call the inner agent until it settles — test-first, red against current `main`
@@ -284,6 +291,77 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: —
 - area: infra · machine: **box** · risk: **normal**
 
+### T-033 — Q10 — `Dimension.anchors` excludes the free `point` anchor
+
+- outcome: A `Dimension` can be anchored only to the model, so its number re-derives on every edit (rule 17).
+- implements: `docs/decisions.md` D97 · D58 · `docs/design/P5_step5A_documentation_anchoring_design.md`
+- done-when: `Dimension.anchors` in `packages/document/src/documentation.ts` admits only the `ref`, `vertex` and `element` anchors; `AnnotationAnchor` keeps `point` for every other annotation
+- done-when: a test holding `@ts-expect-error` on a `point` anchor in a `Dimension` fails `pnpm verify` when the narrowing is reverted (revert-verified)
+- done-when: every reader of `Dimension.anchors` under `packages/` is swept for a `point` branch, and each one found is named in the PR
+- done-when: `tests/freeze-boundary.test.ts`'s verdict is reported as measured, and a `contract-touching` verdict goes to the owner's merge (`docs/INVARIANTS.md §2.1`)
+- verify: pnpm verify
+- depends-on: — · area: document · machine: box · risk: **high**
+
+### T-034 — Q9 — `FamilyDefinition` reserves a way for data to name billable faces
+
+- outcome: A data-authored family (D61) can name the faces that bill, as D72's `exposedRefs` does for a code Type.
+- implements: `docs/decisions.md` D96 · D72 · D61 · `docs/design/P5_step5D_family_seam_design.md`
+- done-when: an optional field in `packages/document/src/families.ts` lets a family's data name its billable faces by role on a primitive, never by area or geometric index (D1, rule 15)
+- done-when: `docs/design/P5_step5D_family_seam_design.md` records the shape, and that no interpreter reads it in v1.0.0
+- done-when: a family carrying the field round-trips through `scene.json` save and load unchanged, asserted in a test that fails when the field is removed (revert-verified)
+- done-when: `tests/freeze-boundary.test.ts`'s verdict is reported as measured, and a `contract-touching` verdict goes to the owner's merge (`docs/INVARIANTS.md §2.1`)
+- verify: pnpm verify
+- depends-on: — · area: document · machine: box · risk: **high**
+
+### T-035 — Q8 — design: moving a D52 baseline wall, properly
+
+- outcome: A design doc proposes how a D52 wall is moved, copied and rotated without putting wall knowledge in the general command layer, for the owner to rule on.
+- implements: `docs/decisions.md` D95 · D52 · D80 · `docs/design/P4.5_interaction_model_design.md` §9
+- done-when: `docs/design/P4.5_baseline_move_design.md` exists, is under 400 lines, and quotes D95's owner free-text verbatim
+- done-when: it measures today's refusal with a named command (`core.move`/`copy`/`rotate` on every baseline element of the demo scene) and names every derivation that reads the baseline (`joins.ts`, `room.ts`, D72's billed length)
+- done-when: it recommends a mechanism that is neither framed option D95 rejects (keep refusing; wall knowledge in `core.move`), compares at least two candidates with each one's frozen-surface cost and whether it must land before P5 step 6, and says how Revit, Archicad and Rhino move a wall, citing a source or marking it unverified
+- done-when: it says how D94's deep-copy (T-036) and `D-20261007-08` depend on its answer
+- done-when: its open questions are `D-` records in `docs/OWNER-DECISIONS.md`, each with options and a default; no code changes
+- verify: pnpm verify
+- depends-on: — · area: design · machine: box · risk: normal
+
+### T-036 — Q7 — `core.copy` deep-copies a host's openings
+
+- outcome: Copying a host also copies its hosted openings, each under a fresh PEI with its `hostRef` on the copy, in one undoable edit.
+- implements: `docs/decisions.md` D94 · D51 · D80 · D44 · T-035's design, once ruled
+- done-when: copying a host with N hosted openings yields N new openings with fresh PEIs (D44), each `hostRef` naming the copy's corresponding face and every new element `state: 'valid'` after build; the source and its openings are unchanged
+- done-when: each new `hostRef` is built from the `SubShapeRef`'s structure (`nodeId`, `role`, `occurrence`), never by string substitution or geometric matching (D1)
+- done-when: one edit, one undo; `dryRun` names the openings it would copy; `brokenRefs()` is empty after the copy and after its undo
+- done-when: a sketch constraint or join override pointing at the source still refuses, unchanged
+- done-when: revert-verified: removing the deep-copy turns the new test red
+- verify: pnpm verify
+- depends-on: T-035 · area: document · machine: box · risk: **high**
+- note: `blocked` 2026-10-10 (steward): `positioningRefusal` refuses every D52 baseline element (`packages/document/src/placement.ts:348`) before `core.copy`'s hosted check, so no wall reaches this until T-035's design is ruled and built; the steward re-reads this row against that design before flipping it.
+
+### T-037 — Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted
+
+- outcome: The section chord tolerance is chosen against the drawing scales a Revit-class tool prints, documented, and held by a test.
+- implements: `docs/decisions.md` D92 · `docs/design/P5_step6C_plan_section_design.md` §4.1
+- done-when: §4.1 states the value, the smallest drawing scale it is chosen for (detail scales included), its on-paper error at that scale, and D92's owner free-text verbatim
+- done-when: `SECTION_DEFLECTION` in `packages/kernel-occt/src/kernel.ts` carries that value, and its comment no longer argues from 1:100 alone
+- done-when: a real-OCCT test cuts a circular column and asserts every polyline point lies within the tolerance of the exact radius, and fails when the constant is loosened (revert-verified)
+- done-when: no quantity reads the polyline (rule 15) and `SectionCutPayload` is unchanged; if the chosen value needs a per-view tolerance, that frozen-protocol change is recorded as a finding, not made
+- done-when: if the value changes, the re-seed gate is discharged (`docs/INVARIANTS.md §5`)
+- verify: pnpm verify
+- depends-on: — · area: kernel · machine: box · risk: normal
+
+### T-038 — Q6 — design: the D29 cache in the `.bnn`
+
+- outcome: A design doc says how the D29 cache is stored in a `.bnn` and what invalidates it, so its build can be decomposed.
+- implements: `docs/decisions.md` D93 · D29 · `docs/decisions.md` §4j-2
+- done-when: `docs/design/P5_step9_D29_bnn_cache_design.md` exists and is under 400 lines
+- done-when: it names the invalidation key that catches a hand-edited `scene.json` (§4j-2: neither `kernelBuildId` nor `typeVersions` moves for one), and shows a stale entry costs a rebuild, never a wrong name
+- done-when: it places the cache in the `.bnn` additively (an old file opens; a file with a cache opens in a build that ignores it) and says whether any frozen shape moves
+- done-when: it budgets the measured 2.07×, 6.64 ms/solid per save and ~61 MB at 16k, and says whether a save writes the cache always, lazily or by option
+- done-when: it decomposes the build into rows a steward can file, and opens `D-` records for its open questions; no code changes
+- verify: pnpm verify
+- depends-on: — · area: design · machine: box · risk: **high**
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -388,6 +466,12 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-10 — diwan `scripts/backlog.py add` cannot write this repo's `area:` vocabulary, nor `requires:`.**
+  Its `AREAS` is `backend|frontend|workers|infra|spec` (`backlog.py:73`), against this file's
+  `kernel|document|apps-web|infra|design`, and it has no `--requires` flag. T-033…T-038 were written by it
+  with `--area spec`, then that one token was corrected by hand (and the ids renumbered by hand on the
+  2026-10-11 rebase, from `next-id`). Fix shape: read the area set from the
+  repo, add `--requires`. A diwan item, not a Bunyan row.
 - **2026-10-08 — a deferred element's broken `hostRef` surfaces only once it is built** (T-006). The
   keep-live set keeps an unregistered Type and a missing host live, both decidable from the recipe; a
   `hostRef` naming a face the host no longer has is measured by the build, so an out-of-view one is
