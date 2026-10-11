@@ -201,3 +201,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --seat hmdnah --pr 65 --root /home/ubuntu/projects/Bunyan` → "REFUSED [1 refused on the repository]: PR #65 names T-007, and docs/BACKLOG.md has no readable 'risk:' for it."
 - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
 - cleared: -
+
+## B-20261011-07 PR #55 is CONFLICTING with main and no entrypoint returns it to its builder
+
+- opened: 2026-10-11T23:48Z
+- by: brahim-loop
+- scope: item
+- item: PR#55
+- what: PR #55 (T-027, zayd) cannot be reviewed or merged; zayd's start on 2026-10-11 listed it, refused it, and claimed T-032 instead
+- why: the merge preflight refuses "PR is CONFLICTING … rebase it onto main", and `agent_start.py --seat zayd` does not hand a builder its own conflicting branch, so T-027's row still reads `ready` with its work stranded on `task/T-027-6-s-relink-cap-is-measured-not-guessed`
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat hmdnah --pr 55 --dry-run`
+- need: rebase `task/T-027-6-s-relink-cap-is-measured-not-guessed` onto `main` to green in a zayd turn, then route PR #55 to hmdnah
+- cleared: -
