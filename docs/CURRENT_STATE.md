@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-HANDOVER-H-20261011-13` |
 | branch | `custodianship/T-006-security-settings` |
 | claimed-at | 2026-10-08T21:03:29Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #64 merged by `hmdnah` at 2026-10-11T21:45:33Z |
 
 <!-- END BATON -->
 
@@ -200,4 +200,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 249eac8e19dbb0519b413773c26b0ece03f232fe
+last-verified-at: 8b892b917ade7075cd8180dc7a2a023ce8e6865f
