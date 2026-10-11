@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-019` |
 | branch | `task/T-019-the-move-tool-gizmo-corner-drag-redone-a` |
 | claimed-at | 2026-10-11T22:40:44Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 23daa52f075ba4a988c839dab14f43bbd47d5fc5
+last-verified-at: 2c353c8edd87545ab54a0b85d1c077073ea876eb
