@@ -189,3 +189,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/gates.py docs --root /home/ubuntu/projects/Bunyan` on `main` 16a0428
 - need: make docs/PHASE_LOG.md's 2026-10-10 B-20261010-03 diagnosis abstract carry `see: docs/BLOCKERS.md#B-20261010-03` instead of a heading that names the id, then re-run brahim's finish for STEWARD-owner-rulings-q5-q10
 - cleared: 2026-10-11T21:04Z
+
+## B-20261011-06 PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
+
+- opened: 2026-10-11T22:00Z
+- by: hmdnah
+- scope: item
+- item: PR#65
+- what: PR #65 (H-20261011-15) is reviewed, approved in its comment, finished (head 1351819), CI green and MERGEABLE, but the merge entrypoint refuses it
+- why: diwan `agent_merge.py:279` takes `T-\d{3}` from the head branch `custodianship/T-007-descriptions`, which is the Custodianship lane's T-007, and Bunyan's T-007 entry is sealed in docs/backlog-phase-01.md, so `task_field` finds no `risk:` and line 289 exits 1; PR #64 passed the same check only because Bunyan's unrelated T-006 entry is live with `risk: normal`
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --seat hmdnah --pr 65 --root /home/ubuntu/projects/Bunyan` → "REFUSED [1 refused on the repository]: PR #65 names T-007, and docs/BACKLOG.md has no readable 'risk:' for it."
+- need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
+- cleared: -
