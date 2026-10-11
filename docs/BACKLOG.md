@@ -88,14 +88,6 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-018 | done    | D66's lazy-build design doc + measurement, reproduced                   | document | box     | normal | —          |
 | T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                | apps-web | box     | normal | —          |
 | T-032 | ready | Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds | frontend | box | normal | — |
-| T-033 | ready | `Dimension.anchors` admits only model-anchored members, so a dimension can no longer be pinned to two free paper points | backend | box | **high** | — |
-| T-034 | ready | The family seam design rules the reserved shape a data family uses to name its billable faces | spec | any | normal | — |
-| T-035 | blocked | `FamilyDefinition` reserves the field T-034 rules, so a data family can name the faces it bills | backend | box | **high** | T-034 |
-| T-036 | ready | `core.copy` of a host copies its openings in the same edit, re-pointing each `hostRef` at the copy, instead of refusing | backend | box | **high** | — |
-| T-037 | ready | A design doc proposes how a general move, copy or rotate moves a D52 wall without wall-specific code in the general command layer | spec | any | normal | — |
-| T-038 | ready | A design doc rules what invalidates a `.bnn`-embedded D29 cache entry and how saving pays for it | spec | any | **high** | — |
-| T-039 | blocked | A `.bnn` saves and loads the D29 BREP cache as T-038's design rules, and rebuilds whenever an entry is refused | backend | box | **high** | T-038 |
-| T-040 | ready | The section chord tolerance is written in the section design doc and checked by a real-OCCT test | backend | box | normal | — |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows          | infra    | box     | high   | —          |
 | T-021 | done    | `pnpm verify` reaches green on the pc, confirmed there                  | infra    | pc      | normal | T-020      |
 | T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red | infra    | box     | high   | —          |
@@ -180,85 +172,6 @@ D82 made). `docs/CURRENT_STATE.md §5` (Amer, item 3) still names this open.
 - verify: pnpm verify
 - depends-on: — · area: frontend · machine: box · risk: normal
 - note: diagnosed headless-only by a brahim R39 subagent, 2026-10-11: no browser needed, no `[frozen_surface]` file touched
-
-### T-033 — `Dimension.anchors` admits only model-anchored members, so a dimension can no longer be pinned to two free paper points
-- outcome: a `DimensionAnchor` type excludes `point` from `AnnotationAnchor` for `Dimension.anchors`; Tag and note anchors keep `point`
-- implements: `docs/design/P5_step5A_documentation_anchoring_design.md` §2 and §3 · D58 · `docs/contracts/core_logic.md` §8 rule 17 · owner answer D-20261007-07 (narrow)
-- done-when: test-first in `tests/documentation-anchoring.test.ts`: a `@ts-expect-error` on a `Dimension` with a `point` anchor, red against current `main`, and proven to be type-checked by `pnpm verify`
-- done-when: `ref`, `vertex` and `element` anchors still type-check, and the `AnnotationAnchor` list test still passes (Tags keep `point`)
-- done-when: the design doc §2 and §3 state the narrowing
-- done-when: `tests/frozen-surface.snapshot.json` is re-baselined in the same PR
-- verify: pnpm verify
-- depends-on: — · area: backend · machine: box · risk: **high**
-- note: contract-touching: `packages/document/src/documentation.ts` is a `[frozen_surface]` file, so the owner merges it, before P5 step 6
-
-### T-034 — The family seam design rules the reserved shape a data family uses to name its billable faces
-- outcome: a new §11 in `docs/design/P5_step5D_family_seam_design.md` picks the selector a `FamilyDefinition` uses to name billable faces and says how it maps to `BuiltPart.exposedRefs`
-- implements: `docs/design/P5_step5D_family_seam_design.md` §4 (R2) and §7 · D61 · D72 · `docs/contracts/core_logic.md` §8 rules 8 and 15 · owner answer D-20261007-06 (reserve)
-- done-when: §11 states the reserved type and its additive-growth rule
-- done-when: every open question becomes a `docs/OWNER-DECISIONS.md` record with options and a default
-- done-when: no source file is touched
-- verify: pnpm verify
-- depends-on: — · area: spec · machine: any · risk: normal
-
-### T-035 — `FamilyDefinition` reserves the field T-034 rules, so a data family can name the faces it bills
-- outcome: the optional field exists in `packages/document/src/families.ts`, typed, with no reader in v1.0.0
-- implements: T-034's §11 of `docs/design/P5_step5D_family_seam_design.md` · D61 · D72 · owner answer D-20261007-06 (reserve)
-- done-when: test-first in `tests/family-seam.test.ts`: a definition carrying the field type-checks and round-trips through `scene.json` byte-identically
-- done-when: a definition without the field is unchanged
-- done-when: `tests/frozen-surface.snapshot.json` is re-baselined in the same PR
-- verify: pnpm verify
-- depends-on: T-034 · area: backend · machine: box · risk: **high**
-- note: contract-touching: `families.ts` is a `[frozen_surface]` file, so the owner merges it, before P5 step 6
-
-### T-036 — `core.copy` of a host copies its openings in the same edit, re-pointing each `hostRef` at the copy, instead of refusing
-- outcome: copying a host with openings yields new ids for host and openings, each copied `hostRef` rewritten from the source id to the copy id, in one undoable edit
-- implements: owner answer D-20261007-04 (deep-copy) · D51 · D1 · D80 · `docs/design/P4.5_interaction_model_design.md` §9 · `docs/contracts/core_logic.md` §3.6
-- done-when: test-first: copying a `{length,height}` wall with one window builds the copy with a valid window part whose `hostRef` resolves on the copy's faces and differs from the source only in the host-id segment; it replaces the refusal test in `tests/move-verbs-and-transactions.test.ts`
-- done-when: one undo removes the copy and its openings and leaves the source byte-identical
-- done-when: a source that a sketch constraint or join override points at still refuses
-- done-when: the copied openings appear as additions in the Clean Delta
-- verify: pnpm verify
-- depends-on: — · area: backend · machine: box · risk: **high**
-- note: D52 `{start,end}` walls stay refused by the positioning guard in `placement.ts` until T-037's design is ruled; `commands.ts` is not a `[frozen_surface]` file
-
-### T-037 — A design doc proposes how a general move, copy or rotate moves a D52 wall without wall-specific code in the general command layer
-- outcome: a `docs/design/` doc compares candidate mechanisms (a transform hook declared on `BimObjectType`, a declared parameter-space transform, point-typed params that move with the element), cites how Revit and Archicad move a wall or marks it unverified, and says how joins, room bounding and the D72 billed length stay right and whether a frozen shape changes before P5 step 6
-- implements: `docs/design/P4.5_interaction_model_design.md` §9 and the §12 Q4 row · D52 · D80 · D51 · D72 · `docs/contracts/core_logic.md` §8 rule 5 and §9a · owner answer D-20261007-05 (neither keep nor translate-in-the-command: a proper mechanism able to rival Revit, Archicad and Rhino)
-- done-when: the doc exists and names the tests an implementation row would write first: a wall moved by `core.move` keeps its joins and billed length, and no Type id or `baselineOf` call appears in `commands.ts`
-- done-when: every open question, including any frozen-surface change, becomes a `docs/OWNER-DECISIONS.md` record with options and a default
-- done-when: no source file is touched
-- verify: pnpm verify
-- depends-on: — · area: spec · machine: any · risk: normal
-- note: the implementation row is filed after its ruling; it bears on T-019 and D-20261007-08, whose premise is that `core.move` refuses walls
-
-### T-038 — A design doc rules what invalidates a `.bnn`-embedded D29 cache entry and how saving pays for it
-- outcome: a `docs/design/` doc settles the per-solid invalidation key (it must move on a hand-edited `scene.json`, not only on `kernelBuildId`/`typeVersions`), the zip member and `Manifest` field, how a save avoids 6.64 ms/solid, and how it meets D66 lazy build and OPFS autosave
-- implements: `docs/decisions.md` §4j(2) (D29) · D66 · `docs/contracts/v1.0.0_imp_plan.md` Phase 3 steps 4, 5 and 7 · `docs/contracts/V1.0.0_spec.md` §6 and §7 · `docs/contracts/architecture.md` §9 and §10 · owner answer D-20261007-03 (yes)
-- done-when: the doc exists and names a test that fails if a cache entry is reused after a hand-edited `scene.json`
-- done-when: every open question becomes a `docs/OWNER-DECISIONS.md` record with options and a default
-- done-when: no source file is touched
-- verify: pnpm verify
-- depends-on: — · area: spec · machine: any · risk: **high**
-
-### T-039 — A `.bnn` saves and loads the D29 BREP cache as T-038's design rules, and rebuilds whenever an entry is refused
-- outcome: a `.bnn` carries the cache; load imports each entry the design accepts and rebuilds every other
-- implements: T-038's design doc · D29 · `docs/decisions.md` §4j(2) · `docs/contracts/v1.0.0_imp_plan.md` Phase 3 step 4 · owner answer D-20261007-03 (yes)
-- done-when: test-first: a hand-edited `scene.json` with a stale cache entry rebuilds that element and never imports it
-- done-when: every import refusal is `CACHE_STALE`, and a `.bnn` with no cache loads byte-identically to today
-- done-when: save cost and file size are measured and reported against 6.64 ms/solid and 3817 B/solid
-- verify: pnpm verify
-- depends-on: T-038 · area: backend · machine: box · risk: **high**
-
-### T-040 — The section chord tolerance is written in the section design doc and checked by a real-OCCT test
-- outcome: §4.1 of `docs/design/P5_step6C_plan_section_design.md` states the 0.5 mm `SECTION_DEFLECTION` and why it suffices for drawings meant to compete with Revit; a test proves a curved cut stays within it
-- implements: `docs/design/P5_step6C_plan_section_design.md` §4.1 and its Q5 row · `docs/contracts/core_logic.md` §8 rule 15 · D81 · owner answer D-20261007-02 (builder, aware Bunyan competes with Revit)
-- done-when: test-first in `tests/plan-section.test.ts`: a cut through a round column has every `SectionCurve.points` vertex within 0.5 mm of the exact circle, and each curve keeps its face `ref`
-- done-when: §4.1 names 0.5 mm, why it holds at every target drawing scale, and how it compares with Revit output, citing a source or marked unverified
-- done-when: no quantity reads the polyline, and existing rule-15 tests stay green
-- verify: pnpm verify
-- depends-on: — · area: backend · machine: box · risk: normal
-- note: `packages/kernel-occt/src/` is a `[reseed]` source: measure the cut output rather than editing or exporting the constant
 
 ### T-023 — The kernel boots on the pc's system Chrome, confirmed there
 
