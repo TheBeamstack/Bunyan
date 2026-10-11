@@ -177,3 +177,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `npx vitest run tests/docs-budget.test.ts` in /home/ubuntu/projects/Bunyan on `main` (2 failed)
 - need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
 - cleared: 2026-10-11T20:16Z
+
+## B-20261011-05 PR #63's steward finish refuses: B-20261010-03 is a record heading in two files on main
+
+- opened: 2026-10-11T20:54Z
+- by: brahim
+- scope: item
+- item: PR#63
+- what: PR #63 is rebased (1ef86f9), verify-green and MERGEABLE, but brahim's finish for STEWARD-owner-rulings-q5-q10 cannot complete, so no PR command is printed
+- why: `gates.py docs` reports "B-20261010-03 is a record heading in 2 files — docs/BLOCKERS.md:121, docs/PHASE_LOG.md:55"; the PHASE_LOG heading came from main's b433931, and `agent_finish.py` exits 1 on any `gates.py docs` finding
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/gates.py docs --root /home/ubuntu/projects/Bunyan` on `main` 16a0428
+- need: make docs/PHASE_LOG.md's 2026-10-10 B-20261010-03 diagnosis abstract carry `see: docs/BLOCKERS.md#B-20261010-03` instead of a heading that names the id, then re-run brahim's finish for STEWARD-owner-rulings-q5-q10
+- cleared: -
