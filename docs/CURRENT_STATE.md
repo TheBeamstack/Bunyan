@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
-| task | `STEWARD-owner-rulings-q5-q10` |
-| branch | `steward/owner-rulings-q5-q10` |
+| task | `STEWARD-HANDOVER-H-20261011-13` |
+| branch | `custodianship/T-006-security-settings` |
 | claimed-at | 2026-10-08T21:03:29Z |
-| status | merged — PR #63 merged by `hmdnah` at 2026-10-11T21:17:36Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -200,4 +200,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 632383825481f5871318bac2e29b83f782f8e7b8
+last-verified-at: 249eac8e19dbb0519b413773c26b0ece03f232fe
