@@ -152,7 +152,7 @@ from, and the reason it is a record rather than prose.
 - why: c4d7d28 added `handoff/brahim/2026-10-10-B-20261010-03-diagnosis.md` without re-measuring, so §8 says 96 bodies against 97 measured (start exit 6), and the body has no §7 abstract or PHASE_LOG index (`docs-budget.test.ts` "points at a body that exists", a third failure beside B-20261010-03's two); rewriting §8 on `main` is B-20261010-03's block, not a builder's write
 - evidence: `python3 $DIWAN/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan; echo $?` (6) · `npx vitest run tests/docs-budget.test.ts` (3 failed)
 - need: index the B-20261010-03 diagnosis body in `docs/PHASE_LOG.md` and re-measure §8 in one steward commit to `main`
-- cleared: -
+- cleared: 2026-10-11T02:05Z
 
 ## B-20261011-03 PR #63, the act on owner answers D-20261007-02..07, conflicts with main on T-032
 
