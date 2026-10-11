@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-owner-rulings-q5-q10` |
 | branch | `steward/owner-rulings-q5-q10` |
 | claimed-at | 2026-10-08T21:03:29Z |
-| status | finished — PR open, awaiting review |
+| status | merged — PR #63 merged by `hmdnah` at 2026-10-11T21:17:36Z |
 
 <!-- END BATON -->
 
@@ -200,4 +200,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 4b5da798f9d9cba7379d545d258a91f9009dfd48
+last-verified-at: 632383825481f5871318bac2e29b83f782f8e7b8
