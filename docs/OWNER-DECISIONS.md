@@ -207,3 +207,21 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-18
 - ANSWER:
 - answered: -
+
+## D-20261011-02 whether to turn on secret scanning, push protection and Dependabot for public Bunyan
+
+- opened: 2026-10-11T22:10Z
+- by: brahim-loop
+- item: H-20261011-13
+- asks: whether to enable Dependabot alerts, Dependabot security updates, secret scanning and push protection on TheBeamstack/Bunyan
+- context: Bunyan is public and all four are off (`docs/HANDOVERS.md#H-20261011-13` carries the measurement).
+  With them off, a credential pushed here is neither blocked nor reported, and no vulnerable dependency is
+  flagged. Each is a repository admin setting under Settings → Code security; no seat changes repository settings.
+  enabled: you switch them on, then write `enabled` here; nothing else changes.
+  decline: they stay off and this record closes it; the Custodianship lane will keep reporting it.
+  If silent, nothing is enabled and the item becomes a blocker naming the owner action.
+- options: enabled | decline
+- default-if-silent: none
+- expires: 2026-10-18
+- ANSWER:
+- answered: -

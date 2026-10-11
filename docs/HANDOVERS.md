@@ -14,4 +14,4 @@ Append-only, one record per handover. Only `cleared:` is ever edited, by the ste
 - why: with secret scanning and push protection off, a credential pushed to this public repo is neither blocked before it lands nor reported after; with Dependabot alerts off, no vulnerable dependency is reported and no security-update PR is opened, so the Custodianship lane's Dependabot triage has nothing to read here; each is a repository admin setting, enabled by the owner alone, and this lane changes none (Custodianship `docs/INVARIANTS.md` §1-2)
 - evidence: `gh api repos/TheBeamstack/Bunyan --jq .security_and_analysis`; `gh api 'repos/TheBeamstack/Bunyan/dependabot/alerts?per_page=1'` → HTTP 403; `gh api -i repos/TheBeamstack/Bunyan/vulnerability-alerts` → 404 Not Found (204 when enabled); `gh api repos/TheBeamstack/Bunyan --jq .visibility` → public
 - need: route enabling Dependabot alerts, Dependabot security updates, secret scanning and push protection on Bunyan to the owner as an owner action
-- cleared: -
+- cleared: 2026-10-11T22:10Z
