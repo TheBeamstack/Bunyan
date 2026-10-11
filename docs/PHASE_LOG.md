@@ -52,11 +52,32 @@ Approved: revert of `keepLiveSet`'s keep-live guards went red (2 of 9) and green
 73.3 % of first paint removed (11 of 88 built). Fixed test-first: a future-version Type is now kept live (D43).
 Body: `handoff/hmdnah/2026-10-10-T-006-review.md`
 
-## B-20261010-03 — diagnosis — 2026-10-10 — seat: brahim
+## STEWARD-merge-remeasure-diagnosis — diagnosis — 2026-10-10 — seat: brahim
 
-Read-only R39 finding: diwan `agent_merge.py` `step_remeasure` splices `measure.py`'s block over Bunyan's
+see: docs/BLOCKERS.md#B-20261010-03 · Read-only R39 finding: diwan `agent_merge.py` `step_remeasure` splices `measure.py`'s block over Bunyan's
 `state.mjs` §8 block with no owner check; fix and restore order named. No code changed.
 Body: `handoff/brahim/2026-10-10-B-20261010-03-diagnosis.md`
+
+## STEWARD-owner-rulings-q5-q10 — owner answers Q5–Q10 recorded as D92–D97, built as T-033–T-038 — 2026-10-10 — seat: brahim
+
+- Acted on `D-20261007-02…07` and stamped `answered:`; `-08`/`-11` pending, untouched.
+- Rows: T-033 (Q10), T-034 (Q9), T-037 (Q5) ready builds; T-035 (Q8), T-038 (Q6) ready design docs;
+  T-036 (Q7) blocked on T-035, since `core.copy` refuses every baseline wall today (`placement.ts:348`).
+- Rebased onto `main` 2026-10-11 and renumbered from T-033 (`backlog.py next-id`), as `main`'s a68b995 took T-032.
+- Next: `hmdnah` reviews this PR once B-20261010-03 is cleared.
+- Body: `handoff/brahim/2026-10-10-STEWARD-owner-rulings-q5-q10-d92-d97.md`
+
+## STEWARD-owner-rulings-q5-q10 — PR #63 rebased onto 9d05388, B-20261011-03 cleared — 2026-10-11 — seat: brahim
+
+Rebased cleanly onto `main` 9d05388 (1ef86f9); T-033–T-038 kept, as `backlog.py next-id` measures main at T-033.
+`pnpm verify` passed (898+66); `gh pr view 63` reads MERGEABLE. Next: `hmdnah` reviews PR #63.
+Body: `handoff/brahim/2026-10-11-STEWARD-owner-rulings-q5-q10-rebase.md`
+
+## STEWARD-HANDOVER-H-20261011-13 — review of PR #64 — 2026-10-11 — seat: hmdnah
+
+Approved: Custodianship's `verify-handovers.py` went FAILED (rc=1) on a mirror whose `need:` disagreed with
+PR #64's copy, PENDING/0 failed (rc=0) on the real one; the record's `gh api` evidence re-ran as stated.
+Body: `handoff/hmdnah/2026-10-11-STEWARD-HANDOVER-H-20261011-13-review.md`
 
 ## T-010 — two doors on one wall, confirmed in the browser — 2026-10-10 — seat: zayd
 
