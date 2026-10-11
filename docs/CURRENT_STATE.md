@@ -78,9 +78,6 @@ builder may claim.
 - **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
   - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
   - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261011-03** — `scope: item` · `item: PR#63` — PR #63, the act on owner answers D-20261007-02..07, conflicts with main on T-032
-  - need: rebase PR #63 onto `main` as a brahim turn, renumbering its rows through `backlog.py next-id` from T-033, then route it to hmdnah once B-20261010-03 is cleared
-  - opened 2026-10-11T01:38Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

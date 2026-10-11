@@ -164,7 +164,7 @@ from, and the reason it is a record rather than prose.
 - why: a68b995 allocated T-032 on `main` (the docLock row) after PR #63 numbered its Q10 row T-032 by hand, so `git merge-tree` of PR #63's head onto 1b1cd74 exits 1; merging is also held by B-20261010-03
 - evidence: `git merge-tree --write-tree origin/main origin/steward/owner-rulings-q5-q10; echo $?`
 - need: rebase PR #63 onto `main` as a brahim turn, renumbering its rows through `backlog.py next-id` from T-033, then route it to hmdnah once B-20261010-03 is cleared
-- cleared: -
+- cleared: 2026-10-11T20:38Z
 
 ## B-20261011-04 no builder or reviewer turn can finish: B-20261010-03 keeps main red, not only PR #55
 
