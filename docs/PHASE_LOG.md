@@ -466,3 +466,9 @@ Approved; no row defect proven. Item 1: a counting reader on the d29 restore →
 a throwaway per-root `readMany` → green, 0 reads; removed. Probe: 20.6–21.0 ms per `read`, 609–626 ms per `readMany`
 (row: 22.56, 694). Fixed the abstract's 22.56 → 20.11, step 2's figure. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
+
+## STEWARD-HANDOVER-H-20261011-15 — review of PR #65 — 2026-10-11 — seat: hmdnah
+
+Approved: `verify-handovers.py` FAILED (rc=1) on a mirror whose `what:` disagreed with PR #65's copy, 0 failed
+(rc=0) on the real one. Merged `main` into the branch keeping H-20261011-13 and -15 byte-identical (add/add).
+Body: `handoff/hmdnah/2026-10-11-STEWARD-HANDOVER-H-20261011-15-review.md`
