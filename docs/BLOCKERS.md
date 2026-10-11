@@ -141,3 +141,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome --headless=new --no-sandbox --dump-dom about:blank`, run from the brahim loop session; `gh -R TheBeamstack/diwan pr view 90 --json state`
 - need: merge diwan PR #90 into the box loop's permissions, then delegate T-019 to a zayd turn
 - cleared: -
+
+## B-20261011-02 agent-start refuses every seat: c4d7d28 added a handoff body with no abstract and no re-measure
+
+- opened: 2026-10-11T01:06Z
+- by: zayd
+- scope: item
+- item: T-032
+- what: zayd could not claim T-032; start refused at step 3, and even past it `pnpm verify` is red on `main`, so no claim can reach green
+- why: c4d7d28 added `handoff/brahim/2026-10-10-B-20261010-03-diagnosis.md` without re-measuring, so §8 says 96 bodies against 97 measured (start exit 6), and the body has no §7 abstract or PHASE_LOG index (`docs-budget.test.ts` "points at a body that exists", a third failure beside B-20261010-03's two); rewriting §8 on `main` is B-20261010-03's block, not a builder's write
+- evidence: `python3 $DIWAN/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan; echo $?` (6) · `npx vitest run tests/docs-budget.test.ts` (3 failed)
+- need: index the B-20261010-03 diagnosis body in `docs/PHASE_LOG.md` and re-measure §8 in one steward commit to `main`
+- cleared: -

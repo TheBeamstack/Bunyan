@@ -84,6 +84,12 @@ builder may claim.
 - **B-20261010-03** — `scope: item` · `item: PR#55` — agent_merge's re-measure overwrites the state.mjs §8 block, so every merge turns main red
   - need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
   - opened 2026-10-10T23:20Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261011-01** — `scope: item` · `item: T-019` — T-019 cannot be built on the box: B-20261010-02's cause still holds
+  - need: merge diwan PR #90 into the box loop's permissions, then delegate T-019 to a zayd turn
+  - opened 2026-10-11T00:33Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261011-02** — `scope: item` · `item: T-032` — agent-start refuses every seat: c4d7d28 added a handoff body with no abstract and no re-measure
+  - need: index the B-20261010-03 diagnosis body in `docs/PHASE_LOG.md` and re-measure §8 in one steward commit to `main`
+  - opened 2026-10-11T01:06Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
