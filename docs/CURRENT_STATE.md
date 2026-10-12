@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-d29-cache-decomposition` |
 | branch | `steward/d29-cache-decomposition` |
 | claimed-at | 2026-10-12T02:54:48Z |
-| status | finished — PR open, awaiting review |
+| status | merged — PR #74 merged by `hmdnah` at 2026-10-12T06:52:52Z |
 
 <!-- END BATON -->
 
@@ -202,4 +202,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 5759058833e32f08ae5a83ce13461ee5fb825d83
+last-verified-at: e68efadeafd42361b4d5fe26aa3ee769a8ae7cf7
