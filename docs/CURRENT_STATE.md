@@ -131,7 +131,7 @@ machine holding the line afterwards.
 ### T-037 (PR #72) — returned, incomplete
 
 T-037's code and test are done; its re-seed is not: the seeder was refused by permissions on zayd's box
-session (B-20261012-01, uncleared), refused again in the third turn. The branch also conflicts with
+session (B-20261012-01, uncleared), refused again in the third and fourth turns (B-20261012-03 on `main`). The branch also conflicts with
 `main`, including a duplicate id B-20261012-01 (see BACKLOG `## Discovered`). Next on this branch: a
 steward resolves the id collision, then a permitted session runs the seeder.
 

@@ -56,3 +56,8 @@
   PHASE_LOG. BLOCKERS is a duplicate id: `origin/main:docs/BLOCKERS.md:217` is a different B-20261012-01 (PR #74).
   Not hand-resolved (blocker records are immutable); filed to BACKLOG `## Discovered`.
 - Next: a steward rules which B-20261012-01 is renumbered; then a permitted session runs the seeder.
+
+## Fourth turn — incomplete
+
+- `cd tools/oracle && uv run seed-goldens ../../tests/goldens` refused once more ("requires approval"); not retried.
+- Already B-20261012-03 on `main` (uncleared); not re-filed. Nothing else changed.

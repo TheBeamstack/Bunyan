@@ -206,3 +206,10 @@ Not done: the seeder was refused a third time ("requires approval"); no golden r
 Found: this branch conflicts with `main` on a duplicate blocker id B-20261012-01 (PR #72 vs PR #74); filed to `## Discovered`.
 Next: a steward rules the id collision; a permitted session runs B-20261012-01's `need:`.
 Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — fourth turn on PR #72, incomplete — 2026-10-12 — seat: zayd
+
+Not done: the seeder was refused a fourth time ("requires approval"); no golden re-seeded, re-seed gate still red.
+Already recorded as B-20261012-03 on `main` (uncleared); not re-filed. No code changed.
+Next: a session permitted to run the seeder performs B-20261012-03's `need:` on this branch.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
