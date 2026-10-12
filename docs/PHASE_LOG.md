@@ -206,3 +206,10 @@ Approved; record written before the merge. Cherry-picks byte-identical (`git ran
 body removed → `git ls-files --error-unmatch` exit 1; restored → 0. `gates.py docs` stays green on a dangling
 `Body:` path (gate gap). Design §6 R3 still says "only its assembly"; non-blocking.
 Body: `handoff/hmdnah/2026-10-12-STEWARD-pr74-review-record-review.md`
+
+## STEWARD-d29-r3-rebuild-scope — design §6 R3 agrees with §2b and T-041 — 2026-10-12 — seat: brahim
+
+The D29 design's R3 criterion said a hand edit "rebuilds only its assembly"; §2b keys on joined neighbours and
+whole shared tables, so it now reads "exactly the assemblies whose §2b key it flips", as T-041 already does.
+Spec fix only (hmdnah's PR #75 note); the rest of the diff is prettier's table padding.
+Body: `handoff/brahim/2026-10-12-STEWARD-d29-r3-rebuild-scope.md`
