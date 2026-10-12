@@ -225,3 +225,23 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-18
 - ANSWER:
 - answered: -
+
+## D-20261012-01 PR #69 (T-033) changes the frozen surface and needs an owner merge
+
+- opened: 2026-10-12T02:10Z
+- by: brahim-loop
+- item: PR#69
+- asks: whether to merge PR #69, which narrows `Dimension.anchors` to model anchors and re-baselines `tests/frozen-surface.snapshot.json`
+- context: PR #69 implements your D97 ruling (Q10): a dimension may anchor only to the model, so its number
+  re-derives on every edit; other annotations keep the free `point` anchor. It changes a frozen-surface
+  declaration (`interface Dimension`, plus a new `type ModelAnchor`), so it carries the
+  `needs-operator/contract-touching` and `needs-operator/freeze` labels and no seat may merge it alone.
+  The builder reports `pnpm verify` green; CI is green on the head. It is `risk: high`, so a dedicated
+  `hmdnah` review still runs before any merge.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-19
+- ANSWER:
+- answered: -
