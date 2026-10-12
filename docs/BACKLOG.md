@@ -356,6 +356,7 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - done-when: if the value changes, the re-seed gate is discharged (`docs/INVARIANTS.md §5`)
 - verify: pnpm verify
 - depends-on: — · area: kernel · machine: box · risk: normal
+- note: steward ruling 2026-10-12: merging `main` into this branch, take `main`'s `docs/BLOCKERS.md` and re-append the branch's two unmerged records as `B-20261012-05`/`-06` — they were never on `main`, so this edits no record; `main`'s `B-20261012-03` already carries the re-seed need.
 
 ### T-038 — Q6 — design: the D29 cache in the `.bnn`
 
