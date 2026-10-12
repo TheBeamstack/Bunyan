@@ -90,6 +90,9 @@ builder may claim.
 - **B-20261012-07** — `scope: item` · `item: PR#79` — PR #79's returned fix cannot reach zayd: the start entrypoint reads T-041's claim as hmdnah's
   - need: make diwan `agent_start.py` hand a builder the `task/*` branch whose baton names it as `builder` after a review returned it, then run B-20261012-06's fix in a zayd turn
   - opened 2026-10-12T15:41Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261012-08** — `scope: item` · `item: T-046` — T-046 cannot reach zayd: start re-continues the blocker-held T-037 claim every turn
+  - need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate T-046 to a zayd turn
+  - opened 2026-10-12T16:33Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

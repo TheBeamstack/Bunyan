@@ -261,3 +261,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `git show origin/task/T-041-d29-r3-the-load-only-restore-substitutio:docs/CURRENT_STATE.md | sed -n '61,70p'`; `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan` → "task/T-041-d29-r3-the-load-only-restore-substitutio — claimed by hmdnah"
 - need: make diwan `agent_start.py` hand a builder the `task/*` branch whose baton names it as `builder` after a review returned it, then run B-20261012-06's fix in a zayd turn
 - cleared: -
+
+## B-20261012-08 T-046 cannot reach zayd: start re-continues the blocker-held T-037 claim every turn
+
+- opened: 2026-10-12T16:33Z
+- by: brahim-loop
+- scope: item
+- item: T-046
+- what: T-046 is the one box-`ready` row with no open blocker or PR, but a loop-spawned zayd turn was given T-037 again and did no work on it
+- why: agent_start.py printed "Continuing your own open claim on task/T-037-q5-the-section-chord-tolerance-chosen-fo (a turn ended incomplete)" and pushed a fourth claim-only commit (7b268b3, a58618d, 7285e89, 0a64e54); it does not skip a claim whose item has an uncleared `scope: item` blocker (B-20261012-03)
+- evidence: `git log --format='%h %ad %s' -5 origin/task/T-037-q5-the-section-chord-tolerance-chosen-fo`; `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan`
+- need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate T-046 to a zayd turn
+- cleared: -
