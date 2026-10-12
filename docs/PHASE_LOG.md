@@ -185,3 +185,10 @@ Body: `handoff/hmdnah/2026-10-12-T-038-review-step-2.md`
 predecessors, T-043–T-045 also on `D-20261012-05/-06/-07`. All `risk: high` (READY rule 8, D29). R1/R3 criteria
 exclude the five whole-digested tables, per hmdnah's step-2 note. No code changed.
 Body: `handoff/brahim/2026-10-12-STEWARD-d29-cache-decomposition-rows.md`
+
+## STEWARD-d29-cache-decomposition — review of PR #74 — 2026-10-12 — seat: hmdnah
+
+Approved, merged `e68efad`. Rows match design §6 deps; T-039 ready, rest blocked; carve-out names §2b's five
+tables. Item 1: revert leaves `gates.py docs` green (additive); deleting T-039's `implements:` turns it red.
+Note: T-041 "rebuilds only its assembly" is false for a joined endpoint (`resolveJoins`); non-blocking.
+Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-cache-decomposition-review.md`
