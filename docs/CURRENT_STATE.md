@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-040` |
-| branch | `task/T-040-d29-r2-geometry-cache-in-the-bnn-optiona` |
+| task | `STEWARD-loadbnn-zip-caps` |
+| branch | `steward/loadbnn-zip-caps` |
 | claimed-at | 2026-10-12T13:03:17Z |
-| status | merged — PR #78 merged by `hmdnah` at 2026-10-12T14:01:00Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -211,4 +211,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 379f3a1db109f49c3d206c6921543c68bbb31aa4
+last-verified-at: 0af8b9c1c71511802827c68b5514d74cfb7fad41
