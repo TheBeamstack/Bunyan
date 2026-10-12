@@ -270,7 +270,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 
 - opened: 2026-10-12T01:45Z
 - by: zayd
-- item: T-035
+- item: Q8a
 - asks: which mechanism lets `core.move`, `core.rotate` and `core.copy` move a D52 wall without wall knowledge in the verbs (`docs/design/P4.5_baseline_move_design.md` §5)
 - context: You ruled that walls must move without the general commands knowing what a wall is (D95). Today
   every move, copy and rotate of a wall refuses (8 of 8 on the demo scene, design §1).
@@ -292,7 +292,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 
 - opened: 2026-10-12T01:45Z
 - by: zayd
-- item: T-035
+- item: Q8b
 - asks: whether `core.move` on a wall also moves the ends of the walls joined to it (`docs/design/P4.5_baseline_move_design.md` §7)
 - context: When a wall moves, the walls meeting it at a corner can stay put (the corner opens) or stretch
   to follow it, which is what Revit does by default (unverified here).
