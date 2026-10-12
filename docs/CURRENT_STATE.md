@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-038` |
 | branch | `task/T-038-q6-design-the-d29-cache-in-the-bnn` |
 | claimed-at | 2026-10-12T02:54:48Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #73 merged by `hmdnah` at 2026-10-12T04:19:12Z |
 
 <!-- END BATON -->
 
@@ -202,4 +202,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: bba61750a787a42b5bb929d96df543defcc8201a
+last-verified-at: cb4a60dbcc07aa21db0daa055609d2635ae7a74a
