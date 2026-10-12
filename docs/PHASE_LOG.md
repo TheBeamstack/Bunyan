@@ -227,3 +227,10 @@ Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-r3-rebuild-scope-review.md`
 rows, resolved joins, five-table digest) and the `bnnc1` envelope. 22 tests; each class revert-verified red.
 Keys at 1k/4k/16k: 0.15/0.29/1.18 s, after indexing `joinOverridesOf` (was 113.6 s at 16k). `pnpm verify` green.
 Body: `handoff/zayd/2026-10-12-T-039-d29-cache-input-key.md`
+
+## T-039 — review step 1 of PR #77 — 2026-10-12 — seat: hmdnah
+
+Not approved (step 1). Defect: owned constraint rows are keyed id-sorted (`cachekey.ts:93-94`) but `datumElevations`
+is last-wins in scene order (`scene.ts:432-436`); probe: key-reversed `constraints` → base 3000 → 0, key equal.
+Item 1: `joins` dropped → 2 red, restored 22 green. 16k keys 1191.9 ms. Risk gate: additive; CI re-seed gate OK.
+Body: `handoff/hmdnah/2026-10-12-T-039-review-step-1.md`

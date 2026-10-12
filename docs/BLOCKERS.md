@@ -237,3 +237,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `cd tools/oracle && uv run seed-goldens ../../tests/goldens` in a loop-spawned zayd → "The following part requires approval: uv run seed-goldens ../../tests/goldens"; `gh pr view 72 --json mergeable` → CONFLICTING
 - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
 - cleared: -
+
+## B-20261012-04 PR #77's step-1 report could not be posted as a comment under hmdnah's account
+
+- opened: 2026-10-12T09:09Z
+- by: hmdnah
+- scope: item
+- item: PR#77
+- what: the step-1 review report of PR #77 is committed but not posted to the PR
+- why: ambient `gh api user` is `Davidian-Abdo` (the author's account); `GH_TOKEN=… gh pr comment` and a `python3 -c` call of diwan `protocol.gh` were both refused by the session permission layer
+- evidence: `gh api user --jq .login` → `Davidian-Abdo`; `GH_TOKEN="$(cat ~/.config/beamstack/narutousomaki741.token)" gh pr comment 77 --body-file …` → "Contains shell syntax … cannot be statically analyzed"
+- need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
+- cleared: -
