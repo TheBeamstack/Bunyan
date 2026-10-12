@@ -248,3 +248,24 @@ Approved. Step 1's defect fixed: `cachekey.ts` at `f54de71` → 3 reorder tests 
 every `buildAssembly` scene read is keyed; no in-place `constraints` write for the join index. Hosted order is
 keyed as `hostedBy` cuts (probe), but no test pins it, and the one-pass test cannot fail. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-T-039-review-step-2.md`
+
+## T-040 — D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load — 2026-10-12 — seat: zayd
+
+`bnn.ts`: optional `SaveOptions.cache` written under `geometry-cache/`; `loadBnn` filters it out of `unzipSync`
+and exposes `cache: { names, read }` inflating one entry on demand. Spec §6 tree amended. 7 tests: 5 red before;
+filter reverted → the corrupt-entry test red. Pre-R2 `loadBnn` opens a cached file. `pnpm verify` green (943).
+Body: `handoff/zayd/2026-10-12-T-040-d29-geometry-cache-layout.md`
+
+## T-040 — review step 1 of PR #78 — 2026-10-12 — seat: hmdnah
+
+Not approved (step 1); no defect proven. Item 1: filter `return false` → `true` → 1 red, restored 7 green.
+Test-first re-run on `600baab`'s `bnn.ts` → 5 red / 2 green; pre-R2 fixture equals `600baab`'s `loadBnn`.
+`pnpm verify` → 943 tests, `docs:check` 66. Risk gate: additive, CI and local. Step 2: items 2, 3, 6.
+Body: `handoff/hmdnah/2026-10-12-T-040-review-step-1.md`
+
+## T-040 — review step 2 of PR #78 — 2026-10-12 — seat: hmdnah
+
+Approved; no defect proven. Item 1 re-run: filter → `true` → 1 red, restored 7 green. Item 2: `bnn.ts` is the
+only non-test `unzipSync`; app consumers take named fields. Item 3: no consumer of the cache yet (R3/R5).
+Item 6: 4 of 5 `bnn.ts` mutants red; the survivor is equivalent. `pnpm verify` 943 + 66. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-12-T-040-review-step-2.md`

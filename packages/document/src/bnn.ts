@@ -10,12 +10,11 @@
  *     ├── manifest.json   app/schema/type versions, the KERNEL BUILD ID, and the MODEL REVISION (D34)
  *     ├── scene.json      THE PARAMETRIC TRUTH. The building IS this file.
  *     ├── history.json    the edit log — session continuity AND the ecosystem's change feed (D34)
- *     └── thumbnail.png   a convenience artifact; never affects load
+ *     ├── thumbnail.png   a convenience artifact; never affects load
+ *     └── geometry-cache/ OPTIONAL (D29/D93): `index.json` + `<rootId>/<k>.brep`, never assumed present
  *
- * ⚠ **THERE IS NO `geometry-cache.brep` AND NOTHING HERE ASSUMES ONE** (D29, deferred by owner ruling
- * to P3 step 4 — to be decided WITH the measured rebuild cost, which is the whole point of the
- * deferral). Whatever is ruled, it is purely additive to a zip, so v1.0.x could add it without
- * breaking a single saved file.
+ * ⚠ The geometry cache is purely additive: nothing here requires it, a build that ignores it opens the
+ * file, and `loadBnn` never inflates it until an entry is read (design `P5_step9_D29_bnn_cache_design.md` §3).
  *
  * ⚠ **WHY A NATIVE FORMAT EXISTS AT ALL, WHEN IFC IS A REAL OPEN STANDARD:** IFC is an *interchange*
  * format, not an *authoring* one. It stores the RESULTS of modelling — geometry, properties,
@@ -66,6 +65,24 @@ export interface BnnPackage {
   /** ⚠ THE JOURNAL (D40) — the ecosystem's change feed. Not "optional session continuity". */
   readonly journal?: readonly UndoableEdit[];
   readonly thumbnail?: Uint8Array;
+  /** Present iff the file carries `geometry-cache/`. Nothing in it is inflated until `read`. */
+  readonly cache?: GeometryCacheReader;
+}
+
+/** The zip directory the D29 cache lives in (design §3). */
+export const GEOMETRY_CACHE_DIR = 'geometry-cache/';
+
+/** A geometry cache to write: entry names relative to `geometry-cache/`, `index.json` required. */
+export type GeometryCacheFiles = Readonly<Record<string, Uint8Array>>;
+
+/**
+ * On-demand access to a loaded file's `geometry-cache/`. It retains the file's bytes (not a copy) and
+ * inflates one entry per `read`; a corrupt entry throws there, never at load.
+ */
+export interface GeometryCacheReader {
+  /** Entry names relative to `geometry-cache/`, directory entries excluded. */
+  readonly names: readonly string[];
+  read: (name: string) => Uint8Array | undefined;
 }
 
 export interface SaveOptions {
@@ -87,6 +104,8 @@ export interface SaveOptions {
    * Absent in v1.0.0 (no transport mints one); a co-editing transport supplies it additively.
    */
   readonly documentLineage?: string | undefined;
+  /** D29 — written under `geometry-cache/` verbatim. Absent ⇒ no cache, and the file is complete. */
+  readonly cache?: GeometryCacheFiles | undefined;
 }
 
 const encoder = new TextEncoder();
@@ -150,21 +169,44 @@ export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
     files['history.json'] = encoder.encode(JSON.stringify(options.journal, null, 2));
   }
   if (options.thumbnail !== undefined) files['thumbnail.png'] = options.thumbnail;
+  if (options.cache !== undefined) {
+    if (options.cache['index.json'] === undefined) {
+      throw new Error('refusing to write a geometry cache without its index.json');
+    }
+    for (const [name, bytes] of Object.entries(options.cache)) {
+      if (!isCacheEntryName(name)) throw new Error(`refusing cache entry name "${name}"`);
+      files[GEOMETRY_CACHE_DIR + name] = bytes;
+    }
+  }
 
   return zipSync(files, { level: 6 });
+}
+
+/** Relative, `/`-separated, no empty, `.` or `..` segment — so no entry lands outside the directory. */
+function isCacheEntryName(name: string): boolean {
+  if (name === '' || name.includes('\\')) return false;
+  return name.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..');
 }
 
 /**
  * ⚠ A `.bnn` IS A FILE A USER CAN BE *SENT*. Everything here is parsed defensively: a malformed
  * manifest, a missing `scene.json`, a scene whose collections are not objects — all of them fail with
- * a message, never with a half-loaded document. (The one part that would have been fed as *binary* to
- * OCCT's deserializer is the geometry cache, which does not exist — see D29. That is not a small
- * security dividend, and it is one of the arguments for never building it.)
+ * a message, never with a half-loaded document. The geometry cache — the one part fed as *binary* to
+ * OCCT — is not inflated here; it is listed, and `cache.read` inflates an entry when a caller asks.
  */
 export function loadBnn(bytes: Uint8Array): BnnPackage {
   let files: Record<string, Uint8Array>;
+  const cacheNames: string[] = [];
+  let hasCache = false;
   try {
-    files = unzipSync(bytes);
+    files = unzipSync(bytes, {
+      filter: (file) => {
+        if (!file.name.startsWith(GEOMETRY_CACHE_DIR)) return true;
+        hasCache = true;
+        if (!file.name.endsWith('/')) cacheNames.push(file.name.slice(GEOMETRY_CACHE_DIR.length));
+        return false;
+      },
+    });
   } catch (error) {
     throw new Error(`not a readable .bnn package: ${error instanceof Error ? error.message : ''}`);
   }
@@ -247,6 +289,19 @@ export function loadBnn(bytes: Uint8Array): BnnPackage {
     scene,
     ...(journal === undefined ? {} : { journal }),
     ...(thumbnail === undefined ? {} : { thumbnail }),
+    ...(hasCache ? { cache: geometryCacheReader(bytes, cacheNames) } : {}),
+  };
+}
+
+function geometryCacheReader(bytes: Uint8Array, names: readonly string[]): GeometryCacheReader {
+  const known = new Set(names);
+  return {
+    names,
+    read: (name) => {
+      if (!known.has(name)) return undefined;
+      const full = GEOMETRY_CACHE_DIR + name;
+      return unzipSync(bytes, { filter: (file) => file.name === full })[full];
+    },
   };
 }
 
