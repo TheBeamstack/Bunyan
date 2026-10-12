@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-d29-cache-decomposition` |
 | branch | `steward/d29-cache-decomposition` |
 | claimed-at | 2026-10-12T02:54:48Z |
-| status | merged — PR #74 merged by `hmdnah` at 2026-10-12T06:52:52Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 8715b525d0e6fbaaa09645d18f4a08c23e4b9057
+last-verified-at: 4e2abd97abc05126a35c9195a49911f847de8a31
