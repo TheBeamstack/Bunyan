@@ -157,3 +157,10 @@ Approved. Item 1: §A probe re-run, 8/8 baseline-rung refusals and 2/2 `setParam
 rung disabled → red (0 refusals), restored → green. Q8a/Q8b split lawful (Q8 closed, two distinct questions).
 §4 vendor rows still unverified here: web tools denied this session.
 Body: `handoff/hmdnah/2026-10-12-T-035-review.md`
+
+## T-038 — design: the D29 cache in the `.bnn` — 2026-10-12 — seat: zayd
+
+`docs/design/P5_step9_D29_bnn_cache_design.md`: per-assembly input key over what `buildAssembly` reads, plus an
+envelope (`codeId`, own `kernelBuildId`); `geometry-cache/` additive, no frozen shape moves; saves never export
+(106 s at 16k), the cache is written lazily. Rows R1–R7. Owner asks: `D-20261012-05`, `-06`, `-07`. No code changed.
+Body: `handoff/zayd/2026-10-12-T-038-d29-bnn-cache-design.md`
