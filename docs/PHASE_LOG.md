@@ -157,3 +157,24 @@ Approved. Item 1: §A probe re-run, 8/8 baseline-rung refusals and 2/2 `setParam
 rung disabled → red (0 refusals), restored → green. Q8a/Q8b split lawful (Q8 closed, two distinct questions).
 §4 vendor rows still unverified here: web tools denied this session.
 Body: `handoff/hmdnah/2026-10-12-T-035-review.md`
+
+## T-038 — design: the D29 cache in the `.bnn` — 2026-10-12 — seat: zayd
+
+`docs/design/P5_step9_D29_bnn_cache_design.md`: per-assembly input key over what `buildAssembly` reads, plus an
+envelope (`codeId`, own `kernelBuildId`); `geometry-cache/` additive, no frozen shape moves; saves never export
+(106 s at 16k), the cache is written lazily. Rows R1–R7. Owner asks: `D-20261012-05`, `-06`, `-07`. No code changed.
+Body: `handoff/zayd/2026-10-12-T-038-d29-bnn-cache-design.md`
+
+## T-038 — review step 1 of PR #73 — 2026-10-12 — seat: hmdnah
+
+Not approved (step 1). Defect: §2b keys styles only for root + `hostedBy`; a D59 child's style (`build.ts:590,753`)
+moves no key. Throwaway OCCT test: key unchanged, rebuilt 2e7 → 6e7 mm³ (red); `styles` digested whole → green.
+§5's 60-solid figures cite the wrong source (Entry 71's handoff, not the test). Risk gate ran: additive.
+Body: `handoff/hmdnah/2026-10-12-T-038-review-step-1.md`
+
+## T-038 — review step 2 of PR #73 — 2026-10-12 — seat: hmdnah
+
+Approved. Step 1's defect re-measured on OCCT: child-only style edit, pre-fix key unchanged (red), revised key
+flips (green), 3.0e7 → 7.0e7 mm³; reformat and unrelated edit flip nothing. Restore is load-only; citation fixed.
+Items 2/3/6: every `buildAssembly` scene read is keyed. Note: R1/R3 "exactly" wording excludes whole tables.
+Body: `handoff/hmdnah/2026-10-12-T-038-review-step-2.md`
