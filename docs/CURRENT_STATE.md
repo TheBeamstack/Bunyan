@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-040` |
-| branch | `task/T-040-d29-r2-geometry-cache-in-the-bnn-optiona` |
-| claimed-at | 2026-10-12T13:03:17Z |
-| status | merged — PR #78 merged by `hmdnah` at 2026-10-12T14:01:00Z |
+| task | `T-041` |
+| branch | `task/T-041-d29-r3-the-load-only-restore-substitutio` |
+| claimed-at | 2026-10-12T14:03:54Z |
+| status | working |
 
 <!-- END BATON -->
 
