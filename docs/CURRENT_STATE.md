@@ -192,17 +192,17 @@ maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `main` · `9d68d51` · dirty |
-| open PRs | #65 custodianship/T-007-descriptions · #64 custodianship/T-006-security-settings · #63 steward/owner-rulings-q5-q10 · #55 task/T-027-6-s-relink-cap-is-measured-not-guessed |
-| suite | ⚠⚠ 896/898 passing — **2 FAILING** |
+| branch · tip · tree | `main` · `f3a2dd3` · dirty |
+| open PRs | #65 custodianship/T-007-descriptions · #55 task/T-027-6-s-relink-cap-is-measured-not-guessed |
+| suite | **910 green** · 100 files · 279 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 1 file changed, 1 insertion(+), 1 deletion(-) (1 files) |
-| docs budget | current_state 13.8/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 97 |
+| diff vs origin/main | 3 files changed, 34 insertions(+), 1 deletion(-) (3 files) |
+| docs budget | current_state 13.1/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 106 |
 
-_Generated 2026-10-11 by `pnpm state`._
+_Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
