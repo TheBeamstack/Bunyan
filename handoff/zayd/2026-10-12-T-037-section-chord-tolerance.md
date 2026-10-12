@@ -49,4 +49,5 @@
 - Turn 5: merged `origin/main` per the steward ruling in T-037's backlog entry — main's `docs/BLOCKERS.md`, the branch's
   two records re-appended as B-20261012-05/-06; BLOCKED re-rendered by `blocked.py`; the answered finding dropped.
 - Turn 6: branch already holds `origin/main` (`git log HEAD..origin/main` empty); the seeder is the only open item and was not retried.
+- Turn 7: `uv run seed-goldens ../../tests/goldens` refused again ("requires approval"); nothing else changed.
 - Open: B-20261012-03 (uncleared, not re-filed). Next: a permitted session runs its `need:` on this branch.
