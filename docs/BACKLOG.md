@@ -99,7 +99,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-028 | blocked | `agent-finish.mjs` is resumable after an interrupted run                                          | infra    | box     | normal   | —          |
 | T-027 | done    | §6's relink cap is measured, not guessed                                                          | infra    | box     | normal   | —          |
 | T-033 | ready   | Q10 — `Dimension.anchors` excludes the free `point` anchor                                        | document | box     | **high** | —          |
-| T-034 | ready   | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                            | document | box     | **high** | —          |
+| T-034 | review  | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                            | document | box     | **high** | —          |
 | T-035 | ready   | Q8 — design: moving a D52 baseline wall, properly                                                 | design   | box     | normal   | —          |
 | T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                    | document | box     | **high** | T-035      |
 | T-037 | ready   | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                    | kernel   | box     | normal   | —          |
