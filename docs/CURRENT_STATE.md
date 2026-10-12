@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-d29-r3-rebuild-scope` |
 | branch | `steward/d29-r3-rebuild-scope` |
 | claimed-at | 2026-10-12T02:54:48Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: f9396005e1233b82d23e7b5d2d1f2597ef7f16f9
+last-verified-at: 9ef71616db438594e5c8511c098de89ca231c06d
