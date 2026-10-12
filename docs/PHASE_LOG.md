@@ -157,3 +157,9 @@ Approved. Item 1: §A probe re-run, 8/8 baseline-rung refusals and 2/2 `setParam
 rung disabled → red (0 refusals), restored → green. Q8a/Q8b split lawful (Q8 closed, two distinct questions).
 §4 vendor rows still unverified here: web tools denied this session.
 Body: `handoff/hmdnah/2026-10-12-T-035-review.md`
+
+## STEWARD-HANDOVER-H-20261011-15 — review of PR #65 — 2026-10-11 — seat: hmdnah
+
+Approved: `verify-handovers.py` FAILED (rc=1) on a mirror whose `what:` disagreed with PR #65's copy, 0 failed
+(rc=0) on the real one. Merged `main` into the branch keeping H-20261011-13 and -15 byte-identical (add/add).
+Body: `handoff/hmdnah/2026-10-11-STEWARD-HANDOVER-H-20261011-15-review.md`
