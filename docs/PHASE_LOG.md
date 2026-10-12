@@ -164,3 +164,10 @@ Body: `handoff/hmdnah/2026-10-12-T-035-review.md`
 `tests/section-chord-tolerance.test.ts` bounds vertices and chord midpoints on r150/r600 columns; red at 0.02 and 0.5.
 Found: float32 point transfer exceeds the tolerance beyond 131 m from the view origin (`## Discovered`).
 Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — review of PR #72 — 2026-10-12 — seat: hmdnah
+
+Changes requested, back to zayd (`--continue T-037`): CI's re-seed gate is red and right — no golden was re-seeded (B-20261012-01).
+Item 1: `SECTION_DEFLECTION` 0.5 → red (worst 0.486 / 0.499 mm > 0.0102), restored → green; full suite 912/912.
+ISO 128 / Revit 1:1 claims unverified here (web denied) — amer to confirm.
+Body: `handoff/hmdnah/2026-10-12-T-037-review.md`
