@@ -245,3 +245,23 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-19
 - ANSWER:
 - answered: -
+
+## D-20261012-02 PR #70 (T-034) changes the frozen surface and needs an owner merge
+
+- opened: 2026-10-12T02:40Z
+- by: brahim-loop
+- item: PR#70
+- asks: whether to merge PR #70, which adds an optional `FamilyPart.exposedFaces` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: PR #70 implements your `reserve` answer to D-20261007-06 (Q9): a family part can name its billable
+  faces by their role on the part's base shape, never by area or index; absent means the whole solid, `[]`
+  means none, and nothing reads it in v1.0.0. It changes a frozen-surface declaration (`interface FamilyPart`,
+  plus a new `type FamilyFaceSelector`), so it carries the `needs-operator/contract-touching` and
+  `needs-operator/freeze` labels. It and PR #69 both rewrite the snapshot, so whichever merges second is
+  rebased and re-baselined first. It is `risk: high`, so a dedicated `hmdnah` review still runs before any merge.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-19
+- ANSWER:
+- answered: -
