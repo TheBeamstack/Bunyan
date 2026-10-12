@@ -248,3 +248,10 @@ Approved. Step 1's defect fixed: `cachekey.ts` at `f54de71` → 3 reorder tests 
 every `buildAssembly` scene read is keyed; no in-place `constraints` write for the join index. Hosted order is
 keyed as `hostedBy` cuts (probe), but no test pins it, and the one-pass test cannot fail. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-T-039-review-step-2.md`
+
+## T-040 — D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load — 2026-10-12 — seat: zayd
+
+`bnn.ts`: optional `SaveOptions.cache` written under `geometry-cache/`; `loadBnn` filters it out of `unzipSync`
+and exposes `cache: { names, read }` inflating one entry on demand. Spec §6 tree amended. 7 tests: 5 red before;
+filter reverted → the corrupt-entry test red. Pre-R2 `loadBnn` opens a cached file. `pnpm verify` green (943).
+Body: `handoff/zayd/2026-10-12-T-040-d29-geometry-cache-layout.md`
