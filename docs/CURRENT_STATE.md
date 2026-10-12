@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-027` |
 | branch | `task/T-027-6-s-relink-cap-is-measured-not-guessed` |
 | claimed-at | 2026-10-11T23:32:22Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #55 merged by `hmdnah` at 2026-10-12T00:47:40Z |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 5b7347aa4be7b04f8308dfa7c0cedf5ac614c55c
+last-verified-at: 5a24d064442559c431313ec158a1dca4be3cc447
