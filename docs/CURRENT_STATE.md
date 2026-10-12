@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-039` |
 | branch | `task/T-039-d29-r1-the-cache-input-key-one-pass-over` |
 | claimed-at | 2026-10-12T08:33:11Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #77 merged by `hmdnah` at 2026-10-12T10:14:35Z |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 5387e8ea8eaffa779b873be21ca2d3200791e5a5
+last-verified-at: 600baabda6917d46788d8366476e838a3a94ed77
