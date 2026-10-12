@@ -269,3 +269,10 @@ Approved; no defect proven. Item 1 re-run: filter → `true` → 1 red, restored
 only non-test `unzipSync`; app consumers take named fields. Item 3: no consumer of the cache yet (R3/R5).
 Item 6: 4 of 5 `bnn.ts` mutants red; the survivor is equivalent. `pnpm verify` 943 + 66. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-T-040-review-step-2.md`
+
+## T-041 — D29 R3 — the load-only restore substitution in `#stage` — 2026-10-12 — seat: zayd
+
+`cacherestore.ts`: `restoreAssembly` imports a root whose input key matches, any refusal releases and rebuilds;
+`#stage` restores only from `rebuildAll`/`rebuildOnly`. 8 OCCT tests: restored ≡ rebuilt; catch rethrown → 2 red;
+restore default `true` → edit-path test red. Clean Delta: max Δ 4.44e-16 m³ < 1e-9. `pnpm verify` green (951).
+Body: `handoff/zayd/2026-10-12-T-041-d29-load-only-restore.md`
