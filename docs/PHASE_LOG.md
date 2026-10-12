@@ -220,3 +220,10 @@ Approved; record written before the merge. R3 now matches §2b and T-041; word-d
 Item 1: design reverted → "only its assembly" probe red, restored green; R3 wording reverted with new padding →
 `prettier --check` exit 1, restored exit 0. `pnpm verify` green (910 tests). Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-r3-rebuild-scope-review.md`
+
+## T-039 — D29 R1 — the cache input key, one pass over the scene — 2026-10-12 — seat: zayd
+
+`packages/document/src/cachekey.ts`: per-root `sha256` of canonical JSON (rows, owned and `<root>:` constraint
+rows, resolved joins, five-table digest) and the `bnnc1` envelope. 22 tests; each class revert-verified red.
+Keys at 1k/4k/16k: 0.15/0.29/1.18 s, after indexing `joinOverridesOf` (was 113.6 s at 16k). `pnpm verify` green.
+Body: `handoff/zayd/2026-10-12-T-039-d29-cache-input-key.md`
