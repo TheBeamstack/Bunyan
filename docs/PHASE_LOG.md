@@ -213,3 +213,10 @@ The D29 design's R3 criterion said a hand edit "rebuilds only its assembly"; §2
 whole shared tables, so it now reads "exactly the assemblies whose §2b key it flips", as T-041 already does.
 Spec fix only (hmdnah's PR #75 note); the rest of the diff is prettier's table padding.
 Body: `handoff/brahim/2026-10-12-STEWARD-d29-r3-rebuild-scope-design-fix.md`
+
+## STEWARD-d29-r3-rebuild-scope — review of PR #76 — 2026-10-12 — seat: hmdnah
+
+Approved; record written before the merge. R3 now matches §2b and T-041; word-diff shows only R3's cell changed.
+Item 1: design reverted → "only its assembly" probe red, restored green; R3 wording reverted with new padding →
+`prettier --check` exit 1, restored exit 0. `pnpm verify` green (910 tests). Not owner-gated.
+Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-r3-rebuild-scope-review.md`
