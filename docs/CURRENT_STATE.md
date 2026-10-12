@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-pr74-review-record` |
 | branch | `steward/pr74-review-record` |
 | claimed-at | 2026-10-12T02:54:48Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #75 merged by `hmdnah` at 2026-10-12T07:49:28Z |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: fc0fc52741cf32dbd572f7330fa450cd4e6ea4dd
+last-verified-at: cf38a8adb823f4bd4ae42e44ca132abff164e951
