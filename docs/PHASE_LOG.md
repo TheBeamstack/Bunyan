@@ -276,3 +276,10 @@ Body: `handoff/hmdnah/2026-10-12-T-040-review-step-2.md`
 `#stage` restores only from `rebuildAll`/`rebuildOnly`. 8 OCCT tests: restored ≡ rebuilt; catch rethrown → 2 red;
 restore default `true` → edit-path test red. Clean Delta: max Δ 4.44e-16 m³ < 1e-9. `pnpm verify` green (951).
 Body: `handoff/zayd/2026-10-12-T-041-d29-load-only-restore.md`
+
+## T-041 — review step 1 of PR #79 — 2026-10-12 — seat: hmdnah
+
+Not approved (step 1); no defect proven. Item 1: `restoreAssembly`'s catch rethrows → 2 red, restored 8 green.
+Only `rebuildAll`/`rebuildOnly` pass `restore`; Clean Delta re-run 4.44e-16 m³ / 22, same units as the 1e-9 gate.
+`pnpm verify` 951 + 66. Risk gate: additive, labeller ran on `e7f987a`. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-12-T-041-review-step-1.md`
