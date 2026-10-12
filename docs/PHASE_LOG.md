@@ -240,4 +240,4 @@ Body: `handoff/hmdnah/2026-10-12-T-039-review-step-1.md`
 `cachekey.ts` keeps `scene.constraints` order and keys an element's own rows resolved, by the build's own
 `datumElevations`/`gridPointOf`/`sketchConstraintsOf` over a scene of just those rows; `scene.ts` untouched.
 Four reorder tests: 3 red before the fix and on `git stash` of it, 26 green after. `pnpm verify` green (936).
-Body: `handoff/zayd/2026-10-12-T-039-constraint-order-fix.md`
+Body: `handoff/zayd/2026-10-12-T-039-d29-cache-input-key.md` (§ Return from step 1)

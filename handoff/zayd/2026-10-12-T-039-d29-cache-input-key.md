@@ -44,3 +44,25 @@
 - The envelope's `fingerprint` is passed in (`FINGERPRINT_SCHEME` lives in `kernel-occt`); `codeId` is a plain
   string until `D-20261012-06` is answered.
 - The 16k figure is 1.2 s of pure TypeScript, per full key pass; R2/R4 decide when it runs.
+
+## Return from step 1 — `scene.constraints` order keyed (`--continue T-039`)
+
+Answers `handoff/hmdnah/2026-10-12-T-039-review-step-1.md`; it supersedes the first note above, whose claim
+that id-sorted raw rows determine the resolvers was false (they are last-wins in scene order).
+
+- `cachekey.ts`: the indexes keep `scene.constraints` / `scene.elements` order (the id sort is gone). An
+  element's own rows, and each generated child's, are digested RESOLVED: `datumElevations`, `gridPointOf` and
+  `sketchConstraintsOf` run on a scene whose `constraints` holds only those rows under their original keys, so
+  the build's own resolvers decide and no second resolver exists. `scene.ts` (frozen-surface `WATCHED`) is
+  untouched.
+- Tests: four reorder cases — two `base` rows, two same-axis `grid` rows, two sketch rows (each re-keys its
+  element), and a `base`/`top` pair (re-keys nothing).
+- Test-first: `pnpm exec vitest run tests/cache-input-key-d29.test.ts` before the fix → `3 failed | 23
+  passed` (`expected [] to deeply equal [ 'col' ]` / `[ 'sk' ]`); after → `26 passed`.
+- Revert-verify: `git stash push -- packages/document/src/cachekey.ts`, same run → the same 3 red; `git stash
+  pop` → 26 passed.
+- Key time, `--reporter=verbose`, one run: 1k 97.3 / 4k 320.1 / 16k 1208.9 ms.
+- `pnpm verify`: ran to its last step (`docs:check`, 66 passed); `pnpm test` 101 files / 936 tests passed.
+- Hosted elements were id-sorted too; `build.ts` cuts them in `hostedBy` (scene) order, so they now key in that
+  order. No test pins it: whether cut order changes the solid was not measured.
+- A row retargeted to another level of equal elevation no longer re-keys: the build reads only the number.
