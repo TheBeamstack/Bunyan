@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-038` |
-| branch | `task/T-038-q6-design-the-d29-cache-in-the-bnn` |
+| task | `STEWARD-d29-cache-decomposition` |
+| branch | `steward/d29-cache-decomposition` |
 | claimed-at | 2026-10-12T02:54:48Z |
-| status | merged — PR #73 merged by `hmdnah` at 2026-10-12T04:19:12Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -202,4 +202,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 0a13629c2bc69e42da19e7cbf1f6187862e8d025
+last-verified-at: 5759058833e32f08ae5a83ce13461ee5fb825d83
