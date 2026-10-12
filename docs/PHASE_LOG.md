@@ -199,3 +199,10 @@ Cherry-picked hmdnah's 4e2abd9/7193a47 (performs B-20261012-01's need; cleared o
 T-041's restore criterion now counts a `resolveJoins` neighbour, per hmdnah's note. Finding: two records share
 id B-20261012-01 (main: PR #74; T-037 branch: PR #72); the branch's are renumbered when it rebases.
 Body: `handoff/brahim/2026-10-12-STEWARD-pr74-review-record-landing.md`
+
+## STEWARD-pr74-review-record — review of PR #75 — 2026-10-12 — seat: hmdnah
+
+Approved; record written before the merge. Cherry-picks byte-identical (`git range-diff`). Item 1: the record's
+body removed → `git ls-files --error-unmatch` exit 1; restored → 0. `gates.py docs` stays green on a dangling
+`Body:` path (gate gap). Design §6 R3 still says "only its assembly"; non-blocking.
+Body: `handoff/hmdnah/2026-10-12-STEWARD-pr74-review-record-review.md`
