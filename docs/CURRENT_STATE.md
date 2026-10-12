@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
 | task | `T-037` |
 | branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
 | claimed-at | 2026-10-12T02:32:17Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | incomplete — branch open, continue on it |
 
 <!-- END BATON -->
 
@@ -213,4 +213,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: edce0da13eb52cc2437623b2b79609b2a7e9d555
+last-verified-at: 04a27c61687ffa5d541fc2744e10c9ccecd01ec1
