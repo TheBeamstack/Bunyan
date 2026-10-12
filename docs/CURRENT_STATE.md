@@ -84,6 +84,9 @@ builder may claim.
 - **B-20261012-01** — `scope: item` · `item: PR#72` — PR #72's re-seed gate is red: the goldens were not re-seeded
   - need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
   - opened 2026-10-12T02:56Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261012-02** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
+  - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
+  - opened 2026-10-12T04:42Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

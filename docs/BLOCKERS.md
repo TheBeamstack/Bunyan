@@ -225,3 +225,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh run view 38197377650 --log-failed` → "re-seed gate FAILED — geometry changed but no goldens were re-seeded."
 - need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
 - cleared: -
+
+## B-20261012-02 PR #72's changes-requested review cannot be recorded by the finish entrypoint
+
+- opened: 2026-10-12T04:42Z
+- by: hmdnah
+- scope: item
+- item: PR#72
+- what: hmdnah's `--review` finish for T-037 wrote `T-037 → done` and a baton reading "reviewed by `hmdnah` — ready to merge", though the verdict is changes requested; hmdnah reset the row to `review` by hand so `--continue T-037` admits zayd
+- why: `agent_finish.py` `review_routing` sets the row to `done` whenever `review_flips_to_done` is true (risk normal), and has no flag for a verdict that is not approval
+- evidence: `git show fdf8c82 -- docs/BACKLOG.md docs/CURRENT_STATE.md`
+- need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
+- cleared: -
