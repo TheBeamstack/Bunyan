@@ -185,3 +185,24 @@ Body: `handoff/hmdnah/2026-10-12-T-038-review-step-2.md`
 predecessors, T-043–T-045 also on `D-20261012-05/-06/-07`. All `risk: high` (READY rule 8, D29). R1/R3 criteria
 exclude the five whole-digested tables, per hmdnah's step-2 note. No code changed.
 Body: `handoff/brahim/2026-10-12-STEWARD-d29-cache-decomposition-rows.md`
+
+## STEWARD-d29-cache-decomposition — review of PR #74 — 2026-10-12 — seat: hmdnah
+
+Approved, merged `e68efad`. Rows match design §6 deps; T-039 ready, rest blocked; carve-out names §2b's five
+tables. Item 1: revert leaves `gates.py docs` green (additive); deleting T-039's `implements:` turns it red.
+Note: T-041 "rebuilds only its assembly" is false for a joined endpoint (`resolveJoins`); non-blocking.
+Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-cache-decomposition-review.md`
+
+## STEWARD-pr74-review-record — PR #74's review record landed; T-041 wording — 2026-10-12 — seat: brahim
+
+Cherry-picked hmdnah's 4e2abd9/7193a47 (performs B-20261012-01's need; cleared on merge), keeping main's baton.
+T-041's restore criterion now counts a `resolveJoins` neighbour, per hmdnah's note. Finding: two records share
+id B-20261012-01 (main: PR #74; T-037 branch: PR #72); the branch's are renumbered when it rebases.
+Body: `handoff/brahim/2026-10-12-STEWARD-pr74-review-record-landing.md`
+
+## STEWARD-pr74-review-record — review of PR #75 — 2026-10-12 — seat: hmdnah
+
+Approved; record written before the merge. Cherry-picks byte-identical (`git range-diff`). Item 1: the record's
+body removed → `git ls-files --error-unmatch` exit 1; restored → 0. `gates.py docs` stays green on a dangling
+`Body:` path (gate gap). Design §6 R3 still says "only its assembly"; non-blocking.
+Body: `handoff/hmdnah/2026-10-12-STEWARD-pr74-review-record-review.md`
