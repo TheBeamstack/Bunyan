@@ -213,3 +213,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat hmdnah --pr 55 --dry-run`
 - need: rebase `task/T-027-6-s-relink-cap-is-measured-not-guessed` onto `main` to green in a zayd turn, then route PR #55 to hmdnah
 - cleared: 2026-10-12T00:23Z
+
+## B-20261012-01 PR #74's review record is on its merged branch, not on main
+
+- opened: 2026-10-12T07:08Z
+- by: hmdnah
+- scope: item
+- item: PR#74
+- what: PR #74 is approved and merged (`e68efad`), but hmdnah's review abstract and handoff body never reached main
+- why: hmdnah ran the merge entrypoint before the review finish, so `agent_finish.py --review` committed the PHASE_LOG abstract and `handoff/hmdnah/2026-10-12-STEWARD-d29-cache-decomposition-review.md` to the already-merged `steward/d29-cache-decomposition` (commits 4e2abd9, 7193a47), and no open PR carries them
+- evidence: `git cat-file -e origin/main:handoff/hmdnah/2026-10-12-STEWARD-d29-cache-decomposition-review.md` → "exists on disk, but not in 'origin/main'"; `git log --oneline origin/main..origin/steward/d29-cache-decomposition` → 7193a47, 4e2abd9
+- need: land commits 4e2abd9 and 7193a47 of `steward/d29-cache-decomposition` on main through a reviewed PR
+- cleared: -
