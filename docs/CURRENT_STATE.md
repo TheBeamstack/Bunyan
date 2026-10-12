@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-035` |
-| branch | `task/T-035-q8-design-moving-a-d52-baseline-wall-pro` |
-| claimed-at | 2026-10-12T01:40:48Z |
-| status | merged — PR #71 merged by `hmdnah` at 2026-10-12T02:25:50Z |
+| task | `T-038` |
+| branch | `task/T-038-q6-design-the-d29-cache-in-the-bnn` |
+| claimed-at | 2026-10-12T02:54:48Z |
+| status | working |
 
 <!-- END BATON -->
 
