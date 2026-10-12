@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-035` |
 | branch | `task/T-035-q8-design-moving-a-d52-baseline-wall-pro` |
 | claimed-at | 2026-10-12T01:40:48Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #71 merged by `hmdnah` at 2026-10-12T02:25:50Z |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: f1797af39d221167f76fa2d6843474c589d3e235
+last-verified-at: 0c907384b1fd5e250abb4c15b1678283af754550
