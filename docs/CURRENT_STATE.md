@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-040` |
 | branch | `task/T-040-d29-r2-geometry-cache-in-the-bnn-optiona` |
 | claimed-at | 2026-10-12T13:03:17Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #78 merged by `hmdnah` at 2026-10-12T14:01:00Z |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 490a13f3877ecd28fd7c0cadcccc06a18c8492e5
+last-verified-at: 379f3a1db109f49c3d206c6921543c68bbb31aa4
