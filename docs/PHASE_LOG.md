@@ -39,6 +39,25 @@ identity fields, and compressing a body never moves the population a reference r
 **Sealed volumes** (never edited again): `docs/phase-log-01.md` — §A–§E, Entries 1–88 and the
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07.
 
+## T-027 — PR #55 brought up to date with main again — 2026-10-12 — seat: zayd
+
+Merged `origin/main` (`681c2b4`) to clear #55's conflicts (BACKLOG, CURRENT_STATE), B-20261011-07; T-027
+kept at `review`, the `window.bunyan` finding dropped as main's T-032. `pnpm verify` green (910 tests).
+Body: `handoff/zayd/2026-10-12-T-027-merge-main-2.md`
+
+## T-027 — §6's relink cap is measured, not guessed — 2026-10-06 — seat: zayd
+
+`docs/CURRENT_STATE-reference.md §6` relink recipe `--memory=2g` → `--memory=1g --memory-swap=1g`, citing
+hmdnah's T-022 step-2 run (78 s, exit 0, byte-identical, hard 1 GB cgroup, swap off). Docs only; no relink
+re-run (optional per `done-when:`); README step 3 / `probe.sh` 2g recorded in `## Discovered`.
+Body: `handoff/zayd/2026-10-06-T-027-relink-cap-measured.md`
+
+## T-027 — PR #55 brought up to date with main — 2026-10-10 — seat: zayd
+
+Merged `origin/main` to clear #55's conflicts (BACKLOG, PHASE_LOG); §8 restored to its `pnpm state` block,
+which `401e22d` replaced with a `measure.py` one and so turned `main` red. `pnpm verify` exit 0 (898 tests).
+Body: `handoff/zayd/2026-10-10-T-027-merge-main.md`
+
 ## T-006 — the keep-live set and a lazy first paint — 2026-10-08 — seat: zayd
 
 An opened `.bnn` now builds only what the camera sees (`view/keepLive.ts`, `rebuildOnly` per level,
@@ -118,3 +137,9 @@ Body: `handoff/zayd/2026-10-11-T-032-agent-doclock.md`
 Approved and merged. Item 1: main's `agentRefresh.ts` → 2 failed, 6 passed; restored → 16 pass.
 `App.tsx` L232 passes the same `docLock` as human edits and `buildKeepLive`; dropping it fails `tsc` (TS2554).
 Body: `handoff/hmdnah/2026-10-12-T-032-review.md`
+
+## T-027 — review of PR #55 — 2026-10-12 — seat: hmdnah
+
+Approved. The citation matches the T-022 step-2 run (1g, swap off, 78 s, byte-identical). Item 1: B-20261011-07's
+clearance; `gates.py docs` is red with `BLOCKERS.md` at main (R15), green restored. Relink not re-run here.
+Body: `handoff/hmdnah/2026-10-12-T-027-review.md`
