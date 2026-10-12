@@ -35,26 +35,37 @@
  */
 
 import type { AgentSurface } from '@bunyan/document';
+import type { DocLock } from './docLock';
 
-export function withUiRefresh(agent: AgentSurface, notify: () => void): AgentSurface {
+/**
+ * ⚠ T-032: every verb that runs a command goes through `lock`, the one `App` gives human edits and lazy
+ * builds (`docLock.ts`), so an agent commit never interleaves with a `buildKeepLive` batch (D66 §2/§3b).
+ * `dryRun` is locked too: it runs the command against the live heap even though it keeps nothing.
+ */
+export function withUiRefresh(
+  agent: AgentSurface,
+  notify: () => void,
+  lock: DocLock,
+): AgentSurface {
   return {
     ...agent,
     // ⚠ `options` is forwarded, not re-built: this wrapper adds a refresh and must otherwise be
     // indistinguishable from the surface it wraps. Anything it re-declares, it can drop.
     execute: async (command, args, options) => {
-      const edit = await agent.execute(command, args, options);
+      const edit = await lock.run(() => agent.execute(command, args, options));
       notify();
       return edit;
     },
     undo: async () => {
-      const edit = await agent.undo();
+      const edit = await lock.run(() => agent.undo());
       notify();
       return edit;
     },
     redo: async () => {
-      const edit = await agent.redo();
+      const edit = await lock.run(() => agent.redo());
       notify();
       return edit;
     },
+    dryRun: (command, args) => lock.run(() => agent.dryRun(command, args)),
   };
 }

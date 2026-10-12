@@ -12,6 +12,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { AgentSurface, UndoableEdit } from '@bunyan/document';
 import { withUiRefresh } from './agentRefresh';
+import { createDocLock } from './docLock';
 
 const EDIT = { command: 'core.createElement', changes: [] } as unknown as UndoableEdit;
 
@@ -44,7 +45,7 @@ describe('withUiRefresh — an agent edit refreshes the view like a human edit (
   it('notifies after each state-mutating verb, and passes the edit through unchanged', async () => {
     const notify = vi.fn();
     const { agent } = fakeSurface();
-    const wrapped = withUiRefresh(agent, notify);
+    const wrapped = withUiRefresh(agent, notify, createDocLock());
 
     expect(await wrapped.execute('core.createElement', {})).toBe(EDIT);
     expect(await wrapped.undo()).toBe(EDIT);
@@ -56,7 +57,7 @@ describe('withUiRefresh — an agent edit refreshes the view like a human edit (
   it('does NOT notify on read-only verbs — dryRun and query change nothing', async () => {
     const notify = vi.fn();
     const { agent } = fakeSurface();
-    const wrapped = withUiRefresh(agent, notify);
+    const wrapped = withUiRefresh(agent, notify, createDocLock());
 
     await wrapped.dryRun('core.deleteElement', { elementId: 'wall-1' });
     wrapped.query();
@@ -70,7 +71,7 @@ describe('withUiRefresh — an agent edit refreshes the view like a human edit (
     const { agent } = fakeSurface({
       execute: () => Promise.reject(boom),
     });
-    const wrapped = withUiRefresh(agent, notify);
+    const wrapped = withUiRefresh(agent, notify, createDocLock());
 
     await expect(wrapped.execute('core.setParams', {})).rejects.toBe(boom);
     expect(notify).not.toHaveBeenCalled();
@@ -78,7 +79,7 @@ describe('withUiRefresh — an agent edit refreshes the view like a human edit (
 
   it('preserves the rest of the surface (agentApi and read verbs still reachable)', () => {
     const { agent } = fakeSurface();
-    const wrapped = withUiRefresh(agent, () => {});
+    const wrapped = withUiRefresh(agent, () => {}, createDocLock());
     expect(wrapped.agentApi).toBe(1);
     expect(typeof wrapped.query).toBe('function');
   });
@@ -100,7 +101,7 @@ describe('withUiRefresh — an agent edit refreshes the view like a human edit (
         return Promise.resolve(EDIT);
       },
     });
-    const wrapped = withUiRefresh(agent, () => {});
+    const wrapped = withUiRefresh(agent, () => {}, createDocLock());
 
     await wrapped.execute(
       'core.setParams',
@@ -123,7 +124,7 @@ describe('withUiRefresh — an agent edit refreshes the view like a human edit (
         return Promise.resolve(EDIT);
       },
     });
-    const wrapped = withUiRefresh(agent, () => {});
+    const wrapped = withUiRefresh(agent, () => {}, createDocLock());
 
     await wrapped.execute('core.setParams', {});
     // ⚠⚠ ARITY is the observable that separates "forwarded `undefined`" from "never passed a third
@@ -131,5 +132,85 @@ describe('withUiRefresh — an agent edit refreshes the view like a human edit (
     // until Entry 87's review measured it. A wrapper that drops the argument calls through with TWO.
     expect(seen[0]).toHaveLength(3);
     expect(seen[0]?.[2]).toBeUndefined();
+  });
+
+  /**
+   * T-032 — the agent surface takes the same `DocLock` as human edits and lazy builds (D66 §2/§3b), so
+   * an agent commit cannot interleave its heap frees with a `buildKeepLive` batch in flight.
+   */
+  describe('T-032 — agent calls wait on the document lock', () => {
+    it('execute, undo, redo and dryRun do not reach the agent while a lock task is held open', async () => {
+      const lock = createDocLock();
+      const { agent, calls } = fakeSurface();
+      const notify = vi.fn();
+      const wrapped = withUiRefresh(agent, notify, lock);
+
+      let release: () => void = () => undefined;
+      const held = lock.run(
+        () =>
+          new Promise<void>((r) => {
+            release = r;
+          }),
+      );
+
+      const pending = [
+        wrapped.execute('core.setParams', {}),
+        wrapped.undo(),
+        wrapped.redo(),
+        wrapped.dryRun('core.deleteElement', { elementId: 'wall-1' }),
+      ];
+      await new Promise((r) => setTimeout(r, 0));
+      expect(calls).toEqual([]);
+      expect(notify).not.toHaveBeenCalled();
+
+      release();
+      await held;
+      expect(await Promise.all(pending)).toEqual([EDIT, EDIT, EDIT, EDIT]);
+      expect(calls).toEqual(['execute', 'undo', 'redo', 'dryRun']);
+      expect(notify).toHaveBeenCalledTimes(3);
+    });
+
+    it('lock tasks and agent calls run in call order, and a rejected agent call does not jam the lock', async () => {
+      const lock = createDocLock();
+      const log: string[] = [];
+      const boom = new Error('the kernel refused');
+      const { agent } = fakeSurface({
+        execute: () => {
+          log.push('agent:execute');
+          return Promise.reject(boom);
+        },
+        undo: () => {
+          log.push('agent:undo');
+          return Promise.resolve(EDIT);
+        },
+      });
+      const notify = vi.fn();
+      const wrapped = withUiRefresh(agent, notify, lock);
+
+      const build = lock.run(async () => {
+        log.push('build:start');
+        await new Promise((r) => setTimeout(r, 0));
+        log.push('build:end');
+      });
+      const rejected = expect(wrapped.execute('core.setParams', {})).rejects.toBe(boom);
+      const after = lock.run(() => {
+        log.push('human:edit');
+        return Promise.resolve(1);
+      });
+      const undone = wrapped.undo();
+
+      await build;
+      await rejected;
+      expect(await after).toBe(1);
+      expect(await undone).toBe(EDIT);
+      expect(log).toEqual([
+        'build:start',
+        'build:end',
+        'agent:execute',
+        'human:edit',
+        'agent:undo',
+      ]);
+      expect(notify).toHaveBeenCalledTimes(1);
+    });
   });
 });

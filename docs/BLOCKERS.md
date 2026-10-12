@@ -116,4 +116,100 @@ from, and the reason it is a record rather than prose.
 - why: `browser_cmd()` finds `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome`, so the `requires: browser` probe passes, but the unattended session's tool permissions refuse to launch it ("This command requires approval")
 - evidence: `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome --headless=new --remote-debugging-port=9333 about:blank`, run from a `claude -p` zayd turn
 - need: allow the Playwright Chromium binary in the box loop's Claude Code permission settings, then re-run zayd's start on T-010
+- cleared: 2026-10-11T02:45Z
+
+## B-20261010-03 agent_merge's re-measure overwrites the state.mjs §8 block, so every merge turns main red
+
+- opened: 2026-10-10T23:20Z
+- by: brahim-loop
+- scope: item
+- item: PR#55
+- what: `main` is red at 401e22d, and merging PR #55 or PR #63 through `agent_merge.py` re-breaks it
+- why: `agent_merge.py` step 5 (401e22d, "state: re-measure main on the merge of PR #61") replaced the `scripts/state.mjs`-stamped §8 block of `docs/CURRENT_STATE.md` with a `measure.py` one, and `tests/docs-budget.test.ts` fails "missing its GENERATED markers" and "§8 agrees with §7 about which entry is newest" (CI run 38092485883); B-20260930-01's foreign-block cause, now in the merge step
+- evidence: `gh run view 38092485883 --log-failed | grep FAIL; git show --stat 401e22d`
+- need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
+- cleared: 2026-10-11T20:16Z
+
+## B-20261011-01 T-019 cannot be built on the box: B-20261010-02's cause still holds
+
+- opened: 2026-10-11T00:33Z
+- by: brahim-loop
+- scope: item
+- item: T-019
+- what: T-019, the one `ready` box row left, was not delegated; its `done-when:` needs two browser-measured items (`changeFeed()` growth, orbit-suppression projection) and `requires: browser`
+- why: launching the Playwright Chromium from this loop session is refused ("requires approval"), as B-20261010-02 measured for T-019's sibling T-010; the fix is open as diwan PR #90 (BROWSER1), unmerged
+- evidence: `/home/ubuntu/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome --headless=new --no-sandbox --dump-dom about:blank`, run from the brahim loop session; `gh -R TheBeamstack/diwan pr view 90 --json state`
+- need: merge diwan PR #90 into the box loop's permissions, then delegate T-019 to a zayd turn
+- cleared: 2026-10-11T20:16Z
+
+## B-20261011-02 agent-start refuses every seat: c4d7d28 added a handoff body with no abstract and no re-measure
+
+- opened: 2026-10-11T01:06Z
+- by: zayd
+- scope: item
+- item: T-032
+- what: zayd could not claim T-032; start refused at step 3, and even past it `pnpm verify` is red on `main`, so no claim can reach green
+- why: c4d7d28 added `handoff/brahim/2026-10-10-B-20261010-03-diagnosis.md` without re-measuring, so §8 says 96 bodies against 97 measured (start exit 6), and the body has no §7 abstract or PHASE_LOG index (`docs-budget.test.ts` "points at a body that exists", a third failure beside B-20261010-03's two); rewriting §8 on `main` is B-20261010-03's block, not a builder's write
+- evidence: `python3 $DIWAN/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan; echo $?` (6) · `npx vitest run tests/docs-budget.test.ts` (3 failed)
+- need: index the B-20261010-03 diagnosis body in `docs/PHASE_LOG.md` and re-measure §8 in one steward commit to `main`
+- cleared: 2026-10-11T02:05Z
+
+## B-20261011-03 PR #63, the act on owner answers D-20261007-02..07, conflicts with main on T-032
+
+- opened: 2026-10-11T01:38Z
+- by: brahim-loop
+- scope: item
+- item: PR#63
+- what: the six answered records still read `answered: -` on `main`; PR #63 stamps them and sequences T-032..T-037 with D92–D97, but cannot merge
+- why: a68b995 allocated T-032 on `main` (the docLock row) after PR #63 numbered its Q10 row T-032 by hand, so `git merge-tree` of PR #63's head onto 1b1cd74 exits 1; merging is also held by B-20261010-03
+- evidence: `git merge-tree --write-tree origin/main origin/steward/owner-rulings-q5-q10; echo $?`
+- need: rebase PR #63 onto `main` as a brahim turn, renumbering its rows through `backlog.py next-id` from T-033, then route it to hmdnah once B-20261010-03 is cleared
+- cleared: 2026-10-11T20:38Z
+
+## B-20261011-04 no builder or reviewer turn can finish: B-20261010-03 keeps main red, not only PR #55
+
+- opened: 2026-10-11T16:10Z
+- by: brahim-loop
+- scope: loop
+- item: -
+- what: corrects B-20261010-03's scope, as B-20261009-01 did B-20261008-02's; zayd's T-010 work is pushed at e98ec07 since 03:10Z with no PR, and PRs #55 and #63 cannot merge
+- why: `pnpm verify` fails on `main` at 07d8fc0 (CI run 38105275133: `docs-budget.test.ts` "§8 has been generated" and "§8 agrees with §7"), `agent_finish.py` exits 7 on a red gate, `agent_merge.py` step 3 refuses a red merge result, and diwan `agent_merge.py` `step_remeasure` (line 405) still has no foreign-block guard; D-20261011-01, the interim restore, is pending to 2026-10-18
+- evidence: `npx vitest run tests/docs-budget.test.ts` in /home/ubuntu/projects/Bunyan on `main` (2 failed)
+- need: make diwan `agent_merge.py` step 5 leave a generated block stamped by another generator untouched, then restore main's §8 with `pnpm state`
+- cleared: 2026-10-11T20:16Z
+
+## B-20261011-05 PR #63's steward finish refuses: B-20261010-03 is a record heading in two files on main
+
+- opened: 2026-10-11T20:54Z
+- by: brahim
+- scope: item
+- item: PR#63
+- what: PR #63 is rebased (1ef86f9), verify-green and MERGEABLE, but brahim's finish for STEWARD-owner-rulings-q5-q10 cannot complete, so no PR command is printed
+- why: `gates.py docs` reports "B-20261010-03 is a record heading in 2 files — docs/BLOCKERS.md:121, docs/PHASE_LOG.md:55"; the PHASE_LOG heading came from main's b433931, and `agent_finish.py` exits 1 on any `gates.py docs` finding
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/gates.py docs --root /home/ubuntu/projects/Bunyan` on `main` 16a0428
+- need: make docs/PHASE_LOG.md's 2026-10-10 B-20261010-03 diagnosis abstract carry `see: docs/BLOCKERS.md#B-20261010-03` instead of a heading that names the id, then re-run brahim's finish for STEWARD-owner-rulings-q5-q10
+- cleared: 2026-10-11T21:04Z
+
+## B-20261011-06 PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
+
+- opened: 2026-10-11T22:00Z
+- by: hmdnah
+- scope: item
+- item: PR#65
+- what: PR #65 (H-20261011-15) is reviewed, approved in its comment, finished (head 1351819), CI green and MERGEABLE, but the merge entrypoint refuses it
+- why: diwan `agent_merge.py:279` takes `T-\d{3}` from the head branch `custodianship/T-007-descriptions`, which is the Custodianship lane's T-007, and Bunyan's T-007 entry is sealed in docs/backlog-phase-01.md, so `task_field` finds no `risk:` and line 289 exits 1; PR #64 passed the same check only because Bunyan's unrelated T-006 entry is live with `risk: normal`
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --seat hmdnah --pr 65 --root /home/ubuntu/projects/Bunyan` → "REFUSED [1 refused on the repository]: PR #65 names T-007, and docs/BACKLOG.md has no readable 'risk:' for it."
+- need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
+- cleared: -
+
+## B-20261011-07 PR #55 is CONFLICTING with main and no entrypoint returns it to its builder
+
+- opened: 2026-10-11T23:48Z
+- by: brahim-loop
+- scope: item
+- item: PR#55
+- what: PR #55 (T-027, zayd) cannot be reviewed or merged; zayd's start on 2026-10-11 listed it, refused it, and claimed T-032 instead
+- why: the merge preflight refuses "PR is CONFLICTING … rebase it onto main", and `agent_start.py --seat zayd` does not hand a builder its own conflicting branch, so T-027's row still reads `ready` with its work stranded on `task/T-027-6-s-relink-cap-is-measured-not-guessed`
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat hmdnah --pr 55 --dry-run`
+- need: rebase `task/T-027-6-s-relink-cap-is-measured-not-guessed` onto `main` to green in a zayd turn, then route PR #55 to hmdnah
 - cleared: -

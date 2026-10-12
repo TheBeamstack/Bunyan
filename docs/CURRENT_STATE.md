@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | builder |
 | machine | box |
-| task | `T-027` |
-| branch | `task/T-027-6-s-relink-cap-is-measured-not-guessed` |
-| claimed-at | 2026-10-06T01:07:12Z |
-| status | finished — PR open, awaiting review |
+| task | `T-032` |
+| branch | `task/T-032-agent-edits-through-window-bunyan-wait-o` |
+| claimed-at | 2026-10-11T23:32:22Z |
+| status | merged — PR #68 merged by `hmdnah` at 2026-10-11T23:59:52Z |
 
 <!-- END BATON -->
 
@@ -78,9 +78,12 @@ builder may claim.
 - **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
   - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
   - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261010-02** — `scope: item` · `item: T-010` — T-010's browser measurement cannot run: launching Chromium needs an approval no one can grant
-  - need: allow the Playwright Chromium binary in the box loop's Claude Code permission settings, then re-run zayd's start on T-010
-  - opened 2026-10-10T21:35Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
+  - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
+  - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261011-07** — `scope: item` · `item: PR#55` — PR #55 is CONFLICTING with main and no entrypoint returns it to its builder
+  - need: rebase `task/T-027-6-s-relink-cap-is-measured-not-guessed` onto `main` to green in a zayd turn, then route PR #55 to hmdnah
+  - opened 2026-10-11T23:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -189,18 +192,18 @@ maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `task/T-027-6-s-relink-cap-is-measured-not-guessed` · `dfff4fb` · dirty |
-| open PRs | #63 steward/owner-rulings-q5-q10 · #55 task/T-027-6-s-relink-cap-is-measured-not-guessed |
-| suite | **898 green** · 99 files · 275 suites |
+| branch · tip · tree | `main` · `f3a2dd3` · dirty |
+| open PRs | #65 custodianship/T-007-descriptions · #55 task/T-027-6-s-relink-cap-is-measured-not-guessed |
+| suite | **910 green** · 100 files · 279 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 61 files changed, 2553 insertions(+), 6618 deletions(-) (61 files) |
-| docs budget | current_state 12.7/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 97 |
+| diff vs origin/main | 3 files changed, 34 insertions(+), 1 deletion(-) (3 files) |
+| docs budget | current_state 13.1/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 106 |
 
-_Generated 2026-10-10 by `pnpm state`._
+_Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 4cc540c9893b9ac0503da7a2241e9b5d054157ff
+last-verified-at: d235b3668a0a4508adf786ab26d89ff433a90ae2

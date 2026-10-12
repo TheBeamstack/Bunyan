@@ -51,7 +51,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-15
 - ANSWER: builder
 - free-text: the builder choses it but he must be aware that bunyan is meant to comprete with revit
-- answered: -
+- answered: 2026-10-10T18:37Z
 
 ## D-20261007-03 Q6: whether to wire the D29 `.bnn` half for v1.0.0
 
@@ -70,7 +70,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: no
 - expires: 2026-10-15
 - ANSWER: yes
-- answered: -
+- answered: 2026-10-10T18:37Z
 
 ## D-20261007-04 Q7: whether `core.copy` deep-copies a host's openings
 
@@ -88,7 +88,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: refuse
 - expires: 2026-10-15
 - ANSWER: deep-copy
-- answered: -
+- answered: 2026-10-10T18:37Z
 
 ## D-20261007-05 Q8: whether the BASELINE refusal is the right strictness
 
@@ -109,7 +109,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-15
 - ANSWER: translate
 - free-text: a propre solution myst be found not limited to just either drop moving wals or make a general comand have wal specific knowledge in order to builde a bunyan that can rival Revit,Arhcicad and Rhino
-- answered: -
+- answered: 2026-10-10T18:37Z
 
 ## D-20261007-06 Q9: whether `FamilyDefinition` gets a way to declare billable faces
 
@@ -128,7 +128,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: reserve
 - expires: 2026-10-15
 - ANSWER: reserve
-- answered: -
+- answered: 2026-10-10T18:37Z
 
 ## D-20261007-07 Q10: whether `Dimension.anchors` excludes the free `point` anchor
 
@@ -146,7 +146,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: narrow
 - expires: 2026-10-15
 - ANSWER: narrow
-- answered: -
+- answered: 2026-10-10T18:37Z
 
 ## D-20261007-08 Q20: which verbs get a button in the generated ribbon
 
@@ -186,5 +186,42 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: recipe-only | force | declare
 - default-if-silent: recipe-only
 - expires: 2026-10-15
+- ANSWER:
+- answered: -
+
+## D-20261011-01 whether to restore the §8 marker by hand once, so `main` goes green before diwan's fix
+
+- opened: 2026-10-11T01:20Z
+- by: brahim-loop
+- item: B-20261011-02
+- asks: whether a steward may restore the `scripts/state.mjs` BEGIN marker of `docs/CURRENT_STATE.md` §8 by hand, once, so `pnpm state` can regenerate the block
+- context: `main` has been red since 401e22d: a diwan merge script rewrote §8, the state section that `pnpm state`
+  owns, with its own marker (B-20261010-03). `pnpm state` now refuses to run because its marker is gone, and the
+  protocol forbids hand-editing a script-written block, so no seat can claim work (B-20261011-02).
+  restore: a steward puts the one marker line back by hand, runs `pnpm state`, and `main` goes green now;
+  the next merge through `agent_merge.py` breaks it again until diwan's fix lands.
+  wait: nothing changes until diwan's `agent_merge.py` fix lands; box building stays stopped until then.
+  The default (wait) keeps the no-hand-edit rule without exception.
+- options: restore | wait
+- default-if-silent: wait
+- expires: 2026-10-18
+- ANSWER:
+- answered: -
+
+## D-20261011-02 whether to turn on secret scanning, push protection and Dependabot for public Bunyan
+
+- opened: 2026-10-11T22:10Z
+- by: brahim-loop
+- item: H-20261011-13
+- asks: whether to enable Dependabot alerts, Dependabot security updates, secret scanning and push protection on TheBeamstack/Bunyan
+- context: Bunyan is public and all four are off (`docs/HANDOVERS.md#H-20261011-13` carries the measurement).
+  With them off, a credential pushed here is neither blocked nor reported, and no vulnerable dependency is
+  flagged. Each is a repository admin setting under Settings → Code security; no seat changes repository settings.
+  enabled: you switch them on, then write `enabled` here; nothing else changes.
+  decline: they stay off and this record closes it; the Custodianship lane will keep reporting it.
+  If silent, nothing is enabled and the item becomes a blocker naming the owner action.
+- options: enabled | decline
+- default-if-silent: none
+- expires: 2026-10-18
 - ANSWER:
 - answered: -
