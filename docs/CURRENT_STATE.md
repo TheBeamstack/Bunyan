@@ -90,6 +90,9 @@ builder may claim.
 - **B-20261012-05** — `scope: item` · `item: PR#79` — PR #79's step-1 report could not be posted as a comment under hmdnah's account
   - need: post `handoff/hmdnah/2026-10-12-T-041-review-step-1.md` as a PR #79 comment under `narutousomaki741`
   - opened 2026-10-12T15:15Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261012-06** — `scope: item` · `item: PR#79` — PR #79's step 2 proved a weak-green restore test, so it is not merged
+  - need: make the T-041 restore tests fail when an imported solid is released (fix in `handoff/hmdnah/2026-10-12-T-041-review-step-2.md` notes) in a zayd turn on `task/T-041-d29-r3-the-load-only-restore-substitutio`, then route PR #79 to hmdnah for step 2
+  - opened 2026-10-12T15:37Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

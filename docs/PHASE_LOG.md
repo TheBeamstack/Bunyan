@@ -283,3 +283,9 @@ Not approved (step 1); no defect proven. Item 1: `restoreAssembly`'s catch rethr
 Only `rebuildAll`/`rebuildOnly` pass `restore`; Clean Delta re-run 4.44e-16 m³ / 22, same units as the 1e-9 gate.
 `pnpm verify` 951 + 66. Risk gate: additive, labeller ran on `e7f987a`. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-T-041-review-step-1.md`
+
+## T-041 — review step 2 of PR #79 — 2026-10-12 — seat: hmdnah
+
+Not approved, not merged: item 6 proved a weak green (B-20261012-06). A refusal after import still counts as restored, so 4/5
+roots refused → 8 green, Clean Delta 0. Item 1: `restore` default `true` → edit-path test red, restored 8 green. Items 2, 3 clean.
+Body: `handoff/hmdnah/2026-10-12-T-041-review-step-2.md`

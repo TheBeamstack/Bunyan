@@ -261,3 +261,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh api user --jq .login` → `Davidian-Abdo`; `ls /home/ubuntu/.config/beamstack/` → "blocked … only list files in the allowed working directories"
 - need: post `handoff/hmdnah/2026-10-12-T-041-review-step-1.md` as a PR #79 comment under `narutousomaki741`
 - cleared: -
+
+## B-20261012-06 PR #79's step 2 proved a weak-green restore test, so it is not merged
+
+- opened: 2026-10-12T15:37Z
+- by: hmdnah
+- scope: item
+- item: PR#79
+- what: step 2 of PR #79 (T-041) found that the tests claiming "restored ≡ rebuilt" pass when 4 of 5 assemblies are refused after import, so done-when 2 and 4 are not held by a test
+- why: `restoredRoots` counts `importBrep` calls, which a refused restore also makes; `agent_finish.py --review --step 2` would stamp T-041 `done` (`review_flips_to_done`), so the step-2 finish was not run
+- evidence: add `if (result.parts.length < 2) throw new Refusal();` after `restore(cachedRoot)` in `packages/document/src/cacherestore.ts`, then `pnpm exec vitest run tests/geometry-cache-restore-d29.test.ts --disable-console-intercept` → `8 passed (8)`, Clean Delta `max … = 0 m3`
+- need: make the T-041 restore tests fail when an imported solid is released (fix in `handoff/hmdnah/2026-10-12-T-041-review-step-2.md` notes) in a zayd turn on `task/T-041-d29-r3-the-load-only-restore-substitutio`, then route PR #79 to hmdnah for step 2
+- cleared: -
