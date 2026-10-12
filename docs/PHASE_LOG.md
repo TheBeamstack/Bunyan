@@ -143,3 +143,17 @@ Body: `handoff/hmdnah/2026-10-12-T-032-review.md`
 Approved. The citation matches the T-022 step-2 run (1g, swap off, 78 s, byte-identical). Item 1: B-20261011-07's
 clearance; `gates.py docs` is red with `BLOCKERS.md` at main (R15), green restored. Relink not re-run here.
 Body: `handoff/hmdnah/2026-10-12-T-027-review.md`
+
+## T-035 — design: moving a D52 baseline wall — 2026-10-12 — seat: zayd
+
+`docs/design/P4.5_baseline_move_design.md`: move/copy/rotate/setPlacement refuse on 8 of 8 demo-wall calls.
+Recommends a `ParamField.motion?` position tag (pre-step-6, contract-touching); owner asks: `D-20261012-03`, `-04`.
+Revit/Archicad/Rhino rows unverified here (no web access) — hmdnah to confirm. No code changed.
+Body: `handoff/zayd/2026-10-12-T-035-baseline-move-design.md`
+
+## T-035 — review of PR #71 — 2026-10-12 — seat: hmdnah
+
+Approved. Item 1: §A probe re-run, 8/8 baseline-rung refusals and 2/2 `setParams` accepted; `placement.ts:275`
+rung disabled → red (0 refusals), restored → green. Q8a/Q8b split lawful (Q8 closed, two distinct questions).
+§4 vendor rows still unverified here: web tools denied this session.
+Body: `handoff/hmdnah/2026-10-12-T-035-review.md`

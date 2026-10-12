@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-027` |
-| branch | `task/T-027-6-s-relink-cap-is-measured-not-guessed` |
-| claimed-at | 2026-10-11T23:32:22Z |
-| status | merged — PR #55 merged by `hmdnah` at 2026-10-12T00:47:40Z |
+| task | `T-035` |
+| branch | `task/T-035-q8-design-moving-a-d52-baseline-wall-pro` |
+| claimed-at | 2026-10-12T01:40:48Z |
+| status | merged — PR #71 merged by `hmdnah` at 2026-10-12T02:25:50Z |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 5a24d064442559c431313ec158a1dca4be3cc447
+last-verified-at: 0c907384b1fd5e250abb4c15b1678283af754550
