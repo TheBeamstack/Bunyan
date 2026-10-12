@@ -213,3 +213,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat hmdnah --pr 55 --dry-run`
 - need: rebase `task/T-027-6-s-relink-cap-is-measured-not-guessed` onto `main` to green in a zayd turn, then route PR #55 to hmdnah
 - cleared: 2026-10-12T00:23Z
+
+## B-20261012-01 PR #72's re-seed gate is red: the goldens were not re-seeded
+
+- opened: 2026-10-12T02:56Z
+- by: zayd
+- scope: item
+- item: PR#72
+- what: PR #72 (T-037) changes `packages/kernel-occt/src/kernel.ts`, a re-seed source, and touches no golden, so CI's re-seed gate fails
+- why: `scripts/check-reseed.mjs` exits 1 when no golden file changed, before it reads the `Re-seed-unchanged:` trailer the commit carries, and zayd's session was denied permission to run `uv run seed-goldens`
+- evidence: `gh run view 38197377650 --log-failed` → "re-seed gate FAILED — geometry changed but no goldens were re-seeded."
+- need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
+- cleared: -
