@@ -45,24 +45,13 @@
   string until `D-20261012-06` is answered.
 - The 16k figure is 1.2 s of pure TypeScript, per full key pass; R2/R4 decide when it runs.
 
-## Return from step 1 — `scene.constraints` order keyed (`--continue T-039`)
 
-Answers `handoff/hmdnah/2026-10-12-T-039-review-step-1.md`; it supersedes the first note above, whose claim
-that id-sorted raw rows determine the resolvers was false (they are last-wins in scene order).
+## Return from step 1 (supersedes note 1: the resolvers are last-wins in scene order, not id order)
 
-- `cachekey.ts`: the indexes keep `scene.constraints` / `scene.elements` order (the id sort is gone). An
-  element's own rows, and each generated child's, are digested RESOLVED: `datumElevations`, `gridPointOf` and
-  `sketchConstraintsOf` run on a scene whose `constraints` holds only those rows under their original keys, so
-  the build's own resolvers decide and no second resolver exists. `scene.ts` (frozen-surface `WATCHED`) is
-  untouched.
-- Tests: four reorder cases — two `base` rows, two same-axis `grid` rows, two sketch rows (each re-keys its
-  element), and a `base`/`top` pair (re-keys nothing).
-- Test-first: `pnpm exec vitest run tests/cache-input-key-d29.test.ts` before the fix → `3 failed | 23
-  passed` (`expected [] to deeply equal [ 'col' ]` / `[ 'sk' ]`); after → `26 passed`.
-- Revert-verify: `git stash push -- packages/document/src/cachekey.ts`, same run → the same 3 red; `git stash
-  pop` → 26 passed.
-- Key time, `--reporter=verbose`, one run: 1k 97.3 / 4k 320.1 / 16k 1208.9 ms.
-- `pnpm verify`: ran to its last step (`docs:check`, 66 passed); `pnpm test` 101 files / 936 tests passed.
-- Hosted elements were id-sorted too; `build.ts` cuts them in `hostedBy` (scene) order, so they now key in that
-  order. No test pins it: whether cut order changes the solid was not measured.
-- A row retargeted to another level of equal elevation no longer re-keys: the build reads only the number.
+- `cachekey.ts`: indexes keep scene order; own and child rows are keyed via the build's own resolvers run on a
+  scene of just those rows (original keys), so no second resolver; `scene.ts` (`WATCHED`) untouched.
+- Four reorder tests (two `base`, two same-axis `grid`, two sketch rows re-key; `base`/`top` re-keys nothing):
+  `vitest run tests/cache-input-key-d29.test.ts` → before `3 failed | 23 passed`, after `26 passed`; `git stash
+  push -- packages/document/src/cachekey.ts` → same 3 red, `pop` → 26. Keys 1k/4k/16k: 97/320/1209 ms.
+- `pnpm verify` ran to `docs:check` (66 passed), 936 tests. Hosted elements now key in `hostedBy` (cut) order;
+  whether that order changes the solid was not measured.
