@@ -35,24 +35,31 @@ manifest would let a foreign writer vouch for solids it never built.
 
 ### 2b. The input key — what the build reads, named one by one
 
-`buildAssembly` (`build.ts`) builds a root and every void hosted on it as one unit; its D59 children are generated
-by the root's Type from the root's own context. The key is the digest of, for the root and for each element of
+`buildAssembly` (`build.ts`) builds a root, every void hosted on it, and its D59 children as one unit, and calls
+`contextFor` once per **each** of them: a generated child gets its own context (`build.ts:753`) under the id
+`<rootId>:<slot>` (`childElementId`, `geometry.ts:82`), with a `styleId` the root's Type chose in code
+(`build.ts:745`), not one the scene names. The key is the digest of, for the root and for each element of
 `hostedBy(scene, root)` sorted by id:
 
-| Input                                                                                                    | Read by                                           | Why it is in the key                                                                                                |
-| -------------------------------------------------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| the full element row (`params`, `placement`, `styleId`, `hostId`, `hostRef`, `typeId`, `typeVersion`, …) | `contextFor`, `placeTree`                         | the recipe itself; whole row, so a new field cannot be missed                                                       |
-| the style row, or `null`                                                                                 | `contextFor` (and `voidContextFor`'s `hostStyle`) | layer thicknesses are geometry (D31)                                                                                |
-| `datumElevations`, `gridPointOf`                                                                         | `contextFor`                                      | a `Constraint` row elsewhere in the scene moves the element (D50 0b)                                                |
-| `resolveJoins(scene, id)` — the **resolved** cap-lines                                                   | `contextFor`                                      | a neighbour's endpoint moves this wall's miter; the resolved value, not the neighbour's row, is what the Type reads |
-| `sketchConstraintsOf(scene, id)`                                                                         | `solveSketch`                                     | the 0d solver's input                                                                                               |
-| `elevationOf(scene, containerId)`                                                                        | `contextFor`                                      | a storey's elevation edit moves every element on it                                                                 |
+| Input                                                                                                    | Read by                   | Why it is in the key                                                                                                |
+| -------------------------------------------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| the full element row (`params`, `placement`, `styleId`, `hostId`, `hostRef`, `typeId`, `typeVersion`, …) | `contextFor`, `placeTree` | the recipe itself; whole row, so a new field cannot be missed                                                       |
+| `datumElevations`, `gridPointOf`                                                                         | `contextFor`              | a `Constraint` row elsewhere in the scene moves the element (D50 0b)                                                |
+| `resolveJoins(scene, id)` — the **resolved** cap-lines                                                   | `contextFor`              | a neighbour's endpoint moves this wall's miter; the resolved value, not the neighbour's row, is what the Type reads |
+| `sketchConstraintsOf(scene, id)`                                                                         | `solveSketch`             | the 0d solver's input                                                                                               |
+| `elevationOf(scene, containerId)`                                                                        | `contextFor`              | a storey's elevation edit moves every element on it                                                                 |
 
-**And the shared tables, whole:** `materials`, `sections`, `containers`, `grids` are digested once per save as
-one canonical JSON each, and that digest goes into every key. `BuildContext` exposes them as lazy accessors
-(`material(id)`, `section(id)`, …), so the set of rows a Type reads is code, not data; digesting the whole table
-needs no read-tracing and no change to the frozen `BuildContext`. The price is coarse: a hand-edit to one
-material re-keys every assembly, which costs exactly today's full rebuild.
+⚠ **The child lookups.** The last four rows are scene lookups by element id, and a child's `contextFor` makes them
+under `<rootId>:<slot>`. The key pass cannot list the slots without running the Type, so it digests every
+`Constraint`, join and `SketchConstraint` row whose subject id starts with `<rootId>:` (nested children included).
+
+**And the shared tables, whole:** `styles`, `materials`, `sections`, `containers`, `grids` are digested once per
+save as one canonical JSON each, and that digest goes into every key. `BuildContext` exposes the last four as lazy
+accessors (`material(id)`, `section(id)`, …), and `styles` is read by a `styleId` a D59 Type may generate (above),
+so in both cases the set of rows a build reads is code, not data; digesting the whole table needs no read-tracing
+and no change to the frozen `BuildContext`. The price is coarse: a hand-edit to one style or material re-keys every
+assembly, which costs exactly today's full rebuild. ⚠ A per-root style row is **not** sound: it misses a style only
+a child reads (PR #73 review, reproduced on real OCCT).
 
 ⚠ **Canonical JSON** = sorted keys, no whitespace, `JSON.stringify` numbers. A reformatted or key-reordered
 `scene.json` keeps every key; a changed value changes the key of the assemblies that read it, and of no other.
@@ -136,7 +143,8 @@ Today's build pays the inflation once and ignores the result — correct, merely
 
 ## 4. The restore path
 
-One substitution, in `DocumentContext.#stage`, per root:
+One substitution, in `DocumentContext.#stage`, per root, **on the load path only**: `rebuildAll` and `rebuildOnly`
+(so `#forceBuild`) pass a `restore` flag; the edit paths (`document.ts:372,455,497`) never pass it and always build.
 
 1. Compute the root's input key (§2b). No entry, or a different key ⇒ `buildAssembly`, unchanged.
 2. Same key ⇒ `importBrep` each solid of the record. **Any** refusal ⇒ release the ones imported, `buildAssembly`.
@@ -156,7 +164,7 @@ model and a current value on a restored one can disagree on an unedited element.
 
 ## 5. The budget, and the save policy
 
-Measured (§4j-2, `tests/geometry-cache-d29.test.ts`, 60 solids): rebuild 24.86 ms/solid, cached import
+Measured (§4j-2, one run, 60 solids, `handoff/archive/zayd/2026-07-30-d29-cache-bodies.md:50-56`): rebuild 24.86 ms/solid, cached import
 12.00 ms/solid (**2.07×**), export **6.64 ms/solid**, **3,817 B/solid**. Projected to D48's 16,000 solids:
 
 |                          | Per solid | At 16k             |
@@ -191,9 +199,9 @@ and a recovered session rebuilds as today).
 
 | Row                | Scope                                                                                                                   | Done when                                                                                                                                                                                                                                               | Depends on     |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| **R1** key         | `cacheInputKey(scene, root, tables)` + envelope + canonical JSON + the one-pass index; `packages/document`              | each §2b input class, hand-edited, flips exactly the keys of the assemblies that read it, and a reformat flips none (test-first); key time at 1k/4k/16k elements printed                                                                                | —              |
+| **R1** key         | `cacheInputKey(scene, root, tables)` + envelope + canonical JSON + the one-pass index; `packages/document`              | each §2b input class, hand-edited, flips exactly the keys of the assemblies that read it, a style only a D59 child reads flips its root's key, and a reformat flips none (test-first); key time at 1k/4k/16k elements printed                           | —              |
 | **R2** layout      | optional `SaveOptions.cache`; `loadBnn` filters `geometry-cache/` and exposes an on-demand reader; spec §6 tree amended | an old file opens; a cached file opens in a build that ignores it (today's `loadBnn` on the fixture)                                                                                                                                                    | R1             |
-| **R3** restore     | the `#stage` substitution of §4                                                                                         | restored ≡ rebuilt (`refs` token for token, quantities at D28 rounding) on the D66 fixture; a hand-edited value rebuilds only its assembly; a tampered `.brep` rebuilds and leaks no handle; the Clean Delta question of §4 answered with a measurement | R1, R2         |
+| **R3** restore     | the load-only `#stage` substitution of §4                                                                               | restored ≡ rebuilt (`refs` token for token, quantities at D28 rounding) on the D66 fixture; a hand-edited value rebuilds only its assembly; a tampered `.brep` rebuilds and leaks no handle; the Clean Delta question of §4 answered with a measurement | R1, R2         |
 | **R4** lazy export | the idle exporter, carry-through, write-only-valid-keys; measure compressed size and save time                          | a save calls no `exportBrep`; an unbuilt assembly whose neighbour moved is not written                                                                                                                                                                  | R3             |
 | **R5** trust       | the envelope MAC per `D-20261012-05`                                                                                    | a file from another install restores nothing (revert-verified)                                                                                                                                                                                          | R2, the answer |
 | **R6** `codeId`    | stamping per `D-20261012-06`                                                                                            | a changed bundle discards the cache                                                                                                                                                                                                                     | R2, the answer |
