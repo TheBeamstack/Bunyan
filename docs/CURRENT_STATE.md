@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-032` |
 | branch | `task/T-032-agent-edits-through-window-bunyan-wait-o` |
 | claimed-at | 2026-10-11T23:32:22Z |
-| status | merged — PR #68 merged by `hmdnah` at 2026-10-11T23:59:52Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -206,4 +206,4 @@ _Generated 2026-10-11 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: d235b3668a0a4508adf786ab26d89ff433a90ae2
+last-verified-at: 38c1d9881bdab1c22c0131e35bafae9593b8f49f
