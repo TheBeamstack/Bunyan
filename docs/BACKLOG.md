@@ -466,6 +466,11 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-12 — the freeze baseline cannot name the turn that authorised it** (T-033). `recordedAbstracts`
+  resolves only `### ` headings (`scripts/docs-state.mjs` `NEW_HEADING`), but `docs/PHASE_LOG.md` entries
+  are `## ` (diwan's shape), so `pnpm state --rebaseline` stamps §7's newest abstract
+  (`STEWARD-x001 — 2026-09-04`) instead. Fix shape: accept `## ` in `recordedAbstracts`, key the rebaseline
+  on it. Recorded, not claimed.
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
   turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:

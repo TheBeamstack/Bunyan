@@ -143,3 +143,10 @@ Body: `handoff/hmdnah/2026-10-12-T-032-review.md`
 Approved. The citation matches the T-022 step-2 run (1g, swap off, 78 s, byte-identical). Item 1: B-20261011-07's
 clearance; `gates.py docs` is red with `BLOCKERS.md` at main (R15), green restored. Relink not re-run here.
 Body: `handoff/hmdnah/2026-10-12-T-027-review.md`
+
+## T-033 — `Dimension.anchors` excludes the free `point` anchor — 2026-10-12 — seat: zayd
+
+`Dimension.anchors` is `ModelAnchor[]` (`AnnotationAnchor` minus `point`, D97); `Tag` keeps `point`. A
+`@ts-expect-error` test fails `tsc` (TS2578) with the narrowing reverted. No `Dimension.anchors` reader
+under `packages/`. RISK: contract-touching (re-baselined) — owner merges. `pnpm verify` green (911).
+Body: `handoff/zayd/2026-10-12-T-033-dimension-model-anchors.md`
