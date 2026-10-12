@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-pr74-review-record` |
-| branch | `steward/pr74-review-record` |
+| task | `STEWARD-d29-r3-rebuild-scope` |
+| branch | `steward/d29-r3-rebuild-scope` |
 | claimed-at | 2026-10-12T02:54:48Z |
-| status | merged — PR #75 merged by `hmdnah` at 2026-10-12T07:49:28Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: cf38a8adb823f4bd4ae42e44ca132abff164e951
+last-verified-at: 9ef71616db438594e5c8511c098de89ca231c06d
