@@ -265,3 +265,43 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-19
 - ANSWER:
 - answered: -
+
+## D-20261012-03 Q8 follow-up: which mechanism moves a D52 wall
+
+- opened: 2026-10-12T01:45Z
+- by: zayd
+- item: Q8a
+- asks: which mechanism lets `core.move`, `core.rotate` and `core.copy` move a D52 wall without wall knowledge in the verbs (`docs/design/P4.5_baseline_move_design.md` §5)
+- context: You ruled that walls must move without the general commands knowing what a wall is (D95). Today
+  every move, copy and rotate of a wall refuses (8 of 8 on the demo scene, design §1).
+  annotation: each parameter declares whether it is a position, and the commands move every declared
+  position; a wall marks its two end points. Works for data-authored families too. Mirroring a wall stays
+  refused. hook: each object type supplies its own "apply this movement" function, like Revit; it can
+  mirror a wall, but a data-authored family cannot supply one. both: reserve the two. fold: keep a separate
+  placement and make the wall's other calculations read it; nothing frozen changes, but the end points
+  shown to users and agents would no longer be where the wall is.
+  annotation, hook and both each add a field to a contract that freezes at P5 step 6, so they must land
+  before it. The default (annotation) is the builder's recommendation.
+- options: annotation | hook | both | fold
+- default-if-silent: annotation
+- expires: 2026-10-19
+- ANSWER:
+- answered: -
+
+## D-20261012-04 Q8 follow-up: whether moving a wall drags the walls joined to it
+
+- opened: 2026-10-12T01:45Z
+- by: zayd
+- item: Q8b
+- asks: whether `core.move` on a wall also moves the ends of the walls joined to it (`docs/design/P4.5_baseline_move_design.md` §7)
+- context: When a wall moves, the walls meeting it at a corner can stay put (the corner opens) or stretch
+  to follow it, which is what Revit does by default (unverified here).
+  detach: the command moves only the wall asked for; the editor's drag gesture can still make neighbours
+  follow, as its corner-drag does today, in one undo. follow: the command itself moves the neighbours'
+  ends, which means the general command must know how walls join, the thing D95 ruled out.
+  The default (detach) is the builder's recommendation; it changes no frozen contract either way.
+- options: detach | follow
+- default-if-silent: detach
+- expires: 2026-10-19
+- ANSWER:
+- answered: -
