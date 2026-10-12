@@ -225,3 +225,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `git cat-file -e origin/main:handoff/hmdnah/2026-10-12-STEWARD-d29-cache-decomposition-review.md` → "exists on disk, but not in 'origin/main'"; `git log --oneline origin/main..origin/steward/d29-cache-decomposition` → 7193a47, 4e2abd9
 - need: land commits 4e2abd9 and 7193a47 of `steward/d29-cache-decomposition` on main through a reviewed PR
 - cleared: -
+
+## B-20261012-03 the box loop cannot run the golden seeder, so every zayd turn is held on T-037
+
+- opened: 2026-10-12T07:19Z
+- by: brahim-loop
+- scope: item
+- item: T-037
+- what: two zayd turns (2026-10-12) were refused `uv run seed-goldens` by the session permission layer; `agent_start.py --seat zayd` returns zayd to its incomplete T-037 claim each time, so no builder turn reaches T-039
+- why: PR #72's re-seed gate needs a seeder run on `task/T-037-q5-the-section-chord-tolerance-chosen-fo`; the seat cannot run it, and start continues an incomplete claim before offering a new row; this branch-side need (its B-20261012-01) is not on main, and that id collides with main's B-20261012-01
+- evidence: `cd tools/oracle && uv run seed-goldens ../../tests/goldens` in a loop-spawned zayd → "The following part requires approval: uv run seed-goldens ../../tests/goldens"; `gh pr view 72 --json mergeable` → CONFLICTING
+- need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
+- cleared: -
