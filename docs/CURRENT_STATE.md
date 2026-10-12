@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-loadbnn-zip-caps` |
 | branch | `steward/loadbnn-zip-caps` |
 | claimed-at | 2026-10-12T13:03:17Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -211,4 +211,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 1327d285d25c5c3f48cd350965e7f52139b700fe
+last-verified-at: 0af8b9c1c71511802827c68b5514d74cfb7fad41
