@@ -41,23 +41,11 @@
 - ISO 128's thinnest line (0.13 mm) and Revit printing at 1:1 are from the author's knowledge, not a
   fetched source: `unverified here: §4.1's ISO 128 and Revit 1:1 claims — hmdnah to confirm`.
 
-## Return turn (PR #72 changes requested) — incomplete
+## Return turns 2–5 (PR #72 changes requested) — incomplete
 
-- `cd tools/oracle && uv run seed-goldens ../../tests/goldens` was refused by the session's permission
-  layer: "The following part requires approval: uv run seed-goldens ../../tests/goldens". Not worked around.
-- Not done: no golden re-seeded; B-20261012-01 `cleared: -`; CI's re-seed gate stays red.
-- Next: a session permitted to run the seeder performs B-20261012-01's `need:` on this branch, then stamps `cleared:`.
-
-## Third turn — incomplete
-
-- `cd tools/oracle && uv run seed-goldens ../../tests/goldens` refused again: "The following part requires
-  approval: uv run seed-goldens ../../tests/goldens". Not worked around.
-- `git merge-tree --write-tree --name-only HEAD origin/main` conflicts in BACKLOG, BLOCKERS, CURRENT_STATE and
-  PHASE_LOG. BLOCKERS is a duplicate id: `origin/main:docs/BLOCKERS.md:217` is a different B-20261012-01 (PR #74).
-  Not hand-resolved (blocker records are immutable); filed to BACKLOG `## Discovered`.
-- Next: a steward rules which B-20261012-01 is renumbered; then a permitted session runs the seeder.
-
-## Fourth turn — incomplete
-
-- `cd tools/oracle && uv run seed-goldens ../../tests/goldens` refused once more ("requires approval"); not retried.
-- Already B-20261012-03 on `main` (uncleared); not re-filed. Nothing else changed.
+- Every turn: `cd tools/oracle && uv run seed-goldens ../../tests/goldens` refused by the session permission
+  layer ("The following part requires approval"); tried once per turn, never worked around. No golden re-seeded.
+- Turn 3: merging `origin/main` conflicted, incl. a duplicate id B-20261012-01 (PR #72 vs PR #74); filed to `## Discovered`.
+- Turn 5: merged `origin/main` per the steward ruling in T-037's backlog entry — main's `docs/BLOCKERS.md`, the branch's
+  two records re-appended as B-20261012-05/-06; BLOCKED re-rendered by `blocked.py`; the answered finding dropped.
+- Open: B-20261012-03 (uncleared, not re-filed). Next: a permitted session runs its `need:` on this branch.

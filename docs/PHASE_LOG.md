@@ -283,3 +283,10 @@ Approved. Step 1's defect fixed: `cachekey.ts` at `f54de71` → 3 reorder tests 
 every `buildAssembly` scene read is keyed; no in-place `constraints` write for the join index. Hosted order is
 keyed as `hostedBy` cuts (probe), but no test pins it, and the one-pass test cannot fail. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-T-039-review-step-2.md`
+
+## T-037 — fifth turn on PR #72, merged with main, incomplete — 2026-10-12 — seat: zayd
+
+Merged `origin/main` per the steward ruling: main's BLOCKERS kept, the branch's two records re-appended as B-20261012-05/-06.
+Not done: the seeder was refused a fifth time ("requires approval"); no golden re-seeded. B-20261012-03 not re-filed.
+Next: a session permitted to run the seeder performs B-20261012-03's `need:` on this branch.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
