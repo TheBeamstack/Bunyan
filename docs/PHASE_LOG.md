@@ -178,3 +178,10 @@ Approved. Step 1's defect re-measured on OCCT: child-only style edit, pre-fix ke
 flips (green), 3.0e7 → 7.0e7 mm³; reformat and unrelated edit flip nothing. Restore is load-only; citation fixed.
 Items 2/3/6: every `buildAssembly` scene read is keyed. Note: R1/R3 "exactly" wording excludes whole tables.
 Body: `handoff/hmdnah/2026-10-12-T-038-review-step-2.md`
+
+## STEWARD-d29-cache-decomposition — T-038's rows R1–R7 filed — 2026-10-12 — seat: brahim
+
+`backlog.py add`: T-039 (R1, `ready`) … T-045 (R7), sequenced after T-038; T-040–T-042 blocked on their
+predecessors, T-043–T-045 also on `D-20261012-05/-06/-07`. All `risk: high` (READY rule 8, D29). R1/R3 criteria
+exclude the five whole-digested tables, per hmdnah's step-2 note. No code changed.
+Body: `handoff/brahim/2026-10-12-STEWARD-d29-cache-decomposition-rows.md`
