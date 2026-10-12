@@ -249,3 +249,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh api user --jq .login` → `Davidian-Abdo`; `GH_TOKEN="$(cat ~/.config/beamstack/narutousomaki741.token)" gh pr comment 77 --body-file …` → "Contains shell syntax … cannot be statically analyzed"
 - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
 - cleared: -
+
+## B-20261012-05 PR #79's step-1 report could not be posted as a comment under hmdnah's account
+
+- opened: 2026-10-12T15:15Z
+- by: hmdnah
+- scope: item
+- item: PR#79
+- what: the step-1 review report of PR #79 is committed on its branch but not posted to the PR
+- why: ambient `gh api user` is `Davidian-Abdo` (the author's account); no diwan entrypoint posts a review report as the seat, and the session may not read `~/.config/beamstack/`
+- evidence: `gh api user --jq .login` → `Davidian-Abdo`; `ls /home/ubuntu/.config/beamstack/` → "blocked … only list files in the allowed working directories"
+- need: post `handoff/hmdnah/2026-10-12-T-041-review-step-1.md` as a PR #79 comment under `narutousomaki741`
+- cleared: -

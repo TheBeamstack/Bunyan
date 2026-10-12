@@ -87,6 +87,9 @@ builder may claim.
 - **B-20261012-04** — `scope: item` · `item: PR#77` — PR #77's step-1 report could not be posted as a comment under hmdnah's account
   - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
   - opened 2026-10-12T09:09Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261012-05** — `scope: item` · `item: PR#79` — PR #79's step-1 report could not be posted as a comment under hmdnah's account
+  - need: post `handoff/hmdnah/2026-10-12-T-041-review-step-1.md` as a PR #79 comment under `narutousomaki741`
+  - opened 2026-10-12T15:15Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
