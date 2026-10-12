@@ -224,7 +224,7 @@ from, and the reason it is a record rather than prose.
 - why: hmdnah ran the merge entrypoint before the review finish, so `agent_finish.py --review` committed the PHASE_LOG abstract and `handoff/hmdnah/2026-10-12-STEWARD-d29-cache-decomposition-review.md` to the already-merged `steward/d29-cache-decomposition` (commits 4e2abd9, 7193a47), and no open PR carries them
 - evidence: `git cat-file -e origin/main:handoff/hmdnah/2026-10-12-STEWARD-d29-cache-decomposition-review.md` → "exists on disk, but not in 'origin/main'"; `git log --oneline origin/main..origin/steward/d29-cache-decomposition` → 7193a47, 4e2abd9
 - need: land commits 4e2abd9 and 7193a47 of `steward/d29-cache-decomposition` on main through a reviewed PR
-- cleared: -
+- cleared: 2026-10-12T07:49Z
 
 ## B-20261012-03 the box loop cannot run the golden seeder, so every zayd turn is held on T-037
 

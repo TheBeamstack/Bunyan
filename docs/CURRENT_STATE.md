@@ -81,9 +81,6 @@ builder may claim.
 - **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
   - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
   - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
-- **B-20261012-01** — `scope: item` · `item: PR#74` — PR #74's review record is on its merged branch, not on main
-  - need: land commits 4e2abd9 and 7193a47 of `steward/d29-cache-decomposition` on main through a reviewed PR
-  - opened 2026-10-12T07:08Z by hmdnah · recorded in `docs/BLOCKERS.md`
 - **B-20261012-03** — `scope: item` · `item: T-037` — the box loop cannot run the golden seeder, so every zayd turn is held on T-037
   - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
   - opened 2026-10-12T07:19Z by brahim-loop · recorded in `docs/BLOCKERS.md`
