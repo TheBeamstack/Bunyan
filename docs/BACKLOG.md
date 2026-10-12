@@ -399,7 +399,7 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - implements: docs/design/P5_step9_D29_bnn_cache_design.md §4, §6 R3 · D1 · D66 · D28
 - done-when: only rebuildAll and rebuildOnly pass restore; the edit paths in document.ts never do (asserted by a test)
 - done-when: restored ≡ rebuilt on the D66 fixture: refs token for token, quantities at D28 rounding
-- done-when: a hand-edited per-element value rebuilds only its assembly (a whole-digested table edit rebuilds all); a tampered .brep rebuilds and leaks no handle; a Part.refs that is not a permutation of importBrep output is treated as a refusal
+- done-when: a hand-edited per-element value rebuilds exactly the assemblies whose input key it flips (its own, plus any joined neighbour via `resolveJoins`; a whole-digested table edit rebuilds all); a tampered .brep rebuilds and leaks no handle; a Part.refs that is not a permutation of importBrep output is treated as a refusal
 - done-when: the §4 Clean Delta question is answered by a measurement recorded in the handoff
 - done-when: revert-verified: removing the refusal fallback turns the tampered-brep test red
 - verify: pnpm verify

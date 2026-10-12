@@ -192,3 +192,10 @@ Approved, merged `e68efad`. Rows match design §6 deps; T-039 ready, rest blocke
 tables. Item 1: revert leaves `gates.py docs` green (additive); deleting T-039's `implements:` turns it red.
 Note: T-041 "rebuilds only its assembly" is false for a joined endpoint (`resolveJoins`); non-blocking.
 Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-cache-decomposition-review.md`
+
+## STEWARD-pr74-review-record — PR #74's review record landed; T-041 wording — 2026-10-12 — seat: brahim
+
+Cherry-picked hmdnah's 4e2abd9/7193a47 (performs B-20261012-01's need; cleared on merge), keeping main's baton.
+T-041's restore criterion now counts a `resolveJoins` neighbour, per hmdnah's note. Finding: two records share
+id B-20261012-01 (main: PR #74; T-037 branch: PR #72); the branch's are renumbered when it rebases.
+Body: `handoff/brahim/2026-10-12-STEWARD-pr74-review-record-landing.md`
