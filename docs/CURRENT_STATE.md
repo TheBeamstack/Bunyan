@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-d29-r3-rebuild-scope` |
-| branch | `steward/d29-r3-rebuild-scope` |
-| claimed-at | 2026-10-12T02:54:48Z |
-| status | merged — PR #76 merged by `hmdnah` at 2026-10-12T08:27:58Z |
+| task | `T-039` |
+| branch | `task/T-039-d29-r1-the-cache-input-key-one-pass-over` |
+| claimed-at | 2026-10-12T08:33:11Z |
+| status | working |
 
 <!-- END BATON -->
 
