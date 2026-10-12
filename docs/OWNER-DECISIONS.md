@@ -305,3 +305,60 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-19
 - ANSWER:
 - answered: -
+
+## D-20261012-05 Q6 follow-up: whose saved geometry cache a file may restore
+
+- opened: 2026-10-12T02:59Z
+- by: zayd
+- item: Q6a
+- asks: which `.bnn` files may restore solids from their geometry cache (`docs/design/P5_step9_D29_bnn_cache_design.md` §2e)
+- context: The cache stores built 3D shapes inside the saved file so it opens about twice as fast. Its check proves
+  the shapes match their names, but anyone who writes a file can also write shapes that are not what the design
+  would build, with a check that passes. A recipient would then see, and bill quantities from, a building that
+  is not the one described.
+  own: only files this browser installation wrote restore from the cache; a file someone sends you opens at
+  today's speed, built from the design. any: every file's cache is used; fastest, and a sent file can show
+  geometry its design does not describe. verify: every file's cache is used for the first view, then everything
+  is rebuilt in the background and compared; correct, but the background rebuild competes with editing.
+  The default (own) is the builder's recommendation; it changes no frozen contract either way.
+- options: own | any | verify
+- default-if-silent: own
+- expires: 2026-10-19
+- ANSWER:
+- answered: -
+
+## D-20261012-06 Q6 follow-up: what code change discards a saved geometry cache
+
+- opened: 2026-10-12T02:59Z
+- by: zayd
+- item: Q6b
+- asks: which identity of the app's code a geometry cache is tied to (`docs/design/P5_step9_D29_bnn_cache_design.md` §2d)
+- context: A cached shape is only right if the code that built it is the code that would build it now. A fix to
+  how a wall is built changes the shape without changing anything in the file.
+  bundle: the cache records a fingerprint of the shipped app; every update discards every cache, so the first
+  open after an update is today's full rebuild. version: the cache records each object type's version
+  number; caches survive updates, but a fix shipped without a version bump keeps showing the old shape.
+  The default (bundle) is the builder's recommendation; it changes no frozen contract either way.
+- options: bundle | version
+- default-if-silent: bundle
+- expires: 2026-10-19
+- ANSWER:
+- answered: -
+
+## D-20261012-07 Q6 follow-up: whether autosave snapshots carry the geometry cache
+
+- opened: 2026-10-12T02:59Z
+- by: zayd
+- item: Q6c
+- asks: whether autosave writes the geometry cache into its snapshots (spec §7; `docs/design/P5_step9_D29_bnn_cache_design.md` §5)
+- context: Autosave keeps the last five snapshots of the open document in browser storage for crash recovery.
+  At the 16,000-solid target the cache is about 61 MB uncompressed, so five snapshots carrying it are about
+  305 MB of browser storage.
+  omit: snapshots keep the design only; recovering after a crash rebuilds the model, as today. include:
+  snapshots carry the cache, so a recovered session opens about twice as fast, at five times the storage.
+  The default (omit) is the builder's recommendation; the spec says include today and is amended either way.
+- options: omit | include
+- default-if-silent: omit
+- expires: 2026-10-19
+- ANSWER:
+- answered: -

@@ -103,7 +103,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-035 | done    | Q8 — design: moving a D52 baseline wall, properly                                                 | design   | box     | normal   | —          |
 | T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                    | document | box     | **high** | T-035      |
 | T-037 | review  | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                    | kernel   | box     | normal   | —          |
-| T-038 | ready   | Q6 — design: the D29 cache in the `.bnn`                                                          | design   | box     | **high** | —          |
+| T-038 | done    | Q6 — design: the D29 cache in the `.bnn`                                                          | design   | box     | **high** | —          |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —          |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —          |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029      |
@@ -471,6 +471,10 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   exceeds D92's 0.01 mm chord tolerance (`P5_step6C_plan_section_design.md` §4.1). Fix shape: emit
   `double` (a WASM rebuild; `SectionCutPayload` is unaffected). Recorded, not claimed.
 
+- **2026-10-12 — `loadBnn` has no zip decompression or entry-count cap** (T-038). `bnn.ts` calls
+  `unzipSync(bytes)` on every entry with no bound, against spec §9's import-hardening line; the D29 cache
+  would add ~61 MB and ~16k entries at target. Fix shape: an entry-count and inflated-size bound before
+  `unzipSync`, plus its `filter`. Recorded, not claimed.
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
   turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:
