@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-035` |
 | branch | `task/T-035-q8-design-moving-a-d52-baseline-wall-pro` |
 | claimed-at | 2026-10-12T01:40:48Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 6a0f8ef3471c29e6c0ca7e09802b1578d8b5107e
+last-verified-at: f1797af39d221167f76fa2d6843474c589d3e235
