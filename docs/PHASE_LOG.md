@@ -164,3 +164,10 @@ Body: `handoff/hmdnah/2026-10-12-T-035-review.md`
 envelope (`codeId`, own `kernelBuildId`); `geometry-cache/` additive, no frozen shape moves; saves never export
 (106 s at 16k), the cache is written lazily. Rows R1–R7. Owner asks: `D-20261012-05`, `-06`, `-07`. No code changed.
 Body: `handoff/zayd/2026-10-12-T-038-d29-bnn-cache-design.md`
+
+## T-038 — review step 1 of PR #73 — 2026-10-12 — seat: hmdnah
+
+Not approved (step 1). Defect: §2b keys styles only for root + `hostedBy`; a D59 child's style (`build.ts:590,753`)
+moves no key. Throwaway OCCT test: key unchanged, rebuilt 2e7 → 6e7 mm³ (red); `styles` digested whole → green.
+§5's 60-solid figures cite the wrong source (Entry 71's handoff, not the test). Risk gate ran: additive.
+Body: `handoff/hmdnah/2026-10-12-T-038-review-step-1.md`
