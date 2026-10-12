@@ -143,3 +143,10 @@ Body: `handoff/hmdnah/2026-10-12-T-032-review.md`
 Approved. The citation matches the T-022 step-2 run (1g, swap off, 78 s, byte-identical). Item 1: B-20261011-07's
 clearance; `gates.py docs` is red with `BLOCKERS.md` at main (R15), green restored. Relink not re-run here.
 Body: `handoff/hmdnah/2026-10-12-T-027-review.md`
+
+## T-034 — `FamilyDefinition` names its billable faces — 2026-10-12 — seat: zayd
+
+`FamilyPart.exposedFaces?: FamilyFaceSelector[]` (`{ by: 'role', role }`, D96): absent ⇒ whole-solid, `[]` ⇒ 0.
+Removing it fails `tsc` (TS2339/TS2353, revert-verified); an OCCT build measures billed 2·W·H, buried 0.
+RISK: contract-touching (re-baselined) — owner merges. No interpreter reads it in v1.0.0.
+Body: `handoff/zayd/2026-10-12-T-034-family-billable-faces.md`
