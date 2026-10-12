@@ -249,3 +249,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh api user --jq .login` → `Davidian-Abdo`; `GH_TOKEN="$(cat ~/.config/beamstack/narutousomaki741.token)" gh pr comment 77 --body-file …` → "Contains shell syntax … cannot be statically analyzed"
 - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
 - cleared: -
+
+## B-20261012-07 PR #79's returned fix cannot reach zayd: the start entrypoint reads T-041's claim as hmdnah's
+
+- opened: 2026-10-12T15:41Z
+- by: brahim-loop
+- scope: item
+- item: PR#79
+- what: step 2 returned PR #79 (T-041) to its builder (branch-side B-20261012-06), but a loop-spawned zayd turn was given T-037 and listed the T-041 branch as "claimed by hmdnah"
+- why: the step-1 review rewrote the branch's baton to `seat: hmdnah`, `builder: zayd`, `status: reviewed by hmdnah — ready to merge` (6891ddd), and `Claim` in diwan `agent_start.py:176` reads `seat`, never `builder`; B-20261012-03 separately holds every zayd turn on T-037
+- evidence: `git show origin/task/T-041-d29-r3-the-load-only-restore-substitutio:docs/CURRENT_STATE.md | sed -n '61,70p'`; `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan` → "task/T-041-d29-r3-the-load-only-restore-substitutio — claimed by hmdnah"
+- need: make diwan `agent_start.py` hand a builder the `task/*` branch whose baton names it as `builder` after a review returned it, then run B-20261012-06's fix in a zayd turn
+- cleared: -
