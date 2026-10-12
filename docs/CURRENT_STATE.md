@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-027` |
-| branch | `task/T-027-6-s-relink-cap-is-measured-not-guessed` |
-| claimed-at | 2026-10-11T23:32:22Z |
-| status | merged — PR #55 merged by `hmdnah` at 2026-10-12T00:47:40Z |
+| task | `T-034` |
+| branch | `task/T-034-q9-familydefinition-reserves-a-way-for-d` |
+| claimed-at | 2026-10-12T01:24:32Z |
+| status | working |
 
 <!-- END BATON -->
 
