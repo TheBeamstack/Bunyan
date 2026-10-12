@@ -39,6 +39,12 @@ identity fields, and compressing a body never moves the population a reference r
 **Sealed volumes** (never edited again): `docs/phase-log-01.md` — §A–§E, Entries 1–88 and the
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07.
 
+## T-027 — PR #55 brought up to date with main again — 2026-10-12 — seat: zayd
+
+Merged `origin/main` (`681c2b4`) to clear #55's conflicts (BACKLOG, CURRENT_STATE), B-20261011-07; T-027
+kept at `review`, the `window.bunyan` finding dropped as main's T-032. `pnpm verify` green (910 tests).
+Body: `handoff/zayd/2026-10-12-T-027-merge-main-2.md`
+
 ## T-027 — §6's relink cap is measured, not guessed — 2026-10-06 — seat: zayd
 
 `docs/CURRENT_STATE-reference.md §6` relink recipe `--memory=2g` → `--memory=1g --memory-swap=1g`, citing
