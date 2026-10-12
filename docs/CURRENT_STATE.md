@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-loadbnn-zip-caps` |
 | branch | `steward/loadbnn-zip-caps` |
 | claimed-at | 2026-10-12T13:03:17Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #80 merged by `hmdnah` at 2026-10-12T16:15:27Z |
 
 <!-- END BATON -->
 
@@ -211,4 +211,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 0af8b9c1c71511802827c68b5514d74cfb7fad41
+last-verified-at: 78f8fdab5bebcd25016460d1f5ff0058fa4cbe38
