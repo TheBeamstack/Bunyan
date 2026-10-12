@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-HANDOVER-H-20261011-15` |
-| branch | `custodianship/T-007-descriptions` |
-| claimed-at | 2026-10-08T21:03:29Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| task | `T-027` |
+| branch | `task/T-027-6-s-relink-cap-is-measured-not-guessed` |
+| claimed-at | 2026-10-11T23:32:22Z |
+| status | merged — PR #55 merged by `hmdnah` at 2026-10-12T00:47:40Z |
 
 <!-- END BATON -->
 
@@ -78,6 +78,9 @@ builder may claim.
 - **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
   - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
   - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
+  - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
+  - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -186,18 +189,18 @@ maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `main` · `9d68d51` · dirty |
-| open PRs | #65 custodianship/T-007-descriptions · #64 custodianship/T-006-security-settings · #63 steward/owner-rulings-q5-q10 · #55 task/T-027-6-s-relink-cap-is-measured-not-guessed |
-| suite | ⚠⚠ 896/898 passing — **2 FAILING** |
+| branch · tip · tree | `task/T-027-6-s-relink-cap-is-measured-not-guessed` · `d6666b0` · clean |
+| open PRs | #65 custodianship/T-007-descriptions · #55 task/T-027-6-s-relink-cap-is-measured-not-guessed |
+| suite | **910 green** · 100 files · 279 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
 | **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 1 file changed, 1 insertion(+), 1 deletion(-) (1 files) |
-| docs budget | current_state 13.8/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 97 |
+| diff vs origin/main | 5 files changed, 83 insertions(+), 3 deletions(-) (5 files) |
+| docs budget | current_state 13.1/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 108 |
 
-_Generated 2026-10-11 by `pnpm state`._
+_Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 38d1159fb63457c00a31f8c7929916bce13fff89
+last-verified-at: 5a24d064442559c431313ec158a1dca4be3cc447

@@ -189,3 +189,27 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/gates.py docs --root /home/ubuntu/projects/Bunyan` on `main` 16a0428
 - need: make docs/PHASE_LOG.md's 2026-10-10 B-20261010-03 diagnosis abstract carry `see: docs/BLOCKERS.md#B-20261010-03` instead of a heading that names the id, then re-run brahim's finish for STEWARD-owner-rulings-q5-q10
 - cleared: 2026-10-11T21:04Z
+
+## B-20261011-06 PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
+
+- opened: 2026-10-11T22:00Z
+- by: hmdnah
+- scope: item
+- item: PR#65
+- what: PR #65 (H-20261011-15) is reviewed, approved in its comment, finished (head 1351819), CI green and MERGEABLE, but the merge entrypoint refuses it
+- why: diwan `agent_merge.py:279` takes `T-\d{3}` from the head branch `custodianship/T-007-descriptions`, which is the Custodianship lane's T-007, and Bunyan's T-007 entry is sealed in docs/backlog-phase-01.md, so `task_field` finds no `risk:` and line 289 exits 1; PR #64 passed the same check only because Bunyan's unrelated T-006 entry is live with `risk: normal`
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --seat hmdnah --pr 65 --root /home/ubuntu/projects/Bunyan` → "REFUSED [1 refused on the repository]: PR #65 names T-007, and docs/BACKLOG.md has no readable 'risk:' for it."
+- need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
+- cleared: -
+
+## B-20261011-07 PR #55 is CONFLICTING with main and no entrypoint returns it to its builder
+
+- opened: 2026-10-11T23:48Z
+- by: brahim-loop
+- scope: item
+- item: PR#55
+- what: PR #55 (T-027, zayd) cannot be reviewed or merged; zayd's start on 2026-10-11 listed it, refused it, and claimed T-032 instead
+- why: the merge preflight refuses "PR is CONFLICTING … rebase it onto main", and `agent_start.py --seat zayd` does not hand a builder its own conflicting branch, so T-027's row still reads `ready` with its work stranded on `task/T-027-6-s-relink-cap-is-measured-not-guessed`
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat hmdnah --pr 55 --dry-run`
+- need: rebase `task/T-027-6-s-relink-cap-is-measured-not-guessed` onto `main` to green in a zayd turn, then route PR #55 to hmdnah
+- cleared: 2026-10-12T00:23Z

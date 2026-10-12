@@ -77,7 +77,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                                           | document | box     | normal   | —          |
 | T-008 | done    | Q19 — the belongs-to deletion reconciliation                                                      | document | box     | high     | —          |
 | T-009 | done    | Q18 — a hosted void may only host on its host's base part                                         | document | box     | high     | —          |
-| T-010 | ready   | Q18 — two doors on one wall, confirmed in the browser                                             | apps-web | box     | normal   | T-009      |
+| T-010 | done    | Q18 — two doors on one wall, confirmed in the browser                                             | apps-web | box     | normal   | T-009      |
 | T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`                                          | document | box     | high     | —          |
 | T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`                                             | infra    | box     | high     | —          |
 | T-013 | done    | The seat identity guard — `gh api user` must match the seat                                       | infra    | box     | high     | —          |
@@ -86,8 +86,8 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-016 | done    | `§0b`'s baton carries the builder separately from the holder                                      | infra    | box     | high     | T-015      |
 | T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself                                        | infra    | box     | normal   | —          |
 | T-018 | done    | D66's lazy-build design doc + measurement, reproduced                                             | document | box     | normal   | —          |
-| T-019 | ready   | The move-tool gizmo + corner-drag, redone against `main`                                          | apps-web | box     | normal   | —          |
-| T-032 | ready   | Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds | frontend | box     | normal   | —          |
+| T-019 | done    | The move-tool gizmo + corner-drag, redone against `main`                                          | apps-web | box     | normal   | —          |
+| T-032 | done    | Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds | frontend | box     | normal   | —          |
 | T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows                                    | infra    | box     | high     | —          |
 | T-021 | done    | `pnpm verify` reaches green on the pc, confirmed there                                            | infra    | pc      | normal   | T-020      |
 | T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red                           | infra    | box     | high     | —          |
@@ -97,7 +97,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-026 | blocked | The identity gate fires at approve/merge, not only at claim                                       | infra    | box     | high     | —          |
 | T-025 | blocked | `--review` keeps an owner-gated row at `review`                                                   | infra    | box     | high     | —          |
 | T-028 | blocked | `agent-finish.mjs` is resumable after an interrupted run                                          | infra    | box     | normal   | —          |
-| T-027 | ready   | §6's relink cap is measured, not guessed                                                          | infra    | box     | normal   | —          |
+| T-027 | done    | §6's relink cap is measured, not guessed                                                          | infra    | box     | normal   | —          |
 | T-033 | ready   | Q10 — `Dimension.anchors` excludes the free `point` anchor                                        | document | box     | **high** | —          |
 | T-034 | ready   | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                            | document | box     | **high** | —          |
 | T-035 | ready   | Q8 — design: moving a D52 baseline wall, properly                                                 | design   | box     | normal   | —          |
@@ -466,6 +466,15 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
+  `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
+  turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:
+  a root devDependency, or a need. Also: `docs/INVARIANTS.md §1.9` still bars `zayd`/`hmdnah` from
+  passing a browser claim, against R79. Recorded, not claimed.
+- **2026-10-10 — the merge entrypoint's re-measure overwrites `pnpm state`'s §8 block, turning `main` red.**
+  `401e22d` stamped `BEGIN GENERATED by measure.py` over the `scripts/state.mjs` block;
+  `tests/docs-budget.test.ts` then fails 2 tests (CI run 38092485883) and `pnpm state` refuses. PR #55
+  restores the block; the next merge re-stamps it. Fix belongs in diwan (B-20260930-01's shape). Recorded, not claimed.
 - **2026-10-10 — diwan `scripts/backlog.py add` cannot write this repo's `area:` vocabulary, nor `requires:`.**
   Its `AREAS` is `backend|frontend|workers|infra|spec` (`backlog.py:73`), against this file's
   `kernel|document|apps-web|infra|design`, and it has no `--requires` flag. T-033…T-038 were written by it
@@ -479,7 +488,9 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
 - **2026-10-08 — T-006 makes D-20261007-11 (Q23) reachable from the app.** An opened file now boots
   with only the keep-live set built, so `agent.query({discipline})` drops deferred elements in the
   shipped app, not only in a test. Recorded for the owner's answer; not claimed.
-
+- **2026-10-06 — `tools/kernel-build/README.md` step 3 still links at `--memory=2g`** after T-027 set
+  `docs/CURRENT_STATE-reference.md §6` to the measured 1 GB; the same unmeasured 2g caps `probe.sh` and
+  README's probe/configure/compile steps, whose own footprints nobody has measured. Recorded, not claimed.
 - **2026-09-04 — a GitHub Actions job's `runner_name` reads `""` even after it completes successfully**,
   so it is not evidence that nothing picked the job up. PR #47's run 33877624825 sat `queued` 55.6 min
   while the runner reported `online busy=false`; two readers diagnosed a wedged listener. It was queue

@@ -410,7 +410,9 @@ pnpm docs:check      # the doc gates alone (budget · abstract schema · §8 fre
 # ⚠ THE IMAGE IS PINNED BY DIGEST (Q14, Entry 79). `:latest` moved 6.0.2 -> 6.0.5 under this recipe.
 SPIKE=$HOME/occt-wasm-spike;  REPO=$HOME/projects/Bunyan/tools/kernel-build
 EMSDK=$(node -p "require('$REPO/toolchain.json').emsdk.image + '@' + require('$REPO/toolchain.json').emsdk.digest")
-docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
+# MEASURED cap (T-022 review step 2, 2026-08-21): link.sh fits a hard 1 GB cgroup, swap off — 78 s, exit 0,
+# output byte-identical to the committed pair. Was --memory=2g, a guess that deferred a box relink.
+docker run --rm --memory=1g --memory-swap=1g --cpus=2 --user "$(id -u):$(id -g)" \
   -v "$REPO:/work" -v "$SPIKE/install:/install:ro" \
   "$EMSDK" bash /work/link.sh
 cp $REPO/dist/bunyan-kernel.{js,wasm} $HOME/projects/Bunyan/packages/kernel-occt/wasm/ && pnpm verify
