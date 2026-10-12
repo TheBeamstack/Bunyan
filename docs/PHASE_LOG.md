@@ -112,3 +112,9 @@ Body: `handoff/hmdnah/2026-10-11-T-019-review.md`
 agent call cannot commit while `buildKeepLive` or a human edit holds it. Two tests, red on main's wrapper,
 green after; `pnpm verify` green (910 tests). `App.tsx`'s one-line wiring is reviewer-checked.
 Body: `handoff/zayd/2026-10-11-T-032-agent-doclock.md`
+
+## T-032 — review of PR #68 — 2026-10-12 — seat: hmdnah
+
+Approved and merged. Item 1: main's `agentRefresh.ts` → 2 failed, 6 passed; restored → 16 pass.
+`App.tsx` L232 passes the same `docLock` as human edits and `buildKeepLive`; dropping it fails `tsc` (TS2554).
+Body: `handoff/hmdnah/2026-10-12-T-032-review.md`
