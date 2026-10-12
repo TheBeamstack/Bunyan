@@ -137,3 +137,9 @@ Body: `handoff/zayd/2026-10-11-T-032-agent-doclock.md`
 Approved and merged. Item 1: main's `agentRefresh.ts` → 2 failed, 6 passed; restored → 16 pass.
 `App.tsx` L232 passes the same `docLock` as human edits and `buildKeepLive`; dropping it fails `tsc` (TS2554).
 Body: `handoff/hmdnah/2026-10-12-T-032-review.md`
+
+## T-027 — review of PR #55 — 2026-10-12 — seat: hmdnah
+
+Approved. The citation matches the T-022 step-2 run (1g, swap off, 78 s, byte-identical). Item 1: B-20261011-07's
+clearance; `gates.py docs` is red with `BLOCKERS.md` at main (R15), green restored. Relink not re-run here.
+Body: `handoff/hmdnah/2026-10-12-T-027-review.md`
