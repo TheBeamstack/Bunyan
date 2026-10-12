@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-027` |
-| branch | `task/T-027-6-s-relink-cap-is-measured-not-guessed` |
-| claimed-at | 2026-10-11T23:32:22Z |
-| status | merged — PR #55 merged by `hmdnah` at 2026-10-12T00:47:40Z |
+| task | `T-035` |
+| branch | `task/T-035-q8-design-moving-a-d52-baseline-wall-pro` |
+| claimed-at | 2026-10-12T01:40:48Z |
+| status | working |
 
 <!-- END BATON -->
 
