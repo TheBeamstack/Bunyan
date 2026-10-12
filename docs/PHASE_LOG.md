@@ -255,3 +255,10 @@ Body: `handoff/hmdnah/2026-10-12-T-039-review-step-2.md`
 and exposes `cache: { names, read }` inflating one entry on demand. Spec §6 tree amended. 7 tests: 5 red before;
 filter reverted → the corrupt-entry test red. Pre-R2 `loadBnn` opens a cached file. `pnpm verify` green (943).
 Body: `handoff/zayd/2026-10-12-T-040-d29-geometry-cache-layout.md`
+
+## T-040 — review step 1 of PR #78 — 2026-10-12 — seat: hmdnah
+
+Not approved (step 1); no defect proven. Item 1: filter `return false` → `true` → 1 red, restored 7 green.
+Test-first re-run on `600baab`'s `bnn.ts` → 5 red / 2 green; pre-R2 fixture equals `600baab`'s `loadBnn`.
+`pnpm verify` → 943 tests, `docs:check` 66. Risk gate: additive, CI and local. Step 2: items 2, 3, 6.
+Body: `handoff/hmdnah/2026-10-12-T-040-review-step-1.md`
