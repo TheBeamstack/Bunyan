@@ -158,6 +158,20 @@ rung disabled → red (0 refusals), restored → green. Q8a/Q8b split lawful (Q8
 §4 vendor rows still unverified here: web tools denied this session.
 Body: `handoff/hmdnah/2026-10-12-T-035-review.md`
 
+## T-037 — the section chord tolerance, chosen for Revit-class drawings — 2026-10-12 — seat: zayd
+
+`SECTION_DEFLECTION` 0.5 → 0.01 mm: 0.01 mm on paper at 1:1, the smallest Revit-class scale (D92, §4.1).
+`tests/section-chord-tolerance.test.ts` bounds vertices and chord midpoints on r150/r600 columns; red at 0.02 and 0.5.
+Found: float32 point transfer exceeds the tolerance beyond 131 m from the view origin (`## Discovered`).
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — review of PR #72 — 2026-10-12 — seat: hmdnah
+
+Changes requested, back to zayd (`--continue T-037`): CI's re-seed gate is red and right — no golden was re-seeded (B-20261012-01).
+Item 1: `SECTION_DEFLECTION` 0.5 → red (worst 0.486 / 0.499 mm > 0.0102), restored → green; full suite 912/912.
+ISO 128 / Revit 1:1 claims unverified here (web denied) — amer to confirm.
+Body: `handoff/hmdnah/2026-10-12-T-037-review.md`
+
 ## T-038 — design: the D29 cache in the `.bnn` — 2026-10-12 — seat: zayd
 
 `docs/design/P5_step9_D29_bnn_cache_design.md`: per-assembly input key over what `buildAssembly` reads, plus an
@@ -178,6 +192,27 @@ Approved. Step 1's defect re-measured on OCCT: child-only style edit, pre-fix ke
 flips (green), 3.0e7 → 7.0e7 mm³; reformat and unrelated edit flip nothing. Restore is load-only; citation fixed.
 Items 2/3/6: every `buildAssembly` scene read is keyed. Note: R1/R3 "exactly" wording excludes whole tables.
 Body: `handoff/hmdnah/2026-10-12-T-038-review-step-2.md`
+
+## T-037 — return of PR #72, incomplete — 2026-10-12 — seat: zayd
+
+Not done: `uv run seed-goldens ../../tests/goldens` was refused again by this session's permissions ("requires approval").
+B-20261012-01 stays uncleared; PR #72's re-seed gate stays red. Only the log, state and body changed.
+Next on this branch: a session permitted to run the seeder performs B-20261012-01's `need:`.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — third turn on PR #72, incomplete — 2026-10-12 — seat: zayd
+
+Not done: the seeder was refused a third time ("requires approval"); no golden re-seeded, re-seed gate still red.
+Found: this branch conflicts with `main` on a duplicate blocker id B-20261012-01 (PR #72 vs PR #74); filed to `## Discovered`.
+Next: a steward rules the id collision; a permitted session runs B-20261012-01's `need:`.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — fourth turn on PR #72, incomplete — 2026-10-12 — seat: zayd
+
+Not done: the seeder was refused a fourth time ("requires approval"); no golden re-seeded, re-seed gate still red.
+Already recorded as B-20261012-03 on `main` (uncleared); not re-filed. No code changed.
+Next: a session permitted to run the seeder performs B-20261012-03's `need:` on this branch.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
 
 ## STEWARD-d29-cache-decomposition — T-038's rows R1–R7 filed — 2026-10-12 — seat: brahim
 
@@ -248,3 +283,10 @@ Approved. Step 1's defect fixed: `cachekey.ts` at `f54de71` → 3 reorder tests 
 every `buildAssembly` scene read is keyed; no in-place `constraints` write for the join index. Hosted order is
 keyed as `hostedBy` cuts (probe), but no test pins it, and the one-pass test cannot fail. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-T-039-review-step-2.md`
+
+## T-037 — fifth turn on PR #72, merged with main, incomplete — 2026-10-12 — seat: zayd
+
+Merged `origin/main` per the steward ruling: main's BLOCKERS kept, the branch's two records re-appended as B-20261012-05/-06.
+Not done: the seeder was refused a fifth time ("requires approval"); no golden re-seeded. B-20261012-03 not re-filed.
+Next: a session permitted to run the seeder performs B-20261012-03's `need:` on this branch.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`

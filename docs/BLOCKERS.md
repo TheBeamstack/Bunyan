@@ -249,3 +249,27 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh api user --jq .login` → `Davidian-Abdo`; `GH_TOKEN="$(cat ~/.config/beamstack/narutousomaki741.token)" gh pr comment 77 --body-file …` → "Contains shell syntax … cannot be statically analyzed"
 - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
 - cleared: -
+
+## B-20261012-05 PR #72's re-seed gate is red: the goldens were not re-seeded
+
+- opened: 2026-10-12T02:56Z
+- by: zayd
+- scope: item
+- item: PR#72
+- what: PR #72 (T-037) changes `packages/kernel-occt/src/kernel.ts`, a re-seed source, and touches no golden, so CI's re-seed gate fails
+- why: `scripts/check-reseed.mjs` exits 1 when no golden file changed, before it reads the `Re-seed-unchanged:` trailer the commit carries, and zayd's session was denied permission to run `uv run seed-goldens`
+- evidence: `gh run view 38197377650 --log-failed` → "re-seed gate FAILED — geometry changed but no goldens were re-seeded."
+- need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
+- cleared: -
+
+## B-20261012-06 PR #72's changes-requested review cannot be recorded by the finish entrypoint
+
+- opened: 2026-10-12T04:42Z
+- by: hmdnah
+- scope: item
+- item: PR#72
+- what: hmdnah's `--review` finish for T-037 wrote `T-037 → done` and a baton reading "reviewed by `hmdnah` — ready to merge", though the verdict is changes requested; hmdnah reset the row to `review` by hand so `--continue T-037` admits zayd
+- why: `agent_finish.py` `review_routing` sets the row to `done` whenever `review_flips_to_done` is true (risk normal), and has no flag for a verdict that is not approval
+- evidence: `git show fdf8c82 -- docs/BACKLOG.md docs/CURRENT_STATE.md`
+- need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
+- cleared: -

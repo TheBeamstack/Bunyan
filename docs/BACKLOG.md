@@ -102,7 +102,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-034 | ready   | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                            | document | box     | **high** | —            |
 | T-035 | done    | Q8 — design: moving a D52 baseline wall, properly                                                 | design   | box     | normal   | —            |
 | T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                    | document | box     | **high** | T-035        |
-| T-037 | ready   | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                    | kernel   | box     | normal   | —            |
+| T-037 | review  | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                    | kernel   | box     | normal   | —            |
 | T-038 | done    | Q6 — design: the D29 cache in the `.bnn`                                                          | design   | box     | **high** | —            |
 | T-039 | done    | D29 R1 — the cache input key, one pass over the scene                                             | backend  | box     | **high** | —            |
 | T-040 | ready   | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                           | backend  | box     | **high** | T-039        |
@@ -552,6 +552,11 @@ finding, the fix shape where one is known, and its disposition.)_
 **A finding becomes a task through a mechanism, not by hand** (R12): the steward runs
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
+
+- **2026-10-12 — section points cross the WASM boundary as float32** (T-037). `tools/kernel-build/src/kernel.cpp`
+  `sectionCut` casts each 2D point to `float`, so beyond 131 m from the view origin the rounding (0.016 mm)
+  exceeds D92's 0.01 mm chord tolerance (`P5_step6C_plan_section_design.md` §4.1). Fix shape: emit
+  `double` (a WASM rebuild; `SectionCutPayload` is unaffected). Recorded, not claimed.
 
 - **2026-10-12 — `loadBnn` has no zip decompression or entry-count cap** (T-038). `bnn.ts` calls
   `unzipSync(bytes)` on every entry with no bound, against spec §9's import-hardening line; the D29 cache

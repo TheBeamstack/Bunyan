@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-039` |
-| branch | `task/T-039-d29-r1-the-cache-input-key-one-pass-over` |
-| claimed-at | 2026-10-12T08:33:11Z |
-| status | merged — PR #77 merged by `hmdnah` at 2026-10-12T10:14:35Z |
+| task | `T-037` |
+| branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
+| claimed-at | 2026-10-12T13:02:41Z |
+| status | working |
 
 <!-- END BATON -->
 
@@ -87,6 +87,12 @@ builder may claim.
 - **B-20261012-04** — `scope: item` · `item: PR#77` — PR #77's step-1 report could not be posted as a comment under hmdnah's account
   - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
   - opened 2026-10-12T09:09Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261012-05** — `scope: item` · `item: PR#72` — PR #72's re-seed gate is red: the goldens were not re-seeded
+  - need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
+  - opened 2026-10-12T02:56Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261012-06** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
+  - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
+  - opened 2026-10-12T04:42Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -127,6 +133,12 @@ contract, and every subsequent entry has moved no frozen byte. ⇒ THE FREEZE (P
 ACT.** It is mechanically available: `tests/freeze-boundary.test.ts` holds the frozen surface, so
 freezing is the policy change *"the baseline may no longer be updated without an owner ruling"*, with a
 machine holding the line afterwards.
+
+### T-037 (PR #72) — returned, incomplete
+
+T-037's code and test are done and the branch is merged with `main` (blocker ids per the steward ruling in
+T-037's backlog entry); its re-seed is not: the seeder is refused by zayd's box session permissions
+(B-20261012-03, uncleared). Next on this branch: a permitted session runs B-20261012-03's `need:`.
 
 
 **Per-seat standing facts, the two items killed by measurement, the later/post-freeze list, the CLOSED list, and §6/§6a (environment, commands, box discipline) are `docs/CURRENT_STATE-reference.md`.**
@@ -208,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 600baabda6917d46788d8366476e838a3a94ed77
+last-verified-at: fcad69192778d2b1125f10c28e3aeb6238f067ba
