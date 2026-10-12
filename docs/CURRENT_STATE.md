@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-d29-r3-rebuild-scope` |
 | branch | `steward/d29-r3-rebuild-scope` |
 | claimed-at | 2026-10-12T02:54:48Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #76 merged by `hmdnah` at 2026-10-12T08:27:58Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 9ef71616db438594e5c8511c098de89ca231c06d
+last-verified-at: 6ed31300cc670feaf9681358c4241d504f868a09
