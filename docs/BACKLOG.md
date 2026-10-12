@@ -466,6 +466,11 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-12 — section points cross the WASM boundary as float32** (T-037). `tools/kernel-build/src/kernel.cpp`
+  `sectionCut` casts each 2D point to `float`, so beyond 131 m from the view origin the rounding (0.016 mm)
+  exceeds D92's 0.01 mm chord tolerance (`P5_step6C_plan_section_design.md` §4.1). Fix shape: emit
+  `double` (a WASM rebuild; `SectionCutPayload` is unaffected). Recorded, not claimed.
+
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
   turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:

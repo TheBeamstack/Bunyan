@@ -207,8 +207,21 @@ The payload is **frozen and unchanged**; this is a body under it.
 ⚠ **Discretisation is the one genuinely new decision inside the kernel.** A section of a cylinder is an
 exact circle; `SectionCurve.points` is a polyline. So the op must choose a chord tolerance, and that
 tolerance is a **display** parameter that must never leak into anything measured (rule 15 — a projected
-polyline is not a quantity). Proposed: a fixed chord tolerance, documented, with the exact curve's
-provenance `ref` still attached so a dimension reads the _model_, never the polyline. Recorded, not owed.
+polyline is not a quantity). It is a fixed chord tolerance, with the exact curve's provenance `ref`
+still attached so a dimension reads the _model_, never the polyline.
+
+**The value (D92, T-037): `SECTION_DEFLECTION = 0.01` mm**, `packages/kernel-occt/src/kernel.ts`. Owner
+free-text, verbatim: _"the builder choses it but he must be aware that bunyan is meant to comprete with
+revit"_.
+
+|                           |                                                                                                                                                                                             |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| smallest scale chosen for | **1:1** — the smallest a Revit-class tool prints; detail scales 1:2, 1:5, 1:10, 1:20 lie above it                                                                                           |
+| on-paper error at 1:1     | **0.01 mm** — a quarter of a 600 dpi dot (0.042 mm), under a tenth of ISO 128's thinnest line (0.13 mm); 2 µm at 1:5, 0.1 µm at 1:100                                                       |
+| measured cost             | 274 points for an r150 column, 546 for r600 (`tests/section-chord-tolerance.test.ts`); grows as √(r / tolerance)                                                                            |
+| float32 limit             | points cross the WASM boundary as float32, adding up to one ulp at the largest coordinate: 0.008 mm beyond 65 m from the view origin, 0.016 mm beyond 131 m, where it exceeds the tolerance |
+
+One value serves every scale, so no per-view tolerance and no change to the frozen `SectionCutPayload`.
 
 ### 4.2 Document layer — `views` becomes a first-class collection
 

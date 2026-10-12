@@ -157,3 +157,10 @@ Approved. Item 1: §A probe re-run, 8/8 baseline-rung refusals and 2/2 `setParam
 rung disabled → red (0 refusals), restored → green. Q8a/Q8b split lawful (Q8 closed, two distinct questions).
 §4 vendor rows still unverified here: web tools denied this session.
 Body: `handoff/hmdnah/2026-10-12-T-035-review.md`
+
+## T-037 — the section chord tolerance, chosen for Revit-class drawings — 2026-10-12 — seat: zayd
+
+`SECTION_DEFLECTION` 0.5 → 0.01 mm: 0.01 mm on paper at 1:1, the smallest Revit-class scale (D92, §4.1).
+`tests/section-chord-tolerance.test.ts` bounds vertices and chord midpoints on r150/r600 columns; red at 0.02 and 0.5.
+Found: float32 point transfer exceeds the tolerance beyond 131 m from the view origin (`## Discovered`).
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
