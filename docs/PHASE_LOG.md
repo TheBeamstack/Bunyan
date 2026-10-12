@@ -220,3 +220,31 @@ Approved; record written before the merge. R3 now matches §2b and T-041; word-d
 Item 1: design reverted → "only its assembly" probe red, restored green; R3 wording reverted with new padding →
 `prettier --check` exit 1, restored exit 0. `pnpm verify` green (910 tests). Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-r3-rebuild-scope-review.md`
+
+## T-039 — D29 R1 — the cache input key, one pass over the scene — 2026-10-12 — seat: zayd
+
+`packages/document/src/cachekey.ts`: per-root `sha256` of canonical JSON (rows, owned and `<root>:` constraint
+rows, resolved joins, five-table digest) and the `bnnc1` envelope. 22 tests; each class revert-verified red.
+Keys at 1k/4k/16k: 0.15/0.29/1.18 s, after indexing `joinOverridesOf` (was 113.6 s at 16k). `pnpm verify` green.
+Body: `handoff/zayd/2026-10-12-T-039-d29-cache-input-key.md`
+
+## T-039 — review step 1 of PR #77 — 2026-10-12 — seat: hmdnah
+
+Not approved (step 1). Defect: owned constraint rows are keyed id-sorted (`cachekey.ts:93-94`) but `datumElevations`
+is last-wins in scene order (`scene.ts:432-436`); probe: key-reversed `constraints` → base 3000 → 0, key equal.
+Item 1: `joins` dropped → 2 red, restored 22 green. 16k keys 1191.9 ms. Risk gate: additive; CI re-seed gate OK.
+Body: `handoff/hmdnah/2026-10-12-T-039-review-step-1.md`
+
+## T-039 — the step-1 defect, constraint order keyed — 2026-10-12 — seat: zayd
+
+`cachekey.ts` keeps `scene.constraints` order and keys an element's own rows resolved, by the build's own
+`datumElevations`/`gridPointOf`/`sketchConstraintsOf` over a scene of just those rows; `scene.ts` untouched.
+Four reorder tests: 3 red before the fix and on `git stash` of it, 26 green after. `pnpm verify` green (936).
+Body: `handoff/zayd/2026-10-12-T-039-d29-cache-input-key.md` (§ Return from step 1)
+
+## T-039 — review step 2 of PR #77 — 2026-10-12 — seat: hmdnah
+
+Approved. Step 1's defect fixed: `cachekey.ts` at `f54de71` → 3 reorder tests red, HEAD → 26 green. Items 2/3:
+every `buildAssembly` scene read is keyed; no in-place `constraints` write for the join index. Hosted order is
+keyed as `hostedBy` cuts (probe), but no test pins it, and the one-pass test cannot fail. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-12-T-039-review-step-2.md`

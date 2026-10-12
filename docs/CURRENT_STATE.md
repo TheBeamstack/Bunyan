@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-d29-r3-rebuild-scope` |
-| branch | `steward/d29-r3-rebuild-scope` |
-| claimed-at | 2026-10-12T02:54:48Z |
-| status | merged — PR #76 merged by `hmdnah` at 2026-10-12T08:27:58Z |
+| task | `T-039` |
+| branch | `task/T-039-d29-r1-the-cache-input-key-one-pass-over` |
+| claimed-at | 2026-10-12T08:33:11Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -84,6 +84,9 @@ builder may claim.
 - **B-20261012-03** — `scope: item` · `item: T-037` — the box loop cannot run the golden seeder, so every zayd turn is held on T-037
   - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
   - opened 2026-10-12T07:19Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261012-04** — `scope: item` · `item: PR#77` — PR #77's step-1 report could not be posted as a comment under hmdnah's account
+  - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
+  - opened 2026-10-12T09:09Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -205,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 6ed31300cc670feaf9681358c4241d504f868a09
+last-verified-at: 5387e8ea8eaffa779b873be21ca2d3200791e5a5
