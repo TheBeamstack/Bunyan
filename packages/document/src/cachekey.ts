@@ -11,6 +11,7 @@
 
 import type { Constraint, Element, ElementId } from './entities.js';
 import { resolveJoins } from './joins.js';
+import { datumElevations, gridPointOf, sketchConstraintsOf } from './scene.js';
 import type { Scene } from './scene.js';
 
 /** The cache scheme the envelope names (§2a). A change to what a key digests bumps it. */
@@ -53,15 +54,15 @@ export function canonicalJson(value: unknown): string {
 export interface CacheKeyTables {
   /** `styles`, `materials`, `sections`, `containers`, `grids`, digested whole (§2b). */
   readonly digest: string;
+  /** Hosted elements by host, in `scene.elements` order — the order `hostedBy` cuts them in. */
   readonly hosted: ReadonlyMap<ElementId, readonly Element[]>;
-  /** Constraint rows by `element` — determine `datumElevations`, `gridPointOf`, `sketchConstraintsOf`. */
-  readonly owned: ReadonlyMap<string, readonly Constraint[]>;
+  /** `[key, row]` by `element`, in `scene.constraints` order: the resolvers are order-sensitive. */
+  readonly owned: ReadonlyMap<string, readonly OwnedRow[]>;
   /** Rows whose `element` is a generated child `<id>:<slot>…`, by the authored id before the first `:`. */
-  readonly childOwned: ReadonlyMap<ElementId, readonly Constraint[]>;
+  readonly childOwned: ReadonlyMap<ElementId, readonly OwnedRow[]>;
 }
 
-const byId = (a: { readonly id: string }, b: { readonly id: string }): number =>
-  a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+type OwnedRow = readonly [key: string, row: Constraint];
 
 function push<T>(map: Map<string, T[]>, key: string, value: T): void {
   const bucket = map.get(key);
@@ -82,31 +83,47 @@ export function cacheKeyTables(scene: Scene): CacheKeyTables {
   const hosted = new Map<ElementId, Element[]>();
   for (const e of Object.values(scene.elements))
     if (e.hostId !== undefined) push(hosted, e.hostId, e);
-  const owned = new Map<string, Constraint[]>();
-  const childOwned = new Map<ElementId, Constraint[]>();
-  for (const c of Object.values(scene.constraints)) {
-    push(owned, c.element, c);
+  const owned = new Map<string, OwnedRow[]>();
+  const childOwned = new Map<ElementId, OwnedRow[]>();
+  for (const entry of Object.entries(scene.constraints)) {
+    const element = entry[1].element;
+    push(owned, element, entry);
     // An authored id never contains `:` (`childElementId`, geometry.ts), so the prefix IS the root.
-    const sep = c.element.indexOf(':');
-    if (sep > 0) push(childOwned, c.element.slice(0, sep), c);
+    const sep = element.indexOf(':');
+    if (sep > 0) push(childOwned, element.slice(0, sep), entry);
   }
-  for (const list of [...hosted.values(), ...owned.values(), ...childOwned.values()])
-    list.sort(byId);
   return { digest, hosted, owned, childOwned };
 }
 
 /**
- * §2b, per member of the assembly (the root, then each hosted element). The owned constraint rows are
- * digested raw: with the whole-digested `containers`/`grids` they determine `datumElevations`,
- * `gridPointOf` and `sketchConstraintsOf` exactly, as `row.containerId` + `containers` determine
- * `elevationOf`. Joins are digested RESOLVED, because a neighbour's row is read only through what
- * `resolveJoins` makes of it.
+ * What `buildContextFor` resolves from an element's own constraint rows, computed by the build's own
+ * resolvers over a scene holding only those rows. The rows keep their `scene.constraints` keys and
+ * order, so last-wins `datumElevations`/`gridPointOf` and the solver's row order resolve exactly as in
+ * the build, from O(rows) instead of a scan of every constraint.
+ */
+function resolvedConstraints(scene: Scene, id: string, rows: readonly OwnedRow[]): unknown {
+  const own: Scene = { ...scene, constraints: Object.fromEntries(rows) };
+  return {
+    datums: datumElevations(own, id),
+    gridPoint: gridPointOf(own, id),
+    sketch: sketchConstraintsOf(own, id),
+  };
+}
+
+/**
+ * §2b, per member of the assembly (the root, then each hosted element). Constraints and joins are
+ * digested RESOLVED: a row is read only through what its resolver makes of it, and `containers`/`grids`
+ * are already in the shared digest, as `row.containerId` + `containers` determine `elevationOf`.
  */
 function memberInputs(scene: Scene, element: Element, tables: CacheKeyTables): unknown {
+  const childRows = tables.childOwned.get(element.id) ?? [];
+  const children: Record<string, unknown> = {};
+  for (const [, c] of childRows)
+    children[c.element] ??= resolvedConstraints(scene, c.element, childRows);
   return {
     row: element,
-    owned: tables.owned.get(element.id) ?? [],
-    children: tables.childOwned.get(element.id) ?? [],
+    owned: resolvedConstraints(scene, element.id, tables.owned.get(element.id) ?? []),
+    children,
     joins: resolveJoins(scene, element.id),
   };
 }

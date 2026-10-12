@@ -210,6 +210,59 @@ describe('D29 R1 — the cache input key', () => {
     expect(flipped(fixture(), JSON.parse(text) as Scene)).toEqual([]);
   });
 
+  describe('§2b — `scene.constraints` order is a build input (last-wins resolvers, solver row order)', () => {
+    /** The fixture plus `extra` rows, appended in order or in reverse. */
+    const withRows = (extra: Record<string, unknown>, reversed: boolean): Scene => {
+      const entries = Object.entries(extra);
+      return {
+        ...fixture(),
+        constraints: {
+          ...fixture().constraints,
+          ...Object.fromEntries(reversed ? entries.reverse() : entries),
+        } as Scene['constraints'],
+      };
+    };
+    const reorderFlips = (extra: Record<string, unknown>): string[] =>
+      flipped(withRows(extra, false), withRows(extra, true));
+    const lvl = (id: string, level: string) => ({
+      id,
+      element: 'col',
+      kind: 'base',
+      target: { kind: 'level', id: level },
+    });
+
+    it('two `base` rows swapped re-key the element (`datumElevations` is last-wins)', () => {
+      const extra = { b1: lvl('b1', 'L1'), b2: lvl('b2', 'L2') };
+      expect(reorderFlips(extra)).toEqual(['col']);
+    });
+
+    it('two same-axis `grid` rows swapped re-key the element (`gridPointOf` is last-wins)', () => {
+      const g = (id: string, grid: string) => ({
+        id,
+        element: 'sk',
+        kind: 'grid',
+        target: { kind: 'grid', id: grid },
+      });
+      expect(reorderFlips({ g1: g('g1', 'G1'), g2: g('g2', 'G2') })).toEqual(['sk']);
+    });
+
+    it('two sketch rows swapped re-key the element (their order reaches the solver)', () => {
+      const d = (id: string, value: number) => ({
+        id,
+        element: 'sk',
+        kind: 'distance',
+        operands: {},
+        value,
+      });
+      expect(reorderFlips({ d1: d('d1', 1), d2: d('d2', 2) })).toEqual(['sk']);
+    });
+
+    it('swapping two rows whose order no resolver reads re-keys nothing', () => {
+      const top = { id: 't1', element: 'col', kind: 'top', target: { kind: 'level', id: 'L2' } };
+      expect(reorderFlips({ b1: lvl('b1', 'L1'), t1: top })).toEqual([]);
+    });
+  });
+
   it('the one-pass tables give the same key as a per-call recomputation', () => {
     const scene = fixture();
     const tables = cacheKeyTables(scene);
