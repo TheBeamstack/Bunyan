@@ -66,7 +66,7 @@ builder may claim.
 | machine | box |
 | task | `T-041` |
 | branch | `task/T-041-d29-r3-the-load-only-restore-substitutio` |
-| claimed-at | 2026-10-12T14:03:54Z |
+| claimed-at | 2026-10-12T14:33:32Z |
 | status | working |
 
 <!-- END BATON -->
