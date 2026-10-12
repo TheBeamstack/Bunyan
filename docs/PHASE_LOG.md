@@ -269,3 +269,10 @@ Approved; no defect proven. Item 1 re-run: filter → `true` → 1 red, restored
 only non-test `unzipSync`; app consumers take named fields. Item 3: no consumer of the cache yet (R3/R5).
 Item 6: 4 of 5 `bnn.ts` mutants red; the survivor is equivalent. `pnpm verify` 943 + 66. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-T-040-review-step-2.md`
+
+## STEWARD-loadbnn-zip-caps — T-046, the `.bnn` zip caps, filed from `## Discovered` — 2026-10-12 — seat: brahim
+
+The 2026-10-12 finding (`loadBnn` inflates with no entry-count or size bound, spec §9) is now T-046, `ready`,
+`risk: high` (D29 cache read path), via `backlog.py add`; the finding is deleted. Both `unzipSync` calls,
+`bnn.ts:202` and `:303`, are named; caps are sized against design §5's 16k / ~61 MB. No code changed.
+Body: `handoff/brahim/2026-10-12-STEWARD-loadbnn-zip-caps-row.md`
