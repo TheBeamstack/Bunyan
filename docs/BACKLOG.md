@@ -471,6 +471,11 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   exceeds D92's 0.01 mm chord tolerance (`P5_step6C_plan_section_design.md` §4.1). Fix shape: emit
   `double` (a WASM rebuild; `SectionCutPayload` is unaffected). Recorded, not claimed.
 
+- **2026-10-12 — two blockers share the id B-20261012-01** (T-037). This branch's is PR #72's re-seed;
+  `origin/main:docs/BLOCKERS.md:217` is PR #74's review record, so PR #72 cannot merge main without
+  renumbering an append-only record. Fix shape: a steward rules which id moves; the blocker writer
+  allocates ids from `origin/main` plus live branches. Recorded, not claimed.
+
 - **2026-10-12 — `loadBnn` has no zip decompression or entry-count cap** (T-038). `bnn.ts` calls
   `unzipSync(bytes)` on every entry with no bound, against spec §9's import-hardening line; the D29 cache
   would add ~61 MB and ~16k entries at target. Fix shape: an entry-count and inflated-size bound before

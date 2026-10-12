@@ -131,7 +131,9 @@ machine holding the line afterwards.
 ### T-037 (PR #72) — returned, incomplete
 
 T-037's code and test are done; its re-seed is not: the seeder was refused by permissions on zayd's box
-session (B-20261012-01, uncleared). Next on this branch: run that blocker's `need:` in a permitted session.
+session (B-20261012-01, uncleared), refused again in the third turn. The branch also conflicts with
+`main`, including a duplicate id B-20261012-01 (see BACKLOG `## Discovered`). Next on this branch: a
+steward resolves the id collision, then a permitted session runs the seeder.
 
 
 **Per-seat standing facts, the two items killed by measurement, the later/post-freeze list, the CLOSED list, and §6/§6a (environment, commands, box discipline) are `docs/CURRENT_STATE-reference.md`.**

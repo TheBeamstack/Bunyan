@@ -47,3 +47,12 @@
   layer: "The following part requires approval: uv run seed-goldens ../../tests/goldens". Not worked around.
 - Not done: no golden re-seeded; B-20261012-01 `cleared: -`; CI's re-seed gate stays red.
 - Next: a session permitted to run the seeder performs B-20261012-01's `need:` on this branch, then stamps `cleared:`.
+
+## Third turn — incomplete
+
+- `cd tools/oracle && uv run seed-goldens ../../tests/goldens` refused again: "The following part requires
+  approval: uv run seed-goldens ../../tests/goldens". Not worked around.
+- `git merge-tree --write-tree --name-only HEAD origin/main` conflicts in BACKLOG, BLOCKERS, CURRENT_STATE and
+  PHASE_LOG. BLOCKERS is a duplicate id: `origin/main:docs/BLOCKERS.md:217` is a different B-20261012-01 (PR #74).
+  Not hand-resolved (blocker records are immutable); filed to BACKLOG `## Discovered`.
+- Next: a steward rules which B-20261012-01 is renumbered; then a permitted session runs the seeder.
