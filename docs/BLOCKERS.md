@@ -212,4 +212,4 @@ from, and the reason it is a record rather than prose.
 - why: the merge preflight refuses "PR is CONFLICTING … rebase it onto main", and `agent_start.py --seat zayd` does not hand a builder its own conflicting branch, so T-027's row still reads `ready` with its work stranded on `task/T-027-6-s-relink-cap-is-measured-not-guessed`
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --root /home/ubuntu/projects/Bunyan --seat hmdnah --pr 55 --dry-run`
 - need: rebase `task/T-027-6-s-relink-cap-is-measured-not-guessed` onto `main` to green in a zayd turn, then route PR #55 to hmdnah
-- cleared: -
+- cleared: 2026-10-12T00:23Z
