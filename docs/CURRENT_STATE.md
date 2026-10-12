@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-039` |
-| branch | `task/T-039-d29-r1-the-cache-input-key-one-pass-over` |
-| claimed-at | 2026-10-12T08:33:11Z |
-| status | merged — PR #77 merged by `hmdnah` at 2026-10-12T10:14:35Z |
+| task | `T-040` |
+| branch | `task/T-040-d29-r2-geometry-cache-in-the-bnn-optiona` |
+| claimed-at | 2026-10-12T13:03:17Z |
+| status | working |
 
 <!-- END BATON -->
 
