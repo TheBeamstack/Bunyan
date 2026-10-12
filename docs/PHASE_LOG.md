@@ -213,3 +213,73 @@ Not done: the seeder was refused a fourth time ("requires approval"); no golden 
 Already recorded as B-20261012-03 on `main` (uncleared); not re-filed. No code changed.
 Next: a session permitted to run the seeder performs B-20261012-03's `need:` on this branch.
 Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## STEWARD-d29-cache-decomposition — T-038's rows R1–R7 filed — 2026-10-12 — seat: brahim
+
+`backlog.py add`: T-039 (R1, `ready`) … T-045 (R7), sequenced after T-038; T-040–T-042 blocked on their
+predecessors, T-043–T-045 also on `D-20261012-05/-06/-07`. All `risk: high` (READY rule 8, D29). R1/R3 criteria
+exclude the five whole-digested tables, per hmdnah's step-2 note. No code changed.
+Body: `handoff/brahim/2026-10-12-STEWARD-d29-cache-decomposition-rows.md`
+
+## STEWARD-d29-cache-decomposition — review of PR #74 — 2026-10-12 — seat: hmdnah
+
+Approved, merged `e68efad`. Rows match design §6 deps; T-039 ready, rest blocked; carve-out names §2b's five
+tables. Item 1: revert leaves `gates.py docs` green (additive); deleting T-039's `implements:` turns it red.
+Note: T-041 "rebuilds only its assembly" is false for a joined endpoint (`resolveJoins`); non-blocking.
+Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-cache-decomposition-review.md`
+
+## STEWARD-pr74-review-record — PR #74's review record landed; T-041 wording — 2026-10-12 — seat: brahim
+
+Cherry-picked hmdnah's 4e2abd9/7193a47 (performs B-20261012-01's need; cleared on merge), keeping main's baton.
+T-041's restore criterion now counts a `resolveJoins` neighbour, per hmdnah's note. Finding: two records share
+id B-20261012-01 (main: PR #74; T-037 branch: PR #72); the branch's are renumbered when it rebases.
+Body: `handoff/brahim/2026-10-12-STEWARD-pr74-review-record-landing.md`
+
+## STEWARD-pr74-review-record — review of PR #75 — 2026-10-12 — seat: hmdnah
+
+Approved; record written before the merge. Cherry-picks byte-identical (`git range-diff`). Item 1: the record's
+body removed → `git ls-files --error-unmatch` exit 1; restored → 0. `gates.py docs` stays green on a dangling
+`Body:` path (gate gap). Design §6 R3 still says "only its assembly"; non-blocking.
+Body: `handoff/hmdnah/2026-10-12-STEWARD-pr74-review-record-review.md`
+
+## STEWARD-d29-r3-rebuild-scope — design §6 R3 agrees with §2b and T-041 — 2026-10-12 — seat: brahim
+
+The D29 design's R3 criterion said a hand edit "rebuilds only its assembly"; §2b keys on joined neighbours and
+whole shared tables, so it now reads "exactly the assemblies whose §2b key it flips", as T-041 already does.
+Spec fix only (hmdnah's PR #75 note); the rest of the diff is prettier's table padding.
+Body: `handoff/brahim/2026-10-12-STEWARD-d29-r3-rebuild-scope-design-fix.md`
+
+## STEWARD-d29-r3-rebuild-scope — review of PR #76 — 2026-10-12 — seat: hmdnah
+
+Approved; record written before the merge. R3 now matches §2b and T-041; word-diff shows only R3's cell changed.
+Item 1: design reverted → "only its assembly" probe red, restored green; R3 wording reverted with new padding →
+`prettier --check` exit 1, restored exit 0. `pnpm verify` green (910 tests). Not owner-gated.
+Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-r3-rebuild-scope-review.md`
+
+## T-039 — D29 R1 — the cache input key, one pass over the scene — 2026-10-12 — seat: zayd
+
+`packages/document/src/cachekey.ts`: per-root `sha256` of canonical JSON (rows, owned and `<root>:` constraint
+rows, resolved joins, five-table digest) and the `bnnc1` envelope. 22 tests; each class revert-verified red.
+Keys at 1k/4k/16k: 0.15/0.29/1.18 s, after indexing `joinOverridesOf` (was 113.6 s at 16k). `pnpm verify` green.
+Body: `handoff/zayd/2026-10-12-T-039-d29-cache-input-key.md`
+
+## T-039 — review step 1 of PR #77 — 2026-10-12 — seat: hmdnah
+
+Not approved (step 1). Defect: owned constraint rows are keyed id-sorted (`cachekey.ts:93-94`) but `datumElevations`
+is last-wins in scene order (`scene.ts:432-436`); probe: key-reversed `constraints` → base 3000 → 0, key equal.
+Item 1: `joins` dropped → 2 red, restored 22 green. 16k keys 1191.9 ms. Risk gate: additive; CI re-seed gate OK.
+Body: `handoff/hmdnah/2026-10-12-T-039-review-step-1.md`
+
+## T-039 — the step-1 defect, constraint order keyed — 2026-10-12 — seat: zayd
+
+`cachekey.ts` keeps `scene.constraints` order and keys an element's own rows resolved, by the build's own
+`datumElevations`/`gridPointOf`/`sketchConstraintsOf` over a scene of just those rows; `scene.ts` untouched.
+Four reorder tests: 3 red before the fix and on `git stash` of it, 26 green after. `pnpm verify` green (936).
+Body: `handoff/zayd/2026-10-12-T-039-d29-cache-input-key.md` (§ Return from step 1)
+
+## T-039 — review step 2 of PR #77 — 2026-10-12 — seat: hmdnah
+
+Approved. Step 1's defect fixed: `cachekey.ts` at `f54de71` → 3 reorder tests red, HEAD → 26 green. Items 2/3:
+every `buildAssembly` scene read is keyed; no in-place `constraints` write for the join index. Hosted order is
+keyed as `hostedBy` cuts (probe), but no test pins it, and the one-pass test cannot fail. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-12-T-039-review-step-2.md`

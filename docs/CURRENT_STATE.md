@@ -81,10 +81,16 @@ builder may claim.
 - **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
   - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
   - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
-- **B-20261012-01** — `scope: item` · `item: PR#72` — PR #72's re-seed gate is red: the goldens were not re-seeded
+- **B-20261012-03** — `scope: item` · `item: T-037` — the box loop cannot run the golden seeder, so every zayd turn is held on T-037
+  - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
+  - opened 2026-10-12T07:19Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261012-04** — `scope: item` · `item: PR#77` — PR #77's step-1 report could not be posted as a comment under hmdnah's account
+  - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
+  - opened 2026-10-12T09:09Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261012-05** — `scope: item` · `item: PR#72` — PR #72's re-seed gate is red: the goldens were not re-seeded
   - need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
   - opened 2026-10-12T02:56Z by zayd · recorded in `docs/BLOCKERS.md`
-- **B-20261012-02** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
+- **B-20261012-06** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
   - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
   - opened 2026-10-12T04:42Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
@@ -130,10 +136,9 @@ machine holding the line afterwards.
 
 ### T-037 (PR #72) — returned, incomplete
 
-T-037's code and test are done; its re-seed is not: the seeder was refused by permissions on zayd's box
-session (B-20261012-01, uncleared), refused again in the third and fourth turns (B-20261012-03 on `main`). The branch also conflicts with
-`main`, including a duplicate id B-20261012-01 (see BACKLOG `## Discovered`). Next on this branch: a
-steward resolves the id collision, then a permitted session runs the seeder.
+T-037's code and test are done and the branch is merged with `main` (blocker ids per the steward ruling in
+T-037's backlog entry); its re-seed is not: the seeder is refused by zayd's box session permissions
+(B-20261012-03, uncleared). Next on this branch: a permitted session runs B-20261012-03's `need:`.
 
 
 **Per-seat standing facts, the two items killed by measurement, the later/post-freeze list, the CLOSED list, and §6/§6a (environment, commands, box discipline) are `docs/CURRENT_STATE-reference.md`.**
@@ -215,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 6a5b55662e817ed223fc656a962e5b3f006b1cce
+last-verified-at: 600baabda6917d46788d8366476e838a3a94ed77
