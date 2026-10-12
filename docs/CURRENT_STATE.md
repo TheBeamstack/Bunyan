@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-027` |
 | branch | `task/T-027-6-s-relink-cap-is-measured-not-guessed` |
 | claimed-at | 2026-10-11T23:32:22Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -203,4 +203,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 4c142759d95970f96c2697182e29ffaabaed6a7b
+last-verified-at: 5b7347aa4be7b04f8308dfa7c0cedf5ac614c55c
