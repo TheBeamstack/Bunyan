@@ -192,3 +192,10 @@ Approved. Step 1's defect re-measured on OCCT: child-only style edit, pre-fix ke
 flips (green), 3.0e7 → 7.0e7 mm³; reformat and unrelated edit flip nothing. Restore is load-only; citation fixed.
 Items 2/3/6: every `buildAssembly` scene read is keyed. Note: R1/R3 "exactly" wording excludes whole tables.
 Body: `handoff/hmdnah/2026-10-12-T-038-review-step-2.md`
+
+## T-037 — return of PR #72, incomplete — 2026-10-12 — seat: zayd
+
+Not done: `uv run seed-goldens ../../tests/goldens` was refused again by this session's permissions ("requires approval").
+B-20261012-01 stays uncleared; PR #72's re-seed gate stays red. Only the log, state and body changed.
+Next on this branch: a session permitted to run the seeder performs B-20261012-01's `need:`.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`

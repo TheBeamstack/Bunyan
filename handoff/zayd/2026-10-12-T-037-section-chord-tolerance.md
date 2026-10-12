@@ -40,3 +40,10 @@
 - The test allows one float32 ulp because the WASM adapter returns `Float32Array` points; see `## Discovered`.
 - ISO 128's thinnest line (0.13 mm) and Revit printing at 1:1 are from the author's knowledge, not a
   fetched source: `unverified here: §4.1's ISO 128 and Revit 1:1 claims — hmdnah to confirm`.
+
+## Return turn (PR #72 changes requested) — incomplete
+
+- `cd tools/oracle && uv run seed-goldens ../../tests/goldens` was refused by the session's permission
+  layer: "The following part requires approval: uv run seed-goldens ../../tests/goldens". Not worked around.
+- Not done: no golden re-seeded; B-20261012-01 `cleared: -`; CI's re-seed gate stays red.
+- Next: a session permitted to run the seeder performs B-20261012-01's `need:` on this branch, then stamps `cleared:`.

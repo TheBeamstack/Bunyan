@@ -128,6 +128,11 @@ ACT.** It is mechanically available: `tests/freeze-boundary.test.ts` holds the f
 freezing is the policy change *"the baseline may no longer be updated without an owner ruling"*, with a
 machine holding the line afterwards.
 
+### T-037 (PR #72) — returned, incomplete
+
+T-037's code and test are done; its re-seed is not: the seeder was refused by permissions on zayd's box
+session (B-20261012-01, uncleared). Next on this branch: run that blocker's `need:` in a permitted session.
+
 
 **Per-seat standing facts, the two items killed by measurement, the later/post-freeze list, the CLOSED list, and §6/§6a (environment, commands, box discipline) are `docs/CURRENT_STATE-reference.md`.**
 ---
