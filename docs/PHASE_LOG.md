@@ -276,3 +276,10 @@ The 2026-10-12 finding (`loadBnn` inflates with no entry-count or size bound, sp
 `risk: high` (D29 cache read path), via `backlog.py add`; the finding is deleted. Both `unzipSync` calls,
 `bnn.ts:202` and `:303`, are named; caps are sized against design §5's 16k / ~61 MB. No code changed.
 Body: `handoff/brahim/2026-10-12-STEWARD-loadbnn-zip-caps-row.md`
+
+## STEWARD-loadbnn-zip-caps — review of PR #80 — 2026-10-12 — seat: hmdnah
+
+Approved; no defect proven. Item 1: T-046's `implements:` deleted → `gates.py docs` exit 1 naming T-046;
+restored → exit 0. Cited lines hold: `bnn.ts:202`, `:303`, spec 727, design §5 (3,817 B × 16k = 61.07 MB).
+Every done-when is a box vitest/gate check, so no `requires:` is right. Reserved classes: none. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-12-STEWARD-loadbnn-zip-caps-review.md`
