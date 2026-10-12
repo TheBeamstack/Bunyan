@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | builder |
 | machine | box |
-| task | `T-032` |
-| branch | `task/T-032-agent-edits-through-window-bunyan-wait-o` |
+| task | `T-027` |
+| branch | `task/T-027-6-s-relink-cap-is-measured-not-guessed` |
 | claimed-at | 2026-10-11T23:32:22Z |
-| status | merged — PR #68 merged by `hmdnah` at 2026-10-11T23:59:52Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -206,4 +206,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: d235b3668a0a4508adf786ab26d89ff433a90ae2
+last-verified-at: 4c142759d95970f96c2697182e29ffaabaed6a7b
