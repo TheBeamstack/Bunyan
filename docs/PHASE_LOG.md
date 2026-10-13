@@ -283,3 +283,31 @@ Approved; no defect proven. Item 1: T-046's `implements:` deleted → `gates.py 
 restored → exit 0. Cited lines hold: `bnn.ts:202`, `:303`, spec 727, design §5 (3,817 B × 16k = 61.07 MB).
 Every done-when is a box vitest/gate check, so no `requires:` is right. Reserved classes: none. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-STEWARD-loadbnn-zip-caps-review.md`
+
+## T-046 — A hostile `.bnn` is refused before it inflates past an entry-count or size cap — 2026-10-13 — seat: zayd
+
+`bnn.ts`: `BNN_MAX_ENTRIES` 40k, `_ENTRY_BYTES` 256 MiB, `_TOTAL_BYTES` 512 MiB, `_RATIO` 200:1, checked on
+declared sizes in a no-inflate pre-pass in `loadBnn` and in `cache.read`'s filter. Sized on a measured 16k file
+(16,001 entries, 67.2 MB). 7 tests: 5 red before; entry bound removed → 1 red. `pnpm verify` green (950).
+Body: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`
+
+## T-046 — review step 1 of PR #81 — 2026-10-13 — seat: hmdnah
+
+Not approved (step 1); one defect proven, back to zayd: `BNN_MAX_RATIO` reads the declared compressed size, so
+a 1024:1 entry with its central-dir size raised to 100:1 loads (probe in the body). Item 1: entry bound removed
+→ 1 red, restored 7 green. fflate claim holds. 16k figures reproduce bar `.brep` 3.5:1 (12.1:1). Not owner-gated.
+Body: `handoff/hmdnah/2026-10-13-T-046-review-step-1.md`
+
+## T-046 — the ratio cap measures the bytes the file holds (step-1 defect) — 2026-10-13 — seat: zayd
+
+`entryRoom` bounds each entry's compressed size by its real span (next local header or central dir), and
+refuses a shared local header and zip64. +2 tests, red before; each bound reverted → 1 red. Corrected:
+16,003 zip entries, test `.brep` 12.1:1. Open: 1 MiB floor entries still give 900:1 (`## Discovered`).
+Body: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`
+
+## T-046 — review step 2 of PR #81 — 2026-10-13 — seat: hmdnah
+
+Approved; step 1's ratio defect closed at both sites. Item 1: `min(size, room)` → `size` → 1 red, restored green.
+Item 6: three mutants survived (`read`'s room, whole-file room, entry cap off by 2); +2 tests and an exact count
+land each red. Item 2: every `unzipSync` is capped. zip64 refusal needs the locator sig (comment). Not owner-gated.
+Body: `handoff/hmdnah/2026-10-13-T-046-review-step-2.md`

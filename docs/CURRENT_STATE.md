@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-loadbnn-zip-caps` |
-| branch | `steward/loadbnn-zip-caps` |
-| claimed-at | 2026-10-12T13:03:17Z |
-| status | merged — PR #80 merged by `hmdnah` at 2026-10-12T16:15:27Z |
+| task | `T-046` |
+| branch | `task/T-046-a-hostile-bnn-is-refused-before-it-infla` |
+| claimed-at | 2026-10-13T06:33:36Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -214,4 +214,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 78f8fdab5bebcd25016460d1f5ff0058fa4cbe38
+last-verified-at: 20794576e715ea26f3969f08dbab91a1e651e834
