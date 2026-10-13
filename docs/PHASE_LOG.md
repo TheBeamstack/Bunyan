@@ -290,3 +290,10 @@ Body: `handoff/hmdnah/2026-10-12-STEWARD-loadbnn-zip-caps-review.md`
 declared sizes in a no-inflate pre-pass in `loadBnn` and in `cache.read`'s filter. Sized on a measured 16k file
 (16,001 entries, 67.2 MB). 7 tests: 5 red before; entry bound removed → 1 red. `pnpm verify` green (950).
 Body: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`
+
+## T-046 — review step 1 of PR #81 — 2026-10-13 — seat: hmdnah
+
+Not approved (step 1); one defect proven, back to zayd: `BNN_MAX_RATIO` reads the declared compressed size, so
+a 1024:1 entry with its central-dir size raised to 100:1 loads (probe in the body). Item 1: entry bound removed
+→ 1 red, restored 7 green. fflate claim holds. 16k figures reproduce bar `.brep` 3.5:1 (12.1:1). Not owner-gated.
+Body: `handoff/hmdnah/2026-10-13-T-046-review-step-1.md`
