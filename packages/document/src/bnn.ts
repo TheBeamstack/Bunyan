@@ -182,6 +182,78 @@ export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
   return zipSync(files, { level: 6 });
 }
 
+/*
+ * ⚠⚠ THE ZIP CAPS (spec §9 import hardening, T-046). Each is checked against what the central directory
+ * DECLARES, before `unzipSync` inflates anything: fflate inflates a DEFLATE entry into a buffer of exactly
+ * its declared `originalSize` (fflate 0.8.3 `unzipSync`), so bounding the declaration bounds the
+ * allocation, and a stored entry copies only bytes the file really holds. Sized against design §5's 16k
+ * target, measured 2026-10-13 (T-046 handoff): 16,001 entries, 67.2 MB inflated, the largest entry
+ * `scene.json` at 6.1 MB.
+ */
+
+/** 16k solids, one `.brep` each, plus one directory entry per root at worst: 32,005; ~25% headroom. */
+export const BNN_MAX_ENTRIES = 40_000;
+/** The largest entry at 16k is `scene.json`, 6.1 MB; this leaves ~40× for richer elements and the journal. */
+export const BNN_MAX_ENTRY_BYTES = 256 * 1024 * 1024;
+/** 16k inflates to 67.2 MB (the ~61 MB cache plus `scene.json`); ~8× headroom, still survivable in a tab. */
+export const BNN_MAX_TOTAL_BYTES = 512 * 1024 * 1024;
+/** `scene.json` at 16k deflates 33:1 and a `.brep` 3.5:1; DEFLATE's ceiling is ~1032:1, a bomb's ratio. */
+export const BNN_MAX_RATIO = 200;
+/** Below this an entry's ratio is not checked: its size alone bounds what it can cost. */
+const RATIO_FLOOR_BYTES = 1024 * 1024;
+
+interface ZipEntryInfo {
+  readonly name: string;
+  readonly size: number;
+  readonly originalSize: number;
+  readonly compression: number;
+}
+
+class BnnCapError extends Error {}
+
+/** Throws naming the cap `entry` passes; `index` is its position, `total` the inflated bytes so far. */
+function checkEntry(entry: ZipEntryInfo, index: number, total: number): number {
+  const refuse = (what: string): never => {
+    throw new BnnCapError(`.bnn refused before inflating: ${what}`);
+  };
+  if (index >= BNN_MAX_ENTRIES) {
+    refuse(`more than BNN_MAX_ENTRIES (${String(BNN_MAX_ENTRIES)}) entries`);
+  }
+  const inflated = entry.compression === 0 ? entry.size : entry.originalSize;
+  if (inflated > BNN_MAX_ENTRY_BYTES) {
+    refuse(
+      `"${entry.name}" declares ${String(inflated)} bytes, past BNN_MAX_ENTRY_BYTES (${String(BNN_MAX_ENTRY_BYTES)})`,
+    );
+  }
+  if (
+    entry.compression !== 0 &&
+    inflated > RATIO_FLOOR_BYTES &&
+    inflated > entry.size * BNN_MAX_RATIO
+  ) {
+    refuse(
+      `"${entry.name}" inflates ${String(inflated)}:${String(entry.size)}, past BNN_MAX_RATIO (${String(BNN_MAX_RATIO)}:1)`,
+    );
+  }
+  if (total + inflated > BNN_MAX_TOTAL_BYTES) {
+    refuse(
+      `the entries declare more than BNN_MAX_TOTAL_BYTES (${String(BNN_MAX_TOTAL_BYTES)}) bytes`,
+    );
+  }
+  return total + inflated;
+}
+
+/** A pass over the central directory that inflates nothing and throws at the first cap passed. */
+function checkCaps(bytes: Uint8Array): void {
+  let index = 0;
+  let total = 0;
+  unzipSync(bytes, {
+    filter: (file) => {
+      total = checkEntry(file, index++, total);
+      return false;
+    },
+  });
+}
+
 /** Relative, `/`-separated, no empty, `.` or `..` segment — so no entry lands outside the directory. */
 function isCacheEntryName(name: string): boolean {
   if (name === '' || name.includes('\\')) return false;
@@ -199,6 +271,7 @@ export function loadBnn(bytes: Uint8Array): BnnPackage {
   const cacheNames: string[] = [];
   let hasCache = false;
   try {
+    checkCaps(bytes);
     files = unzipSync(bytes, {
       filter: (file) => {
         if (!file.name.startsWith(GEOMETRY_CACHE_DIR)) return true;
@@ -208,6 +281,7 @@ export function loadBnn(bytes: Uint8Array): BnnPackage {
       },
     });
   } catch (error) {
+    if (error instanceof BnnCapError) throw error;
     throw new Error(`not a readable .bnn package: ${error instanceof Error ? error.message : ''}`);
   }
 
@@ -300,7 +374,16 @@ function geometryCacheReader(bytes: Uint8Array, names: readonly string[]): Geome
     read: (name) => {
       if (!known.has(name)) return undefined;
       const full = GEOMETRY_CACHE_DIR + name;
-      return unzipSync(bytes, { filter: (file) => file.name === full })[full];
+      // ⚠ The bytes are retained, not copied, so they are re-checked here: one pass, and the entry it
+      // returns `true` for has passed its caps before fflate allocates for it.
+      let index = 0;
+      return unzipSync(bytes, {
+        filter: (file) => {
+          const match = file.name === full;
+          checkEntry(match ? file : { ...file, size: 0, originalSize: 0 }, index++, 0);
+          return match;
+        },
+      })[full];
     },
   };
 }

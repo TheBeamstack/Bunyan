@@ -283,3 +283,10 @@ Approved; no defect proven. Item 1: T-046's `implements:` deleted → `gates.py 
 restored → exit 0. Cited lines hold: `bnn.ts:202`, `:303`, spec 727, design §5 (3,817 B × 16k = 61.07 MB).
 Every done-when is a box vitest/gate check, so no `requires:` is right. Reserved classes: none. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-12-STEWARD-loadbnn-zip-caps-review.md`
+
+## T-046 — A hostile `.bnn` is refused before it inflates past an entry-count or size cap — 2026-10-13 — seat: zayd
+
+`bnn.ts`: `BNN_MAX_ENTRIES` 40k, `_ENTRY_BYTES` 256 MiB, `_TOTAL_BYTES` 512 MiB, `_RATIO` 200:1, checked on
+declared sizes in a no-inflate pre-pass in `loadBnn` and in `cache.read`'s filter. Sized on a measured 16k file
+(16,001 entries, 67.2 MB). 7 tests: 5 red before; entry bound removed → 1 red. `pnpm verify` green (950).
+Body: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`
