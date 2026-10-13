@@ -297,3 +297,10 @@ Not approved (step 1); one defect proven, back to zayd: `BNN_MAX_RATIO` reads th
 a 1024:1 entry with its central-dir size raised to 100:1 loads (probe in the body). Item 1: entry bound removed
 → 1 red, restored 7 green. fflate claim holds. 16k figures reproduce bar `.brep` 3.5:1 (12.1:1). Not owner-gated.
 Body: `handoff/hmdnah/2026-10-13-T-046-review-step-1.md`
+
+## T-046 — the ratio cap measures the bytes the file holds (step-1 defect) — 2026-10-13 — seat: zayd
+
+`entryRoom` bounds each entry's compressed size by its real span (next local header or central dir), and
+refuses a shared local header and zip64. +2 tests, red before; each bound reverted → 1 red. Corrected:
+16,003 zip entries, test `.brep` 12.1:1. Open: 1 MiB floor entries still give 900:1 (`## Discovered`).
+Body: `handoff/zayd/2026-10-13-T-046-ratio-fix.md`

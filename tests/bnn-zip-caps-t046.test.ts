@@ -113,16 +113,49 @@ describe('T-046 — a hostile .bnn is refused before it inflates past a cap', ()
     expect(() => loadBnn(hostile({ 'thumbnail.png': zeros }))).toThrow(/BNN_MAX_RATIO/);
   });
 
+  // hmdnah step-1 probe: the declared compressed size is the writer's to choose, so it is not the ratio's.
+  it('refuses a high-ratio entry whose declared compressed size was raised past its bytes', () => {
+    const zeros = new Uint8Array(8 * MiB);
+    const zip = hostile({ 'thumbnail.png': zeros });
+    declare(zip, 'thumbnail.png', {
+      compressed: Math.ceil(zeros.length / 100),
+      original: zeros.length,
+    });
+    expect(() => loadBnn(zip)).toThrow(/BNN_MAX_RATIO/);
+  });
+
+  it('refuses two entries that share one local header, which would count its bytes twice', () => {
+    const bytes = saveBnn(emptyScene(), {
+      kernelBuildId: KERNEL_BUILD_ID,
+      cache: {
+        'index.json': encoder.encode('{}'),
+        'a.brep': encoder.encode('a\n'.repeat(64)),
+        'b.brep': encoder.encode('b\n'.repeat(64)),
+      },
+    });
+    expect(() => loadBnn(bytes.slice())).not.toThrow();
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const a = headers(bytes, 'geometry-cache/a.brep');
+    const b = headers(bytes, 'geometry-cache/b.brep');
+    view.setUint32(b.central + 42, a.local, true);
+    expect(() => loadBnn(bytes)).toThrow(/share one local header/);
+  });
+
   it('refuses entries that together pass the total cap, each under the entry and ratio caps', () => {
+    // Incompressible bytes, so each entry's real compressed size keeps its declared ratio under the cap.
+    let seed = 1;
+    const noiseBytes = Math.ceil(1.2 * MiB);
+    const noise = (): Uint8Array =>
+      Uint8Array.from({ length: noiseBytes }, () => {
+        seed = (Math.imul(seed, 1103515245) + 12345) >>> 0;
+        return seed >>> 24;
+      });
     const names = ['a', 'b', 'c'].map((n) => `geometry-cache/${n}.brep`);
-    const zip = hostile(
-      Object.fromEntries(names.map((n) => [n, encoder.encode(`${n}\n`.repeat(64))])),
-    );
+    const zip = hostile(Object.fromEntries(names.map((n) => [n, noise()])));
     const original = Math.floor(BNN_MAX_TOTAL_BYTES / 2.5);
     expect(original).toBeLessThan(BNN_MAX_ENTRY_BYTES);
-    for (const name of names) {
-      declare(zip, name, { compressed: Math.ceil(original / (BNN_MAX_RATIO / 2)), original });
-    }
+    expect(original).toBeLessThan(noiseBytes * BNN_MAX_RATIO);
+    for (const name of names) declare(zip, name, { original });
     expect(() => loadBnn(zip)).toThrow(/BNN_MAX_TOTAL_BYTES/);
   });
 
