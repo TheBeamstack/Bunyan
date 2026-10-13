@@ -568,7 +568,7 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
 
 - **2026-10-13 — `.bnn` entries at the 1 MiB ratio floor still amplify ~900:1** (T-046). `RATIO_FLOOR_BYTES`
   exempts each entry ≤ 1 MiB from `BNN_MAX_RATIO`, so 500 such zero entries load from 577,279 B and read back
-  524,288,002 B, under `BNN_MAX_TOTAL_BYTES` (probe: `handoff/zayd/2026-10-13-T-046-ratio-fix.md`). Fix shape:
+  524,288,002 B, under `BNN_MAX_TOTAL_BYTES` (probe: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`). Fix shape:
   an aggregate ratio over the summed spans. Recorded, not claimed.
 
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's

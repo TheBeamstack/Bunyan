@@ -303,4 +303,4 @@ Body: `handoff/hmdnah/2026-10-13-T-046-review-step-1.md`
 `entryRoom` bounds each entry's compressed size by its real span (next local header or central dir), and
 refuses a shared local header and zip64. +2 tests, red before; each bound reverted → 1 red. Corrected:
 16,003 zip entries, test `.brep` 12.1:1. Open: 1 MiB floor entries still give 900:1 (`## Discovered`).
-Body: `handoff/zayd/2026-10-13-T-046-ratio-fix.md`
+Body: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`
