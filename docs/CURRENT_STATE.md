@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-loadbnn-zip-caps` |
-| branch | `steward/loadbnn-zip-caps` |
-| claimed-at | 2026-10-12T13:03:17Z |
-| status | merged — PR #80 merged by `hmdnah` at 2026-10-12T16:15:27Z |
+| task | `T-046` |
+| branch | `task/T-046-a-hostile-bnn-is-refused-before-it-infla` |
+| claimed-at | 2026-10-13T06:33:36Z |
+| status | working |
 
 <!-- END BATON -->
 
