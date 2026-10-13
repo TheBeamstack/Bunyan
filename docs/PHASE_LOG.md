@@ -304,3 +304,10 @@ Body: `handoff/hmdnah/2026-10-13-T-046-review-step-1.md`
 refuses a shared local header and zip64. +2 tests, red before; each bound reverted → 1 red. Corrected:
 16,003 zip entries, test `.brep` 12.1:1. Open: 1 MiB floor entries still give 900:1 (`## Discovered`).
 Body: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`
+
+## T-046 — review step 2 of PR #81 — 2026-10-13 — seat: hmdnah
+
+Approved; step 1's ratio defect closed at both sites. Item 1: `min(size, room)` → `size` → 1 red, restored green.
+Item 6: three mutants survived (`read`'s room, whole-file room, entry cap off by 2); +2 tests and an exact count
+land each red. Item 2: every `unzipSync` is capped. zip64 refusal needs the locator sig (comment). Not owner-gated.
+Body: `handoff/hmdnah/2026-10-13-T-046-review-step-2.md`

@@ -96,7 +96,8 @@ describe('T-046 — a hostile .bnn is refused before it inflates past a cap', ()
 
   it('refuses a zip over the entry cap, naming it', () => {
     const many: Record<string, Uint8Array> = {};
-    for (let i = 0; i <= BNN_MAX_ENTRIES; i++)
+    // Exactly one over: `hostile` adds `manifest.json` and `scene.json`.
+    for (let i = 0; i < BNN_MAX_ENTRIES - 1; i++)
       many[`geometry-cache/R/${String(i)}.brep`] = new Uint8Array(0);
     expect(() => loadBnn(hostile(many))).toThrow(/BNN_MAX_ENTRIES/);
   });
@@ -121,6 +122,17 @@ describe('T-046 — a hostile .bnn is refused before it inflates past a cap', ()
       compressed: Math.ceil(zeros.length / 100),
       original: zeros.length,
     });
+    expect(() => loadBnn(zip)).toThrow(/BNN_MAX_RATIO/);
+  });
+
+  // hmdnah step 2: each entry is measured against its own span, never the whole file's.
+  it('refuses high-ratio entries that would pass if each were given the whole file', () => {
+    const entries: Record<string, Uint8Array> = {};
+    for (let i = 0; i < 8; i++) entries[`thumbnail-${String(i)}.png`] = new Uint8Array(8 * MiB);
+    const zip = hostile(entries);
+    for (const name of Object.keys(entries))
+      declare(zip, name, { compressed: Math.ceil((8 * MiB) / 100), original: 8 * MiB });
+    expect(8 * MiB).toBeLessThan(zip.length * BNN_MAX_RATIO); // whole-file room would pass each
     expect(() => loadBnn(zip)).toThrow(/BNN_MAX_RATIO/);
   });
 
@@ -168,6 +180,21 @@ describe('T-046 — a hostile .bnn is refused before it inflates past a cap', ()
     expect(reader?.read('W1/0.brep')).toEqual(encoder.encode('x\n'.repeat(64)));
     declare(bytes, 'geometry-cache/W1/0.brep', { original: BNN_MAX_ENTRY_BYTES + 1 });
     expect(() => reader?.read('W1/0.brep')).toThrow(/BNN_MAX_ENTRY_BYTES/);
+  });
+
+  // hmdnah step 2: the step-1 probe, at `cache.read`'s own check rather than `loadBnn`'s.
+  it('cache.read measures the ratio against the bytes the file holds, not the declared size', () => {
+    const bytes = saveBnn(emptyScene(), {
+      kernelBuildId: KERNEL_BUILD_ID,
+      cache: { 'index.json': encoder.encode('{}'), 'W1/0.brep': encoder.encode('x\n'.repeat(64)) },
+    });
+    const reader = loadBnn(bytes).cache;
+    const original = 8 * MiB;
+    declare(bytes, 'geometry-cache/W1/0.brep', {
+      compressed: Math.ceil(original / 100),
+      original,
+    });
+    expect(() => reader?.read('W1/0.brep')).toThrow(/BNN_MAX_RATIO/);
   });
 
   it('a .bnn at the 16k target size still opens (design §5: 16k solids, 3,817 B each)', () => {
