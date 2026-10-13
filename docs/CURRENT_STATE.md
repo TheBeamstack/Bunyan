@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-046` |
 | branch | `task/T-046-a-hostile-bnn-is-refused-before-it-infla` |
 | claimed-at | 2026-10-13T06:33:36Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #81 merged by `hmdnah` at 2026-10-13T08:13:55Z |
 
 <!-- END BATON -->
 
@@ -214,4 +214,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 20794576e715ea26f3969f08dbab91a1e651e834
+last-verified-at: eda82d97096f53833ea7dde6044e736966710764
