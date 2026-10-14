@@ -111,6 +111,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-043 | blocked | D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05                      | backend  | box     | **high** | T-040        |
 | T-044 | blocked | D29 R6 — `codeId` is stamped per the owner answer to D-20261012-06                                | backend  | box     | **high** | T-040        |
 | T-045 | blocked | D29 R7 — autosave carries the cache or not, per D-20261012-07                                     | backend  | box     | **high** | T-042        |
+| T-046 | done    | A hostile `.bnn` is refused before it inflates past an entry-count or size cap                    | backend  | box     | **high** | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
@@ -449,6 +450,18 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: T-042 · area: backend · machine: box · risk: **high**
 - note: blocked also on D-20261012-07 (pending); the steward re-reads this row against the answer before flipping it; area is the backlog.py enum
 
+### T-046 — A hostile `.bnn` is refused before it inflates past an entry-count or size cap
+
+- outcome: loadBnn and the geometry-cache reader refuse a zip whose entry count or inflated size passes a named cap, with a message, before inflating it.
+- implements: docs/contracts/V1.0.0_spec.md §9 (Import hardening tests) · docs/design/P5_step9_D29_bnn_cache_design.md §3, §5 · D29
+- done-when: packages/document/src/bnn.ts bounds the entry count and the total and per-entry inflated size before unzipSync inflates anything, in loadBnn (line 202) and in geometryCacheReader.read (line 303); each cap is a named constant whose comment states the figure it is sized against (design §5: 16k solids, ~61 MB uncompressed cache)
+- done-when: test-first: a zip over the entry cap, an entry over the size cap and a high-ratio entry each make loadBnn throw an Error naming the cap, and inflate nothing past it; a .bnn at the 16k target size still opens
+- done-when: revert-verified: removing the entry-count bound turns its test red
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: risk high by READY rule 8 (the D29 cache read path) and spec §9 hostile input; from ## Discovered 2026-10-12 (T-038); area is the backlog.py enum
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -553,10 +566,11 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
-- **2026-10-12 — `loadBnn` has no zip decompression or entry-count cap** (T-038). `bnn.ts` calls
-  `unzipSync(bytes)` on every entry with no bound, against spec §9's import-hardening line; the D29 cache
-  would add ~61 MB and ~16k entries at target. Fix shape: an entry-count and inflated-size bound before
-  `unzipSync`, plus its `filter`. Recorded, not claimed.
+- **2026-10-13 — `.bnn` entries at the 1 MiB ratio floor still amplify ~900:1** (T-046). `RATIO_FLOOR_BYTES`
+  exempts each entry ≤ 1 MiB from `BNN_MAX_RATIO`, so 500 such zero entries load from 577,279 B and read back
+  524,288,002 B, under `BNN_MAX_TOTAL_BYTES` (probe: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`). Fix shape:
+  an aggregate ratio over the summed spans. Recorded, not claimed.
+
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
   turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:
