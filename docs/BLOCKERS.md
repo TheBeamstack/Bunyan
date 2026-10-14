@@ -309,3 +309,15 @@ from, and the reason it is a record rather than prose.
 - evidence: in `packages/document/src/document.ts` change line 384 to `this.#stage(next, affected, options, true, true)` (or line 509 to `this.#stage(next, affected, {}, true, true)`), then `pnpm exec vitest run tests/geometry-cache-restore-d29.test.ts` → `Tests 8 passed (8)`
 - need: add a T-041 test whose execute and redo each land on a cached key (fix in `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` notes) in a zayd turn on `task/T-041-d29-r3-the-load-only-restore-substitutio`, then route PR #79 to hmdnah for step 2
 - cleared: 2026-10-14T14:04Z
+
+## B-20261014-02 PR #82's returned step-1 fix cannot reach zayd: start re-continues the T-037 claim
+
+- opened: 2026-10-14T16:40Z
+- by: brahim-loop
+- scope: item
+- item: PR#82
+- what: hmdnah's step 1 returned two doc defects (bnn.ts:192-200 cap comments, D29 design §5 Autosave figure) to zayd on T-042's branch, but a loop-spawned zayd turn was given T-037 again and made no T-042 change
+- why: agent_start.py printed "Continuing your own open claim on task/T-037-q5-the-section-chord-tolerance-chosen-fo (a turn ended incomplete)" and pushed claim commit 7af0948; the cause is B-20261012-08's, whose item (T-046) is done
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan`; `git log --oneline -1 origin/task/T-037-q5-the-section-chord-tolerance-chosen-fo`
+- need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate PR #82's two step-1 defects to a zayd turn on `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev`
+- cleared: -
