@@ -338,3 +338,9 @@ The spy records imported and released handles; a root counts as restored only if
 unreleased import, asserted in the three restore tests and Clean Delta. B-06's `parts.length < 2` mutant → 3 red;
 `isPermutation` false → 5 red; restored → 8 green. Merged `origin/main` (PR #81).
 Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md`
+
+## T-041 — review step 2 (second run) of PR #79 — 2026-10-14 — seat: hmdnah
+
+Not approved, not merged: item 6 proved the edit-path test weak-green (B-20261014-01): execute or redo passing `restore` → 8 green.
+B-20261012-06's evidence now 3 red; one mutant per done-when, all red, restored 8 green. Items 2, 3 clean; CI green on `64d8828`.
+Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md`
