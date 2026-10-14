@@ -350,4 +350,4 @@ Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md`
 New test opens wall C off its record, so execute and redo land back on its key and assert no import.
 Execute passing `restore` → 1 red; redo passing `restore` → 1 red; restored → 9 green. Product code unchanged.
 `pnpm verify` green (963, docs:check 66).
-Body: `handoff/zayd/2026-10-14-T-041-execute-redo-land-on-cached-key.md`
+Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md` (second section)
