@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-041` |
 | branch | `task/T-041-d29-r3-the-load-only-restore-substitutio` |
 | claimed-at | 2026-10-12T14:33:32Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #79 merged by `hmdnah` at 2026-10-14T14:21:55Z |
 
 <!-- END BATON -->
 
@@ -214,4 +214,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 5de94804e61a3a2253934fbe98b003af9c77478f
+last-verified-at: 31869cc91c2a5d571e0f4edb5d7744c97446f5f2
