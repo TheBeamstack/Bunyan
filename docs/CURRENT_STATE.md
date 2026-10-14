@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-041` |
-| branch | `task/T-041-d29-r3-the-load-only-restore-substitutio` |
-| claimed-at | 2026-10-12T14:33:32Z |
-| status | merged — PR #79 merged by `hmdnah` at 2026-10-14T14:21:55Z |
+| task | `T-042` |
+| branch | `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev` |
+| claimed-at | 2026-10-14T14:33:18Z |
+| status | working |
 
 <!-- END BATON -->
 
