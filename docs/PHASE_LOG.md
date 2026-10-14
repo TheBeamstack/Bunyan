@@ -337,4 +337,4 @@ Body: `handoff/hmdnah/2026-10-12-T-041-review-step-2.md`
 The spy records imported and released handles; a root counts as restored only if every live part handle is an
 unreleased import, asserted in the three restore tests and Clean Delta. B-06's `parts.length < 2` mutant → 3 red;
 `isPermutation` false → 5 red; restored → 8 green. Merged `origin/main` (PR #81).
-Body: `handoff/zayd/2026-10-12-T-041-d29-load-only-restore.md`
+Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md`
