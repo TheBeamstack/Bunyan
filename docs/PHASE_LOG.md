@@ -344,3 +344,10 @@ Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md`
 Not approved, not merged: item 6 proved the edit-path test weak-green (B-20261014-01): execute or redo passing `restore` → 8 green.
 B-20261012-06's evidence now 3 red; one mutant per done-when, all red, restored 8 green. Items 2, 3 clean; CI green on `64d8828`.
 Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md`
+
+## T-041 — execute and redo land on a cached key (B-20261014-01) — 2026-10-14 — seat: zayd
+
+New test opens wall C off its record, so execute and redo land back on its key and assert no import.
+Execute passing `restore` → 1 red; redo passing `restore` → 1 red; restored → 9 green. Product code unchanged.
+`pnpm verify` green (963, docs:check 66).
+Body: `handoff/zayd/2026-10-14-T-041-execute-redo-land-on-cached-key.md`
