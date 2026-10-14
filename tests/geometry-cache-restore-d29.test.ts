@@ -420,6 +420,27 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
     expect(imports, 'an edit path imported a cached solid').toEqual([]);
   });
 
+  it('an execute or redo landing on a cached key still never restores', async () => {
+    // Opened with wall C off its record, so execute (and redo) land back ON the record's key: a
+    // restoring execute or redo would pass the key check and import here.
+    const edited = structuredClone(fixture.scene) as Scene & {
+      elements: Record<string, { params: Record<string, unknown> }>;
+    };
+    edited.elements[fixture.wallC]!.params['end'] = [45_000, 0];
+
+    const spy = spying();
+    const { imports } = spy;
+    const doc = open(save(edited), spy.gateway);
+    await doc.rebuildAll();
+
+    imports.length = 0;
+    await doc.execute('core.setParams', { elementId: fixture.wallC, params: { end: [44_000, 0] } });
+    expect(imports, 'execute imported a cached solid').toEqual([]);
+    await doc.undo();
+    await doc.redo();
+    expect(imports, 'redo imported a cached solid').toEqual([]);
+  });
+
   it('a hand-edited value rebuilds exactly the assemblies whose key it flips, joined neighbour included', async () => {
     const edited = structuredClone(fixture.scene) as Scene & {
       elements: Record<string, { params: Record<string, unknown> }>;
