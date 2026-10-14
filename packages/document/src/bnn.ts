@@ -83,6 +83,8 @@ export interface GeometryCacheReader {
   /** Entry names relative to `geometry-cache/`, directory entries excluded. */
   readonly names: readonly string[];
   read: (name: string) => Uint8Array | undefined;
+  /** `read` for many names in ONE pass over the zip (a save carrying 16k entries); unknown names absent. */
+  readMany: (names: Iterable<string>) => ReadonlyMap<string, Uint8Array>;
 }
 
 export interface SaveOptions {
@@ -417,26 +419,31 @@ export function loadBnn(bytes: Uint8Array): BnnPackage {
 
 function geometryCacheReader(bytes: Uint8Array, names: readonly string[]): GeometryCacheReader {
   const known = new Set(names);
-  return {
-    names,
-    read: (name) => {
-      if (!known.has(name)) return undefined;
-      const full = GEOMETRY_CACHE_DIR + name;
-      // ⚠ The bytes are retained, not copied, so they are re-checked here: one pass, and the entry it
-      // returns `true` for has passed its caps before fflate allocates for it.
-      const room = entryRoom(bytes);
-      let index = 0;
-      return unzipSync(bytes, {
-        filter: (file) => {
-          const match = file.name === full;
-          const entry = match ? file : { ...file, size: 0, originalSize: 0 };
-          checkEntry(entry, index, 0, room[index]);
-          index++;
-          return match;
-        },
-      })[full];
-    },
+  const readMany = (wanted: Iterable<string>): Map<string, Uint8Array> => {
+    const full = new Set<string>();
+    for (const name of wanted) if (known.has(name)) full.add(GEOMETRY_CACHE_DIR + name);
+    const out = new Map<string, Uint8Array>();
+    if (full.size === 0) return out;
+    // ⚠ The bytes are retained, not copied, so they are re-checked here: one pass, and every entry it
+    // returns `true` for has passed its caps before fflate allocates for it.
+    const room = entryRoom(bytes);
+    let index = 0;
+    let total = 0;
+    const files = unzipSync(bytes, {
+      filter: (file) => {
+        const match = full.has(file.name);
+        const entry = match ? file : { ...file, size: 0, originalSize: 0 };
+        total = checkEntry(entry, index, total, room[index]);
+        index++;
+        return match;
+      },
+    });
+    for (const [name, data] of Object.entries(files)) {
+      out.set(name.slice(GEOMETRY_CACHE_DIR.length), data);
+    }
+    return out;
   };
+  return { names, read: (name) => readMany([name]).get(name), readMany };
 }
 
 /** ⚠ Not `typeof x === 'object'`: that is true of `null` and of every array. */
