@@ -260,7 +260,7 @@ from, and the reason it is a record rather than prose.
 - why: the step-1 review rewrote the branch's baton to `seat: hmdnah`, `builder: zayd`, `status: reviewed by hmdnah — ready to merge` (6891ddd), and `Claim` in diwan `agent_start.py:176` reads `seat`, never `builder`; B-20261012-03 separately holds every zayd turn on T-037
 - evidence: `git show origin/task/T-041-d29-r3-the-load-only-restore-substitutio:docs/CURRENT_STATE.md | sed -n '61,70p'`; `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan` → "task/T-041-d29-r3-the-load-only-restore-substitutio — claimed by hmdnah"
 - need: make diwan `agent_start.py` hand a builder the `task/*` branch whose baton names it as `builder` after a review returned it, then run B-20261012-06's fix in a zayd turn
-- cleared: -
+- cleared: 2026-10-14T12:37Z
 
 ## B-20261012-08 T-046 cannot reach zayd: start re-continues the blocker-held T-037 claim every turn
 
