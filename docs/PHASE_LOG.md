@@ -357,3 +357,10 @@ Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md` (second
 Approved and merged: B-20261014-01 closed. Item 1: execute, then redo, passing `restore` → 1 red each, restored 9 green.
 Only the test changed since `64d8828`, so items 2, 3 stand. CI green on `ed3c86e`, labeller additive. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` (third-run section)
+
+## STEWARD-bnn-zip-mtime — T-047, `.bnn` bytes that depend on the wall clock — 2026-10-14 — seat: brahim
+
+`gates.py verify` on main 5ae192f went red once at `journal-transport-rule14.test.ts:305`: two saves, same length,
+different bytes. Cause: `bnn.ts:182` gives `zipSync` no `mtime`, so fflate stamps `Date.now()` (2 s DOS time).
+Now T-047, `ready`, `risk: normal`, via `backlog.py add`; diagnosed by a row-less subagent (R39). No code changed.
+Body: `handoff/brahim/2026-10-14-STEWARD-bnn-zip-mtime-row.md`
