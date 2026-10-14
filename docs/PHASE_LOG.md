@@ -311,3 +311,49 @@ Approved; step 1's ratio defect closed at both sites. Item 1: `min(size, room)` 
 Item 6: three mutants survived (`read`'s room, whole-file room, entry cap off by 2); +2 tests and an exact count
 land each red. Item 2: every `unzipSync` is capped. zip64 refusal needs the locator sig (comment). Not owner-gated.
 Body: `handoff/hmdnah/2026-10-13-T-046-review-step-2.md`
+
+## T-041 — D29 R3 — the load-only restore substitution in `#stage` — 2026-10-12 — seat: zayd
+
+`cacherestore.ts`: `restoreAssembly` imports a root whose input key matches, any refusal releases and rebuilds;
+`#stage` restores only from `rebuildAll`/`rebuildOnly`. 8 OCCT tests: restored ≡ rebuilt; catch rethrown → 2 red;
+restore default `true` → edit-path test red. Clean Delta: max Δ 4.44e-16 m³ < 1e-9. `pnpm verify` green (951).
+Body: `handoff/zayd/2026-10-12-T-041-d29-load-only-restore.md`
+
+## T-041 — review step 1 of PR #79 — 2026-10-12 — seat: hmdnah
+
+Not approved (step 1); no defect proven. Item 1: `restoreAssembly`'s catch rethrows → 2 red, restored 8 green.
+Only `rebuildAll`/`rebuildOnly` pass `restore`; Clean Delta re-run 4.44e-16 m³ / 22, same units as the 1e-9 gate.
+`pnpm verify` 951 + 66. Risk gate: additive, labeller ran on `e7f987a`. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-12-T-041-review-step-1.md`
+
+## T-041 — review step 2 of PR #79 — 2026-10-12 — seat: hmdnah
+
+Not approved, not merged: item 6 proved a weak green (B-20261012-06). A refusal after import still counts as restored, so 4/5
+roots refused → 8 green, Clean Delta 0. Item 1: `restore` default `true` → edit-path test red, restored 8 green. Items 2, 3 clean.
+Body: `handoff/hmdnah/2026-10-12-T-041-review-step-2.md`
+
+## T-041 — restore tests read live handles, not import calls (B-20261012-06) — 2026-10-14 — seat: zayd
+
+The spy records imported and released handles; a root counts as restored only if every live part handle is an
+unreleased import, asserted in the three restore tests and Clean Delta. B-06's `parts.length < 2` mutant → 3 red;
+`isPermutation` false → 5 red; restored → 8 green. Merged `origin/main` (PR #81).
+Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md`
+
+## T-041 — review step 2 (second run) of PR #79 — 2026-10-14 — seat: hmdnah
+
+Not approved, not merged: item 6 proved the edit-path test weak-green (B-20261014-01): execute or redo passing `restore` → 8 green.
+B-20261012-06's evidence now 3 red; one mutant per done-when, all red, restored 8 green. Items 2, 3 clean; CI green on `64d8828`.
+Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md`
+
+## T-041 — execute and redo land on a cached key (B-20261014-01) — 2026-10-14 — seat: zayd
+
+New test opens wall C off its record, so execute and redo land back on its key and assert no import.
+Execute passing `restore` → 1 red; redo passing `restore` → 1 red; restored → 9 green. Product code unchanged.
+`pnpm verify` green (963, docs:check 66).
+Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md` (second section)
+
+## T-041 — review step 2 (third run) of PR #79 — 2026-10-14 — seat: hmdnah
+
+Approved and merged: B-20261014-01 closed. Item 1: execute, then redo, passing `restore` → 1 red each, restored 9 green.
+Only the test changed since `64d8828`, so items 2, 3 stand. CI green on `ed3c86e`, labeller additive. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` (third-run section)

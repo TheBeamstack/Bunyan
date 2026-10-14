@@ -56,6 +56,9 @@ import {
 import type { ElementBounds, UnprojectedElement, ViewResult } from './view.js';
 import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
+import { cacheKeyTables } from './cachekey.js';
+import { openCacheIndex, restoreAssembly } from './cacherestore.js';
+import type { GeometryCacheIndex, GeometryCacheSource } from './cacherestore.js';
 import { dependents } from './dependency.js';
 import { unresolvedDesignOptions } from './designoptions.js';
 import type { ElementGeometry } from './build.js';
@@ -110,6 +113,11 @@ export interface DocumentOptions {
   readonly journal?: readonly UndoableEdit[] | undefined;
   /** The revision the loaded file was last issued at (D34/D40). */
   readonly revision?: ModelRevision | undefined;
+  /**
+   * D29 R3 — a loaded `.bnn`'s `geometry-cache/` and the running build's envelope. Read only by
+   * `rebuildAll`/`rebuildOnly`; absent ⇒ every assembly is built from the recipe, as before.
+   */
+  readonly geometryCache?: GeometryCacheSource | undefined;
 }
 
 export interface PartQuantity {
@@ -234,6 +242,9 @@ export class DocumentContext {
   #revision: ModelRevision | undefined;
   /** elementId → its built parts. NOT persisted: parts are built from the recipe, never stored (D30). */
   readonly #geometryByElement = new Map<ElementId, ElementGeometry>();
+  readonly #cacheSource: GeometryCacheSource | undefined;
+  /** Opened on first use; `null` once the envelope or index was refused (design §2a). */
+  #cacheIndex: GeometryCacheIndex | null | undefined;
 
   constructor(options: DocumentOptions) {
     this.#registries = options.registries;
@@ -242,6 +253,7 @@ export class DocumentContext {
     this.#roomSolver = options.roomSolver ?? new PlanarRoomSolver();
     this.#scene = options.scene ?? emptyScene();
     this.#revision = options.revision;
+    this.#cacheSource = options.geometryCache;
     if (options.journal !== undefined) this.#journal.restore(options.journal);
   }
 
@@ -535,7 +547,13 @@ export class DocumentContext {
    * `geometryOf()`, and **preserved verbatim through save**. The building around it opens and edits.
    */
   async rebuildAll(): Promise<void> {
-    const staged = await this.#stage(this.#scene, Object.keys(this.#scene.elements), {}, false);
+    const staged = await this.#stage(
+      this.#scene,
+      Object.keys(this.#scene.elements),
+      {},
+      false,
+      true,
+    );
     await this.#commit(staged);
   }
 
@@ -555,7 +573,7 @@ export class DocumentContext {
   async rebuildOnly(ids: Iterable<ElementId>): Promise<void> {
     const roots = affectedAssemblies(this.#scene, ids);
     if (roots.length === 0) return;
-    const staged = await this.#stage(this.#scene, roots, {}, false);
+    const staged = await this.#stage(this.#scene, roots, {}, false, true);
     await this.#commit(staged);
   }
 
@@ -1166,14 +1184,19 @@ export class DocumentContext {
    *
    * @param rejectOnFailure `false` on the LOAD path (`rebuildAll`), where a failed element is a state to
    *   be carried (D43), not a command to be refused. A command always rejects (D42).
+   * @param restore D29 R3: `true` from `rebuildAll`/`rebuildOnly` only. An edit never restores, so a
+   *   restored solid is never an input to an edit's boolean (design §4).
    */
   async #stage(
     scene: Scene,
     ids: Iterable<ElementId>,
     options: ExecuteOptions,
     rejectOnFailure = true,
+    restore = false,
   ): Promise<StagedRebuild> {
     const roots = affectedAssemblies(scene, ids);
+    const index = restore ? this.#openCache() : undefined;
+    const tables = index === undefined ? undefined : cacheKeyTables(scene);
     const geometry = new Map<ElementId, ElementGeometry>();
     const intermediates: string[] = [];
     const superseded: ElementId[] = [];
@@ -1208,14 +1231,28 @@ export class DocumentContext {
     );
 
     for (const root of roots) {
-      const built = await buildAssembly(
-        scene,
-        this.#registries,
-        this.#geometry,
-        this.#sketchSolver,
-        root,
-        options.coalesceKey === undefined ? {} : { coalesceKey: options.coalesceKey },
-      );
+      const restored =
+        index === undefined || tables === undefined || this.#cacheSource === undefined
+          ? undefined
+          : await restoreAssembly(
+              scene,
+              root,
+              tables,
+              index,
+              this.#cacheSource.files,
+              this.#geometry,
+            );
+      const built =
+        restored === undefined
+          ? await buildAssembly(
+              scene,
+              this.#registries,
+              this.#geometry,
+              this.#sketchSolver,
+              root,
+              options.coalesceKey === undefined ? {} : { coalesceKey: options.coalesceKey },
+            )
+          : { ...restored, brokenRefs: [], intermediates: [] };
       intermediates.push(...built.intermediates);
 
       // ⚠ THE KERNEL REFUSED (D42) — and only this kind of failure rejects. An `unbuildable` type
@@ -1315,6 +1352,13 @@ export class DocumentContext {
 
     this.#scene = { ...this.#scene, brokenRefs: staged.brokenRefs };
     await this.#release(garbage);
+  }
+
+  #openCache(): GeometryCacheIndex | undefined {
+    if (this.#cacheSource === undefined) return undefined;
+    if (this.#cacheIndex === undefined)
+      this.#cacheIndex = openCacheIndex(this.#cacheSource) ?? null;
+    return this.#cacheIndex ?? undefined;
   }
 
   async #release(handles: readonly string[]): Promise<void> {

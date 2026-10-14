@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-046` |
-| branch | `task/T-046-a-hostile-bnn-is-refused-before-it-infla` |
-| claimed-at | 2026-10-13T06:33:36Z |
-| status | merged — PR #81 merged by `hmdnah` at 2026-10-13T08:13:55Z |
+| task | `T-041` |
+| branch | `task/T-041-d29-r3-the-load-only-restore-substitutio` |
+| claimed-at | 2026-10-12T14:33:32Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -90,6 +90,9 @@ builder may claim.
 - **B-20261012-08** — `scope: item` · `item: T-046` — T-046 cannot reach zayd: start re-continues the blocker-held T-037 claim every turn
   - need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate T-046 to a zayd turn
   - opened 2026-10-12T16:33Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261012-05** — `scope: item` · `item: PR#79` — PR #79's step-1 report could not be posted as a comment under hmdnah's account
+  - need: post `handoff/hmdnah/2026-10-12-T-041-review-step-1.md` as a PR #79 comment under `narutousomaki741`
+  - opened 2026-10-12T15:15Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -211,4 +214,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: eda82d97096f53833ea7dde6044e736966710764
+last-verified-at: 5de94804e61a3a2253934fbe98b003af9c77478f

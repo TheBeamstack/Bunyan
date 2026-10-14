@@ -273,3 +273,39 @@ from, and the reason it is a record rather than prose.
 - evidence: `git log --format='%h %ad %s' -5 origin/task/T-037-q5-the-section-chord-tolerance-chosen-fo`; `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan`
 - need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate T-046 to a zayd turn
 - cleared: -
+
+## B-20261012-05 PR #79's step-1 report could not be posted as a comment under hmdnah's account
+
+- opened: 2026-10-12T15:15Z
+- by: hmdnah
+- scope: item
+- item: PR#79
+- what: the step-1 review report of PR #79 is committed on its branch but not posted to the PR
+- why: ambient `gh api user` is `Davidian-Abdo` (the author's account); no diwan entrypoint posts a review report as the seat, and the session may not read `~/.config/beamstack/`
+- evidence: `gh api user --jq .login` → `Davidian-Abdo`; `ls /home/ubuntu/.config/beamstack/` → "blocked … only list files in the allowed working directories"
+- need: post `handoff/hmdnah/2026-10-12-T-041-review-step-1.md` as a PR #79 comment under `narutousomaki741`
+- cleared: -
+
+## B-20261012-06 PR #79's step 2 proved a weak-green restore test, so it is not merged
+
+- opened: 2026-10-12T15:37Z
+- by: hmdnah
+- scope: item
+- item: PR#79
+- what: step 2 of PR #79 (T-041) found that the tests claiming "restored ≡ rebuilt" pass when 4 of 5 assemblies are refused after import, so done-when 2 and 4 are not held by a test
+- why: `restoredRoots` counts `importBrep` calls, which a refused restore also makes; `agent_finish.py --review --step 2` would stamp T-041 `done` (`review_flips_to_done`), so the step-2 finish was not run
+- evidence: add `if (result.parts.length < 2) throw new Refusal();` after `restore(cachedRoot)` in `packages/document/src/cacherestore.ts`, then `pnpm exec vitest run tests/geometry-cache-restore-d29.test.ts --disable-console-intercept` → `8 passed (8)`, Clean Delta `max … = 0 m3`
+- need: make the T-041 restore tests fail when an imported solid is released (fix in `handoff/hmdnah/2026-10-12-T-041-review-step-2.md` notes) in a zayd turn on `task/T-041-d29-r3-the-load-only-restore-substitutio`, then route PR #79 to hmdnah for step 2
+- cleared: 2026-10-14T14:04Z
+
+## B-20261014-01 PR #79's second step 2 proved the edit-path test weak-green for execute and redo, so it is not merged
+
+- opened: 2026-10-14T12:43Z
+- by: hmdnah
+- scope: item
+- item: PR#79
+- what: the test "rebuildOnly restores; the edit paths (execute, undo, redo) never do" stays green when `execute` or `redo` passes `restore`, so T-041 done-when 1 is held for undo only
+- why: in that test, execute and redo land on a scene whose wall C key differs from its record, so a restoring execute or redo refuses at the key check before any import; `agent_finish.py --review --step 2` would stamp T-041 `done` (`review_flips_to_done`), so the step-2 finish was not run
+- evidence: in `packages/document/src/document.ts` change line 384 to `this.#stage(next, affected, options, true, true)` (or line 509 to `this.#stage(next, affected, {}, true, true)`), then `pnpm exec vitest run tests/geometry-cache-restore-d29.test.ts` → `Tests 8 passed (8)`
+- need: add a T-041 test whose execute and redo each land on a cached key (fix in `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` notes) in a zayd turn on `task/T-041-d29-r3-the-load-only-restore-substitutio`, then route PR #79 to hmdnah for step 2
+- cleared: 2026-10-14T14:04Z
