@@ -331,3 +331,10 @@ Body: `handoff/hmdnah/2026-10-12-T-041-review-step-1.md`
 Not approved, not merged: item 6 proved a weak green (B-20261012-06). A refusal after import still counts as restored, so 4/5
 roots refused → 8 green, Clean Delta 0. Item 1: `restore` default `true` → edit-path test red, restored 8 green. Items 2, 3 clean.
 Body: `handoff/hmdnah/2026-10-12-T-041-review-step-2.md`
+
+## T-041 — restore tests read live handles, not import calls (B-20261012-06) — 2026-10-14 — seat: zayd
+
+The spy records imported and released handles; a root counts as restored only if every live part handle is an
+unreleased import, asserted in the three restore tests and Clean Delta. B-06's `parts.length < 2` mutant → 3 red;
+`isPermutation` false → 5 red; restored → 8 green. Merged `origin/main` (PR #81).
+Body: `handoff/zayd/2026-10-12-T-041-d29-load-only-restore.md`

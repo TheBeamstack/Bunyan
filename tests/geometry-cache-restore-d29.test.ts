@@ -93,16 +93,29 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
     return r;
   };
 
-  /** A gateway that records the node id of every `importBrep` it forwards. */
-  const spying = (): { gateway: GeometryGateway; imports: string[] } => {
+  interface Spy {
+    readonly gateway: GeometryGateway;
+    /** The node id of every `importBrep` forwarded, refused or not. */
+    readonly imports: string[];
+    /** The handles `importBrep` returned, and the handles `releaseShape` was handed. */
+    readonly imported: Set<string>;
+    readonly released: Set<string>;
+  }
+
+  const spying = (): Spy => {
     const imports: string[] = [];
+    const imported = new Set<string>();
+    const released = new Set<string>();
     const gateway: GeometryGateway = {
-      request: (op, payload, options) => {
+      request: async (op, payload, options) => {
         if (op === 'importBrep') imports.push((payload as { nodeId: string }).nodeId);
-        return client.request(op, payload, options);
+        if (op === 'releaseShape') released.add((payload as { handle: string }).handle);
+        const result = await client.request(op, payload, options);
+        if (op === 'importBrep') imported.add((result as { handle: string }).handle);
+        return result;
       },
     };
-    return { gateway, imports };
+    return { gateway, imports, imported, released };
   };
 
   const open = (
@@ -128,9 +141,34 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
     return doc;
   };
 
-  /** What `rebuildAll` restored, as assembly roots. */
-  const restoredRoots = (imports: readonly string[]): string[] =>
-    [...new Set(imports.map((n) => rootOfNode.get(n) ?? `?${n}`))].sort();
+  /**
+   * The assembly roots whose live geometry came from the cache: every part handle of the root, its
+   * children and its voids is one `importBrep` returned. ⚠ Read off the live handles, not the import
+   * calls — a refused restore imports too, then releases. An assembly mixing imported and built
+   * handles, or holding a released import, fails here.
+   */
+  const restoredRoots = (doc: DocumentContext, spy: Spy): string[] => {
+    expect(
+      [...spy.imported].filter((h) => spy.released.has(h)),
+      'an imported solid was released (a refused restore)',
+    ).toEqual([]);
+    const restored: string[] = [];
+    for (const root of Object.keys(indexOf(cache).records)) {
+      const g = doc.geometryOf(root);
+      if (g === undefined) continue;
+      const handles: string[] = [];
+      const walk = (n: ElementGeometry): void => {
+        for (const p of n.parts) handles.push(p.handle);
+        for (const c of n.children ?? []) walk(c);
+      };
+      walk(g);
+      for (const v of hostedBy(doc.scene, root)) walk(doc.geometryOf(v.id)!);
+      const fromCache = handles.filter((h) => spy.imported.has(h)).length;
+      expect([0, handles.length], `${root} mixes imported and built solids`).toContain(fromCache);
+      if (handles.length > 0 && fromCache === handles.length) restored.push(root);
+    }
+    return restored.sort();
+  };
 
   /** Every element's parts (no handles) and quantities at D28 rounding — what restored ≡ rebuilt means. */
   const snapshot = async (doc: DocumentContext): Promise<unknown> => {
@@ -358,19 +396,20 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
     const roots = [fixture.wallA, fixture.wallB, fixture.wallC, fixture.cw, fixture.column].sort();
     expect(Object.keys(indexOf(cache).records).sort()).toEqual(roots);
 
-    const { gateway, imports } = spying();
-    const restored = open(save(fixture.scene), gateway);
+    const spy = spying();
+    const restored = open(save(fixture.scene), spy.gateway);
     await restored.rebuildAll();
-    expect(restoredRoots(imports), 'every assembly came from the cache').toEqual(roots);
+    expect(restoredRoots(restored, spy), 'every assembly came from the cache').toEqual(roots);
 
     expect(await snapshot(restored)).toEqual(await snapshot(await rebuilt(fixture.scene)));
   });
 
   it('rebuildOnly restores; the edit paths (execute, undo, redo) never do', async () => {
-    const { gateway, imports } = spying();
-    const doc = open(save(fixture.scene), gateway);
+    const spy = spying();
+    const { imports } = spy;
+    const doc = open(save(fixture.scene), spy.gateway);
     await doc.rebuildOnly([fixture.wallC]);
-    expect(restoredRoots(imports)).toEqual([fixture.wallC]);
+    expect(restoredRoots(doc, spy)).toEqual([fixture.wallC]);
 
     imports.length = 0;
     await doc.execute('core.setParams', { elementId: fixture.wallC, params: { end: [45_000, 0] } });
@@ -388,10 +427,10 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
     // B's FAR end moves: B's own row changes, and A's resolved miter at the shared corner moves with it.
     edited.elements[fixture.wallB]!.params['end'] = [7000, 4000];
 
-    const { gateway, imports } = spying();
-    const doc = open(save(edited), gateway);
+    const spy = spying();
+    const doc = open(save(edited), spy.gateway);
     await doc.rebuildAll();
-    expect(restoredRoots(imports)).toEqual([fixture.wallC, fixture.cw, fixture.column].sort());
+    expect(restoredRoots(doc, spy)).toEqual([fixture.wallC, fixture.cw, fixture.column].sort());
     expect(await snapshot(doc)).toEqual(await snapshot(await rebuilt(edited)));
   });
 
@@ -470,8 +509,13 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
   });
 
   it('measures the Clean Delta question: restored vs rebuilt volume on an unedited element', async () => {
-    const restored = open(save(fixture.scene), client);
+    const spy = spying();
+    const restored = open(save(fixture.scene), spy.gateway);
     await restored.rebuildAll();
+    // ⚠ Without this the measurement can compare a rebuild with a rebuild and read 0.
+    expect(restoredRoots(restored, spy), 'the measured model came from the cache').toEqual(
+      Object.keys(indexOf(cache).records).sort(),
+    );
     const fresh = await rebuilt(fixture.scene);
     let worst = 0;
     const rows: string[] = [];
