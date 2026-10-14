@@ -93,11 +93,9 @@ export async function restoreAssembly(
   files: GeometryCacheReader,
   geometry: GeometryGateway,
 ): Promise<RestoredAssembly | undefined> {
-  const record: unknown = Object.hasOwn(index.records, root) ? index.records[root] : undefined;
-  if (!isRecord(record) || record['key'] !== cacheInputKey(scene, root, tables)) return undefined;
-  const hosted = (tables.hosted.get(root) ?? []).map((e) => e.id).sort();
-  if (!wellFormed(record, root, hosted)) return undefined;
-  const { root: cachedRoot, voids } = record as unknown as CacheRecord;
+  const record = usableRecord(scene, root, tables, index);
+  if (record === undefined) return undefined;
+  const { root: cachedRoot, voids } = record;
 
   const imported: string[] = [];
   const restore = async (node: CachedGeometry): Promise<ElementGeometry> => {
@@ -144,6 +142,34 @@ export async function restoreAssembly(
     for (const handle of imported) await geometry.request('releaseShape', { handle });
     return undefined;
   }
+}
+
+/**
+ * The index's record for `root` if its key is the scene's and it is well formed — what a restore
+ * imports and what a save carries (design §4 step 1, §5). Its bytes are not read here.
+ */
+export function usableRecord(
+  scene: Scene,
+  root: ElementId,
+  tables: CacheKeyTables,
+  index: GeometryCacheIndex,
+): CacheRecord | undefined {
+  const record: unknown = Object.hasOwn(index.records, root) ? index.records[root] : undefined;
+  if (!isRecord(record) || record['key'] !== cacheInputKey(scene, root, tables)) return undefined;
+  const hosted = (tables.hosted.get(root) ?? []).map((e) => e.id).sort();
+  return wellFormed(record, root, hosted) ? (record as unknown as CacheRecord) : undefined;
+}
+
+/** Every `.brep` entry a record names, relative to `geometry-cache/`. */
+export function recordEntries(root: ElementId, record: CacheRecord): string[] {
+  const names: string[] = [];
+  const walk = (node: CachedGeometry): void => {
+    for (const part of node.parts) names.push(`${root}/${part.brep.k}.brep`);
+    for (const child of node.children ?? []) walk(child);
+  };
+  walk(record.root);
+  for (const v of record.voids) walk(v);
+  return names;
 }
 
 class Refusal extends Error {}

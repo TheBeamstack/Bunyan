@@ -357,3 +357,10 @@ Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md` (second
 Approved and merged: B-20261014-01 closed. Item 1: execute, then redo, passing `restore` → 1 red each, restored 9 green.
 Only the test changed since `64d8828`, so items 2, 3 stand. CI green on `ed3c86e`, labeller additive. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` (third-run section)
+
+## T-042 — D29 R4 — the lazy idle exporter; a save never exports — 2026-10-14 — seat: zayd
+
+`exportCacheIdle` exports built assemblies, keyed on landing and dropped if an edit overtook them; `geometryCacheFiles`
+writes matching-key idle exports and carries restored or unbuilt records, with no kernel op. 8 OCCT tests; six
+mutants, each red. 16k: cache 105 MB raw / 14.6 MB zipped, `saveBnn` 4.1 s. `pnpm verify` green (971).
+Body: `handoff/zayd/2026-10-14-T-042-d29-lazy-export.md`
