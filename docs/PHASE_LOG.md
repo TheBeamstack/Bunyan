@@ -351,3 +351,9 @@ New test opens wall C off its record, so execute and redo land back on its key a
 Execute passing `restore` → 1 red; redo passing `restore` → 1 red; restored → 9 green. Product code unchanged.
 `pnpm verify` green (963, docs:check 66).
 Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md` (second section)
+
+## T-041 — review step 2 (third run) of PR #79 — 2026-10-14 — seat: hmdnah
+
+Approved and merged: B-20261014-01 closed. Item 1: execute, then redo, passing `restore` → 1 red each, restored 9 green.
+Only the test changed since `64d8828`, so items 2, 3 stand. CI green on `ed3c86e`, labeller additive. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` (third-run section)

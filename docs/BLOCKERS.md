@@ -296,7 +296,7 @@ from, and the reason it is a record rather than prose.
 - why: `restoredRoots` counts `importBrep` calls, which a refused restore also makes; `agent_finish.py --review --step 2` would stamp T-041 `done` (`review_flips_to_done`), so the step-2 finish was not run
 - evidence: add `if (result.parts.length < 2) throw new Refusal();` after `restore(cachedRoot)` in `packages/document/src/cacherestore.ts`, then `pnpm exec vitest run tests/geometry-cache-restore-d29.test.ts --disable-console-intercept` → `8 passed (8)`, Clean Delta `max … = 0 m3`
 - need: make the T-041 restore tests fail when an imported solid is released (fix in `handoff/hmdnah/2026-10-12-T-041-review-step-2.md` notes) in a zayd turn on `task/T-041-d29-r3-the-load-only-restore-substitutio`, then route PR #79 to hmdnah for step 2
-- cleared: -
+- cleared: 2026-10-14T14:04Z
 
 ## B-20261014-01 PR #79's second step 2 proved the edit-path test weak-green for execute and redo, so it is not merged
 
@@ -308,4 +308,4 @@ from, and the reason it is a record rather than prose.
 - why: in that test, execute and redo land on a scene whose wall C key differs from its record, so a restoring execute or redo refuses at the key check before any import; `agent_finish.py --review --step 2` would stamp T-041 `done` (`review_flips_to_done`), so the step-2 finish was not run
 - evidence: in `packages/document/src/document.ts` change line 384 to `this.#stage(next, affected, options, true, true)` (or line 509 to `this.#stage(next, affected, {}, true, true)`), then `pnpm exec vitest run tests/geometry-cache-restore-d29.test.ts` → `Tests 8 passed (8)`
 - need: add a T-041 test whose execute and redo each land on a cached key (fix in `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` notes) in a zayd turn on `task/T-041-d29-r3-the-load-only-restore-substitutio`, then route PR #79 to hmdnah for step 2
-- cleared: -
+- cleared: 2026-10-14T14:04Z
