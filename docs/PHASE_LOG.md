@@ -364,3 +364,10 @@ Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` (third-run section)
 different bytes. Cause: `bnn.ts:182` gives `zipSync` no `mtime`, so fflate stamps `Date.now()` (2 s DOS time).
 Now T-047, `ready`, `risk: normal`, via `backlog.py add`; diagnosed by a row-less subagent (R39). No code changed.
 Body: `handoff/brahim/2026-10-14-STEWARD-bnn-zip-mtime-row.md`
+
+## STEWARD-bnn-zip-mtime — finish of the 2026-10-14 turn — 2026-10-18 — seat: brahim
+
+The 10-14 finish was backgrounded and killed, so `2a672fe` never left the box; this turn runs it in the foreground.
+D-20261007-08 (`app-list`) and D-20261007-11 (`recipe-only`) expired 10-15 unapplied and failed `gates.py docs`:
+defaults applied, `answered:` stamped, no code changed.
+Body: `handoff/brahim/2026-10-18-STEWARD-bnn-zip-mtime-finish.md`
