@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-bnn-zip-mtime` |
 | branch | `steward/bnn-zip-mtime` |
 | claimed-at | 2026-10-12T14:33:32Z |
-| status | finished — PR open, awaiting review |
+| status | merged — PR #83 merged by `hmdnah` at 2026-10-18T05:11:06Z |
 
 <!-- END BATON -->
 
@@ -217,4 +217,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: f3206286fb9be4ce72126b77ae2d374e792e64fe
+last-verified-at: 9cddc44f87ce94214356ba22a1b8bb2fd0d1fb0b
