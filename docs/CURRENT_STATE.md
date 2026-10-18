@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-041` |
-| branch | `task/T-041-d29-r3-the-load-only-restore-substitutio` |
+| task | `STEWARD-bnn-zip-mtime` |
+| branch | `steward/bnn-zip-mtime` |
 | claimed-at | 2026-10-12T14:33:32Z |
-| status | merged — PR #79 merged by `hmdnah` at 2026-10-14T14:21:55Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -93,6 +93,9 @@ builder may claim.
 - **B-20261012-05** — `scope: item` · `item: PR#79` — PR #79's step-1 report could not be posted as a comment under hmdnah's account
   - need: post `handoff/hmdnah/2026-10-12-T-041-review-step-1.md` as a PR #79 comment under `narutousomaki741`
   - opened 2026-10-12T15:15Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261014-02** — `scope: item` · `item: PR#82` — PR #82's returned step-1 fix cannot reach zayd: start re-continues the T-037 claim
+  - need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate PR #82's two step-1 defects to a zayd turn on `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev`
+  - opened 2026-10-14T16:40Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -214,4 +217,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 31869cc91c2a5d571e0f4edb5d7744c97446f5f2
+last-verified-at: f3206286fb9be4ce72126b77ae2d374e792e64fe
