@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-041` |
-| branch | `task/T-041-d29-r3-the-load-only-restore-substitutio` |
+| task | `STEWARD-bnn-zip-mtime` |
+| branch | `steward/bnn-zip-mtime` |
 | claimed-at | 2026-10-12T14:33:32Z |
-| status | merged — PR #79 merged by `hmdnah` at 2026-10-14T14:21:55Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -217,4 +217,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 31869cc91c2a5d571e0f4edb5d7744c97446f5f2
+last-verified-at: f3206286fb9be4ce72126b77ae2d374e792e64fe
