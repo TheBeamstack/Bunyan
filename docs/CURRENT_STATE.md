@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-bnn-aggregate-ratio` |
 | branch | `steward/bnn-aggregate-ratio` |
 | claimed-at | 2026-10-19T11:11:41Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 34427166af06251310596719c712595f84640fb9
+last-verified-at: 60fecf6455def85305e90e7500581351f4d1669e
