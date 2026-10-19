@@ -84,6 +84,12 @@ builder may claim.
 - **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
   - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
   - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261019-03** — `scope: item` · `item: PR#72` — PR #72's conflict fix cannot reach zayd: start refuses T-037 while B-20261012-03 holds it
+  - need: perform B-20261012-03's `need:` and clear it, or make diwan `agent_start.py --continue` admit a flow-routed conflict merge on a blocker-held claim
+  - opened 2026-10-19T16:04Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261019-04** — `scope: item` · `item: PR#88` — PR #88's step 2 proved one corrupt cache entry rebuilds its whole batch, so it is not merged
+  - need: make `readRestoreBatch` re-read each root alone after a non-cap `readMany` throw (fix in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`) in a zayd turn on `task/T-049-a-cache-restore-reads-each-batch-of-root`, then route PR #88 to hmdnah for step 2
+  - opened 2026-10-19T17:30Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

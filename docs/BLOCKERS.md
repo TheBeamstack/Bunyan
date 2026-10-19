@@ -357,3 +357,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-037 --root /home/ubuntu/projects/Bunyan; echo $?`; `gh pr view 72 --json mergeable` → CONFLICTING
 - need: perform B-20261012-03's `need:` and clear it, or make diwan `agent_start.py --continue` admit a flow-routed conflict merge on a blocker-held claim
 - cleared: -
+
+## B-20261019-04 PR #88's step 2 proved one corrupt cache entry rebuilds its whole batch, so it is not merged
+
+- opened: 2026-10-19T17:30Z
+- by: hmdnah
+- scope: item
+- item: PR#88
+- what: in PR #88 (T-049), one corrupt `.brep` entry makes `readRestoreBatch`'s `readMany` throw, and the catch (`cacherestore.ts:119`) rebuilds every root of the batch, up to 1,024; design §4 restores per root, and done-when 2 rules batch rebuild for cap errors only
+- why: a 3-root `.bnn` with one entry's DEFLATE data corrupted passes `loadBnn`, and `cache.read` throws `invalid block type`; at head `355d4cd` 0 roots restore, against 2 with main's `cacherestore.ts`/`document.ts`; `agent_finish.py --review --step 2` would stamp T-049 `done` (`agent_finish.py:604-606`), so the step-2 finish was not run
+- evidence: the probe in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md` (two DEFLATE bytes of `W00001/0.brep` set to `0xff` before `loadBnn`), run with `pnpm exec vitest run` at `355d4cd` and with `git checkout origin/main -- packages/document/src/{cacherestore,document}.ts`
+- need: make `readRestoreBatch` re-read each root alone after a non-cap `readMany` throw (fix in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`) in a zayd turn on `task/T-049-a-cache-restore-reads-each-batch-of-root`, then route PR #88 to hmdnah for step 2
+- cleared: -
