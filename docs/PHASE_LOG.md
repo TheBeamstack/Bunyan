@@ -425,3 +425,10 @@ Body: `handoff/hmdnah/2026-10-19-T-042-review-step-2.md` (second-run section)
 T-046's finding: 500 entries ≤ 1 MiB skip `BNN_MAX_RATIO` (`bnn.ts:283`) and read 577,279 B back as 524,288,002 B.
 Now T-048, `ready`, `risk: high` (D29 read path), via `backlog.py add`; the finding is deleted. No code changed.
 Body: `handoff/brahim/2026-10-19-STEWARD-bnn-aggregate-ratio-row.md`
+
+## STEWARD-bnn-aggregate-ratio — review of PR #85 — 2026-10-19 — seat: hmdnah
+
+Approved; no defect proven. Item 1: T-048's `implements:` deleted → `gates.py docs` exit 1 naming T-048;
+restored → exit 0. Figures hold: T-046 handoff 50-52 (577,279 B → 524,288,002 B, 908:1), `bnn.ts:206,213,283`,
+design §5 105.2 MB from 14.6 MB (7.2:1). Every done-when is a box vitest check. Reserved classes: none.
+Body: `handoff/hmdnah/2026-10-19-STEWARD-bnn-aggregate-ratio-review.md`
