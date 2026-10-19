@@ -371,3 +371,10 @@ The 10-14 finish was backgrounded and killed, so `2a672fe` never left the box; t
 D-20261007-08 (`app-list`) and D-20261007-11 (`recipe-only`) expired 10-15 unapplied and failed `gates.py docs`:
 defaults applied, `answered:` stamped, no code changed.
 Body: `handoff/brahim/2026-10-18-STEWARD-bnn-zip-mtime-finish.md`
+
+## T-047 — A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads — 2026-10-19 — seat: zayd
+
+`bnn.ts`: `saveBnn` gives `zipSync` one constant `mtime`, local `1980-01-01`, the earliest date fflate 0.8.3 accepts.
+New test: one scene saved at two clock times under `vi.setSystemTime` → identical bytes; red before, `mtime` dropped → red.
+The three named tests pass unchanged; `pnpm verify` green (964, docs:check 66).
+Body: `handoff/zayd/2026-10-19-T-047-bnn-zip-mtime.md`
