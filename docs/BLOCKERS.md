@@ -333,3 +333,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh api repos/TheBeamstack/Bunyan --jq .security_and_analysis`
 - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
 - cleared: -
+
+## B-20261019-02 PR #82's step-2 finish refuses: step 1's label and record never landed
+
+- opened: 2026-10-19T11:15Z
+- by: hmdnah
+- scope: item
+- item: PR#82
+- what: hmdnah's step-2 review of PR #82 (T-042) is clean and recorded on the branch (2dc8600) and as a PR comment, but the finish refused, so the row cannot reach `done` and the PR is not merged
+- why: agent_finish.py exited 1, "T-042 is risk: high step 2, but the open PR carries no 'review/step-1' label — step 1 has not run"; step 1's 2026-10-14 finish never completed, so its record is only on rescue commit b75f79f
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_finish.py --seat hmdnah T-042 --review --step 2; echo $?`; `gh -R TheBeamstack/Bunyan pr view 82 --json labels`
+- need: land `handoff/hmdnah/2026-10-14-T-042-review-step-1.md` and its log abstract from b75f79f on `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev` and add the `review/step-1` label to PR #82, then re-run hmdnah's step-2 finish and `agent_merge.py --seat hmdnah --pr 82`
+- cleared: -
