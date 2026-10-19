@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-042` |
-| branch | `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev` |
+| task | `STEWARD-bnn-aggregate-ratio` |
+| branch | `steward/bnn-aggregate-ratio` |
 | claimed-at | 2026-10-19T11:11:41Z |
-| status | merged — PR #82 merged by `hmdnah` at 2026-10-19T13:00:56Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -84,9 +84,6 @@ builder may claim.
 - **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
   - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
   - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261019-02** — `scope: item` · `item: PR#82` — PR #82's step-2 finish refuses: step 1's label and record never landed
-  - need: land `handoff/hmdnah/2026-10-14-T-042-review-step-1.md` and its log abstract from b75f79f on `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev` and add the `review/step-1` label to PR #82, then re-run hmdnah's step-2 finish and `agent_merge.py --seat hmdnah --pr 82`
-  - opened 2026-10-19T11:15Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -208,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 538a85ad6d1653069deb35ea5fa6d68c1c1b61fc
+last-verified-at: dfbfe743303131891db85b25a24c6f820d6cb84d
