@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-042` |
 | branch | `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev` |
 | claimed-at | 2026-10-19T11:11:41Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #82 merged by `hmdnah` at 2026-10-19T13:00:56Z |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: db45eb59218a622100847b494ffc8c9dff834de2
+last-verified-at: 538a85ad6d1653069deb35ea5fa6d68c1c1b61fc
