@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | steward |
+| role | builder |
 | machine | box |
-| task | `STEWARD-bnn-zip-mtime` |
-| branch | `steward/bnn-zip-mtime` |
-| claimed-at | 2026-10-12T14:33:32Z |
-| status | merged — PR #83 merged by `hmdnah` at 2026-10-18T05:11:06Z |
+| task | `T-047` |
+| branch | `task/T-047-a-bnn-saved-twice-from-one-scene-is-byte` |
+| claimed-at | 2026-10-19T11:11:41Z |
+| status | working |
 
 <!-- END BATON -->
 
