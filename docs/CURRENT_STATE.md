@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-048` |
 | branch | `task/T-048-a-bnn-of-many-small-high-ratio-entries-i` |
 | claimed-at | 2026-10-19T13:39:53Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #86 merged by `hmdnah` at 2026-10-19T14:49:05Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 7a7a0e4c1db203593189d598e8fcb04ef4c9cfd8
+last-verified-at: a178aec78b327917eda724faaebe2895d324862c
