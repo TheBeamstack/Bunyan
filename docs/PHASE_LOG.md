@@ -412,3 +412,10 @@ Clean: step 1's two doc defects are fixed (`a9c2b51`), arithmetic re-checked. It
 removed → 1 red (`:374`), restored 17 green. Sweep: no other cache writer; every geometry writer reaches `#commit`.
 Opinion: test 3 stays green without that guard (test 4 holds it). 16k figures unverified here — amer to confirm.
 Body: `handoff/hmdnah/2026-10-19-T-042-review-step-2.md`
+
+## T-042 — review step 2 (second run) of PR #82 — 2026-10-19 — seat: hmdnah
+
+B-20261019-02's need is done: step 1's record landed from `b75f79f`, and `narutousomaki741` added `review/step-1`.
+`main` was merged in, and `pnpm verify` is green (972). Item 1: M4 key check removed → 1 red (`:407`), restored 8 green.
+Opinion: `readMany`'s total sum is untested (`loadBnn` caps it first). Clean. 16k figures unverified here, amer to confirm.
+Body: `handoff/hmdnah/2026-10-19-T-042-review-step-2.md` (second-run section)
