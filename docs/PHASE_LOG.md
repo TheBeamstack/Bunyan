@@ -456,6 +456,13 @@ Body: `handoff/hmdnah/2026-10-19-T-048-review-step-2.md`
 
 ## STEWARD-cache-restore-batch — T-049 from ## Discovered — 2026-10-19 — seat: brahim
 
-PR #86's step 2 found a 16k cache restore quadratic: `cacherestore.ts:104` calls `read` per part, 22.56 ms each.
+PR #86's step 2 found a 16k cache restore quadratic: `cacherestore.ts:104` calls `read` per part, 20.11 ms each.
 Now T-049, `ready`, `risk: high` (D29 read path): one `readMany` per batch of roots. The finding is deleted. No code changed.
 Body: `handoff/brahim/2026-10-19-STEWARD-cache-restore-batch-row.md`
+
+## STEWARD-cache-restore-batch — review of PR #87 — 2026-10-19 — seat: hmdnah
+
+Approved; no row defect proven. Item 1: a counting reader on the d29 restore → red on main (20 `.brep` reads, 5 roots);
+a throwaway per-root `readMany` → green, 0 reads; removed. Probe: 20.6–21.0 ms per `read`, 609–626 ms per `readMany`
+(row: 22.56, 694). Fixed the abstract's 22.56 → 20.11, step 2's figure. Reserved classes: none.
+Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
