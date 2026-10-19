@@ -345,3 +345,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_finish.py --seat hmdnah T-042 --review --step 2; echo $?`; `gh -R TheBeamstack/Bunyan pr view 82 --json labels`
 - need: land `handoff/hmdnah/2026-10-14-T-042-review-step-1.md` and its log abstract from b75f79f on `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev` and add the `review/step-1` label to PR #82, then re-run hmdnah's step-2 finish and `agent_merge.py --seat hmdnah --pr 82`
 - cleared: 2026-10-19T13:01Z
+
+## B-20261019-03 PR #72's conflict fix cannot reach zayd: start refuses T-037 while B-20261012-03 holds it
+
+- opened: 2026-10-19T16:04Z
+- by: brahim-loop
+- scope: item
+- item: PR#72
+- what: the manager's Flow line F1 routes a zayd turn to merge `origin/main` into `task/T-037-q5-the-section-chord-tolerance-chosen-fo`, but no zayd turn may continue T-037
+- why: agent_start.py exited 1, "T-037 (PR #72) is held by B-20261012-03, an uncleared scope: item blocker at main — skip it"; B-20261012-03's `need:` (seeder permission or a seeded push) is still unmet, so the conflict merge, which needs no seeder, is held with it
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-037 --root /home/ubuntu/projects/Bunyan; echo $?`; `gh pr view 72 --json mergeable` → CONFLICTING
+- need: perform B-20261012-03's `need:` and clear it, or make diwan `agent_start.py --continue` admit a flow-routed conflict merge on a blocker-held claim
+- cleared: -
