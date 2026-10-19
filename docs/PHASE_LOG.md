@@ -365,6 +365,13 @@ writes matching-key idle exports and carries restored or unbuilt records, with n
 mutants, each red. 16k: cache 105 MB raw / 14.6 MB zipped, `saveBnn` 4.1 s. `pnpm verify` green (971).
 Body: `handoff/zayd/2026-10-14-T-042-d29-lazy-export.md`
 
+## T-042 — review step 1 of PR #82 — 2026-10-14 — seat: hmdnah
+
+Not approved (step 1); two doc defects back to zayd: `bnn.ts` cap comments still size against 67.2 MB / `scene.json`
+6.1 MB (R4: `index.json` 61.3 MB, ~111 MB), and design §5's autosave ~305 MB. Item 1: landing guard removed → 1 red,
+restored 8 green. `.brep` per-solid reproduces; 16k figures unverified here (env run refused). Not owner-gated.
+Body: `handoff/hmdnah/2026-10-14-T-042-review-step-1.md`
+
 ## STEWARD-bnn-zip-mtime — T-047, `.bnn` bytes that depend on the wall clock — 2026-10-14 — seat: brahim
 
 `gates.py verify` on main 5ae192f went red once at `journal-transport-rule14.test.ts:305`: two saves, same length,
