@@ -473,3 +473,10 @@ Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
 2B+5 roots → 0 `.brep` reads, 3 `readMany`; per-name `read` restored → 2053 reads, red. 16,000 entries restore in
 16 calls, 1,059–1,122 ms of `readMany`, 2.28–2.40 s `rebuildAll` (kernel import excluded). `pnpm verify` green (978).
 Body: `handoff/zayd/2026-10-19-T-049-cache-restore-batch.md`
+
+## T-049 — review step 1 of PR #88 — 2026-10-19 — seat: hmdnah
+
+No defect proven; not approved (step 1). Item 1: main's per-part `read` restored with `RESTORE_BATCH_ROOTS` kept →
+2 red (`brepReads: 2053, readMany: 0`); restored → 26 green over the four files. 16k re-measured: 16 `readMany`,
+1,157–1,208 ms, `rebuildAll` 2.39–2.51 s. Reserved classes: none; CI green on `54b7c62`. Items 2, 3, 6 are step 2's.
+Body: `handoff/hmdnah/2026-10-19-T-049-review-step-1.md`
