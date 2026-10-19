@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-048` |
-| branch | `task/T-048-a-bnn-of-many-small-high-ratio-entries-i` |
+| task | `STEWARD-cache-restore-batch` |
+| branch | `steward/cache-restore-batch` |
 | claimed-at | 2026-10-19T13:39:53Z |
-| status | merged — PR #86 merged by `hmdnah` at 2026-10-19T14:49:05Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a178aec78b327917eda724faaebe2895d324862c
+last-verified-at: 7fbebca4d3673b607cac81b5608628a72358d529
