@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-cache-restore-batch` |
-| branch | `steward/cache-restore-batch` |
-| claimed-at | 2026-10-19T13:39:53Z |
-| status | merged — PR #87 merged by `hmdnah` at 2026-10-19T15:26:57Z |
+| task | `T-049` |
+| branch | `task/T-049-a-cache-restore-reads-each-batch-of-root` |
+| claimed-at | 2026-10-19T15:28:15Z |
+| status | working |
 
 <!-- END BATON -->
 
