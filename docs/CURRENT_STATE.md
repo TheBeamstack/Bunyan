@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-bnn-aggregate-ratio` |
-| branch | `steward/bnn-aggregate-ratio` |
-| claimed-at | 2026-10-19T11:11:41Z |
-| status | merged — PR #85 merged by `hmdnah` at 2026-10-19T13:38:47Z |
+| task | `T-048` |
+| branch | `task/T-048-a-bnn-of-many-small-high-ratio-entries-i` |
+| claimed-at | 2026-10-19T13:39:53Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: fb0193e66bcee5027f434771dbb89c1e8c346314
+last-verified-at: 7a7a0e4c1db203593189d598e8fcb04ef4c9cfd8

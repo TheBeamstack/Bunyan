@@ -113,7 +113,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-044 | blocked | D29 R6 — `codeId` is stamped per the owner answer to D-20261012-06                                | backend  | box     | **high** | T-040        |
 | T-045 | blocked | D29 R7 — autosave carries the cache or not, per D-20261012-07                                     | backend  | box     | **high** | T-042        |
 | T-046 | done    | A hostile `.bnn` is refused before it inflates past an entry-count or size cap                    | backend  | box     | **high** | —            |
-| T-048 | ready   | A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap                    | backend  | box     | **high** | —            |
+| T-048 | done    | A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap                    | backend  | box     | **high** | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
@@ -600,6 +600,10 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   re-queues. Fix shape: re-queue live roots whose key flipped. Recorded, not claimed.
 - **2026-10-14 — a save with a full 16k cache blocks ~4.1 s in `zipSync`** (T-042, design §5). Fix shape: zip
   in a worker, or a lower level for `geometry-cache/`. Recorded, not claimed.
+- **2026-10-19 — a cache restore at 16k is quadratic in `read`** (T-048 review). `cacherestore.ts:104` calls
+  `read` per part, and each scans the whole central directory three times (`entryRoom`, `checkCaps`, the
+  inflating pass): 20.11 ms per `read` at 16,001 entries (12.58 ms before T-048), ~5.4 min for 16k parts. Fix shape: `readMany` per batch of roots, or
+  cache `entryRoom` with the retained bytes. Recorded, not claimed.
 
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
