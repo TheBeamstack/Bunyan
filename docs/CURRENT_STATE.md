@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-bnn-aggregate-ratio` |
-| branch | `steward/bnn-aggregate-ratio` |
-| claimed-at | 2026-10-19T11:11:41Z |
-| status | merged — PR #85 merged by `hmdnah` at 2026-10-19T13:38:47Z |
+| task | `T-048` |
+| branch | `task/T-048-a-bnn-of-many-small-high-ratio-entries-i` |
+| claimed-at | 2026-10-19T13:39:53Z |
+| status | working |
 
 <!-- END BATON -->
 
