@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-cache-restore-batch` |
 | branch | `steward/cache-restore-batch` |
 | claimed-at | 2026-10-19T13:39:53Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #87 merged by `hmdnah` at 2026-10-19T15:26:57Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 2718733bd7c57de9dca605b95c937e3436ae22ac
+last-verified-at: aec670fdcd4631a5604bfae9de714a6eb74b06f5
