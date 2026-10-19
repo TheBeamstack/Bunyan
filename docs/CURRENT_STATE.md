@@ -75,24 +75,15 @@ builder may claim.
 
 ## BLOCKED
 
-- **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
-  - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
-  - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 - **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
   - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
   - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
 - **B-20261012-03** — `scope: item` · `item: T-037` — the box loop cannot run the golden seeder, so every zayd turn is held on T-037
   - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
   - opened 2026-10-12T07:19Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261012-04** — `scope: item` · `item: PR#77` — PR #77's step-1 report could not be posted as a comment under hmdnah's account
-  - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
-  - opened 2026-10-12T09:09Z by hmdnah · recorded in `docs/BLOCKERS.md`
-- **B-20261012-08** — `scope: item` · `item: T-046` — T-046 cannot reach zayd: start re-continues the blocker-held T-037 claim every turn
-  - need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate T-046 to a zayd turn
-  - opened 2026-10-12T16:33Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261012-05** — `scope: item` · `item: PR#79` — PR #79's step-1 report could not be posted as a comment under hmdnah's account
-  - need: post `handoff/hmdnah/2026-10-12-T-041-review-step-1.md` as a PR #79 comment under `narutousomaki741`
-  - opened 2026-10-12T15:15Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
+  - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
+  - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -226,4 +217,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: faced72f7e70220bafd0c6c388eac3226cd16bda
+last-verified-at: 9cddc44f87ce94214356ba22a1b8bb2fd0d1fb0b

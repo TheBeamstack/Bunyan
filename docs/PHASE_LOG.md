@@ -365,6 +365,20 @@ writes matching-key idle exports and carries restored or unbuilt records, with n
 mutants, each red. 16k: cache 105 MB raw / 14.6 MB zipped, `saveBnn` 4.1 s. `pnpm verify` green (971).
 Body: `handoff/zayd/2026-10-14-T-042-d29-lazy-export.md`
 
+## STEWARD-bnn-zip-mtime — T-047, `.bnn` bytes that depend on the wall clock — 2026-10-14 — seat: brahim
+
+`gates.py verify` on main 5ae192f went red once at `journal-transport-rule14.test.ts:305`: two saves, same length,
+different bytes. Cause: `bnn.ts:182` gives `zipSync` no `mtime`, so fflate stamps `Date.now()` (2 s DOS time).
+Now T-047, `ready`, `risk: normal`, via `backlog.py add`; diagnosed by a row-less subagent (R39). No code changed.
+Body: `handoff/brahim/2026-10-14-STEWARD-bnn-zip-mtime-row.md`
+
+## STEWARD-bnn-zip-mtime — finish of the 2026-10-14 turn — 2026-10-18 — seat: brahim
+
+The 10-14 finish was backgrounded and killed, so `2a672fe` never left the box; this turn runs it in the foreground.
+D-20261007-08 (`app-list`) and D-20261007-11 (`recipe-only`) expired 10-15 unapplied and failed `gates.py docs`:
+defaults applied, `answered:` stamped, no code changed.
+Body: `handoff/brahim/2026-10-18-STEWARD-bnn-zip-mtime-finish.md`
+
 ## T-042 — step-1 doc defects: the cap comments and the §5 Autosave figure — 2026-10-19 — seat: zayd
 
 `bnn.ts` cap comments now size against R4's 105 MB cache: `index.json` 61.3 MB (entry cap ~4.4×), ~111 MB with

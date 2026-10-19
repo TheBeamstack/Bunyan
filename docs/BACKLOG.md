@@ -108,6 +108,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-040 | done    | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                           | backend  | box     | **high** | T-039        |
 | T-041 | done    | D29 R3 — the load-only restore substitution in `#stage`                                           | backend  | box     | **high** | T-039, T-040 |
 | T-042 | review  | D29 R4 — the lazy idle exporter; a save never exports                                             | workers  | box     | **high** | T-041        |
+| T-047 | ready   | A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads               | backend  | box     | normal   | —            |
 | T-043 | blocked | D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05                      | backend  | box     | **high** | T-040        |
 | T-044 | blocked | D29 R6 — `codeId` is stamped per the owner answer to D-20261012-06                                | backend  | box     | **high** | T-040        |
 | T-045 | blocked | D29 R7 — autosave carries the cache or not, per D-20261012-07                                     | backend  | box     | **high** | T-042        |
@@ -419,6 +420,18 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - verify: pnpm verify
 - depends-on: T-041 · area: workers · machine: box · risk: **high**
 - note: risk high by READY rule 8 (touches the D29 cache); area is the backlog.py enum, which has no `document`
+
+### T-047 — A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads
+
+- outcome: saveBnn writes every zip entry with one constant timestamp, so its bytes depend on the document alone, never on when it was saved.
+- implements: docs/contracts/V1.0.0_spec.md §6.5 (determinism) · D71 (the codec write equals saveBnn) · D76; provenance: brahim cycle 2026-10-14, tests/journal-transport-rule14.test.ts:305 red once under gates.py verify on main 5ae192f
+- done-when: packages/document/src/bnn.ts:182 passes zipSync a constant `mtime` built from a local-time date no earlier than 1980 (fflate 0.8.3 throws below it in the local year, esm/index.mjs:1903), with a comment naming why
+- done-when: test-first: a test saves one scene twice with the system clock moved more than 2 s between the saves (vi.setSystemTime) and asserts identical bytes; revert-verified: dropping the `mtime` option turns it red
+- done-when: tests/journal-transport-rule14.test.ts:305, tests/format-codec-seam.test.ts:157-161 and apps/web/src/view/keepLive.test.ts:172-175 pass unchanged
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: normal
+- note: fflate stamps Date.now() as a 2 s DOS time when no mtime is given (esm/index.mjs:1902,1905), so two saves straddling a tick differ in local and central header bytes only; bnn.ts:182 is the only zipSync call in packages/ and apps/; area is the backlog.py enum
 
 ### T-043 — D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05
 
