@@ -453,3 +453,9 @@ Approved; no code defect proven. Item 1: `bnn.ts` at `eb36dbb` → 2 red; restor
 `held` from declared sizes stayed green; one test added that goes red against it. Item 3: `read` at 16k costs
 20.11 ms (12.58 before), filed to `## Discovered`. `pnpm verify` 976 passed; reserved classes: none.
 Body: `handoff/hmdnah/2026-10-19-T-048-review-step-2.md`
+
+## STEWARD-cache-restore-batch — T-049 from ## Discovered — 2026-10-19 — seat: brahim
+
+PR #86's step 2 found a 16k cache restore quadratic: `cacherestore.ts:104` calls `read` per part, 22.56 ms each.
+Now T-049, `ready`, `risk: high` (D29 read path): one `readMany` per batch of roots. The finding is deleted. No code changed.
+Body: `handoff/brahim/2026-10-19-STEWARD-cache-restore-batch-row.md`
