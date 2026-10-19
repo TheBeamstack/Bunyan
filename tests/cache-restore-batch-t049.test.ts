@@ -34,6 +34,7 @@ import {
 import type {
   CacheEnvelope,
   CacheRecord,
+  CachedPart,
   Element,
   GeometryCacheIndex,
   GeometryCacheReader,
@@ -75,7 +76,7 @@ function cacheFor(scene: Scene, partsOf: (i: number) => number): Record<string, 
   const records: Record<string, CacheRecord> = {};
   let i = 0;
   for (const [root, key] of cacheInputKeys(scene)) {
-    const parts = [];
+    const parts: CachedPart[] = [];
     for (let k = 0; k < partsOf(i); k++) {
       const refs = [`${root}#${String(k)}/a`, `${root}#${String(k)}/b`];
       files[`${root}/${String(k)}.brep`] = encoder.encode(`brep ${root} ${String(k)}\n`.repeat(8));

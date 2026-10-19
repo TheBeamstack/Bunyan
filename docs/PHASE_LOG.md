@@ -466,3 +466,10 @@ Approved; no row defect proven. Item 1: a counting reader on the d29 restore →
 a throwaway per-root `readMany` → green, 0 reads; removed. Probe: 20.6–21.0 ms per `read`, 609–626 ms per `readMany`
 (row: 22.56, 694). Fixed the abstract's 22.56 → 20.11, step 2's figure. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
+
+## T-049 — A cache restore reads each batch of roots' entries in one `readMany` — 2026-10-19 — seat: zayd
+
+`#stage` reads one `readMany` per `RESTORE_BATCH_ROOTS` (1024) roots; a throw from it rebuilds that batch. New test:
+2B+5 roots → 0 `.brep` reads, 3 `readMany`; per-name `read` restored → 2053 reads, red. 16,000 entries restore in
+16 calls, 1,059–1,122 ms of `readMany`, 2.28–2.40 s `rebuildAll` (kernel import excluded). `pnpm verify` green (978).
+Body: `handoff/zayd/2026-10-19-T-049-cache-restore-batch.md`
