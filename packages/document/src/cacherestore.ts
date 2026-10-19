@@ -84,16 +84,50 @@ export function openCacheIndex(source: GeometryCacheSource): GeometryCacheIndex 
   return parsed as unknown as GeometryCacheIndex;
 }
 
-/** Design §4 steps 1–3 for one root. `undefined` ⇒ build it; nothing imported is left live. */
-export async function restoreAssembly(
+/**
+ * Roots per `readMany` on restore. Each pass scans the whole zip (22.56 ms at 16k entries), so 16k roots
+ * cost 16 passes instead of one per part; a batch's bytes are held only until the next batch is read.
+ */
+export const RESTORE_BATCH_ROOTS = 1024;
+
+/** The usable records of one batch of roots, and every `.brep` entry they name, read in one pass. */
+export interface RestoreBatch {
+  readonly records: ReadonlyMap<ElementId, CacheRecord>;
+  readonly bytes: ReadonlyMap<string, Uint8Array>;
+}
+
+/**
+ * Design §4 step 1 for `roots`, then their entries in one `readMany`. A throw from it (a T-046/T-048
+ * cap, a corrupt entry) empties the batch, so each of its roots builds, as a per-part throw did.
+ */
+export function readRestoreBatch(
   scene: Scene,
-  root: ElementId,
+  roots: readonly ElementId[],
   tables: CacheKeyTables,
   index: GeometryCacheIndex,
   files: GeometryCacheReader,
+): RestoreBatch {
+  const records = new Map<ElementId, CacheRecord>();
+  for (const root of roots) {
+    const record = usableRecord(scene, root, tables, index);
+    if (record !== undefined) records.set(root, record);
+  }
+  if (records.size === 0) return { records, bytes: new Map() };
+  try {
+    const names = [...records].flatMap(([root, record]) => recordEntries(root, record));
+    return { records, bytes: files.readMany(names) };
+  } catch {
+    return { records: new Map(), bytes: new Map() };
+  }
+}
+
+/** Design §4 steps 2–3 for one root of `batch`. `undefined` ⇒ build it; nothing imported is left live. */
+export async function restoreAssembly(
+  root: ElementId,
+  batch: RestoreBatch,
   geometry: GeometryGateway,
 ): Promise<RestoredAssembly | undefined> {
-  const record = usableRecord(scene, root, tables, index);
+  const record = batch.records.get(root);
   if (record === undefined) return undefined;
   const { root: cachedRoot, voids } = record;
 
@@ -101,7 +135,7 @@ export async function restoreAssembly(
   const restore = async (node: CachedGeometry): Promise<ElementGeometry> => {
     const parts: Part[] = [];
     for (const cached of node.parts) {
-      const bytes = files.read(`${root}/${cached.brep.k}.brep`);
+      const bytes = batch.bytes.get(`${root}/${cached.brep.k}.brep`);
       if (bytes === undefined) throw new Refusal();
       const shape = await geometry.request('importBrep', {
         nodeId: cached.nodeId,
