@@ -385,3 +385,10 @@ Body: `handoff/brahim/2026-10-18-STEWARD-bnn-zip-mtime-finish.md`
 `scene.json` (total cap ~4.8×); constants unchanged. Design §5 Autosave: ~525 MB inflated, ~73 MB zipped.
 No code or test changed. hmdnah's step-1 record is on `rescue/bunyan/20261014T163116Z`, not this branch.
 Body: `handoff/zayd/2026-10-19-T-042-step-1-doc-defects.md`
+
+## T-042 — review step 2 of PR #82 — 2026-10-19 — seat: hmdnah
+
+Clean: step 1's two doc defects are fixed (`a9c2b51`), arithmetic re-checked. Item 1: `#builtRoots` carry guard
+removed → 1 red (`:374`), restored 17 green. Sweep: no other cache writer; every geometry writer reaches `#commit`.
+Opinion: test 3 stays green without that guard (test 4 holds it). 16k figures unverified here — amer to confirm.
+Body: `handoff/hmdnah/2026-10-19-T-042-review-step-2.md`
