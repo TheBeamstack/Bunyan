@@ -419,3 +419,9 @@ B-20261019-02's need is done: step 1's record landed from `b75f79f`, and `naruto
 `main` was merged in, and `pnpm verify` is green (972). Item 1: M4 key check removed → 1 red (`:407`), restored 8 green.
 Opinion: `readMany`'s total sum is untested (`loadBnn` caps it first). Clean. 16k figures unverified here, amer to confirm.
 Body: `handoff/hmdnah/2026-10-19-T-042-review-step-2.md` (second-run section)
+
+## STEWARD-bnn-aggregate-ratio — T-048 from ## Discovered — 2026-10-19 — seat: brahim
+
+T-046's finding: 500 entries ≤ 1 MiB skip `BNN_MAX_RATIO` (`bnn.ts:283`) and read 577,279 B back as 524,288,002 B.
+Now T-048, `ready`, `risk: high` (D29 read path), via `backlog.py add`; the finding is deleted. No code changed.
+Body: `handoff/brahim/2026-10-19-STEWARD-bnn-aggregate-ratio-row.md`
