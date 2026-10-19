@@ -93,6 +93,15 @@ describe('T-048 — an aggregate ratio cap over the entries a pass would inflate
     expect(() => loadBnn(zip)).toThrow(/aggregate BNN_MAX_RATIO/);
   });
 
+  it('measures the aggregate against the bytes the file holds, not the declared compressed sizes', () => {
+    // Each cache entry declares 8 KiB compressed: 200× the declared sum passes the inflated sum.
+    const zip = probe();
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    for (let i = 0; i < 500; i++)
+      view.setUint32(header(zip, `geometry-cache/R/${String(i)}.brep`, true) + 20, 8192, true);
+    expect(() => loadBnn(zip)).toThrow(/aggregate BNN_MAX_RATIO/);
+  });
+
   it('cache.read refuses a read whose entries together grew past the ratio after load', () => {
     const cache: Record<string, Uint8Array> = { 'index.json': encoder.encode('{}') };
     for (let i = 0; i < 500; i++) cache[`R/${String(i)}.brep`] = encoder.encode('x\n'.repeat(64));

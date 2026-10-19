@@ -446,3 +446,10 @@ No defect proven; not approved (step 1). Item 1: `bnn.ts` reverted to `eb36dbb` 
 2 red; restored → 22 green over the four `.bnn` files. Probe 579,153 B at 1015.8:1 and the 16k cache 105.25 MB
 from 15.22 MB re-measured. Reserved classes: none; CI green on `e031c9f`. Items 2, 3, 6 are step 2's.
 Body: `handoff/hmdnah/2026-10-19-T-048-review-step-1.md`
+
+## T-048 — review step 2 of PR #86 — 2026-10-19 — seat: hmdnah
+
+Approved; no code defect proven. Item 1: `bnn.ts` at `eb36dbb` → 2 red; restored → 22 green. Item 6: aggregate
+`held` from declared sizes stayed green; one test added that goes red against it. Item 3: `read` at 16k costs
+20.11 ms (12.58 before), filed to `## Discovered`. `pnpm verify` 976 passed; reserved classes: none.
+Body: `handoff/hmdnah/2026-10-19-T-048-review-step-2.md`
