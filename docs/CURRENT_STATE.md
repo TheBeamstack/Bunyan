@@ -66,7 +66,7 @@ builder may claim.
 | machine | box |
 | task | `T-049` |
 | branch | `task/T-049-a-cache-restore-reads-each-batch-of-root` |
-| claimed-at | 2026-10-19T15:28:15Z |
+| claimed-at | 2026-10-19T16:05:46Z |
 | status | working |
 
 <!-- END BATON -->
