@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-047` |
-| branch | `task/T-047-a-bnn-saved-twice-from-one-scene-is-byte` |
+| task | `T-042` |
+| branch | `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev` |
 | claimed-at | 2026-10-19T11:11:41Z |
-| status | merged — PR #84 merged by `hmdnah` at 2026-10-19T12:02:30Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: bf1d91d5adaad4bff1e7a037043c6f3766371a2b
+last-verified-at: db45eb59218a622100847b494ffc8c9dff834de2
