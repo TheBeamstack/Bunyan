@@ -378,3 +378,9 @@ Body: `handoff/brahim/2026-10-18-STEWARD-bnn-zip-mtime-finish.md`
 New test: one scene saved at two clock times under `vi.setSystemTime` → identical bytes; red before, `mtime` dropped → red.
 The three named tests pass unchanged; `pnpm verify` green (964, docs:check 66).
 Body: `handoff/zayd/2026-10-19-T-047-bnn-zip-mtime.md`
+
+## T-047 — review of PR #84 — 2026-10-19 — seat: hmdnah
+
+Approved, no defect. Item 1: `mtime` dropped → 1 red, restored → 1 green. `pnpm verify` 105 files / 964 tests.
+Sole `zipSync` call; fflate lines match; the zip hash is the same in three time zones. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-19-T-047-review.md`
