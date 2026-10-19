@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-047` |
 | branch | `task/T-047-a-bnn-saved-twice-from-one-scene-is-byte` |
 | claimed-at | 2026-10-19T11:11:41Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #84 merged by `hmdnah` at 2026-10-19T12:02:30Z |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 2b65d78156a29c3eccbb3ccfef1b9cadf5915876
+last-verified-at: bf1d91d5adaad4bff1e7a037043c6f3766371a2b
