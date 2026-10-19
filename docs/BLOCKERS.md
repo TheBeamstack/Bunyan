@@ -344,4 +344,4 @@ from, and the reason it is a record rather than prose.
 - why: agent_finish.py exited 1, "T-042 is risk: high step 2, but the open PR carries no 'review/step-1' label — step 1 has not run"; step 1's 2026-10-14 finish never completed, so its record is only on rescue commit b75f79f
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_finish.py --seat hmdnah T-042 --review --step 2; echo $?`; `gh -R TheBeamstack/Bunyan pr view 82 --json labels`
 - need: land `handoff/hmdnah/2026-10-14-T-042-review-step-1.md` and its log abstract from b75f79f on `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev` and add the `review/step-1` label to PR #82, then re-run hmdnah's step-2 finish and `agent_merge.py --seat hmdnah --pr 82`
-- cleared: -
+- cleared: 2026-10-19T13:01Z
