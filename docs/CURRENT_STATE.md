@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-047` |
 | branch | `task/T-047-a-bnn-saved-twice-from-one-scene-is-byte` |
 | claimed-at | 2026-10-19T11:11:41Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: ad44ed0fa121e493238accc5a14f2b40b5054aee
+last-verified-at: 2b65d78156a29c3eccbb3ccfef1b9cadf5915876
