@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-cache-restore-batch` |
 | branch | `steward/cache-restore-batch` |
 | claimed-at | 2026-10-19T13:39:53Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 7fbebca4d3673b607cac81b5608628a72358d529
+last-verified-at: 2718733bd7c57de9dca605b95c937e3436ae22ac
