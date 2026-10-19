@@ -114,6 +114,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-045 | blocked | D29 R7 — autosave carries the cache or not, per D-20261012-07                                     | backend  | box     | **high** | T-042        |
 | T-046 | done    | A hostile `.bnn` is refused before it inflates past an entry-count or size cap                    | backend  | box     | **high** | —            |
 | T-048 | done    | A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap                    | backend  | box     | **high** | —            |
+| T-049 | ready   | A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part     | backend  | box     | **high** | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
@@ -488,6 +489,20 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: — · area: backend · machine: box · risk: **high**
 - note: risk high by READY rule 8 (the D29 cache read path) and spec §9 hostile input; BNN_MAX_TOTAL_BYTES already bounds the probe at 512 MiB, so this is defence in depth; area is the backlog.py enum
 
+### T-049 — A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part
+
+- outcome: Restoring N cached roots costs one central-directory pass per batch of roots instead of one per part, so a 16k-part restore no longer spends ~6 min in zip scans.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §4, §5 (cold open, cache: 12.00 ms/solid) · docs/contracts/V1.0.0_spec.md §6 (D29), §14 D66 (cold-load axis) · D29
+- done-when: test-first: a counting GeometryCacheReader passed as `geometryCache.files` shows a full restore of N roots makes 0 `.brep` `read` calls and at most ceil(N/B) `readMany` calls whatever the part count (B a named constant); red on main, where cacherestore.ts:104 calls `read` once per part
+- done-when: a batch `readMany` that throws a cap error (T-046, T-048) rebuilds the roots of that batch, as a per-part throw does today inside restoreAssembly (cacherestore.ts:140), and a test shows it
+- done-when: tests/geometry-cache-restore-d29.test.ts, tests/bnn-zip-caps-t046.test.ts and tests/bnn-aggregate-ratio-t048.test.ts pass unmodified, and packages/document/src/bnn.ts is unchanged
+- done-when: revert-verified: restoring the per-part `files.read` at cacherestore.ts:104 turns the call-count test red
+- done-when: the handoff records headless ms for restoring 16,000 cached entries, against the baseline 22.56 ms per `read` and 694 ms for one `readMany` of 16,000 names
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: risk high by READY rule 8 (the D29 cache read path); not reachable from apps/ today (no product caller passes geometryCache); from ## Discovered 2026-10-19 (T-048 review step 2); area is the backlog.py enum
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -600,10 +615,6 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   re-queues. Fix shape: re-queue live roots whose key flipped. Recorded, not claimed.
 - **2026-10-14 — a save with a full 16k cache blocks ~4.1 s in `zipSync`** (T-042, design §5). Fix shape: zip
   in a worker, or a lower level for `geometry-cache/`. Recorded, not claimed.
-- **2026-10-19 — a cache restore at 16k is quadratic in `read`** (T-048 review). `cacherestore.ts:104` calls
-  `read` per part, and each scans the whole central directory three times (`entryRoom`, `checkCaps`, the
-  inflating pass): 20.11 ms per `read` at 16,001 entries (12.58 ms before T-048), ~5.4 min for 16k parts. Fix shape: `readMany` per batch of roots, or
-  cache `entryRoom` with the retained bytes. Recorded, not claimed.
 
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both

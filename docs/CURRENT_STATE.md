@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-048` |
-| branch | `task/T-048-a-bnn-of-many-small-high-ratio-entries-i` |
+| task | `STEWARD-cache-restore-batch` |
+| branch | `steward/cache-restore-batch` |
 | claimed-at | 2026-10-19T13:39:53Z |
-| status | merged — PR #86 merged by `hmdnah` at 2026-10-19T14:49:05Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a178aec78b327917eda724faaebe2895d324862c
+last-verified-at: 2718733bd7c57de9dca605b95c937e3436ae22ac
