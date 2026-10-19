@@ -439,3 +439,10 @@ Body: `handoff/hmdnah/2026-10-19-STEWARD-bnn-aggregate-ratio-review.md`
 `cache.readMany` runs it before inflating. New tests: the T-046 probe and a post-load `readMany` are refused (red
 before, and with the check dropped); a synthetic 16k full cache, 105.3 MB, opens. `pnpm verify` green (975).
 Body: `handoff/zayd/2026-10-19-T-048-bnn-aggregate-ratio.md`
+
+## T-048 — review step 1 of PR #86 — 2026-10-19 — seat: hmdnah
+
+No defect proven; not approved (step 1). Item 1: `bnn.ts` reverted to `eb36dbb` → 2 red; aggregate check off → same
+2 red; restored → 22 green over the four `.bnn` files. Probe 579,153 B at 1015.8:1 and the 16k cache 105.25 MB
+from 15.22 MB re-measured. Reserved classes: none; CI green on `e031c9f`. Items 2, 3, 6 are step 2's.
+Body: `handoff/hmdnah/2026-10-19-T-048-review-step-1.md`
