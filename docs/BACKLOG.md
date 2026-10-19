@@ -108,7 +108,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-040 | done    | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                           | backend  | box     | **high** | T-039        |
 | T-041 | done    | D29 R3 — the load-only restore substitution in `#stage`                                           | backend  | box     | **high** | T-039, T-040 |
 | T-042 | ready   | D29 R4 — the lazy idle exporter; a save never exports                                             | workers  | box     | **high** | T-041        |
-| T-047 | ready   | A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads               | backend  | box     | normal   | —            |
+| T-047 | review  | A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads               | backend  | box     | normal   | —            |
 | T-043 | blocked | D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05                      | backend  | box     | **high** | T-040        |
 | T-044 | blocked | D29 R6 — `codeId` is stamped per the owner answer to D-20261012-06                                | backend  | box     | **high** | T-040        |
 | T-045 | blocked | D29 R7 — autosave carries the cache or not, per D-20261012-07                                     | backend  | box     | **high** | T-042        |
