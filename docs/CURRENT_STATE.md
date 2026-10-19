@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-bnn-aggregate-ratio` |
 | branch | `steward/bnn-aggregate-ratio` |
 | claimed-at | 2026-10-19T11:11:41Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #85 merged by `hmdnah` at 2026-10-19T13:38:47Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 60fecf6455def85305e90e7500581351f4d1669e
+last-verified-at: fb0193e66bcee5027f434771dbb89c1e8c346314
