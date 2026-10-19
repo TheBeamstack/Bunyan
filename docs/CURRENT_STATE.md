@@ -90,6 +90,9 @@ builder may claim.
 - **B-20261019-04** — `scope: item` · `item: PR#88` — PR #88's step 2 proved one corrupt cache entry rebuilds its whole batch, so it is not merged
   - need: make `readRestoreBatch` re-read each root alone after a non-cap `readMany` throw (fix in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`) in a zayd turn on `task/T-049-a-cache-restore-reads-each-batch-of-root`, then route PR #88 to hmdnah for step 2
   - opened 2026-10-19T17:30Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261019-05** — `scope: item` · `item: PR#88` — PR #88's returned fix cannot reach zayd: start refuses T-049 while B-20261019-04 holds it
+  - need: make diwan `agent_start.py --continue` admit the seat a blocker's own `need:` routes to its item, then run B-20261019-04's zayd fix
+  - opened 2026-10-19T17:31Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

@@ -369,3 +369,15 @@ from, and the reason it is a record rather than prose.
 - evidence: the probe in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md` (two DEFLATE bytes of `W00001/0.brep` set to `0xff` before `loadBnn`), run with `pnpm exec vitest run` at `355d4cd` and with `git checkout origin/main -- packages/document/src/{cacherestore,document}.ts`
 - need: make `readRestoreBatch` re-read each root alone after a non-cap `readMany` throw (fix in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`) in a zayd turn on `task/T-049-a-cache-restore-reads-each-batch-of-root`, then route PR #88 to hmdnah for step 2
 - cleared: -
+
+## B-20261019-05 PR #88's returned fix cannot reach zayd: start refuses T-049 while B-20261019-04 holds it
+
+- opened: 2026-10-19T17:31Z
+- by: brahim-loop
+- scope: item
+- item: PR#88
+- what: B-20261019-04's `need:` is a zayd turn on T-049's branch, but start refuses to resume an item that same blocker names, so the fix it asks for can never run
+- why: agent_start.py exited 1, "T-049 (PR #88) is held by B-20261019-04, an uncleared `scope: item` blocker at main — skip it"; B-20261019-03 is the same refusal for PR #72's flow merge
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-049 --root /home/ubuntu/projects/Bunyan; echo $?`
+- need: make diwan `agent_start.py --continue` admit the seat a blocker's own `need:` routes to its item, then run B-20261019-04's zayd fix
+- cleared: -
