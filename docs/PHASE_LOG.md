@@ -358,6 +358,20 @@ Approved and merged: B-20261014-01 closed. Item 1: execute, then redo, passing `
 Only the test changed since `64d8828`, so items 2, 3 stand. CI green on `ed3c86e`, labeller additive. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` (third-run section)
 
+## T-042 — D29 R4 — the lazy idle exporter; a save never exports — 2026-10-14 — seat: zayd
+
+`exportCacheIdle` exports built assemblies, keyed on landing and dropped if an edit overtook them; `geometryCacheFiles`
+writes matching-key idle exports and carries restored or unbuilt records, with no kernel op. 8 OCCT tests; six
+mutants, each red. 16k: cache 105 MB raw / 14.6 MB zipped, `saveBnn` 4.1 s. `pnpm verify` green (971).
+Body: `handoff/zayd/2026-10-14-T-042-d29-lazy-export.md`
+
+## T-042 — review step 1 of PR #82 — 2026-10-14 — seat: hmdnah
+
+Not approved (step 1); two doc defects back to zayd: `bnn.ts` cap comments still size against 67.2 MB / `scene.json`
+6.1 MB (R4: `index.json` 61.3 MB, ~111 MB), and design §5's autosave ~305 MB. Item 1: landing guard removed → 1 red,
+restored 8 green. `.brep` per-solid reproduces; 16k figures unverified here (env run refused). Not owner-gated.
+Body: `handoff/hmdnah/2026-10-14-T-042-review-step-1.md`
+
 ## STEWARD-bnn-zip-mtime — T-047, `.bnn` bytes that depend on the wall clock — 2026-10-14 — seat: brahim
 
 `gates.py verify` on main 5ae192f went red once at `journal-transport-rule14.test.ts:305`: two saves, same length,
@@ -384,3 +398,24 @@ Body: `handoff/zayd/2026-10-19-T-047-bnn-zip-mtime.md`
 Approved, no defect. Item 1: `mtime` dropped → 1 red, restored → 1 green. `pnpm verify` 105 files / 964 tests.
 Sole `zipSync` call; fflate lines match; the zip hash is the same in three time zones. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-19-T-047-review.md`
+
+## T-042 — step-1 doc defects: the cap comments and the §5 Autosave figure — 2026-10-19 — seat: zayd
+
+`bnn.ts` cap comments now size against R4's 105 MB cache: `index.json` 61.3 MB (entry cap ~4.4×), ~111 MB with
+`scene.json` (total cap ~4.8×); constants unchanged. Design §5 Autosave: ~525 MB inflated, ~73 MB zipped.
+No code or test changed. hmdnah's step-1 record is on `rescue/bunyan/20261014T163116Z`, not this branch.
+Body: `handoff/zayd/2026-10-19-T-042-step-1-doc-defects.md`
+
+## T-042 — review step 2 of PR #82 — 2026-10-19 — seat: hmdnah
+
+Clean: step 1's two doc defects are fixed (`a9c2b51`), arithmetic re-checked. Item 1: `#builtRoots` carry guard
+removed → 1 red (`:374`), restored 17 green. Sweep: no other cache writer; every geometry writer reaches `#commit`.
+Opinion: test 3 stays green without that guard (test 4 holds it). 16k figures unverified here — amer to confirm.
+Body: `handoff/hmdnah/2026-10-19-T-042-review-step-2.md`
+
+## T-042 — review step 2 (second run) of PR #82 — 2026-10-19 — seat: hmdnah
+
+B-20261019-02's need is done: step 1's record landed from `b75f79f`, and `narutousomaki741` added `review/step-1`.
+`main` was merged in, and `pnpm verify` is green (972). Item 1: M4 key check removed → 1 red (`:407`), restored 8 green.
+Opinion: `readMany`'s total sum is untested (`loadBnn` caps it first). Clean. 16k figures unverified here, amer to confirm.
+Body: `handoff/hmdnah/2026-10-19-T-042-review-step-2.md` (second-run section)

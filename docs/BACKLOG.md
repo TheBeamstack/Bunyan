@@ -107,7 +107,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-039 | done    | D29 R1 — the cache input key, one pass over the scene                                             | backend  | box     | **high** | —            |
 | T-040 | done    | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                           | backend  | box     | **high** | T-039        |
 | T-041 | done    | D29 R3 — the load-only restore substitution in `#stage`                                           | backend  | box     | **high** | T-039, T-040 |
-| T-042 | ready   | D29 R4 — the lazy idle exporter; a save never exports                                             | workers  | box     | **high** | T-041        |
+| T-042 | done    | D29 R4 — the lazy idle exporter; a save never exports                                             | workers  | box     | **high** | T-041        |
 | T-047 | done    | A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads               | backend  | box     | normal   | —            |
 | T-043 | blocked | D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05                      | backend  | box     | **high** | T-040        |
 | T-044 | blocked | D29 R6 — `codeId` is stamped per the owner answer to D-20261012-06                                | backend  | box     | **high** | T-040        |
@@ -579,6 +579,14 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-14 — no product caller runs the D29 export** (T-042). `exportCacheIdle` and `geometryCacheFiles`
+  are document-layer only: `apps/web` schedules no idle export and its saves pass no `cache`, because the
+  envelope needs a `codeId` (T-044, `D-20261012-06`). Fix shape: wire both when T-044 lands. Recorded, not claimed.
+- **2026-10-14 — a whole-table edit empties the cache until each assembly is rebuilt** (T-042). One
+  `core.createMaterial` flips every key and rebuilds nothing, so the next save writes no record and nothing
+  re-queues. Fix shape: re-queue live roots whose key flipped. Recorded, not claimed.
+- **2026-10-14 — a save with a full 16k cache blocks ~4.1 s in `zipSync`** (T-042, design §5). Fix shape: zip
+  in a worker, or a lower level for `geometry-cache/`. Recorded, not claimed.
 - **2026-10-13 — `.bnn` entries at the 1 MiB ratio floor still amplify ~900:1** (T-046). `RATIO_FLOOR_BYTES`
   exempts each entry ≤ 1 MiB from `BNN_MAX_RATIO`, so 500 such zero entries load from 577,279 B and read back
   524,288,002 B, under `BNN_MAX_TOTAL_BYTES` (probe: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`). Fix shape:

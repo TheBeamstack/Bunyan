@@ -83,6 +83,8 @@ export interface GeometryCacheReader {
   /** Entry names relative to `geometry-cache/`, directory entries excluded. */
   readonly names: readonly string[];
   read: (name: string) => Uint8Array | undefined;
+  /** `read` for many names in ONE pass over the zip (a save carrying 16k entries); unknown names absent. */
+  readMany: (names: Iterable<string>) => ReadonlyMap<string, Uint8Array>;
 }
 
 export interface SaveOptions {
@@ -192,15 +194,15 @@ export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
  * DECLARES, before `unzipSync` inflates anything: fflate inflates a DEFLATE entry into a buffer of exactly
  * its declared `originalSize` (fflate 0.8.3 `unzipSync`), so bounding the declaration bounds the
  * allocation, and a stored entry copies only bytes the file really holds. Sized against design §5's 16k
- * target, measured 2026-10-13 (T-046 handoff): 16,003 zip entries, 67.2 MB inflated, the largest entry
- * `scene.json` at 6.1 MB.
+ * target: 16,003 zip entries (T-046), and a 105 MB inflated cache whose largest entry is `index.json` at
+ * 61.3 MB (R4, T-042), plus `scene.json` at 6.1 MB.
  */
 
 /** 16k solids, one `.brep` each, plus one directory entry per root at worst: 32,005; ~25% headroom. */
 export const BNN_MAX_ENTRIES = 40_000;
-/** The largest entry at 16k is `scene.json`, 6.1 MB; this leaves ~40× for richer elements and the journal. */
+/** The largest entry at 16k is the cache's `index.json`, 61.3 MB; ~4.4× headroom. */
 export const BNN_MAX_ENTRY_BYTES = 256 * 1024 * 1024;
-/** 16k inflates to 67.2 MB (the ~61 MB cache plus `scene.json`); ~8× headroom, still survivable in a tab. */
+/** 16k inflates to ~111 MB (the 105 MB cache plus `scene.json`); ~4.8× headroom, still survivable in a tab. */
 export const BNN_MAX_TOTAL_BYTES = 512 * 1024 * 1024;
 /**
  * `scene.json` at 16k deflates 33:1 and the T-046 test's synthetic `.brep` 12.1:1; DEFLATE's ceiling is
@@ -422,26 +424,31 @@ export function loadBnn(bytes: Uint8Array): BnnPackage {
 
 function geometryCacheReader(bytes: Uint8Array, names: readonly string[]): GeometryCacheReader {
   const known = new Set(names);
-  return {
-    names,
-    read: (name) => {
-      if (!known.has(name)) return undefined;
-      const full = GEOMETRY_CACHE_DIR + name;
-      // ⚠ The bytes are retained, not copied, so they are re-checked here: one pass, and the entry it
-      // returns `true` for has passed its caps before fflate allocates for it.
-      const room = entryRoom(bytes);
-      let index = 0;
-      return unzipSync(bytes, {
-        filter: (file) => {
-          const match = file.name === full;
-          const entry = match ? file : { ...file, size: 0, originalSize: 0 };
-          checkEntry(entry, index, 0, room[index]);
-          index++;
-          return match;
-        },
-      })[full];
-    },
+  const readMany = (wanted: Iterable<string>): Map<string, Uint8Array> => {
+    const full = new Set<string>();
+    for (const name of wanted) if (known.has(name)) full.add(GEOMETRY_CACHE_DIR + name);
+    const out = new Map<string, Uint8Array>();
+    if (full.size === 0) return out;
+    // ⚠ The bytes are retained, not copied, so they are re-checked here: one pass, and every entry it
+    // returns `true` for has passed its caps before fflate allocates for it.
+    const room = entryRoom(bytes);
+    let index = 0;
+    let total = 0;
+    const files = unzipSync(bytes, {
+      filter: (file) => {
+        const match = full.has(file.name);
+        const entry = match ? file : { ...file, size: 0, originalSize: 0 };
+        total = checkEntry(entry, index, total, room[index]);
+        index++;
+        return match;
+      },
+    });
+    for (const [name, data] of Object.entries(files)) {
+      out.set(name.slice(GEOMETRY_CACHE_DIR.length), data);
+    }
+    return out;
   };
+  return { names, read: (name) => readMany([name]).get(name), readMany };
 }
 
 /** ⚠ Not `typeof x === 'object'`: that is true of `null` and of every array. */

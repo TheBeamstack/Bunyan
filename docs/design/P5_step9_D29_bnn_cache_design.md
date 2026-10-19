@@ -185,12 +185,21 @@ Measured (§4j-2, one run, 60 solids, `handoff/archive/zayd/2026-07-30-d29-cache
 - A first save after a cache-less open writes a partial cache; the idle exporter fills it (106 s of worker time
   at 16k), and each later save carries more.
 
-**Not measured, and R4 measures them:** the compressed size of the cache in the zip (BRep text deflates, by how
-much is unknown), and the time `zipSync` spends re-compressing ~61 MB on a save (fflate cannot copy a compressed
-entry through).
+**Measured by R4** (`tests/geometry-cache-export-d29.test.ts`, the R3 fixture's 20 real exported solids replicated
+to 16,000, box, 2026-10-14; method and command in `handoff/zayd/2026-10-14-T-042-d29-lazy-export.md`):
+
+|                         | Per solid            | At 16k                                   |
+| ----------------------- | -------------------- | ---------------------------------------- |
+| `.brep`, raw/compressed | 2,747 B / 687 B, 4:1 | 43.9 MB / 11.0 MB                        |
+| `index.json`            | 3,830 B / 228 B      | 61.3 MB / 3.6 MB, **one entry**          |
+| `saveBnn` (`zipSync` 6) | —                    | **4.1 s** with the cache, 0.3 ms without |
+
+⚠ `index.json` outweighs the solids raw on this mix (each `Part` carries its refs twice, a D59 child its row), so
+the ~61 MB above understated the inflated cache: 105 MB, inside every T-046 cap. A save of the full cache
+blocks for ~4 s; this fixture is curtain-wall heavy, so another mix moves both figures.
 
 **Autosave.** Spec §7 has autosave write the cache _"only if D29 lands it"_, and D93 landed it. A five-deep ring
-carrying ~61 MB each is ~305 MB of OPFS at 16k. **Open: `D-20261012-07`**, recommended `omit` (recovery is rare,
+carrying R4's cache is ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. **Open: `D-20261012-07`**, recommended `omit` (recovery is rare,
 and a recovered session rebuilds as today).
 
 ---
