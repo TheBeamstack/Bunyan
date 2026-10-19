@@ -206,7 +206,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: wait
 - expires: 2026-10-18
 - ANSWER:
-- answered: -
+- answered: 2026-10-19T10:34Z
 
 ## D-20261011-02 whether to turn on secret scanning, push protection and Dependabot for public Bunyan
 
@@ -224,7 +224,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: none
 - expires: 2026-10-18
 - ANSWER:
-- answered: -
+- answered: 2026-10-19T10:34Z
 
 ## D-20261012-01 PR #69 (T-033) changes the frozen surface and needs an owner merge
 

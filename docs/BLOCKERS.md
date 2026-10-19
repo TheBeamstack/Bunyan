@@ -44,7 +44,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_finish.py:720` labels with `gh pr edit`, which gh 2.45.0 fails on the Projects-classic GraphQL deprecation; `protocol.git_identity` (`protocol.py:1331-1401`) and the label call take identity from `AGENT_SEAT`/env rather than `--seat`, so a loop-spawned hmdnah commits as the launcher's seat; an `AGENT_SEAT=hmdnah` prefix is refused by this session's permissions and `gh api user` returns Davidian-Abdo
 - evidence: `gh pr view 54; git -C /home/ubuntu/projects/Bunyan log -1 --format='%an <%ae>' 6feb54d`
 - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
-- cleared: -
+- cleared: 2026-10-19T10:34Z
 
 ## B-20261006-02 PR #55 cannot be reviewed across accounts: hmdnah's gh writes run as the author
 
@@ -248,7 +248,7 @@ from, and the reason it is a record rather than prose.
 - why: ambient `gh api user` is `Davidian-Abdo` (the author's account); `GH_TOKEN=… gh pr comment` and a `python3 -c` call of diwan `protocol.gh` were both refused by the session permission layer
 - evidence: `gh api user --jq .login` → `Davidian-Abdo`; `GH_TOKEN="$(cat ~/.config/beamstack/narutousomaki741.token)" gh pr comment 77 --body-file …` → "Contains shell syntax … cannot be statically analyzed"
 - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
-- cleared: -
+- cleared: 2026-10-19T10:34Z
 
 ## B-20261012-07 PR #79's returned fix cannot reach zayd: the start entrypoint reads T-041's claim as hmdnah's
 
@@ -272,7 +272,7 @@ from, and the reason it is a record rather than prose.
 - why: agent_start.py printed "Continuing your own open claim on task/T-037-q5-the-section-chord-tolerance-chosen-fo (a turn ended incomplete)" and pushed a fourth claim-only commit (7b268b3, a58618d, 7285e89, 0a64e54); it does not skip a claim whose item has an uncleared `scope: item` blocker (B-20261012-03)
 - evidence: `git log --format='%h %ad %s' -5 origin/task/T-037-q5-the-section-chord-tolerance-chosen-fo`; `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan`
 - need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate T-046 to a zayd turn
-- cleared: -
+- cleared: 2026-10-19T10:34Z
 
 ## B-20261012-05 PR #79's step-1 report could not be posted as a comment under hmdnah's account
 
@@ -284,7 +284,7 @@ from, and the reason it is a record rather than prose.
 - why: ambient `gh api user` is `Davidian-Abdo` (the author's account); no diwan entrypoint posts a review report as the seat, and the session may not read `~/.config/beamstack/`
 - evidence: `gh api user --jq .login` → `Davidian-Abdo`; `ls /home/ubuntu/.config/beamstack/` → "blocked … only list files in the allowed working directories"
 - need: post `handoff/hmdnah/2026-10-12-T-041-review-step-1.md` as a PR #79 comment under `narutousomaki741`
-- cleared: -
+- cleared: 2026-10-19T10:34Z
 
 ## B-20261012-06 PR #79's step 2 proved a weak-green restore test, so it is not merged
 
@@ -320,4 +320,16 @@ from, and the reason it is a record rather than prose.
 - why: agent_start.py printed "Continuing your own open claim on task/T-037-q5-the-section-chord-tolerance-chosen-fo (a turn ended incomplete)" and pushed claim commit 7af0948; the cause is B-20261012-08's, whose item (T-046) is done
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan`; `git log --oneline -1 origin/task/T-037-q5-the-section-chord-tolerance-chosen-fo`
 - need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate PR #82's two step-1 defects to a zayd turn on `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev`
+- cleared: 2026-10-19T10:34Z
+
+## B-20261019-01 secret scanning, push protection and Dependabot stay off on public Bunyan
+
+- opened: 2026-10-19T10:34Z
+- by: brahim-loop
+- scope: item
+- item: H-20261011-13
+- what: D-20261011-02 expired on 2026-10-18 unanswered with `default-if-silent: none`, so the four code-security settings stay off
+- why: Bunyan is public, the four settings are repository-admin settings no seat may change, and `docs/HANDOVERS.md#H-20261011-13` measured all four off
+- evidence: `gh api repos/TheBeamstack/Bunyan --jq .security_and_analysis`
+- need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
 - cleared: -
