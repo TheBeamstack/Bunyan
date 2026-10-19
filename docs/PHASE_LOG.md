@@ -432,3 +432,10 @@ Approved; no defect proven. Item 1: T-048's `implements:` deleted → `gates.py 
 restored → exit 0. Figures hold: T-046 handoff 50-52 (577,279 B → 524,288,002 B, 908:1), `bnn.ts:206,213,283`,
 design §5 105.2 MB from 14.6 MB (7.2:1). Every done-when is a box vitest check. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-19-STEWARD-bnn-aggregate-ratio-review.md`
+
+## T-048 — A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap — 2026-10-19 — seat: zayd
+
+`bnn.ts` `checkCaps` sums inflated and held bytes over the entries a pass inflates, refusing past 200:1 above 1 MiB;
+`cache.readMany` runs it before inflating. New tests: the T-046 probe and a post-load `readMany` are refused (red
+before, and with the check dropped); a synthetic 16k full cache, 105.3 MB, opens. `pnpm verify` green (975).
+Body: `handoff/zayd/2026-10-19-T-048-bnn-aggregate-ratio.md`

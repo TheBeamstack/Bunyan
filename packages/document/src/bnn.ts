@@ -295,18 +295,32 @@ function checkEntry(
   return total + inflated;
 }
 
-/** A pass over the central directory that inflates nothing and throws at the first cap passed. */
-function checkCaps(bytes: Uint8Array): void {
+/**
+ * A pass over the central directory that inflates nothing and throws at the first cap passed. Only the
+ * entries `wanted` names are measured (all, without it), since only they will be inflated. ⚠ The
+ * aggregate ratio is what bounds entries at or under `RATIO_FLOOR_BYTES`: 500 of 1 MiB zeros inflate
+ * ~1016:1 together while no single one is ratio-checked (T-046 probe, T-048).
+ */
+function checkCaps(bytes: Uint8Array, wanted?: (name: string) => boolean): void {
   const room = entryRoom(bytes);
   let index = 0;
   let total = 0;
+  let held = 0;
   unzipSync(bytes, {
     filter: (file) => {
-      total = checkEntry(file, index, total, room[index]);
+      const entry =
+        wanted === undefined || wanted(file.name) ? file : { ...file, size: 0, originalSize: 0 };
+      total = checkEntry(entry, index, total, room[index]);
+      held += Math.min(entry.size, room[index] ?? 0);
       index++;
       return false;
     },
   });
+  if (total > RATIO_FLOOR_BYTES && total > held * BNN_MAX_RATIO) {
+    refuse(
+      `the entries inflate ${String(total)}:${String(held)} together, past the aggregate BNN_MAX_RATIO (${String(BNN_MAX_RATIO)}:1)`,
+    );
+  }
 }
 
 /** Relative, `/`-separated, no empty, `.` or `..` segment — so no entry lands outside the directory. */
@@ -429,20 +443,10 @@ function geometryCacheReader(bytes: Uint8Array, names: readonly string[]): Geome
     for (const name of wanted) if (known.has(name)) full.add(GEOMETRY_CACHE_DIR + name);
     const out = new Map<string, Uint8Array>();
     if (full.size === 0) return out;
-    // ⚠ The bytes are retained, not copied, so they are re-checked here: one pass, and every entry it
-    // returns `true` for has passed its caps before fflate allocates for it.
-    const room = entryRoom(bytes);
-    let index = 0;
-    let total = 0;
-    const files = unzipSync(bytes, {
-      filter: (file) => {
-        const match = full.has(file.name);
-        const entry = match ? file : { ...file, size: 0, originalSize: 0 };
-        total = checkEntry(entry, index, total, room[index]);
-        index++;
-        return match;
-      },
-    });
+    // ⚠ The bytes are retained, not copied, so they are re-checked here, synchronously before the pass
+    // that inflates: the aggregate cap needs every wanted entry summed before fflate allocates for one.
+    checkCaps(bytes, (name) => full.has(name));
+    const files = unzipSync(bytes, { filter: (file) => full.has(file.name) });
     for (const [name, data] of Object.entries(files)) {
       out.set(name.slice(GEOMETRY_CACHE_DIR.length), data);
     }
