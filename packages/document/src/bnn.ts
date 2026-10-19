@@ -189,15 +189,15 @@ export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
  * DECLARES, before `unzipSync` inflates anything: fflate inflates a DEFLATE entry into a buffer of exactly
  * its declared `originalSize` (fflate 0.8.3 `unzipSync`), so bounding the declaration bounds the
  * allocation, and a stored entry copies only bytes the file really holds. Sized against design §5's 16k
- * target, measured 2026-10-13 (T-046 handoff): 16,003 zip entries, 67.2 MB inflated, the largest entry
- * `scene.json` at 6.1 MB.
+ * target: 16,003 zip entries (T-046), and a 105 MB inflated cache whose largest entry is `index.json` at
+ * 61.3 MB (R4, T-042), plus `scene.json` at 6.1 MB.
  */
 
 /** 16k solids, one `.brep` each, plus one directory entry per root at worst: 32,005; ~25% headroom. */
 export const BNN_MAX_ENTRIES = 40_000;
-/** The largest entry at 16k is `scene.json`, 6.1 MB; this leaves ~40× for richer elements and the journal. */
+/** The largest entry at 16k is the cache's `index.json`, 61.3 MB; ~4.4× headroom. */
 export const BNN_MAX_ENTRY_BYTES = 256 * 1024 * 1024;
-/** 16k inflates to 67.2 MB (the ~61 MB cache plus `scene.json`); ~8× headroom, still survivable in a tab. */
+/** 16k inflates to ~111 MB (the 105 MB cache plus `scene.json`); ~4.8× headroom, still survivable in a tab. */
 export const BNN_MAX_TOTAL_BYTES = 512 * 1024 * 1024;
 /**
  * `scene.json` at 16k deflates 33:1 and the T-046 test's synthetic `.brep` 12.1:1; DEFLATE's ceiling is

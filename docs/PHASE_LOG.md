@@ -364,3 +364,10 @@ Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` (third-run section)
 writes matching-key idle exports and carries restored or unbuilt records, with no kernel op. 8 OCCT tests; six
 mutants, each red. 16k: cache 105 MB raw / 14.6 MB zipped, `saveBnn` 4.1 s. `pnpm verify` green (971).
 Body: `handoff/zayd/2026-10-14-T-042-d29-lazy-export.md`
+
+## T-042 — step-1 doc defects: the cap comments and the §5 Autosave figure — 2026-10-19 — seat: zayd
+
+`bnn.ts` cap comments now size against R4's 105 MB cache: `index.json` 61.3 MB (entry cap ~4.4×), ~111 MB with
+`scene.json` (total cap ~4.8×); constants unchanged. Design §5 Autosave: ~525 MB inflated, ~73 MB zipped.
+No code or test changed. hmdnah's step-1 record is on `rescue/bunyan/20261014T163116Z`, not this branch.
+Body: `handoff/zayd/2026-10-19-T-042-step-1-doc-defects.md`

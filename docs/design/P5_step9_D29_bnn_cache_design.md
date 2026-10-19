@@ -199,7 +199,7 @@ the ~61 MB above understated the inflated cache: 105 MB, inside every T-046 cap.
 blocks for ~4 s; this fixture is curtain-wall heavy, so another mix moves both figures.
 
 **Autosave.** Spec §7 has autosave write the cache _"only if D29 lands it"_, and D93 landed it. A five-deep ring
-carrying ~61 MB each is ~305 MB of OPFS at 16k. **Open: `D-20261012-07`**, recommended `omit` (recovery is rare,
+carrying R4's cache is ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. **Open: `D-20261012-07`**, recommended `omit` (recovery is rare,
 and a recovered session rebuilds as today).
 
 ---
