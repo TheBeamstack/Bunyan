@@ -480,3 +480,10 @@ No defect proven; not approved (step 1). Item 1: main's per-part `read` restored
 2 red (`brepReads: 2053, readMany: 0`); restored → 26 green over the four files. 16k re-measured: 16 `readMany`,
 1,157–1,208 ms, `rebuildAll` 2.39–2.51 s. Reserved classes: none; CI green on `54b7c62`. Items 2, 3, 6 are step 2's.
 Body: `handoff/hmdnah/2026-10-19-T-049-review-step-1.md`
+
+## T-049 — review step 2 of PR #88 — 2026-10-19 — seat: hmdnah
+
+DEFECT; not approved, not merged, row stays `review` (B-20261019-04). One corrupt `.brep` (DEFLATE `invalid block type`)
+rebuilds its whole batch: a 3-root probe restores 0 at `355d4cd` and 2 on main, against design §4's per-root restore.
+Item 1: per-name `read` at `cacherestore.ts:118` → red (`brepReads: 2053`); restored → 26 green. Items 2, 3, 6 are clean otherwise.
+Body: `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`
