@@ -112,6 +112,8 @@ export interface SaveOptions {
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+/** Every zip entry's timestamp: the earliest DOS date, in local time (see `saveBnn`'s return). */
+const BNN_ZIP_MTIME = new Date(1980, 0, 1);
 
 /** Which type version each element was authored against — the input to load-time migration. */
 function typeVersionsOf(scene: Scene): Record<string, number> {
@@ -181,7 +183,10 @@ export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
     }
   }
 
-  return zipSync(files, { level: 6 });
+  // ⚠ One constant `mtime` (T-047, spec §6.5): fflate otherwise stamps `Date.now()` into every header, so
+  // two saves of one scene differ by the clock. A local-time date, since fflate 0.8.3 encodes the local
+  // year and throws below 1980.
+  return zipSync(files, { level: 6, mtime: BNN_ZIP_MTIME });
 }
 
 /*
