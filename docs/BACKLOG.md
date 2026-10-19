@@ -114,7 +114,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-045 | blocked | D29 R7 — autosave carries the cache or not, per D-20261012-07                                     | backend  | box     | **high** | T-042        |
 | T-046 | done    | A hostile `.bnn` is refused before it inflates past an entry-count or size cap                    | backend  | box     | **high** | —            |
 | T-048 | done    | A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap                    | backend  | box     | **high** | —            |
-| T-049 | ready   | A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part     | backend  | box     | **high** | —            |
+| T-049 | review  | A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part     | backend  | box     | **high** | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
