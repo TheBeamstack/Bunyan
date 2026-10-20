@@ -508,3 +508,10 @@ Body: `handoff/hmdnah/2026-10-20-STEWARD-baseline-motion-review.md`
 A `Record<motion, true>` test fails `tsc` (TS2353) with `'direction'` removed. The freeze boundary flagged
 `interface ParamField` alone ⇒ RISK: contract-touching (re-baselined), owner merges. `pnpm verify` green.
 Body: `handoff/zayd/2026-10-20-T-050-paramfield-motion.md`
+
+## T-050 — review step 1 of PR #93 — 2026-10-20 — seat: hmdnah
+
+Step 1 passes with no defect proven. Item 1: `'direction'` removed → `tsc` TS2353 red, restored → green.
+`pnpm verify` reproduced 979 passed | 1 skipped. The labeller ran at `91ac825`: contract-touching + freeze, so it is
+owner-gated and `D-20261020-03` is pending. Not approved, not merged; the row stays `review`.
+Body: `handoff/hmdnah/2026-10-20-T-050-review-step-1.md`
