@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-design-option-primary-invariant` |
-| branch | `steward/design-option-primary-invariant` |
-| claimed-at | 2026-10-20T11:40:01Z |
-| status | merged — PR #101 merged by `hmdnah` at 2026-10-20T13:33:55Z |
+| task | `T-055` |
+| branch | `task/T-055-a-design-option-set-with-no-primary-or-t` |
+| claimed-at | 2026-10-20T13:34:59Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 31ce4f7055f5bdaec53eae1e1ee3cff221fce117
+last-verified-at: 49a9f49760a9cfb07e5559af440326f44e06928e
