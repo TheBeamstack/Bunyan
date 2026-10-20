@@ -635,6 +635,9 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-20 — `pnpm state` reports a skipped test as FAILING** (T-050). §8 read "979/980 passing — 1
+  FAILING" on a run whose `.vitest-summary.json` has `numFailedTests: 0`, `numPendingTests: 1`
+  (`scripts/state.mjs:114` is `total - passed`). Fix shape: count `numFailedTests`. Recorded, not claimed.
 - **2026-10-14 — no product caller runs the D29 export** (T-042). `exportCacheIdle` and `geometryCacheFiles`
   are document-layer only: `apps/web` schedules no idle export and its saves pass no `cache`, because the
   envelope needs a `codeId` (T-044, `D-20261012-06`). Fix shape: wire both when T-044 lands. Recorded, not claimed.

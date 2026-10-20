@@ -501,3 +501,10 @@ Approved, one proven fix on the branch. Item 1: T-050's `motion?` in `ParamField
 restored → green. A description-only `wall.ts` commit fails `check-reseed.mjs` (exit 1), so T-051's re-seed item now
 requires a re-seed, not "if goldens move"; its note names B-20261012-03. Design §A probe re-run: 6 of 6 refused. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-20-STEWARD-baseline-motion-review.md`
+
+## T-050 — `ParamField.motion?` is reserved — 2026-10-20 — seat: zayd
+
+`ParamField` has `motion?: 'planPoint' | 'point' | 'direction'` (D95, design §5 A); nothing tags or reads it.
+A `Record<motion, true>` test fails `tsc` (TS2353) with `'direction'` removed. The freeze boundary flagged
+`interface ParamField` alone ⇒ RISK: contract-touching (re-baselined), owner merges. `pnpm verify` green.
+Body: `handoff/zayd/2026-10-20-T-050-paramfield-motion.md`

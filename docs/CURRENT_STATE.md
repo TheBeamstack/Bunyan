@@ -206,17 +206,17 @@ maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `task/T-027-6-s-relink-cap-is-measured-not-guessed` · `d6666b0` · clean |
-| open PRs | #65 custodianship/T-007-descriptions · #55 task/T-027-6-s-relink-cap-is-measured-not-guessed |
-| suite | **910 green** · 100 files · 279 suites |
+| branch · tip · tree | `task/T-050-q8a-paramfield-motion-is-reserved-a-sche` · `2d83a5e` · dirty |
+| open PRs | #90 task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a · #89 task/T-043-d29-r5-the-cache-envelope-is-trusted-per · #88 task/T-049-a-cache-restore-reads-each-batch-of-root · #72 task/T-037-q5-the-section-chord-tolerance-chosen-fo · #70 task/T-034-q9-familydefinition-reserves-a-way-for-d · #69 task/T-033-q10-dimension-anchors-excludes-the-free- · #65 custodianship/T-007-descriptions |
+| suite | ⚠⚠ 979/980 passing — **1 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 83 insertions(+), 3 deletions(-) (5 files) |
-| docs budget | current_state 13.1/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 108 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/schema.ts :: interface ParamField · baseline REWRITTEN this session |
+| diff vs origin/main | 4 files changed, 36 insertions(+), 16 deletions(-) (4 files) |
+| docs budget | current_state 15.7/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 157 |
 
-_Generated 2026-10-12 by `pnpm state`._
+_Generated 2026-10-20 by `pnpm state`._
 
 <!-- END GENERATED -->
 
