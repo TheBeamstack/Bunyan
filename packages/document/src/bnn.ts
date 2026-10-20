@@ -598,6 +598,15 @@ export class Autosave {
     return key;
   }
 
+  /**
+   * Snapshot a document as a `.bnn` **without its geometry cache** (D29 R7, `D-20261012-07`: `omit`).
+   * A five-deep ring of R4's cache is ~525 MB of OPFS at 16k; a recovered session rebuilds, as a
+   * cache-less open does. Any `options.cache` is dropped here, so no caller can opt a snapshot in.
+   */
+  snapshotScene(scene: Scene, options: SaveOptions): Promise<string> {
+    return this.snapshot(saveBnn(scene, { ...options, cache: undefined }));
+  }
+
   /** The most recent snapshot — what the "recover your session?" prompt offers. */
   async latest(): Promise<Uint8Array | undefined> {
     const newest = (await this.#keys()).at(-1);

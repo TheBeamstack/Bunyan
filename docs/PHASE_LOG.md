@@ -466,3 +466,10 @@ Approved; no row defect proven. Item 1: a counting reader on the d29 restore →
 a throwaway per-root `readMany` → green, 0 reads; removed. Probe: 20.6–21.0 ms per `read`, 609–626 ms per `readMany`
 (row: 22.56, 694). Fixed the abstract's 22.56 → 20.11, step 2's figure. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
+
+## T-045 — D29 R7 — autosave omits the geometry cache, per D-20261012-07 — 2026-10-20 — seat: zayd
+
+`Autosave.snapshotScene` writes the `.bnn` with `SaveOptions.cache` dropped (`omit`, the applied default);
+`App.tsx` autosaves through it. New test: a cache handed in is absent from the snapshot zip and its reload (red
+before, and with the drop reverted). Spec §7 and design §5 state the answer. `pnpm verify` green (978).
+Body: `handoff/zayd/2026-10-20-T-045-autosave-omits-cache.md`
