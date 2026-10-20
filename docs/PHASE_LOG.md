@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-056 — review step 2 of PR #104 — 2026-10-20 — seat: hmdnah
+
+Approved; no defect proven. Item 1: mtime 1980-01-02 → 2 red; `saveBnn` inlining level 5 → 1 red (worker ≠ save); restored
+→ 2 passed. One production `zipSync` remains, at `bnnzip.ts:26`. Step 1's item-6 flag holds the done-when: the reference
+catches it. `pnpm verify` → 1002 passed, 1 skipped. Not owner-gated. Body: `handoff/hmdnah/2026-10-20-T-056-review-step-2.md`
+
 ## T-056 — review step 1 of PR #104 — 2026-10-20 — seat: hmdnah
 
 No defect proven; no approval, no merge, and the row stays `review`. Item 1: `level` 5 → 1 red, and a 1980-01-02 mtime → 2 red;
