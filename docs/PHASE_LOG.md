@@ -515,3 +515,10 @@ Approved, no fix. Item 1: §1.9 and `## Discovered` reverted to `main` → check
 flag present); restored → green. R79 (`RULINGS.md:984`) and `AGENTS.md §4` say what §1.9 now cites; a repo-wide sweep
 finds no other reliance on the old wording. Docs gate green. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-20-STEWARD-invariants-browser-claim-review.md`
+
+## STEWARD-cache-requeue-table-edit — T-052 from a T-042 finding — 2026-10-20 — seat: brahim
+
+An R39 probe at `ba7dc72` reproduced the 2026-10-14 finding: one `core.createMaterial` took export records 2 → 0
+with an empty queue. T-052 (`ready`, `risk: high`, `depends-on: T-042`) re-queues every live root whose key a
+shared-table edit flipped. The `## Discovered` line is deleted. No code changed.
+Body: `handoff/brahim/2026-10-20-STEWARD-cache-requeue-table-edit.md`
