@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-baseline-motion` |
-| branch | `steward/baseline-motion` |
-| claimed-at | 2026-10-20T02:45:32Z |
-| status | merged — PR #92 merged by `hmdnah` at 2026-10-20T04:34:49Z |
+| task | `T-050` |
+| branch | `task/T-050-q8a-paramfield-motion-is-reserved-a-sche` |
+| claimed-at | 2026-10-20T04:35:42Z |
+| status | working |
 
 <!-- END BATON -->
 
