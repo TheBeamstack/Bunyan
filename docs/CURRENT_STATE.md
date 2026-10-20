@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-cache-requeue-table-edit` |
-| branch | `steward/cache-requeue-table-edit` |
-| claimed-at | 2026-10-20T02:45:32Z |
-| status | merged — PR #95 merged by `hmdnah` at 2026-10-20T06:45:05Z |
+| task | `T-052` |
+| branch | `task/T-052-a-shared-table-edit-re-queues-every-live` |
+| claimed-at | 2026-10-20T06:46:19Z |
+| status | working |
 
 <!-- END BATON -->
 
