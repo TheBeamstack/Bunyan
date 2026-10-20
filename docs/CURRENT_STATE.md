@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-053` |
-| branch | `task/T-053-wall-auto-joins-pair-only-walls-whose-ve` |
+| task | `STEWARD-datum-inherited-level-restage` |
+| branch | `steward/datum-inherited-level-restage` |
 | claimed-at | 2026-10-20T09:16:57Z |
-| status | merged — PR #98 merged by `hmdnah` at 2026-10-20T10:58:18Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 33cc3a7d1f52c970adcb32baec8ec61a0704092d
+last-verified-at: a11ae88b67d4f69063f0ffb6987197b8e9cc3717
