@@ -56,7 +56,7 @@ import {
 import type { ElementBounds, UnprojectedElement, ViewResult } from './view.js';
 import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
-import { cacheInputKey, cacheKeyTables, sameCacheEnvelope } from './cachekey.js';
+import { cacheInputKey, cacheKeyTables, cacheTablesDigest, sameCacheEnvelope } from './cachekey.js';
 import type { CacheEnvelope, CacheKeyTables } from './cachekey.js';
 import { openCacheIndex, recordEntries, restoreAssembly, usableRecord } from './cacherestore.js';
 import type { CacheRecord, GeometryCacheIndex, GeometryCacheSource } from './cacherestore.js';
@@ -123,7 +123,8 @@ export interface DocumentOptions {
   readonly geometryCache?: GeometryCacheSource | undefined;
   /**
    * D29 R4 — the running build's envelope, which a written cache is stamped with. Present (or implied by
-   * `geometryCache.current`) ⇒ built assemblies queue for `exportCacheIdle` and `geometryCacheFiles`
+   * `geometryCache.current`) ⇒ built assemblies (after a shared-table edit, every live one) queue for
+   * `exportCacheIdle` and `geometryCacheFiles`
    * answers; absent ⇒ this document writes no cache.
    */
   readonly geometryCacheEnvelope?: CacheEnvelope | undefined;
@@ -271,6 +272,8 @@ export class DocumentContext {
   /** Roots whose live geometry was built from the recipe: never carried from the file (design §5). */
   readonly #builtRoots = new Set<ElementId>();
   #keyTables: { readonly scene: Scene; readonly tables: CacheKeyTables } | undefined;
+  /** `cacheTablesDigest` of the last committed scene; set only when this document exports. */
+  #tablesDigest: string | undefined;
 
   constructor(options: DocumentOptions) {
     this.#registries = options.registries;
@@ -281,6 +284,7 @@ export class DocumentContext {
     this.#revision = options.revision;
     this.#cacheSource = options.geometryCache;
     this.#writeEnvelope = options.geometryCacheEnvelope ?? options.geometryCache?.current;
+    if (this.#writeEnvelope !== undefined) this.#tablesDigest = cacheTablesDigest(this.#scene);
     if (options.journal !== undefined) this.#journal.restore(options.journal);
   }
 
@@ -1482,6 +1486,17 @@ export class DocumentContext {
       this.#forgetExport(root);
       this.#builtRoots.add(root);
       if (this.#writeEnvelope !== undefined) this.#exportQueue.add(root);
+    }
+    // ⚠ A shared-table edit re-keys every assembly (design §2b) but rebuilds only the roots that read
+    // the edited row, so every other live root is queued too: restored, carried or untouched alike.
+    if (this.#writeEnvelope !== undefined) {
+      const digest = cacheTablesDigest(this.#scene);
+      if (digest !== this.#tablesDigest) {
+        this.#tablesDigest = digest;
+        for (const [root, element] of Object.entries(this.#scene.elements))
+          if (element.hostId === undefined && this.#geometryByElement.has(root))
+            this.#exportQueue.add(root);
+      }
     }
     await this.#release(garbage);
   }

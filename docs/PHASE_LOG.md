@@ -529,3 +529,11 @@ Approved, no fix. Item 1: `docs/BACKLOG.md` reverted to `main` → check red (no
 green. A real-OCCT probe on `main`'s code reproduces the claim: one `createMaterial` → `rebuilt=[]`, queue 0, records
 2 → 0. Citations, `implements:`, `risk: high` and `depends-on: T-042` hold. Docs gate green. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-20-STEWARD-cache-requeue-table-edit-review.md`
+
+## T-052 — a shared-table edit re-queues every live assembly — 2026-10-20 — seat: zayd
+
+`#commit` compares the §2b shared-table digest (`cacheTablesDigest`, factored from `cacheKeyTables`) to the last
+commit's and on a change queues every live root, not only `staged.built`; restored roots re-export without a rebuild.
+`tests/cache-requeue-table-edit.test.ts` (4, real OCCT) red 3/4 with the fix reverted; `pnpm verify` green. Design §5
+bullet amended (said only rebuilt assemblies queue); R4's test that pinned the old queue of 0 updated.
+Body: `handoff/zayd/2026-10-20-T-052-cache-requeue-table-edit.md`
