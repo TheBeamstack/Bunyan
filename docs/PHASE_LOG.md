@@ -522,3 +522,10 @@ An R39 probe at `ba7dc72` reproduced the 2026-10-14 finding: one `core.createMat
 with an empty queue. T-052 (`ready`, `risk: high`, `depends-on: T-042`) re-queues every live root whose key a
 shared-table edit flipped. The `## Discovered` line is deleted. No code changed.
 Body: `handoff/brahim/2026-10-20-STEWARD-cache-requeue-table-edit-t052.md`
+
+## STEWARD-cache-requeue-table-edit — review of PR #95 — 2026-10-20 — seat: hmdnah
+
+Approved, no fix. Item 1: `docs/BACKLOG.md` reverted to `main` → check red (no T-052, finding present); restored →
+green. A real-OCCT probe on `main`'s code reproduces the claim: one `createMaterial` → `rebuilt=[]`, queue 0, records
+2 → 0. Citations, `implements:`, `risk: high` and `depends-on: T-042` hold. Docs gate green. Reserved classes: none.
+Body: `handoff/hmdnah/2026-10-20-STEWARD-cache-requeue-table-edit-review.md`
