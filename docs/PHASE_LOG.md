@@ -559,3 +559,10 @@ Approved; step 1's defect is closed and no new one is proven. Item 1: re-queue b
 reverted → 1 red; restored → green. Item 6: envelope-guard and `#builtRoots` mutants each go red. Item 2: the table
 digest is the only key input wider than a build reads. Redo and in-flight-export probes pass. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-20-T-052-review-step-2.md`
+
+## STEWARD-wall-join-level-scope — T-053 from a 2026-08-17 finding — 2026-10-20 — seat: brahim
+
+An R39 probe at `5b4dc73` reproduced the finding: the same corner authored on l1 took the l0 wall's joins
+`['start']` → `[]` and its bbox `min.x` −100 → 0. T-053 (`ready`, `risk: high`, `depends-on: —`) scopes both join
+scans to walls whose vertical extents overlap. The `## Discovered` line is deleted. No code changed.
+Body: `handoff/brahim/2026-10-20-STEWARD-wall-join-level-scope.md`
