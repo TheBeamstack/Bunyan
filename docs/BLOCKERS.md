@@ -381,3 +381,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-049 --root /home/ubuntu/projects/Bunyan; echo $?`
 - need: make diwan `agent_start.py --continue` admit the seat a blocker's own `need:` routes to its item, then run B-20261019-04's zayd fix
 - cleared: -
+
+## B-20261020-01 PR #89's step 2 proved a hostile cache index throws out of openCacheIndex, so the file does not open
+
+- opened: 2026-10-20T02:08Z
+- by: hmdnah
+- scope: item
+- item: PR#89
+- what: in PR #89 (T-043), `verifyCacheIndex` runs the recursive `canonicalJson` over the file's `records` before any shape check, so an `index.json` with deeply nested `records` throws `RangeError` out of `openCacheIndex` (`cacherestore.ts:89`) instead of returning `undefined`, and `rebuildAll` rejects
+- why: a ~400 KB index (`records.W1` = 200,000 nested `[]`, envelope = `current` plus `mac: 'x'`) parses, then `openCacheIndex` throws `Maximum call stack size exceeded` at head `76f95af`; `rebuildAll` on `emptyScene()` with that cache rejects, and resolves once the verify call is removed; `agent_finish.py --review --step 2` would stamp T-043 `done` (`agent_finish.py:605-606`), so the step-2 finish was not run
+- evidence: the probe in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`, run with `npx vitest run` at `76f95af` and with `cacherestore.ts:89-91` removed
+- need: make `openCacheIndex` return `undefined` when `verifyCacheIndex` throws (fix in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`) in a zayd turn on `task/T-043-d29-r5-the-cache-envelope-is-trusted-per`, then route PR #89 to hmdnah for step 2
+- cleared: -
