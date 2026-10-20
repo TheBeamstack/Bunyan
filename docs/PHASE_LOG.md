@@ -521,4 +521,4 @@ Body: `handoff/hmdnah/2026-10-20-STEWARD-invariants-browser-claim-review.md`
 An R39 probe at `ba7dc72` reproduced the 2026-10-14 finding: one `core.createMaterial` took export records 2 → 0
 with an empty queue. T-052 (`ready`, `risk: high`, `depends-on: T-042`) re-queues every live root whose key a
 shared-table edit flipped. The `## Discovered` line is deleted. No code changed.
-Body: `handoff/brahim/2026-10-20-STEWARD-cache-requeue-table-edit.md`
+Body: `handoff/brahim/2026-10-20-STEWARD-cache-requeue-table-edit-t052.md`
