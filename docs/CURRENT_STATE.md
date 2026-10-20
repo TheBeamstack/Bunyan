@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-datum-inherited-level-restage` |
 | branch | `steward/datum-inherited-level-restage` |
 | claimed-at | 2026-10-20T09:16:57Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #99 merged by `hmdnah` at 2026-10-20T11:38:57Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 1bc35297811305d1448485a76479e80d9c9b5119
+last-verified-at: 409bf44520520c8c37c5978f468d5017e4f3451e
