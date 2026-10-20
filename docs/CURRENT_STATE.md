@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-cache-restore-batch` |
-| branch | `steward/cache-restore-batch` |
-| claimed-at | 2026-10-19T13:39:53Z |
-| status | merged — PR #87 merged by `hmdnah` at 2026-10-19T15:26:57Z |
+| task | `T-045` |
+| branch | `task/T-045-d29-r7-autosave-carries-the-cache-or-not` |
+| claimed-at | 2026-10-20T02:45:32Z |
+| status | working |
 
 <!-- END BATON -->
 
