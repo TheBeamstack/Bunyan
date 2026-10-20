@@ -39,3 +39,15 @@
   `cache-input-key-d29`'s 16k-element timing test then ran 366 s and failed. Editing `constraintsOf` in
   `scene.ts` trips `freeze-boundary.test.ts`, so the per-element index lives in `joins.ts`.
 - As the row says, every stacked lower wall's cache key and geometry change (`cachekey.ts` digests `resolveJoins`).
+
+## Step-1 fix (returns `handoff/hmdnah/2026-10-20-T-053-review-step-1.md`, its fix shape)
+
+- `packages/document/src/dependency.ts`: `case 'containers'` adds `joinNeighboursOf` of every element it
+  re-stages (plan proximity, so walls on any Level); `case 'constraints'` adds it for a datum constraint.
+- `tests/wall-join-level-scope.test.ts`: the reviewer's probe, both arms (`core.updateContainer` l1 → 2000;
+  `core.createConstraint` base on C, offset −1000), each asserting incremental `min[0]` equals the
+  `rebuildAll` one (−100).
+- Without the fix: `npx vitest run tests/wall-join-level-scope.test.ts` → 2 failed, 5 passed
+  (`expected +0 to be -99.99999999999999`); with it → 7 passed. `pnpm verify` → 990 passed, 1 skipped.
+- Grid constraints take the same hop (they are datum constraints); a grid move (`case 'grids'`) does not,
+  and no test pins either.
