@@ -67,3 +67,10 @@ Step 1 passes with no defect proven; no approval, no merge, and the row stays `r
 reverted → 2 red (`expected 3000 to be 2000`), restored → 10 green. `pnpm verify` → 993 passed, 1 skipped.
 Reserved classes: none (`RISK: additive`). Items 2, 3, 6 are step 2's.
 Body: `handoff/hmdnah/2026-10-20-T-054-review-step-1.md`
+
+## T-054 — review step 2 of PR #100 — 2026-10-20 — seat: hmdnah
+
+Approved; no defect proven. Item 1: `dependency.ts` reverted → 2 red (`expected 3000 to be 2000`), restored → 3
+green. Probes show the edge also covers `deleteContainer` and its undo. Two mutations (neighbour hop, elevation
+shield) each go red. Reserved classes: none. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-T-054-review-step-2.md`
