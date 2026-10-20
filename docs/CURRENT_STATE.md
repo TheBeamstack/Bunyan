@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-054` |
 | branch | `task/T-054-a-container-move-re-stages-every-datum-o` |
 | claimed-at | 2026-10-20T11:40:01Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #100 merged by `hmdnah` at 2026-10-20T12:42:49Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 74d3debe92f7fedf3172c70fc1257b97c4d6ea2e
+last-verified-at: 8bcc66153ab50b27e447009de32d81a12e05a7b8
