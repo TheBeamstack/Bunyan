@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-cache-restore-batch` |
-| branch | `steward/cache-restore-batch` |
-| claimed-at | 2026-10-19T13:39:53Z |
-| status | merged — PR #87 merged by `hmdnah` at 2026-10-19T15:26:57Z |
+| task | `T-045` |
+| branch | `task/T-045-d29-r7-autosave-carries-the-cache-or-not` |
+| claimed-at | 2026-10-20T02:45:32Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: aec670fdcd4631a5604bfae9de714a6eb74b06f5
+last-verified-at: 1e90dbf1ba1da86a90f8912d525710819777a997

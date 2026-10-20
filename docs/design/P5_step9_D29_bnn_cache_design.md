@@ -198,9 +198,9 @@ to 16,000, box, 2026-10-14; method and command in `handoff/zayd/2026-10-14-T-042
 the ~61 MB above understated the inflated cache: 105 MB, inside every T-046 cap. A save of the full cache
 blocks for ~4 s; this fixture is curtain-wall heavy, so another mix moves both figures.
 
-**Autosave.** Spec §7 has autosave write the cache _"only if D29 lands it"_, and D93 landed it. A five-deep ring
-carrying R4's cache is ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. **Open: `D-20261012-07`**, recommended `omit` (recovery is rare,
-and a recovered session rebuilds as today).
+**Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
+carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
+`SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.
 
 ---
 

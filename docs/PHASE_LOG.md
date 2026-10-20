@@ -466,3 +466,24 @@ Approved; no row defect proven. Item 1: a counting reader on the d29 restore →
 a throwaway per-root `readMany` → green, 0 reads; removed. Probe: 20.6–21.0 ms per `read`, 609–626 ms per `readMany`
 (row: 22.56, 694). Fixed the abstract's 22.56 → 20.11, step 2's figure. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
+
+## T-045 — D29 R7 — autosave omits the geometry cache, per D-20261012-07 — 2026-10-20 — seat: zayd
+
+`Autosave.snapshotScene` writes the `.bnn` with `SaveOptions.cache` dropped (`omit`, the applied default);
+`App.tsx` autosaves through it. New test: a cache handed in is absent from the snapshot zip and its reload (red
+before, and with the drop reverted). Spec §7 and design §5 state the answer. `pnpm verify` green (978).
+Body: `handoff/zayd/2026-10-20-T-045-autosave-omits-cache.md`
+
+## T-045 — review step 1 of PR #91 — 2026-10-20 — seat: hmdnah
+
+Step 1 passes with no defect proven. Item 1: the cache drop in `snapshotScene` reverted → 2 red, restored → 2 green.
+`pnpm verify` reproduced the stated 978 passed. The labeller ran: `none`, not owner-gated. One comment-only
+nit: the JSDoc's "~525 MB of OPFS" is the inflated size, and the ring stores ~73 MB zipped. The row stays `review`.
+Body: `handoff/hmdnah/2026-10-20-T-045-review-step-1.md`
+
+## T-045 — review step 2 of PR #91 — 2026-10-20 — seat: hmdnah
+
+Approved; no defect proven. Item 1: the cache drop in `snapshotScene` reverted → 2 red, restored → 2 green.
+Sweep: `Autosave.snapshot` is the only ring writer, and only `App.tsx` feeds it a `.bnn`. Reserved classes: none.
+Step 1's report claims a PR comment that `gh pr view 91` does not show; it lives on the branch only.
+Body: `handoff/hmdnah/2026-10-20-T-045-review-step-2.md`
