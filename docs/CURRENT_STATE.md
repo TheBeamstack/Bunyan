@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-052` |
-| branch | `task/T-052-a-shared-table-edit-re-queues-every-live` |
+| task | `STEWARD-wall-join-level-scope` |
+| branch | `steward/wall-join-level-scope` |
 | claimed-at | 2026-10-20T06:46:19Z |
-| status | merged — PR #96 merged by `hmdnah` at 2026-10-20T08:01:32Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: c7634332b84a99e0e8f0d5bf6051dcf51cff7a46
+last-verified-at: 5f9ca5b9f87309e14958bd2eec37ebb1117dac73

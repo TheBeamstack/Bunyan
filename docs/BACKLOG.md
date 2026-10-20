@@ -118,6 +118,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-048 | done    | A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap                    | backend  | box     | **high** | —            |
 | T-049 | ready   | A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part     | backend  | box     | **high** | —            |
 | T-052 | done    | A shared-table edit re-queues every live assembly whose cache key flipped                         | backend  | box     | **high** | T-042        |
+| T-053 | ready   | Wall auto-joins pair only walls whose vertical extents overlap                                    | backend  | box     | **high** | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
@@ -544,6 +545,17 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: T-042 · area: backend · machine: box · risk: **high**
 - note: Mechanism (main ba7dc72): `cacheKeyTables` digests the five tables whole into every key (`cachekey.ts:73-82,136-142`), but `#commit` queues only `staged.built` (`document.ts:1481-1485`) and `geometryCacheFiles` drops stale keys (`:688,:693-695`). Fix shape: in `#commit`, when the shared digest changed and `#writeEnvelope` is set, queue every live root not already built. Same file as open PRs #88 (`#stage`) and #89 (`geometryCacheFiles`); put the test in `tests/cache-requeue-table-edit.test.ts`. risk high: it decides which solid is written under which key.
 
+### T-053 — Wall auto-joins pair only walls whose vertical extents overlap
+
+- outcome: partnersAt and throughWallsAt consider only candidate walls whose [base, top] extent overlaps the queried wall's by a positive length, so authoring the same corner on the storey above leaves the lower storey's joins and geometry unchanged.
+- implements: docs/design/P5_step0c_design.md §2 (joins computed in the Level plane), §0a and §4; docs/decisions.md D68 (the ambiguity flip) and D73 (filter at query time, the index stays unfiltered). Provenance: the 2026-08-17 ## Discovered finding, re-measured at main 5b4dc73.
+- done-when: In a two-level scene (l0 at 0, l1 at 3000) with the same 200 mm 90-degree corner on each level, the l0 wall [0,0]->[4000,0] has resolveJoins ['start'] and built bbox min[0] within 1e-6 of -100, as it does with l1 empty; the test is red with the extent filter reverted
+- done-when: Two walls whose extents only touch (one's top equals the other's base) or are disjoint get no auto-miter or auto-butt; a corner whose extents overlap still miters, including one whose top is set by a datum
+- done-when: indexOf still indexes every wall unfiltered (D73) and the filter is applied in both scans at query time; every existing test under tests/ that exercises joins passes unchanged
+- verify: npx vitest run tests/wall-join-level-scope.test.ts tests/wall-joins.test.ts tests/join-option-cascade.test.ts && pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: Mechanism (main 5b4dc73): indexOf adds every element with a baseline (packages/document/src/joins.ts:201-220); partnersAt (:333, scan :343) and throughWallsAt (:369, scan :379) filter only by isElementActive (:347, :383); nothing reads containerId or datums. A wall's extent is base = baseElevation ?? elevation, top = topElevation ?? base + height (packages/types/src/wall.ts:77-78), fed by elevationOf (scene.ts:360) and datumElevations (scene.ts:427) as build.ts:600-610 wires them; add a document-side wallExtentOf rather than editing packages/types/src (a [reseed] source). No golden holds stacked walls. risk high: cachekey.ts:132 digests resolveJoins, so every stacked lower wall's cache key and geometry change.
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -817,16 +829,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
   path, pre-existing on unmodified `main`. A/B: 145 and 148 boot, 151 does not ⇒ the window is Chrome
   149–151. ⚠ **Worked around, not fixed**: `BUNYAN_BROWSER_CMD` is a persistent Windows user env var
   pinned to cached Chromium 148. The real fix is **T-022**, confirmed by **T-023**.
-- **2026-08-17 — ⚠⚠ wall joins are not level-scoped, so stacking an ordinary building's storeys drops the
-  miter on the storey below.** `partnersAt`/`throughWallsAt` match baselines in 2D and index every
-  element with a baseline; neither consults `containerId`, the level's elevation, or the wall's datums.
-  Measured: one storey with a 90° corner gives `resolveJoins(a) = ['start']` and `min.x = -100 mm`;
-  authoring the same corner one level up takes the lower wall to `[]` and `min.x = 0` — the crowd of
-  coincident endpoints reads as ambiguous and the auto-miter falls back to a plain cap. **Two walls
-  stacked at the same plan position on different storeys is the ordinary case**, so this is not an edge
-  case; it is D68's ambiguity flip arriving through elevation, changing geometry on a storey nobody
-  edited. Fix shape: scope the endpoint and segment scans to walls sharing a vertical extent. Recorded,
-  not claimed.
 - **2026-08-17 — `NEXT TURN: REVIEW ONLY` is cleared only on a `--review` finish**, so a PR merged any
   other way strands the banner and halts every builder turn on both machines (`agent-finish.mjs:335`
   gates the clear on `if (review)`; `agent-start.mjs:789` refuses a builder claim while it stands).
