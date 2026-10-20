@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `STEWARD-invariants-browser-claim` |
-| branch | `steward/invariants-browser-claim` |
+| task | `STEWARD-cache-requeue-table-edit` |
+| branch | `steward/cache-requeue-table-edit` |
 | claimed-at | 2026-10-20T02:45:32Z |
-| status | merged — PR #94 merged by `hmdnah` at 2026-10-20T05:45:07Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 21d05869c33ae671ecdce926330437b6485b9ed1
+last-verified-at: e931cd83cf038a6519722e8a84bbda7fad38869f
