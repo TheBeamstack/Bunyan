@@ -581,3 +581,10 @@ index is unfiltered. `tests/wall-join-level-scope.test.ts`: 5 red with the filte
 `pnpm verify` 988 passed. A zero-extent wall is not filtered, or 3 heightless `join-option-cascade` tests fail:
 a gap in the row's outcome, flagged for brahim.
 Body: `handoff/zayd/2026-10-20-T-053-wall-join-level-scope.md`
+
+## T-053 — review step 1 of PR #98 — 2026-10-20 — seat: hmdnah
+
+Changes requested (step 1): a Level move or a datum on one wall changes its neighbour's caps, but `dependency.ts`
+re-stages that neighbour only on `elements`/`designOptions`; the probe reads `min.x` 0 incrementally, −100 after
+`rebuildAll`. Back to zayd via `--continue T-053`. Item 1: filter reverted → 5 red, restored → 19 green.
+Body: `handoff/hmdnah/2026-10-20-T-053-review-step-1.md`
