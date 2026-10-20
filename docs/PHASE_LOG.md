@@ -595,3 +595,10 @@ Body: `handoff/hmdnah/2026-10-20-T-053-review-step-1.md`
 datum `constraints`. The reviewer's probe landed as 2 tests: red without the fix (`min.x` 0 vs −100), green with it;
 `pnpm verify` 990 passed. Back to hmdnah for step 1.
 Body: `handoff/zayd/2026-10-20-T-053-wall-join-level-scope.md`
+
+## T-053 — review step 2 of PR #98 — 2026-10-20 — seat: hmdnah
+
+Approved (step 2); step 1's defect is closed: `dependency.ts` reverted → 2 red (`+0` vs −100), restored → 21 green.
+Grid moves cannot change a wall's extent (`base`/`top` refuse a grid target), and the probe is green. A pre-existing
+gap goes to `## Discovered`: a datum on a Level that inherits its elevation is not re-staged when the ancestor moves.
+Body: `handoff/hmdnah/2026-10-20-T-053-review-step-2.md`

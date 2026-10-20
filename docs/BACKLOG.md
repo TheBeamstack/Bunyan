@@ -660,6 +660,10 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-20 — a datum on a Level that inherits its elevation is not re-staged when the ancestor moves** (PR #98).
+  `elementsConstrainedToLevel` matches the direct target only, while `datumElevations` walks `elevationOf`; since
+  T-053 the stale set also reaches join neighbours. Fix shape: match targets whose container path holds the changed
+  container (probe in `handoff/hmdnah/2026-10-20-T-053-review-step-2.md`). Recorded, not claimed.
 - **2026-10-14 — no product caller runs the D29 export** (T-042). `exportCacheIdle` and `geometryCacheFiles`
   are document-layer only: `apps/web` schedules no idle export and its saves pass no `cache`, because the
   envelope needs a `codeId` (T-044, `D-20261012-06`). Fix shape: wire both when T-044 lands. Recorded, not claimed.
