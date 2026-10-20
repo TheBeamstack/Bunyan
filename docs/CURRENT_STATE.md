@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-cache-requeue-table-edit` |
 | branch | `steward/cache-requeue-table-edit` |
 | claimed-at | 2026-10-20T02:45:32Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #95 merged by `hmdnah` at 2026-10-20T06:45:05Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 12369ffb3680747910d3e83c5451794e783fe613
+last-verified-at: 62c110e3a2364ee91c1a9aca1798dfc9baa80b55
