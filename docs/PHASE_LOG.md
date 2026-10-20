@@ -155,4 +155,4 @@ Body: `handoff/zayd/2026-10-20-T-033-main-merge.md`
 Merged `origin/main` (`7da6795`) per D-20261020-01's `changes`; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
 The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (1003 passed, 1 skipped).
 PR #69 stays owner-gated; not merged.
-Body: `handoff/zayd/2026-10-20-T-033-main-merge-2.md`
+Body: `handoff/zayd/2026-10-20-T-033-main-merge.md`
