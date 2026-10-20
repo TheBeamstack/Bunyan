@@ -117,6 +117,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-046 | done    | A hostile `.bnn` is refused before it inflates past an entry-count or size cap                    | backend  | box     | **high** | —            |
 | T-048 | done    | A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap                    | backend  | box     | **high** | —            |
 | T-049 | ready   | A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part     | backend  | box     | **high** | —            |
+| T-052 | ready   | A shared-table edit re-queues every live assembly whose cache key flipped                         | backend  | box     | **high** | T-042        |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
@@ -531,6 +532,18 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: — · area: backend · machine: box · risk: **high**
 - note: risk high by READY rule 8 (the D29 cache read path); not reachable from apps/ today (no product caller passes geometryCache); from ## Discovered 2026-10-19 (T-048 review step 2); area is the backlog.py enum
 
+### T-052 — A shared-table edit re-queues every live assembly whose cache key flipped
+
+- outcome: An edit to `styles`, `materials`, `sections`, `containers` or `grids` queues every live root whose cache key changed for `exportCacheIdle`, whether it was rebuilt, restored or untouched, so a save after draining writes a record for every live root instead of none.
+- implements: `docs/design/P5_step9_D29_bnn_cache_design.md` §2b ("And the shared tables, whole"), §5 (the commit-queue and save-filter bullets), §6 row R4; `docs/contracts/V1.0.0_spec.md` §6, the `geometry-cache/` box. Provenance: the 2026-10-14 `## Discovered` finding from T-042.
+- done-when: On a built, drained document, one `core.createMaterial` leaves `edit.rebuilt` `[]`, `exportCacheIdle()` returns more than 0, and after draining `geometryCacheFiles()` holds a record for every root under its current key; the test is red with the fix reverted
+- done-when: A style edit that rebuilds only that style's instances also re-queues the roots that do not use it; after draining every root has a record
+- done-when: In a document opened from a cached `.bnn` and restored, a material edit yields a full record set after draining with no restored root built from its recipe (a build/`exportBrep` spy, as `tests/geometry-cache-export-d29.test.ts:92-110`)
+- done-when: With no `geometryCacheEnvelope`, a material edit queues nothing: `exportCacheIdle()` returns 0
+- verify: npx vitest run tests/cache-requeue-table-edit.test.ts tests/geometry-cache-export-d29.test.ts tests/geometry-cache-restore-d29.test.ts && pnpm verify
+- depends-on: T-042 · area: backend · machine: box · risk: **high**
+- note: Mechanism (main ba7dc72): `cacheKeyTables` digests the five tables whole into every key (`cachekey.ts:73-82,136-142`), but `#commit` queues only `staged.built` (`document.ts:1481-1485`) and `geometryCacheFiles` drops stale keys (`:688,:693-695`). Fix shape: in `#commit`, when the shared digest changed and `#writeEnvelope` is set, queue every live root not already built. Same file as open PRs #88 (`#stage`) and #89 (`geometryCacheFiles`); put the test in `tests/cache-requeue-table-edit.test.ts`. risk high: it decides which solid is written under which key.
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -638,9 +651,6 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
 - **2026-10-14 — no product caller runs the D29 export** (T-042). `exportCacheIdle` and `geometryCacheFiles`
   are document-layer only: `apps/web` schedules no idle export and its saves pass no `cache`, because the
   envelope needs a `codeId` (T-044, `D-20261012-06`). Fix shape: wire both when T-044 lands. Recorded, not claimed.
-- **2026-10-14 — a whole-table edit empties the cache until each assembly is rebuilt** (T-042). One
-  `core.createMaterial` flips every key and rebuilds nothing, so the next save writes no record and nothing
-  re-queues. Fix shape: re-queue live roots whose key flipped. Recorded, not claimed.
 - **2026-10-14 — a save with a full 16k cache blocks ~4.1 s in `zipSync`** (T-042, design §5). Fix shape: zip
   in a worker, or a lower level for `geometry-cache/`. Recorded, not claimed.
 

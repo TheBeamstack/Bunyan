@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-invariants-browser-claim` |
-| branch | `steward/invariants-browser-claim` |
+| task | `STEWARD-cache-requeue-table-edit` |
+| branch | `steward/cache-requeue-table-edit` |
 | claimed-at | 2026-10-20T02:45:32Z |
-| status | merged — PR #94 merged by `hmdnah` at 2026-10-20T05:45:07Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 6199220dd455a35775d033ed98a4fee61cc94194
+last-verified-at: 12369ffb3680747910d3e83c5451794e783fe613
