@@ -53,3 +53,24 @@ Approved; no defect proven. Item 1: un-rolling the log made the steward roll gat
 copy-not-move roll made `gates.py docs` red (82 duplicates); both restored green. All 82 entry headings moved
 exactly once, byte-identical. Cited lines read as T-054 says. Reserved classes: none. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-20-STEWARD-datum-inherited-level-restage-review.md`
+
+## T-054 — a container move re-stages every datum on a Level beneath it — 2026-10-20 — seat: zayd
+
+`dependency.ts` `case 'containers'` now also re-stages datums on every Level beneath the moved container that
+inherits its elevation, plus their join neighbours. New test covers `base` and `top`, move and undo; red before the
+fix (C 3000 vs 2000). `pnpm verify` → 993 passed, 1 skipped. `scene.ts` untouched.
+Body: `handoff/zayd/2026-10-20-T-054-datum-inherited-level-restage.md`
+
+## T-054 — review step 1 of PR #100 — 2026-10-20 — seat: hmdnah
+
+Step 1 passes with no defect proven; no approval, no merge, and the row stays `review`. Item 1: `dependency.ts`
+reverted → 2 red (`expected 3000 to be 2000`), restored → 10 green. `pnpm verify` → 993 passed, 1 skipped.
+Reserved classes: none (`RISK: additive`). Items 2, 3, 6 are step 2's.
+Body: `handoff/hmdnah/2026-10-20-T-054-review-step-1.md`
+
+## T-054 — review step 2 of PR #100 — 2026-10-20 — seat: hmdnah
+
+Approved; no defect proven. Item 1: `dependency.ts` reverted → 2 red (`expected 3000 to be 2000`), restored → 3
+green. Probes show the edge also covers `deleteContainer` and its undo. Two mutations (neighbour hop, elevation
+shield) each go red. Reserved classes: none. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-T-054-review-step-2.md`

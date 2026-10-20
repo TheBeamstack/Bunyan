@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-datum-inherited-level-restage` |
-| branch | `steward/datum-inherited-level-restage` |
-| claimed-at | 2026-10-20T09:16:57Z |
-| status | merged — PR #99 merged by `hmdnah` at 2026-10-20T11:38:57Z |
+| task | `T-054` |
+| branch | `task/T-054-a-container-move-re-stages-every-datum-o` |
+| claimed-at | 2026-10-20T11:40:01Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 409bf44520520c8c37c5978f468d5017e4f3451e
+last-verified-at: 74d3debe92f7fedf3172c70fc1257b97c4d6ea2e
