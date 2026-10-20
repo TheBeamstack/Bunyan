@@ -101,7 +101,9 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-033 | ready   | Q10 — `Dimension.anchors` excludes the free `point` anchor                                        | document | box     | **high** | —            |
 | T-034 | ready   | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                            | document | box     | **high** | —            |
 | T-035 | done    | Q8 — design: moving a D52 baseline wall, properly                                                 | design   | box     | normal   | —            |
-| T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                    | document | box     | **high** | T-035        |
+| T-050 | ready   | Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves                 | backend  | box     | **high** | —            |
+| T-051 | blocked | Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags                       | backend  | box     | **high** | T-050        |
+| T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                    | document | box     | **high** | T-051        |
 | T-037 | ready   | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                    | kernel   | box     | normal   | —            |
 | T-038 | done    | Q6 — design: the D29 cache in the `.bnn`                                                          | design   | box     | **high** | —            |
 | T-039 | done    | D29 R1 — the cache input key, one pass over the scene                                             | backend  | box     | **high** | —            |
@@ -336,6 +338,32 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - verify: pnpm verify
 - depends-on: — · area: design · machine: box · risk: normal
 
+### T-050 — Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves
+
+- outcome: A `ParamField` can declare how a rigid motion acts on it, the member `D-20261012-03` (`annotation`) chose, landed before P5 step 6 freezes `schema.ts`.
+- implements: `docs/design/P4.5_baseline_move_design.md` §5 A · `docs/decisions.md` D95 · `D-20261012-03` (default `annotation`, applied 2026-10-20)
+- done-when: `ParamField` in `packages/document/src/schema.ts` has `readonly motion?: 'planPoint' | 'point' | 'direction'`, documented as: absent means a motion never touches the param
+- done-when: `tests/freeze-boundary.test.ts` flags this member and nothing else, so the PR is `RISK: contract-touching` and merges only on the owner's signature (`docs/INVARIANTS.md §2.1`)
+- done-when: no param of any shipped type carries `motion` yet and no code reads it; the `core.wall` tags and the verbs are the next row
+- done-when: a test pins the three members of the union, and goes red when one is removed (revert-verified)
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+
+### T-051 — Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags
+
+- outcome: A wall moves, rotates and copies through the general verbs, which read `motion` from the schema and name no wall (D95).
+- implements: `docs/design/P4.5_baseline_move_design.md` §5 A, §6, §7 · `docs/decisions.md` D95 · D80 · `D-20261012-03` (`annotation`) · `D-20261012-04` (`detach`)
+- done-when: `core.wall` tags `start` and `end` `motion: 'planPoint'`; `positioningOf`'s `baseline` rung reads the schema's tags, not `baselineOf`, and no verb body names `start`, `end` or `core.wall` (the grep is in the handoff)
+- done-when: the design's §A probe, re-run on the demo scene: `core.move` `by: [1000, 0, 0]`, `core.rotate` `axis: [0, 0, 1]` `angle: 90` and `core.copy` `by: [1000, 0, 0]` succeed on both walls (§1 measured 6 of 6 refused), each one edit and one undo, writing the tagged params and leaving `placement` untouched
+- done-when: refused, each with a named reason: a `planPoint` under a non-vertical rotation axis or a translation with `dz ≠ 0` (the message names `core.updateContainer`), any mirror of a tagged element (§6), `core.setPlacement` on a params-positioned element (the message names `core.move`)
+- done-when: `core.rotate`'s default `about` on a params-positioned element is the centroid of its tagged points
+- done-when: moving a wall leaves the walls joined to it unmoved (`detach`); `core.copy` of a wall that hosts an opening still refuses at the hosted check, which T-036 lifts
+- done-when: `tests/goldens/` is re-seeded, since any edit under `packages/types/src/` trips the re-seed gate whether or not geometry moves; if no value moved, a `Re-seed-unchanged:` trailer gives the reason (`docs/INVARIANTS.md §5`)
+- done-when: revert-verified: removing the tags from `core.wall` turns the move test red
+- verify: pnpm verify
+- depends-on: T-050 · area: backend · machine: box · risk: **high**
+- note: `blocked` 2026-10-20 (steward): on T-050, whose member it reads; promoted by step 4 once T-050 is `done`. The box loop's seeder run is refused while B-20261012-03 stands.
+
 ### T-036 — Q7 — `core.copy` deep-copies a host's openings
 
 - outcome: Copying a host also copies its hosted openings, each under a fresh PEI with its `hostRef` on the copy, in one undoable edit.
@@ -346,8 +374,8 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - done-when: a sketch constraint or join override pointing at the source still refuses, unchanged
 - done-when: revert-verified: removing the deep-copy turns the new test red
 - verify: pnpm verify
-- depends-on: T-035 · area: document · machine: box · risk: **high**
-- note: `blocked` 2026-10-10 (steward): `positioningRefusal` refuses every D52 baseline element (`packages/document/src/placement.ts:348`) before `core.copy`'s hosted check, so no wall reaches this until T-035's design is ruled and built; the steward re-reads this row against that design before flipping it.
+- depends-on: T-051 · area: document · machine: box · risk: **high**
+- note: `blocked` 2026-10-10 (steward): `positioningRefusal` refuses every D52 baseline element (`packages/document/src/placement.ts:348`) before `core.copy`'s hosted check, so no wall reaches this until T-035's design is ruled and built. 2026-10-20: ruled (`D-20261012-03` `annotation`, `-04` `detach`), built by T-050 then T-051; re-read against design §7, this row's items stand as written.
 
 ### T-037 — Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted
 

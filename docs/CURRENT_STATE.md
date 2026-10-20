@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-045` |
-| branch | `task/T-045-d29-r7-autosave-carries-the-cache-or-not` |
+| task | `STEWARD-baseline-motion` |
+| branch | `steward/baseline-motion` |
 | claimed-at | 2026-10-20T02:45:32Z |
-| status | merged — PR #91 merged by `hmdnah` at 2026-10-20T03:40:35Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: c308e5e2ebdb25728e2a16893da9a27142ab7ebf
+last-verified-at: 15798846e41733e6a1f68bdfac981588c3d69464
