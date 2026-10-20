@@ -232,4 +232,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 87a641b26b34839f9882f433af8bea128b730a30
+last-verified-at: 5a30d5c23ba8e3d58a6a26efb39d0287fea3444b
