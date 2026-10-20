@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-056` |
 | branch | `task/T-056-a-save-carrying-the-d29-cache-can-zip-of` |
 | claimed-at | 2026-10-20T15:10:44Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #104 merged by `hmdnah` at 2026-10-20T16:11:57Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 83f93de1d09f9191546320e84f2f8a36be898d4c
+last-verified-at: 876ffd40f23bc3ea9ece0497f3fbe042c3158c5c
