@@ -552,3 +552,10 @@ Body: `handoff/hmdnah/2026-10-20-T-052-review-step-1.md`
 so a restored doc's drained table edit, undone, saves its 3 records again. hmdnah's probe is test 5 of
 `tests/cache-requeue-table-edit.test.ts`: red without the fix, green with it; `pnpm verify` 983 passed.
 Body: `handoff/zayd/2026-10-20-T-052-cache-requeue-table-edit.md`
+
+## T-052 — review step 2 of PR #96 — 2026-10-20 — seat: hmdnah
+
+Approved; step 1's defect is closed and no new one is proven. Item 1: re-queue block removed → 4 red; step-1 guard
+reverted → 1 red; restored → green. Item 6: envelope-guard and `#builtRoots` mutants each go red. Item 2: the table
+digest is the only key input wider than a build reads. Redo and in-flight-export probes pass. Reserved classes: none.
+Body: `handoff/hmdnah/2026-10-20-T-052-review-step-2.md`
