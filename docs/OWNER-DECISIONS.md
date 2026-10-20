@@ -244,7 +244,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: changes
 - expires: 2026-10-19
 - ANSWER:
-- answered: -
+- answered: 2026-10-20T00:33Z
 
 ## D-20261012-02 PR #70 (T-034) changes the frozen surface and needs an owner merge
 
@@ -264,7 +264,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: changes
 - expires: 2026-10-19
 - ANSWER:
-- answered: -
+- answered: 2026-10-20T00:33Z
 
 ## D-20261012-03 Q8 follow-up: which mechanism moves a D52 wall
 
@@ -286,7 +286,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: annotation
 - expires: 2026-10-19
 - ANSWER:
-- answered: -
+- answered: 2026-10-20T00:33Z
 
 ## D-20261012-04 Q8 follow-up: whether moving a wall drags the walls joined to it
 
@@ -304,7 +304,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: detach
 - expires: 2026-10-19
 - ANSWER:
-- answered: -
+- answered: 2026-10-20T00:33Z
 
 ## D-20261012-05 Q6 follow-up: whose saved geometry cache a file may restore
 
@@ -325,7 +325,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: own
 - expires: 2026-10-19
 - ANSWER:
-- answered: -
+- answered: 2026-10-20T00:33Z
 
 ## D-20261012-06 Q6 follow-up: what code change discards a saved geometry cache
 
@@ -343,7 +343,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: bundle
 - expires: 2026-10-19
 - ANSWER:
-- answered: -
+- answered: 2026-10-20T00:33Z
 
 ## D-20261012-07 Q6 follow-up: whether autosave snapshots carry the geometry cache
 
@@ -361,4 +361,4 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: omit
 - expires: 2026-10-19
 - ANSWER:
-- answered: -
+- answered: 2026-10-20T00:33Z
