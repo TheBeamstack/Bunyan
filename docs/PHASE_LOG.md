@@ -550,5 +550,5 @@ Body: `handoff/hmdnah/2026-10-20-T-052-review-step-1.md`
 
 `geometryCacheFiles` uses an `#exported` entry only when its key matches; a stale one falls through to the file carry,
 so a restored doc's drained table edit, undone, saves its 3 records again. hmdnah's probe is test 5 of
-`tests/cache-requeue-table-edit.test.ts`: red without the fix, green with it; 8 cache suites 84 passed.
-Body: `handoff/zayd/2026-10-20-T-052-step-1-fix.md`
+`tests/cache-requeue-table-edit.test.ts`: red without the fix, green with it; `pnpm verify` 983 passed.
+Body: `handoff/zayd/2026-10-20-T-052-cache-requeue-table-edit.md`

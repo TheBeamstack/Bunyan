@@ -41,3 +41,19 @@
 
 - An undo of a table edit flips the digest back and re-queues again, which is correct because the keys flip back too.
 - Same file as open PRs #88 (`#stage`) and #89 (`geometryCacheFiles`). This diff touches only the constructor, `#commit` and one doc comment.
+
+## Step 1 fix — answers `handoff/hmdnah/2026-10-20-T-052-review-step-1.md` item 4
+
+- `document.ts` `geometryCacheFiles`: an `#exported` entry is used only when its key matches; otherwise the root falls
+  through to the file carry, which `#builtRoots` and `usableRecord`'s key check still gate. This now also touches
+  `geometryCacheFiles` (PR #89's area).
+- `tests/cache-requeue-table-edit.test.ts` test 5 is hmdnah's probe: restored doc, `createMaterial`, drain, `undo`,
+  save before the re-drain → every root written under its current key.
+- Test-first: `npx vitest run tests/cache-requeue-table-edit.test.ts` before the fix → 1 failed, 4 passed
+  (`expected {} to deeply equal { …3 roots }`). Revert-verify: `git checkout HEAD -- packages/document/src/document.ts`
+  → same 1 failed; fix restored → 5 passed.
+- `npx vitest run` on the 8 cache suites (`cache-requeue-table-edit`, `geometry-cache{,-export,-restore}-d29`,
+  `autosave-cache-d29`, `bnn-geometry-cache-layout-d29`, `cache-input-key-d29`, `clean-delta-export`) → 84 passed, 1 skipped.
+  `pnpm verify` (finish gate) → 109 files, 983 passed, 1 skipped; `docs:check` 66 passed.
+- Not fixed: after the undo the roots stay queued, so a re-drain still runs `exportBrep` for solids the file holds.
+  It writes the same key, so it is wasted idle work, not a wrong save.
