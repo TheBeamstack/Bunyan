@@ -393,3 +393,15 @@ from, and the reason it is a record rather than prose.
 - evidence: the probe in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`, run with `npx vitest run` at `76f95af` and with `cacherestore.ts:89-91` removed
 - need: make `openCacheIndex` return `undefined` when `verifyCacheIndex` throws (fix in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`) in a zayd turn on `task/T-043-d29-r5-the-cache-envelope-is-trusted-per`, then route PR #89 to hmdnah for step 2
 - cleared: -
+
+## B-20261020-02 PR #90's step 1 proved the CODE_ID chunk keeps its content-hash name after the stamp, so a stale codeId can be served
+
+- opened: 2026-10-20T02:44Z
+- by: hmdnah
+- scope: item
+- item: PR#90
+- what: in PR #90 (T-044), `codeIdPlugin` rewrites the `CODE_ID` chunk in `generateBundle`, after Rollup has named it by a content hash, so one URL serves a different `CODE_ID` per deploy and a URL-keyed cache can pair the old id with new code
+- why: two `npx vite build` runs of `apps/web` (with a temporary `CODE_ID` import in `bootstrap.ts`, and a one-line `App.tsx` change in the second run) give `assets/PartBatch-C8aMdl36.js` the same name in both runs, with bytes `8da496e7da50` → `55a5edc5570d` and `CODE_ID` `6cb5e4faace12c80` → `1b60a133b970e918`
+- evidence: the probe test in PR #90's step-1 review, run with `npx vitest run apps/web/src/hmProbe.test.ts` at `aca806e` → 1 failed
+- need: make the shipped `CODE_ID` unservable stale under an unchanged URL (fix shape in `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`) in a zayd turn on `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a`, land the probe test, then route PR #90 to hmdnah for step 2
+- cleared: -

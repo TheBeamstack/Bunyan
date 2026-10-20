@@ -96,6 +96,9 @@ builder may claim.
 - **B-20261020-01** — `scope: item` · `item: PR#89` — PR #89's step 2 proved a hostile cache index throws out of openCacheIndex, so the file does not open
   - need: make `openCacheIndex` return `undefined` when `verifyCacheIndex` throws (fix in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`) in a zayd turn on `task/T-043-d29-r5-the-cache-envelope-is-trusted-per`, then route PR #89 to hmdnah for step 2
   - opened 2026-10-20T02:08Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261020-02** — `scope: item` · `item: PR#90` — PR #90's step 1 proved the CODE_ID chunk keeps its content-hash name after the stamp, so a stale codeId can be served
+  - need: make the shipped `CODE_ID` unservable stale under an unchanged URL (fix shape in `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`) in a zayd turn on `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a`, land the probe test, then route PR #90 to hmdnah for step 2
+  - opened 2026-10-20T02:44Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
