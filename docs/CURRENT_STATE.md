@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-wall-join-level-scope` |
-| branch | `steward/wall-join-level-scope` |
-| claimed-at | 2026-10-20T06:46:19Z |
-| status | merged — PR #97 merged by `hmdnah` at 2026-10-20T09:15:42Z |
+| task | `T-053` |
+| branch | `task/T-053-wall-auto-joins-pair-only-walls-whose-ve` |
+| claimed-at | 2026-10-20T09:16:57Z |
+| status | working |
 
 <!-- END BATON -->
 
