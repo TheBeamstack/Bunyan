@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-054` |
-| branch | `task/T-054-a-container-move-re-stages-every-datum-o` |
+| task | `STEWARD-design-option-primary-invariant` |
+| branch | `steward/design-option-primary-invariant` |
 | claimed-at | 2026-10-20T11:40:01Z |
-| status | merged — PR #100 merged by `hmdnah` at 2026-10-20T12:42:49Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 8bcc66153ab50b27e447009de32d81a12e05a7b8
+last-verified-at: 7ded78a7a39a331f0921046253b9bc5b64d73520
