@@ -39,6 +39,7 @@ export * from './dependency.js';
 export * from './document.js';
 export * from './agent.js';
 export * from './bnn.js';
+export * from './bnnzip.js';
 export * from './cachekey.js';
 export * from './cacherestore.js';
 export * from './cacheexport.js';

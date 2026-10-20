@@ -20,7 +20,8 @@
 import { isElementActive, optionScopeOf } from './designoptions.js';
 import type { ActiveOptions, DesignOption, DesignOptionId, OptionScope } from './designoptions.js';
 import type { Element, ElementId, JoinConstraint } from './entities.js';
-import { isJoinConstraint } from './entities.js';
+import { isDatumConstraint, isJoinConstraint } from './entities.js';
+import { datumElevations, elevationOf } from './scene.js';
 import type { Scene } from './scene.js';
 import type { CapLine, ResolvedJoin } from './types.js';
 
@@ -108,6 +109,56 @@ export function baselineOf(element: Element): Baseline | undefined {
   const end = readVec2(element.params['end']);
   if (start === undefined || end === undefined) return undefined;
   return len(sub(end, start)) < EPS ? undefined : { start, end };
+}
+
+/** A wall's vertical extent in mm, absolute: `[base, top]`. */
+interface WallExtent {
+  readonly base: number;
+  readonly top: number;
+}
+
+/**
+ * The wall's vertical extent, resolved exactly as `build.ts` feeds the Wall Type (`wall.ts`): base = the
+ * base datum, else its Level's elevation; top = the top datum, else base + the `height` param.
+ */
+function wallExtentOf(scene: Scene, element: Element): WallExtent {
+  // The one datum resolver, handed only this element's constraints: over the whole record it filters per
+  // call, and a per-candidate call made the D29 key pass O(n²) at 16k walls (measured, T-053).
+  const own = datumsByElement(scene.constraints).get(element.id) ?? {};
+  const datums = datumElevations({ ...scene, constraints: own }, element.id);
+  const base = datums.base ?? elevationOf(scene, element.containerId);
+  const top = datums.top ?? base + Number(element.params['height'] ?? 0);
+  return { base, top };
+}
+
+const DATUM_CACHE = new WeakMap<Scene['constraints'], Map<ElementId, Scene['constraints']>>();
+
+/** Datum constraints by owning element, in `scene.constraints` order, built once per record. */
+function datumsByElement(constraints: Scene['constraints']): Map<ElementId, Scene['constraints']> {
+  const cached = DATUM_CACHE.get(constraints);
+  if (cached !== undefined) return cached;
+  const index = new Map<ElementId, Record<string, Scene['constraints'][string]>>();
+  for (const [id, c] of Object.entries(constraints)) {
+    if (!isDatumConstraint(c)) continue;
+    const bucket = index.get(c.element);
+    if (bucket === undefined) index.set(c.element, { [id]: c });
+    else bucket[id] = c;
+  }
+  DATUM_CACHE.set(constraints, index);
+  return index;
+}
+
+/**
+ * ⚠ Two walls join only if their extents overlap by a positive length (T-053): walls stacked on two
+ * storeys share a plan corner but never meet, and counting the upper one flips the lower corner's
+ * partner count (D68's ambiguity flip, reached through Levels). Touching extents do not overlap.
+ *
+ * ⚠ A wall with no positive extent (no `height` and no top datum — the Wall Type refuses to build it) has
+ * nothing to compare, so it is not filtered: such a recipe keeps the plan-only joins it had before T-053.
+ */
+function extentsOverlap(a: WallExtent, b: WallExtent): boolean {
+  if (a.top - a.base <= EPS || b.top - b.base <= EPS) return true;
+  return Math.min(a.top, b.top) - Math.max(a.base, b.base) > EPS;
 }
 
 /**
@@ -334,6 +385,7 @@ function partnersAt(
   scene: Scene,
   P: V,
   selfId: ElementId,
+  selfExtent: WallExtent,
   scope: OptionScope,
   active: ActiveOptions,
 ): readonly { id: ElementId; body: V }[] {
@@ -345,6 +397,7 @@ function partnersAt(
     const el = scene.elements[candidate.id];
     if (el === undefined) continue;
     if (!isElementActive(el, scope, active)) continue;
+    if (!extentsOverlap(selfExtent, wallExtentOf(scene, el))) continue;
     const b = candidate.base;
     // Which end (if any) of this neighbour meets P — and the direction from P into its body.
     if (near(b.start, P)) {
@@ -370,6 +423,7 @@ function throughWallsAt(
   scene: Scene,
   P: V,
   selfId: ElementId,
+  selfExtent: WallExtent,
   scope: OptionScope,
   active: ActiveOptions,
 ): readonly { id: ElementId; base: Baseline; thickness: number }[] {
@@ -381,8 +435,9 @@ function throughWallsAt(
     const el = scene.elements[candidate.id];
     if (el === undefined) continue;
     if (!isElementActive(el, scope, active)) continue;
-    if (pointOnSegment(P, candidate.base))
-      out.push({ id: el.id, base: candidate.base, thickness: totalWallThickness(el, scene) });
+    if (!pointOnSegment(P, candidate.base)) continue;
+    if (!extentsOverlap(selfExtent, wallExtentOf(scene, el))) continue;
+    out.push({ id: el.id, base: candidate.base, thickness: totalWallThickness(el, scene) });
   }
   return out;
 }
@@ -409,6 +464,7 @@ export function resolveJoins(
   const scope = optionScopeOf(scene, selection.designOptions);
   const active = selection.active ?? {};
   const overrides = joinOverridesOf(scene, elementId);
+  const extent = wallExtentOf(scene, self);
   const ends: { name: 'start' | 'end'; P: V; body: V }[] = [
     { name: 'start', P: base.start, body: wallDir },
     { name: 'end', P: base.end, body: [-wallDir[0], -wallDir[1]] },
@@ -416,7 +472,17 @@ export function resolveJoins(
 
   const result: ResolvedJoin[] = [];
   for (const e of ends) {
-    const capLine = resolveEnd(scene, elementId, e.P, e.body, wallDir, overrides, scope, active);
+    const capLine = resolveEnd(
+      scene,
+      elementId,
+      e.P,
+      e.body,
+      wallDir,
+      overrides,
+      extent,
+      scope,
+      active,
+    );
     if (capLine !== undefined) result.push({ end: e.name, capLine });
   }
   return result;
@@ -429,6 +495,7 @@ function resolveEnd(
   body: V,
   wallDir: V,
   overrides: readonly JoinConstraint[],
+  selfExtent: WallExtent,
   scope: OptionScope,
   active: ActiveOptions,
 ): CapLine | undefined {
@@ -462,7 +529,7 @@ function resolveEnd(
   }
 
   // --- 2. Auto-join: exactly one coincident neighbour ⇒ miter. Zero or 2+ ⇒ the default cap. -----------
-  const partners = partnersAt(scene, P, selfId, scope, active);
+  const partners = partnersAt(scene, P, selfId, selfExtent, scope, active);
   if (partners.length === 1) return miterLine(P, body, partners[0]!.body, wallDir);
   if (partners.length > 1) return undefined; // an ambiguous crowd of corners — the default cap
 
@@ -475,7 +542,7 @@ function resolveEnd(
   // through wall runs on untouched. The two solids then abut on a face instead of overlapping in a
   // sliver, which is the whole point — `t_partition × t_through/2 × height` of blockwork stops existing
   // twice. (`buttLine` is the same geometry a `resolution:'butt'` override has always produced.)
-  const through = throughWallsAt(scene, P, selfId, scope, active);
+  const through = throughWallsAt(scene, P, selfId, selfExtent, scope, active);
   if (through.length !== 1) return undefined;
   return buttLine(P, body, through[0]!.base, through[0]!.thickness);
 }

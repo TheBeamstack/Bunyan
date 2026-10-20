@@ -379,7 +379,8 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-10-27
-- ANSWER:
+- ANSWER: changes
+- free-text: GitHub shows merge conflicts; resolve them and ask again when clean
 - answered: -
 
 ## D-20261020-02 PR #70 (T-034) is merge-ready again and needs an owner merge
@@ -399,7 +400,8 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-10-27
-- ANSWER:
+- ANSWER: changes
+- free-text: GitHub shows merge conflicts; resolve them and ask again when clean
 - answered: -
 
 ## D-20261020-03 PR #93 (T-050) reserves the wall-motion field and needs an owner merge
@@ -420,5 +422,6 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-10-27
-- ANSWER:
+- ANSWER: changes
+- free-text: GitHub shows merge conflicts; resolve them and ask again when clean
 - answered: -

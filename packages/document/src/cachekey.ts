@@ -70,8 +70,9 @@ function push<T>(map: Map<string, T[]>, key: string, value: T): void {
   else bucket.push(value);
 }
 
-export function cacheKeyTables(scene: Scene): CacheKeyTables {
-  const digest = sha256Utf8Hex(
+/** §2b's shared-table digest: the five tables whole, in every assembly's key. */
+export function cacheTablesDigest(scene: Scene): string {
+  return sha256Utf8Hex(
     canonicalJson({
       styles: scene.styles,
       materials: scene.materials,
@@ -80,6 +81,10 @@ export function cacheKeyTables(scene: Scene): CacheKeyTables {
       grids: scene.grids,
     }),
   );
+}
+
+export function cacheKeyTables(scene: Scene): CacheKeyTables {
+  const digest = cacheTablesDigest(scene);
   const hosted = new Map<ElementId, Element[]>();
   for (const e of Object.values(scene.elements))
     if (e.hostId !== undefined) push(hosted, e.hostId, e);

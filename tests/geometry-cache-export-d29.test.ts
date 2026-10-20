@@ -396,14 +396,14 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     await doc.rebuildAll();
     await drain(doc);
     expect(Object.keys(indexOf(doc.geometryCacheFiles()).records).sort()).toEqual(roots);
-    // A new material re-keys every assembly (the shared-table digest) and rebuilds none.
+    // A new material re-keys every assembly (the shared-table digest) and rebuilds none; T-052 re-queues all.
     await doc.execute('core.createMaterial', {
       id: 'steel',
       name: 'S355',
       category: 'steel',
       density: 7850,
     });
-    expect(await doc.exportCacheIdle(0)).toBe(0);
+    expect(await doc.exportCacheIdle(0)).toBe(roots.length);
     expect(indexOf(doc.geometryCacheFiles()).records).toEqual({});
   });
 
