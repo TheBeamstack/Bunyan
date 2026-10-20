@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-datum-inherited-level-restage` |
 | branch | `steward/datum-inherited-level-restage` |
 | claimed-at | 2026-10-20T09:16:57Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 9018735477bf5a1a13cde379285c3c5c071d788a
+last-verified-at: 1bc35297811305d1448485a76479e80d9c9b5119
