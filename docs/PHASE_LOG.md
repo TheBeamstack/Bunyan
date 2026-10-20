@@ -473,3 +473,10 @@ Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
 `App.tsx` autosaves through it. New test: a cache handed in is absent from the snapshot zip and its reload (red
 before, and with the drop reverted). Spec §7 and design §5 state the answer. `pnpm verify` green (978).
 Body: `handoff/zayd/2026-10-20-T-045-autosave-omits-cache.md`
+
+## T-045 — review step 1 of PR #91 — 2026-10-20 — seat: hmdnah
+
+Step 1 passes with no defect proven. Item 1: the cache drop in `snapshotScene` reverted → 2 red, restored → 2 green.
+`pnpm verify` reproduced the stated 978 passed. The labeller ran: `none`, not owner-gated. One comment-only
+nit: the JSDoc's "~525 MB of OPFS" is the inflated size, and the ring stores ~73 MB zipped. The row stays `review`.
+Body: `handoff/hmdnah/2026-10-20-T-045-review-step-1.md`
