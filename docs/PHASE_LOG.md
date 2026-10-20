@@ -37,112 +37,104 @@ identity fields, and compressing a body never moves the population a reference r
 *Compaction is maintenance, not work: it does not get an entry of its own.*
 
 **Sealed volumes** (never edited again): `docs/phase-log-01.md` — §A–§E, Entries 1–88 and the
-`T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07.
+`T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
+from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
-## T-027 — PR #55 brought up to date with main again — 2026-10-12 — seat: zayd
+## T-056 — review step 2 of PR #104 — 2026-10-20 — seat: hmdnah
 
-Merged `origin/main` (`681c2b4`) to clear #55's conflicts (BACKLOG, CURRENT_STATE), B-20261011-07; T-027
-kept at `review`, the `window.bunyan` finding dropped as main's T-032. `pnpm verify` green (910 tests).
-Body: `handoff/zayd/2026-10-12-T-027-merge-main-2.md`
+Approved; no defect proven. Item 1: mtime 1980-01-02 → 2 red; `saveBnn` inlining level 5 → 1 red (worker ≠ save); restored
+→ 2 passed. One production `zipSync` remains, at `bnnzip.ts:26`. Step 1's item-6 flag holds the done-when: the reference
+catches it. `pnpm verify` → 1002 passed, 1 skipped. Not owner-gated. Body: `handoff/hmdnah/2026-10-20-T-056-review-step-2.md`
 
-## T-027 — §6's relink cap is measured, not guessed — 2026-10-06 — seat: zayd
+## T-056 — review step 1 of PR #104 — 2026-10-20 — seat: hmdnah
 
-`docs/CURRENT_STATE-reference.md §6` relink recipe `--memory=2g` → `--memory=1g --memory-swap=1g`, citing
-hmdnah's T-022 step-2 run (78 s, exit 0, byte-identical, hard 1 GB cgroup, swap off). Docs only; no relink
-re-run (optional per `done-when:`); README step 3 / `probe.sh` 2g recorded in `## Discovered`.
-Body: `handoff/zayd/2026-10-06-T-027-relink-cap-measured.md`
+No defect proven; no approval, no merge, and the row stays `review`. Item 1: `level` 5 → 1 red, and a 1980-01-02 mtime → 2 red;
+restored → 2 passed. The 16k re-run is discharged through a /tmp vitest config: `saveBnn` 4075.8 ms with the cache, now in
+design §5. `pnpm verify` → 1002 passed, 1 skipped. Not owner-gated. Body: `handoff/hmdnah/2026-10-20-T-056-review-step-1.md`
 
-## T-027 — PR #55 brought up to date with main — 2026-10-10 — seat: zayd
+## T-056 — a save carrying the D29 cache can zip off the main thread — 2026-10-20 — seat: zayd
 
-Merged `origin/main` to clear #55's conflicts (BACKLOG, PHASE_LOG); §8 restored to its `pnpm state` block,
-which `401e22d` replaced with a `measure.py` one and so turned `main` red. `pnpm verify` exit 0 (898 tests).
-Body: `handoff/zayd/2026-10-10-T-027-merge-main.md`
+`saveBnn` is `zipBnnEntries(assembleBnnEntries(...))`; the zip step is `bnnzip.ts`, fflate only, for a worker.
+New test: worker bytes equal `saveBnn` and an independent `zipSync` reference, 20-solid cache and cache-less;
+level 5 and a 1980-01-02 mtime each turn it red. `pnpm verify` → 1002 passed, 1 skipped. Unverified here: the 16k
+re-run (env-prefixed command refused) — hmdnah to confirm. Body: `handoff/zayd/2026-10-20-T-056-bnn-zip-worker.md`
 
-## T-006 — the keep-live set and a lazy first paint — 2026-10-08 — seat: zayd
+## STEWARD-cache-save-zip-worker — review of PR #103 — 2026-10-20 — seat: hmdnah
 
-An opened `.bnn` now builds only what the camera sees (`view/keepLive.ts`, `rebuildOnly` per level,
-camera level first); `bootstrap()` no longer calls `rebuildAll()`. Browser-measured on the box
-(headless Chromium, SwiftShader): 87.5 % of elements deferred, 71.0–76.8 % of first paint removed.
-Body: `handoff/zayd/2026-10-08-T-006-keep-live-lazy-first-paint.md`
+Approved; no defect proven. Item 1: T-056's `implements:` and `risk:` removed → `gates.py docs` RED (exit 1, both
+named); restored → GREEN, `pnpm docs:check` 66 passed. Cited sites (`bnn.ts:189`, fflate `:2287`, `App.tsx:297-301`)
+read and match. Unverified here: the 16k timings, not re-run — zayd to confirm in T-056. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-STEWARD-cache-save-zip-worker-review.md`
 
-## T-006 — review of PR #61 — 2026-10-10 — seat: hmdnah
+## STEWARD-cache-save-zip-worker — T-056 from the 2026-10-14 finding — 2026-10-20 — seat: brahim
 
-Approved: revert of `keepLiveSet`'s keep-live guards went red (2 of 9) and green restored; browser re-run
-73.3 % of first paint removed (11 of 88 built). Fixed test-first: a future-version Type is now kept live (D43).
-Body: `handoff/hmdnah/2026-10-10-T-006-review.md`
+T-056 (`ready`, `risk: high`, `depends-on: —`) splits `saveBnn` so its level-6 zip can run in a worker with identical bytes.
+A diagnosis subagent re-measured at `12fa699`: 4076–4249 ms at 16k. Level 1 is ~3.0 s, and level 0 is ~0.4 s at 6x the bytes,
+so a lower level is not the fix. Wiring the worker into `apps/web` needs a browser and T-044, so it is left for a later row. No code changed.
+Body: `handoff/brahim/2026-10-20-STEWARD-cache-save-zip-worker-t056.md`
 
-## STEWARD-merge-remeasure-diagnosis — diagnosis — 2026-10-10 — seat: brahim
+## T-055 — review of PR #102 — 2026-10-20 — seat: hmdnah
 
-see: docs/BLOCKERS.md#B-20261010-03 · Read-only R39 finding: diwan `agent_merge.py` `step_remeasure` splices `measure.py`'s block over Bunyan's
-`state.mjs` §8 block with no owner check; fix and restore order named. No code changed.
-Body: `handoff/brahim/2026-10-10-B-20261010-03-diagnosis.md`
+Approved; no defect proven. Item 1: the `primaryViolations` spread removed → the new test RED (5 failed, 2 passed);
+restored → GREEN with both design-option test files (30 passed). No watched path; `isElementActive` and
+`modelElements()` unchanged. The hosted-element choice matches D67 and the two existing bodies. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-T-055-review.md`
 
-## STEWARD-owner-rulings-q5-q10 — owner answers Q5–Q10 recorded as D92–D97, built as T-033–T-038 — 2026-10-10 — seat: brahim
+## T-055 — a design-option set with no primary or two primaries surfaces in brokenRefs() — 2026-10-20 — seat: zayd
 
-- Acted on `D-20261007-02…07` and stamped `answered:`; `-08`/`-11` pending, untouched.
-- Rows: T-033 (Q10), T-034 (Q9), T-037 (Q5) ready builds; T-035 (Q8), T-038 (Q6) ready design docs;
-  T-036 (Q7) blocked on T-035, since `core.copy` refuses every baseline wall today (`placement.ts:348`).
-- Rebased onto `main` 2026-10-11 and renumbered from T-033 (`backlog.py next-id`), as `main`'s a68b995 took T-032.
-- Next: `hmdnah` reviews this PR once B-20261010-03 is cleared.
-- Body: `handoff/brahim/2026-10-10-STEWARD-owner-rulings-q5-q10-d92-d97.md`
+`document.ts` `primaryViolations` reports one `brokenRefs()` entry per element tagged in a set whose primary
+count is not 1; nothing healed, `isElementActive` untouched. New test: 7 cases, both roads; red with the spread
+reverted (5 failed). `pnpm verify` → 1000 passed, 1 skipped. An untagged hosted element is covered by its host's entry.
+Body: `handoff/zayd/2026-10-20-T-055-design-option-primary-invariant.md`
 
-## STEWARD-owner-rulings-q5-q10 — PR #63 rebased onto 9d05388, B-20261011-03 cleared — 2026-10-11 — seat: brahim
+## STEWARD-design-option-primary-invariant — T-055 from the 2026-08-17 finding — 2026-10-20 — seat: brahim
 
-Rebased cleanly onto `main` 9d05388 (1ef86f9); T-033–T-038 kept, as `backlog.py next-id` measures main at T-033.
-`pnpm verify` passed (898+66); `gh pr view 63` reads MERGEABLE. Next: `hmdnah` reviews PR #63.
-Body: `handoff/brahim/2026-10-11-STEWARD-owner-rulings-q5-q10-rebase.md`
+T-055 (`ready`, `risk: normal`, `depends-on: —`) makes a design-option set with zero or two primaries surface
+in `brokenRefs()`. A diagnosis subagent re-measured it at `a7c903e`: both roads bypass the check, and both
+counts are silent. The fix stays in `document.ts`, off the frozen surface. The `## Discovered` line is deleted. No code changed.
+Body: `handoff/brahim/2026-10-20-STEWARD-design-option-primary-invariant-t055.md`
 
-## STEWARD-HANDOVER-H-20261011-13 — review of PR #64 — 2026-10-11 — seat: hmdnah
+## STEWARD-design-option-primary-invariant — review of PR #101 — 2026-10-20 — seat: hmdnah
 
-Approved: Custodianship's `verify-handovers.py` went FAILED (rc=1) on a mirror whose `need:` disagreed with
-PR #64's copy, PENDING/0 failed (rc=0) on the real one; the record's `gh api` evidence re-ran as stated.
-Body: `handoff/hmdnah/2026-10-11-STEWARD-HANDOVER-H-20261011-13-review.md`
+Approved; no defect proven. Item 1: a probe of T-055's done-when went RED on both roads (`brokenRefs()` [],
+`isElementActive` both true / both false); the row's fix shape in `document.ts` turned it GREEN (28 passed), then
+removed. Cited lines read as T-055 says; `document.ts` is not watched. Reserved classes: none. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-STEWARD-design-option-primary-invariant-review.md`
 
-## T-010 — two doors on one wall, confirmed in the browser — 2026-10-11 — seat: zayd
+## STEWARD-datum-inherited-level-restage — T-054 from PR #98's step-2 finding — 2026-10-20 — seat: brahim
 
-Headless Chromium 153 on the box, driven by `tools/browser-check/two-doors.mjs`: both floor-seated doors
-on Wall 1 `valid`, `[leaf, frame]`, no broken ref. The boot's one console error, a `/favicon.ico` 404, is
-gone (`index.html` icon link); the driver exits 1 without it and 0 with it.
-Body: `handoff/zayd/2026-10-11-T-010-two-doors-browser.md`
+T-054 (`ready`, `risk: high`, `depends-on: —`) makes a container move re-stage every datum on a Level beneath it
+and those elements' join neighbours. Evidence is step 2's probe: C's low point 3000 incrementally, 2000 after
+`rebuildAll`. The fix stays in `dependency.ts` (`scene.ts` is frozen). The `## Discovered` line is deleted. No code changed.
+Body: `handoff/brahim/2026-10-20-STEWARD-datum-inherited-level-restage-t054.md`
 
-## T-010 — review of PR #66 — 2026-10-11 — seat: hmdnah
+## STEWARD-datum-inherited-level-restage — review of PR #99 — 2026-10-20 — seat: hmdnah
 
-Approved: `two-doors.mjs` re-run in headless Chromium 153 exits 1 with main's `index.html` (favicon 404),
-0 restored. It also exits 0 with T-009's guard neutered, so it does not test D84; `requires:` omits playwright-core.
-Body: `handoff/hmdnah/2026-10-11-T-010-review.md`
+Approved; no defect proven. Item 1: un-rolling the log made the steward roll gate red (41054 > 40960) and a
+copy-not-move roll made `gates.py docs` red (82 duplicates); both restored green. All 82 entry headings moved
+exactly once, byte-identical. Cited lines read as T-054 says. Reserved classes: none. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-STEWARD-datum-inherited-level-restage-review.md`
 
-## T-019 — the move-tool gizmo + corner-drag, redone against main — 2026-10-11 — seat: zayd
+## T-054 — a container move re-stages every datum on a Level beneath it — 2026-10-20 — seat: zayd
 
-Closed PR #17's `handles.ts`, handle overlay and gesture ported onto main. `corner-drag.mjs` in Chromium 153:
-one gesture, one `transactionId`, one Ctrl+Z; feed +0 mid-drag. Projection drift ≤3e-12 px, not
-byte-identical: the camera drifts idle (`## Discovered`). Revert-verified.
-Body: `handoff/zayd/2026-10-11-T-019-corner-drag-gizmo.md`
+`dependency.ts` `case 'containers'` now also re-stages datums on every Level beneath the moved container that
+inherits its elevation, plus their join neighbours. New test covers `base` and `top`, move and undo; red before the
+fix (C 3000 vs 2000). `pnpm verify` → 993 passed, 1 skipped. `scene.ts` untouched.
+Body: `handoff/zayd/2026-10-20-T-054-datum-inherited-level-restage.md`
 
-## T-019 — review of PR #67 — 2026-10-11 — seat: hmdnah
+## T-054 — review step 1 of PR #100 — 2026-10-20 — seat: hmdnah
 
-Approved with a reviewer fix: projection drift ≤2.6e-12 px was not byte-identical; `Viewport.#tick`'s
-redundant `OrbitControls.update()` removed, `corner-drag.mjs` tightened to byte-identity, red before, 0 after.
-Item 1: `handles.ts` z → 0 fails the Level-elevation test; restored, 10 pass.
-Body: `handoff/hmdnah/2026-10-11-T-019-review.md`
+Step 1 passes with no defect proven; no approval, no merge, and the row stays `review`. Item 1: `dependency.ts`
+reverted → 2 red (`expected 3000 to be 2000`), restored → 10 green. `pnpm verify` → 993 passed, 1 skipped.
+Reserved classes: none (`RISK: additive`). Items 2, 3, 6 are step 2's.
+Body: `handoff/hmdnah/2026-10-20-T-054-review-step-1.md`
 
-## T-032 — agent edits wait on the document lock — 2026-10-11 — seat: zayd
+## T-054 — review step 2 of PR #100 — 2026-10-20 — seat: hmdnah
 
-`withUiRefresh` takes `App`'s `DocLock` and runs `execute`/`undo`/`redo`/`dryRun` through `lock.run`, so an
-agent call cannot commit while `buildKeepLive` or a human edit holds it. Two tests, red on main's wrapper,
-green after; `pnpm verify` green (910 tests). `App.tsx`'s one-line wiring is reviewer-checked.
-Body: `handoff/zayd/2026-10-11-T-032-agent-doclock.md`
-
-## T-032 — review of PR #68 — 2026-10-12 — seat: hmdnah
-
-Approved and merged. Item 1: main's `agentRefresh.ts` → 2 failed, 6 passed; restored → 16 pass.
-`App.tsx` L232 passes the same `docLock` as human edits and `buildKeepLive`; dropping it fails `tsc` (TS2554).
-Body: `handoff/hmdnah/2026-10-12-T-032-review.md`
-
-## T-027 — review of PR #55 — 2026-10-12 — seat: hmdnah
-
-Approved. The citation matches the T-022 step-2 run (1g, swap off, 78 s, byte-identical). Item 1: B-20261011-07's
-clearance; `gates.py docs` is red with `BLOCKERS.md` at main (R15), green restored. Relink not re-run here.
-Body: `handoff/hmdnah/2026-10-12-T-027-review.md`
+Approved; no defect proven. Item 1: `dependency.ts` reverted → 2 red (`expected 3000 to be 2000`), restored → 3
+green. Probes show the edge also covers `deleteContainer` and its undo. Two mutations (neighbour hop, elevation
+shield) each go red. Reserved classes: none. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-T-054-review-step-2.md`
 
 ## T-033 — `Dimension.anchors` excludes the free `point` anchor — 2026-10-12 — seat: zayd
 
@@ -151,332 +143,16 @@ Body: `handoff/hmdnah/2026-10-12-T-027-review.md`
 under `packages/`. RISK: contract-touching (re-baselined) — owner merges. `pnpm verify` green (911).
 Body: `handoff/zayd/2026-10-12-T-033-dimension-model-anchors.md`
 
-## T-035 — design: moving a D52 baseline wall — 2026-10-12 — seat: zayd
-
-`docs/design/P4.5_baseline_move_design.md`: move/copy/rotate/setPlacement refuse on 8 of 8 demo-wall calls.
-Recommends a `ParamField.motion?` position tag (pre-step-6, contract-touching); owner asks: `D-20261012-03`, `-04`.
-Revit/Archicad/Rhino rows unverified here (no web access) — hmdnah to confirm. No code changed.
-Body: `handoff/zayd/2026-10-12-T-035-baseline-move-design.md`
-
-## T-035 — review of PR #71 — 2026-10-12 — seat: hmdnah
-
-Approved. Item 1: §A probe re-run, 8/8 baseline-rung refusals and 2/2 `setParams` accepted; `placement.ts:275`
-rung disabled → red (0 refusals), restored → green. Q8a/Q8b split lawful (Q8 closed, two distinct questions).
-§4 vendor rows still unverified here: web tools denied this session.
-Body: `handoff/hmdnah/2026-10-12-T-035-review.md`
-
-## T-038 — design: the D29 cache in the `.bnn` — 2026-10-12 — seat: zayd
-
-`docs/design/P5_step9_D29_bnn_cache_design.md`: per-assembly input key over what `buildAssembly` reads, plus an
-envelope (`codeId`, own `kernelBuildId`); `geometry-cache/` additive, no frozen shape moves; saves never export
-(106 s at 16k), the cache is written lazily. Rows R1–R7. Owner asks: `D-20261012-05`, `-06`, `-07`. No code changed.
-Body: `handoff/zayd/2026-10-12-T-038-d29-bnn-cache-design.md`
-
-## T-038 — review step 1 of PR #73 — 2026-10-12 — seat: hmdnah
-
-Not approved (step 1). Defect: §2b keys styles only for root + `hostedBy`; a D59 child's style (`build.ts:590,753`)
-moves no key. Throwaway OCCT test: key unchanged, rebuilt 2e7 → 6e7 mm³ (red); `styles` digested whole → green.
-§5's 60-solid figures cite the wrong source (Entry 71's handoff, not the test). Risk gate ran: additive.
-Body: `handoff/hmdnah/2026-10-12-T-038-review-step-1.md`
-
-## T-038 — review step 2 of PR #73 — 2026-10-12 — seat: hmdnah
-
-Approved. Step 1's defect re-measured on OCCT: child-only style edit, pre-fix key unchanged (red), revised key
-flips (green), 3.0e7 → 7.0e7 mm³; reformat and unrelated edit flip nothing. Restore is load-only; citation fixed.
-Items 2/3/6: every `buildAssembly` scene read is keyed. Note: R1/R3 "exactly" wording excludes whole tables.
-Body: `handoff/hmdnah/2026-10-12-T-038-review-step-2.md`
-
-## STEWARD-d29-cache-decomposition — T-038's rows R1–R7 filed — 2026-10-12 — seat: brahim
-
-`backlog.py add`: T-039 (R1, `ready`) … T-045 (R7), sequenced after T-038; T-040–T-042 blocked on their
-predecessors, T-043–T-045 also on `D-20261012-05/-06/-07`. All `risk: high` (READY rule 8, D29). R1/R3 criteria
-exclude the five whole-digested tables, per hmdnah's step-2 note. No code changed.
-Body: `handoff/brahim/2026-10-12-STEWARD-d29-cache-decomposition-rows.md`
-
-## STEWARD-d29-cache-decomposition — review of PR #74 — 2026-10-12 — seat: hmdnah
-
-Approved, merged `e68efad`. Rows match design §6 deps; T-039 ready, rest blocked; carve-out names §2b's five
-tables. Item 1: revert leaves `gates.py docs` green (additive); deleting T-039's `implements:` turns it red.
-Note: T-041 "rebuilds only its assembly" is false for a joined endpoint (`resolveJoins`); non-blocking.
-Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-cache-decomposition-review.md`
-
-## STEWARD-pr74-review-record — PR #74's review record landed; T-041 wording — 2026-10-12 — seat: brahim
-
-Cherry-picked hmdnah's 4e2abd9/7193a47 (performs B-20261012-01's need; cleared on merge), keeping main's baton.
-T-041's restore criterion now counts a `resolveJoins` neighbour, per hmdnah's note. Finding: two records share
-id B-20261012-01 (main: PR #74; T-037 branch: PR #72); the branch's are renumbered when it rebases.
-Body: `handoff/brahim/2026-10-12-STEWARD-pr74-review-record-landing.md`
-
-## STEWARD-pr74-review-record — review of PR #75 — 2026-10-12 — seat: hmdnah
-
-Approved; record written before the merge. Cherry-picks byte-identical (`git range-diff`). Item 1: the record's
-body removed → `git ls-files --error-unmatch` exit 1; restored → 0. `gates.py docs` stays green on a dangling
-`Body:` path (gate gap). Design §6 R3 still says "only its assembly"; non-blocking.
-Body: `handoff/hmdnah/2026-10-12-STEWARD-pr74-review-record-review.md`
-
-## STEWARD-d29-r3-rebuild-scope — design §6 R3 agrees with §2b and T-041 — 2026-10-12 — seat: brahim
-
-The D29 design's R3 criterion said a hand edit "rebuilds only its assembly"; §2b keys on joined neighbours and
-whole shared tables, so it now reads "exactly the assemblies whose §2b key it flips", as T-041 already does.
-Spec fix only (hmdnah's PR #75 note); the rest of the diff is prettier's table padding.
-Body: `handoff/brahim/2026-10-12-STEWARD-d29-r3-rebuild-scope-design-fix.md`
-
-## STEWARD-d29-r3-rebuild-scope — review of PR #76 — 2026-10-12 — seat: hmdnah
-
-Approved; record written before the merge. R3 now matches §2b and T-041; word-diff shows only R3's cell changed.
-Item 1: design reverted → "only its assembly" probe red, restored green; R3 wording reverted with new padding →
-`prettier --check` exit 1, restored exit 0. `pnpm verify` green (910 tests). Not owner-gated.
-Body: `handoff/hmdnah/2026-10-12-STEWARD-d29-r3-rebuild-scope-review.md`
-
-## T-039 — D29 R1 — the cache input key, one pass over the scene — 2026-10-12 — seat: zayd
-
-`packages/document/src/cachekey.ts`: per-root `sha256` of canonical JSON (rows, owned and `<root>:` constraint
-rows, resolved joins, five-table digest) and the `bnnc1` envelope. 22 tests; each class revert-verified red.
-Keys at 1k/4k/16k: 0.15/0.29/1.18 s, after indexing `joinOverridesOf` (was 113.6 s at 16k). `pnpm verify` green.
-Body: `handoff/zayd/2026-10-12-T-039-d29-cache-input-key.md`
-
-## T-039 — review step 1 of PR #77 — 2026-10-12 — seat: hmdnah
-
-Not approved (step 1). Defect: owned constraint rows are keyed id-sorted (`cachekey.ts:93-94`) but `datumElevations`
-is last-wins in scene order (`scene.ts:432-436`); probe: key-reversed `constraints` → base 3000 → 0, key equal.
-Item 1: `joins` dropped → 2 red, restored 22 green. 16k keys 1191.9 ms. Risk gate: additive; CI re-seed gate OK.
-Body: `handoff/hmdnah/2026-10-12-T-039-review-step-1.md`
-
-## T-039 — the step-1 defect, constraint order keyed — 2026-10-12 — seat: zayd
-
-`cachekey.ts` keeps `scene.constraints` order and keys an element's own rows resolved, by the build's own
-`datumElevations`/`gridPointOf`/`sketchConstraintsOf` over a scene of just those rows; `scene.ts` untouched.
-Four reorder tests: 3 red before the fix and on `git stash` of it, 26 green after. `pnpm verify` green (936).
-Body: `handoff/zayd/2026-10-12-T-039-d29-cache-input-key.md` (§ Return from step 1)
-
-## T-039 — review step 2 of PR #77 — 2026-10-12 — seat: hmdnah
-
-Approved. Step 1's defect fixed: `cachekey.ts` at `f54de71` → 3 reorder tests red, HEAD → 26 green. Items 2/3:
-every `buildAssembly` scene read is keyed; no in-place `constraints` write for the join index. Hosted order is
-keyed as `hostedBy` cuts (probe), but no test pins it, and the one-pass test cannot fail. Not owner-gated.
-Body: `handoff/hmdnah/2026-10-12-T-039-review-step-2.md`
-
-## T-040 — D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load — 2026-10-12 — seat: zayd
-
-`bnn.ts`: optional `SaveOptions.cache` written under `geometry-cache/`; `loadBnn` filters it out of `unzipSync`
-and exposes `cache: { names, read }` inflating one entry on demand. Spec §6 tree amended. 7 tests: 5 red before;
-filter reverted → the corrupt-entry test red. Pre-R2 `loadBnn` opens a cached file. `pnpm verify` green (943).
-Body: `handoff/zayd/2026-10-12-T-040-d29-geometry-cache-layout.md`
-
-## T-040 — review step 1 of PR #78 — 2026-10-12 — seat: hmdnah
-
-Not approved (step 1); no defect proven. Item 1: filter `return false` → `true` → 1 red, restored 7 green.
-Test-first re-run on `600baab`'s `bnn.ts` → 5 red / 2 green; pre-R2 fixture equals `600baab`'s `loadBnn`.
-`pnpm verify` → 943 tests, `docs:check` 66. Risk gate: additive, CI and local. Step 2: items 2, 3, 6.
-Body: `handoff/hmdnah/2026-10-12-T-040-review-step-1.md`
-
-## T-040 — review step 2 of PR #78 — 2026-10-12 — seat: hmdnah
-
-Approved; no defect proven. Item 1 re-run: filter → `true` → 1 red, restored 7 green. Item 2: `bnn.ts` is the
-only non-test `unzipSync`; app consumers take named fields. Item 3: no consumer of the cache yet (R3/R5).
-Item 6: 4 of 5 `bnn.ts` mutants red; the survivor is equivalent. `pnpm verify` 943 + 66. Not owner-gated.
-Body: `handoff/hmdnah/2026-10-12-T-040-review-step-2.md`
-
-## STEWARD-loadbnn-zip-caps — T-046, the `.bnn` zip caps, filed from `## Discovered` — 2026-10-12 — seat: brahim
-
-The 2026-10-12 finding (`loadBnn` inflates with no entry-count or size bound, spec §9) is now T-046, `ready`,
-`risk: high` (D29 cache read path), via `backlog.py add`; the finding is deleted. Both `unzipSync` calls,
-`bnn.ts:202` and `:303`, are named; caps are sized against design §5's 16k / ~61 MB. No code changed.
-Body: `handoff/brahim/2026-10-12-STEWARD-loadbnn-zip-caps-row.md`
-
-## STEWARD-loadbnn-zip-caps — review of PR #80 — 2026-10-12 — seat: hmdnah
-
-Approved; no defect proven. Item 1: T-046's `implements:` deleted → `gates.py docs` exit 1 naming T-046;
-restored → exit 0. Cited lines hold: `bnn.ts:202`, `:303`, spec 727, design §5 (3,817 B × 16k = 61.07 MB).
-Every done-when is a box vitest/gate check, so no `requires:` is right. Reserved classes: none. Not owner-gated.
-Body: `handoff/hmdnah/2026-10-12-STEWARD-loadbnn-zip-caps-review.md`
-
-## T-046 — A hostile `.bnn` is refused before it inflates past an entry-count or size cap — 2026-10-13 — seat: zayd
-
-`bnn.ts`: `BNN_MAX_ENTRIES` 40k, `_ENTRY_BYTES` 256 MiB, `_TOTAL_BYTES` 512 MiB, `_RATIO` 200:1, checked on
-declared sizes in a no-inflate pre-pass in `loadBnn` and in `cache.read`'s filter. Sized on a measured 16k file
-(16,001 entries, 67.2 MB). 7 tests: 5 red before; entry bound removed → 1 red. `pnpm verify` green (950).
-Body: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`
-
-## T-046 — review step 1 of PR #81 — 2026-10-13 — seat: hmdnah
-
-Not approved (step 1); one defect proven, back to zayd: `BNN_MAX_RATIO` reads the declared compressed size, so
-a 1024:1 entry with its central-dir size raised to 100:1 loads (probe in the body). Item 1: entry bound removed
-→ 1 red, restored 7 green. fflate claim holds. 16k figures reproduce bar `.brep` 3.5:1 (12.1:1). Not owner-gated.
-Body: `handoff/hmdnah/2026-10-13-T-046-review-step-1.md`
-
-## T-046 — the ratio cap measures the bytes the file holds (step-1 defect) — 2026-10-13 — seat: zayd
-
-`entryRoom` bounds each entry's compressed size by its real span (next local header or central dir), and
-refuses a shared local header and zip64. +2 tests, red before; each bound reverted → 1 red. Corrected:
-16,003 zip entries, test `.brep` 12.1:1. Open: 1 MiB floor entries still give 900:1 (`## Discovered`).
-Body: `handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md`
-
-## T-046 — review step 2 of PR #81 — 2026-10-13 — seat: hmdnah
-
-Approved; step 1's ratio defect closed at both sites. Item 1: `min(size, room)` → `size` → 1 red, restored green.
-Item 6: three mutants survived (`read`'s room, whole-file room, entry cap off by 2); +2 tests and an exact count
-land each red. Item 2: every `unzipSync` is capped. zip64 refusal needs the locator sig (comment). Not owner-gated.
-Body: `handoff/hmdnah/2026-10-13-T-046-review-step-2.md`
-
-## T-041 — D29 R3 — the load-only restore substitution in `#stage` — 2026-10-12 — seat: zayd
-
-`cacherestore.ts`: `restoreAssembly` imports a root whose input key matches, any refusal releases and rebuilds;
-`#stage` restores only from `rebuildAll`/`rebuildOnly`. 8 OCCT tests: restored ≡ rebuilt; catch rethrown → 2 red;
-restore default `true` → edit-path test red. Clean Delta: max Δ 4.44e-16 m³ < 1e-9. `pnpm verify` green (951).
-Body: `handoff/zayd/2026-10-12-T-041-d29-load-only-restore.md`
-
-## T-041 — review step 1 of PR #79 — 2026-10-12 — seat: hmdnah
-
-Not approved (step 1); no defect proven. Item 1: `restoreAssembly`'s catch rethrows → 2 red, restored 8 green.
-Only `rebuildAll`/`rebuildOnly` pass `restore`; Clean Delta re-run 4.44e-16 m³ / 22, same units as the 1e-9 gate.
-`pnpm verify` 951 + 66. Risk gate: additive, labeller ran on `e7f987a`. Not owner-gated.
-Body: `handoff/hmdnah/2026-10-12-T-041-review-step-1.md`
-
-## T-041 — review step 2 of PR #79 — 2026-10-12 — seat: hmdnah
-
-Not approved, not merged: item 6 proved a weak green (B-20261012-06). A refusal after import still counts as restored, so 4/5
-roots refused → 8 green, Clean Delta 0. Item 1: `restore` default `true` → edit-path test red, restored 8 green. Items 2, 3 clean.
-Body: `handoff/hmdnah/2026-10-12-T-041-review-step-2.md`
-
-## T-041 — restore tests read live handles, not import calls (B-20261012-06) — 2026-10-14 — seat: zayd
-
-The spy records imported and released handles; a root counts as restored only if every live part handle is an
-unreleased import, asserted in the three restore tests and Clean Delta. B-06's `parts.length < 2` mutant → 3 red;
-`isPermutation` false → 5 red; restored → 8 green. Merged `origin/main` (PR #81).
-Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md`
-
-## T-041 — review step 2 (second run) of PR #79 — 2026-10-14 — seat: hmdnah
-
-Not approved, not merged: item 6 proved the edit-path test weak-green (B-20261014-01): execute or redo passing `restore` → 8 green.
-B-20261012-06's evidence now 3 red; one mutant per done-when, all red, restored 8 green. Items 2, 3 clean; CI green on `64d8828`.
-Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md`
-
-## T-041 — execute and redo land on a cached key (B-20261014-01) — 2026-10-14 — seat: zayd
-
-New test opens wall C off its record, so execute and redo land back on its key and assert no import.
-Execute passing `restore` → 1 red; redo passing `restore` → 1 red; restored → 9 green. Product code unchanged.
-`pnpm verify` green (963, docs:check 66).
-Body: `handoff/zayd/2026-10-14-T-041-restore-tests-read-live-handles.md` (second section)
-
-## T-041 — review step 2 (third run) of PR #79 — 2026-10-14 — seat: hmdnah
-
-Approved and merged: B-20261014-01 closed. Item 1: execute, then redo, passing `restore` → 1 red each, restored 9 green.
-Only the test changed since `64d8828`, so items 2, 3 stand. CI green on `ed3c86e`, labeller additive. Not owner-gated.
-Body: `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` (third-run section)
-
-## T-042 — D29 R4 — the lazy idle exporter; a save never exports — 2026-10-14 — seat: zayd
-
-`exportCacheIdle` exports built assemblies, keyed on landing and dropped if an edit overtook them; `geometryCacheFiles`
-writes matching-key idle exports and carries restored or unbuilt records, with no kernel op. 8 OCCT tests; six
-mutants, each red. 16k: cache 105 MB raw / 14.6 MB zipped, `saveBnn` 4.1 s. `pnpm verify` green (971).
-Body: `handoff/zayd/2026-10-14-T-042-d29-lazy-export.md`
-
-## T-042 — review step 1 of PR #82 — 2026-10-14 — seat: hmdnah
-
-Not approved (step 1); two doc defects back to zayd: `bnn.ts` cap comments still size against 67.2 MB / `scene.json`
-6.1 MB (R4: `index.json` 61.3 MB, ~111 MB), and design §5's autosave ~305 MB. Item 1: landing guard removed → 1 red,
-restored 8 green. `.brep` per-solid reproduces; 16k figures unverified here (env run refused). Not owner-gated.
-Body: `handoff/hmdnah/2026-10-14-T-042-review-step-1.md`
-
-## STEWARD-bnn-zip-mtime — T-047, `.bnn` bytes that depend on the wall clock — 2026-10-14 — seat: brahim
-
-`gates.py verify` on main 5ae192f went red once at `journal-transport-rule14.test.ts:305`: two saves, same length,
-different bytes. Cause: `bnn.ts:182` gives `zipSync` no `mtime`, so fflate stamps `Date.now()` (2 s DOS time).
-Now T-047, `ready`, `risk: normal`, via `backlog.py add`; diagnosed by a row-less subagent (R39). No code changed.
-Body: `handoff/brahim/2026-10-14-STEWARD-bnn-zip-mtime-row.md`
-
-## STEWARD-bnn-zip-mtime — finish of the 2026-10-14 turn — 2026-10-18 — seat: brahim
-
-The 10-14 finish was backgrounded and killed, so `2a672fe` never left the box; this turn runs it in the foreground.
-D-20261007-08 (`app-list`) and D-20261007-11 (`recipe-only`) expired 10-15 unapplied and failed `gates.py docs`:
-defaults applied, `answered:` stamped, no code changed.
-Body: `handoff/brahim/2026-10-18-STEWARD-bnn-zip-mtime-finish.md`
-
-## T-047 — A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads — 2026-10-19 — seat: zayd
-
-`bnn.ts`: `saveBnn` gives `zipSync` one constant `mtime`, local `1980-01-01`, the earliest date fflate 0.8.3 accepts.
-New test: one scene saved at two clock times under `vi.setSystemTime` → identical bytes; red before, `mtime` dropped → red.
-The three named tests pass unchanged; `pnpm verify` green (964, docs:check 66).
-Body: `handoff/zayd/2026-10-19-T-047-bnn-zip-mtime.md`
-
-## T-047 — review of PR #84 — 2026-10-19 — seat: hmdnah
-
-Approved, no defect. Item 1: `mtime` dropped → 1 red, restored → 1 green. `pnpm verify` 105 files / 964 tests.
-Sole `zipSync` call; fflate lines match; the zip hash is the same in three time zones. Not owner-gated.
-Body: `handoff/hmdnah/2026-10-19-T-047-review.md`
-
-## T-042 — step-1 doc defects: the cap comments and the §5 Autosave figure — 2026-10-19 — seat: zayd
-
-`bnn.ts` cap comments now size against R4's 105 MB cache: `index.json` 61.3 MB (entry cap ~4.4×), ~111 MB with
-`scene.json` (total cap ~4.8×); constants unchanged. Design §5 Autosave: ~525 MB inflated, ~73 MB zipped.
-No code or test changed. hmdnah's step-1 record is on `rescue/bunyan/20261014T163116Z`, not this branch.
-Body: `handoff/zayd/2026-10-19-T-042-step-1-doc-defects.md`
-
-## T-042 — review step 2 of PR #82 — 2026-10-19 — seat: hmdnah
-
-Clean: step 1's two doc defects are fixed (`a9c2b51`), arithmetic re-checked. Item 1: `#builtRoots` carry guard
-removed → 1 red (`:374`), restored 17 green. Sweep: no other cache writer; every geometry writer reaches `#commit`.
-Opinion: test 3 stays green without that guard (test 4 holds it). 16k figures unverified here — amer to confirm.
-Body: `handoff/hmdnah/2026-10-19-T-042-review-step-2.md`
-
-## T-042 — review step 2 (second run) of PR #82 — 2026-10-19 — seat: hmdnah
-
-B-20261019-02's need is done: step 1's record landed from `b75f79f`, and `narutousomaki741` added `review/step-1`.
-`main` was merged in, and `pnpm verify` is green (972). Item 1: M4 key check removed → 1 red (`:407`), restored 8 green.
-Opinion: `readMany`'s total sum is untested (`loadBnn` caps it first). Clean. 16k figures unverified here, amer to confirm.
-Body: `handoff/hmdnah/2026-10-19-T-042-review-step-2.md` (second-run section)
-
-## STEWARD-bnn-aggregate-ratio — T-048 from ## Discovered — 2026-10-19 — seat: brahim
-
-T-046's finding: 500 entries ≤ 1 MiB skip `BNN_MAX_RATIO` (`bnn.ts:283`) and read 577,279 B back as 524,288,002 B.
-Now T-048, `ready`, `risk: high` (D29 read path), via `backlog.py add`; the finding is deleted. No code changed.
-Body: `handoff/brahim/2026-10-19-STEWARD-bnn-aggregate-ratio-row.md`
-
-## STEWARD-bnn-aggregate-ratio — review of PR #85 — 2026-10-19 — seat: hmdnah
-
-Approved; no defect proven. Item 1: T-048's `implements:` deleted → `gates.py docs` exit 1 naming T-048;
-restored → exit 0. Figures hold: T-046 handoff 50-52 (577,279 B → 524,288,002 B, 908:1), `bnn.ts:206,213,283`,
-design §5 105.2 MB from 14.6 MB (7.2:1). Every done-when is a box vitest check. Reserved classes: none.
-Body: `handoff/hmdnah/2026-10-19-STEWARD-bnn-aggregate-ratio-review.md`
-
-## T-048 — A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap — 2026-10-19 — seat: zayd
-
-`bnn.ts` `checkCaps` sums inflated and held bytes over the entries a pass inflates, refusing past 200:1 above 1 MiB;
-`cache.readMany` runs it before inflating. New tests: the T-046 probe and a post-load `readMany` are refused (red
-before, and with the check dropped); a synthetic 16k full cache, 105.3 MB, opens. `pnpm verify` green (975).
-Body: `handoff/zayd/2026-10-19-T-048-bnn-aggregate-ratio.md`
-
-## T-048 — review step 1 of PR #86 — 2026-10-19 — seat: hmdnah
-
-No defect proven; not approved (step 1). Item 1: `bnn.ts` reverted to `eb36dbb` → 2 red; aggregate check off → same
-2 red; restored → 22 green over the four `.bnn` files. Probe 579,153 B at 1015.8:1 and the 16k cache 105.25 MB
-from 15.22 MB re-measured. Reserved classes: none; CI green on `e031c9f`. Items 2, 3, 6 are step 2's.
-Body: `handoff/hmdnah/2026-10-19-T-048-review-step-1.md`
-
-## T-048 — review step 2 of PR #86 — 2026-10-19 — seat: hmdnah
-
-Approved; no code defect proven. Item 1: `bnn.ts` at `eb36dbb` → 2 red; restored → 22 green. Item 6: aggregate
-`held` from declared sizes stayed green; one test added that goes red against it. Item 3: `read` at 16k costs
-20.11 ms (12.58 before), filed to `## Discovered`. `pnpm verify` 976 passed; reserved classes: none.
-Body: `handoff/hmdnah/2026-10-19-T-048-review-step-2.md`
-
-## STEWARD-cache-restore-batch — T-049 from ## Discovered — 2026-10-19 — seat: brahim
-
-PR #86's step 2 found a 16k cache restore quadratic: `cacherestore.ts:104` calls `read` per part, 20.11 ms each.
-Now T-049, `ready`, `risk: high` (D29 read path): one `readMany` per batch of roots. The finding is deleted. No code changed.
-Body: `handoff/brahim/2026-10-19-STEWARD-cache-restore-batch-row.md`
-
-## STEWARD-cache-restore-batch — review of PR #87 — 2026-10-19 — seat: hmdnah
-
-Approved; no row defect proven. Item 1: a counting reader on the d29 restore → red on main (20 `.brep` reads, 5 roots);
-a throwaway per-root `readMany` → green, 0 reads; removed. Probe: 20.6–21.0 ms per `read`, 609–626 ms per `readMany`
-(row: 22.56, 694). Fixed the abstract's 22.56 → 20.11, step 2's figure. Reserved classes: none.
-Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
-
 ## T-033 — flow fix: PR #69 merged with `origin/main` — 2026-10-20 — seat: zayd
 
 Merged `origin/main` into the branch; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
 The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (977 passed, 1 skipped).
 PR #69 stays owner-gated; not merged.
 Body: `handoff/zayd/2026-10-20-T-033-main-merge.md`
+
+## T-033 — flow fix: PR #69 merged with `origin/main` again — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`7da6795`) per D-20261020-01's `changes`; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (1003 passed, 1 skipped).
+PR #69 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-033-main-merge-2.md`

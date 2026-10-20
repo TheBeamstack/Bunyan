@@ -177,7 +177,8 @@ Measured (§4j-2, one run, 60 solids, `handoff/archive/zayd/2026-07-30-d29-cache
 ⇒ **A save never exports. The cache is written LAZILY, and there is no option in v1.0.0.**
 
 - **After each commit**, the rebuilt assemblies are queued for export in idle worker time; an edit to one wall
-  costs that wall's few solids (~7 ms each), off the interaction path.
+  costs that wall's few solids (~7 ms each), off the interaction path. A commit that changes §2b's shared-table
+  digest queues every live assembly, rebuilt, restored or not (T-052): its key flipped, so none is carried.
 - **Restored and unbuilt (D66-deferred) assemblies are carried**, not re-exported: their entries are copied from
   the retained file bytes when their input key still matches the current scene.
 - **A save writes only entries whose key matches the scene it writes** — recomputed at save, so an unbuilt
@@ -198,9 +199,15 @@ to 16,000, box, 2026-10-14; method and command in `handoff/zayd/2026-10-14-T-042
 the ~61 MB above understated the inflated cache: 105 MB, inside every T-046 cap. A save of the full cache
 blocks for ~4 s; this fixture is curtain-wall heavy, so another mix moves both figures.
 
-**Autosave.** Spec §7 has autosave write the cache _"only if D29 lands it"_, and D93 landed it. A five-deep ring
-carrying R4's cache is ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. **Open: `D-20261012-07`**, recommended `omit` (recovery is rare,
-and a recovered session rebuilds as today).
+**T-056** splits `saveBnn` into `assembleBnnEntries` and `zipBnnEntries` (`bnnzip.ts`, fflate only), so a worker can
+run the ~4 s zip on posted entries and write `saveBnn`'s bytes (`tests/bnn-zip-worker-t056.test.ts`). The 16k
+re-run after the split (hmdnah, box, 2026-10-20, `tests/geometry-cache-export-d29.test.ts` with
+`BUNYAN_D29_MEASURE_16K=1`): `saveBnn` 4075.8 ms with the cache, 0.4 ms without (best of 3); `.brep` 687 B/solid
+compressed, `index.json` 227 B/solid — the split moves no figure.
+
+**Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
+carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
+`SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.
 
 ---
 
