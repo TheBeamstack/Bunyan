@@ -688,8 +688,8 @@ export class DocumentContext {
       const root = element.id;
       const key = cacheInputKey(scene, root, tables);
       const exported = this.#exported.get(root);
-      if (exported !== undefined) {
-        if (exported.record.key !== key) continue;
+      // A stale export (a restored root whose key flipped back on undo) falls through to the carry.
+      if (exported !== undefined && exported.record.key === key) {
         records[root] = exported.record;
         for (const [name, bytes] of exported.files) files[name] = bytes;
         continue;

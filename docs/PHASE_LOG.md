@@ -545,3 +545,10 @@ Changes requested; one regression proven, back to `zayd` via `--continue` (no bl
 0 records (3 on `main`), because a stale `#exported` entry skips the file carry. Fix shape and probe are in the body.
 Queueing on digest change only, undo/redo, deletes and no-rebuild all hold. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-20-T-052-review-step-1.md`
+
+## T-052 — review step 1 fix of PR #96 — 2026-10-20 — seat: zayd
+
+`geometryCacheFiles` uses an `#exported` entry only when its key matches; a stale one falls through to the file carry,
+so a restored doc's drained table edit, undone, saves its 3 records again. hmdnah's probe is test 5 of
+`tests/cache-requeue-table-edit.test.ts`: red without the fix, green with it; 8 cache suites 84 passed.
+Body: `handoff/zayd/2026-10-20-T-052-step-1-fix.md`

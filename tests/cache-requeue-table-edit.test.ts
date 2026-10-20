@@ -225,6 +225,22 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     expect(Object.keys(writtenKeys(doc)).sort()).toEqual(roots);
   });
 
+  it('a drained table edit, undone, carries the restored roots from the file again', async () => {
+    const pkg = loadBnn(full);
+    const doc = make({
+      geometry: client,
+      scene: pkg.scene,
+      geometryCacheEnvelope: ENVELOPE,
+      geometryCache: { files: pkg.cache!, current: ENVELOPE },
+    });
+    await doc.rebuildAll();
+    await doc.execute('core.createMaterial', STEEL);
+    await drain(doc);
+    await doc.undo();
+    // A save before the re-drain: each root's stale export must not block its file carry.
+    expect(writtenKeys(doc)).toEqual(currentKeys(doc));
+  });
+
   it('with no geometryCacheEnvelope a material edit queues nothing', async () => {
     const doc = make({ geometry: client, scene });
     await doc.rebuildAll();
