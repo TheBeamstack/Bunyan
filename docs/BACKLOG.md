@@ -358,11 +358,11 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - done-when: refused, each with a named reason: a `planPoint` under a non-vertical rotation axis or a translation with `dz ≠ 0` (the message names `core.updateContainer`), any mirror of a tagged element (§6), `core.setPlacement` on a params-positioned element (the message names `core.move`)
 - done-when: `core.rotate`'s default `about` on a params-positioned element is the centroid of its tagged points
 - done-when: moving a wall leaves the walls joined to it unmoved (`detach`); `core.copy` of a wall that hosts an opening still refuses at the hosted check, which T-036 lifts
-- done-when: if the wall build's goldens move, the re-seed gate is discharged (`docs/INVARIANTS.md §5`)
+- done-when: `tests/goldens/` is re-seeded, since any edit under `packages/types/src/` trips the re-seed gate whether or not geometry moves; if no value moved, a `Re-seed-unchanged:` trailer gives the reason (`docs/INVARIANTS.md §5`)
 - done-when: revert-verified: removing the tags from `core.wall` turns the move test red
 - verify: pnpm verify
 - depends-on: T-050 · area: backend · machine: box · risk: **high**
-- note: `blocked` 2026-10-20 (steward): on T-050, whose member it reads; promoted by step 4 once T-050 is `done`.
+- note: `blocked` 2026-10-20 (steward): on T-050, whose member it reads; promoted by step 4 once T-050 is `done`. The box loop's seeder run is refused while B-20261012-03 stands.
 
 ### T-036 — Q7 — `core.copy` deep-copies a host's openings
 

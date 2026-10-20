@@ -494,3 +494,10 @@ Body: `handoff/hmdnah/2026-10-20-T-045-review-step-2.md`
 Now T-050 (`ready`, contract-touching: `ParamField.motion?`, before P5 step 6) and T-051 (`blocked` on it: the verbs and
 the `core.wall` tags). T-036 now depends on T-051. No code changed.
 Body: `handoff/brahim/2026-10-20-STEWARD-baseline-motion-rows.md`
+
+## STEWARD-baseline-motion — review of PR #92 — 2026-10-20 — seat: hmdnah
+
+Approved, one proven fix on the branch. Item 1: T-050's `motion?` in `ParamField` → `freeze-boundary` red on that interface alone,
+restored → green. A description-only `wall.ts` commit fails `check-reseed.mjs` (exit 1), so T-051's re-seed item now
+requires a re-seed, not "if goldens move"; its note names B-20261012-03. Design §A probe re-run: 6 of 6 refused. Reserved classes: none.
+Body: `handoff/hmdnah/2026-10-20-STEWARD-baseline-motion-review.md`
