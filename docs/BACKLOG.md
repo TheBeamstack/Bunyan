@@ -121,7 +121,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-053 | done    | Wall auto-joins pair only walls whose vertical extents overlap                                    | backend  | box     | **high** | —            |
 | T-054 | done    | A container move re-stages every datum on a Level beneath it                                      | backend  | box     | **high** | —            |
 | T-055 | done    | A design-option set with no primary or two primaries surfaces in brokenRefs()                     | backend  | box     | normal   | —            |
-| T-056 | ready   | A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn              | backend  | box     | **high** | —            |
+| T-056 | review  | A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn              | backend  | box     | **high** | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
