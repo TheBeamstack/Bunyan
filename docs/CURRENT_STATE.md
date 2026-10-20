@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-cache-save-zip-worker` |
-| branch | `steward/cache-save-zip-worker` |
-| claimed-at | 2026-10-20T13:34:59Z |
-| status | merged — PR #103 merged by `hmdnah` at 2026-10-20T15:09:41Z |
+| task | `T-056` |
+| branch | `task/T-056-a-save-carrying-the-d29-cache-can-zip-of` |
+| claimed-at | 2026-10-20T15:10:44Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 341691e736f969b4f710c6ad4d8077f37199a466
+last-verified-at: 83f93de1d09f9191546320e84f2f8a36be898d4c

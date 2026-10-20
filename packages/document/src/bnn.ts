@@ -24,7 +24,9 @@
  * this file is documented and versioned, and Miqdar — a different product — reads *and writes* it.
  */
 
-import { unzipSync, zipSync } from 'fflate';
+import { unzipSync } from 'fflate';
+import type { BnnEntries } from './bnnzip.js';
+import { zipBnnEntries } from './bnnzip.js';
 import type { Scene } from './scene.js';
 import { SCENE_SCHEMA_VERSION, emptyScene } from './scene.js';
 import type { UndoableEdit } from './undo.js';
@@ -112,8 +114,6 @@ export interface SaveOptions {
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-/** Every zip entry's timestamp: the earliest DOS date, in local time (see `saveBnn`'s return). */
-const BNN_ZIP_MTIME = new Date(1980, 0, 1);
 
 /** Which type version each element was authored against — the input to load-time migration. */
 function typeVersionsOf(scene: Scene): Record<string, number> {
@@ -126,7 +126,13 @@ function typeVersionsOf(scene: Scene): Record<string, number> {
   return versions;
 }
 
+/** A save: its entries, zipped (T-056: a worker may run `zipBnnEntries` on entries posted to it). */
 export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
+  return zipBnnEntries(assembleBnnEntries(scene, options));
+}
+
+/** The save's entries by zip path, before the zip step; every refusal `saveBnn` makes is made here. */
+export function assembleBnnEntries(scene: Scene, options: SaveOptions): BnnEntries {
   // ⚠⚠ NEITHER FORCE NOR DECLARE, AND THE SIGNATURE IS THE PROOF (D66 §3c, T-005): it takes a `Scene`
   // — the recipe — so no built state is within its reach and a lazily built document writes the same
   // bytes as a fully built one. Should that ever change it FORCES: a save that silently omits unbuilt
@@ -182,11 +188,7 @@ export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
       files[GEOMETRY_CACHE_DIR + name] = bytes;
     }
   }
-
-  // ⚠ One constant `mtime` (T-047, spec §6.5): fflate otherwise stamps `Date.now()` into every header, so
-  // two saves of one scene differ by the clock. A local-time date, since fflate 0.8.3 encodes the local
-  // year and throws below 1980.
-  return zipSync(files, { level: 6, mtime: BNN_ZIP_MTIME });
+  return files;
 }
 
 /*
