@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-baseline-motion` |
-| branch | `steward/baseline-motion` |
+| task | `STEWARD-invariants-browser-claim` |
+| branch | `steward/invariants-browser-claim` |
 | claimed-at | 2026-10-20T02:45:32Z |
-| status | merged — PR #92 merged by `hmdnah` at 2026-10-20T04:34:49Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 6f3daa0b6fc99059385566791327b0acc324909e
+last-verified-at: 3d98fe817ea8f6abb2a6089f8f5e78e6bac05de4

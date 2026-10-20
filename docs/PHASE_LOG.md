@@ -501,3 +501,17 @@ Approved, one proven fix on the branch. Item 1: T-050's `motion?` in `ParamField
 restored → green. A description-only `wall.ts` commit fails `check-reseed.mjs` (exit 1), so T-051's re-seed item now
 requires a re-seed, not "if goldens move"; its note names B-20261012-03. Design §A probe re-run: 6 of 6 refused. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-20-STEWARD-baseline-motion-review.md`
+
+## STEWARD-invariants-browser-claim — §1.9 follows R79 — 2026-10-20 — seat: brahim
+
+`docs/INVARIANTS.md §1.9` let only `amer`/`khalihlna` pass a browser claim; R79 (owner, 2026-10-08) routes it by the
+machine's `browser` probe. §1.9 now says that and points at `AGENTS.md §4`; the `## Discovered` clause that flagged it
+(2026-10-11, PR #66) is deleted. No code changed.
+Body: `handoff/brahim/2026-10-20-STEWARD-invariants-browser-claim-r79.md`
+
+## STEWARD-invariants-browser-claim — review of PR #94 — 2026-10-20 — seat: hmdnah
+
+Approved, no fix. Item 1: §1.9 and `## Discovered` reverted to `main` → check red (box seats barred, no R79/§4 routing,
+flag present); restored → green. R79 (`RULINGS.md:984`) and `AGENTS.md §4` say what §1.9 now cites; a repo-wide sweep
+finds no other reliance on the old wording. Docs gate green. Reserved classes: none.
+Body: `handoff/hmdnah/2026-10-20-STEWARD-invariants-browser-claim-review.md`
