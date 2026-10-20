@@ -354,6 +354,7 @@ export class DocumentContext {
     return [
       ...this.#scene.brokenRefs,
       ...danglingDesignOptionRefs(this.#scene),
+      ...primaryViolations(this.#scene),
       ...danglingAncestorRefs(this.#scene),
     ];
   }
@@ -1561,6 +1562,41 @@ function danglingDesignOptionRefs(scene: Scene): readonly BrokenReference[] {
       ref: optionId,
       hostId: element.id,
       reason: `the design option "${optionId}" is not defined in this document, so this element is excluded from every enumerating consumer`,
+    });
+  }
+  return out;
+}
+
+/**
+ * ⚠ **A SET WITH ZERO OR TWO PRIMARIES** (T-055). `checkPrimaryInvariant` refuses one at the option
+ * verbs only; a `.bnn` or a code-assembled `Scene` still reaches it, and `isElementActive` then counts
+ * every tagged element in the set (two) or none (zero). Reported per tagged element, never healed.
+ *
+ * ⚠ An untagged element hosted on a tagged one gets no entry: its activity is its host's (D67), so the
+ * host's entry already names the cause. `hostId` is the element's own id (T-007's convention).
+ */
+function primaryViolations(scene: Scene): readonly BrokenReference[] {
+  const options = scene.designOptions;
+  if (options === undefined) return [];
+  const primaries = new Map<string, number>();
+  for (const option of Object.values(options)) {
+    primaries.set(
+      option.setName,
+      (primaries.get(option.setName) ?? 0) + (option.isPrimary ? 1 : 0),
+    );
+  }
+  const out: BrokenReference[] = [];
+  for (const element of Object.values(scene.elements)) {
+    const optionId = element.designOptionId;
+    const option = optionId === undefined ? undefined : options[optionId];
+    if (option === undefined) continue; // untagged, or dangling — `danglingDesignOptionRefs` owns that
+    const count = primaries.get(option.setName) ?? 0;
+    if (count === 1) continue;
+    out.push({
+      elementId: element.id,
+      ref: option.id,
+      hostId: element.id,
+      reason: `the design option set "${option.setName}" has ${String(count)} primary options where exactly one is required, so every consumer defaulting to the primary ${count === 0 ? 'excludes this element' : 'counts this element alongside its alternatives'}`,
     });
   }
   return out;
