@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-054` |
-| branch | `task/T-054-a-container-move-re-stages-every-datum-o` |
+| task | `STEWARD-design-option-primary-invariant` |
+| branch | `steward/design-option-primary-invariant` |
 | claimed-at | 2026-10-20T11:40:01Z |
-| status | merged — PR #100 merged by `hmdnah` at 2026-10-20T12:42:49Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 8bcc66153ab50b27e447009de32d81a12e05a7b8
+last-verified-at: 1f5b1f5642fa0c894c0c9e1f16ee7d8a4c7d68b6
