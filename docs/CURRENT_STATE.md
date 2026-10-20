@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-baseline-motion` |
 | branch | `steward/baseline-motion` |
 | claimed-at | 2026-10-20T02:45:32Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #92 merged by `hmdnah` at 2026-10-20T04:34:49Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 15798846e41733e6a1f68bdfac981588c3d69464
+last-verified-at: 6f3daa0b6fc99059385566791327b0acc324909e
