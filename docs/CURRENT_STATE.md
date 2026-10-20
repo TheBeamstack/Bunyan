@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-design-option-primary-invariant` |
 | branch | `steward/design-option-primary-invariant` |
 | claimed-at | 2026-10-20T11:40:01Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #101 merged by `hmdnah` at 2026-10-20T13:33:55Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 1f5b1f5642fa0c894c0c9e1f16ee7d8a4c7d68b6
+last-verified-at: 31ce4f7055f5bdaec53eae1e1ee3cff221fce117
