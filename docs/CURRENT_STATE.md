@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-055` |
-| branch | `task/T-055-a-design-option-set-with-no-primary-or-t` |
+| task | `STEWARD-cache-save-zip-worker` |
+| branch | `steward/cache-save-zip-worker` |
 | claimed-at | 2026-10-20T13:34:59Z |
-| status | merged — PR #102 merged by `hmdnah` at 2026-10-20T14:10:33Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 59f771c7df444ba628b60e7c2102f08c6c366a8c
+last-verified-at: 58905a8bc56661c3f499dfa3a6d18829d9afb288
