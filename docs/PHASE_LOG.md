@@ -472,3 +472,10 @@ Approved; no row defect proven. Item 1: a counting reader on the d29 restore →
 a throwaway per-root `readMany` → green, 0 reads; removed. Probe: 20.6–21.0 ms per `read`, 609–626 ms per `readMany`
 (row: 22.56, 694). Fixed the abstract's 22.56 → 20.11, step 2's figure. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
+
+## T-034 — PR #70's conflict with `main` resolved — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`ce61874`); three docs conflicted, no code. BACKLOG took `main`'s table with T-034 at `review`;
+PHASE_LOG kept both sides. The snapshot did not conflict and was not re-baselined. `pnpm verify` green (978 passed).
+RISK: contract-touching, unchanged — owner merges.
+Body: `handoff/zayd/2026-10-20-T-034-merge-main.md`
