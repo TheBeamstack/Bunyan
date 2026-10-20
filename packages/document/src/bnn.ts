@@ -10,12 +10,11 @@
  *     ├── manifest.json   app/schema/type versions, the KERNEL BUILD ID, and the MODEL REVISION (D34)
  *     ├── scene.json      THE PARAMETRIC TRUTH. The building IS this file.
  *     ├── history.json    the edit log — session continuity AND the ecosystem's change feed (D34)
- *     └── thumbnail.png   a convenience artifact; never affects load
+ *     ├── thumbnail.png   a convenience artifact; never affects load
+ *     └── geometry-cache/ OPTIONAL (D29/D93): `index.json` + `<rootId>/<k>.brep`, never assumed present
  *
- * ⚠ **THERE IS NO `geometry-cache.brep` AND NOTHING HERE ASSUMES ONE** (D29, deferred by owner ruling
- * to P3 step 4 — to be decided WITH the measured rebuild cost, which is the whole point of the
- * deferral). Whatever is ruled, it is purely additive to a zip, so v1.0.x could add it without
- * breaking a single saved file.
+ * ⚠ The geometry cache is purely additive: nothing here requires it, a build that ignores it opens the
+ * file, and `loadBnn` never inflates it until an entry is read (design `P5_step9_D29_bnn_cache_design.md` §3).
  *
  * ⚠ **WHY A NATIVE FORMAT EXISTS AT ALL, WHEN IFC IS A REAL OPEN STANDARD:** IFC is an *interchange*
  * format, not an *authoring* one. It stores the RESULTS of modelling — geometry, properties,
@@ -66,6 +65,26 @@ export interface BnnPackage {
   /** ⚠ THE JOURNAL (D40) — the ecosystem's change feed. Not "optional session continuity". */
   readonly journal?: readonly UndoableEdit[];
   readonly thumbnail?: Uint8Array;
+  /** Present iff the file carries `geometry-cache/`. Nothing in it is inflated until `read`. */
+  readonly cache?: GeometryCacheReader;
+}
+
+/** The zip directory the D29 cache lives in (design §3). */
+export const GEOMETRY_CACHE_DIR = 'geometry-cache/';
+
+/** A geometry cache to write: entry names relative to `geometry-cache/`, `index.json` required. */
+export type GeometryCacheFiles = Readonly<Record<string, Uint8Array>>;
+
+/**
+ * On-demand access to a loaded file's `geometry-cache/`. It retains the file's bytes (not a copy) and
+ * inflates one entry per `read`; a corrupt entry throws there, never at load.
+ */
+export interface GeometryCacheReader {
+  /** Entry names relative to `geometry-cache/`, directory entries excluded. */
+  readonly names: readonly string[];
+  read: (name: string) => Uint8Array | undefined;
+  /** `read` for many names in ONE pass over the zip (a save carrying 16k entries); unknown names absent. */
+  readMany: (names: Iterable<string>) => ReadonlyMap<string, Uint8Array>;
 }
 
 export interface SaveOptions {
@@ -87,10 +106,14 @@ export interface SaveOptions {
    * Absent in v1.0.0 (no transport mints one); a co-editing transport supplies it additively.
    */
   readonly documentLineage?: string | undefined;
+  /** D29 — written under `geometry-cache/` verbatim. Absent ⇒ no cache, and the file is complete. */
+  readonly cache?: GeometryCacheFiles | undefined;
 }
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+/** Every zip entry's timestamp: the earliest DOS date, in local time (see `saveBnn`'s return). */
+const BNN_ZIP_MTIME = new Date(1980, 0, 1);
 
 /** Which type version each element was authored against — the input to load-time migration. */
 function typeVersionsOf(scene: Scene): Record<string, number> {
@@ -150,22 +173,184 @@ export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
     files['history.json'] = encoder.encode(JSON.stringify(options.journal, null, 2));
   }
   if (options.thumbnail !== undefined) files['thumbnail.png'] = options.thumbnail;
+  if (options.cache !== undefined) {
+    if (options.cache['index.json'] === undefined) {
+      throw new Error('refusing to write a geometry cache without its index.json');
+    }
+    for (const [name, bytes] of Object.entries(options.cache)) {
+      if (!isCacheEntryName(name)) throw new Error(`refusing cache entry name "${name}"`);
+      files[GEOMETRY_CACHE_DIR + name] = bytes;
+    }
+  }
 
-  return zipSync(files, { level: 6 });
+  // ⚠ One constant `mtime` (T-047, spec §6.5): fflate otherwise stamps `Date.now()` into every header, so
+  // two saves of one scene differ by the clock. A local-time date, since fflate 0.8.3 encodes the local
+  // year and throws below 1980.
+  return zipSync(files, { level: 6, mtime: BNN_ZIP_MTIME });
+}
+
+/*
+ * ⚠⚠ THE ZIP CAPS (spec §9 import hardening, T-046). Each is checked against what the central directory
+ * DECLARES, before `unzipSync` inflates anything: fflate inflates a DEFLATE entry into a buffer of exactly
+ * its declared `originalSize` (fflate 0.8.3 `unzipSync`), so bounding the declaration bounds the
+ * allocation, and a stored entry copies only bytes the file really holds. Sized against design §5's 16k
+ * target: 16,003 zip entries (T-046), and a 105 MB inflated cache whose largest entry is `index.json` at
+ * 61.3 MB (R4, T-042), plus `scene.json` at 6.1 MB.
+ */
+
+/** 16k solids, one `.brep` each, plus one directory entry per root at worst: 32,005; ~25% headroom. */
+export const BNN_MAX_ENTRIES = 40_000;
+/** The largest entry at 16k is the cache's `index.json`, 61.3 MB; ~4.4× headroom. */
+export const BNN_MAX_ENTRY_BYTES = 256 * 1024 * 1024;
+/** 16k inflates to ~111 MB (the 105 MB cache plus `scene.json`); ~4.8× headroom, still survivable in a tab. */
+export const BNN_MAX_TOTAL_BYTES = 512 * 1024 * 1024;
+/**
+ * `scene.json` at 16k deflates 33:1 and the T-046 test's synthetic `.brep` 12.1:1; DEFLATE's ceiling is
+ * ~1032:1, a bomb's ratio. Measured against the bytes the file holds for the entry (`entryRoom`).
+ */
+export const BNN_MAX_RATIO = 200;
+/** Below this an entry's ratio is not checked: its size alone bounds what it can cost. */
+const RATIO_FLOOR_BYTES = 1024 * 1024;
+
+interface ZipEntryInfo {
+  readonly name: string;
+  readonly size: number;
+  readonly originalSize: number;
+  readonly compression: number;
+}
+
+class BnnCapError extends Error {}
+
+const refuse = (what: string): never => {
+  throw new BnnCapError(`.bnn refused before inflating: ${what}`);
+};
+
+/**
+ * Per central-directory entry, in order: the bytes the file holds for its data, from its local data start
+ * to the next local header or the central directory. ⚠ The ratio is measured against this, never the
+ * declared compressed size: the writer chooses that, and raising it let a 1024:1 entry pass (hmdnah, T-046
+ * step 1). Two entries on one local header would count its bytes twice, so they are refused, as is zip64,
+ * which `saveBnn` never writes and no file under the caps needs.
+ */
+function entryRoom(bytes: Uint8Array): number[] {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const u16 = (at: number): number =>
+    at >= 0 && at + 2 <= bytes.length ? view.getUint16(at, true) : 0;
+  const u32 = (at: number): number =>
+    at >= 0 && at + 4 <= bytes.length ? view.getUint32(at, true) : 0;
+  // The same end-of-central-directory search as fflate's `unzipSync`.
+  let eocd = bytes.length - 22;
+  while (eocd > 0 && u32(eocd) !== 0x06054b50 && bytes.length - eocd <= 65558) eocd--;
+  if (u32(eocd) !== 0x06054b50) return [];
+  if (u32(eocd - 20) === 0x07064b50) refuse('zip64 is not a .bnn layout');
+  const centralDir = u32(eocd + 16);
+  const offsets: number[] = [];
+  for (let i = 0, at = centralDir; i < u16(eocd + 8); i++) {
+    offsets.push(u32(at + 42));
+    at += 46 + u16(at + 28) + u16(at + 30) + u16(at + 32);
+  }
+  const bounds = [...new Set([...offsets, centralDir, bytes.length])].sort((a, b) => a - b);
+  if (bounds.length < offsets.length + 2) refuse('two entries share one local header');
+  const next = new Map(bounds.map((bound, k) => [bound, bounds[k + 1] ?? bytes.length]));
+  return offsets.map((off) => {
+    const start = off + 30 + u16(off + 26) + u16(off + 28);
+    return Math.max(0, (next.get(off) ?? bytes.length) - start);
+  });
+}
+
+/**
+ * Throws naming the cap `entry` passes; `index` is its position, `total` the inflated bytes so far, `room`
+ * the bytes the file holds for it (`entryRoom`).
+ */
+function checkEntry(
+  entry: ZipEntryInfo,
+  index: number,
+  total: number,
+  room: number | undefined,
+): number {
+  if (index >= BNN_MAX_ENTRIES) {
+    refuse(`more than BNN_MAX_ENTRIES (${String(BNN_MAX_ENTRIES)}) entries`);
+  }
+  const inflated = entry.compression === 0 ? entry.size : entry.originalSize;
+  if (inflated > BNN_MAX_ENTRY_BYTES) {
+    refuse(
+      `"${entry.name}" declares ${String(inflated)} bytes, past BNN_MAX_ENTRY_BYTES (${String(BNN_MAX_ENTRY_BYTES)})`,
+    );
+  }
+  const compressed = Math.min(entry.size, room ?? 0);
+  if (
+    entry.compression !== 0 &&
+    inflated > RATIO_FLOOR_BYTES &&
+    inflated > compressed * BNN_MAX_RATIO
+  ) {
+    refuse(
+      `"${entry.name}" inflates ${String(inflated)}:${String(compressed)}, past BNN_MAX_RATIO (${String(BNN_MAX_RATIO)}:1)`,
+    );
+  }
+  if (total + inflated > BNN_MAX_TOTAL_BYTES) {
+    refuse(
+      `the entries declare more than BNN_MAX_TOTAL_BYTES (${String(BNN_MAX_TOTAL_BYTES)}) bytes`,
+    );
+  }
+  return total + inflated;
+}
+
+/**
+ * A pass over the central directory that inflates nothing and throws at the first cap passed. Only the
+ * entries `wanted` names are measured (all, without it), since only they will be inflated. ⚠ The
+ * aggregate ratio is what bounds entries at or under `RATIO_FLOOR_BYTES`: 500 of 1 MiB zeros inflate
+ * ~1016:1 together while no single one is ratio-checked (T-046 probe, T-048).
+ */
+function checkCaps(bytes: Uint8Array, wanted?: (name: string) => boolean): void {
+  const room = entryRoom(bytes);
+  let index = 0;
+  let total = 0;
+  let held = 0;
+  unzipSync(bytes, {
+    filter: (file) => {
+      const entry =
+        wanted === undefined || wanted(file.name) ? file : { ...file, size: 0, originalSize: 0 };
+      total = checkEntry(entry, index, total, room[index]);
+      held += Math.min(entry.size, room[index] ?? 0);
+      index++;
+      return false;
+    },
+  });
+  if (total > RATIO_FLOOR_BYTES && total > held * BNN_MAX_RATIO) {
+    refuse(
+      `the entries inflate ${String(total)}:${String(held)} together, past the aggregate BNN_MAX_RATIO (${String(BNN_MAX_RATIO)}:1)`,
+    );
+  }
+}
+
+/** Relative, `/`-separated, no empty, `.` or `..` segment — so no entry lands outside the directory. */
+function isCacheEntryName(name: string): boolean {
+  if (name === '' || name.includes('\\')) return false;
+  return name.split('/').every((segment) => segment !== '' && segment !== '.' && segment !== '..');
 }
 
 /**
  * ⚠ A `.bnn` IS A FILE A USER CAN BE *SENT*. Everything here is parsed defensively: a malformed
  * manifest, a missing `scene.json`, a scene whose collections are not objects — all of them fail with
- * a message, never with a half-loaded document. (The one part that would have been fed as *binary* to
- * OCCT's deserializer is the geometry cache, which does not exist — see D29. That is not a small
- * security dividend, and it is one of the arguments for never building it.)
+ * a message, never with a half-loaded document. The geometry cache — the one part fed as *binary* to
+ * OCCT — is not inflated here; it is listed, and `cache.read` inflates an entry when a caller asks.
  */
 export function loadBnn(bytes: Uint8Array): BnnPackage {
   let files: Record<string, Uint8Array>;
+  const cacheNames: string[] = [];
+  let hasCache = false;
   try {
-    files = unzipSync(bytes);
+    checkCaps(bytes);
+    files = unzipSync(bytes, {
+      filter: (file) => {
+        if (!file.name.startsWith(GEOMETRY_CACHE_DIR)) return true;
+        hasCache = true;
+        if (!file.name.endsWith('/')) cacheNames.push(file.name.slice(GEOMETRY_CACHE_DIR.length));
+        return false;
+      },
+    });
   } catch (error) {
+    if (error instanceof BnnCapError) throw error;
     throw new Error(`not a readable .bnn package: ${error instanceof Error ? error.message : ''}`);
   }
 
@@ -247,7 +432,27 @@ export function loadBnn(bytes: Uint8Array): BnnPackage {
     scene,
     ...(journal === undefined ? {} : { journal }),
     ...(thumbnail === undefined ? {} : { thumbnail }),
+    ...(hasCache ? { cache: geometryCacheReader(bytes, cacheNames) } : {}),
   };
+}
+
+function geometryCacheReader(bytes: Uint8Array, names: readonly string[]): GeometryCacheReader {
+  const known = new Set(names);
+  const readMany = (wanted: Iterable<string>): Map<string, Uint8Array> => {
+    const full = new Set<string>();
+    for (const name of wanted) if (known.has(name)) full.add(GEOMETRY_CACHE_DIR + name);
+    const out = new Map<string, Uint8Array>();
+    if (full.size === 0) return out;
+    // ⚠ The bytes are retained, not copied, so they are re-checked here, synchronously before the pass
+    // that inflates: the aggregate cap needs every wanted entry summed before fflate allocates for one.
+    checkCaps(bytes, (name) => full.has(name));
+    const files = unzipSync(bytes, { filter: (file) => full.has(file.name) });
+    for (const [name, data] of Object.entries(files)) {
+      out.set(name.slice(GEOMETRY_CACHE_DIR.length), data);
+    }
+    return out;
+  };
+  return { names, read: (name) => readMany([name]).get(name), readMany };
 }
 
 /** ⚠ Not `typeof x === 'object'`: that is true of `null` and of every array. */
