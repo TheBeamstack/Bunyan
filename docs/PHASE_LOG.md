@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-cache-save-zip-worker — T-056 from the 2026-10-14 finding — 2026-10-20 — seat: brahim
+
+T-056 (`ready`, `risk: high`, `depends-on: —`) splits `saveBnn` so its level-6 zip can run in a worker with identical bytes.
+A diagnosis subagent re-measured at `12fa699`: 4076–4249 ms at 16k. Level 1 is ~3.0 s, and level 0 is ~0.4 s at 6x the bytes,
+so a lower level is not the fix. Wiring the worker into `apps/web` needs a browser and T-044, so it is left for a later row. No code changed.
+Body: `handoff/brahim/2026-10-20-STEWARD-cache-save-zip-worker-t056.md`
+
 ## T-055 — review of PR #102 — 2026-10-20 — seat: hmdnah
 
 Approved; no defect proven. Item 1: the `primaryViolations` spread removed → the new test RED (5 failed, 2 passed);

@@ -121,6 +121,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-053 | done    | Wall auto-joins pair only walls whose vertical extents overlap                                    | backend  | box     | **high** | —            |
 | T-054 | done    | A container move re-stages every datum on a Level beneath it                                      | backend  | box     | **high** | —            |
 | T-055 | done    | A design-option set with no primary or two primaries surfaces in brokenRefs()                     | backend  | box     | normal   | —            |
+| T-056 | ready   | A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn              | backend  | box     | **high** | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
@@ -582,6 +583,19 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: — · area: backend · machine: box · risk: normal
 - note: Mechanism (main a7c903e): checkPrimaryInvariant (commands.ts:2665) runs only at create/update/delete (:2768, :2821, :2844); loadBnn checks only that designOptions is a plain object (bnn.ts:411-415) and DocumentContext takes options.scene unchecked (document.ts:283). With two primaries isElementActive counts both walls; with none it drops both (designoptions.ts:140); brokenRefs()/unbuildable() report 0. Fix shape: a primaryViolations(scene) in document.ts that brokenRefs() spreads in, beside danglingDesignOptionRefs (document.ts:1551, D86). Keep it out of designoptions.ts and entities.ts (both [frozen_surface] watched) and do not change isElementActive, else the PR is owner-gated.
 
+### T-056 — A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn
+
+- outcome: saveBnn is split into entry assembly and a zip step a worker can run, so a save with a full 16k cache need not block the calling thread ~4.1 s, and its bytes equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (budget and save policy), §6 R4 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-14, re-measured by a brahim R39 diagnosis 2026-10-20 at 12fa699 (zipSync level 6: 4076-4249 ms at 16k; level 1: ~3.0 s; level 0: ~0.4 s but 6x the bytes)
+- done-when: packages/document exports the save as two pure steps, entry assembly and zip (zipSync at level 6 with BNN_ZIP_MTIME, as packages/document/src/bnn.ts:189 does today), and saveBnn is their composition
+- done-when: test-first: a node-testable worker-side handler given the assembled entries returns bytes equal to saveBnn, for the 20-solid fixture with a cache and for a scene without one; revert-verified: changing the handler level or mtime turns it red
+- done-when: tests/geometry-cache-export-d29.test.ts, tests/autosave-cache-d29.test.ts and every T-047 byte-identity test pass unchanged
+- done-when: the 16k measurement (BUNYAN_D29_MEASURE_16K=1) is re-run and its numbers recorded in design §5 next to the 4.1 s figure
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: a lower geometry-cache/ level is not the fix: level 1 saves ~25%, level 0 makes the file 6x larger against design §5 OPFS budget; fflate async zip() deflates entries under 160,000 B on the calling thread (fflate@0.8.3 esm/index.mjs:2287-2289), so a dedicated worker is needed; the kernel worker (apps/web/src/bootstrap.ts:101) is not it, it would stall OCCT; wiring the worker into apps/web needs a browser and T-044, and is a separate row; risk high per READY rule 8 (D29 save path)
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -689,8 +703,6 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
 - **2026-10-14 — no product caller runs the D29 export** (T-042). `exportCacheIdle` and `geometryCacheFiles`
   are document-layer only: `apps/web` schedules no idle export and its saves pass no `cache`, because the
   envelope needs a `codeId` (T-044, `D-20261012-06`). Fix shape: wire both when T-044 lands. Recorded, not claimed.
-- **2026-10-14 — a save with a full 16k cache blocks ~4.1 s in `zipSync`** (T-042, design §5). Fix shape: zip
-  in a worker, or a lower level for `geometry-cache/`. Recorded, not claimed.
 
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
