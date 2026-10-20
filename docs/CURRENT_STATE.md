@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-053` |
-| branch | `task/T-053-wall-auto-joins-pair-only-walls-whose-ve` |
+| task | `STEWARD-datum-inherited-level-restage` |
+| branch | `steward/datum-inherited-level-restage` |
 | claimed-at | 2026-10-20T09:16:57Z |
-| status | merged — PR #98 merged by `hmdnah` at 2026-10-20T10:58:18Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 33cc3a7d1f52c970adcb32baec8ec61a0704092d
+last-verified-at: 1bc35297811305d1448485a76479e80d9c9b5119
