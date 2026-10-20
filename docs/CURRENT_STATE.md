@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-055` |
 | branch | `task/T-055-a-design-option-set-with-no-primary-or-t` |
 | claimed-at | 2026-10-20T13:34:59Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #102 merged by `hmdnah` at 2026-10-20T14:10:33Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 49a9f49760a9cfb07e5559af440326f44e06928e
+last-verified-at: 59f771c7df444ba628b60e7c2102f08c6c366a8c
