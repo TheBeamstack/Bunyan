@@ -119,6 +119,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-049 | ready   | A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part     | backend  | box     | **high** | —            |
 | T-052 | done    | A shared-table edit re-queues every live assembly whose cache key flipped                         | backend  | box     | **high** | T-042        |
 | T-053 | done    | Wall auto-joins pair only walls whose vertical extents overlap                                    | backend  | box     | **high** | —            |
+| T-054 | ready   | A container move re-stages every datum on a Level beneath it                                      | backend  | box     | **high** | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
@@ -556,6 +557,17 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: — · area: backend · machine: box · risk: **high**
 - note: Mechanism (main 5b4dc73): indexOf adds every element with a baseline (packages/document/src/joins.ts:201-220); partnersAt (:333, scan :343) and throughWallsAt (:369, scan :379) filter only by isElementActive (:347, :383); nothing reads containerId or datums. A wall's extent is base = baseElevation ?? elevation, top = topElevation ?? base + height (packages/types/src/wall.ts:77-78), fed by elevationOf (scene.ts:360) and datumElevations (scene.ts:427) as build.ts:600-610 wires them; add a document-side wallExtentOf rather than editing packages/types/src (a [reseed] source). No golden holds stacked walls. risk high: cachekey.ts:132 digests resolveJoins, so every stacked lower wall's cache key and geometry change.
 
+### T-054 — A container move re-stages every datum on a Level beneath it
+
+- outcome: Moving a Building (or any container) re-stages every element whose base/top datum targets a Level under that container and inheriting its elevation, plus those elements' join neighbours, so the incremental build equals rebuildAll.
+- implements: docs/design/P5_step0b_design.md §5 (the container→element datum edge, 'move a Level, the building follows') and §6 (derived datums); docs/decisions.md D50. Provenance: the 2026-10-20 ## Discovered finding from PR #98's step-2 review.
+- done-when: Building b2 at 3000 holding Level u with no elevation, wall C with a base datum on u: after core.updateContainer b2 to 2000, C's built bbox min[2] equals its value after rebuildAll (2000); the test is red with the fix reverted
+- done-when: In the same scene with wall A on l0 forming a corner with C, A's incremental built min[0] equals its value after rebuildAll after the Building move, and after undo of that move
+- done-when: A container move under which no Level inherits elevation re-stages the same set as on main; every existing test in tests/ passes unchanged
+- verify: npx vitest run tests/datum-inherited-level-restage.test.ts tests/wall-join-level-scope.test.ts && pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: Mechanism (main after PR #98): dependency.ts:104-116 case 'containers' calls elementsConstrainedToLevel(scene, change.id) (scene.ts:393-398), which matches a datum's direct target only, while datumElevations reads elevationOf, which walks containerPath (scene.ts:360-365), so a Level with no elevation follows its ancestor in the build but not in the invalidator. Pre-existing on main; T-053 widens the stale set to join neighbours. Fix shape: in dependency.ts, also collect datums targeting every Level beneath the changed container. scene.ts is in [frozen_surface] watched; keep the fix in dependency.ts. Probe: handoff/hmdnah/2026-10-20-T-053-review-step-2.md. risk high: dependency.ts's invalidator is an auto-high class.
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -660,10 +672,6 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
-- **2026-10-20 — a datum on a Level that inherits its elevation is not re-staged when the ancestor moves** (PR #98).
-  `elementsConstrainedToLevel` matches the direct target only, while `datumElevations` walks `elevationOf`; since
-  T-053 the stale set also reaches join neighbours. Fix shape: match targets whose container path holds the changed
-  container (probe in `handoff/hmdnah/2026-10-20-T-053-review-step-2.md`). Recorded, not claimed.
 - **2026-10-14 — no product caller runs the D29 export** (T-042). `exportCacheIdle` and `geometryCacheFiles`
   are document-layer only: `apps/web` schedules no idle export and its saves pass no `cache`, because the
   envelope needs a `codeId` (T-044, `D-20261012-06`). Fix shape: wire both when T-044 lands. Recorded, not claimed.
