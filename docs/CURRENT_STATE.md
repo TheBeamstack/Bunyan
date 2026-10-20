@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-055` |
 | branch | `task/T-055-a-design-option-set-with-no-primary-or-t` |
 | claimed-at | 2026-10-20T13:34:59Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 31ce4f7055f5bdaec53eae1e1ee3cff221fce117
+last-verified-at: 837a1384e613f719898730b8abcd2cddc12b8950
