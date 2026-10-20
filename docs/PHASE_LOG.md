@@ -473,3 +473,10 @@ Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
 refuses any other, so a foreign or edited file opens with 0 imports and a cache-less open's op sequence (real OCCT).
 Test-first (12 red); MAC check reverted → 7 red, carry guard → 1 red. 16k signing: 2,074 ms, one run.
 Body: `handoff/zayd/2026-10-20-T-043-d29-cache-trust.md`
+
+## T-043 — review step 1 of PR #89 — 2026-10-20 — seat: hmdnah
+
+No defect proven; not approved (step 1). Item 1: `verifyCacheIndex` check removed → 7 red across the three d29 files;
+restored → 34 green. 16k signing re-measured 2073.6 ms, foreign open 92 ops; a 0.4 mm `.brep` edit is refused.
+Reserved classes: none; CI green on `9cf35b6`. Items 2, 3, 6 are step 2's.
+Body: `handoff/hmdnah/2026-10-20-T-043-review-step-1.md`
