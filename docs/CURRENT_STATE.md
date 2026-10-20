@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-053` |
 | branch | `task/T-053-wall-auto-joins-pair-only-walls-whose-ve` |
 | claimed-at | 2026-10-20T09:16:57Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #98 merged by `hmdnah` at 2026-10-20T10:58:18Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 8315f0847cc0ed91d6ad78931a9480f40fb4d411
+last-verified-at: 33cc3a7d1f52c970adcb32baec8ec61a0704092d
