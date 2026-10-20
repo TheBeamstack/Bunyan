@@ -177,7 +177,8 @@ Measured (§4j-2, one run, 60 solids, `handoff/archive/zayd/2026-07-30-d29-cache
 ⇒ **A save never exports. The cache is written LAZILY, and there is no option in v1.0.0.**
 
 - **After each commit**, the rebuilt assemblies are queued for export in idle worker time; an edit to one wall
-  costs that wall's few solids (~7 ms each), off the interaction path.
+  costs that wall's few solids (~7 ms each), off the interaction path. A commit that changes §2b's shared-table
+  digest queues every live assembly, rebuilt, restored or not (T-052): its key flipped, so none is carried.
 - **Restored and unbuilt (D66-deferred) assemblies are carried**, not re-exported: their entries are copied from
   the retained file bytes when their input key still matches the current scene.
 - **A save writes only entries whose key matches the scene it writes** — recomputed at save, so an unbuilt

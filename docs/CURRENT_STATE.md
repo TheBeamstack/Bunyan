@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-cache-requeue-table-edit` |
-| branch | `steward/cache-requeue-table-edit` |
-| claimed-at | 2026-10-20T02:45:32Z |
-| status | merged — PR #95 merged by `hmdnah` at 2026-10-20T06:45:05Z |
+| task | `T-052` |
+| branch | `task/T-052-a-shared-table-edit-re-queues-every-live` |
+| claimed-at | 2026-10-20T06:46:19Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 62c110e3a2364ee91c1a9aca1798dfc9baa80b55
+last-verified-at: 1a567bc39963db85d49e077ece2ff9626160a0c7

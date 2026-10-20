@@ -529,3 +529,33 @@ Approved, no fix. Item 1: `docs/BACKLOG.md` reverted to `main` → check red (no
 green. A real-OCCT probe on `main`'s code reproduces the claim: one `createMaterial` → `rebuilt=[]`, queue 0, records
 2 → 0. Citations, `implements:`, `risk: high` and `depends-on: T-042` hold. Docs gate green. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-20-STEWARD-cache-requeue-table-edit-review.md`
+
+## T-052 — a shared-table edit re-queues every live assembly — 2026-10-20 — seat: zayd
+
+`#commit` compares the §2b shared-table digest (`cacheTablesDigest`, factored from `cacheKeyTables`) to the last
+commit's and on a change queues every live root, not only `staged.built`; restored roots re-export without a rebuild.
+`tests/cache-requeue-table-edit.test.ts` (4, real OCCT) red 3/4 with the fix reverted; `pnpm verify` green. Design §5
+bullet amended (said only rebuilt assemblies queue); R4's test that pinned the old queue of 0 updated.
+Body: `handoff/zayd/2026-10-20-T-052-cache-requeue-table-edit.md`
+
+## T-052 — review step 1 of PR #96 — 2026-10-20 — seat: hmdnah
+
+Changes requested; one regression proven, back to `zayd` via `--continue` (no blocker). Item 1: `document.ts` reverted
+→ 4 red (3 new + R4's changed count), restored → green. Defect: a restored doc's table edit drained, then undone, saves
+0 records (3 on `main`), because a stale `#exported` entry skips the file carry. Fix shape and probe are in the body.
+Queueing on digest change only, undo/redo, deletes and no-rebuild all hold. Reserved classes: none.
+Body: `handoff/hmdnah/2026-10-20-T-052-review-step-1.md`
+
+## T-052 — review step 1 fix of PR #96 — 2026-10-20 — seat: zayd
+
+`geometryCacheFiles` uses an `#exported` entry only when its key matches; a stale one falls through to the file carry,
+so a restored doc's drained table edit, undone, saves its 3 records again. hmdnah's probe is test 5 of
+`tests/cache-requeue-table-edit.test.ts`: red without the fix, green with it; `pnpm verify` 983 passed.
+Body: `handoff/zayd/2026-10-20-T-052-cache-requeue-table-edit.md`
+
+## T-052 — review step 2 of PR #96 — 2026-10-20 — seat: hmdnah
+
+Approved; step 1's defect is closed and no new one is proven. Item 1: re-queue block removed → 4 red; step-1 guard
+reverted → 1 red; restored → green. Item 6: envelope-guard and `#builtRoots` mutants each go red. Item 2: the table
+digest is the only key input wider than a build reads. Redo and in-flight-export probes pass. Reserved classes: none.
+Body: `handoff/hmdnah/2026-10-20-T-052-review-step-2.md`
