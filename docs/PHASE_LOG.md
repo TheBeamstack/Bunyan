@@ -480,3 +480,10 @@ No defect proven; not approved (step 1). Item 1: `verifyCacheIndex` check remove
 restored → 34 green. 16k signing re-measured 2073.6 ms, foreign open 92 ops; a 0.4 mm `.brep` edit is refused.
 Reserved classes: none; CI green on `9cf35b6`. Items 2, 3, 6 are step 2's.
 Body: `handoff/hmdnah/2026-10-20-T-043-review-step-1.md`
+
+## T-043 — review step 2 of PR #89 — 2026-10-20 — seat: hmdnah
+
+DEFECT; not approved, not merged, row stays `review` (B-20261020-01). A hostile `index.json` with deeply nested `records`
+makes `verifyCacheIndex`'s recursive `canonicalJson` throw `RangeError`, so `rebuildAll` rejects and the file does not open;
+with the verify call removed it opens. Item 1: `true ||` before `sameInstallSecret` → 1 red; restored → 34 green.
+Body: `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`
