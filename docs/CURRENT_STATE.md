@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-045` |
-| branch | `task/T-045-d29-r7-autosave-carries-the-cache-or-not` |
+| task | `STEWARD-baseline-motion` |
+| branch | `steward/baseline-motion` |
 | claimed-at | 2026-10-20T02:45:32Z |
-| status | merged — PR #91 merged by `hmdnah` at 2026-10-20T03:40:35Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: c308e5e2ebdb25728e2a16893da9a27142ab7ebf
+last-verified-at: f10bf2f39476c3acf682d5de0613f3759b7f4d08
