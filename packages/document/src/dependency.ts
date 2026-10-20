@@ -108,9 +108,14 @@ export function dependents(
       // constraint targeting this Level follows it too — "move a Level, the building follows".
       // ⚠ AND THEIR JOIN NEIGHBOURS, on any Level (T-053): an auto-join pairs only walls whose extents
       // overlap, so a wall whose extent moved can gain or lose a partner whose own extent did not.
+      // ⚠ AND every Level beneath it that inherits its elevation (T-054): `datumElevations` resolves a
+      // target through `elevationOf`, which walks the path, so a Level with none follows its ancestor.
       const moved = unique([
         ...elementsUnderContainer(scene, change.id),
         ...elementsConstrainedToLevel(scene, change.id),
+        ...levelsInheritingFrom(scene, change.id).flatMap((l) =>
+          elementsConstrainedToLevel(scene, l),
+        ),
       ]);
       return unique([...moved, ...joinNeighboursOf(scene, moved)]);
     }
@@ -237,6 +242,20 @@ function elementsUnderContainer(scene: Scene, containerId: string): readonly Ele
   return elementIdsWhere(scene, (e) =>
     containerPath(scene, e.containerId).some((c) => c.id === containerId),
   );
+}
+
+/**
+ * Every container strictly beneath `containerId` whose `elevationOf` reaches past it: none on the path
+ * from itself up to (excluding) `containerId` sets an elevation. `containerId`'s own elevation is not
+ * read, so a change that sets or clears it is covered either way.
+ */
+function levelsInheritingFrom(scene: Scene, containerId: string): readonly string[] {
+  return Object.keys(scene.containers).filter((id) => {
+    if (id === containerId) return false;
+    const path = containerPath(scene, id);
+    const at = path.findIndex((c) => c.id === containerId);
+    return at >= 0 && path.slice(at + 1).every((c) => c.elevation === undefined);
+  });
 }
 
 function elementIdsWhere(

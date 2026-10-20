@@ -53,3 +53,10 @@ Approved; no defect proven. Item 1: un-rolling the log made the steward roll gat
 copy-not-move roll made `gates.py docs` red (82 duplicates); both restored green. All 82 entry headings moved
 exactly once, byte-identical. Cited lines read as T-054 says. Reserved classes: none. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-20-STEWARD-datum-inherited-level-restage-review.md`
+
+## T-054 — a container move re-stages every datum on a Level beneath it — 2026-10-20 — seat: zayd
+
+`dependency.ts` `case 'containers'` now also re-stages datums on every Level beneath the moved container that
+inherits its elevation, plus their join neighbours. New test covers `base` and `top`, move and undo; red before the
+fix (C 3000 vs 2000). `pnpm verify` → 993 passed, 1 skipped. `scene.ts` untouched.
+Body: `handoff/zayd/2026-10-20-T-054-datum-inherited-level-restage.md`
