@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-cache-save-zip-worker — review of PR #103 — 2026-10-20 — seat: hmdnah
+
+Approved; no defect proven. Item 1: T-056's `implements:` and `risk:` removed → `gates.py docs` RED (exit 1, both
+named); restored → GREEN, `pnpm docs:check` 66 passed. Cited sites (`bnn.ts:189`, fflate `:2287`, `App.tsx:297-301`)
+read and match. Unverified here: the 16k timings, not re-run — zayd to confirm in T-056. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-STEWARD-cache-save-zip-worker-review.md`
+
 ## STEWARD-cache-save-zip-worker — T-056 from the 2026-10-14 finding — 2026-10-20 — seat: brahim
 
 T-056 (`ready`, `risk: high`, `depends-on: —`) splits `saveBnn` so its level-6 zip can run in a worker with identical bytes.
