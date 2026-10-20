@@ -381,7 +381,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-27
 - ANSWER: changes
 - free-text: GitHub shows merge conflicts; resolve them and ask again when clean
-- answered: -
+- answered: 2026-10-20T20:53Z
 
 ## D-20261020-02 PR #70 (T-034) is merge-ready again and needs an owner merge
 
@@ -402,7 +402,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-27
 - ANSWER: changes
 - free-text: GitHub shows merge conflicts; resolve them and ask again when clean
-- answered: -
+- answered: 2026-10-20T20:53Z
 
 ## D-20261020-03 PR #93 (T-050) reserves the wall-motion field and needs an owner merge
 
@@ -424,4 +424,66 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-27
 - ANSWER: changes
 - free-text: GitHub shows merge conflicts; resolve them and ask again when clean
+- answered: 2026-10-20T20:53Z
+
+## D-20261020-04 PR #69 (T-033) no longer conflicts and needs an owner merge
+
+- opened: 2026-10-20T20:53Z
+- by: brahim-loop
+- item: PR#69
+- asks: whether to merge PR #69 at head 4a6d4df, which narrows `Dimension.anchors` to model anchors and re-baselines `tests/frozen-surface.snapshot.json`
+- context: You answered D-20261020-01 `changes`: resolve the conflicts and ask again. A builder turn merged `main`
+  into it; the conflicts were in docs only, and the frozen-surface snapshot did not need re-baselining again.
+  GitHub now reports it mergeable with no conflicts, `pnpm verify` is green on the new head, and both CI checks pass.
+  It still implements your D97 ruling (Q10) and changes a frozen declaration, so it carries
+  `needs-operator/contract-touching` and `needs-operator/freeze`. PR #69, #70 and #93 each rewrite the snapshot,
+  so whichever merges later is re-baselined first. A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
+- ANSWER:
+- answered: -
+
+## D-20261020-05 PR #70 (T-034) no longer conflicts and needs an owner merge
+
+- opened: 2026-10-20T20:53Z
+- by: brahim-loop
+- item: PR#70
+- asks: whether to merge PR #70 at head 25c8f8d, which adds an optional `FamilyPart.exposedFaces` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: You answered D-20261020-02 `changes`: resolve the conflicts and ask again. A builder turn merged `main`
+  into it; the conflicts were in docs only, and the frozen-surface snapshot did not need re-baselining again.
+  GitHub now reports it mergeable with no conflicts, `pnpm verify` is green on the new head, and both CI checks pass.
+  It still implements your `reserve` answer to D-20261007-06 (Q9) and changes a frozen declaration, so it carries
+  `needs-operator/contract-touching` and `needs-operator/freeze`. PR #69, #70 and #93 each rewrite the snapshot,
+  so whichever merges later is re-baselined first. A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
+- ANSWER:
+- answered: -
+
+## D-20261020-06 PR #93 (T-050) no longer conflicts and needs an owner merge
+
+- opened: 2026-10-20T20:53Z
+- by: brahim-loop
+- item: PR#93
+- asks: whether to merge PR #93 at head fb7638e, which adds an optional `ParamField.motion` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: You answered D-20261020-03 `changes`: resolve the conflicts and ask again. A builder turn merged `main`
+  into it; the conflicts were in docs only, and the frozen-surface snapshot did not need re-baselining again.
+  GitHub now reports it mergeable with no conflicts and `pnpm verify` is green on the new head; its main CI
+  check was still queued when this was written, and the merge entrypoint refuses a red PR whatever you answer.
+  It is the first half of making walls movable (D95, D-20261012-03): an optional field nothing reads yet, which
+  must land before the P5 freeze, so it carries `needs-operator/contract-touching` and `needs-operator/freeze`.
+  PR #69, #70 and #93 each rewrite the snapshot, so whichever merges later is re-baselined first.
+  A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped,
+  and walls stay unmovable by the move commands. The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
+- ANSWER:
 - answered: -
