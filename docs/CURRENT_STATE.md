@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-design-option-primary-invariant` |
-| branch | `steward/design-option-primary-invariant` |
-| claimed-at | 2026-10-20T11:40:01Z |
-| status | merged — PR #101 merged by `hmdnah` at 2026-10-20T13:33:55Z |
+| task | `T-055` |
+| branch | `task/T-055-a-design-option-set-with-no-primary-or-t` |
+| claimed-at | 2026-10-20T13:34:59Z |
+| status | working |
 
 <!-- END BATON -->
 
