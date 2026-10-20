@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-052` |
 | branch | `task/T-052-a-shared-table-edit-re-queues-every-live` |
 | claimed-at | 2026-10-20T06:46:19Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #96 merged by `hmdnah` at 2026-10-20T08:01:32Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 1a567bc39963db85d49e077ece2ff9626160a0c7
+last-verified-at: c7634332b84a99e0e8f0d5bf6051dcf51cff7a46
