@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-design-option-primary-invariant` |
 | branch | `steward/design-option-primary-invariant` |
 | claimed-at | 2026-10-20T11:40:01Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 7ded78a7a39a331f0921046253b9bc5b64d73520
+last-verified-at: 1f5b1f5642fa0c894c0c9e1f16ee7d8a4c7d68b6
