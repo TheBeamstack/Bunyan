@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-invariants-browser-claim` |
 | branch | `steward/invariants-browser-claim` |
 | claimed-at | 2026-10-20T02:45:32Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #94 merged by `hmdnah` at 2026-10-20T05:45:07Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 3d98fe817ea8f6abb2a6089f8f5e78e6bac05de4
+last-verified-at: 6199220dd455a35775d033ed98a4fee61cc94194
