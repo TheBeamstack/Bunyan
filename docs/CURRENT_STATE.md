@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-baseline-motion` |
 | branch | `steward/baseline-motion` |
 | claimed-at | 2026-10-20T02:45:32Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: f10bf2f39476c3acf682d5de0613f3759b7f4d08
+last-verified-at: 15798846e41733e6a1f68bdfac981588c3d69464
