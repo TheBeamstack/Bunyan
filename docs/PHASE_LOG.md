@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-034 — PR #70's conflict with `main` resolved again — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`7da6795`) per D-20261020-02's `changes`; conflicts only in CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot keeps the branch's baseline; `freeze-boundary.test.ts` passes on it. `pnpm verify` green (1004 passed, 1 skipped).
+PR #70 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-034-merge-main.md`
+
 ## T-034 — PR #70's conflict with `main` resolved — 2026-10-20 — seat: zayd
 
 Merged `origin/main` (`ce61874`); three docs conflicted, no code. BACKLOG took `main`'s table with T-034 at `review`;
