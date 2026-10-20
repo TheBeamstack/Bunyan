@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-cache-save-zip-worker` |
-| branch | `steward/cache-save-zip-worker` |
-| claimed-at | 2026-10-20T13:34:59Z |
-| status | merged — PR #103 merged by `hmdnah` at 2026-10-20T15:09:41Z |
+| task | `T-056` |
+| branch | `task/T-056-a-save-carrying-the-d29-cache-can-zip-of` |
+| claimed-at | 2026-10-20T15:10:44Z |
+| status | working |
 
 <!-- END BATON -->
 
