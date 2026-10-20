@@ -46,3 +46,10 @@ T-054 (`ready`, `risk: high`, `depends-on: —`) makes a container move re-stage
 and those elements' join neighbours. Evidence is step 2's probe: C's low point 3000 incrementally, 2000 after
 `rebuildAll`. The fix stays in `dependency.ts` (`scene.ts` is frozen). The `## Discovered` line is deleted. No code changed.
 Body: `handoff/brahim/2026-10-20-STEWARD-datum-inherited-level-restage-t054.md`
+
+## STEWARD-datum-inherited-level-restage — review of PR #99 — 2026-10-20 — seat: hmdnah
+
+Approved; no defect proven. Item 1: un-rolling the log made the steward roll gate red (41054 > 40960) and a
+copy-not-move roll made `gates.py docs` red (82 duplicates); both restored green. All 82 entry headings moved
+exactly once, byte-identical. Cited lines read as T-054 says. Reserved classes: none. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-STEWARD-datum-inherited-level-restage-review.md`
