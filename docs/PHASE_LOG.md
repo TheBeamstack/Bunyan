@@ -473,3 +473,10 @@ Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
 `cacheEnvelope(kernelBuildId)` carries it; nothing calls it yet (`## Discovered`). A real fixture build: a changed
 main or worker moves the id. Revert-verified twice, 1 red then 3 green each. `pnpm verify` green (979).
 Body: `handoff/zayd/2026-10-20-T-044-d29-codeid-bundle.md`
+
+## T-044 — review step 1 of PR #90 — 2026-10-20 — seat: hmdnah
+
+Changes requested (step 1): the stamped chunk keeps its pre-stamp content-hash name, so a URL-keyed cache can serve
+a stale `CODE_ID` (B-20261020-02). Proof: two app builds give `PartBatch-C8aMdl36.js` the same name and different
+bytes, and a probe test reads 1 red. Item 1: assets dropped from the digest → 1 red, restored 3 green. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`
