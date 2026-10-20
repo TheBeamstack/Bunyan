@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
 | task | `T-055` |
 | branch | `task/T-055-a-design-option-set-with-no-primary-or-t` |
 | claimed-at | 2026-10-20T13:34:59Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 837a1384e613f719898730b8abcd2cddc12b8950
+last-verified-at: 49a9f49760a9cfb07e5559af440326f44e06928e
