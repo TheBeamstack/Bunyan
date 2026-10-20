@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-052` |
-| branch | `task/T-052-a-shared-table-edit-re-queues-every-live` |
+| task | `STEWARD-wall-join-level-scope` |
+| branch | `steward/wall-join-level-scope` |
 | claimed-at | 2026-10-20T06:46:19Z |
-| status | merged — PR #96 merged by `hmdnah` at 2026-10-20T08:01:32Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: e419bdf3473f51d0d0342a5892e89755d3111371
+last-verified-at: e27701a050a171c3fd8d0af37f19bfed78f22b31
