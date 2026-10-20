@@ -487,3 +487,10 @@ Approved; no defect proven. Item 1: the cache drop in `snapshotScene` reverted �
 Sweep: `Autosave.snapshot` is the only ring writer, and only `App.tsx` feeds it a `.bnn`. Reserved classes: none.
 Step 1's report claims a PR comment that `gh pr view 91` does not show; it lives on the branch only.
 Body: `handoff/hmdnah/2026-10-20-T-045-review-step-2.md`
+
+## STEWARD-baseline-motion — T-050, T-051 from D95's design — 2026-10-20 — seat: brahim
+
+`D-20261012-03`/`-04` expired to `annotation`/`detach` (edc18c8) with no row to build them, so T-036 had no path to ready.
+Now T-050 (`ready`, contract-touching: `ParamField.motion?`, before P5 step 6) and T-051 (`blocked` on it: the verbs and
+the `core.wall` tags). T-036 now depends on T-051. No code changed.
+Body: `handoff/brahim/2026-10-20-STEWARD-baseline-motion-rows.md`
