@@ -201,9 +201,9 @@ blocks for ~4 s; this fixture is curtain-wall heavy, so another mix moves both f
 
 **T-056** splits `saveBnn` into `assembleBnnEntries` and `zipBnnEntries` (`bnnzip.ts`, fflate only), so a worker can
 run the ~4 s zip on posted entries and write `saveBnn`'s bytes (`tests/bnn-zip-worker-t056.test.ts`). The 16k
-re-run after the split: unverified here: `BUNYAN_D29_MEASURE_16K=1 pnpm vitest run
-tests/geometry-cache-export-d29.test.ts` still prints ~4.1 s with the cache — hmdnah to confirm (zayd's session
-refused the env-prefixed command).
+re-run after the split (hmdnah, box, 2026-10-20, `tests/geometry-cache-export-d29.test.ts` with
+`BUNYAN_D29_MEASURE_16K=1`): `saveBnn` 4075.8 ms with the cache, 0.4 ms without (best of 3); `.brep` 687 B/solid
+compressed, `index.json` 227 B/solid — the split moves no figure.
 
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops

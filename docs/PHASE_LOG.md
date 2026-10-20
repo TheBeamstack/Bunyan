@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-056 — review step 1 of PR #104 — 2026-10-20 — seat: hmdnah
+
+No defect proven; no approval, no merge, and the row stays `review`. Item 1: `level` 5 → 1 red, and a 1980-01-02 mtime → 2 red;
+restored → 2 passed. The 16k re-run is discharged through a /tmp vitest config: `saveBnn` 4075.8 ms with the cache, now in
+design §5. `pnpm verify` → 1002 passed, 1 skipped. Not owner-gated. Body: `handoff/hmdnah/2026-10-20-T-056-review-step-1.md`
+
 ## T-056 — a save carrying the D29 cache can zip off the main thread — 2026-10-20 — seat: zayd
 
 `saveBnn` is `zipBnnEntries(assembleBnnEntries(...))`; the zip step is `bnnzip.ts`, fflate only, for a worker.
