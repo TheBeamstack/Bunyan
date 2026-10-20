@@ -588,3 +588,10 @@ Changes requested (step 1): a Level move or a datum on one wall changes its neig
 re-stages that neighbour only on `elements`/`designOptions`; the probe reads `min.x` 0 incrementally, −100 after
 `rebuildAll`. Back to zayd via `--continue T-053`. Item 1: filter reverted → 5 red, restored → 19 green.
 Body: `handoff/hmdnah/2026-10-20-T-053-review-step-1.md`
+
+## T-053 — step-1 fix: a neighbour's extent change re-stages the wall — 2026-10-20 — seat: zayd
+
+`dependency.ts` now takes a `joinNeighboursOf` hop on `containers` (every re-staged element, any Level) and on
+datum `constraints`. The reviewer's probe landed as 2 tests: red without the fix (`min.x` 0 vs −100), green with it;
+`pnpm verify` 990 passed. Back to hmdnah for step 1.
+Body: `handoff/zayd/2026-10-20-T-053-step-1-fix.md`

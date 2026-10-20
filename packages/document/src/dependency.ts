@@ -30,7 +30,7 @@
  */
 
 import type { Constraint, Element, ElementId } from './entities.js';
-import { isJoinConstraint } from './entities.js';
+import { isDatumConstraint, isJoinConstraint } from './entities.js';
 import type { DesignOption } from './designoptions.js';
 import type { Scene, SceneChange, SceneCollection } from './scene.js';
 import {
@@ -101,15 +101,19 @@ export function dependents(
         ...elementsUsingStyle(scene, change.id),
         ...(childStyles.get(change.id) ?? []),
       ]);
-    case 'containers':
+    case 'containers': {
       // EDGE: container→element. ⚠ THE ONCE-MISSING EDGE, now with TWO paths (D50 step 0b). (1) elevation:
       // mirrors `build.ts` `elevationOf(scene, element.containerId)`, which walks the whole container path,
       // so an element depends on every container along its path. (2) datum: an element with a `base`/`top`
       // constraint targeting this Level follows it too — "move a Level, the building follows".
-      return unique([
+      // ⚠ AND THEIR JOIN NEIGHBOURS, on any Level (T-053): an auto-join pairs only walls whose extents
+      // overlap, so a wall whose extent moved can gain or lose a partner whose own extent did not.
+      const moved = unique([
         ...elementsUnderContainer(scene, change.id),
         ...elementsConstrainedToLevel(scene, change.id),
       ]);
+      return unique([...moved, ...joinNeighboursOf(scene, moved)]);
+    }
     case 'grids':
       // EDGE: grid→element (D32) — NO LONGER DORMANT (step 0b). An element with a `grid` constraint on this
       // axis is placed at its intersection, so the build reads it and it must re-stage — "move a Grid line,
@@ -123,7 +127,11 @@ export function dependents(
       // re-stage the pair unconditionally — correct and cheap).
       const c = (change.after ?? change.before) as Constraint | undefined;
       if (c === undefined) return [];
-      return isJoinConstraint(c) ? [c.element, c.other] : [c.element];
+      if (isJoinConstraint(c)) return [c.element, c.other];
+      // A datum moves its element's extent, which its join neighbours' caps read (T-053).
+      return isDatumConstraint(c)
+        ? unique([c.element, ...joinNeighboursOf(scene, [c.element])])
+        : [c.element];
     }
     case 'sections':
       // EDGE: section→element (D50 step 0e). ⚠ NO LONGER "nothing" — `updateSection` landed. A `Section`

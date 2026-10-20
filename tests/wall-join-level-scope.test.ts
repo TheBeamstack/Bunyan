@@ -157,4 +157,37 @@ describe('wall auto-joins are scoped to overlapping vertical extents (T-053)', (
     await wall(doc, 'l0', [10000, 0], [10000, 3000]);
     expect(ends(doc, tall)).toEqual(['start']);
   }, 120000);
+
+  // ⚠ A neighbour's extent is a build input of this wall's caps, so an edit that moves only the
+  // neighbour's extent must re-stage this wall too (hmdnah's T-053 step-1 probe).
+  describe.each([
+    [
+      'a Level move',
+      (doc: DocumentContext): Promise<unknown> =>
+        doc.execute('core.updateContainer', { id: 'l1', elevation: 2000 }),
+    ],
+    [
+      'a base datum on the neighbour',
+      (doc: DocumentContext, c: string): Promise<unknown> =>
+        doc.execute('core.createConstraint', {
+          element: c,
+          kind: 'base',
+          target: 'l1',
+          offset: -1000,
+        }),
+    ],
+  ])('%s that makes a touching neighbour overlap re-stages this wall', (_, edit) => {
+    it('the incremental solid equals the rebuildAll one', async () => {
+      const doc = await newDoc();
+      const a = await wall(doc, 'l0', [0, 0], [4000, 0]);
+      const c = await wall(doc, 'l1', [0, 0], [0, 3000]);
+      expect(ends(doc, a)).toEqual([]);
+      await edit(doc, c);
+      expect(ends(doc, a)).toEqual(['start']);
+      const incremental = await minX(doc, a);
+      await doc.rebuildAll();
+      expect(Math.abs((await minX(doc, a)) - -T / 2)).toBeLessThan(1e-6);
+      expect(incremental).toBe(await minX(doc, a));
+    }, 120000);
+  });
 });
