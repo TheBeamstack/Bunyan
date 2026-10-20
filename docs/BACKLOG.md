@@ -615,6 +615,8 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   re-queues. Fix shape: re-queue live roots whose key flipped. Recorded, not claimed.
 - **2026-10-14 — a save with a full 16k cache blocks ~4.1 s in `zipSync`** (T-042, design §5). Fix shape: zip
   in a worker, or a lower level for `geometry-cache/`. Recorded, not claimed.
+- **2026-10-20 — signing a 16k `index.json` adds ~2.1 s to that save** (T-043, design §2e); verifying on open is
+  the same pass, not timed. Both run synchronously on the calling thread. Fix shape: run them in the save/open worker. Recorded, not claimed.
 
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both

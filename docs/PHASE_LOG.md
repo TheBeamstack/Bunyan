@@ -466,3 +466,10 @@ Approved; no row defect proven. Item 1: a counting reader on the d29 restore →
 a throwaway per-root `readMany` → green, 0 reads; removed. Probe: 20.6–21.0 ms per `read`, 609–626 ms per `readMany`
 (row: 22.56, 694). Fixed the abstract's 22.56 → 20.11, step 2's figure. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
+
+## T-043 — D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05 — 2026-10-20 — seat: zayd
+
+`own` built: `envelope.mac` is an HMAC-SHA-256 keyed by a per-install secret over the canonical index; `openCacheIndex`
+refuses any other, so a foreign or edited file opens with 0 imports and a cache-less open's op sequence (real OCCT).
+Test-first (12 red); MAC check reverted → 7 red, carry guard → 1 red. 16k signing: 2,074 ms, one run.
+Body: `handoff/zayd/2026-10-20-T-043-d29-cache-trust.md`

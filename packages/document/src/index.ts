@@ -42,3 +42,4 @@ export * from './bnn.js';
 export * from './cachekey.js';
 export * from './cacherestore.js';
 export * from './cacheexport.js';
+export * from './cachetrust.js';
