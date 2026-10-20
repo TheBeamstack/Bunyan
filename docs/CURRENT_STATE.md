@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-wall-join-level-scope` |
 | branch | `steward/wall-join-level-scope` |
 | claimed-at | 2026-10-20T06:46:19Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #97 merged by `hmdnah` at 2026-10-20T09:15:42Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 5f9ca5b9f87309e14958bd2eec37ebb1117dac73
+last-verified-at: c374473e56b5d91cf3f8aed02c4563b85f018cc9
