@@ -75,12 +75,24 @@ builder may claim.
 
 ## BLOCKED
 
-- **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
-  - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
-  - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 - **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
   - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
   - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261012-03** — `scope: item` · `item: T-037` — the box loop cannot run the golden seeder, so every zayd turn is held on T-037
+  - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
+  - opened 2026-10-12T07:19Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
+  - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
+  - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261019-03** — `scope: item` · `item: PR#72` — PR #72's conflict fix cannot reach zayd: start refuses T-037 while B-20261012-03 holds it
+  - need: perform B-20261012-03's `need:` and clear it, or make diwan `agent_start.py --continue` admit a flow-routed conflict merge on a blocker-held claim
+  - opened 2026-10-19T16:04Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261019-04** — `scope: item` · `item: PR#88` — PR #88's step 2 proved one corrupt cache entry rebuilds its whole batch, so it is not merged
+  - need: make `readRestoreBatch` re-read each root alone after a non-cap `readMany` throw (fix in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`) in a zayd turn on `task/T-049-a-cache-restore-reads-each-batch-of-root`, then route PR #88 to hmdnah for step 2
+  - opened 2026-10-19T17:30Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261019-05** — `scope: item` · `item: PR#88` — PR #88's returned fix cannot reach zayd: start refuses T-049 while B-20261019-04 holds it
+  - need: make diwan `agent_start.py --continue` admit the seat a blocker's own `need:` routes to its item, then run B-20261019-04's zayd fix
+  - opened 2026-10-19T17:31Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -214,4 +226,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: e0f5856dab95ec7ffe15b4d01966edfcc16a3948
+last-verified-at: aec670fdcd4631a5604bfae9de714a6eb74b06f5

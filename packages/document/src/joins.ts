@@ -284,10 +284,32 @@ function buttLine(
 
 /** The join OVERRIDES that name this element (as `element` or `other`). Absent ⇒ every corner auto-miters. */
 export function joinOverridesOf(scene: Scene, elementId: ElementId): readonly JoinConstraint[] {
-  return Object.values(scene.constraints).filter(
-    (c): c is JoinConstraint =>
-      isJoinConstraint(c) && (c.element === elementId || c.other === elementId),
-  );
+  return overrideIndexOf(scene.constraints).get(elementId) ?? [];
+}
+
+/**
+ * Join overrides by each wall they name, in `scene.constraints` order (the order `resolveEnd` takes the
+ * first match in). Built once per constraints record: a filter per call made `resolveJoins` over every
+ * wall O(n²) — 114 s for the D29 cache keys at 16k walls (T-039).
+ */
+const OVERRIDE_CACHE = new WeakMap<Scene['constraints'], Map<ElementId, JoinConstraint[]>>();
+
+function overrideIndexOf(constraints: Scene['constraints']): Map<ElementId, JoinConstraint[]> {
+  const cached = OVERRIDE_CACHE.get(constraints);
+  if (cached !== undefined) return cached;
+  const index = new Map<ElementId, JoinConstraint[]>();
+  const add = (id: ElementId, c: JoinConstraint): void => {
+    const bucket = index.get(id);
+    if (bucket === undefined) index.set(id, [c]);
+    else bucket.push(c);
+  };
+  for (const c of Object.values(constraints)) {
+    if (!isJoinConstraint(c)) continue;
+    add(c.element, c);
+    if (c.other !== c.element) add(c.other, c);
+  }
+  OVERRIDE_CACHE.set(constraints, index);
+  return index;
 }
 
 /**

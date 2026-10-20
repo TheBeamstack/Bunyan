@@ -166,7 +166,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: app-list
 - expires: 2026-10-15
 - ANSWER:
-- answered: -
+- answered: 2026-10-18T03:10Z
 
 ## D-20261007-11 Q23: whether `agent.query`'s part-scoped filter forces, declares or stays recipe-only
 
@@ -187,7 +187,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: recipe-only
 - expires: 2026-10-15
 - ANSWER:
-- answered: -
+- answered: 2026-10-18T03:10Z
 
 ## D-20261011-01 whether to restore the §8 marker by hand once, so `main` goes green before diwan's fix
 
@@ -206,7 +206,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: wait
 - expires: 2026-10-18
 - ANSWER:
-- answered: -
+- answered: 2026-10-19T10:34Z
 
 ## D-20261011-02 whether to turn on secret scanning, push protection and Dependabot for public Bunyan
 
@@ -224,7 +224,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: none
 - expires: 2026-10-18
 - ANSWER:
-- answered: -
+- answered: 2026-10-19T10:34Z
 
 ## D-20261012-01 PR #69 (T-033) changes the frozen surface and needs an owner merge
 
@@ -243,5 +243,141 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-10-19
+- ANSWER:
+- answered: 2026-10-20T00:33Z
+
+## D-20261012-02 PR #70 (T-034) changes the frozen surface and needs an owner merge
+
+- opened: 2026-10-12T02:40Z
+- by: brahim-loop
+- item: PR#70
+- asks: whether to merge PR #70, which adds an optional `FamilyPart.exposedFaces` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: PR #70 implements your `reserve` answer to D-20261007-06 (Q9): a family part can name its billable
+  faces by their role on the part's base shape, never by area or index; absent means the whole solid, `[]`
+  means none, and nothing reads it in v1.0.0. It changes a frozen-surface declaration (`interface FamilyPart`,
+  plus a new `type FamilyFaceSelector`), so it carries the `needs-operator/contract-touching` and
+  `needs-operator/freeze` labels. It and PR #69 both rewrite the snapshot, so whichever merges second is
+  rebased and re-baselined first. It is `risk: high`, so a dedicated `hmdnah` review still runs before any merge.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-19
+- ANSWER:
+- answered: 2026-10-20T00:33Z
+
+## D-20261012-03 Q8 follow-up: which mechanism moves a D52 wall
+
+- opened: 2026-10-12T01:45Z
+- by: zayd
+- item: Q8a
+- asks: which mechanism lets `core.move`, `core.rotate` and `core.copy` move a D52 wall without wall knowledge in the verbs (`docs/design/P4.5_baseline_move_design.md` §5)
+- context: You ruled that walls must move without the general commands knowing what a wall is (D95). Today
+  every move, copy and rotate of a wall refuses (8 of 8 on the demo scene, design §1).
+  annotation: each parameter declares whether it is a position, and the commands move every declared
+  position; a wall marks its two end points. Works for data-authored families too. Mirroring a wall stays
+  refused. hook: each object type supplies its own "apply this movement" function, like Revit; it can
+  mirror a wall, but a data-authored family cannot supply one. both: reserve the two. fold: keep a separate
+  placement and make the wall's other calculations read it; nothing frozen changes, but the end points
+  shown to users and agents would no longer be where the wall is.
+  annotation, hook and both each add a field to a contract that freezes at P5 step 6, so they must land
+  before it. The default (annotation) is the builder's recommendation.
+- options: annotation | hook | both | fold
+- default-if-silent: annotation
+- expires: 2026-10-19
+- ANSWER:
+- answered: 2026-10-20T00:33Z
+
+## D-20261012-04 Q8 follow-up: whether moving a wall drags the walls joined to it
+
+- opened: 2026-10-12T01:45Z
+- by: zayd
+- item: Q8b
+- asks: whether `core.move` on a wall also moves the ends of the walls joined to it (`docs/design/P4.5_baseline_move_design.md` §7)
+- context: When a wall moves, the walls meeting it at a corner can stay put (the corner opens) or stretch
+  to follow it, which is what Revit does by default (unverified here).
+  detach: the command moves only the wall asked for; the editor's drag gesture can still make neighbours
+  follow, as its corner-drag does today, in one undo. follow: the command itself moves the neighbours'
+  ends, which means the general command must know how walls join, the thing D95 ruled out.
+  The default (detach) is the builder's recommendation; it changes no frozen contract either way.
+- options: detach | follow
+- default-if-silent: detach
+- expires: 2026-10-19
+- ANSWER:
+- answered: 2026-10-20T00:33Z
+
+## D-20261012-05 Q6 follow-up: whose saved geometry cache a file may restore
+
+- opened: 2026-10-12T02:59Z
+- by: zayd
+- item: Q6a
+- asks: which `.bnn` files may restore solids from their geometry cache (`docs/design/P5_step9_D29_bnn_cache_design.md` §2e)
+- context: The cache stores built 3D shapes inside the saved file so it opens about twice as fast. Its check proves
+  the shapes match their names, but anyone who writes a file can also write shapes that are not what the design
+  would build, with a check that passes. A recipient would then see, and bill quantities from, a building that
+  is not the one described.
+  own: only files this browser installation wrote restore from the cache; a file someone sends you opens at
+  today's speed, built from the design. any: every file's cache is used; fastest, and a sent file can show
+  geometry its design does not describe. verify: every file's cache is used for the first view, then everything
+  is rebuilt in the background and compared; correct, but the background rebuild competes with editing.
+  The default (own) is the builder's recommendation; it changes no frozen contract either way.
+- options: own | any | verify
+- default-if-silent: own
+- expires: 2026-10-19
+- ANSWER:
+- answered: 2026-10-20T00:33Z
+
+## D-20261012-06 Q6 follow-up: what code change discards a saved geometry cache
+
+- opened: 2026-10-12T02:59Z
+- by: zayd
+- item: Q6b
+- asks: which identity of the app's code a geometry cache is tied to (`docs/design/P5_step9_D29_bnn_cache_design.md` §2d)
+- context: A cached shape is only right if the code that built it is the code that would build it now. A fix to
+  how a wall is built changes the shape without changing anything in the file.
+  bundle: the cache records a fingerprint of the shipped app; every update discards every cache, so the first
+  open after an update is today's full rebuild. version: the cache records each object type's version
+  number; caches survive updates, but a fix shipped without a version bump keeps showing the old shape.
+  The default (bundle) is the builder's recommendation; it changes no frozen contract either way.
+- options: bundle | version
+- default-if-silent: bundle
+- expires: 2026-10-19
+- ANSWER:
+- answered: 2026-10-20T00:33Z
+
+## D-20261012-07 Q6 follow-up: whether autosave snapshots carry the geometry cache
+
+- opened: 2026-10-12T02:59Z
+- by: zayd
+- item: Q6c
+- asks: whether autosave writes the geometry cache into its snapshots (spec §7; `docs/design/P5_step9_D29_bnn_cache_design.md` §5)
+- context: Autosave keeps the last five snapshots of the open document in browser storage for crash recovery.
+  At the 16,000-solid target the cache is about 61 MB uncompressed, so five snapshots carrying it are about
+  305 MB of browser storage.
+  omit: snapshots keep the design only; recovering after a crash rebuilds the model, as today. include:
+  snapshots carry the cache, so a recovered session opens about twice as fast, at five times the storage.
+  The default (omit) is the builder's recommendation; the spec says include today and is amended either way.
+- options: omit | include
+- default-if-silent: omit
+- expires: 2026-10-19
+- ANSWER:
+- answered: 2026-10-20T00:33Z
+
+## D-20261020-01 PR #69 (T-033) is merge-ready again and needs an owner merge
+
+- opened: 2026-10-20T01:05Z
+- by: brahim-loop
+- item: PR#69
+- asks: whether to merge PR #69 at head 7b089d0, which narrows `Dimension.anchors` to model anchors and re-baselines `tests/frozen-surface.snapshot.json`
+- context: D-20261012-01 asked this and expired on its default `changes`, so the PR stayed open. Since then
+  the builder merged `main` into it (it had conflicts, in docs only); `pnpm verify` is green on the new head
+  and the frozen-surface snapshot did not need re-baselining. It still implements your D97 ruling (Q10) and
+  still changes a frozen declaration, so it carries `needs-operator/contract-touching` and
+  `needs-operator/freeze` and no seat may merge it without you. A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
 - ANSWER:
 - answered: -
