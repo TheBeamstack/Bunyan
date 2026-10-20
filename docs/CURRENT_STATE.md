@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-datum-inherited-level-restage` |
-| branch | `steward/datum-inherited-level-restage` |
-| claimed-at | 2026-10-20T09:16:57Z |
-| status | merged — PR #99 merged by `hmdnah` at 2026-10-20T11:38:57Z |
+| task | `T-054` |
+| branch | `task/T-054-a-container-move-re-stages-every-datum-o` |
+| claimed-at | 2026-10-20T11:40:01Z |
+| status | working |
 
 <!-- END BATON -->
 
