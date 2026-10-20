@@ -573,3 +573,11 @@ Approved; no defect proven. Item 1: a probe at `0a4830c` is green with l1 empty 
 T-053's first done-when is red with l1's corner stacked (`[]`, min.x 0). Item 4: every cited line reads as the row
 says. Reserved classes: none. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-20-STEWARD-wall-join-level-scope-review.md`
+
+## T-053 — wall auto-joins pair only walls whose vertical extents overlap — 2026-10-20 — seat: zayd
+
+`partnersAt` and `throughWallsAt` skip a candidate whose `[base, top]` does not overlap the queried wall's; the
+index is unfiltered. `tests/wall-join-level-scope.test.ts`: 5 red with the filter reverted, 5 green with it;
+`pnpm verify` 988 passed. A zero-extent wall is not filtered, or 3 heightless `join-option-cascade` tests fail:
+a gap in the row's outcome, flagged for brahim.
+Body: `handoff/zayd/2026-10-20-T-053-wall-join-level-scope.md`
