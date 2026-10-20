@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-cache-restore-batch` |
-| branch | `steward/cache-restore-batch` |
-| claimed-at | 2026-10-19T13:39:53Z |
-| status | merged — PR #87 merged by `hmdnah` at 2026-10-19T15:26:57Z |
+| task | `T-043` |
+| branch | `task/T-043-d29-r5-the-cache-envelope-is-trusted-per` |
+| claimed-at | 2026-10-20T01:17:45Z |
+| status | working |
 
 <!-- END BATON -->
 
