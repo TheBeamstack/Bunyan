@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-056 — a save carrying the D29 cache can zip off the main thread — 2026-10-20 — seat: zayd
+
+`saveBnn` is `zipBnnEntries(assembleBnnEntries(...))`; the zip step is `bnnzip.ts`, fflate only, for a worker.
+New test: worker bytes equal `saveBnn` and an independent `zipSync` reference, 20-solid cache and cache-less;
+level 5 and a 1980-01-02 mtime each turn it red. `pnpm verify` → 1002 passed, 1 skipped. Unverified here: the 16k
+re-run (env-prefixed command refused) — hmdnah to confirm. Body: `handoff/zayd/2026-10-20-T-056-bnn-zip-worker.md`
+
 ## STEWARD-cache-save-zip-worker — review of PR #103 — 2026-10-20 — seat: hmdnah
 
 Approved; no defect proven. Item 1: T-056's `implements:` and `risk:` removed → `gates.py docs` RED (exit 1, both
