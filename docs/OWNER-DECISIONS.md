@@ -381,3 +381,23 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-27
 - ANSWER:
 - answered: -
+
+## D-20261020-02 PR #70 (T-034) is merge-ready again and needs an owner merge
+
+- opened: 2026-10-20T01:25Z
+- by: brahim-loop
+- item: PR#70
+- asks: whether to merge PR #70 at head d31a985, which adds an optional `FamilyPart.exposedFaces` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: D-20261012-02 asked this and expired on its default `changes`, so the PR stayed open. Since then
+  the builder merged `main` into it (it had conflicts, in docs only); `pnpm verify` is green on the new head
+  and the frozen-surface snapshot did not need re-baselining. It still implements your `reserve` answer to
+  D-20261007-06 (Q9) and still changes a frozen declaration, so it carries `needs-operator/contract-touching`
+  and `needs-operator/freeze`. It and PR #69 (D-20261020-01) both rewrite the snapshot, so whichever merges
+  second is re-baselined first. A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
+- ANSWER:
+- answered: -
