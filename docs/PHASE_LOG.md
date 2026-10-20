@@ -480,3 +480,10 @@ Step 1 passes with no defect proven. Item 1: the cache drop in `snapshotScene` r
 `pnpm verify` reproduced the stated 978 passed. The labeller ran: `none`, not owner-gated. One comment-only
 nit: the JSDoc's "~525 MB of OPFS" is the inflated size, and the ring stores ~73 MB zipped. The row stays `review`.
 Body: `handoff/hmdnah/2026-10-20-T-045-review-step-1.md`
+
+## T-045 — review step 2 of PR #91 — 2026-10-20 — seat: hmdnah
+
+Approved; no defect proven. Item 1: the cache drop in `snapshotScene` reverted → 2 red, restored → 2 green.
+Sweep: `Autosave.snapshot` is the only ring writer, and only `App.tsx` feeds it a `.bnn`. Reserved classes: none.
+Step 1's report claims a PR comment that `gh pr view 91` does not show; it lives on the branch only.
+Body: `handoff/hmdnah/2026-10-20-T-045-review-step-2.md`
