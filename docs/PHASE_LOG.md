@@ -537,3 +537,11 @@ commit's and on a change queues every live root, not only `staged.built`; restor
 `tests/cache-requeue-table-edit.test.ts` (4, real OCCT) red 3/4 with the fix reverted; `pnpm verify` green. Design §5
 bullet amended (said only rebuilt assemblies queue); R4's test that pinned the old queue of 0 updated.
 Body: `handoff/zayd/2026-10-20-T-052-cache-requeue-table-edit.md`
+
+## T-052 — review step 1 of PR #96 — 2026-10-20 — seat: hmdnah
+
+Changes requested; one regression proven, back to `zayd` via `--continue` (no blocker). Item 1: `document.ts` reverted
+→ 4 red (3 new + R4's changed count), restored → green. Defect: a restored doc's table edit drained, then undone, saves
+0 records (3 on `main`), because a stale `#exported` entry skips the file carry. Fix shape and probe are in the body.
+Queueing on digest change only, undo/redo, deletes and no-rebuild all hold. Reserved classes: none.
+Body: `handoff/hmdnah/2026-10-20-T-052-review-step-1.md`
