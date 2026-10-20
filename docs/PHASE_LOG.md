@@ -466,3 +466,10 @@ Approved; no row defect proven. Item 1: a counting reader on the d29 restore →
 a throwaway per-root `readMany` → green, 0 reads; removed. Probe: 20.6–21.0 ms per `read`, 609–626 ms per `readMany`
 (row: 22.56, 694). Fixed the abstract's 22.56 → 20.11, step 2's figure. Reserved classes: none.
 Body: `handoff/hmdnah/2026-10-19-STEWARD-cache-restore-batch-review.md`
+
+## T-044 — D29 R6 — `codeId` is the shipped bundle's sha256 (D-20261012-06 `bundle`) — 2026-10-20 — seat: zayd
+
+`vite build` stamps `CODE_ID` (`apps/web/src/codeId.ts`) with sha256 over every chunk and asset (`codeIdPlugin.ts`).
+`cacheEnvelope(kernelBuildId)` carries it; nothing calls it yet (`## Discovered`). A real fixture build: a changed
+main or worker moves the id. Revert-verified twice, 1 red then 3 green each. `pnpm verify` green (979).
+Body: `handoff/zayd/2026-10-20-T-044-d29-codeid-bundle.md`

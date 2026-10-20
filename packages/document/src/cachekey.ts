@@ -24,7 +24,7 @@ export interface CacheEnvelope {
   readonly fingerprint: string;
   /** The writer's own, never `manifest.json`'s — a carry-through writer rewrites the manifest (§2a). */
   readonly kernelBuildId: string;
-  /** Which build of the Type code wrote the cache (§2d, open: `D-20261012-06`). */
+  /** Which build of the Type code wrote the cache: the shipped bundle's digest (§2d, `D-20261012-06`). */
   readonly codeId: string;
 }
 

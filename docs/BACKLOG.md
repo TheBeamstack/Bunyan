@@ -609,7 +609,8 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
 
 - **2026-10-14 — no product caller runs the D29 export** (T-042). `exportCacheIdle` and `geometryCacheFiles`
   are document-layer only: `apps/web` schedules no idle export and its saves pass no `cache`, because the
-  envelope needs a `codeId` (T-044, `D-20261012-06`). Fix shape: wire both when T-044 lands. Recorded, not claimed.
+  envelope needed a `codeId`; T-044 adds `cacheEnvelope(kernelBuildId)` (`apps/web/src/storage/cacheEnvelope.ts`),
+  still uncalled. Fix shape: pass it to the open path and schedule the idle export. Recorded, not claimed.
 - **2026-10-14 — a whole-table edit empties the cache until each assembly is rebuilt** (T-042). One
   `core.createMaterial` flips every key and rebuilds nothing, so the next save writes no record and nothing
   re-queues. Fix shape: re-queue live roots whose key flipped. Recorded, not claimed.
