@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-055` |
-| branch | `task/T-055-a-design-option-set-with-no-primary-or-t` |
+| task | `STEWARD-cache-save-zip-worker` |
+| branch | `steward/cache-save-zip-worker` |
 | claimed-at | 2026-10-20T13:34:59Z |
-| status | merged — PR #102 merged by `hmdnah` at 2026-10-20T14:10:33Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 59f771c7df444ba628b60e7c2102f08c6c366a8c
+last-verified-at: 63daf77d62617cf708358b911a0d76c90128132c
