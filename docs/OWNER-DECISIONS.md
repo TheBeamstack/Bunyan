@@ -379,5 +379,49 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-10-27
-- ANSWER:
+- ANSWER: changes
+- free-text: GitHub shows merge conflicts; resolve them and ask again when clean
+- answered: -
+
+## D-20261020-02 PR #70 (T-034) is merge-ready again and needs an owner merge
+
+- opened: 2026-10-20T01:25Z
+- by: brahim-loop
+- item: PR#70
+- asks: whether to merge PR #70 at head d31a985, which adds an optional `FamilyPart.exposedFaces` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: D-20261012-02 asked this and expired on its default `changes`, so the PR stayed open. Since then
+  the builder merged `main` into it (it had conflicts, in docs only); `pnpm verify` is green on the new head
+  and the frozen-surface snapshot did not need re-baselining. It still implements your `reserve` answer to
+  D-20261007-06 (Q9) and still changes a frozen declaration, so it carries `needs-operator/contract-touching`
+  and `needs-operator/freeze`. It and PR #69 (D-20261020-01) both rewrite the snapshot, so whichever merges
+  second is re-baselined first. A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
+- ANSWER: changes
+- free-text: GitHub shows merge conflicts; resolve them and ask again when clean
+- answered: -
+
+## D-20261020-03 PR #93 (T-050) reserves the wall-motion field and needs an owner merge
+
+- opened: 2026-10-20T04:52Z
+- by: brahim-loop
+- item: PR#93
+- asks: whether to merge PR #93 at head 91ac825, which adds an optional `ParamField.motion` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: This is the first half of making walls movable, the mechanism your D95 ruling asked for and
+  D-20261012-03 settled on its default `annotation`: each parameter may declare that it is a position, so the
+  general move, rotate and copy commands can move it without knowing what a wall is. This PR only adds that
+  optional field to a contract that freezes at P5 step 6; nothing sets or reads it yet (T-051 does, after it).
+  It must land before the freeze, so it carries `needs-operator/contract-touching` and `needs-operator/freeze`.
+  It, PR #69 and PR #70 all rewrite the snapshot, so whichever merges later is re-baselined first.
+  A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped,
+  and walls stay unmovable by the move commands. The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
+- ANSWER: changes
+- free-text: GitHub shows merge conflicts; resolve them and ask again when clean
 - answered: -

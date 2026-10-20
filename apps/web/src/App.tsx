@@ -269,12 +269,12 @@ export function App() {
     const handle = setTimeout(() => {
       void (async () => {
         try {
-          const bytes = saveBnn(app.doc.scene, {
+          // ⚠ `snapshotScene`, never `snapshot(saveBnn(...))`: it is what keeps the cache out (D29 R7).
+          const key = await storage.autosave.snapshotScene(app.doc.scene, {
             kernelBuildId: app.kernel.buildId,
             journal: app.doc.changeFeed(),
             revision: app.doc.revision,
           });
-          const key = await storage.autosave.snapshot(bytes);
           setAutosavedAt(key);
         } catch {
           // An autosave failure must never surface as a user error; the next edit tries again.
