@@ -507,4 +507,4 @@ Body: `handoff/hmdnah/2026-10-20-STEWARD-baseline-motion-review.md`
 `docs/INVARIANTS.md §1.9` let only `amer`/`khalihlna` pass a browser claim; R79 (owner, 2026-10-08) routes it by the
 machine's `browser` probe. §1.9 now says that and points at `AGENTS.md §4`; the `## Discovered` clause that flagged it
 (2026-10-11, PR #66) is deleted. No code changed.
-Body: `handoff/brahim/2026-10-20-STEWARD-invariants-browser-claim.md`
+Body: `handoff/brahim/2026-10-20-STEWARD-invariants-browser-claim-r79.md`
