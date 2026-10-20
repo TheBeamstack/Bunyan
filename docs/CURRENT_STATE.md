@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-045` |
 | branch | `task/T-045-d29-r7-autosave-carries-the-cache-or-not` |
 | claimed-at | 2026-10-20T02:45:32Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #91 merged by `hmdnah` at 2026-10-20T03:40:35Z |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 1e90dbf1ba1da86a90f8912d525710819777a997
+last-verified-at: c308e5e2ebdb25728e2a16893da9a27142ab7ebf
