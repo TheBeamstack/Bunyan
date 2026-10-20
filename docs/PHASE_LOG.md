@@ -565,4 +565,4 @@ Body: `handoff/hmdnah/2026-10-20-T-052-review-step-2.md`
 An R39 probe at `5b4dc73` reproduced the finding: the same corner authored on l1 took the l0 wall's joins
 `['start']` → `[]` and its bbox `min.x` −100 → 0. T-053 (`ready`, `risk: high`, `depends-on: —`) scopes both join
 scans to walls whose vertical extents overlap. The `## Discovered` line is deleted. No code changed.
-Body: `handoff/brahim/2026-10-20-STEWARD-wall-join-level-scope.md`
+Body: `handoff/brahim/2026-10-20-STEWARD-wall-join-level-scope-t053.md`
