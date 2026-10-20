@@ -118,7 +118,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-048 | done    | A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap                    | backend  | box     | **high** | —            |
 | T-049 | ready   | A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part     | backend  | box     | **high** | —            |
 | T-052 | done    | A shared-table edit re-queues every live assembly whose cache key flipped                         | backend  | box     | **high** | T-042        |
-| T-053 | ready   | Wall auto-joins pair only walls whose vertical extents overlap                                    | backend  | box     | **high** | —            |
+| T-053 | done    | Wall auto-joins pair only walls whose vertical extents overlap                                    | backend  | box     | **high** | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
@@ -660,6 +660,10 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-20 — a datum on a Level that inherits its elevation is not re-staged when the ancestor moves** (PR #98).
+  `elementsConstrainedToLevel` matches the direct target only, while `datumElevations` walks `elevationOf`; since
+  T-053 the stale set also reaches join neighbours. Fix shape: match targets whose container path holds the changed
+  container (probe in `handoff/hmdnah/2026-10-20-T-053-review-step-2.md`). Recorded, not claimed.
 - **2026-10-14 — no product caller runs the D29 export** (T-042). `exportCacheIdle` and `geometryCacheFiles`
   are document-layer only: `apps/web` schedules no idle export and its saves pass no `cache`, because the
   envelope needs a `codeId` (T-044, `D-20261012-06`). Fix shape: wire both when T-044 lands. Recorded, not claimed.

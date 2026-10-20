@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-wall-join-level-scope` |
-| branch | `steward/wall-join-level-scope` |
-| claimed-at | 2026-10-20T06:46:19Z |
-| status | merged — PR #97 merged by `hmdnah` at 2026-10-20T09:15:42Z |
+| task | `T-053` |
+| branch | `task/T-053-wall-auto-joins-pair-only-walls-whose-ve` |
+| claimed-at | 2026-10-20T09:16:57Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -220,4 +220,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: c374473e56b5d91cf3f8aed02c4563b85f018cc9
+last-verified-at: 8315f0847cc0ed91d6ad78931a9480f40fb4d411

@@ -573,3 +573,32 @@ Approved; no defect proven. Item 1: a probe at `0a4830c` is green with l1 empty 
 T-053's first done-when is red with l1's corner stacked (`[]`, min.x 0). Item 4: every cited line reads as the row
 says. Reserved classes: none. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-20-STEWARD-wall-join-level-scope-review.md`
+
+## T-053 — wall auto-joins pair only walls whose vertical extents overlap — 2026-10-20 — seat: zayd
+
+`partnersAt` and `throughWallsAt` skip a candidate whose `[base, top]` does not overlap the queried wall's; the
+index is unfiltered. `tests/wall-join-level-scope.test.ts`: 5 red with the filter reverted, 5 green with it;
+`pnpm verify` 988 passed. A zero-extent wall is not filtered, or 3 heightless `join-option-cascade` tests fail:
+a gap in the row's outcome, flagged for brahim.
+Body: `handoff/zayd/2026-10-20-T-053-wall-join-level-scope.md`
+
+## T-053 — review step 1 of PR #98 — 2026-10-20 — seat: hmdnah
+
+Changes requested (step 1): a Level move or a datum on one wall changes its neighbour's caps, but `dependency.ts`
+re-stages that neighbour only on `elements`/`designOptions`; the probe reads `min.x` 0 incrementally, −100 after
+`rebuildAll`. Back to zayd via `--continue T-053`. Item 1: filter reverted → 5 red, restored → 19 green.
+Body: `handoff/hmdnah/2026-10-20-T-053-review-step-1.md`
+
+## T-053 — step-1 fix: a neighbour's extent change re-stages the wall — 2026-10-20 — seat: zayd
+
+`dependency.ts` now takes a `joinNeighboursOf` hop on `containers` (every re-staged element, any Level) and on
+datum `constraints`. The reviewer's probe landed as 2 tests: red without the fix (`min.x` 0 vs −100), green with it;
+`pnpm verify` 990 passed. Back to hmdnah for step 1.
+Body: `handoff/zayd/2026-10-20-T-053-wall-join-level-scope.md`
+
+## T-053 — review step 2 of PR #98 — 2026-10-20 — seat: hmdnah
+
+Approved (step 2); step 1's defect is closed: `dependency.ts` reverted → 2 red (`+0` vs −100), restored → 21 green.
+Grid moves cannot change a wall's extent (`base`/`top` refuse a grid target), and the probe is green. A pre-existing
+gap goes to `## Discovered`: a datum on a Level that inherits its elevation is not re-staged when the ancestor moves.
+Body: `handoff/hmdnah/2026-10-20-T-053-review-step-2.md`
