@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-design-option-primary-invariant — T-055 from the 2026-08-17 finding — 2026-10-20 — seat: brahim
+
+T-055 (`ready`, `risk: normal`, `depends-on: —`) makes a design-option set with zero or two primaries surface
+in `brokenRefs()`. A diagnosis subagent re-measured it at `a7c903e`: both roads bypass the check, and both
+counts are silent. The fix stays in `document.ts`, off the frozen surface. The `## Discovered` line is deleted. No code changed.
+Body: `handoff/brahim/2026-10-20-STEWARD-design-option-primary-invariant-t055.md`
+
 ## STEWARD-datum-inherited-level-restage — T-054 from PR #98's step-2 finding — 2026-10-20 — seat: brahim
 
 T-054 (`ready`, `risk: high`, `depends-on: —`) makes a container move re-stage every datum on a Level beneath it

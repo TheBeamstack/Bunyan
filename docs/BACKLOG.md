@@ -120,6 +120,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-052 | done    | A shared-table edit re-queues every live assembly whose cache key flipped                         | backend  | box     | **high** | T-042        |
 | T-053 | done    | Wall auto-joins pair only walls whose vertical extents overlap                                    | backend  | box     | **high** | —            |
 | T-054 | done    | A container move re-stages every datum on a Level beneath it                                      | backend  | box     | **high** | —            |
+| T-055 | ready   | A design-option set with no primary or two primaries surfaces in brokenRefs()                     | backend  | box     | normal   | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
@@ -568,6 +569,19 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: — · area: backend · machine: box · risk: **high**
 - note: Mechanism (main after PR #98): dependency.ts:104-116 case 'containers' calls elementsConstrainedToLevel(scene, change.id) (scene.ts:393-398), which matches a datum's direct target only, while datumElevations reads elevationOf, which walks containerPath (scene.ts:360-365), so a Level with no elevation follows its ancestor in the build but not in the invalidator. Pre-existing on main; T-053 widens the stale set to join neighbours. Fix shape: in dependency.ts, also collect datums targeting every Level beneath the changed container. scene.ts is in [frozen_surface] watched; keep the fix in dependency.ts. Probe: handoff/hmdnah/2026-10-20-T-053-review-step-2.md. risk high: dependency.ts's invalidator is an auto-high class.
 
+### T-055 — A design-option set with no primary or two primaries surfaces in brokenRefs()
+
+- outcome: A scene whose design-option set has a primary count other than 1, reached by loadBnn or a code-assembled Scene, reports one brokenRefs() entry per element tagged with an option in that set; nothing is auto-healed and the file still loads.
+- implements: docs/decisions.md D65, D85, D86; docs/design/P5_step6D_design_options_crud_design.md §4.2 (the refusals the verbs must carry) and §7 (Q17c); docs/design/P5_step5F_reservations_design.md §5.1 (Design Options — and the trap). Provenance: the 2026-08-17 ## Discovered finding, re-measured at a7c903e.
+- done-when: A code-assembled Scene with walls wA/wB tagged opt-a/opt-b, both isPrimary true in one set: brokenRefs() holds one entry each for wA and wB, ref set to their option ids, hostId the element id (T-007's convention); the test is red with the new brokenRefs() spread reverted
+- done-when: The same scene after loadBnn(saveBnn(scene)) reports the same entries
+- done-when: Zero primaries in the set (both isPrimary false) reports entries for both walls, on both roads
+- done-when: A set with exactly one primary adds no entries, and a violating set with no tagged elements adds none; isElementActive and modelElements() return what they did on main
+- done-when: git diff --name-only origin/main names no [frozen_surface] watched path; tests/design-option-refs.test.ts and tests/design-option-crud.test.ts pass unchanged
+- verify: npx vitest run tests/design-option-primary-invariant.test.ts tests/design-option-refs.test.ts tests/design-option-crud.test.ts && pnpm verify
+- depends-on: — · area: backend · machine: box · risk: normal
+- note: Mechanism (main a7c903e): checkPrimaryInvariant (commands.ts:2665) runs only at create/update/delete (:2768, :2821, :2844); loadBnn checks only that designOptions is a plain object (bnn.ts:411-415) and DocumentContext takes options.scene unchecked (document.ts:283). With two primaries isElementActive counts both walls; with none it drops both (designoptions.ts:140); brokenRefs()/unbuildable() report 0. Fix shape: a primaryViolations(scene) in document.ts that brokenRefs() spreads in, beside danglingDesignOptionRefs (document.ts:1551, D86). Keep it out of designoptions.ts and entities.ts (both [frozen_surface] watched) and do not change isElementActive, else the PR is owner-gated.
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -878,13 +892,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
   breaks. Worked around by naming the body so it sorts last. Fix shape: resolve the body **by the
   abstract's own `FULL:` field** and check the file exists — the entry is the authority on which body it
   has. Recorded, not claimed.
-- **2026-08-17 — the "exactly one primary per set" invariant is enforced at the CRUD doors only, and two
-  of the three roads onto `scene.designOptions` bypass it.** A loaded `.bnn` and a `Scene` assembled in
-  code go through none of them, and `loadBnn`'s guard checks only that the value is an object. Measured:
-  two `isPrimary: true` options make `isElementActive` return `true` for **both** mutually exclusive
-  walls — D65's own stated double-count. ⚠ Not a regression; what changed is that the invariant now has
-  an enforcement site, which invariant 7 asks to be swept backward. Fix shape: check it on the load path,
-  or surface a violating set through `brokenRefs()`/`unbuildable()`. Recorded, not claimed.
 - **2026-08-17 — the `--review` wrong-PR claim recurred a third time, and there is still no flag to name
   a PR.** With #32 (due step 2) and #33 (due step 1) both routed to `hmdnah`, `--review` claimed #33 and
   posted a claim comment on it while the session's assignment was #32. ⚠ The 2026-08-16 row judged this
