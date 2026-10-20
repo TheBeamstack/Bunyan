@@ -362,3 +362,22 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-19
 - ANSWER:
 - answered: 2026-10-20T00:33Z
+
+## D-20261020-01 PR #69 (T-033) is merge-ready again and needs an owner merge
+
+- opened: 2026-10-20T01:05Z
+- by: brahim-loop
+- item: PR#69
+- asks: whether to merge PR #69 at head 7b089d0, which narrows `Dimension.anchors` to model anchors and re-baselines `tests/frozen-surface.snapshot.json`
+- context: D-20261012-01 asked this and expired on its default `changes`, so the PR stayed open. Since then
+  the builder merged `main` into it (it had conflicts, in docs only); `pnpm verify` is green on the new head
+  and the frozen-surface snapshot did not need re-baselining. It still implements your D97 ruling (Q10) and
+  still changes a frozen declaration, so it carries `needs-operator/contract-touching` and
+  `needs-operator/freeze` and no seat may merge it without you. A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
+- ANSWER:
+- answered: -
