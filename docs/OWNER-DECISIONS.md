@@ -487,3 +487,20 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-27
 - ANSWER:
 - answered: -
+
+## D-20261021-01 zayd's 7-day-old claim on T-037 has had no commit since 2026-10-14
+
+- opened: 2026-10-21T16:50Z
+- by: brahim-loop
+- item: T-037
+- asks: whether to release zayd's claim on T-037 so a later builder resumes it from its existing branch
+- context: T-037 (Q5, the section chord tolerance) is PR #72; its branch's newest commit is the claim of
+  2026-10-14. It is stuck because the box builder may not run the golden seeder (B-20261012-03), and PR #72
+  conflicts with `main`. release frees the claim and keeps the branch, so whichever builder can run the seeder
+  (a pc seat, or the box once allowed) carries on from that work; keep leaves it with zayd. Either way the
+  blocker still holds T-037 until the seeder runs.
+- options: release | keep
+- default-if-silent: keep
+- expires: 2026-10-28
+- ANSWER:
+- answered: -
