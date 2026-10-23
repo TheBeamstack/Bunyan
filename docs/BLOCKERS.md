@@ -356,7 +356,7 @@ from, and the reason it is a record rather than prose.
 - why: agent_start.py exited 1, "T-037 (PR #72) is held by B-20261012-03, an uncleared scope: item blocker at main — skip it"; B-20261012-03's `need:` (seeder permission or a seeded push) is still unmet, so the conflict merge, which needs no seeder, is held with it
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-037 --root /home/ubuntu/projects/Bunyan; echo $?`; `gh pr view 72 --json mergeable` → CONFLICTING
 - need: perform B-20261012-03's `need:` and clear it, or make diwan `agent_start.py --continue` admit a flow-routed conflict merge on a blocker-held claim
-- cleared: -
+- cleared: 2026-10-23T07:40Z
 
 ## B-20261019-04 PR #88's step 2 proved one corrupt cache entry rebuilds its whole batch, so it is not merged
 
