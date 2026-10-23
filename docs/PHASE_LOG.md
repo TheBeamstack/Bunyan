@@ -40,6 +40,20 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-034 — PR #70's conflict with `main` resolved again — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`7da6795`) per D-20261020-02's `changes`; conflicts only in CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot keeps the branch's baseline; `freeze-boundary.test.ts` passes on it. `pnpm verify` green (1004 passed, 1 skipped).
+PR #70 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-034-merge-main.md`
+
+## T-034 — PR #70's conflict with `main` resolved — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`ce61874`); three docs conflicted, no code. BACKLOG took `main`'s table with T-034 at `review`;
+PHASE_LOG kept both sides. The snapshot did not conflict and was not re-baselined. `pnpm verify` green (978 passed).
+RISK: contract-touching, unchanged — owner merges.
+Body: `handoff/zayd/2026-10-20-T-034-merge-main.md`
+
 ## T-056 — review step 2 of PR #104 — 2026-10-20 — seat: hmdnah
 
 Approved; no defect proven. Item 1: mtime 1980-01-02 → 2 red; `saveBnn` inlining level 5 → 1 red (worker ≠ save); restored
@@ -135,3 +149,10 @@ Approved; no defect proven. Item 1: `dependency.ts` reverted → 2 red (`expecte
 green. Probes show the edge also covers `deleteContainer` and its undo. Two mutations (neighbour hop, elevation
 shield) each go red. Reserved classes: none. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-20-T-054-review-step-2.md`
+
+## T-034 — `FamilyDefinition` names its billable faces — 2026-10-12 — seat: zayd
+
+`FamilyPart.exposedFaces?: FamilyFaceSelector[]` (`{ by: 'role', role }`, D96): absent ⇒ whole-solid, `[]` ⇒ 0.
+Removing it fails `tsc` (TS2339/TS2353, revert-verified); an OCCT build measures billed 2·W·H, buried 0.
+RISK: contract-touching (re-baselined) — owner merges. No interpreter reads it in v1.0.0.
+Body: `handoff/zayd/2026-10-12-T-034-family-billable-faces.md`
