@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-d29-app-wiring` |
 | branch | `steward/d29-app-wiring` |
 | claimed-at | 2026-10-20T02:09:44Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 37d4d86d1d579768dfa53602dcbaf16f19a21de2
+last-verified-at: 35151a88589a6b2f3a65139a32e8cadf211c3ac1
