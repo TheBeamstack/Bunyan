@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-058 — review step 2 of PR #107 — 2026-10-23 — seat: hmdnah
+
+APPROVED. B-20261023-02 is resolved: step 1's probe at `1a4a7f5` shows that a second save after `error` rejects at once and posts nothing.
+Item 1: the early reject was removed → red (`resolved "'pending'"`), then restored → green. Items 2, 3 and 6 found nothing.
+The `App.tsx:303` respawn line is checked by hand only (`null=true failed=true live=false`), because nothing renders `App`.
+Body: `handoff/hmdnah/2026-10-23-T-058-review-step-2.md`
+
 ## T-058 — fix B-20261023-02, a named save after a zip-worker error — 2026-10-23 — seat: zayd
 
 `createBnnZipper` rejects every `zip()` after the worker's `error` and reports `failed`; `saveDoc` respawns a failed zipper.
