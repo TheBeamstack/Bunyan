@@ -232,7 +232,10 @@ describe('T-049 — a cache restore reads each batch of roots in one readMany', 
 
   it('one corrupt entry in a 3-root batch rebuilds only its root; the other 2 restore', async () => {
     const scene = walls(3);
-    const bytes = saveBnn(scene, { kernelBuildId: KERNEL_BUILD_ID, cache: cacheFor(scene, () => 1) });
+    const bytes = saveBnn(scene, {
+      kernelBuildId: KERNEL_BUILD_ID,
+      cache: cacheFor(scene, () => 1),
+    });
     const pkg = loadBnn(bytes);
     const ids = Object.keys(scene.elements);
     // Two bytes of W00001's DEFLATE data set to 0xff after load (hmdnah's step-2 probe).
