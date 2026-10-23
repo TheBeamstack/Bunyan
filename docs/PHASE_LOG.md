@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-060 — review step 2 of PR #110 — 2026-10-23 — seat: hmdnah
+
+APPROVED, no defect proven. Item 1 re-run at `a4c5561`: caller signing again → "expected [ 1 ] to deeply equal [ +0 ]"; restored → 4 passed, 1 skipped.
+Item 2/3: every `geometryCacheFiles()` and `SaveOptions.cache` consumer signs or drops the unsigned cache; `vite build` puts the signer in the 11.92 kB worker bundle.
+Item 6: a worker that skips signing goes red; an HMAC added inside `geometryCacheFiles()` stays green (gap, not a defect).
+Body: `handoff/hmdnah/2026-10-23-T-060-review-step-2.md`
+
 ## T-060 — review step 1 of PR #110 — 2026-10-23 — seat: hmdnah
 
 Item 1: `saveDocument` signing on the caller again → "no HMAC runs on the caller: expected [ 1 ] to deeply equal [ +0 ]"; restored → 4 passed, 1 skipped.
