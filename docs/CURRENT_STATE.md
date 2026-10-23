@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-057` |
-| branch | `task/T-057-opening-a-stored-bnn-in-the-app-restores` |
-| claimed-at | 2026-10-23T08:52:55Z |
-| status | merged — PR #106 merged by `hmdnah` at 2026-10-23T12:03:12Z |
+| task | `T-058` |
+| branch | `task/T-058-a-named-save-in-the-app-zips-in-a-dedica` |
+| claimed-at | 2026-10-23T12:04:21Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: c6e859998e845305325fc8477e002d6e72d8509a
+last-verified-at: d8bc28a4c18dc4a974463325497c91bf7aa29722

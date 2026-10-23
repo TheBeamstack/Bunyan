@@ -27,15 +27,17 @@ import type { BunyanApp, InitialDocument } from './bootstrap';
 import { seedDemoScene } from './scaffold/seed';
 import {
   createStore,
-  docKey,
   docName,
   installSecret,
   latestAutosaveKey,
   listDocKeys,
   readInitial,
   requestOpen,
+  saveDocument,
+  spawnBnnZipper,
   takeOpenRequest,
 } from './storage/documentStorage';
+import type { BnnZipper } from './storage/bnnZip';
 import type { IndexedDbStore } from './storage/indexeddb';
 import { ViewportCanvas } from './render/ViewportCanvas';
 import type { HandleDrop, PointerSample } from './render/ViewportCanvas';
@@ -66,7 +68,6 @@ import {
   Autosave,
   describeCommands,
   elevationOf,
-  saveBnn,
   type BrokenReference,
   type CommandDescriptor,
   type Element,
@@ -168,6 +169,8 @@ export function App() {
   // ---- Persistence (browser storage, plan P4 step 5). The store + autosave live in a ref (plain
   //      objects, not React state); the file list / current name / recover offer are state. ----------
   const storageRef = useRef<{ store: IndexedDbStore; autosave: Autosave } | null>(null);
+  /** The named save's zip worker (T-058), spawned on the first save. */
+  const zipperRef = useRef<BnnZipper | null>(null);
   const [savedDocs, setSavedDocs] = useState<readonly string[]>([]);
   /** The store key of the document currently open (a `doc/…bnn`), or null for the unsaved demo/scratch. */
   const [currentDoc, setCurrentDoc] = useState<string | null>(null);
@@ -297,13 +300,18 @@ export function App() {
       const trimmed = name.trim();
       if (trimmed === '') return;
       try {
-        const bytes = saveBnn(app.doc.scene, {
-          kernelBuildId: app.kernel.buildId,
-          journal: app.doc.changeFeed(),
-          revision: app.doc.revision,
-        });
-        const key = docKey(trimmed);
-        await storage.store.write(key, bytes);
+        if (zipperRef.current?.failed !== false) zipperRef.current = spawnBnnZipper();
+        const key = await saveDocument(
+          storage.store,
+          trimmed,
+          app.doc.scene,
+          {
+            kernelBuildId: app.kernel.buildId,
+            journal: app.doc.changeFeed(),
+            revision: app.doc.revision,
+          },
+          zipperRef.current,
+        );
         setCurrentDoc(key);
         setSavedDocs(await listDocKeys(storage.store));
         setBanner(`Saved “${trimmed}”`);

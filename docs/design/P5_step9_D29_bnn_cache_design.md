@@ -210,6 +210,12 @@ re-run after the split (hmdnah, box, 2026-10-20, `tests/geometry-cache-export-d2
 `BUNYAN_D29_MEASURE_16K=1`): `saveBnn` 4075.8 ms with the cache, 0.4 ms without (best of 3); `.brep` 687 B/solid
 compressed, `index.json` 227 B/solid — the split moves no figure.
 
+**T-058** wires it: the app's named save (`saveDocument`) posts `assembleBnnEntries` output to a dedicated zip
+worker (`apps/web/src/storage/bnnZipWorker.ts`) and stores the bytes it returns. Measured in headless Chromium
+153 (box, 2026-10-23, `node tools/browser-check/named-save.mjs`) on R4's cache replicated to 16,000 solids
+(17.9 MB file): the main thread is held at most **124–133 ms** per save over three saves (Long Tasks and a 0 ms
+timer chain agree), against **4,939 ms** for `saveBnn` on the main thread; each save takes ~4.9–5.4 s end to end.
+
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
 `SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.

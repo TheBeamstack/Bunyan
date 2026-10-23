@@ -40,6 +40,34 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-058 — review step 2 of PR #107 — 2026-10-23 — seat: hmdnah
+
+APPROVED. B-20261023-02 is resolved: step 1's probe at `1a4a7f5` shows that a second save after `error` rejects at once and posts nothing.
+Item 1: the early reject was removed → red (`resolved "'pending'"`), then restored → green. Items 2, 3 and 6 found nothing.
+The `App.tsx:303` respawn line is checked by hand only (`null=true failed=true live=false`), because nothing renders `App`.
+Body: `handoff/hmdnah/2026-10-23-T-058-review-step-2.md`
+
+## T-058 — fix B-20261023-02, a named save after a zip-worker error — 2026-10-23 — seat: zayd
+
+`createBnnZipper` rejects every `zip()` after the worker's `error` and reports `failed`; `saveDoc` respawns a failed zipper.
+New T-058 test: early reject removed → red (`resolved "'pending'"`, the hang); restored → 4 passed, 1 skipped.
+Next: hmdnah, step 2 of PR #107.
+Body: `handoff/zayd/2026-10-23-T-058-named-save-zip-worker.md`
+
+## T-058 — review step 1 of PR #107 — 2026-10-23 — seat: hmdnah
+
+Item 1: `saveDocument` storing `saveBnn` → 2 red (`posts to the worker: expected +0 to be 1`); restored → green. Browser re-run:
+123/133/125 ms vs 5,025 ms on-thread. Size drift between runs is new element ids per fixture run, not save nondeterminism.
+One defect, back to zayd (B-20261023-02): after a zip-worker `error`, later named saves never settle. Not owner-gated; no approval.
+Body: `handoff/hmdnah/2026-10-23-T-058-review-step-1.md`
+
+## T-058 — a named save zips in a dedicated worker — 2026-10-23 — seat: zayd
+
+`saveDoc` → `saveDocument`: entries assembled on the main thread, zipped in `bnnZipWorker.ts`, bytes equal `saveBnn`
+(T-058 test; revert to `saveBnn` → red). Browser, 16k solids: main thread held 125–133 ms per save vs 4,940 ms on-thread.
+Next: hmdnah, step 1 of this PR.
+Body: `handoff/zayd/2026-10-23-T-058-named-save-zip-worker.md`
+
 ## T-057 — review step 2 of PR #106, re-run after the fix — 2026-10-23 — seat: hmdnah
 
 APPROVED. B-20261023-01 is resolved: step 1's delayed-store probe at `a148f77` gives `AeqB=false`, the loser's index fails
