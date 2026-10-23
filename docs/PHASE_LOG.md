@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-061 — opening a file verifies its geometry-cache index off the main thread — 2026-10-23 — seat: zayd
+
+`doc.openGeometryCache()` posts `index.json` to the app's cache-open worker, which parses and verifies it with the leaf `@bunyan/document/cachesign`; `#stage` reads the result.
+T-061 test 6 passed, 1 skipped; `#stage` opening the index again → "no parse or verify runs on the caller" red. D29/T-043–T-060 tests unchanged and green.
+16k under node: verify 2,195–2,229 ms, parse 227–231 ms; the reply clone (337–343 ms) stays on the main thread (Discovered). Not timed in a browser.
+Body: `handoff/zayd/2026-10-23-T-061-open-verifies-in-worker.md`
+
 ## T-060 — review step 2 of PR #110 — 2026-10-23 — seat: hmdnah
 
 APPROVED, no defect proven. Item 1 re-run at `a4c5561`: caller signing again → "expected [ 1 ] to deeply equal [ +0 ]"; restored → 4 passed, 1 skipped.

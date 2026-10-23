@@ -769,6 +769,12 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-23 — a 16k open still inflates `index.json` and receives the opened index on the main thread
+  after T-061** (design §2e). `openIndexOf` reads the 64 MB index through the file's reader before posting,
+  and the worker's reply is an object graph (`structuredClone` round trip 337–343 ms under node); neither was
+  timed in a browser. Fix shape: the worker reads the entry from the file bytes, and replies with the records
+  as bytes. Recorded, not claimed.
+
 - **2026-10-23 — a 16k named save still holds the main thread ~1.45 s after T-060** (design §5).
   `geometryCacheFiles()` recomputes every root's key per save (1,178–1,433 ms at 4,000 roots) and posting
   the records clones an object graph (328–426 ms), so `tools/browser-check/named-save.mjs` exits 1 on its
