@@ -405,3 +405,15 @@ from, and the reason it is a record rather than prose.
 - evidence: the probe test in PR #90's step-1 review, run with `npx vitest run apps/web/src/hmProbe.test.ts` at `aca806e` → 1 failed
 - need: make the shipped `CODE_ID` unservable stale under an unchanged URL (fix shape in `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`) in a zayd turn on `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a`, land the probe test, then route PR #90 to hmdnah for step 2
 - cleared: 2026-10-23T02:53Z
+
+## B-20261023-01 PR #106's step 2 found step 1's installSecret comment defect unfixed, so it is not merged
+
+- opened: 2026-10-23T11:20Z
+- by: hmdnah
+- scope: item
+- item: PR#106
+- what: step 1 of PR #106 (T-057) proved that `apps/web/src/storage/documentStorage.ts:88-91` claims two racing first boots settle on one secret, which they do not always do; step 2 found that no commit since step 1 touches code
+- why: `git show --stat 958d1f1 dc780f5 7952ee4` changes docs and handoff only, and lines 88-91 are unchanged at `7952ee4`; `agent_finish.py --review --step 2` would stamp T-057 `done` (`protocol.py:2469`), so the step-2 finish was not run
+- evidence: step 1's delayed-store probe in `handoff/hmdnah/2026-10-23-T-057-review-step-1.md` (`AeqB=false`); `git diff 7952ee4 -- apps/web/src/storage/documentStorage.ts` is empty against step 1's head
+- need: reword or make true `installSecret`'s race comment (options in `handoff/hmdnah/2026-10-23-T-057-review-step-2.md`) in a zayd turn on `task/T-057-opening-a-stored-bnn-in-the-app-restores`, then route PR #106 to hmdnah for step 2
+- cleared: -
