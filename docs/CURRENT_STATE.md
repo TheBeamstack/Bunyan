@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-d29-cache-sign-off-main` |
 | branch | `steward/d29-cache-sign-off-main` |
 | claimed-at | 2026-10-23T14:19:36Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 7055922402b6019c24d3a1ab4c99f5db5ac3d9f4
+last-verified-at: 25573db3f07d5131a3650123928cc996edd396c2
