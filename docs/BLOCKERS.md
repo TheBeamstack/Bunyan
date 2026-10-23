@@ -392,7 +392,7 @@ from, and the reason it is a record rather than prose.
 - why: a ~400 KB index (`records.W1` = 200,000 nested `[]`, envelope = `current` plus `mac: 'x'`) parses, then `openCacheIndex` throws `Maximum call stack size exceeded` at head `76f95af`; `rebuildAll` on `emptyScene()` with that cache rejects, and resolves once the verify call is removed; `agent_finish.py --review --step 2` would stamp T-043 `done` (`agent_finish.py:605-606`), so the step-2 finish was not run
 - evidence: the probe in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`, run with `npx vitest run` at `76f95af` and with `cacherestore.ts:89-91` removed
 - need: make `openCacheIndex` return `undefined` when `verifyCacheIndex` throws (fix in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`) in a zayd turn on `task/T-043-d29-r5-the-cache-envelope-is-trusted-per`, then route PR #89 to hmdnah for step 2
-- cleared: -
+- cleared: 2026-10-23T01:52Z
 
 ## B-20261020-02 PR #90's step 1 proved the CODE_ID chunk keeps its content-hash name after the stamp, so a stale codeId can be served
 
