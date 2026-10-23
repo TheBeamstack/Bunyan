@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-061 — review step 1 of PR #111 — 2026-10-23 — seat: hmdnah
+
+Item 1 at `32b2dd1`: `#stage` opening the index again → "no parse or verify runs on the caller: expected 1 to be +0"; dropping the awaits → `rebuildOnly` "expected +0 to be 1"; restored → 6 passed, 1 skipped.
+Labeller on `a47e56a` says additive, not owner-gated; 13 files 111 passed as claimed. No defect proven; no approval.
+Flagged: `rebuildAll`'s JSDoc now sits on `openGeometryCache`; the 16k figures were not re-run here.
+Body: `handoff/hmdnah/2026-10-23-T-061-review-step-1.md`
+
 ## T-061 — opening a file verifies its geometry-cache index off the main thread — 2026-10-23 — seat: zayd
 
 `doc.openGeometryCache()` posts `index.json` to the app's cache-open worker, which parses and verifies it with the leaf `@bunyan/document/cachesign`; `#stage` reads the result.
