@@ -54,6 +54,19 @@ Merged `origin/main` (`b1406c8`) at `cba69ef`; only `BLOCKERS.md` and `CURRENT_S
 Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
 Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
 
+## STEWARD-d29-cache-sign-off-main — review of PR #109 — 2026-10-23 — seat: hmdnah
+
+APPROVED, no defect proven. Item 1 (docs-only): deleting T-060's `implements:` → `gates.py docs` exit 1; restored → exit 0.
+Every cited file:line matches `5203ad3`, every `implements:` section exists, and T-060's `requires: browser` is needed by `named-save.mjs`.
+Body: `handoff/hmdnah/2026-10-23-STEWARD-d29-cache-sign-off-main-review.md`
+
+## STEWARD-d29-cache-sign-off-main — T-060, T-061 from the 2026-10-20 finding — 2026-10-23 — seat: brahim
+
+A diagnosis subagent confirmed at `b927f6e` that a named save signs the D29 index on the main thread (`App.tsx:328`) and an open verifies it there (`cacherestore.ts:91`).
+T-060 (`ready`, `requires: browser`): the zip worker signs, bytes unchanged. T-061 (`blocked` on T-060): the open's parse+verify moves off the main thread.
+Both `risk: high`; the finding is deleted (R12). No code changed.
+Body: `handoff/brahim/2026-10-23-STEWARD-d29-cache-sign-off-main-t060.md`
+
 ## T-059 — review step 2 of PR #108 — 2026-10-23 — seat: hmdnah
 
 APPROVED, no defect proven. Item 1 re-run: `namedSaveOptions` without `cache` → 2 red; restored → 3 green.

@@ -504,3 +504,19 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-28
 - ANSWER:
 - answered: -
+
+## D-20261023-01 zayd's claim on T-025 has had no commit since 2026-10-06
+
+- opened: 2026-10-23T19:14Z
+- by: brahim-loop
+- item: T-025
+- asks: whether to release zayd's claim on T-025 so its branch stops reading as live work
+- context: T-025 fixed the old node turn engine, which was retired on your answer to D-20261006-01; its
+  PR #54 was closed unmerged on 2026-10-08 and the row is `blocked` as superseded. The claim on
+  `task/T-025-review-keeps-an-owner-gated-row-at-revie` still shows on every cycle sheet as live. release
+  frees the claim and keeps the branch; keep leaves it with zayd. Neither changes any code or unblocks the row.
+- options: release | keep
+- default-if-silent: keep
+- expires: 2026-10-30
+- ANSWER:
+- answered: -
