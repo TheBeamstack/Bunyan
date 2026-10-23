@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-060 — review step 1 of PR #110 — 2026-10-23 — seat: hmdnah
+
+Item 1: `saveDocument` signing on the caller again → "no HMAC runs on the caller: expected [ 1 ] to deeply equal [ +0 ]"; restored → 4 passed, 1 skipped.
+`named-save.mjs` re-run twice: hold 1,444–1,491 ms, control 8,295/8,516 ms; labeller on `2e7ce32` says additive, not owner-gated. No defect proven.
+Flagged: test count is 4, not 3; clone low bound 328 vs 318 ms across docs; the 16k file size differs per run. No approval.
+Body: `handoff/hmdnah/2026-10-23-T-060-review-step-1.md`
+
 ## T-060 — a named save signs its geometry-cache index in the zip worker — 2026-10-23 — seat: zayd
 
 `geometryCacheFiles()` returns the cache unsigned; the worker signs `index.json` with the new leaf `@bunyan/document/cachesign`. Bytes equal `saveBnn`.
