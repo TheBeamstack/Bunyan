@@ -40,6 +40,69 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-058 — review step 2 of PR #107 — 2026-10-23 — seat: hmdnah
+
+APPROVED. B-20261023-02 is resolved: step 1's probe at `1a4a7f5` shows that a second save after `error` rejects at once and posts nothing.
+Item 1: the early reject was removed → red (`resolved "'pending'"`), then restored → green. Items 2, 3 and 6 found nothing.
+The `App.tsx:303` respawn line is checked by hand only (`null=true failed=true live=false`), because nothing renders `App`.
+Body: `handoff/hmdnah/2026-10-23-T-058-review-step-2.md`
+
+## T-058 — fix B-20261023-02, a named save after a zip-worker error — 2026-10-23 — seat: zayd
+
+`createBnnZipper` rejects every `zip()` after the worker's `error` and reports `failed`; `saveDoc` respawns a failed zipper.
+New T-058 test: early reject removed → red (`resolved "'pending'"`, the hang); restored → 4 passed, 1 skipped.
+Next: hmdnah, step 2 of PR #107.
+Body: `handoff/zayd/2026-10-23-T-058-named-save-zip-worker.md`
+
+## T-058 — review step 1 of PR #107 — 2026-10-23 — seat: hmdnah
+
+Item 1: `saveDocument` storing `saveBnn` → 2 red (`posts to the worker: expected +0 to be 1`); restored → green. Browser re-run:
+123/133/125 ms vs 5,025 ms on-thread. Size drift between runs is new element ids per fixture run, not save nondeterminism.
+One defect, back to zayd (B-20261023-02): after a zip-worker `error`, later named saves never settle. Not owner-gated; no approval.
+Body: `handoff/hmdnah/2026-10-23-T-058-review-step-1.md`
+
+## T-058 — a named save zips in a dedicated worker — 2026-10-23 — seat: zayd
+
+`saveDoc` → `saveDocument`: entries assembled on the main thread, zipped in `bnnZipWorker.ts`, bytes equal `saveBnn`
+(T-058 test; revert to `saveBnn` → red). Browser, 16k solids: main thread held 125–133 ms per save vs 4,940 ms on-thread.
+Next: hmdnah, step 1 of this PR.
+Body: `handoff/zayd/2026-10-23-T-058-named-save-zip-worker.md`
+
+## T-057 — review step 2 of PR #106, re-run after the fix — 2026-10-23 — seat: hmdnah
+
+APPROVED. B-20261023-01 is resolved: step 1's delayed-store probe at `a148f77` gives `AeqB=false`, the loser's index fails
+`verifyCacheIndex`, and the reworded comment now says exactly that. Item 1: `geometryCache` dropped → 1 red; restored → 10 green.
+Items 2, 3 and 6 re-run: nothing new. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-23-T-057-review-step-2.md` § step 2 re-run
+
+## T-057 — review fix: `installSecret`'s race comment — 2026-10-23 — seat: zayd
+
+B-20261023-01: `documentStorage.ts` `installSecret`'s comment no longer claims racing first boots agree; it says they can
+differ and the loser's cache is refused by `verifyCacheIndex`. Comment only; code unchanged. T-057 tests: 10 passed.
+Next: hmdnah, step 2 of PR #106.
+Body: `handoff/zayd/2026-10-23-T-057-app-cache-open.md` § review fix
+
+## T-057 — review step 2 of PR #106 — 2026-10-23 — seat: hmdnah
+
+CHANGES REQUESTED; not approved, not merged, row stays `review` (B-20261023-01). Step 1's defect is unresolved: no code commit
+since, and `documentStorage.ts:88-91` still claims racing first boots agree. Item 1: `geometryCache` dropped → 1 red; restored →
+10 green. Items 2, 3, 6: nothing else found. CI green on `7952ee4`; not owner-gated.
+Body: `handoff/hmdnah/2026-10-23-T-057-review-step-2.md`
+
+## T-057 — review step 1 of PR #106 — 2026-10-23 — seat: hmdnah
+
+Item 1: `geometryCache` dropped → restore test red (`expected Set{ 'extrude' } to deeply equal Set{ 'importBrep' }`); restored → green.
+One item-4 defect proven, back to zayd: `installSecret`'s comment says racing first boots agree, but a delayed-store probe gives `AeqB=false`.
+No geometry effect (a foreign MAC is refused, no app cache write yet). No watched file changed. Not owner-gated; no approval.
+Body: `handoff/hmdnah/2026-10-23-T-057-review-step-1.md`
+
+## T-057 — Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret — 2026-10-23 — seat: zayd
+
+`readInitial` keeps `pkg.cache`; `documentOptions` (out of `bootstrap.ts`) wires the D29 cache options; `installSecret` writes one key.
+Real OCCT: own secret → `rebuildOnly` sends only `importBrep`; other secret or no cache → builds. Both revert-verified red.
+Spec defect fixed: T-057's `tests/_d29_` (prettier-mangled) is now `` `tests/*-d29.test.ts` ``. No watched file changed.
+Body: `handoff/zayd/2026-10-23-T-057-app-cache-open.md`
+
 ## STEWARD-d29-app-wiring — review of PR #105 — 2026-10-23 — seat: hmdnah
 
 Approved; no defect proven. Item 1: T-057's `implements:` removed → `gates.py docs` RED (exit 1, named);

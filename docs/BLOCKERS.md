@@ -429,3 +429,27 @@ from, and the reason it is a record rather than prose.
 - evidence: `git show fdf8c82 -- docs/BACKLOG.md docs/CURRENT_STATE.md`
 - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
 - cleared: -
+
+## B-20261023-01 PR #106's step 2 found step 1's installSecret comment defect unfixed, so it is not merged
+
+- opened: 2026-10-23T11:20Z
+- by: hmdnah
+- scope: item
+- item: PR#106
+- what: step 1 of PR #106 (T-057) proved that `apps/web/src/storage/documentStorage.ts:88-91` claims two racing first boots settle on one secret, which they do not always do; step 2 found that no commit since step 1 touches code
+- why: `git show --stat 958d1f1 dc780f5 7952ee4` changes docs and handoff only, and lines 88-91 are unchanged at `7952ee4`; `agent_finish.py --review --step 2` would stamp T-057 `done` (`protocol.py:2469`), so the step-2 finish was not run
+- evidence: step 1's delayed-store probe in `handoff/hmdnah/2026-10-23-T-057-review-step-1.md` (`AeqB=false`); `git diff 7952ee4 -- apps/web/src/storage/documentStorage.ts` is empty against step 1's head
+- need: reword or make true `installSecret`'s race comment (options in `handoff/hmdnah/2026-10-23-T-057-review-step-2.md`) in a zayd turn on `task/T-057-opening-a-stored-bnn-in-the-app-restores`, then route PR #106 to hmdnah for step 2
+- cleared: 2026-10-23T11:41Z
+
+## B-20261023-02 PR #107's named save hangs silently after its zip worker fails once
+
+- opened: 2026-10-23T12:28Z
+- by: hmdnah
+- scope: item
+- item: PR#107
+- what: step 1 of PR #107 (T-058) proved that once the zip worker fires `error`, every later named save in that session never settles: no file, no banner, no error
+- why: `createBnnZipper` (`apps/web/src/storage/bnnZip.ts`) rejects only the saves pending at the `error` event and keeps posting to the dead port, and `App.tsx:303` (`zipperRef.current ??= spawnBnnZipper()`) never drops the failed zipper; the replaced on-thread `saveBnn` path could not hang
+- evidence: a scratch vitest at `91a25ce` (a port that never replies; fire `error`; the first `zip()` rejects "load failed"; a second `zip()` raced against a 2000 ms timer) printed `PROBE second save: pending after 2000 ms`; full probe in `handoff/hmdnah/2026-10-23-T-058-review-step-1.md`
+- need: make a named save after a zip-worker `error` respawn the worker or reject, with a test that fails without the fix, in a zayd turn on `task/T-058-a-named-save-in-the-app-zips-in-a-dedica`, then route PR #107 to hmdnah for step 2
+- cleared: 2026-10-23T12:58Z

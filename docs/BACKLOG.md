@@ -122,9 +122,9 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-054 | done    | A container move re-stages every datum on a Level beneath it                                                       | backend  | box     | **high** | —            |
 | T-055 | done    | A design-option set with no primary or two primaries surfaces in brokenRefs()                                      | backend  | box     | normal   | —            |
 | T-056 | done    | A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn                               | backend  | box     | **high** | —            |
-| T-057 | ready   | Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret kept in browser storage | frontend | box     | **high** | —            |
-| T-058 | ready   | A named save in the app zips in a dedicated worker, byte-identical to saveBnn                                      | workers  | box     | **high** | T-056        |
-| T-059 | blocked | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058 |
+| T-057 | done    | Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret kept in browser storage | frontend | box     | **high** | —            |
+| T-058 | done    | A named save in the app zips in a dedicated worker, byte-identical to saveBnn                                      | workers  | box     | **high** | T-056        |
+| T-059 | ready   | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058 |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029        |
@@ -605,7 +605,7 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - implements: docs/design/P5_step9_D29_bnn_cache_design.md §2a, §2d, §2e (secret persistence belongs to the app wiring), §4, §6 R3/R5/R6 · docs/contracts/V1.0.0_spec.md §6 (geometry-cache box) · D29; provenance: BACKLOG ## Discovered 2026-10-14 (T-042), confirmed by a brahim R39 diagnosis 2026-10-23 at 3d72653 (apps/web/src/storage/documentStorage.ts:67-75 drops pkg.cache; apps/web/src/bootstrap.ts:116-122 passes no geometryCache*)
 - done-when: test-first, on a MemoryStore: the secret helper returns the same 32 bytes on a second call and writes exactly one key, which listDocKeys, latestAutosaveKey and the Autosave ring do not count
 - done-when: a pure options builder factored out of bootstrap.ts (node-testable, no Worker) given a cached file signed with the stored secret builds a doc that restores (rebuildOnly calls no build for a matching root); given another secret it restores nothing; revert-verified: dropping geometryCache turns it red
-- done-when: a file without geometry-cache/ opens as today; every tests/_d29_ test and the T-049 and T-052 tests pass unchanged
+- done-when: a file without geometry-cache/ opens as today; every `tests/*-d29.test.ts` test and the T-049 and T-052 tests pass unchanged
 - done-when: no [frozen_surface] watched file changes
 - verify: pnpm verify
 - depends-on: — · area: frontend · machine: box · risk: **high**

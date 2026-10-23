@@ -17,8 +17,16 @@
  * Delta uncomputable (`bnn.ts` / plan step 10). `saveDocument` below takes `changeFeed` + `revision`.
  */
 
-import { loadBnn, type StorageAdapter } from '@bunyan/document';
+import {
+  assembleBnnEntries,
+  loadBnn,
+  newInstallSecret,
+  type SaveOptions,
+  type Scene,
+  type StorageAdapter,
+} from '@bunyan/document';
 
+import { createBnnZipper, type BnnZipper } from './bnnZip';
 import { IndexedDbStore } from './indexeddb';
 import type { InitialDocument } from '../bootstrap';
 
@@ -63,6 +71,29 @@ function autosaveCounter(key: string): number {
   return Number(/autosave-(\d+)/.exec(key)?.[1] ?? 0);
 }
 
+/** The named save's zip worker (T-058); spawned once, on the first save. */
+export function spawnBnnZipper(): BnnZipper {
+  const worker = new Worker(new URL('./bnnZipWorker.ts', import.meta.url), { type: 'module' });
+  return createBnnZipper(worker);
+}
+
+/**
+ * A named save: the entries are assembled here (every `saveBnn` refusal), zipped by `zipper` off the main
+ * thread, and stored under `docKey(name)`. Its bytes equal `saveBnn(scene, options)`. Returns the key.
+ */
+export async function saveDocument(
+  store: StorageAdapter,
+  name: string,
+  scene: Scene,
+  options: SaveOptions,
+  zipper: BnnZipper,
+): Promise<string> {
+  const bytes = await zipper.zip(assembleBnnEntries(scene, options));
+  const key = docKey(name);
+  await store.write(key, bytes);
+  return key;
+}
+
 /** Read a stored `.bnn` and parse it into the `InitialDocument` the boot path rebuilds from. */
 export async function readInitial(
   store: StorageAdapter,
@@ -71,7 +102,33 @@ export async function readInitial(
   const bytes = await store.read(key);
   if (bytes === undefined) return undefined;
   const pkg = loadBnn(bytes);
-  return { scene: pkg.scene, journal: pkg.journal, revision: pkg.manifest.revision };
+  return {
+    scene: pkg.scene,
+    journal: pkg.journal,
+    revision: pkg.manifest.revision,
+    ...(pkg.cache === undefined ? {} : { cache: pkg.cache }),
+  };
+}
+
+/**
+ * The store key of this install's D29 cache secret (R5, design §2e). Neither `doc/` nor `autosave-`, so
+ * no file list, recover offer or autosave ring counts it.
+ */
+export const INSTALL_SECRET_KEY = 'bunyan:install-secret';
+
+/**
+ * This install's cache secret: read back if stored, else created once and stored, then read back.
+ * Two racing first boots (StrictMode) can still hold different secrets: one reads back its own write
+ * before the other overwrites it. The loser's signed cache is then refused by `verifyCacheIndex`
+ * (a lost restore, never a wrong solid).
+ */
+export async function installSecret(store: StorageAdapter): Promise<Uint8Array> {
+  const stored = await store.read(INSTALL_SECRET_KEY);
+  if (stored?.length === 32) return stored;
+  await store.write(INSTALL_SECRET_KEY, newInstallSecret());
+  const kept = await store.read(INSTALL_SECRET_KEY);
+  if (kept?.length !== 32) throw new Error('the install secret did not persist');
+  return kept;
 }
 
 /** Park a store key for the reload-based open (see the file header), then let the caller reload. */

@@ -15,6 +15,10 @@ export default defineConfig({
       '@bunyan/kernel-mock': pkg('kernel-mock'),
       '@bunyan/kernel-occt': pkg('kernel-occt'),
       '@bunyan/kernel-client': pkg('kernel-client'),
+      // Before '@bunyan/document', which would otherwise prefix-match it (T-058's zip worker import).
+      '@bunyan/document/bnnzip': fileURLToPath(
+        new URL('./packages/document/src/bnnzip.ts', import.meta.url),
+      ),
       '@bunyan/document': pkg('document'),
       '@bunyan/sketch-solver': pkg('sketch-solver'),
       '@bunyan/types': pkg('types'),
