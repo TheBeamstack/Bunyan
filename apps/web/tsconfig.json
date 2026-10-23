@@ -13,5 +13,5 @@
       "@bunyan/document": ["../../packages/document/src/index.ts"]
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts", "codeIdPlugin.ts"]
 }

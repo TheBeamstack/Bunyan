@@ -40,6 +40,18 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-044 — review step 2 of PR #90 (on the fix) — 2026-10-23 — seat: hmdnah
+
+Approved; no defect proven. Item 1 at `24a0cc3`: pre-fix plugin and `codeId.ts` restored → 2 red (step 1's probe); restored →
+4 green. Two real app builds: only the 4 HTML entries change bytes; `PartBatch-*.js` keeps name and bytes. Chromium reads the
+meta. Reserved classes: none; CI green. Not owner-gated. Body: `handoff/hmdnah/2026-10-23-T-044-review-step-2.md`
+
+## T-044 — `CODE_ID` is stamped into the HTML, never a hashed chunk (B-20261020-02) — 2026-10-23 — seat: zayd
+
+`codeIdPlugin` stamps the bundle digest into each HTML entry's meta tag; `CODE_ID` reads it at runtime. hmdnah's
+probe is landed; pre-fix code → 2 red (probe: `assets/id-GK_lKDOT.js`), restored → 4 green. Merged `origin/main`
+(PR #90 conflicted). `pnpm verify` → 1024 passed, 1 skipped. Body: `handoff/zayd/2026-10-23-T-044-codeid-in-html.md`
+
 ## T-043 — review step 2 of PR #89 (on the fix) — 2026-10-23 — seat: hmdnah
 
 Approved; no defect proven. Item 1 at `f840309`: the `openCacheIndex` try/catch reverted → 1 red (`RangeError`); restored →
@@ -51,6 +63,20 @@ Reserved classes: none; CI green. Not owner-gated. Body: `handoff/hmdnah/2026-10
 `openCacheIndex` returns `undefined` when `verifyCacheIndex` throws; hmdnah's 200,000-deep probe is a test, red before.
 Merged `origin/main` (PR #89 conflicted); main's T-052/T-056 tests now pass a secret. `pnpm verify` → 1020 passed, 1 skipped.
 Body: `handoff/zayd/2026-10-23-T-043-hostile-index-refused.md`
+
+## T-044 — review step 1 of PR #90 — 2026-10-20 — seat: hmdnah
+
+Changes requested (step 1): the stamped chunk keeps its pre-stamp content-hash name, so a URL-keyed cache can serve
+a stale `CODE_ID` (B-20261020-02). Proof: two app builds give `PartBatch-C8aMdl36.js` the same name and different
+bytes, and a probe test reads 1 red. Item 1: assets dropped from the digest → 1 red, restored 3 green. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`
+
+## T-044 — D29 R6 — `codeId` is the shipped bundle's sha256 (D-20261012-06 `bundle`) — 2026-10-20 — seat: zayd
+
+`vite build` stamps `CODE_ID` (`apps/web/src/codeId.ts`) with sha256 over every chunk and asset (`codeIdPlugin.ts`).
+`cacheEnvelope(kernelBuildId)` carries it; nothing calls it yet (`## Discovered`). A real fixture build: a changed
+main or worker moves the id. Revert-verified twice, 1 red then 3 green each. `pnpm verify` green (979).
+Body: `handoff/zayd/2026-10-20-T-044-d29-codeid-bundle.md`
 
 ## T-056 — review step 2 of PR #104 — 2026-10-20 — seat: hmdnah
 

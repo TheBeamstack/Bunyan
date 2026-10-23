@@ -82,10 +82,11 @@ TypeScript with no kernel call; its time at 16k is **not measured** and row R1 m
 ### 2d. What the input key cannot see: code
 
 A Type's `buildGeometry` fixed without a `version` bump builds a different solid from the same inputs, and no
-digest of `scene.json` moves. The envelope's `codeId` closes that. **Open: which `codeId`** — `D-20261012-06`.
-Recommended: a content hash of the shipped bundle stamped at build time (every deploy discards every cache, so
-the first open after an update is today's rebuild); the alternative, `typeVersions` + engine version, keeps
-caches across deploys and serves a stale solid whenever a fix forgets its bump.
+digest of `scene.json` moves. The envelope's `codeId` closes that: **the shipped bundle's sha256**
+(`D-20261012-06`, `bundle` by default, T-044), taken by `vite build` (`apps/web/codeIdPlugin.ts`) over every
+emitted file and stamped into each unhashed HTML entry's meta tag, never into a content-hashed chunk whose
+unchanged name a cache could serve stale (B-20261020-02), so every deploy discards every cache and the first open after an update is today's rebuild. An
+unstamped load (dev server, tests) has a fresh `codeId` per load and restores no cache it did not write.
 
 ### 2e. What no key can see: a hostile author
 

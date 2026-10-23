@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-043` |
-| branch | `task/T-043-d29-r5-the-cache-envelope-is-trusted-per` |
-| claimed-at | 2026-10-20T01:17:45Z |
-| status | merged — PR #89 merged by `hmdnah` at 2026-10-23T02:19:43Z |
+| task | `T-044` |
+| branch | `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a` |
+| claimed-at | 2026-10-20T02:09:44Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -214,4 +214,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: cb466415ad2bbaebd1a1366ff7bc2bfd701dfc43
+last-verified-at: 54e38bae4a3a042a8523e4d6ec29bf30829efa30
