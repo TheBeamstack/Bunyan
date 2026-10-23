@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-059` |
-| branch | `task/T-059-the-app-exports-built-assemblies-in-idle` |
+| task | `STEWARD-d29-cache-sign-off-main` |
+| branch | `steward/d29-cache-sign-off-main` |
 | claimed-at | 2026-10-23T14:19:36Z |
-| status | merged — PR #108 merged by `hmdnah` at 2026-10-23T15:17:33Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 711a6fb30602bc5f9ff154b0c0cb5f1589be43c1
+last-verified-at: 25573db3f07d5131a3650123928cc996edd396c2
