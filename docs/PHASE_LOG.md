@@ -45,7 +45,7 @@ from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 A diagnosis subagent confirmed at `b927f6e` that a named save signs the D29 index on the main thread (`App.tsx:328`) and an open verifies it there (`cacherestore.ts:91`).
 T-060 (`ready`, `requires: browser`): the zip worker signs, bytes unchanged. T-061 (`blocked` on T-060): the open's parse+verify moves off the main thread.
 Both `risk: high`; the finding is deleted (R12). No code changed.
-Body: `handoff/brahim/2026-10-23-STEWARD-d29-cache-sign-off-main.md`
+Body: `handoff/brahim/2026-10-23-STEWARD-d29-cache-sign-off-main-t060.md`
 
 ## T-059 — review step 2 of PR #108 — 2026-10-23 — seat: hmdnah
 
