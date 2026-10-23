@@ -27,6 +27,8 @@
 import { unzipSync } from 'fflate';
 import type { BnnEntries } from './bnnzip.js';
 import { zipBnnEntries } from './bnnzip.js';
+import type { CacheSigning, UnsignedGeometryCache } from './cachesign.js';
+import { isUnsignedGeometryCache, signGeometryCache } from './cachesign.js';
 import type { Scene } from './scene.js';
 import { SCENE_SCHEMA_VERSION, emptyScene } from './scene.js';
 import type { UndoableEdit } from './undo.js';
@@ -108,8 +110,11 @@ export interface SaveOptions {
    * Absent in v1.0.0 (no transport mints one); a co-editing transport supplies it additively.
    */
   readonly documentLineage?: string | undefined;
-  /** D29 — written under `geometry-cache/` verbatim. Absent ⇒ no cache, and the file is complete. */
-  readonly cache?: GeometryCacheFiles | undefined;
+  /**
+   * D29 — written under `geometry-cache/`: signed files verbatim, or `doc.geometryCacheFiles()`'s unsigned
+   * cache, whose `index.json` `saveBnn` signs. Absent ⇒ no cache, and the file is complete.
+   */
+  readonly cache?: GeometryCacheFiles | UnsignedGeometryCache | undefined;
 }
 
 const encoder = new TextEncoder();
@@ -133,6 +138,42 @@ export function saveBnn(scene: Scene, options: SaveOptions): Uint8Array {
 
 /** The save's entries by zip path, before the zip step; every refusal `saveBnn` makes is made here. */
 export function assembleBnnEntries(scene: Scene, options: SaveOptions): BnnEntries {
+  const cache =
+    options.cache !== undefined && isUnsignedGeometryCache(options.cache)
+      ? signGeometryCache(options.cache)
+      : options.cache;
+  return assembleEntries(scene, cache, options);
+}
+
+/** A placeholder `index.json`, replaced in place by `signBnnEntries` (`cachesign.ts`). */
+const UNSIGNED_INDEX = new Uint8Array(0);
+
+/**
+ * `assembleBnnEntries` with an unsigned cache's HMAC left out (T-060): its `index.json` is a placeholder
+ * and `signing` is what `signBnnEntries` needs to sign it in place, so a worker signs and the bytes equal
+ * `saveBnn`'s. Every refusal is still made here; a signed or absent cache gives no `signing`.
+ */
+export function assembleUnsignedBnnEntries(
+  scene: Scene,
+  options: SaveOptions,
+): { readonly entries: BnnEntries; readonly signing?: CacheSigning } {
+  const cache = options.cache;
+  if (cache === undefined || !isUnsignedGeometryCache(cache)) {
+    return { entries: assembleEntries(scene, cache, options) };
+  }
+  const { envelope, records, secret, files } = cache;
+  const placeholder = { ...files, 'index.json': UNSIGNED_INDEX };
+  return {
+    entries: assembleEntries(scene, placeholder, options),
+    signing: { envelope, records, secret },
+  };
+}
+
+function assembleEntries(
+  scene: Scene,
+  cache: GeometryCacheFiles | undefined,
+  options: SaveOptions,
+): BnnEntries {
   // ⚠⚠ NEITHER FORCE NOR DECLARE, AND THE SIGNATURE IS THE PROOF (D66 §3c, T-005): it takes a `Scene`
   // — the recipe — so no built state is within its reach and a lazily built document writes the same
   // bytes as a fully built one. Should that ever change it FORCES: a save that silently omits unbuilt
@@ -179,11 +220,11 @@ export function assembleBnnEntries(scene: Scene, options: SaveOptions): BnnEntri
     files['history.json'] = encoder.encode(JSON.stringify(options.journal, null, 2));
   }
   if (options.thumbnail !== undefined) files['thumbnail.png'] = options.thumbnail;
-  if (options.cache !== undefined) {
-    if (options.cache['index.json'] === undefined) {
+  if (cache !== undefined) {
+    if (cache['index.json'] === undefined) {
       throw new Error('refusing to write a geometry cache without its index.json');
     }
-    for (const [name, bytes] of Object.entries(options.cache)) {
+    for (const [name, bytes] of Object.entries(cache)) {
       if (!isCacheEntryName(name)) throw new Error(`refusing cache entry name "${name}"`);
       files[GEOMETRY_CACHE_DIR + name] = bytes;
     }

@@ -61,6 +61,27 @@ Merged `origin/main` (`b1406c8`) at `cba69ef`; only `BLOCKERS.md` and `CURRENT_S
 Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
 Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
 
+## T-060 — review step 2 of PR #110 — 2026-10-23 — seat: hmdnah
+
+APPROVED, no defect proven. Item 1 re-run at `a4c5561`: caller signing again → "expected [ 1 ] to deeply equal [ +0 ]"; restored → 4 passed, 1 skipped.
+Item 2/3: every `geometryCacheFiles()` and `SaveOptions.cache` consumer signs or drops the unsigned cache; `vite build` puts the signer in the 11.92 kB worker bundle.
+Item 6: a worker that skips signing goes red; an HMAC added inside `geometryCacheFiles()` stays green (gap, not a defect).
+Body: `handoff/hmdnah/2026-10-23-T-060-review-step-2.md`
+
+## T-060 — review step 1 of PR #110 — 2026-10-23 — seat: hmdnah
+
+Item 1: `saveDocument` signing on the caller again → "no HMAC runs on the caller: expected [ 1 ] to deeply equal [ +0 ]"; restored → 4 passed, 1 skipped.
+`named-save.mjs` re-run twice: hold 1,444–1,491 ms, control 8,295/8,516 ms; labeller on `2e7ce32` says additive, not owner-gated. No defect proven.
+Flagged: test count is 4, not 3; clone low bound 328 vs 318 ms across docs; the 16k file size differs per run. No approval.
+Body: `handoff/hmdnah/2026-10-23-T-060-review-step-1.md`
+
+## T-060 — a named save signs its geometry-cache index in the zip worker — 2026-10-23 — seat: zayd
+
+`geometryCacheFiles()` returns the cache unsigned; the worker signs `index.json` with the new leaf `@bunyan/document/cachesign`. Bytes equal `saveBnn`.
+T-060 test 3 passed, 1 skipped; signing on the caller again → "no HMAC runs on the caller" red. `pnpm verify` green.
+`named-save.mjs` at 16k: main thread held 1,431–1,476 ms against 8,515 ms for `saveBnn`. Its 200 ms bar fails: keys and the records clone still run on the main thread (Discovered).
+Body: `handoff/zayd/2026-10-23-T-060-sign-in-zip-worker.md`
+
 ## STEWARD-d29-cache-sign-off-main — review of PR #109 — 2026-10-23 — seat: hmdnah
 
 APPROVED, no defect proven. Item 1 (docs-only): deleting T-060's `implements:` → `gates.py docs` exit 1; restored → exit 0.
