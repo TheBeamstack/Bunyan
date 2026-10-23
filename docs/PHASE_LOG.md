@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-057 — review fix: `installSecret`'s race comment — 2026-10-23 — seat: zayd
+
+B-20261023-01: `documentStorage.ts` `installSecret`'s comment no longer claims racing first boots agree; it says they can
+differ and the loser's cache is refused by `verifyCacheIndex`. Comment only; code unchanged. T-057 tests: 10 passed.
+Next: hmdnah, step 2 of PR #106.
+Body: `handoff/zayd/2026-10-23-T-057-race-comment.md`
+
 ## T-057 — review step 2 of PR #106 — 2026-10-23 — seat: hmdnah
 
 CHANGES REQUESTED; not approved, not merged, row stays `review` (B-20261023-01). Step 1's defect is unresolved: no code commit

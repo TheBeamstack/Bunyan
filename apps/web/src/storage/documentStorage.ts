@@ -86,8 +86,10 @@ export async function readInitial(
 export const INSTALL_SECRET_KEY = 'bunyan:install-secret';
 
 /**
- * This install's cache secret: read back if stored, else created once and stored. The value is read
- * back after the write, so two racing first boots (StrictMode) settle on the one the store kept.
+ * This install's cache secret: read back if stored, else created once and stored, then read back.
+ * Two racing first boots (StrictMode) can still hold different secrets: one reads back its own write
+ * before the other overwrites it. The loser's signed cache is then refused by `verifyCacheIndex`
+ * (a lost restore, never a wrong solid).
  */
 export async function installSecret(store: StorageAdapter): Promise<Uint8Array> {
   const stored = await store.read(INSTALL_SECRET_KEY);
