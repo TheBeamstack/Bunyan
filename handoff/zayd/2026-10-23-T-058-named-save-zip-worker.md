@@ -33,6 +33,14 @@
 - `git diff --name-only origin/main` touches no `[frozen_surface] watched` file.
 - `pnpm verify`: the result is in this turn's finish output.
 
+## Fix — B-20261023-02 (second turn, same day)
+
+- `bnnZip.ts`: on `error`, `createBnnZipper` keeps the failure, rejects every later `zip()` with it and reports `failed`.
+  `App.tsx` `saveDoc`: spawns a new zipper when none is held or the held one `failed`, so the next save respawns.
+- `npx vitest run tests/app-named-save-zip-worker-t058.test.ts`: new test first → red (`expected undefined to be false`);
+  fixed → 4 passed, 1 skipped. Revert-verify, early reject removed → red, `promise resolved "'pending'" instead of
+  rejecting` (the hang); restored → 4 passed, 1 skipped. The `App.tsx` respawn line has no test of its own (no App render).
+
 ## notes
 
 - Test-first was not literal: the code was written first, then stashed to see the test red before it went green.
