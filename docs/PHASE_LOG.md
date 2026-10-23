@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-057 — Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret — 2026-10-23 — seat: zayd
+
+`readInitial` keeps `pkg.cache`; `documentOptions` (out of `bootstrap.ts`) wires the D29 cache options; `installSecret` writes one key.
+Real OCCT: own secret → `rebuildOnly` sends only `importBrep`; other secret or no cache → builds. Both revert-verified red.
+Spec defect fixed: T-057's `tests/_d29_` (prettier-mangled) is now `` `tests/*-d29.test.ts` ``. No watched file changed.
+Body: `handoff/zayd/2026-10-23-T-057-app-cache-open.md`
+
 ## STEWARD-d29-app-wiring — review of PR #105 — 2026-10-23 — seat: hmdnah
 
 Approved; no defect proven. Item 1: T-057's `implements:` removed → `gates.py docs` RED (exit 1, named);
