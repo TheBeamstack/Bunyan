@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-d29-cache-sign-off-main — review of PR #109 — 2026-10-23 — seat: hmdnah
+
+APPROVED, no defect proven. Item 1 (docs-only): deleting T-060's `implements:` → `gates.py docs` exit 1; restored → exit 0.
+Every cited file:line matches `5203ad3`, every `implements:` section exists, and T-060's `requires: browser` is needed by `named-save.mjs`.
+Body: `handoff/hmdnah/2026-10-23-STEWARD-d29-cache-sign-off-main-review.md`
+
 ## STEWARD-d29-cache-sign-off-main — T-060, T-061 from the 2026-10-20 finding — 2026-10-23 — seat: brahim
 
 A diagnosis subagent confirmed at `b927f6e` that a named save signs the D29 index on the main thread (`App.tsx:328`) and an open verifies it there (`cacherestore.ts:91`).
