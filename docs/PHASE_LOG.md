@@ -47,6 +47,27 @@ Merged `origin/main` (`b1406c8`) at `cba69ef`; only `BLOCKERS.md` and `CURRENT_S
 Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
 Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
 
+## T-059 — review step 2 of PR #108 — 2026-10-23 — seat: hmdnah
+
+APPROVED, no defect proven. Item 1 re-run: `namedSaveOptions` without `cache` → 2 red; restored → 3 green.
+Every heap writer, the agent's included, takes `docLock`; the save reads one synchronous cache snapshot, and its gateway-less `saveDocument` sends no kernel op.
+Decided: "test-first" is unmet as written but proven in substance; the `App.tsx` effects and the re-kick branch are untested gaps, not defects.
+Body: `handoff/hmdnah/2026-10-23-T-059-review-step-2.md`
+
+## T-059 — review step 1 of PR #108 — 2026-10-23 — seat: hmdnah
+
+Item 1: export outside `lock.run` → 1 red (`:253`); `namedSaveOptions` without `cache` → 2 red; restored → 3 green.
+`pnpm verify` green, 119 files / 1039 passed / 2 skipped; labeller on `431d6bf` says additive, not owner-gated. No defect proven.
+Flagged for step 2: "test-first" is unmet as written (purpose re-verified); the `App.tsx` kick wiring has no test. No approval.
+Body: `handoff/hmdnah/2026-10-23-T-059-review-step-1.md`
+
+## T-059 — the app exports in idle time, and a named save carries the cache — 2026-10-23 — seat: zayd
+
+`createIdleCacheExporter` runs `doc.exportCacheIdle(1)` under the doc lock per idle slot, re-kicked by every edit/build.
+`saveDoc` passes `namedSaveOptions` (`cache: geometryCacheFiles()`); autosave unchanged. T-059 test 3 passed; `pnpm verify` green.
+Revert-verify: no `cache` → 2 red; export outside the lock → "never alongside an edit" red. Next: hmdnah, step 1.
+Body: `handoff/zayd/2026-10-23-T-059-idle-cache-export.md`
+
 ## T-058 — review step 2 of PR #107 — 2026-10-23 — seat: hmdnah
 
 APPROVED. B-20261023-02 is resolved: step 1's probe at `1a4a7f5` shows that a second save after `error` rejects at once and posts nothing.

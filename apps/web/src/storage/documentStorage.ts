@@ -21,6 +21,7 @@ import {
   assembleBnnEntries,
   loadBnn,
   newInstallSecret,
+  type DocumentContext,
   type SaveOptions,
   type Scene,
   type StorageAdapter,
@@ -75,6 +76,23 @@ function autosaveCounter(key: string): number {
 export function spawnBnnZipper(): BnnZipper {
   const worker = new Worker(new URL('./bnnZipWorker.ts', import.meta.url), { type: 'module' });
   return createBnnZipper(worker);
+}
+
+/**
+ * A named save's options: the journal, never the undo stack (file header), and the geometry cache the idle
+ * exporter built (`idleCacheExport.ts`, D29 §5). Autosave never calls this: it stays cache-less (R7).
+ */
+export function namedSaveOptions(
+  doc: Pick<DocumentContext, 'changeFeed' | 'revision' | 'geometryCacheFiles'>,
+  kernelBuildId: string,
+): SaveOptions {
+  const cache = doc.geometryCacheFiles();
+  return {
+    kernelBuildId,
+    journal: doc.changeFeed(),
+    revision: doc.revision,
+    ...(cache === undefined ? {} : { cache }),
+  };
 }
 
 /**
