@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-060` |
-| branch | `task/T-060-a-named-save-signs-its-geometry-cache-in` |
-| claimed-at | 2026-10-23T19:41:17Z |
-| status | merged — PR #110 merged by `hmdnah` at 2026-10-23T21:26:16Z |
+| task | `T-061` |
+| branch | `task/T-061-opening-a-file-verifies-its-geometry-cac` |
+| claimed-at | 2026-10-23T21:27:35Z |
+| status | working |
 
 <!-- END BATON -->
 
