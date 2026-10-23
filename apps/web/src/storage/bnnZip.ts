@@ -3,17 +3,22 @@
 
 /**
  * The named save's zip worker (T-058, design `P5_step9_D29_bnn_cache_design.md` §5): the main thread posts
- * `assembleBnnEntries` output and gets back the `zipBnnEntries` bytes, so deflating a full cache (~4.1 s at
- * 16k) never blocks it. Not the kernel worker: a save there would stall OCCT.
+ * `assembleUnsignedBnnEntries` output and gets back the `zipBnnEntries` bytes, so neither deflating a full
+ * cache (~4.1 s at 16k) nor signing its index (~2 s, T-060) blocks it. Not the kernel worker: a save there
+ * would stall OCCT. The install secret crosses to this same-origin worker with the records it signs.
  *
- * ⚠ Imports only `@bunyan/document/bnnzip` (fflate), so the worker bundle carries no document code.
+ * ⚠ Imports only the leaves `@bunyan/document/bnnzip` (fflate) and `/cachesign` (nothing), so the worker
+ * bundle carries no document code.
  */
 
 import { zipBnnEntries, type BnnEntries } from '@bunyan/document/bnnzip';
+import { signBnnEntries, type CacheSigning } from '@bunyan/document/cachesign';
 
 export interface ZipRequest {
   readonly id: number;
   readonly entries: BnnEntries;
+  /** Present ⇒ `entries` holds a placeholder index, signed here before the zip (T-060). */
+  readonly signing?: CacheSigning;
 }
 
 export type ZipReply =
@@ -23,7 +28,9 @@ export type ZipReply =
 /** The worker side: one request, one reply. Equal entries give bytes equal to `saveBnn`. */
 export function handleZipRequest(request: ZipRequest): ZipReply {
   try {
-    return { id: request.id, bytes: zipBnnEntries(request.entries) };
+    const { entries, signing } = request;
+    const signed = signing === undefined ? entries : signBnnEntries(entries, signing);
+    return { id: request.id, bytes: zipBnnEntries(signed) };
   } catch (error) {
     return { id: request.id, error: String(error) };
   }
@@ -37,7 +44,7 @@ export interface ZipPort {
 }
 
 export interface BnnZipper {
-  zip(entries: BnnEntries): Promise<Uint8Array>;
+  zip(entries: BnnEntries, signing?: CacheSigning): Promise<Uint8Array>;
   /** True once the worker fired `error`: every later `zip()` rejects, so the caller spawns a new zipper. */
   readonly failed: boolean;
 }
@@ -66,7 +73,7 @@ export function createBnnZipper(port: ZipPort): BnnZipper {
     get failed() {
       return failure !== undefined;
     },
-    zip: (entries) =>
+    zip: (entries, signing) =>
       new Promise((resolve, reject) => {
         if (failure !== undefined) {
           reject(failure);
@@ -74,7 +81,7 @@ export function createBnnZipper(port: ZipPort): BnnZipper {
         }
         const id = next++;
         pending.set(id, { resolve, reject });
-        port.postMessage({ id, entries });
+        port.postMessage(signing === undefined ? { id, entries } : { id, entries, signing });
       }),
   };
 }

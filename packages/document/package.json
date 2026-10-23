@@ -9,7 +9,8 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
-    "./bnnzip": "./src/bnnzip.ts"
+    "./bnnzip": "./src/bnnzip.ts",
+    "./cachesign": "./src/cachesign.ts"
   },
   "scripts": {
     "typecheck": "tsc --build"

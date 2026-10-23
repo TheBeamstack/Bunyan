@@ -120,7 +120,7 @@ describe('T-057 — opening a stored .bnn through the app path restores its geom
     await built.rebuildAll();
     while ((await built.exportCacheIdle(8)) > 0);
     const cache = built.geometryCacheFiles();
-    expect(cache?.['index.json']).toBeDefined();
+    expect(cache?.records).toBeDefined();
     await store.write('doc/cached.bnn', saveBnn(scene, { kernelBuildId: KERNEL_BUILD_ID, cache }));
     await store.write('doc/plain.bnn', saveBnn(scene, { kernelBuildId: KERNEL_BUILD_ID }));
   }, 180_000);

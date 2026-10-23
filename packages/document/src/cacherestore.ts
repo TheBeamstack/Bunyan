@@ -13,7 +13,8 @@
 import type { Element, ElementId, Part } from './entities.js';
 import type { ElementGeometry } from './build.js';
 import type { GeometryCacheReader } from './bnn.js';
-import type { CacheEnvelope, CacheKeyTables } from './cachekey.js';
+import type { CacheKeyTables } from './cachekey.js';
+import type { CacheEnvelope } from './cachesign.js';
 import { cacheInputKey, sameCacheEnvelope } from './cachekey.js';
 import type { SignedCacheEnvelope } from './cachetrust.js';
 import { verifyCacheIndex } from './cachetrust.js';
