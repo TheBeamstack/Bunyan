@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-057 — review step 2 of PR #106, re-run after the fix — 2026-10-23 — seat: hmdnah
+
+APPROVED. B-20261023-01 is resolved: step 1's delayed-store probe at `a148f77` gives `AeqB=false`, the loser's index fails
+`verifyCacheIndex`, and the reworded comment now says exactly that. Item 1: `geometryCache` dropped → 1 red; restored → 10 green.
+Items 2, 3 and 6 re-run: nothing new. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-23-T-057-review-step-2.md` § step 2 re-run
+
 ## T-057 — review fix: `installSecret`'s race comment — 2026-10-23 — seat: zayd
 
 B-20261023-01: `documentStorage.ts` `installSecret`'s comment no longer claims racing first boots agree; it says they can
