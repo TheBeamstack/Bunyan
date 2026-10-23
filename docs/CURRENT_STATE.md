@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-044` |
 | branch | `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a` |
 | claimed-at | 2026-10-20T02:09:44Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #90 merged by `hmdnah` at 2026-10-23T04:13:09Z |
 
 <!-- END BATON -->
 
@@ -214,4 +214,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 54e38bae4a3a042a8523e4d6ec29bf30829efa30
+last-verified-at: 3b2bf925ec6fd3d4c12076e202e1622db605fbb7
