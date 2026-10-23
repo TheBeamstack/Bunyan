@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-061 — review step 2 of PR #111 — 2026-10-23 — seat: hmdnah
+
+APPROVED, no defect proven. Item 1 at `1a0d26c`: `openIndexOf` verifying on the caller → "opened before rebuildAll: expected +0 to be 1"; restored → 6 passed, 1 skipped.
+Item 2/3: only `rebuildAll`/`rebuildOnly` restore, and both await the open; `vite build` emits `cacheOpenWorker` at 2.97 kB.
+Item 6: no `error` listener → timeout red; no MAC check → other-install test red. 16k figures not re-run (permissions).
+Body: `handoff/hmdnah/2026-10-23-T-061-review-step-2.md`
+
 ## T-061 — review step 1 of PR #111 — 2026-10-23 — seat: hmdnah
 
 Item 1 at `32b2dd1`: `#stage` opening the index again → "no parse or verify runs on the caller: expected 1 to be +0"; dropping the awaits → `rebuildOnly` "expected +0 to be 1"; restored → 6 passed, 1 skipped.
