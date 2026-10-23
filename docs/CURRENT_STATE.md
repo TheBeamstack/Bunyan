@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-057` |
-| branch | `task/T-057-opening-a-stored-bnn-in-the-app-restores` |
-| claimed-at | 2026-10-23T08:52:55Z |
-| status | merged — PR #106 merged by `hmdnah` at 2026-10-23T12:03:12Z |
+| task | `T-058` |
+| branch | `task/T-058-a-named-save-in-the-app-zips-in-a-dedica` |
+| claimed-at | 2026-10-23T12:04:21Z |
+| status | working |
 
 <!-- END BATON -->
 
