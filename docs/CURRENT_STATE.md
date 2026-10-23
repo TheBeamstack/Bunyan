@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-060` |
-| branch | `task/T-060-a-named-save-signs-its-geometry-cache-in` |
-| claimed-at | 2026-10-23T19:41:17Z |
-| status | merged — PR #110 merged by `hmdnah` at 2026-10-23T21:26:16Z |
+| task | `T-061` |
+| branch | `task/T-061-opening-a-file-verifies-its-geometry-cac` |
+| claimed-at | 2026-10-23T21:27:35Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 603e89867d68fbefa81e53c7a8221566d3287703
+last-verified-at: 1423c14c7cc3136966b4d562e2ef44c175c89f8d

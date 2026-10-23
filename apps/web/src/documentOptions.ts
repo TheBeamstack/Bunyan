@@ -4,10 +4,16 @@
 /**
  * The boot path's `DocumentOptions`, factored out of `bootstrap.ts` so it runs under node with no Worker
  * (T-057). D29: with an install secret, the doc signs what it writes under this build's envelope and
- * restores a loaded file's `geometry-cache/` only if this install signed it (design §2e, §4).
+ * restores a loaded file's `geometry-cache/` only if this install signed it (design §2e, §4); `openIndex`
+ * is where that index is parsed and verified (`bootstrap` passes the cache-open worker, T-061).
  */
 
-import type { DocumentOptions, GeometryGateway, Registries } from '@bunyan/document';
+import type {
+  CacheIndexOpener,
+  DocumentOptions,
+  GeometryGateway,
+  Registries,
+} from '@bunyan/document';
 
 import type { InitialDocument } from './bootstrap';
 import { cacheEnvelope } from './storage/cacheEnvelope';
@@ -18,6 +24,7 @@ export function documentOptions(
   kernelBuildId: string,
   initial?: InitialDocument,
   installSecret?: Uint8Array,
+  openIndex?: CacheIndexOpener,
 ): DocumentOptions {
   const loaded =
     initial === undefined
@@ -33,6 +40,6 @@ export function documentOptions(
     geometryCacheSecret: installSecret,
     ...(initial?.cache === undefined
       ? {}
-      : { geometryCache: { files: initial.cache, current, installSecret } }),
+      : { geometryCache: { files: initial.cache, current, installSecret, openIndex } }),
   };
 }
