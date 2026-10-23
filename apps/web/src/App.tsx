@@ -29,6 +29,7 @@ import {
   createStore,
   docKey,
   docName,
+  installSecret,
   latestAutosaveKey,
   listDocKeys,
   readInitial,
@@ -195,7 +196,9 @@ export function App() {
           }
         }
 
-        const bunyan = await bootstrap(initial);
+        // No secret (storage refused) ⇒ boot as before, with no geometry cache restored or written.
+        const secret = await installSecret(store).catch(() => undefined);
+        const bunyan = await bootstrap(initial, secret);
         started = bunyan;
         // Unmounted while the ~14 MB kernel was booting (StrictMode double-mount): dispose it now,
         // because the cleanup below ran before `started` was set.

@@ -17,7 +17,7 @@
  * Delta uncomputable (`bnn.ts` / plan step 10). `saveDocument` below takes `changeFeed` + `revision`.
  */
 
-import { loadBnn, type StorageAdapter } from '@bunyan/document';
+import { loadBnn, newInstallSecret, type StorageAdapter } from '@bunyan/document';
 
 import { IndexedDbStore } from './indexeddb';
 import type { InitialDocument } from '../bootstrap';
@@ -71,7 +71,31 @@ export async function readInitial(
   const bytes = await store.read(key);
   if (bytes === undefined) return undefined;
   const pkg = loadBnn(bytes);
-  return { scene: pkg.scene, journal: pkg.journal, revision: pkg.manifest.revision };
+  return {
+    scene: pkg.scene,
+    journal: pkg.journal,
+    revision: pkg.manifest.revision,
+    ...(pkg.cache === undefined ? {} : { cache: pkg.cache }),
+  };
+}
+
+/**
+ * The store key of this install's D29 cache secret (R5, design §2e). Neither `doc/` nor `autosave-`, so
+ * no file list, recover offer or autosave ring counts it.
+ */
+export const INSTALL_SECRET_KEY = 'bunyan:install-secret';
+
+/**
+ * This install's cache secret: read back if stored, else created once and stored. The value is read
+ * back after the write, so two racing first boots (StrictMode) settle on the one the store kept.
+ */
+export async function installSecret(store: StorageAdapter): Promise<Uint8Array> {
+  const stored = await store.read(INSTALL_SECRET_KEY);
+  if (stored?.length === 32) return stored;
+  await store.write(INSTALL_SECRET_KEY, newInstallSecret());
+  const kept = await store.read(INSTALL_SECRET_KEY);
+  if (kept?.length !== 32) throw new Error('the install secret did not persist');
+  return kept;
 }
 
 /** Park a store key for the reload-based open (see the file header), then let the caller reload. */

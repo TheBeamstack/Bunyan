@@ -605,7 +605,7 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - implements: docs/design/P5_step9_D29_bnn_cache_design.md §2a, §2d, §2e (secret persistence belongs to the app wiring), §4, §6 R3/R5/R6 · docs/contracts/V1.0.0_spec.md §6 (geometry-cache box) · D29; provenance: BACKLOG ## Discovered 2026-10-14 (T-042), confirmed by a brahim R39 diagnosis 2026-10-23 at 3d72653 (apps/web/src/storage/documentStorage.ts:67-75 drops pkg.cache; apps/web/src/bootstrap.ts:116-122 passes no geometryCache*)
 - done-when: test-first, on a MemoryStore: the secret helper returns the same 32 bytes on a second call and writes exactly one key, which listDocKeys, latestAutosaveKey and the Autosave ring do not count
 - done-when: a pure options builder factored out of bootstrap.ts (node-testable, no Worker) given a cached file signed with the stored secret builds a doc that restores (rebuildOnly calls no build for a matching root); given another secret it restores nothing; revert-verified: dropping geometryCache turns it red
-- done-when: a file without geometry-cache/ opens as today; every tests/_d29_ test and the T-049 and T-052 tests pass unchanged
+- done-when: a file without geometry-cache/ opens as today; every `tests/*-d29.test.ts` test and the T-049 and T-052 tests pass unchanged
 - done-when: no [frozen_surface] watched file changes
 - verify: pnpm verify
 - depends-on: — · area: frontend · machine: box · risk: **high**
