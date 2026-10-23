@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-049 — review step 2 of PR #88 (on the fix) — 2026-10-23 — seat: hmdnah
+
+Approved; no defect proven. Item 1 at `bea8173`: pre-fix `cacherestore.ts` from `4be9c20` → test 3 red
+(`expected [] to deeply equal [ 'W00000', 'W00002' ]`); restored → 3 green. Probes: corruption before `loadBnn`, and 3 corrupt
+entries over 1,030 multi-part roots, restore exactly the healthy roots. Reserved classes: none; CI green. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-23-T-049-review-step-2.md`
+
 ## T-044 — review step 2 of PR #90 (on the fix) — 2026-10-23 — seat: hmdnah
 
 Approved; no defect proven. Item 1 at `24a0cc3`: pre-fix plugin and `codeId.ts` restored → 2 red (step 1's probe); restored →
