@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-044` |
-| branch | `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a` |
+| task | `T-049` |
+| branch | `task/T-049-a-cache-restore-reads-each-batch-of-root` |
 | claimed-at | 2026-10-20T02:09:44Z |
-| status | merged — PR #90 merged by `hmdnah` at 2026-10-23T04:13:09Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -87,12 +87,6 @@ builder may claim.
 - **B-20261019-03** — `scope: item` · `item: PR#72` — PR #72's conflict fix cannot reach zayd: start refuses T-037 while B-20261012-03 holds it
   - need: perform B-20261012-03's `need:` and clear it, or make diwan `agent_start.py --continue` admit a flow-routed conflict merge on a blocker-held claim
   - opened 2026-10-19T16:04Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261019-04** — `scope: item` · `item: PR#88` — PR #88's step 2 proved one corrupt cache entry rebuilds its whole batch, so it is not merged
-  - need: make `readRestoreBatch` re-read each root alone after a non-cap `readMany` throw (fix in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`) in a zayd turn on `task/T-049-a-cache-restore-reads-each-batch-of-root`, then route PR #88 to hmdnah for step 2
-  - opened 2026-10-19T17:30Z by hmdnah · recorded in `docs/BLOCKERS.md`
-- **B-20261019-05** — `scope: item` · `item: PR#88` — PR #88's returned fix cannot reach zayd: start refuses T-049 while B-20261019-04 holds it
-  - need: make diwan `agent_start.py --continue` admit the seat a blocker's own `need:` routes to its item, then run B-20261019-04's zayd fix
-  - opened 2026-10-19T17:31Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -214,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 3b2bf925ec6fd3d4c12076e202e1622db605fbb7
+last-verified-at: 876c5983374022e70df1005994e87877eaa22a38

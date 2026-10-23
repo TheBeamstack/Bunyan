@@ -58,8 +58,20 @@ import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
 import { cacheInputKey, cacheKeyTables, cacheTablesDigest, sameCacheEnvelope } from './cachekey.js';
 import type { CacheEnvelope, CacheKeyTables } from './cachekey.js';
-import { openCacheIndex, recordEntries, restoreAssembly, usableRecord } from './cacherestore.js';
-import type { CacheRecord, GeometryCacheIndex, GeometryCacheSource } from './cacherestore.js';
+import {
+  RESTORE_BATCH_ROOTS,
+  openCacheIndex,
+  readRestoreBatch,
+  recordEntries,
+  restoreAssembly,
+  usableRecord,
+} from './cacherestore.js';
+import type {
+  CacheRecord,
+  GeometryCacheIndex,
+  GeometryCacheSource,
+  RestoreBatch,
+} from './cacherestore.js';
 import { sameInstallSecret, signedCacheIndex } from './cachetrust.js';
 import { exportAssembly } from './cacheexport.js';
 import type { GeometryCacheFiles } from './bnn.js';
@@ -1364,18 +1376,19 @@ export class DocumentContext {
         !roots.includes(assemblyRoot(scene, b.elementId)),
     );
 
-    for (const root of roots) {
+    let batch: RestoreBatch | undefined;
+    for (const [i, root] of roots.entries()) {
+      if (
+        i % RESTORE_BATCH_ROOTS === 0 &&
+        index !== undefined &&
+        tables !== undefined &&
+        this.#cacheSource !== undefined
+      ) {
+        const next = roots.slice(i, i + RESTORE_BATCH_ROOTS);
+        batch = readRestoreBatch(scene, next, tables, index, this.#cacheSource.files);
+      }
       const restored =
-        index === undefined || tables === undefined || this.#cacheSource === undefined
-          ? undefined
-          : await restoreAssembly(
-              scene,
-              root,
-              tables,
-              index,
-              this.#cacheSource.files,
-              this.#geometry,
-            );
+        batch === undefined ? undefined : await restoreAssembly(root, batch, this.#geometry);
       const staged =
         restored === undefined
           ? await buildAssembly(

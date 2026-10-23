@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-049 — review step 2 of PR #88 (on the fix) — 2026-10-23 — seat: hmdnah
+
+Approved; no defect proven. Item 1 at `bea8173`: pre-fix `cacherestore.ts` from `4be9c20` → test 3 red
+(`expected [] to deeply equal [ 'W00000', 'W00002' ]`); restored → 3 green. Probes: corruption before `loadBnn`, and 3 corrupt
+entries over 1,030 multi-part roots, restore exactly the healthy roots. Reserved classes: none; CI green. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-23-T-049-review-step-2.md`
+
 ## T-044 — review step 2 of PR #90 (on the fix) — 2026-10-23 — seat: hmdnah
 
 Approved; no defect proven. Item 1 at `24a0cc3`: pre-fix plugin and `codeId.ts` restored → 2 red (step 1's probe); restored →
@@ -194,3 +201,31 @@ Body: `handoff/hmdnah/2026-10-20-T-043-review-step-1.md`
 refuses any other, so a foreign or edited file opens with 0 imports and a cache-less open's op sequence (real OCCT).
 Test-first (12 red); MAC check reverted → 7 red, carry guard → 1 red. 16k signing: 2,074 ms, one run.
 Body: `handoff/zayd/2026-10-20-T-043-d29-cache-trust.md`
+
+## T-049 — A cache restore reads each batch of roots' entries in one `readMany` — 2026-10-19 — seat: zayd
+
+`#stage` reads one `readMany` per `RESTORE_BATCH_ROOTS` (1024) roots; a throw from it rebuilds that batch. New test:
+2B+5 roots → 0 `.brep` reads, 3 `readMany`; per-name `read` restored → 2053 reads, red. 16,000 entries restore in
+16 calls, 1,059–1,122 ms of `readMany`, 2.28–2.40 s `rebuildAll` (kernel import excluded). `pnpm verify` green (978).
+Body: `handoff/zayd/2026-10-19-T-049-cache-restore-batch.md`
+
+## T-049 — review step 1 of PR #88 — 2026-10-19 — seat: hmdnah
+
+No defect proven; not approved (step 1). Item 1: main's per-part `read` restored with `RESTORE_BATCH_ROOTS` kept →
+2 red (`brepReads: 2053, readMany: 0`); restored → 26 green over the four files. 16k re-measured: 16 `readMany`,
+1,157–1,208 ms, `rebuildAll` 2.39–2.51 s. Reserved classes: none; CI green on `54b7c62`. Items 2, 3, 6 are step 2's.
+Body: `handoff/hmdnah/2026-10-19-T-049-review-step-1.md`
+
+## T-049 — review step 2 of PR #88 — 2026-10-19 — seat: hmdnah
+
+DEFECT; not approved, not merged, row stays `review` (B-20261019-04). One corrupt `.brep` (DEFLATE `invalid block type`)
+rebuilds its whole batch: a 3-root probe restores 0 at `355d4cd` and 2 on main, against design §4's per-root restore.
+Item 1: per-name `read` at `cacherestore.ts:118` → red (`brepReads: 2053`); restored → 26 green. Items 2, 3, 6 are clean otherwise.
+Body: `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`
+
+## T-049 — one corrupt cache entry costs its root, not its batch (B-20261019-04) — 2026-10-23 — seat: zayd
+
+Merged main (F1). After a non-cap `readMany` throw, `readRestoreBatch` re-reads each root alone and keeps the roots that
+read; a cap refusal still empties the batch. Step-2 probe as test 3: red (`[]`) before, then `W00000`, `W00002` restore.
+Cap branch forced off → test 2 red. `bnn.ts` unchanged.
+Body: `handoff/zayd/2026-10-23-T-049-corrupt-entry-per-root.md`
