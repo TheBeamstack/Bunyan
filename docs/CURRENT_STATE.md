@@ -84,9 +84,6 @@ builder may claim.
 - **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
   - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
   - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261023-01** — `scope: item` · `item: PR#106` — PR #106's step 2 found step 1's installSecret comment defect unfixed, so it is not merged
-  - need: reword or make true `installSecret`'s race comment (options in `handoff/hmdnah/2026-10-23-T-057-review-step-2.md`) in a zayd turn on `task/T-057-opening-a-stored-bnn-in-the-app-restores`, then route PR #106 to hmdnah for step 2
-  - opened 2026-10-23T11:20Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
