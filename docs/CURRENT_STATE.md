@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-043` |
 | branch | `task/T-043-d29-r5-the-cache-envelope-is-trusted-per` |
 | claimed-at | 2026-10-20T01:17:45Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #89 merged by `hmdnah` at 2026-10-23T02:19:43Z |
 
 <!-- END BATON -->
 
@@ -217,4 +217,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 87a7663817c688d9e9182bec3e38af18b026793d
+last-verified-at: cb466415ad2bbaebd1a1366ff7bc2bfd701dfc43
