@@ -135,3 +135,24 @@ Approved; no defect proven. Item 1: `dependency.ts` reverted → 2 red (`expecte
 green. Probes show the edge also covers `deleteContainer` and its undo. Two mutations (neighbour hop, elevation
 shield) each go red. Reserved classes: none. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-20-T-054-review-step-2.md`
+
+## T-033 — `Dimension.anchors` excludes the free `point` anchor — 2026-10-12 — seat: zayd
+
+`Dimension.anchors` is `ModelAnchor[]` (`AnnotationAnchor` minus `point`, D97); `Tag` keeps `point`. A
+`@ts-expect-error` test fails `tsc` (TS2578) with the narrowing reverted. No `Dimension.anchors` reader
+under `packages/`. RISK: contract-touching (re-baselined) — owner merges. `pnpm verify` green (911).
+Body: `handoff/zayd/2026-10-12-T-033-dimension-model-anchors.md`
+
+## T-033 — flow fix: PR #69 merged with `origin/main` — 2026-10-20 — seat: zayd
+
+Merged `origin/main` into the branch; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (977 passed, 1 skipped).
+PR #69 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-033-main-merge.md`
+
+## T-033 — flow fix: PR #69 merged with `origin/main` again — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`7da6795`) per D-20261020-01's `changes`; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (1003 passed, 1 skipped).
+PR #69 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-033-main-merge.md`
