@@ -122,7 +122,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-054 | done    | A container move re-stages every datum on a Level beneath it                                                       | backend  | box     | **high** | —            |
 | T-055 | done    | A design-option set with no primary or two primaries surfaces in brokenRefs()                                      | backend  | box     | normal   | —            |
 | T-056 | done    | A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn                               | backend  | box     | **high** | —            |
-| T-057 | review  | Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret kept in browser storage | frontend | box     | **high** | —            |
+| T-057 | done    | Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret kept in browser storage | frontend | box     | **high** | —            |
 | T-058 | ready   | A named save in the app zips in a dedicated worker, byte-identical to saveBnn                                      | workers  | box     | **high** | T-056        |
 | T-059 | blocked | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058 |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —            |
