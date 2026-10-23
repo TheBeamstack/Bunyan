@@ -124,7 +124,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-056 | done    | A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn                               | backend  | box     | **high** | —            |
 | T-057 | done    | Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret kept in browser storage | frontend | box     | **high** | —            |
 | T-058 | done    | A named save in the app zips in a dedicated worker, byte-identical to saveBnn                                      | workers  | box     | **high** | T-056        |
-| T-059 | blocked | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058 |
+| T-059 | ready   | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058 |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029        |
