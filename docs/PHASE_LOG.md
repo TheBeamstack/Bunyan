@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-059 — review step 2 of PR #108 — 2026-10-23 — seat: hmdnah
+
+APPROVED, no defect proven. Item 1 re-run: `namedSaveOptions` without `cache` → 2 red; restored → 3 green.
+Every heap writer, the agent's included, takes `docLock`; the save reads one synchronous cache snapshot, and its gateway-less `saveDocument` sends no kernel op.
+Decided: "test-first" is unmet as written but proven in substance; the `App.tsx` effects and the re-kick branch are untested gaps, not defects.
+Body: `handoff/hmdnah/2026-10-23-T-059-review-step-2.md`
+
 ## T-059 — review step 1 of PR #108 — 2026-10-23 — seat: hmdnah
 
 Item 1: export outside `lock.run` → 1 red (`:253`); `namedSaveOptions` without `cache` → 2 red; restored → 3 green.
