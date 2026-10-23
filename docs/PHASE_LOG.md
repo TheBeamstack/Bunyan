@@ -45,7 +45,7 @@ from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 B-20261023-01: `documentStorage.ts` `installSecret`'s comment no longer claims racing first boots agree; it says they can
 differ and the loser's cache is refused by `verifyCacheIndex`. Comment only; code unchanged. T-057 tests: 10 passed.
 Next: hmdnah, step 2 of PR #106.
-Body: `handoff/zayd/2026-10-23-T-057-race-comment.md`
+Body: `handoff/zayd/2026-10-23-T-057-app-cache-open.md` § review fix
 
 ## T-057 — review step 2 of PR #106 — 2026-10-23 — seat: hmdnah
 

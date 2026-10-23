@@ -38,3 +38,12 @@
 - The `installSecret` read-back narrows but does not prove away a StrictMode race between two first boots on an
   empty store; a lost race costs one later open its restore, never a wrong solid (the MAC refuses).
 - Not measured: main-thread verify cost at 16k (`## Discovered` 2026-10-20), unchanged by this row.
+
+## review fix — B-20261023-01 (second zayd turn, same day)
+
+- **changed:** `apps/web/src/storage/documentStorage.ts`, `installSecret`'s doc comment only. It no longer claims racing
+  first boots settle on one secret; it says they can differ and the loser's cache is refused by `verifyCacheIndex`,
+  matching step 1's delayed-store probe (`AeqB=false`). Step 2's reword option; `navigator.locks` was not chosen.
+- **verified:** `npx vitest run apps/web/src/storage/documentStorage.test.ts tests/app-cache-open-t057.test.ts` → 10 passed;
+  `pnpm verify` (via `agent_finish.py`) → 117 files, 1032 passed, 1 skipped; `docs:check` 66 passed.
+- **next:** hmdnah, step 2 of PR #106.
