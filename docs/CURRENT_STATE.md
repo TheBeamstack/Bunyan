@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-059` |
-| branch | `task/T-059-the-app-exports-built-assemblies-in-idle` |
+| task | `STEWARD-d29-cache-sign-off-main` |
+| branch | `steward/d29-cache-sign-off-main` |
 | claimed-at | 2026-10-23T14:19:36Z |
-| status | merged — PR #108 merged by `hmdnah` at 2026-10-23T15:17:33Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 7ec9649c92aaf9399e4c5575111cb614192a39a8
+last-verified-at: 7055922402b6019c24d3a1ab4c99f5db5ac3d9f4
