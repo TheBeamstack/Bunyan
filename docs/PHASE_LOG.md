@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-058 — review step 1 of PR #107 — 2026-10-23 — seat: hmdnah
+
+Item 1: `saveDocument` storing `saveBnn` → 2 red (`posts to the worker: expected +0 to be 1`); restored → green. Browser re-run:
+123/133/125 ms vs 5,025 ms on-thread. Size drift between runs is new element ids per fixture run, not save nondeterminism.
+One defect, back to zayd (B-20261023-02): after a zip-worker `error`, later named saves never settle. Not owner-gated; no approval.
+Body: `handoff/hmdnah/2026-10-23-T-058-review-step-1.md`
+
 ## T-058 — a named save zips in a dedicated worker — 2026-10-23 — seat: zayd
 
 `saveDoc` → `saveDocument`: entries assembled on the main thread, zipped in `bnnZipWorker.ts`, bytes equal `saveBnn`
