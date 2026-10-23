@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-057 — review step 2 of PR #106 — 2026-10-23 — seat: hmdnah
+
+CHANGES REQUESTED; not approved, not merged, row stays `review` (B-20261023-01). Step 1's defect is unresolved: no code commit
+since, and `documentStorage.ts:88-91` still claims racing first boots agree. Item 1: `geometryCache` dropped → 1 red; restored →
+10 green. Items 2, 3, 6: nothing else found. CI green on `7952ee4`; not owner-gated.
+Body: `handoff/hmdnah/2026-10-23-T-057-review-step-2.md`
+
 ## T-057 — review step 1 of PR #106 — 2026-10-23 — seat: hmdnah
 
 Item 1: `geometryCache` dropped → restore test red (`expected Set{ 'extrude' } to deeply equal Set{ 'importBrep' }`); restored → green.
