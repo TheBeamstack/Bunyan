@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-057` |
 | branch | `task/T-057-opening-a-stored-bnn-in-the-app-restores` |
 | claimed-at | 2026-10-23T08:52:55Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #106 merged by `hmdnah` at 2026-10-23T12:03:12Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 2961738135b16e79adcd2b5a04610a631235e6ab
+last-verified-at: c6e859998e845305325fc8477e002d6e72d8509a
