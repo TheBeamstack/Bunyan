@@ -44,7 +44,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_finish.py:720` labels with `gh pr edit`, which gh 2.45.0 fails on the Projects-classic GraphQL deprecation; `protocol.git_identity` (`protocol.py:1331-1401`) and the label call take identity from `AGENT_SEAT`/env rather than `--seat`, so a loop-spawned hmdnah commits as the launcher's seat; an `AGENT_SEAT=hmdnah` prefix is refused by this session's permissions and `gh api user` returns Davidian-Abdo
 - evidence: `gh pr view 54; git -C /home/ubuntu/projects/Bunyan log -1 --format='%an <%ae>' 6feb54d`
 - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
-- cleared: -
+- cleared: 2026-10-19T10:34Z
 
 ## B-20261006-02 PR #55 cannot be reviewed across accounts: hmdnah's gh writes run as the author
 
@@ -248,9 +248,165 @@ from, and the reason it is a record rather than prose.
 - why: ambient `gh api user` is `Davidian-Abdo` (the author's account); `GH_TOKEN=… gh pr comment` and a `python3 -c` call of diwan `protocol.gh` were both refused by the session permission layer
 - evidence: `gh api user --jq .login` → `Davidian-Abdo`; `GH_TOKEN="$(cat ~/.config/beamstack/narutousomaki741.token)" gh pr comment 77 --body-file …` → "Contains shell syntax … cannot be statically analyzed"
 - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
+- cleared: 2026-10-19T10:34Z
+
+## B-20261012-07 PR #79's returned fix cannot reach zayd: the start entrypoint reads T-041's claim as hmdnah's
+
+- opened: 2026-10-12T15:41Z
+- by: brahim-loop
+- scope: item
+- item: PR#79
+- what: step 2 returned PR #79 (T-041) to its builder (branch-side B-20261012-06), but a loop-spawned zayd turn was given T-037 and listed the T-041 branch as "claimed by hmdnah"
+- why: the step-1 review rewrote the branch's baton to `seat: hmdnah`, `builder: zayd`, `status: reviewed by hmdnah — ready to merge` (6891ddd), and `Claim` in diwan `agent_start.py:176` reads `seat`, never `builder`; B-20261012-03 separately holds every zayd turn on T-037
+- evidence: `git show origin/task/T-041-d29-r3-the-load-only-restore-substitutio:docs/CURRENT_STATE.md | sed -n '61,70p'`; `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan` → "task/T-041-d29-r3-the-load-only-restore-substitutio — claimed by hmdnah"
+- need: make diwan `agent_start.py` hand a builder the `task/*` branch whose baton names it as `builder` after a review returned it, then run B-20261012-06's fix in a zayd turn
+- cleared: 2026-10-14T12:37Z
+
+## B-20261012-08 T-046 cannot reach zayd: start re-continues the blocker-held T-037 claim every turn
+
+- opened: 2026-10-12T16:33Z
+- by: brahim-loop
+- scope: item
+- item: T-046
+- what: T-046 is the one box-`ready` row with no open blocker or PR, but a loop-spawned zayd turn was given T-037 again and did no work on it
+- why: agent_start.py printed "Continuing your own open claim on task/T-037-q5-the-section-chord-tolerance-chosen-fo (a turn ended incomplete)" and pushed a fourth claim-only commit (7b268b3, a58618d, 7285e89, 0a64e54); it does not skip a claim whose item has an uncleared `scope: item` blocker (B-20261012-03)
+- evidence: `git log --format='%h %ad %s' -5 origin/task/T-037-q5-the-section-chord-tolerance-chosen-fo`; `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan`
+- need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate T-046 to a zayd turn
+- cleared: 2026-10-19T10:34Z
+
+## B-20261012-05 PR #79's step-1 report could not be posted as a comment under hmdnah's account
+
+- opened: 2026-10-12T15:15Z
+- by: hmdnah
+- scope: item
+- item: PR#79
+- what: the step-1 review report of PR #79 is committed on its branch but not posted to the PR
+- why: ambient `gh api user` is `Davidian-Abdo` (the author's account); no diwan entrypoint posts a review report as the seat, and the session may not read `~/.config/beamstack/`
+- evidence: `gh api user --jq .login` → `Davidian-Abdo`; `ls /home/ubuntu/.config/beamstack/` → "blocked … only list files in the allowed working directories"
+- need: post `handoff/hmdnah/2026-10-12-T-041-review-step-1.md` as a PR #79 comment under `narutousomaki741`
+- cleared: 2026-10-19T10:34Z
+
+## B-20261012-06 PR #79's step 2 proved a weak-green restore test, so it is not merged
+
+- opened: 2026-10-12T15:37Z
+- by: hmdnah
+- scope: item
+- item: PR#79
+- what: step 2 of PR #79 (T-041) found that the tests claiming "restored ≡ rebuilt" pass when 4 of 5 assemblies are refused after import, so done-when 2 and 4 are not held by a test
+- why: `restoredRoots` counts `importBrep` calls, which a refused restore also makes; `agent_finish.py --review --step 2` would stamp T-041 `done` (`review_flips_to_done`), so the step-2 finish was not run
+- evidence: add `if (result.parts.length < 2) throw new Refusal();` after `restore(cachedRoot)` in `packages/document/src/cacherestore.ts`, then `pnpm exec vitest run tests/geometry-cache-restore-d29.test.ts --disable-console-intercept` → `8 passed (8)`, Clean Delta `max … = 0 m3`
+- need: make the T-041 restore tests fail when an imported solid is released (fix in `handoff/hmdnah/2026-10-12-T-041-review-step-2.md` notes) in a zayd turn on `task/T-041-d29-r3-the-load-only-restore-substitutio`, then route PR #79 to hmdnah for step 2
+- cleared: 2026-10-14T14:04Z
+
+## B-20261014-01 PR #79's second step 2 proved the edit-path test weak-green for execute and redo, so it is not merged
+
+- opened: 2026-10-14T12:43Z
+- by: hmdnah
+- scope: item
+- item: PR#79
+- what: the test "rebuildOnly restores; the edit paths (execute, undo, redo) never do" stays green when `execute` or `redo` passes `restore`, so T-041 done-when 1 is held for undo only
+- why: in that test, execute and redo land on a scene whose wall C key differs from its record, so a restoring execute or redo refuses at the key check before any import; `agent_finish.py --review --step 2` would stamp T-041 `done` (`review_flips_to_done`), so the step-2 finish was not run
+- evidence: in `packages/document/src/document.ts` change line 384 to `this.#stage(next, affected, options, true, true)` (or line 509 to `this.#stage(next, affected, {}, true, true)`), then `pnpm exec vitest run tests/geometry-cache-restore-d29.test.ts` → `Tests 8 passed (8)`
+- need: add a T-041 test whose execute and redo each land on a cached key (fix in `handoff/hmdnah/2026-10-14-T-041-review-step-2.md` notes) in a zayd turn on `task/T-041-d29-r3-the-load-only-restore-substitutio`, then route PR #79 to hmdnah for step 2
+- cleared: 2026-10-14T14:04Z
+
+## B-20261014-02 PR #82's returned step-1 fix cannot reach zayd: start re-continues the T-037 claim
+
+- opened: 2026-10-14T16:40Z
+- by: brahim-loop
+- scope: item
+- item: PR#82
+- what: hmdnah's step 1 returned two doc defects (bnn.ts:192-200 cap comments, D29 design §5 Autosave figure) to zayd on T-042's branch, but a loop-spawned zayd turn was given T-037 again and made no T-042 change
+- why: agent_start.py printed "Continuing your own open claim on task/T-037-q5-the-section-chord-tolerance-chosen-fo (a turn ended incomplete)" and pushed claim commit 7af0948; the cause is B-20261012-08's, whose item (T-046) is done
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan`; `git log --oneline -1 origin/task/T-037-q5-the-section-chord-tolerance-chosen-fo`
+- need: make diwan `agent_start.py` pass over a continuing claim whose item has an uncleared `scope: item` blocker, then delegate PR #82's two step-1 defects to a zayd turn on `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev`
+- cleared: 2026-10-19T10:34Z
+
+## B-20261019-01 secret scanning, push protection and Dependabot stay off on public Bunyan
+
+- opened: 2026-10-19T10:34Z
+- by: brahim-loop
+- scope: item
+- item: H-20261011-13
+- what: D-20261011-02 expired on 2026-10-18 unanswered with `default-if-silent: none`, so the four code-security settings stay off
+- why: Bunyan is public, the four settings are repository-admin settings no seat may change, and `docs/HANDOVERS.md#H-20261011-13` measured all four off
+- evidence: `gh api repos/TheBeamstack/Bunyan --jq .security_and_analysis`
+- need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
 - cleared: -
 
-## B-20261012-05 PR #72's re-seed gate is red: the goldens were not re-seeded
+## B-20261019-02 PR #82's step-2 finish refuses: step 1's label and record never landed
+
+- opened: 2026-10-19T11:15Z
+- by: hmdnah
+- scope: item
+- item: PR#82
+- what: hmdnah's step-2 review of PR #82 (T-042) is clean and recorded on the branch (2dc8600) and as a PR comment, but the finish refused, so the row cannot reach `done` and the PR is not merged
+- why: agent_finish.py exited 1, "T-042 is risk: high step 2, but the open PR carries no 'review/step-1' label — step 1 has not run"; step 1's 2026-10-14 finish never completed, so its record is only on rescue commit b75f79f
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_finish.py --seat hmdnah T-042 --review --step 2; echo $?`; `gh -R TheBeamstack/Bunyan pr view 82 --json labels`
+- need: land `handoff/hmdnah/2026-10-14-T-042-review-step-1.md` and its log abstract from b75f79f on `task/T-042-d29-r4-the-lazy-idle-exporter-a-save-nev` and add the `review/step-1` label to PR #82, then re-run hmdnah's step-2 finish and `agent_merge.py --seat hmdnah --pr 82`
+- cleared: 2026-10-19T13:01Z
+
+## B-20261019-03 PR #72's conflict fix cannot reach zayd: start refuses T-037 while B-20261012-03 holds it
+
+- opened: 2026-10-19T16:04Z
+- by: brahim-loop
+- scope: item
+- item: PR#72
+- what: the manager's Flow line F1 routes a zayd turn to merge `origin/main` into `task/T-037-q5-the-section-chord-tolerance-chosen-fo`, but no zayd turn may continue T-037
+- why: agent_start.py exited 1, "T-037 (PR #72) is held by B-20261012-03, an uncleared scope: item blocker at main — skip it"; B-20261012-03's `need:` (seeder permission or a seeded push) is still unmet, so the conflict merge, which needs no seeder, is held with it
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-037 --root /home/ubuntu/projects/Bunyan; echo $?`; `gh pr view 72 --json mergeable` → CONFLICTING
+- need: perform B-20261012-03's `need:` and clear it, or make diwan `agent_start.py --continue` admit a flow-routed conflict merge on a blocker-held claim
+- cleared: 2026-10-23T07:03Z
+
+## B-20261019-04 PR #88's step 2 proved one corrupt cache entry rebuilds its whole batch, so it is not merged
+
+- opened: 2026-10-19T17:30Z
+- by: hmdnah
+- scope: item
+- item: PR#88
+- what: in PR #88 (T-049), one corrupt `.brep` entry makes `readRestoreBatch`'s `readMany` throw, and the catch (`cacherestore.ts:119`) rebuilds every root of the batch, up to 1,024; design §4 restores per root, and done-when 2 rules batch rebuild for cap errors only
+- why: a 3-root `.bnn` with one entry's DEFLATE data corrupted passes `loadBnn`, and `cache.read` throws `invalid block type`; at head `355d4cd` 0 roots restore, against 2 with main's `cacherestore.ts`/`document.ts`; `agent_finish.py --review --step 2` would stamp T-049 `done` (`agent_finish.py:604-606`), so the step-2 finish was not run
+- evidence: the probe in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md` (two DEFLATE bytes of `W00001/0.brep` set to `0xff` before `loadBnn`), run with `pnpm exec vitest run` at `355d4cd` and with `git checkout origin/main -- packages/document/src/{cacherestore,document}.ts`
+- need: make `readRestoreBatch` re-read each root alone after a non-cap `readMany` throw (fix in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`) in a zayd turn on `task/T-049-a-cache-restore-reads-each-batch-of-root`, then route PR #88 to hmdnah for step 2
+- cleared: 2026-10-23T06:06Z
+
+## B-20261019-05 PR #88's returned fix cannot reach zayd: start refuses T-049 while B-20261019-04 holds it
+
+- opened: 2026-10-19T17:31Z
+- by: brahim-loop
+- scope: item
+- item: PR#88
+- what: B-20261019-04's `need:` is a zayd turn on T-049's branch, but start refuses to resume an item that same blocker names, so the fix it asks for can never run
+- why: agent_start.py exited 1, "T-049 (PR #88) is held by B-20261019-04, an uncleared `scope: item` blocker at main — skip it"; B-20261019-03 is the same refusal for PR #72's flow merge
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-049 --root /home/ubuntu/projects/Bunyan; echo $?`
+- need: make diwan `agent_start.py --continue` admit the seat a blocker's own `need:` routes to its item, then run B-20261019-04's zayd fix
+- cleared: 2026-10-23T05:33Z
+
+## B-20261020-01 PR #89's step 2 proved a hostile cache index throws out of openCacheIndex, so the file does not open
+
+- opened: 2026-10-20T02:08Z
+- by: hmdnah
+- scope: item
+- item: PR#89
+- what: in PR #89 (T-043), `verifyCacheIndex` runs the recursive `canonicalJson` over the file's `records` before any shape check, so an `index.json` with deeply nested `records` throws `RangeError` out of `openCacheIndex` (`cacherestore.ts:89`) instead of returning `undefined`, and `rebuildAll` rejects
+- why: a ~400 KB index (`records.W1` = 200,000 nested `[]`, envelope = `current` plus `mac: 'x'`) parses, then `openCacheIndex` throws `Maximum call stack size exceeded` at head `76f95af`; `rebuildAll` on `emptyScene()` with that cache rejects, and resolves once the verify call is removed; `agent_finish.py --review --step 2` would stamp T-043 `done` (`agent_finish.py:605-606`), so the step-2 finish was not run
+- evidence: the probe in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`, run with `npx vitest run` at `76f95af` and with `cacherestore.ts:89-91` removed
+- need: make `openCacheIndex` return `undefined` when `verifyCacheIndex` throws (fix in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`) in a zayd turn on `task/T-043-d29-r5-the-cache-envelope-is-trusted-per`, then route PR #89 to hmdnah for step 2
+- cleared: 2026-10-23T01:52Z
+
+## B-20261020-02 PR #90's step 1 proved the CODE_ID chunk keeps its content-hash name after the stamp, so a stale codeId can be served
+
+- opened: 2026-10-20T02:44Z
+- by: hmdnah
+- scope: item
+- item: PR#90
+- what: in PR #90 (T-044), `codeIdPlugin` rewrites the `CODE_ID` chunk in `generateBundle`, after Rollup has named it by a content hash, so one URL serves a different `CODE_ID` per deploy and a URL-keyed cache can pair the old id with new code
+- why: two `npx vite build` runs of `apps/web` (with a temporary `CODE_ID` import in `bootstrap.ts`, and a one-line `App.tsx` change in the second run) give `assets/PartBatch-C8aMdl36.js` the same name in both runs, with bytes `8da496e7da50` → `55a5edc5570d` and `CODE_ID` `6cb5e4faace12c80` → `1b60a133b970e918`
+- evidence: the probe test in PR #90's step-1 review, run with `npx vitest run apps/web/src/hmProbe.test.ts` at `aca806e` → 1 failed
+- need: make the shipped `CODE_ID` unservable stale under an unchanged URL (fix shape in `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`) in a zayd turn on `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a`, land the probe test, then route PR #90 to hmdnah for step 2
+- cleared: 2026-10-23T02:53Z
+
+## B-20261012-09 PR #72's re-seed gate is red: the goldens were not re-seeded
 
 - opened: 2026-10-12T02:56Z
 - by: zayd
@@ -262,7 +418,7 @@ from, and the reason it is a record rather than prose.
 - need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
 - cleared: -
 
-## B-20261012-06 PR #72's changes-requested review cannot be recorded by the finish entrypoint
+## B-20261012-10 PR #72's changes-requested review cannot be recorded by the finish entrypoint
 
 - opened: 2026-10-12T04:42Z
 - by: hmdnah

@@ -75,22 +75,19 @@ builder may claim.
 
 ## BLOCKED
 
-- **B-20261006-01** — `scope: item` · `item: PR#54` — PR #54 step-1 review finish cannot complete under hmdnah's identity
-  - need: make diwan `agent_finish.py` derive git identity and the gh credential from `--seat` and apply labels through the REST issues API, then re-run PR #54's step-1 finish as hmdnah from the held checkout
-  - opened 2026-10-06T00:48Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 - **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
   - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
   - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
 - **B-20261012-03** — `scope: item` · `item: T-037` — the box loop cannot run the golden seeder, so every zayd turn is held on T-037
   - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
   - opened 2026-10-12T07:19Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261012-04** — `scope: item` · `item: PR#77` — PR #77's step-1 report could not be posted as a comment under hmdnah's account
-  - need: post `handoff/hmdnah/2026-10-12-T-039-review-step-1.md` as a PR #77 comment under `narutousomaki741`
-  - opened 2026-10-12T09:09Z by hmdnah · recorded in `docs/BLOCKERS.md`
-- **B-20261012-05** — `scope: item` · `item: PR#72` — PR #72's re-seed gate is red: the goldens were not re-seeded
+- **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
+  - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
+  - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261012-09** — `scope: item` · `item: PR#72` — PR #72's re-seed gate is red: the goldens were not re-seeded
   - need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
   - opened 2026-10-12T02:56Z by zayd · recorded in `docs/BLOCKERS.md`
-- **B-20261012-06** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
+- **B-20261012-10** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
   - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
   - opened 2026-10-12T04:42Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
@@ -220,4 +217,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: fcad69192778d2b1125f10c28e3aeb6238f067ba
+last-verified-at: e41f6148f6cd882560e46bc366811ccb262701bb

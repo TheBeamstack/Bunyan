@@ -101,16 +101,27 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-033 | ready   | Q10 — `Dimension.anchors` excludes the free `point` anchor                                        | document | box     | **high** | —            |
 | T-034 | ready   | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                            | document | box     | **high** | —            |
 | T-035 | done    | Q8 — design: moving a D52 baseline wall, properly                                                 | design   | box     | normal   | —            |
-| T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                    | document | box     | **high** | T-035        |
+| T-050 | ready   | Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves                 | backend  | box     | **high** | —            |
+| T-051 | blocked | Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags                       | backend  | box     | **high** | T-050        |
+| T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                    | document | box     | **high** | T-051        |
 | T-037 | review  | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                    | kernel   | box     | normal   | —            |
 | T-038 | done    | Q6 — design: the D29 cache in the `.bnn`                                                          | design   | box     | **high** | —            |
 | T-039 | done    | D29 R1 — the cache input key, one pass over the scene                                             | backend  | box     | **high** | —            |
-| T-040 | ready   | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                           | backend  | box     | **high** | T-039        |
-| T-041 | blocked | D29 R3 — the load-only restore substitution in `#stage`                                           | backend  | box     | **high** | T-039, T-040 |
-| T-042 | blocked | D29 R4 — the lazy idle exporter; a save never exports                                             | workers  | box     | **high** | T-041        |
-| T-043 | blocked | D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05                      | backend  | box     | **high** | T-040        |
-| T-044 | blocked | D29 R6 — `codeId` is stamped per the owner answer to D-20261012-06                                | backend  | box     | **high** | T-040        |
-| T-045 | blocked | D29 R7 — autosave carries the cache or not, per D-20261012-07                                     | backend  | box     | **high** | T-042        |
+| T-040 | done    | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                           | backend  | box     | **high** | T-039        |
+| T-041 | done    | D29 R3 — the load-only restore substitution in `#stage`                                           | backend  | box     | **high** | T-039, T-040 |
+| T-042 | done    | D29 R4 — the lazy idle exporter; a save never exports                                             | workers  | box     | **high** | T-041        |
+| T-047 | done    | A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads               | backend  | box     | normal   | —            |
+| T-043 | done    | D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05                      | backend  | box     | **high** | T-040        |
+| T-044 | done    | D29 R6 — `codeId` is stamped per the owner answer to D-20261012-06                                | backend  | box     | **high** | T-040        |
+| T-045 | done    | D29 R7 — autosave carries the cache or not, per D-20261012-07                                     | backend  | box     | **high** | T-042        |
+| T-046 | done    | A hostile `.bnn` is refused before it inflates past an entry-count or size cap                    | backend  | box     | **high** | —            |
+| T-048 | done    | A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap                    | backend  | box     | **high** | —            |
+| T-049 | done    | A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part     | backend  | box     | **high** | —            |
+| T-052 | done    | A shared-table edit re-queues every live assembly whose cache key flipped                         | backend  | box     | **high** | T-042        |
+| T-053 | done    | Wall auto-joins pair only walls whose vertical extents overlap                                    | backend  | box     | **high** | —            |
+| T-054 | done    | A container move re-stages every datum on a Level beneath it                                      | backend  | box     | **high** | —            |
+| T-055 | done    | A design-option set with no primary or two primaries surfaces in brokenRefs()                     | backend  | box     | normal   | —            |
+| T-056 | done    | A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn              | backend  | box     | **high** | —            |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
@@ -332,6 +343,32 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - verify: pnpm verify
 - depends-on: — · area: design · machine: box · risk: normal
 
+### T-050 — Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves
+
+- outcome: A `ParamField` can declare how a rigid motion acts on it, the member `D-20261012-03` (`annotation`) chose, landed before P5 step 6 freezes `schema.ts`.
+- implements: `docs/design/P4.5_baseline_move_design.md` §5 A · `docs/decisions.md` D95 · `D-20261012-03` (default `annotation`, applied 2026-10-20)
+- done-when: `ParamField` in `packages/document/src/schema.ts` has `readonly motion?: 'planPoint' | 'point' | 'direction'`, documented as: absent means a motion never touches the param
+- done-when: `tests/freeze-boundary.test.ts` flags this member and nothing else, so the PR is `RISK: contract-touching` and merges only on the owner's signature (`docs/INVARIANTS.md §2.1`)
+- done-when: no param of any shipped type carries `motion` yet and no code reads it; the `core.wall` tags and the verbs are the next row
+- done-when: a test pins the three members of the union, and goes red when one is removed (revert-verified)
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+
+### T-051 — Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags
+
+- outcome: A wall moves, rotates and copies through the general verbs, which read `motion` from the schema and name no wall (D95).
+- implements: `docs/design/P4.5_baseline_move_design.md` §5 A, §6, §7 · `docs/decisions.md` D95 · D80 · `D-20261012-03` (`annotation`) · `D-20261012-04` (`detach`)
+- done-when: `core.wall` tags `start` and `end` `motion: 'planPoint'`; `positioningOf`'s `baseline` rung reads the schema's tags, not `baselineOf`, and no verb body names `start`, `end` or `core.wall` (the grep is in the handoff)
+- done-when: the design's §A probe, re-run on the demo scene: `core.move` `by: [1000, 0, 0]`, `core.rotate` `axis: [0, 0, 1]` `angle: 90` and `core.copy` `by: [1000, 0, 0]` succeed on both walls (§1 measured 6 of 6 refused), each one edit and one undo, writing the tagged params and leaving `placement` untouched
+- done-when: refused, each with a named reason: a `planPoint` under a non-vertical rotation axis or a translation with `dz ≠ 0` (the message names `core.updateContainer`), any mirror of a tagged element (§6), `core.setPlacement` on a params-positioned element (the message names `core.move`)
+- done-when: `core.rotate`'s default `about` on a params-positioned element is the centroid of its tagged points
+- done-when: moving a wall leaves the walls joined to it unmoved (`detach`); `core.copy` of a wall that hosts an opening still refuses at the hosted check, which T-036 lifts
+- done-when: `tests/goldens/` is re-seeded, since any edit under `packages/types/src/` trips the re-seed gate whether or not geometry moves; if no value moved, a `Re-seed-unchanged:` trailer gives the reason (`docs/INVARIANTS.md §5`)
+- done-when: revert-verified: removing the tags from `core.wall` turns the move test red
+- verify: pnpm verify
+- depends-on: T-050 · area: backend · machine: box · risk: **high**
+- note: `blocked` 2026-10-20 (steward): on T-050, whose member it reads; promoted by step 4 once T-050 is `done`. The box loop's seeder run is refused while B-20261012-03 stands.
+
 ### T-036 — Q7 — `core.copy` deep-copies a host's openings
 
 - outcome: Copying a host also copies its hosted openings, each under a fresh PEI with its `hostRef` on the copy, in one undoable edit.
@@ -342,8 +379,8 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - done-when: a sketch constraint or join override pointing at the source still refuses, unchanged
 - done-when: revert-verified: removing the deep-copy turns the new test red
 - verify: pnpm verify
-- depends-on: T-035 · area: document · machine: box · risk: **high**
-- note: `blocked` 2026-10-10 (steward): `positioningRefusal` refuses every D52 baseline element (`packages/document/src/placement.ts:348`) before `core.copy`'s hosted check, so no wall reaches this until T-035's design is ruled and built; the steward re-reads this row against that design before flipping it.
+- depends-on: T-051 · area: document · machine: box · risk: **high**
+- note: `blocked` 2026-10-10 (steward): `positioningRefusal` refuses every D52 baseline element (`packages/document/src/placement.ts:348`) before `core.copy`'s hosted check, so no wall reaches this until T-035's design is ruled and built. 2026-10-20: ruled (`D-20261012-03` `annotation`, `-04` `detach`), built by T-050 then T-051; re-read against design §7, this row's items stand as written.
 
 ### T-037 — Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted
 
@@ -419,6 +456,18 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: T-041 · area: workers · machine: box · risk: **high**
 - note: risk high by READY rule 8 (touches the D29 cache); area is the backlog.py enum, which has no `document`
 
+### T-047 — A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads
+
+- outcome: saveBnn writes every zip entry with one constant timestamp, so its bytes depend on the document alone, never on when it was saved.
+- implements: docs/contracts/V1.0.0_spec.md §6.5 (determinism) · D71 (the codec write equals saveBnn) · D76; provenance: brahim cycle 2026-10-14, tests/journal-transport-rule14.test.ts:305 red once under gates.py verify on main 5ae192f
+- done-when: packages/document/src/bnn.ts:182 passes zipSync a constant `mtime` built from a local-time date no earlier than 1980 (fflate 0.8.3 throws below it in the local year, esm/index.mjs:1903), with a comment naming why
+- done-when: test-first: a test saves one scene twice with the system clock moved more than 2 s between the saves (vi.setSystemTime) and asserts identical bytes; revert-verified: dropping the `mtime` option turns it red
+- done-when: tests/journal-transport-rule14.test.ts:305, tests/format-codec-seam.test.ts:157-161 and apps/web/src/view/keepLive.test.ts:172-175 pass unchanged
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: normal
+- note: fflate stamps Date.now() as a 2 s DOS time when no mtime is given (esm/index.mjs:1902,1905), so two saves straddling a tick differ in local and central header bytes only; bnn.ts:182 is the only zipSync call in packages/ and apps/; area is the backlog.py enum
+
 ### T-043 — D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05
 
 - outcome: A geometry cache restores only under the trust rule the owner chose in D-20261012-05.
@@ -448,6 +497,104 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - verify: pnpm verify
 - depends-on: T-042 · area: backend · machine: box · risk: **high**
 - note: blocked also on D-20261012-07 (pending); the steward re-reads this row against the answer before flipping it; area is the backlog.py enum
+
+### T-046 — A hostile `.bnn` is refused before it inflates past an entry-count or size cap
+
+- outcome: loadBnn and the geometry-cache reader refuse a zip whose entry count or inflated size passes a named cap, with a message, before inflating it.
+- implements: docs/contracts/V1.0.0_spec.md §9 (Import hardening tests) · docs/design/P5_step9_D29_bnn_cache_design.md §3, §5 · D29
+- done-when: packages/document/src/bnn.ts bounds the entry count and the total and per-entry inflated size before unzipSync inflates anything, in loadBnn (line 202) and in geometryCacheReader.read (line 303); each cap is a named constant whose comment states the figure it is sized against (design §5: 16k solids, ~61 MB uncompressed cache)
+- done-when: test-first: a zip over the entry cap, an entry over the size cap and a high-ratio entry each make loadBnn throw an Error naming the cap, and inflate nothing past it; a .bnn at the 16k target size still opens
+- done-when: revert-verified: removing the entry-count bound turns its test red
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: risk high by READY rule 8 (the D29 cache read path) and spec §9 hostile input; from ## Discovered 2026-10-12 (T-038); area is the backlog.py enum
+
+### T-048 — A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap
+
+- outcome: loadBnn and the geometry-cache reader refuse a zip whose summed inflated size passes BNN_MAX_RATIO times the summed bytes the file holds for its entries, so entries at or under RATIO_FLOOR_BYTES can no longer amplify ~900:1 together.
+- implements: docs/contracts/V1.0.0_spec.md §9 (Import hardening tests) · docs/design/P5_step9_D29_bnn_cache_design.md §3, §5 · D29; provenance: ## Discovered 2026-10-13 (T-046), probe in handoff/zayd/2026-10-13-T-046-bnn-zip-caps.md
+- done-when: packages/document/src/bnn.ts checkCaps (and the geometry-cache reader path that shares checkEntry) refuses, before unzipSync inflates anything, when the summed inflated bytes pass RATIO_FLOOR_BYTES and BNN_MAX_RATIO times the summed `entryRoom` bytes; the error names the cap
+- done-when: test-first: the T-046 handoff probe (500 zero entries, each <= 1 MiB, 577,279 B on disk) makes loadBnn throw naming the aggregate cap and inflate nothing; revert-verified: removing the aggregate check turns it red
+- done-when: the existing T-046 and T-042/T-047 .bnn tests pass unchanged, and a .bnn at the 16k target with a full cache (design §5: 105 MB inflated from ~14.6 MB) still opens
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: risk high by READY rule 8 (the D29 cache read path) and spec §9 hostile input; BNN_MAX_TOTAL_BYTES already bounds the probe at 512 MiB, so this is defence in depth; area is the backlog.py enum
+
+### T-049 — A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part
+
+- outcome: Restoring N cached roots costs one central-directory pass per batch of roots instead of one per part, so a 16k-part restore no longer spends ~6 min in zip scans.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §4, §5 (cold open, cache: 12.00 ms/solid) · docs/contracts/V1.0.0_spec.md §6 (D29), §14 D66 (cold-load axis) · D29
+- done-when: test-first: a counting GeometryCacheReader passed as `geometryCache.files` shows a full restore of N roots makes 0 `.brep` `read` calls and at most ceil(N/B) `readMany` calls whatever the part count (B a named constant); red on main, where cacherestore.ts:104 calls `read` once per part
+- done-when: a batch `readMany` that throws a cap error (T-046, T-048) rebuilds the roots of that batch, as a per-part throw does today inside restoreAssembly (cacherestore.ts:140), and a test shows it
+- done-when: tests/geometry-cache-restore-d29.test.ts, tests/bnn-zip-caps-t046.test.ts and tests/bnn-aggregate-ratio-t048.test.ts pass unmodified, and packages/document/src/bnn.ts is unchanged
+- done-when: revert-verified: restoring the per-part `files.read` at cacherestore.ts:104 turns the call-count test red
+- done-when: the handoff records headless ms for restoring 16,000 cached entries, against the baseline 22.56 ms per `read` and 694 ms for one `readMany` of 16,000 names
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: risk high by READY rule 8 (the D29 cache read path); not reachable from apps/ today (no product caller passes geometryCache); from ## Discovered 2026-10-19 (T-048 review step 2); area is the backlog.py enum
+
+### T-052 — A shared-table edit re-queues every live assembly whose cache key flipped
+
+- outcome: An edit to `styles`, `materials`, `sections`, `containers` or `grids` queues every live root whose cache key changed for `exportCacheIdle`, whether it was rebuilt, restored or untouched, so a save after draining writes a record for every live root instead of none.
+- implements: `docs/design/P5_step9_D29_bnn_cache_design.md` §2b ("And the shared tables, whole"), §5 (the commit-queue and save-filter bullets), §6 row R4; `docs/contracts/V1.0.0_spec.md` §6, the `geometry-cache/` box. Provenance: the 2026-10-14 `## Discovered` finding from T-042.
+- done-when: On a built, drained document, one `core.createMaterial` leaves `edit.rebuilt` `[]`, `exportCacheIdle()` returns more than 0, and after draining `geometryCacheFiles()` holds a record for every root under its current key; the test is red with the fix reverted
+- done-when: A style edit that rebuilds only that style's instances also re-queues the roots that do not use it; after draining every root has a record
+- done-when: In a document opened from a cached `.bnn` and restored, a material edit yields a full record set after draining with no restored root built from its recipe (a build/`exportBrep` spy, as `tests/geometry-cache-export-d29.test.ts:92-110`)
+- done-when: With no `geometryCacheEnvelope`, a material edit queues nothing: `exportCacheIdle()` returns 0
+- verify: npx vitest run tests/cache-requeue-table-edit.test.ts tests/geometry-cache-export-d29.test.ts tests/geometry-cache-restore-d29.test.ts && pnpm verify
+- depends-on: T-042 · area: backend · machine: box · risk: **high**
+- note: Mechanism (main ba7dc72): `cacheKeyTables` digests the five tables whole into every key (`cachekey.ts:73-82,136-142`), but `#commit` queues only `staged.built` (`document.ts:1481-1485`) and `geometryCacheFiles` drops stale keys (`:688,:693-695`). Fix shape: in `#commit`, when the shared digest changed and `#writeEnvelope` is set, queue every live root not already built. Same file as open PRs #88 (`#stage`) and #89 (`geometryCacheFiles`); put the test in `tests/cache-requeue-table-edit.test.ts`. risk high: it decides which solid is written under which key.
+
+### T-053 — Wall auto-joins pair only walls whose vertical extents overlap
+
+- outcome: partnersAt and throughWallsAt consider only candidate walls whose [base, top] extent overlaps the queried wall's by a positive length, so authoring the same corner on the storey above leaves the lower storey's joins and geometry unchanged.
+- implements: docs/design/P5_step0c_design.md §2 (joins computed in the Level plane), §0a and §4; docs/decisions.md D68 (the ambiguity flip) and D73 (filter at query time, the index stays unfiltered). Provenance: the 2026-08-17 ## Discovered finding, re-measured at main 5b4dc73.
+- done-when: In a two-level scene (l0 at 0, l1 at 3000) with the same 200 mm 90-degree corner on each level, the l0 wall [0,0]->[4000,0] has resolveJoins ['start'] and built bbox min[0] within 1e-6 of -100, as it does with l1 empty; the test is red with the extent filter reverted
+- done-when: Two walls whose extents only touch (one's top equals the other's base) or are disjoint get no auto-miter or auto-butt; a corner whose extents overlap still miters, including one whose top is set by a datum
+- done-when: indexOf still indexes every wall unfiltered (D73) and the filter is applied in both scans at query time; every existing test under tests/ that exercises joins passes unchanged
+- verify: npx vitest run tests/wall-join-level-scope.test.ts tests/wall-joins.test.ts tests/join-option-cascade.test.ts && pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: Mechanism (main 5b4dc73): indexOf adds every element with a baseline (packages/document/src/joins.ts:201-220); partnersAt (:333, scan :343) and throughWallsAt (:369, scan :379) filter only by isElementActive (:347, :383); nothing reads containerId or datums. A wall's extent is base = baseElevation ?? elevation, top = topElevation ?? base + height (packages/types/src/wall.ts:77-78), fed by elevationOf (scene.ts:360) and datumElevations (scene.ts:427) as build.ts:600-610 wires them; add a document-side wallExtentOf rather than editing packages/types/src (a [reseed] source). No golden holds stacked walls. risk high: cachekey.ts:132 digests resolveJoins, so every stacked lower wall's cache key and geometry change.
+
+### T-054 — A container move re-stages every datum on a Level beneath it
+
+- outcome: Moving a Building (or any container) re-stages every element whose base/top datum targets a Level under that container and inheriting its elevation, plus those elements' join neighbours, so the incremental build equals rebuildAll.
+- implements: docs/design/P5_step0b_design.md §5 (the container→element datum edge, 'move a Level, the building follows') and §6 (derived datums); docs/decisions.md D50. Provenance: the 2026-10-20 ## Discovered finding from PR #98's step-2 review.
+- done-when: Building b2 at 3000 holding Level u with no elevation, wall C with a base datum on u: after core.updateContainer b2 to 2000, C's built bbox min[2] equals its value after rebuildAll (2000); the test is red with the fix reverted
+- done-when: In the same scene with wall A on l0 forming a corner with C, A's incremental built min[0] equals its value after rebuildAll after the Building move, and after undo of that move
+- done-when: A container move under which no Level inherits elevation re-stages the same set as on main; every existing test in tests/ passes unchanged
+- verify: npx vitest run tests/datum-inherited-level-restage.test.ts tests/wall-join-level-scope.test.ts && pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: Mechanism (main after PR #98): dependency.ts:104-116 case 'containers' calls elementsConstrainedToLevel(scene, change.id) (scene.ts:393-398), which matches a datum's direct target only, while datumElevations reads elevationOf, which walks containerPath (scene.ts:360-365), so a Level with no elevation follows its ancestor in the build but not in the invalidator. Pre-existing on main; T-053 widens the stale set to join neighbours. Fix shape: in dependency.ts, also collect datums targeting every Level beneath the changed container. scene.ts is in [frozen_surface] watched; keep the fix in dependency.ts. Probe: handoff/hmdnah/2026-10-20-T-053-review-step-2.md. risk high: dependency.ts's invalidator is an auto-high class.
+
+### T-055 — A design-option set with no primary or two primaries surfaces in brokenRefs()
+
+- outcome: A scene whose design-option set has a primary count other than 1, reached by loadBnn or a code-assembled Scene, reports one brokenRefs() entry per element tagged with an option in that set; nothing is auto-healed and the file still loads.
+- implements: docs/decisions.md D65, D85, D86; docs/design/P5_step6D_design_options_crud_design.md §4.2 (the refusals the verbs must carry) and §7 (Q17c); docs/design/P5_step5F_reservations_design.md §5.1 (Design Options — and the trap). Provenance: the 2026-08-17 ## Discovered finding, re-measured at a7c903e.
+- done-when: A code-assembled Scene with walls wA/wB tagged opt-a/opt-b, both isPrimary true in one set: brokenRefs() holds one entry each for wA and wB, ref set to their option ids, hostId the element id (T-007's convention); the test is red with the new brokenRefs() spread reverted
+- done-when: The same scene after loadBnn(saveBnn(scene)) reports the same entries
+- done-when: Zero primaries in the set (both isPrimary false) reports entries for both walls, on both roads
+- done-when: A set with exactly one primary adds no entries, and a violating set with no tagged elements adds none; isElementActive and modelElements() return what they did on main
+- done-when: git diff --name-only origin/main names no [frozen_surface] watched path; tests/design-option-refs.test.ts and tests/design-option-crud.test.ts pass unchanged
+- verify: npx vitest run tests/design-option-primary-invariant.test.ts tests/design-option-refs.test.ts tests/design-option-crud.test.ts && pnpm verify
+- depends-on: — · area: backend · machine: box · risk: normal
+- note: Mechanism (main a7c903e): checkPrimaryInvariant (commands.ts:2665) runs only at create/update/delete (:2768, :2821, :2844); loadBnn checks only that designOptions is a plain object (bnn.ts:411-415) and DocumentContext takes options.scene unchecked (document.ts:283). With two primaries isElementActive counts both walls; with none it drops both (designoptions.ts:140); brokenRefs()/unbuildable() report 0. Fix shape: a primaryViolations(scene) in document.ts that brokenRefs() spreads in, beside danglingDesignOptionRefs (document.ts:1551, D86). Keep it out of designoptions.ts and entities.ts (both [frozen_surface] watched) and do not change isElementActive, else the PR is owner-gated.
+
+### T-056 — A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn
+
+- outcome: saveBnn is split into entry assembly and a zip step a worker can run, so a save with a full 16k cache need not block the calling thread ~4.1 s, and its bytes equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (budget and save policy), §6 R4 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-14, re-measured by a brahim R39 diagnosis 2026-10-20 at 12fa699 (zipSync level 6: 4076-4249 ms at 16k; level 1: ~3.0 s; level 0: ~0.4 s but 6x the bytes)
+- done-when: packages/document exports the save as two pure steps, entry assembly and zip (zipSync at level 6 with BNN_ZIP_MTIME, as packages/document/src/bnn.ts:189 does today), and saveBnn is their composition
+- done-when: test-first: a node-testable worker-side handler given the assembled entries returns bytes equal to saveBnn, for the 20-solid fixture with a cache and for a scene without one; revert-verified: changing the handler level or mtime turns it red
+- done-when: tests/geometry-cache-export-d29.test.ts, tests/autosave-cache-d29.test.ts and every T-047 byte-identity test pass unchanged
+- done-when: the 16k measurement (BUNYAN_D29_MEASURE_16K=1) is re-run and its numbers recorded in design §5 next to the 4.1 s figure
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: a lower geometry-cache/ level is not the fix: level 1 saves ~25%, level 0 makes the file 6x larger against design §5 OPFS budget; fflate async zip() deflates entries under 160,000 B on the calling thread (fflate@0.8.3 esm/index.mjs:2287-2289), so a dedicated worker is needed; the kernel worker (apps/web/src/bootstrap.ts:101) is not it, it would stall OCCT; wiring the worker into apps/web needs a browser and T-044, and is a separate row; risk high per READY rule 8 (D29 save path)
 
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
@@ -557,16 +704,17 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   `sectionCut` casts each 2D point to `float`, so beyond 131 m from the view origin the rounding (0.016 mm)
   exceeds D92's 0.01 mm chord tolerance (`P5_step6C_plan_section_design.md` §4.1). Fix shape: emit
   `double` (a WASM rebuild; `SectionCutPayload` is unaffected). Recorded, not claimed.
+- **2026-10-14 — no product caller runs the D29 export** (T-042). `exportCacheIdle` and `geometryCacheFiles`
+  are document-layer only: `apps/web` schedules no idle export and its saves pass no `cache`, because the
+  envelope needed a `codeId`; T-044 adds `cacheEnvelope(kernelBuildId)` (`apps/web/src/storage/cacheEnvelope.ts`),
+  still uncalled. Fix shape: pass it to the open path and schedule the idle export. Recorded, not claimed.
+- **2026-10-20 — signing a 16k `index.json` adds ~2.1 s to that save** (T-043, design §2e); verifying on open is
+  the same pass, not timed. Both run synchronously on the calling thread. Fix shape: run them in the save/open worker. Recorded, not claimed.
 
-- **2026-10-12 — `loadBnn` has no zip decompression or entry-count cap** (T-038). `bnn.ts` calls
-  `unzipSync(bytes)` on every entry with no bound, against spec §9's import-hardening line; the D29 cache
-  would add ~61 MB and ~16k entries at target. Fix shape: an entry-count and inflated-size bound before
-  `unzipSync`, plus its `filter`. Recorded, not claimed.
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
   turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:
-  a root devDependency, or a need. Also: `docs/INVARIANTS.md §1.9` still bars `zayd`/`hmdnah` from
-  passing a browser claim, against R79. Recorded, not claimed.
+  a root devDependency, or a need. Recorded, not claimed.
 - **2026-10-10 — the merge entrypoint's re-measure overwrites `pnpm state`'s §8 block, turning `main` red.**
   `401e22d` stamped `BEGIN GENERATED by measure.py` over the `scripts/state.mjs` block;
   `tests/docs-budget.test.ts` then fails 2 tests (CI run 38092485883) and `pnpm state` refuses. PR #55
@@ -726,16 +874,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
   path, pre-existing on unmodified `main`. A/B: 145 and 148 boot, 151 does not ⇒ the window is Chrome
   149–151. ⚠ **Worked around, not fixed**: `BUNYAN_BROWSER_CMD` is a persistent Windows user env var
   pinned to cached Chromium 148. The real fix is **T-022**, confirmed by **T-023**.
-- **2026-08-17 — ⚠⚠ wall joins are not level-scoped, so stacking an ordinary building's storeys drops the
-  miter on the storey below.** `partnersAt`/`throughWallsAt` match baselines in 2D and index every
-  element with a baseline; neither consults `containerId`, the level's elevation, or the wall's datums.
-  Measured: one storey with a 90° corner gives `resolveJoins(a) = ['start']` and `min.x = -100 mm`;
-  authoring the same corner one level up takes the lower wall to `[]` and `min.x = 0` — the crowd of
-  coincident endpoints reads as ambiguous and the auto-miter falls back to a plain cap. **Two walls
-  stacked at the same plan position on different storeys is the ordinary case**, so this is not an edge
-  case; it is D68's ambiguity flip arriving through elevation, changing geometry on a storey nobody
-  edited. Fix shape: scope the endpoint and segment scans to walls sharing a vertical extent. Recorded,
-  not claimed.
 - **2026-08-17 — `NEXT TURN: REVIEW ONLY` is cleared only on a `--review` finish**, so a PR merged any
   other way strands the banner and halts every builder turn on both machines (`agent-finish.mjs:335`
   gates the clear on `if (review)`; `agent-start.mjs:789` refuses a builder claim while it stands).
@@ -773,13 +911,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
   breaks. Worked around by naming the body so it sorts last. Fix shape: resolve the body **by the
   abstract's own `FULL:` field** and check the file exists — the entry is the authority on which body it
   has. Recorded, not claimed.
-- **2026-08-17 — the "exactly one primary per set" invariant is enforced at the CRUD doors only, and two
-  of the three roads onto `scene.designOptions` bypass it.** A loaded `.bnn` and a `Scene` assembled in
-  code go through none of them, and `loadBnn`'s guard checks only that the value is an object. Measured:
-  two `isPrimary: true` options make `isElementActive` return `true` for **both** mutually exclusive
-  walls — D65's own stated double-count. ⚠ Not a regression; what changed is that the invariant now has
-  an enforcement site, which invariant 7 asks to be swept backward. Fix shape: check it on the load path,
-  or surface a violating set through `brokenRefs()`/`unbuildable()`. Recorded, not claimed.
 - **2026-08-17 — the `--review` wrong-PR claim recurred a third time, and there is still no flag to name
   a PR.** With #32 (due step 2) and #33 (due step 1) both routed to `hmdnah`, `--review` claimed #33 and
   posted a claim comment on it while the session's assignment was #32. ⚠ The 2026-08-16 row judged this

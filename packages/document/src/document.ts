@@ -56,6 +56,25 @@ import {
 import type { ElementBounds, UnprojectedElement, ViewResult } from './view.js';
 import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
+import { cacheInputKey, cacheKeyTables, cacheTablesDigest, sameCacheEnvelope } from './cachekey.js';
+import type { CacheEnvelope, CacheKeyTables } from './cachekey.js';
+import {
+  RESTORE_BATCH_ROOTS,
+  openCacheIndex,
+  readRestoreBatch,
+  recordEntries,
+  restoreAssembly,
+  usableRecord,
+} from './cacherestore.js';
+import type {
+  CacheRecord,
+  GeometryCacheIndex,
+  GeometryCacheSource,
+  RestoreBatch,
+} from './cacherestore.js';
+import { sameInstallSecret, signedCacheIndex } from './cachetrust.js';
+import { exportAssembly } from './cacheexport.js';
+import type { GeometryCacheFiles } from './bnn.js';
 import { dependents } from './dependency.js';
 import { unresolvedDesignOptions } from './designoptions.js';
 import type { ElementGeometry } from './build.js';
@@ -110,6 +129,23 @@ export interface DocumentOptions {
   readonly journal?: readonly UndoableEdit[] | undefined;
   /** The revision the loaded file was last issued at (D34/D40). */
   readonly revision?: ModelRevision | undefined;
+  /**
+   * D29 R3 — a loaded `.bnn`'s `geometry-cache/` and the running build's envelope. Read only by
+   * `rebuildAll`/`rebuildOnly`; absent ⇒ every assembly is built from the recipe, as before.
+   */
+  readonly geometryCache?: GeometryCacheSource | undefined;
+  /**
+   * D29 R4 — the running build's envelope, which a written cache is stamped with. Present (or implied by
+   * `geometryCache.current`) ⇒ built assemblies (after a shared-table edit, every live one) queue for
+   * `exportCacheIdle` and `geometryCacheFiles`
+   * answers; absent ⇒ this document writes no cache.
+   */
+  readonly geometryCacheEnvelope?: CacheEnvelope | undefined;
+  /**
+   * D29 R5 — the install secret a written cache is signed with (`cachetrust.ts`); defaults to
+   * `geometryCache.installSecret`. A write envelope without one throws: no reader would restore it.
+   */
+  readonly geometryCacheSecret?: Uint8Array | undefined;
 }
 
 export interface PartQuantity {
@@ -181,6 +217,15 @@ interface StagedRebuild {
   readonly superseded: readonly ElementId[];
   /** Set when the kernel refused an element the caller was rebuilding (D42). */
   readonly failure?: { readonly elementId: ElementId; readonly error: string };
+  /** D29: the roots built from the recipe, and the roots restored from the file's cache. */
+  readonly built: readonly ElementId[];
+  readonly restored: readonly ElementId[];
+}
+
+/** An assembly `exportCacheIdle` exported: its record keyed against the scene it was exported in. */
+interface ExportedEntry {
+  readonly record: CacheRecord;
+  readonly files: ReadonlyMap<string, Uint8Array>;
 }
 
 export interface ExecuteOptions {
@@ -234,6 +279,20 @@ export class DocumentContext {
   #revision: ModelRevision | undefined;
   /** elementId → its built parts. NOT persisted: parts are built from the recipe, never stored (D30). */
   readonly #geometryByElement = new Map<ElementId, ElementGeometry>();
+  readonly #cacheSource: GeometryCacheSource | undefined;
+  /** Opened on first use; `null` once the envelope or index was refused (design §2a). */
+  #cacheIndex: GeometryCacheIndex | null | undefined;
+  /** D29 R4: the envelope this document writes; `undefined` ⇒ it exports nothing. */
+  readonly #writeEnvelope: CacheEnvelope | undefined;
+  readonly #writeSecret: Uint8Array | undefined;
+  /** Built roots awaiting `exportCacheIdle`, oldest first. */
+  readonly #exportQueue = new Set<ElementId>();
+  readonly #exported = new Map<ElementId, ExportedEntry>();
+  /** Roots whose live geometry was built from the recipe: never carried from the file (design §5). */
+  readonly #builtRoots = new Set<ElementId>();
+  #keyTables: { readonly scene: Scene; readonly tables: CacheKeyTables } | undefined;
+  /** `cacheTablesDigest` of the last committed scene; set only when this document exports. */
+  #tablesDigest: string | undefined;
 
   constructor(options: DocumentOptions) {
     this.#registries = options.registries;
@@ -242,6 +301,13 @@ export class DocumentContext {
     this.#roomSolver = options.roomSolver ?? new PlanarRoomSolver();
     this.#scene = options.scene ?? emptyScene();
     this.#revision = options.revision;
+    this.#cacheSource = options.geometryCache;
+    this.#writeEnvelope = options.geometryCacheEnvelope ?? options.geometryCache?.current;
+    this.#writeSecret = options.geometryCacheSecret ?? options.geometryCache?.installSecret;
+    if (this.#writeEnvelope !== undefined && this.#writeSecret === undefined) {
+      throw new Error('a geometry cache envelope needs geometryCacheSecret to sign what it writes');
+    }
+    if (this.#writeEnvelope !== undefined) this.#tablesDigest = cacheTablesDigest(this.#scene);
     if (options.journal !== undefined) this.#journal.restore(options.journal);
   }
 
@@ -311,6 +377,7 @@ export class DocumentContext {
     return [
       ...this.#scene.brokenRefs,
       ...danglingDesignOptionRefs(this.#scene),
+      ...primaryViolations(this.#scene),
       ...danglingAncestorRefs(this.#scene),
     ];
   }
@@ -535,7 +602,13 @@ export class DocumentContext {
    * `geometryOf()`, and **preserved verbatim through save**. The building around it opens and edits.
    */
   async rebuildAll(): Promise<void> {
-    const staged = await this.#stage(this.#scene, Object.keys(this.#scene.elements), {}, false);
+    const staged = await this.#stage(
+      this.#scene,
+      Object.keys(this.#scene.elements),
+      {},
+      false,
+      true,
+    );
     await this.#commit(staged);
   }
 
@@ -555,7 +628,7 @@ export class DocumentContext {
   async rebuildOnly(ids: Iterable<ElementId>): Promise<void> {
     const roots = affectedAssemblies(this.#scene, ids);
     if (roots.length === 0) return;
-    const staged = await this.#stage(this.#scene, roots, {}, false);
+    const staged = await this.#stage(this.#scene, roots, {}, false, true);
     await this.#commit(staged);
   }
 
@@ -579,6 +652,95 @@ export class DocumentContext {
   async #forceBuild(): Promise<void> {
     const deferred = deferredElements(this.#scene, (id) => this.#geometryByElement.get(id));
     if (deferred.length > 0) await this.rebuildOnly(deferred);
+  }
+
+  /**
+   * D29 R4 — export up to `maxAssemblies` built assemblies to the geometry cache, oldest commit first,
+   * and return how many still wait. **The app calls this from idle time, never from a save** (design
+   * §5): an edit to one wall then costs that wall's few solids (~7 ms each), off the interaction path.
+   *
+   * ⚠ Each export is keyed against the scene it lands in, and only if the assembly's geometry is still
+   * the live one: an edit committed while the solids were exporting re-queued the root, and the
+   * stale export is dropped rather than written under the new key.
+   */
+  async exportCacheIdle(maxAssemblies = 1): Promise<number> {
+    for (let n = 0; n < maxAssemblies; n++) {
+      const root = this.#exportQueue.values().next().value;
+      if (root === undefined) break;
+      this.#exportQueue.delete(root);
+      const live = this.#geometryByElement.get(root);
+      if (live === undefined || this.#scene.elements[root] === undefined) continue;
+      const hosted = (this.#tablesFor(this.#scene).hosted.get(root) ?? []).map((e) => e.id);
+      const exported = await exportAssembly(
+        root,
+        hosted,
+        (id) => this.#geometryByElement.get(id),
+        this.#scene.brokenRefs,
+        this.#geometry,
+      );
+      if (exported === undefined || this.#geometryByElement.get(root) !== live) continue;
+      const key = cacheInputKey(this.#scene, root, this.#tablesFor(this.#scene));
+      this.#exported.set(root, { record: { key, ...exported.record }, files: exported.files });
+    }
+    return this.#exportQueue.size;
+  }
+
+  /**
+   * D29 R4 — the `geometry-cache/` for a save of the CURRENT scene (`SaveOptions.cache`), or `undefined`
+   * when this document writes no cache. **It calls no kernel op**: a save never exports (design §5).
+   *
+   * Every key is recomputed against the scene being written, and an assembly is written only from:
+   * an `exportCacheIdle` export whose key still matches, or — for an assembly restored from the file or
+   * never built (D66) — the file's own record and bytes, carried when its key still matches. A built
+   * assembly not yet exported is absent; an unbuilt one whose neighbour moved is dropped, not written stale.
+   */
+  geometryCacheFiles(): GeometryCacheFiles | undefined {
+    const envelope = this.#writeEnvelope;
+    const secret = this.#writeSecret;
+    if (envelope === undefined || secret === undefined) return undefined;
+    const scene = this.#scene;
+    const tables = this.#tablesFor(scene);
+    // ⚠ Carried records are re-signed below, so only an index THIS secret verified may be carried (R5).
+    const source = this.#cacheSource;
+    const loaded =
+      source !== undefined &&
+      sameCacheEnvelope(source.current, envelope) &&
+      sameInstallSecret(source.installSecret, secret)
+        ? this.#openCache()
+        : undefined;
+
+    const records: Record<ElementId, CacheRecord> = {};
+    const files: Record<string, Uint8Array> = {};
+    const carried = new Map<ElementId, CacheRecord>();
+    for (const element of Object.values(scene.elements)) {
+      if (element.hostId !== undefined) continue;
+      const root = element.id;
+      const key = cacheInputKey(scene, root, tables);
+      const exported = this.#exported.get(root);
+      // A stale export (a restored root whose key flipped back on undo) falls through to the carry.
+      if (exported !== undefined && exported.record.key === key) {
+        records[root] = exported.record;
+        for (const [name, bytes] of exported.files) files[name] = bytes;
+        continue;
+      }
+      if (loaded === undefined || this.#builtRoots.has(root)) continue;
+      const record = usableRecord(scene, root, tables, loaded);
+      if (record !== undefined) carried.set(root, record);
+    }
+
+    if (carried.size > 0 && this.#cacheSource !== undefined) {
+      const names = [...carried].flatMap(([root, record]) => recordEntries(root, record));
+      const bytes = this.#cacheSource.files.readMany(names);
+      for (const [root, record] of carried) {
+        const entries = recordEntries(root, record);
+        if (!entries.every((name) => bytes.has(name))) continue;
+        records[root] = record;
+        for (const name of entries) files[name] = bytes.get(name)!;
+      }
+    }
+
+    files['index.json'] = signedCacheIndex(envelope, records, secret);
+    return files;
   }
 
   /**
@@ -1166,17 +1328,24 @@ export class DocumentContext {
    *
    * @param rejectOnFailure `false` on the LOAD path (`rebuildAll`), where a failed element is a state to
    *   be carried (D43), not a command to be refused. A command always rejects (D42).
+   * @param restore D29 R3: `true` from `rebuildAll`/`rebuildOnly` only. An edit never restores, so a
+   *   restored solid is never an input to an edit's boolean (design §4).
    */
   async #stage(
     scene: Scene,
     ids: Iterable<ElementId>,
     options: ExecuteOptions,
     rejectOnFailure = true,
+    restore = false,
   ): Promise<StagedRebuild> {
     const roots = affectedAssemblies(scene, ids);
+    const index = restore ? this.#openCache() : undefined;
+    const tables = index === undefined ? undefined : cacheKeyTables(scene);
     const geometry = new Map<ElementId, ElementGeometry>();
     const intermediates: string[] = [];
     const superseded: ElementId[] = [];
+    const built: ElementId[] = [];
+    const restoredRoots: ElementId[] = [];
 
     // Broken refs of assemblies we are NOT rebuilding survive untouched; the rest are re-derived.
     //
@@ -1207,22 +1376,38 @@ export class DocumentContext {
         !roots.includes(assemblyRoot(scene, b.elementId)),
     );
 
-    for (const root of roots) {
-      const built = await buildAssembly(
-        scene,
-        this.#registries,
-        this.#geometry,
-        this.#sketchSolver,
-        root,
-        options.coalesceKey === undefined ? {} : { coalesceKey: options.coalesceKey },
-      );
-      intermediates.push(...built.intermediates);
+    let batch: RestoreBatch | undefined;
+    for (const [i, root] of roots.entries()) {
+      if (
+        i % RESTORE_BATCH_ROOTS === 0 &&
+        index !== undefined &&
+        tables !== undefined &&
+        this.#cacheSource !== undefined
+      ) {
+        const next = roots.slice(i, i + RESTORE_BATCH_ROOTS);
+        batch = readRestoreBatch(scene, next, tables, index, this.#cacheSource.files);
+      }
+      const restored =
+        batch === undefined ? undefined : await restoreAssembly(root, batch, this.#geometry);
+      const staged =
+        restored === undefined
+          ? await buildAssembly(
+              scene,
+              this.#registries,
+              this.#geometry,
+              this.#sketchSolver,
+              root,
+              options.coalesceKey === undefined ? {} : { coalesceKey: options.coalesceKey },
+            )
+          : { ...restored, brokenRefs: [], intermediates: [] };
+      (restored === undefined ? built : restoredRoots).push(root);
+      intermediates.push(...staged.intermediates);
 
       // ⚠ THE KERNEL REFUSED (D42) — and only this kind of failure rejects. An `unbuildable` type
       // (unregistered, or from the future) is D43's business: it is carried, not refused.
       if (
-        built.result.state === 'failed' &&
-        built.result.failure === 'geometry' &&
+        staged.result.state === 'failed' &&
+        staged.result.failure === 'geometry' &&
         rejectOnFailure
       ) {
         return {
@@ -1232,13 +1417,15 @@ export class DocumentContext {
           superseded,
           failure: {
             elementId: root,
-            error: built.result.error ?? 'the kernel refused the rebuild',
+            error: staged.result.error ?? 'the kernel refused the rebuild',
           },
+          built,
+          restored: restoredRoots,
         };
       }
 
-      geometry.set(root, built.result);
-      for (const voidGeometry of built.voids) {
+      geometry.set(root, staged.result);
+      for (const voidGeometry of staged.voids) {
         geometry.set(voidGeometry.elementId, voidGeometry);
         // ⚠ ⓙ: a hosted element now carries its OWN parts (a door's leaf), so its previous solids must be
         // freed when its assembly rebuilds — exactly like the root's. Before ⓙ a void's parts were always
@@ -1250,10 +1437,10 @@ export class DocumentContext {
       }
       // ⚠ D59 COMPOSITION: register every generated child FLAT by its derived PEI, so `quantities`/`geometryOf`
       // reach a panel and the heap discipline covers it. The TREE (ownership) lives on `built.result.children`.
-      for (const childGeometry of built.children) {
+      for (const childGeometry of staged.children) {
         geometry.set(childGeometry.elementId, childGeometry);
       }
-      broken.push(...built.brokenRefs);
+      broken.push(...staged.brokenRefs);
       if (this.#geometryByElement.has(root)) superseded.push(root);
       // ⚠⚠ SUPERSEDE THE ROOT'S PRIOR SUBTREE (freed at commit). The freshly-built children above REPLACE the
       // previous set; every prior descendant (`${root}/…`, including a slot that VANISHED this rebuild — a
@@ -1264,7 +1451,14 @@ export class DocumentContext {
       }
     }
 
-    return { geometry, brokenRefs: broken, intermediates, superseded };
+    return {
+      geometry,
+      brokenRefs: broken,
+      intermediates,
+      superseded,
+      built,
+      restored: restoredRoots,
+    };
   }
 
   /**
@@ -1314,7 +1508,47 @@ export class DocumentContext {
     for (const [id, geometry] of staged.geometry) this.#geometryByElement.set(id, geometry);
 
     this.#scene = { ...this.#scene, brokenRefs: staged.brokenRefs };
+    // ⚠ D29 R4, before the first `await`: an export in flight for one of these roots is discarded on
+    // landing (`exportCacheIdle` checks its geometry is still live), and a built root is queued again.
+    for (const root of deletedRoots) this.#forgetExport(root);
+    for (const root of staged.restored) this.#forgetExport(root);
+    for (const root of staged.built) {
+      this.#forgetExport(root);
+      this.#builtRoots.add(root);
+      if (this.#writeEnvelope !== undefined) this.#exportQueue.add(root);
+    }
+    // ⚠ A shared-table edit re-keys every assembly (design §2b) but rebuilds only the roots that read
+    // the edited row, so every other live root is queued too: restored, carried or untouched alike.
+    if (this.#writeEnvelope !== undefined) {
+      const digest = cacheTablesDigest(this.#scene);
+      if (digest !== this.#tablesDigest) {
+        this.#tablesDigest = digest;
+        for (const [root, element] of Object.entries(this.#scene.elements))
+          if (element.hostId === undefined && this.#geometryByElement.has(root))
+            this.#exportQueue.add(root);
+      }
+    }
     await this.#release(garbage);
+  }
+
+  #forgetExport(root: ElementId): void {
+    this.#exported.delete(root);
+    this.#exportQueue.delete(root);
+    this.#builtRoots.delete(root);
+  }
+
+  /** `cacheKeyTables` once per scene value: a scene is replaced, never mutated, so identity is the test. */
+  #tablesFor(scene: Scene): CacheKeyTables {
+    if (this.#keyTables?.scene !== scene)
+      this.#keyTables = { scene, tables: cacheKeyTables(scene) };
+    return this.#keyTables.tables;
+  }
+
+  #openCache(): GeometryCacheIndex | undefined {
+    if (this.#cacheSource === undefined) return undefined;
+    if (this.#cacheIndex === undefined)
+      this.#cacheIndex = openCacheIndex(this.#cacheSource) ?? null;
+    return this.#cacheIndex ?? undefined;
   }
 
   async #release(handles: readonly string[]): Promise<void> {
@@ -1357,6 +1591,41 @@ function danglingDesignOptionRefs(scene: Scene): readonly BrokenReference[] {
       ref: optionId,
       hostId: element.id,
       reason: `the design option "${optionId}" is not defined in this document, so this element is excluded from every enumerating consumer`,
+    });
+  }
+  return out;
+}
+
+/**
+ * ⚠ **A SET WITH ZERO OR TWO PRIMARIES** (T-055). `checkPrimaryInvariant` refuses one at the option
+ * verbs only; a `.bnn` or a code-assembled `Scene` still reaches it, and `isElementActive` then counts
+ * every tagged element in the set (two) or none (zero). Reported per tagged element, never healed.
+ *
+ * ⚠ An untagged element hosted on a tagged one gets no entry: its activity is its host's (D67), so the
+ * host's entry already names the cause. `hostId` is the element's own id (T-007's convention).
+ */
+function primaryViolations(scene: Scene): readonly BrokenReference[] {
+  const options = scene.designOptions;
+  if (options === undefined) return [];
+  const primaries = new Map<string, number>();
+  for (const option of Object.values(options)) {
+    primaries.set(
+      option.setName,
+      (primaries.get(option.setName) ?? 0) + (option.isPrimary ? 1 : 0),
+    );
+  }
+  const out: BrokenReference[] = [];
+  for (const element of Object.values(scene.elements)) {
+    const optionId = element.designOptionId;
+    const option = optionId === undefined ? undefined : options[optionId];
+    if (option === undefined) continue; // untagged, or dangling — `danglingDesignOptionRefs` owns that
+    const count = primaries.get(option.setName) ?? 0;
+    if (count === 1) continue;
+    out.push({
+      elementId: element.id,
+      ref: option.id,
+      hostId: element.id,
+      reason: `the design option set "${option.setName}" has ${String(count)} primary options where exactly one is required, so every consumer defaulting to the primary ${count === 0 ? 'excludes this element' : 'counts this element alongside its alternatives'}`,
     });
   }
   return out;
