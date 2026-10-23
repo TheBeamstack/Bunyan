@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-d29-app-wiring — T-057, T-058, T-059 from the 2026-10-14 finding — 2026-10-23 — seat: brahim
+
+A diagnosis subagent confirmed at `3d72653` that `apps/web` does not restore, export, save or sign the D29 cache.
+T-057 (`ready`): the open path restores it under a per-install secret. T-058 (`ready`, `requires: browser`): a named save zips in a worker.
+T-059 (`blocked` on both): idle export, and a named save carries the cache, so the ~6 s 16k stall never ships. All `risk: high`. No code changed.
+Body: `handoff/brahim/2026-10-23-STEWARD-d29-app-wiring-t057.md`
+
 ## T-049 — review step 2 of PR #88 (on the fix) — 2026-10-23 — seat: hmdnah
 
 Approved; no defect proven. Item 1 at `bea8173`: pre-fix `cacherestore.ts` from `4be9c20` → test 3 red
