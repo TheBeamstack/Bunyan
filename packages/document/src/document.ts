@@ -56,12 +56,14 @@ import {
 import type { ElementBounds, UnprojectedElement, ViewResult } from './view.js';
 import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
-import { cacheInputKey, cacheKeyTables, cacheTablesDigest, sameCacheEnvelope } from './cachekey.js';
+import { cacheInputKey, cacheKeyTables, cacheTablesDigest } from './cachekey.js';
+import { sameCacheEnvelope } from './cachesign.js';
 import type { CacheKeyTables } from './cachekey.js';
 import type { CacheEnvelope, UnsignedGeometryCache } from './cachesign.js';
 import {
   RESTORE_BATCH_ROOTS,
   openCacheIndex,
+  openIndexOf,
   readRestoreBatch,
   recordEntries,
   restoreAssembly,
@@ -282,6 +284,7 @@ export class DocumentContext {
   readonly #cacheSource: GeometryCacheSource | undefined;
   /** Opened on first use; `null` once the envelope or index was refused (design §2a). */
   #cacheIndex: GeometryCacheIndex | null | undefined;
+  #cacheOpening: Promise<void> | undefined;
   /** D29 R4: the envelope this document writes; `undefined` ⇒ it exports nothing. */
   readonly #writeEnvelope: CacheEnvelope | undefined;
   readonly #writeSecret: Uint8Array | undefined;
@@ -601,7 +604,22 @@ export class DocumentContext {
    * document would not open at all. A failed element is now `failed`, visible via `unbuildable()` /
    * `geometryOf()`, and **preserved verbatim through save**. The building around it opens and edits.
    */
+  /**
+   * D29 — open the loaded file's cache index (parse, envelope, MAC) through `geometryCache.openIndex`, the
+   * app's worker (T-061), so the 16k MAC pass never runs on the main thread. Once per document; the app
+   * calls it at boot, and `rebuildAll`/`rebuildOnly` await it, so `#stage` only reads the result.
+   */
+  async openGeometryCache(): Promise<void> {
+    const source = this.#cacheSource;
+    if (source === undefined || this.#cacheIndex !== undefined) return;
+    this.#cacheOpening ??= openIndexOf(source).then((index) => {
+      this.#cacheIndex ??= index ?? null;
+    });
+    await this.#cacheOpening;
+  }
+
   async rebuildAll(): Promise<void> {
+    await this.openGeometryCache();
     const staged = await this.#stage(
       this.#scene,
       Object.keys(this.#scene.elements),
@@ -628,6 +646,7 @@ export class DocumentContext {
   async rebuildOnly(ids: Iterable<ElementId>): Promise<void> {
     const roots = affectedAssemblies(this.#scene, ids);
     if (roots.length === 0) return;
+    await this.openGeometryCache();
     const staged = await this.#stage(this.#scene, roots, {}, false, true);
     await this.#commit(staged);
   }
@@ -1341,7 +1360,9 @@ export class DocumentContext {
     restore = false,
   ): Promise<StagedRebuild> {
     const roots = affectedAssemblies(scene, ids);
-    const index = restore ? this.#openCache() : undefined;
+    // ⚠ Already opened by `openGeometryCache` (T-061): parsing or verifying here would put the 16k MAC
+    // pass back on the main thread.
+    const index = restore ? (this.#cacheIndex ?? undefined) : undefined;
     const tables = index === undefined ? undefined : cacheKeyTables(scene);
     const geometry = new Map<ElementId, ElementGeometry>();
     const intermediates: string[] = [];
@@ -1546,6 +1567,7 @@ export class DocumentContext {
     return this.#keyTables.tables;
   }
 
+  /** The save's carry (`geometryCacheFiles`): the opened index, else opened here in process, once. */
   #openCache(): GeometryCacheIndex | undefined {
     if (this.#cacheSource === undefined) return undefined;
     if (this.#cacheIndex === undefined)

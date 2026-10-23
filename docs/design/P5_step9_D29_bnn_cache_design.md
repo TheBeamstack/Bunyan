@@ -98,8 +98,10 @@ failure that matters. **Answered: `own`** (`D-20261012-05`, default applied 2026
 JSON of its four fields and every record; a file this install did not write, or edited after, restores
 nothing and opens at today's rebuild speed. The records carry each `.brep`'s fingerprint, so the MAC covers the
 solids. That makes _"this solid is what the recipe built"_ true by provenance. Its cost is one HMAC pass over
-`index.json` per save and per open: **2,074 ms to sign at 16k** (R4's fixture, one run; verifying is the same
-pass, not timed); a named save signs in its zip worker (T-060, §5). Persisting the secret in
+`index.json` per save and per open: **2,074 ms to sign at 16k** (R4's fixture, one run) and **2,195–2,229 ms
+to verify** (the same fixture at 16k solids, 64 MB index, two runs under node; parse 227–231 ms more). A named
+save signs in its zip worker (T-060, §5); an open parses and verifies in a worker (T-061), and the main thread
+pays the reply's `structuredClone` instead (337–343 ms under node, round trip). Persisting the secret in
 browser storage belongs to the app wiring (`docs/BACKLOG.md ## Discovered`, 2026-10-14).
 
 ---

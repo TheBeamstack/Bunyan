@@ -21,6 +21,7 @@ import {
   assembleUnsignedBnnEntries,
   loadBnn,
   newInstallSecret,
+  type CacheIndexOpener,
   type DocumentContext,
   type SaveOptions,
   type Scene,
@@ -28,6 +29,7 @@ import {
 } from '@bunyan/document';
 
 import { createBnnZipper, type BnnZipper } from './bnnZip';
+import { cacheIndexOpenerOn } from './cacheOpen';
 import { IndexedDbStore } from './indexeddb';
 import type { InitialDocument } from '../bootstrap';
 
@@ -77,6 +79,16 @@ export function spawnBnnZipper(): BnnZipper {
   const worker = new Worker(new URL('./bnnZipWorker.ts', import.meta.url), { type: 'module' });
   return createBnnZipper(worker);
 }
+
+/** Opens a loaded file's cache index on a worker spawned for that one open (T-061). */
+export const openCacheIndexInWorker: CacheIndexOpener = async (request) => {
+  const worker = new Worker(new URL('./cacheOpenWorker.ts', import.meta.url), { type: 'module' });
+  try {
+    return await cacheIndexOpenerOn(worker)(request);
+  } finally {
+    worker.terminate();
+  }
+};
 
 /**
  * A named save's options: the journal, never the undo stack (file header), and the geometry cache the idle

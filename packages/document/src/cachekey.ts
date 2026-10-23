@@ -9,7 +9,6 @@
  * `.bnn`; R2 stores these keys and R3 compares them.
  */
 
-import type { CacheEnvelope } from './cachesign.js';
 import { canonicalJson, sha256Utf8Hex } from './cachesign.js';
 import type { Constraint, Element, ElementId } from './entities.js';
 import { resolveJoins } from './joins.js';
@@ -18,15 +17,6 @@ import type { Scene } from './scene.js';
 
 /** The cache scheme the envelope names (§2a). A change to what a key digests bumps it. */
 export const CACHE_SCHEME = 'bnnc1';
-
-export function sameCacheEnvelope(stored: CacheEnvelope, current: CacheEnvelope): boolean {
-  return (
-    stored.cache === current.cache &&
-    stored.fingerprint === current.fingerprint &&
-    stored.kernelBuildId === current.kernelBuildId &&
-    stored.codeId === current.codeId
-  );
-}
 
 /**
  * The one pass over the scene (§2b "Cost"): the shared-table digest plus every per-root lookup indexed,

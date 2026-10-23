@@ -2,12 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- * D29's hashing and the cache MAC, as a leaf (T-060, design `P5_step9_D29_bnn_cache_design.md` §2e, §5):
- * canonical JSON, SHA-256, HMAC-SHA-256 and the signing of `geometry-cache/index.json`. The named save's
- * zip worker signs the index here, so a 16k save does not hold the main thread on the ~2 s HMAC pass.
+ * D29's hashing and the cache MAC, as a leaf (T-060, T-061, design `P5_step9_D29_bnn_cache_design.md` §2e,
+ * §4, §5): canonical JSON, SHA-256, HMAC-SHA-256, and the signing and opening of `geometry-cache/index.json`.
+ * The named save's zip worker signs the index here and the app's cache-open worker opens it here, so neither
+ * a 16k save nor a 16k open holds the main thread on the ~2 s HMAC pass.
  *
  * ⚠ It imports nothing, so a worker bundle that imports this file (`@bunyan/document/cachesign`) carries
- * no scene, joins or document code. Verifying an index is `cachetrust.ts`'s, on the same `cacheIndexMac`.
+ * no scene, joins or document code.
  */
 
 /** §2a — the whole-cache level. Any field differing from the reader's own discards every entry. */
@@ -19,6 +20,15 @@ export interface CacheEnvelope {
   readonly kernelBuildId: string;
   /** Which build of the Type code wrote the cache: the shipped bundle's digest (§2d, `D-20261012-06`). */
   readonly codeId: string;
+}
+
+export function sameCacheEnvelope(stored: CacheEnvelope, current: CacheEnvelope): boolean {
+  return (
+    stored.cache === current.cache &&
+    stored.fingerprint === current.fingerprint &&
+    stored.kernelBuildId === current.kernelBuildId &&
+    stored.codeId === current.codeId
+  );
 }
 
 /** Sorted keys, no whitespace, `JSON.stringify` numbers, `undefined` members dropped (§2b). */
@@ -113,6 +123,66 @@ export function signBnnEntries(
     ...entries,
     [CACHE_INDEX_ENTRY]: signedCacheIndex(signing.envelope, signing.records, signing.secret),
   };
+}
+
+/** The envelope as `index.json` stores it: the writer's four fields plus its install's MAC. */
+export type SignedCacheEnvelope = CacheEnvelope & { readonly mac: string };
+
+/** Whether a parsed index carries the MAC `secret` gives it — i.e. this install wrote it, unedited. */
+export function verifyCacheIndex(
+  envelope: Record<string, unknown>,
+  records: unknown,
+  secret: Uint8Array,
+): boolean {
+  const mac = envelope['mac'];
+  if (typeof mac !== 'string') return false;
+  return mac === cacheIndexMac(envelope as unknown as CacheEnvelope, records, secret);
+}
+
+/** An index whose envelope is the reader's and whose MAC this install gave it; records not yet shape-checked. */
+export interface OpenedCacheIndex {
+  readonly envelope: SignedCacheEnvelope;
+  readonly records: Readonly<Record<string, unknown>>;
+}
+
+/** What opening an index needs: its stored bytes, the running build's envelope, this install's secret. */
+export interface CacheIndexOpenRequest {
+  readonly bytes: Uint8Array;
+  readonly current: CacheEnvelope;
+  readonly secret: Uint8Array;
+}
+
+/** Opens an index somewhere — in process, or on a worker (T-061). `undefined` ⇒ the cache restores nothing. */
+export type CacheIndexOpener = (
+  request: CacheIndexOpenRequest,
+) => Promise<OpenedCacheIndex | undefined>;
+
+/**
+ * Parse `index.json` and check it (§2a, §2e): `undefined` for unparseable bytes, an envelope differing from
+ * `current`, or a MAC `secret` did not give. Never throws: verifying walks untrusted `records` recursively,
+ * and a throw (e.g. nesting past the stack) is a refusal.
+ */
+export function openSignedCacheIndex(
+  bytes: Uint8Array,
+  current: CacheEnvelope,
+  secret: Uint8Array,
+): OpenedCacheIndex | undefined {
+  try {
+    const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes));
+    if (!isObject(parsed) || !isObject(parsed['envelope']) || !isObject(parsed['records'])) {
+      return undefined;
+    }
+    const envelope = parsed['envelope'];
+    if (!sameCacheEnvelope(envelope as unknown as CacheEnvelope, current)) return undefined;
+    if (!verifyCacheIndex(envelope, parsed['records'], secret)) return undefined;
+    return parsed as unknown as OpenedCacheIndex;
+  } catch {
+    return undefined;
+  }
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /* ------------------------------------------------------------------------------------------------
