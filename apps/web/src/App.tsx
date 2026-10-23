@@ -300,7 +300,7 @@ export function App() {
       const trimmed = name.trim();
       if (trimmed === '') return;
       try {
-        zipperRef.current ??= spawnBnnZipper();
+        if (zipperRef.current?.failed !== false) zipperRef.current = spawnBnnZipper();
         const key = await saveDocument(
           storage.store,
           trimmed,

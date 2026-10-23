@@ -38,6 +38,8 @@ export interface ZipPort {
 
 export interface BnnZipper {
   zip(entries: BnnEntries): Promise<Uint8Array>;
+  /** True once the worker fired `error`: every later `zip()` rejects, so the caller spawns a new zipper. */
+  readonly failed: boolean;
 }
 
 /** The posting side. ⚠ Entries are cloned, never transferred: a carried cache entry is the doc's own buffer. */
@@ -47,6 +49,7 @@ export function createBnnZipper(port: ZipPort): BnnZipper {
     { resolve: (bytes: Uint8Array) => void; reject: (error: Error) => void }
   >();
   let next = 0;
+  let failure: Error | undefined;
   port.addEventListener('message', ({ data }) => {
     const waiter = pending.get(data.id);
     if (waiter === undefined) return;
@@ -55,13 +58,20 @@ export function createBnnZipper(port: ZipPort): BnnZipper {
     else waiter.reject(new Error(`zip worker: ${data.error}`));
   });
   port.addEventListener('error', (event) => {
-    const error = new Error(`zip worker failed: ${event.message ?? 'unknown error'}`);
-    for (const waiter of pending.values()) waiter.reject(error);
+    failure = new Error(`zip worker failed: ${event.message ?? 'unknown error'}`);
+    for (const waiter of pending.values()) waiter.reject(failure);
     pending.clear();
   });
   return {
+    get failed() {
+      return failure !== undefined;
+    },
     zip: (entries) =>
       new Promise((resolve, reject) => {
+        if (failure !== undefined) {
+          reject(failure);
+          return;
+        }
         const id = next++;
         pending.set(id, { resolve, reject });
         port.postMessage({ id, entries });

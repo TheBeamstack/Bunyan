@@ -7,7 +7,8 @@
  * drives `createBnnZipper` over a fake worker port that runs the worker's `handleZipRequest` on
  * structured clones, as `postMessage` would.
  *
- * REVERT-VERIFY: `saveDocument` storing `saveBnn(scene, options)` instead turns "posts to the worker" red.
+ * REVERT-VERIFY: `saveDocument` storing `saveBnn(scene, options)` instead turns "posts to the worker" red;
+ * dropping `createBnnZipper`'s `failure` early reject turns B-20261023-02's test red (the second zip hangs).
  *
  * `BUNYAN_T058_BNN_OUT=<path>` also writes the fixture's cache replicated to 16,000 solids as a `.bnn`
  * there: `tools/browser-check/named-save.mjs` sets it, then saves that file in a real browser.
@@ -108,6 +109,24 @@ describe('T-058 — a named save zips in the worker and stores saveBnn bytes', (
       saveDocument(new MemoryStore(), 'x', scene, options, createBnnZipper(worker)),
     ).rejects.toThrow();
     expect(worker.posted).toBe(0);
+  });
+
+  it('after the worker fails, a later zip rejects at once and the zipper reports failed (B-20261023-02)', async () => {
+    let fail: (event: { message?: string }) => void = () => undefined;
+    const dead: ZipPort = {
+      postMessage: () => undefined, // a dead worker never replies
+      addEventListener(type: string, listener: (event: never) => void): void {
+        if (type === 'error') fail = listener as (event: { message?: string }) => void;
+      },
+    };
+    const zipper = createBnnZipper(dead);
+    expect(zipper.failed).toBe(false);
+    const first = zipper.zip({});
+    fail({ message: 'load failed' });
+    await expect(first).rejects.toThrow('load failed');
+    expect(zipper.failed).toBe(true);
+    const timeout = new Promise((resolve) => setTimeout(() => resolve('pending'), 500));
+    await expect(Promise.race([zipper.zip({}), timeout])).rejects.toThrow('load failed');
   });
 
   it.runIf(process.env['BUNYAN_T058_BNN_OUT'] !== undefined)(
