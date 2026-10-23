@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-058` |
 | branch | `task/T-058-a-named-save-in-the-app-zips-in-a-dedica` |
 | claimed-at | 2026-10-23T12:04:21Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #107 merged by `hmdnah` at 2026-10-23T13:21:36Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: d8bc28a4c18dc4a974463325497c91bf7aa29722
+last-verified-at: 2df78d295c28572faef4e0fbc04a7e048972aa78
