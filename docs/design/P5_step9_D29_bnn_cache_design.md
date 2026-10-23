@@ -92,10 +92,14 @@ caches across deploys and serves a stale solid whenever a fix forgets its bump.
 A `.bnn` is a file a user can be **sent**, and the fingerprint is a public SHA-256, not a MAC: an author can write
 any solid, any tokens, a matching fingerprint and a matching input key. The recipient then sees and bills
 geometry the recipe would not build — for a product whose quantities are `basis: "exact"` (D30/D33), that is the
-failure that matters. **Open: whose caches are trusted** — `D-20261012-05`. Recommended: `own` — the envelope
-carries an HMAC (the in-house `sha256`, keyed by a per-install secret in browser storage) over the index; a file
-this install did not write restores nothing and opens at today's rebuild speed. That makes _"this solid is what
-the recipe built"_ true by provenance, and costs nothing on the common case, re-opening your own work.
+failure that matters. **Answered: `own`** (`D-20261012-05`, default applied 2026-10-20; built by R5,
+`cachetrust.ts`). The envelope carries `mac`, an HMAC-SHA-256 keyed by a per-install secret over the canonical
+JSON of its four fields and every record; a file this install did not write, or edited after, restores
+nothing and opens at today's rebuild speed. The records carry each `.brep`'s fingerprint, so the MAC covers the
+solids. That makes _"this solid is what the recipe built"_ true by provenance. Its cost is one HMAC pass over
+`index.json` per save and per open: **2,074 ms to sign at 16k** (R4's fixture, one run; verifying is the same
+pass, not timed). Persisting the secret in
+browser storage belongs to the app wiring (`docs/BACKLOG.md ## Discovered`, 2026-10-14).
 
 ---
 

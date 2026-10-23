@@ -60,6 +60,7 @@ import { cacheInputKey, cacheKeyTables, cacheTablesDigest, sameCacheEnvelope } f
 import type { CacheEnvelope, CacheKeyTables } from './cachekey.js';
 import { openCacheIndex, recordEntries, restoreAssembly, usableRecord } from './cacherestore.js';
 import type { CacheRecord, GeometryCacheIndex, GeometryCacheSource } from './cacherestore.js';
+import { sameInstallSecret, signedCacheIndex } from './cachetrust.js';
 import { exportAssembly } from './cacheexport.js';
 import type { GeometryCacheFiles } from './bnn.js';
 import { dependents } from './dependency.js';
@@ -128,6 +129,11 @@ export interface DocumentOptions {
    * answers; absent ⇒ this document writes no cache.
    */
   readonly geometryCacheEnvelope?: CacheEnvelope | undefined;
+  /**
+   * D29 R5 — the install secret a written cache is signed with (`cachetrust.ts`); defaults to
+   * `geometryCache.installSecret`. A write envelope without one throws: no reader would restore it.
+   */
+  readonly geometryCacheSecret?: Uint8Array | undefined;
 }
 
 export interface PartQuantity {
@@ -266,6 +272,7 @@ export class DocumentContext {
   #cacheIndex: GeometryCacheIndex | null | undefined;
   /** D29 R4: the envelope this document writes; `undefined` ⇒ it exports nothing. */
   readonly #writeEnvelope: CacheEnvelope | undefined;
+  readonly #writeSecret: Uint8Array | undefined;
   /** Built roots awaiting `exportCacheIdle`, oldest first. */
   readonly #exportQueue = new Set<ElementId>();
   readonly #exported = new Map<ElementId, ExportedEntry>();
@@ -284,6 +291,10 @@ export class DocumentContext {
     this.#revision = options.revision;
     this.#cacheSource = options.geometryCache;
     this.#writeEnvelope = options.geometryCacheEnvelope ?? options.geometryCache?.current;
+    this.#writeSecret = options.geometryCacheSecret ?? options.geometryCache?.installSecret;
+    if (this.#writeEnvelope !== undefined && this.#writeSecret === undefined) {
+      throw new Error('a geometry cache envelope needs geometryCacheSecret to sign what it writes');
+    }
     if (this.#writeEnvelope !== undefined) this.#tablesDigest = cacheTablesDigest(this.#scene);
     if (options.journal !== undefined) this.#journal.restore(options.journal);
   }
@@ -673,11 +684,16 @@ export class DocumentContext {
    */
   geometryCacheFiles(): GeometryCacheFiles | undefined {
     const envelope = this.#writeEnvelope;
-    if (envelope === undefined) return undefined;
+    const secret = this.#writeSecret;
+    if (envelope === undefined || secret === undefined) return undefined;
     const scene = this.#scene;
     const tables = this.#tablesFor(scene);
+    // ⚠ Carried records are re-signed below, so only an index THIS secret verified may be carried (R5).
+    const source = this.#cacheSource;
     const loaded =
-      this.#cacheSource !== undefined && sameCacheEnvelope(this.#cacheSource.current, envelope)
+      source !== undefined &&
+      sameCacheEnvelope(source.current, envelope) &&
+      sameInstallSecret(source.installSecret, secret)
         ? this.#openCache()
         : undefined;
 
@@ -711,7 +727,7 @@ export class DocumentContext {
       }
     }
 
-    files['index.json'] = new TextEncoder().encode(JSON.stringify({ envelope, records }));
+    files['index.json'] = signedCacheIndex(envelope, records, secret);
     return files;
   }
 

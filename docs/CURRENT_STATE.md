@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-056` |
-| branch | `task/T-056-a-save-carrying-the-d29-cache-can-zip-of` |
-| claimed-at | 2026-10-20T15:10:44Z |
-| status | merged — PR #104 merged by `hmdnah` at 2026-10-20T16:11:57Z |
+| task | `T-043` |
+| branch | `task/T-043-d29-r5-the-cache-envelope-is-trusted-per` |
+| claimed-at | 2026-10-20T01:17:45Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -217,4 +217,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 876ffd40f23bc3ea9ece0497f3fbe042c3158c5c
+last-verified-at: 87a7663817c688d9e9182bec3e38af18b026793d
