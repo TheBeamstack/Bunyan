@@ -368,7 +368,7 @@ from, and the reason it is a record rather than prose.
 - why: a 3-root `.bnn` with one entry's DEFLATE data corrupted passes `loadBnn`, and `cache.read` throws `invalid block type`; at head `355d4cd` 0 roots restore, against 2 with main's `cacherestore.ts`/`document.ts`; `agent_finish.py --review --step 2` would stamp T-049 `done` (`agent_finish.py:604-606`), so the step-2 finish was not run
 - evidence: the probe in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md` (two DEFLATE bytes of `W00001/0.brep` set to `0xff` before `loadBnn`), run with `pnpm exec vitest run` at `355d4cd` and with `git checkout origin/main -- packages/document/src/{cacherestore,document}.ts`
 - need: make `readRestoreBatch` re-read each root alone after a non-cap `readMany` throw (fix in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`) in a zayd turn on `task/T-049-a-cache-restore-reads-each-batch-of-root`, then route PR #88 to hmdnah for step 2
-- cleared: -
+- cleared: 2026-10-23T06:06Z
 
 ## B-20261019-05 PR #88's returned fix cannot reach zayd: start refuses T-049 while B-20261019-04 holds it
 
