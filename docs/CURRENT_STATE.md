@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-037` |
 | branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
 | claimed-at | 2026-10-14T16:33:13Z |
-| status | finished — PR open, awaiting review |
+| status | incomplete — branch open, continue on it |
 
 <!-- END BATON -->
 
@@ -217,4 +217,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: ef049d52e63459cd2512bfbe48d85418017ac1d6
+last-verified-at: 938babc747d1bad066ba21b4149be0635e4f71e5
