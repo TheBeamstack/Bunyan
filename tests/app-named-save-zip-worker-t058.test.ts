@@ -125,7 +125,11 @@ describe('T-058 — a named save zips in the worker and stores saveBnn bytes', (
     fail({ message: 'load failed' });
     await expect(first).rejects.toThrow('load failed');
     expect(zipper.failed).toBe(true);
-    const timeout = new Promise((resolve) => setTimeout(() => resolve('pending'), 500));
+    const timeout = new Promise((resolve) => {
+      setTimeout(() => {
+        resolve('pending');
+      }, 500);
+    });
     await expect(Promise.race([zipper.zip({}), timeout])).rejects.toThrow('load failed');
   });
 
