@@ -215,3 +215,10 @@ DEFECT; not approved, not merged, row stays `review` (B-20261019-04). One corrup
 rebuilds its whole batch: a 3-root probe restores 0 at `355d4cd` and 2 on main, against design §4's per-root restore.
 Item 1: per-name `read` at `cacherestore.ts:118` → red (`brepReads: 2053`); restored → 26 green. Items 2, 3, 6 are clean otherwise.
 Body: `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`
+
+## T-049 — one corrupt cache entry costs its root, not its batch (B-20261019-04) — 2026-10-23 — seat: zayd
+
+Merged main (F1). After a non-cap `readMany` throw, `readRestoreBatch` re-reads each root alone and keeps the roots that
+read; a cap refusal still empties the batch. Step-2 probe as test 3: red (`[]`) before, then `W00000`, `W00002` restore.
+Cap branch forced off → test 2 red. `bnn.ts` unchanged.
+Body: `handoff/zayd/2026-10-23-T-049-corrupt-entry-per-root.md`

@@ -30,13 +30,13 @@ import {
   emptyScene,
   loadBnn,
   saveBnn,
+  signedCacheIndex,
 } from '@bunyan/document';
 import type {
   CacheEnvelope,
   CacheRecord,
   CachedPart,
   Element,
-  GeometryCacheIndex,
   GeometryCacheReader,
   GeometryGateway,
   Scene,
@@ -53,6 +53,7 @@ const ENVELOPE: CacheEnvelope = {
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 const MiB = 1024 * 1024;
+const SECRET = new Uint8Array(32).fill(7);
 
 /** `n` free-standing walls 1 m apart, so no two join and every one is its own assembly root. */
 function walls(n: number): Scene {
@@ -92,8 +93,7 @@ function cacheFor(scene: Scene, partsOf: (i: number) => number): Record<string, 
     records[root] = { key, root: { elementId: root, parts }, voids: [] };
     i++;
   }
-  const index: GeometryCacheIndex = { envelope: ENVELOPE, records };
-  files['index.json'] = encoder.encode(JSON.stringify(index));
+  files['index.json'] = signedCacheIndex(ENVELOPE, records, SECRET);
   return files;
 }
 
@@ -170,7 +170,7 @@ describe('T-049 — a cache restore reads each batch of roots in one readMany', 
       registries,
       geometry: gateway,
       scene,
-      geometryCache: { files, current: ENVELOPE },
+      geometryCache: { files, current: ENVELOPE, installSecret: SECRET },
     });
     live.push(doc);
     await doc.rebuildAll();
@@ -228,5 +228,25 @@ describe('T-049 — a cache restore reads each batch of roots in one readMany', 
     for (const id of ids.slice(RESTORE_BATCH_ROOTS)) {
       expect(doc.geometryOf(id)?.state).toBe('valid');
     }
+  }, 120_000);
+
+  it('one corrupt entry in a 3-root batch rebuilds only its root; the other 2 restore', async () => {
+    const scene = walls(3);
+    const bytes = saveBnn(scene, { kernelBuildId: KERNEL_BUILD_ID, cache: cacheFor(scene, () => 1) });
+    const pkg = loadBnn(bytes);
+    const ids = Object.keys(scene.elements);
+    // Two bytes of W00001's DEFLATE data set to 0xff after load (hmdnah's step-2 probe).
+    const name = `${GEOMETRY_CACHE_DIR}${ids[1]!}/0.brep`;
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const local = view.getUint32(centralHeader(bytes, name) + 42, true);
+    const data = local + 30 + view.getUint16(local + 26, true) + view.getUint16(local + 28, true);
+    bytes[data] = 0xff;
+    bytes[data + 1] = 0xff;
+    expect(() => pkg.cache!.read(`${ids[1]!}/0.brep`)).toThrow();
+    expect(() => pkg.cache!.read(`${ids[1]!}/0.brep`)).not.toThrow(/refused before inflating/);
+
+    const doc = await open(pkg.scene, pkg.cache!);
+    expect(restored(doc, scene)).toEqual([ids[0], ids[2]]);
+    for (const id of ids) expect(doc.geometryOf(id)?.state).toBe('valid');
   }, 120_000);
 });

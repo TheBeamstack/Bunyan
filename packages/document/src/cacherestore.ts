@@ -109,9 +109,13 @@ export interface RestoreBatch {
   readonly bytes: ReadonlyMap<string, Uint8Array>;
 }
 
+/** `bnn.ts`'s cap refusal (T-046/T-048), by its message: `BnnCapError` is not exported. */
+const CAP_REFUSAL = '.bnn refused before inflating:';
+
 /**
- * Design §4 step 1 for `roots`, then their entries in one `readMany`. A throw from it (a T-046/T-048
- * cap, a corrupt entry) empties the batch, so each of its roots builds, as a per-part throw did.
+ * Design §4 step 1 for `roots`, then their entries in one `readMany`. A cap refusal from it empties the
+ * batch, so each of its roots builds. Any other throw (a corrupt entry) re-reads each root alone and
+ * keeps those whose own read succeeds, so one bad entry costs its root, not the batch (§3).
  */
 export function readRestoreBatch(
   scene: Scene,
@@ -129,9 +133,22 @@ export function readRestoreBatch(
   try {
     const names = [...records].flatMap(([root, record]) => recordEntries(root, record));
     return { records, bytes: files.readMany(names) };
-  } catch {
-    return { records: new Map(), bytes: new Map() };
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith(CAP_REFUSAL)) {
+      return { records: new Map(), bytes: new Map() };
+    }
   }
+  const kept = new Map<ElementId, CacheRecord>();
+  const bytes = new Map<string, Uint8Array>();
+  for (const [root, record] of records) {
+    try {
+      for (const [name, b] of files.readMany(recordEntries(root, record))) bytes.set(name, b);
+      kept.set(root, record);
+    } catch {
+      // This root builds.
+    }
+  }
+  return { records: kept, bytes };
 }
 
 /** Design §4 steps 2–3 for one root of `batch`. `undefined` ⇒ build it; nothing imported is left live. */
