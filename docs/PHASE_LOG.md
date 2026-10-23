@@ -40,6 +40,41 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-057 — review step 2 of PR #106, re-run after the fix — 2026-10-23 — seat: hmdnah
+
+APPROVED. B-20261023-01 is resolved: step 1's delayed-store probe at `a148f77` gives `AeqB=false`, the loser's index fails
+`verifyCacheIndex`, and the reworded comment now says exactly that. Item 1: `geometryCache` dropped → 1 red; restored → 10 green.
+Items 2, 3 and 6 re-run: nothing new. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-23-T-057-review-step-2.md` § step 2 re-run
+
+## T-057 — review fix: `installSecret`'s race comment — 2026-10-23 — seat: zayd
+
+B-20261023-01: `documentStorage.ts` `installSecret`'s comment no longer claims racing first boots agree; it says they can
+differ and the loser's cache is refused by `verifyCacheIndex`. Comment only; code unchanged. T-057 tests: 10 passed.
+Next: hmdnah, step 2 of PR #106.
+Body: `handoff/zayd/2026-10-23-T-057-app-cache-open.md` § review fix
+
+## T-057 — review step 2 of PR #106 — 2026-10-23 — seat: hmdnah
+
+CHANGES REQUESTED; not approved, not merged, row stays `review` (B-20261023-01). Step 1's defect is unresolved: no code commit
+since, and `documentStorage.ts:88-91` still claims racing first boots agree. Item 1: `geometryCache` dropped → 1 red; restored →
+10 green. Items 2, 3, 6: nothing else found. CI green on `7952ee4`; not owner-gated.
+Body: `handoff/hmdnah/2026-10-23-T-057-review-step-2.md`
+
+## T-057 — review step 1 of PR #106 — 2026-10-23 — seat: hmdnah
+
+Item 1: `geometryCache` dropped → restore test red (`expected Set{ 'extrude' } to deeply equal Set{ 'importBrep' }`); restored → green.
+One item-4 defect proven, back to zayd: `installSecret`'s comment says racing first boots agree, but a delayed-store probe gives `AeqB=false`.
+No geometry effect (a foreign MAC is refused, no app cache write yet). No watched file changed. Not owner-gated; no approval.
+Body: `handoff/hmdnah/2026-10-23-T-057-review-step-1.md`
+
+## T-057 — Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret — 2026-10-23 — seat: zayd
+
+`readInitial` keeps `pkg.cache`; `documentOptions` (out of `bootstrap.ts`) wires the D29 cache options; `installSecret` writes one key.
+Real OCCT: own secret → `rebuildOnly` sends only `importBrep`; other secret or no cache → builds. Both revert-verified red.
+Spec defect fixed: T-057's `tests/_d29_` (prettier-mangled) is now `` `tests/*-d29.test.ts` ``. No watched file changed.
+Body: `handoff/zayd/2026-10-23-T-057-app-cache-open.md`
+
 ## STEWARD-d29-app-wiring — review of PR #105 — 2026-10-23 — seat: hmdnah
 
 Approved; no defect proven. Item 1: T-057's `implements:` removed → `gates.py docs` RED (exit 1, named);

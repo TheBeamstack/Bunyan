@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-d29-app-wiring` |
-| branch | `steward/d29-app-wiring` |
-| claimed-at | 2026-10-20T02:09:44Z |
-| status | merged — PR #105 merged by `hmdnah` at 2026-10-23T08:51:22Z |
+| task | `T-057` |
+| branch | `task/T-057-opening-a-stored-bnn-in-the-app-restores` |
+| claimed-at | 2026-10-23T08:52:55Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: d0f9008a188d2c17d14647f2076f9b36cb4ec066
+last-verified-at: 2961738135b16e79adcd2b5a04610a631235e6ab
