@@ -428,4 +428,4 @@ from, and the reason it is a record rather than prose.
 - why: `createBnnZipper` (`apps/web/src/storage/bnnZip.ts`) rejects only the saves pending at the `error` event and keeps posting to the dead port, and `App.tsx:303` (`zipperRef.current ??= spawnBnnZipper()`) never drops the failed zipper; the replaced on-thread `saveBnn` path could not hang
 - evidence: a scratch vitest at `91a25ce` (a port that never replies; fire `error`; the first `zip()` rejects "load failed"; a second `zip()` raced against a 2000 ms timer) printed `PROBE second save: pending after 2000 ms`; full probe in `handoff/hmdnah/2026-10-23-T-058-review-step-1.md`
 - need: make a named save after a zip-worker `error` respawn the worker or reject, with a test that fails without the fix, in a zayd turn on `task/T-058-a-named-save-in-the-app-zips-in-a-dedica`, then route PR #107 to hmdnah for step 2
-- cleared: -
+- cleared: 2026-10-23T12:58Z

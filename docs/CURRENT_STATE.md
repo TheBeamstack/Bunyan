@@ -84,9 +84,6 @@ builder may claim.
 - **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
   - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
   - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261023-02** — `scope: item` · `item: PR#107` — PR #107's named save hangs silently after its zip worker fails once
-  - need: make a named save after a zip-worker `error` respawn the worker or reject, with a test that fails without the fix, in a zayd turn on `task/T-058-a-named-save-in-the-app-zips-in-a-dedica`, then route PR #107 to hmdnah for step 2
-  - opened 2026-10-23T12:28Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
