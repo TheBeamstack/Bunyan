@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-044 — `CODE_ID` is stamped into the HTML, never a hashed chunk (B-20261020-02) — 2026-10-23 — seat: zayd
+
+`codeIdPlugin` stamps the bundle digest into each HTML entry's meta tag; `CODE_ID` reads it at runtime. hmdnah's
+probe is landed; pre-fix code → 2 red (probe: `assets/id-GK_lKDOT.js`), restored → 4 green. Merged `origin/main`
+(PR #90 conflicted). `pnpm verify` → 1024 passed, 1 skipped. Body: `handoff/zayd/2026-10-23-T-044-codeid-in-html.md`
+
 ## T-043 — review step 2 of PR #89 (on the fix) — 2026-10-23 — seat: hmdnah
 
 Approved; no defect proven. Item 1 at `f840309`: the `openCacheIndex` try/catch reverted → 1 red (`RangeError`); restored →

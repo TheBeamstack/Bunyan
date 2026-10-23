@@ -2,11 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { createHash } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
 import type { Plugin } from 'vite';
-import { CODE_ID_PLACEHOLDER } from './src/codeId.js';
-
-const CODE_ID_MODULE = fileURLToPath(new URL('./src/codeId.ts', import.meta.url));
+import { CODE_ID_META, CODE_ID_PLACEHOLDER } from './src/codeId.js';
 
 export interface BundleFile {
   readonly fileName: string;
@@ -25,15 +22,24 @@ export function bundleCodeId(files: readonly BundleFile[]): string {
 }
 
 /**
- * D29 R6 — stamps `CODE_ID` with the digest of the whole bundle (worker chunks and the kernel `.wasm`
- * arrive as assets), taken with the placeholder still in place. Same-length replacement leaves source
- * maps valid. A build that bundles `src/codeId.ts` but lost its placeholder fails rather than ship it.
+ * D29 R6 — stamps the digest of the whole bundle (worker chunks and the kernel `.wasm` arrive as
+ * assets), taken with the placeholder still in place, into every HTML entry's meta tag. Only the
+ * unhashed HTML changes after Rollup names the files: a hashed file's bytes are never touched.
  */
 export function codeIdPlugin(): Plugin {
   return {
     name: 'bunyan:code-id',
     apply: 'build',
     enforce: 'post',
+    transformIndexHtml() {
+      return [
+        {
+          tag: 'meta',
+          attrs: { name: CODE_ID_META, content: CODE_ID_PLACEHOLDER },
+          injectTo: 'head-prepend',
+        },
+      ];
+    },
     generateBundle(_options, bundle) {
       const outputs = Object.values(bundle);
       const codeId = bundleCodeId(
@@ -42,16 +48,14 @@ export function codeIdPlugin(): Plugin {
           bytes: o.type === 'chunk' ? o.code : o.source,
         })),
       );
-      let stamped = 0;
       for (const o of outputs) {
-        if (o.type === 'chunk' && o.code.includes(CODE_ID_PLACEHOLDER)) {
-          o.code = o.code.replaceAll(CODE_ID_PLACEHOLDER, codeId);
-          stamped += 1;
-        }
+        if (o.type !== 'asset' || !o.fileName.endsWith('.html')) continue;
+        const html =
+          typeof o.source === 'string' ? o.source : Buffer.from(o.source).toString('utf8');
+        if (!html.includes(CODE_ID_PLACEHOLDER))
+          this.error(`${o.fileName} carries no code-id meta`);
+        o.source = html.replaceAll(CODE_ID_PLACEHOLDER, codeId);
       }
-      const bundled = [...this.getModuleIds()].some((id) => id.split('?')[0] === CODE_ID_MODULE);
-      if (bundled && stamped === 0)
-        this.error(`src/codeId.ts is bundled but its placeholder is not`);
     },
   };
 }
