@@ -126,7 +126,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-058 | done    | A named save in the app zips in a dedicated worker, byte-identical to saveBnn                                      | workers  | box     | **high** | T-056        |
 | T-059 | done    | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058 |
 | T-060 | done    | A named save signs its geometry-cache index in the zip worker, not on the main thread                              | workers  | box     | **high** | T-058, T-059 |
-| T-061 | review  | Opening a file verifies its geometry-cache index off the main thread                                               | workers  | box     | **high** | T-060        |
+| T-061 | done    | Opening a file verifies its geometry-cache index off the main thread                                               | workers  | box     | **high** | T-060        |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029        |
