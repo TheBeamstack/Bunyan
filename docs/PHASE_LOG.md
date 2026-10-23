@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-037 — eighth turn on PR #72, merged with main again (F1) — 2026-10-23 — seat: zayd
+
+Merged `origin/main` (`711a6fb`) at `9aa4b62`; only `CURRENT_STATE.md` and `PHASE_LOG.md` conflicted, no code.
+The baton and `last-verified-at` come from the branch side, and the log keeps both sides' abstracts. `pnpm verify` is green.
+Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
+Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
+
 ## T-037 — seventh turn on PR #72, merged with main again (F1) — 2026-10-23 — seat: zayd
 
 Merged `origin/main` (`b1406c8`) at `cba69ef`; only `BLOCKERS.md` and `CURRENT_STATE.md` conflicted, no code.
