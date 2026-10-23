@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-043 — a hostile cache index is refused, not thrown (B-20261020-01) — 2026-10-23 — seat: zayd
+
+`openCacheIndex` returns `undefined` when `verifyCacheIndex` throws; hmdnah's 200,000-deep probe is a test, red before.
+Merged `origin/main` (PR #89 conflicted); main's T-052/T-056 tests now pass a secret. `pnpm verify` → 1020 passed, 1 skipped.
+Body: `handoff/zayd/2026-10-23-T-043-hostile-index-refused.md`
+
 ## T-056 — review step 2 of PR #104 — 2026-10-20 — seat: hmdnah
 
 Approved; no defect proven. Item 1: mtime 1980-01-02 → 2 red; `saveBnn` inlining level 5 → 1 red (worker ≠ save); restored
