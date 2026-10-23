@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-d29-cache-sign-off-main` |
-| branch | `steward/d29-cache-sign-off-main` |
-| claimed-at | 2026-10-23T14:19:36Z |
-| status | merged — PR #109 merged by `hmdnah` at 2026-10-23T19:39:56Z |
+| task | `T-060` |
+| branch | `task/T-060-a-named-save-signs-its-geometry-cache-in` |
+| claimed-at | 2026-10-23T19:41:17Z |
+| status | working |
 
 <!-- END BATON -->
 
