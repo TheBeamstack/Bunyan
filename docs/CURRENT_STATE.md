@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-059` |
 | branch | `task/T-059-the-app-exports-built-assemblies-in-idle` |
 | claimed-at | 2026-10-23T14:19:36Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #108 merged by `hmdnah` at 2026-10-23T15:17:33Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a0d29e73e4f300440f44cf041345145118c81dcd
+last-verified-at: 711a6fb30602bc5f9ff154b0c0cb5f1589be43c1
