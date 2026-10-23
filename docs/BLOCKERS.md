@@ -404,4 +404,4 @@ from, and the reason it is a record rather than prose.
 - why: two `npx vite build` runs of `apps/web` (with a temporary `CODE_ID` import in `bootstrap.ts`, and a one-line `App.tsx` change in the second run) give `assets/PartBatch-C8aMdl36.js` the same name in both runs, with bytes `8da496e7da50` → `55a5edc5570d` and `CODE_ID` `6cb5e4faace12c80` → `1b60a133b970e918`
 - evidence: the probe test in PR #90's step-1 review, run with `npx vitest run apps/web/src/hmProbe.test.ts` at `aca806e` → 1 failed
 - need: make the shipped `CODE_ID` unservable stale under an unchanged URL (fix shape in `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`) in a zayd turn on `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a`, land the probe test, then route PR #90 to hmdnah for step 2
-- cleared: -
+- cleared: 2026-10-23T02:53Z
