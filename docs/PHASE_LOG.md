@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-043 — review step 2 of PR #89 (on the fix) — 2026-10-23 — seat: hmdnah
+
+Approved; no defect proven. Item 1 at `f840309`: the `openCacheIndex` try/catch reverted → 1 red (`RangeError`); restored →
+green. An e2e `rebuildAll` probe on the hostile index: red reverted, green restored. `pnpm verify` → 1020 passed, 1 skipped.
+Reserved classes: none; CI green. Not owner-gated. Body: `handoff/hmdnah/2026-10-23-T-043-review-step-2.md`
+
 ## T-043 — a hostile cache index is refused, not thrown (B-20261020-01) — 2026-10-23 — seat: zayd
 
 `openCacheIndex` returns `undefined` when `verifyCacheIndex` throws; hmdnah's 200,000-deep probe is a test, red before.
