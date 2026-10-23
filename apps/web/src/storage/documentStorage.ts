@@ -17,8 +17,16 @@
  * Delta uncomputable (`bnn.ts` / plan step 10). `saveDocument` below takes `changeFeed` + `revision`.
  */
 
-import { loadBnn, newInstallSecret, type StorageAdapter } from '@bunyan/document';
+import {
+  assembleBnnEntries,
+  loadBnn,
+  newInstallSecret,
+  type SaveOptions,
+  type Scene,
+  type StorageAdapter,
+} from '@bunyan/document';
 
+import { createBnnZipper, type BnnZipper } from './bnnZip';
 import { IndexedDbStore } from './indexeddb';
 import type { InitialDocument } from '../bootstrap';
 
@@ -61,6 +69,29 @@ export function latestAutosaveKey(keys: readonly string[]): string | undefined {
 
 function autosaveCounter(key: string): number {
   return Number(/autosave-(\d+)/.exec(key)?.[1] ?? 0);
+}
+
+/** The named save's zip worker (T-058); spawned once, on the first save. */
+export function spawnBnnZipper(): BnnZipper {
+  const worker = new Worker(new URL('./bnnZipWorker.ts', import.meta.url), { type: 'module' });
+  return createBnnZipper(worker);
+}
+
+/**
+ * A named save: the entries are assembled here (every `saveBnn` refusal), zipped by `zipper` off the main
+ * thread, and stored under `docKey(name)`. Its bytes equal `saveBnn(scene, options)`. Returns the key.
+ */
+export async function saveDocument(
+  store: StorageAdapter,
+  name: string,
+  scene: Scene,
+  options: SaveOptions,
+  zipper: BnnZipper,
+): Promise<string> {
+  const bytes = await zipper.zip(assembleBnnEntries(scene, options));
+  const key = docKey(name);
+  await store.write(key, bytes);
+  return key;
 }
 
 /** Read a stored `.bnn` and parse it into the `InitialDocument` the boot path rebuilds from. */

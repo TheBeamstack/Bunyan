@@ -33,6 +33,7 @@ export default defineConfig({
         scale: resolve(here, 'scale.html'),
         storageCheck: resolve(here, 'storage-check.html'),
         firstPaint: resolve(here, 'first-paint.html'),
+        saveCheck: resolve(here, 'save-check.html'),
       },
     },
   },

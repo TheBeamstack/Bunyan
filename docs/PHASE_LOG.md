@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-058 — a named save zips in a dedicated worker — 2026-10-23 — seat: zayd
+
+`saveDoc` → `saveDocument`: entries assembled on the main thread, zipped in `bnnZipWorker.ts`, bytes equal `saveBnn`
+(T-058 test; revert to `saveBnn` → red). Browser, 16k solids: main thread held 125–133 ms per save vs 4,940 ms on-thread.
+Next: hmdnah, step 1 of this PR.
+Body: `handoff/zayd/2026-10-23-T-058-named-save-zip-worker.md`
+
 ## T-057 — review step 2 of PR #106, re-run after the fix — 2026-10-23 — seat: hmdnah
 
 APPROVED. B-20261023-01 is resolved: step 1's delayed-store probe at `a148f77` gives `AeqB=false`, the loser's index fails
