@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-044 — review step 2 of PR #90 (on the fix) — 2026-10-23 — seat: hmdnah
+
+Approved; no defect proven. Item 1 at `24a0cc3`: pre-fix plugin and `codeId.ts` restored → 2 red (step 1's probe); restored →
+4 green. Two real app builds: only the 4 HTML entries change bytes; `PartBatch-*.js` keeps name and bytes. Chromium reads the
+meta. Reserved classes: none; CI green. Not owner-gated. Body: `handoff/hmdnah/2026-10-23-T-044-review-step-2.md`
+
 ## T-044 — `CODE_ID` is stamped into the HTML, never a hashed chunk (B-20261020-02) — 2026-10-23 — seat: zayd
 
 `codeIdPlugin` stamps the bundle digest into each HTML entry's meta tag; `CODE_ID` reads it at runtime. hmdnah's
