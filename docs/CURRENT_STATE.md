@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-060` |
 | branch | `task/T-060-a-named-save-signs-its-geometry-cache-in` |
 | claimed-at | 2026-10-23T19:41:17Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #110 merged by `hmdnah` at 2026-10-23T21:26:16Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 09dad19270c0089156c433fce75a6a6001814caf
+last-verified-at: 603e89867d68fbefa81e53c7a8221566d3287703
