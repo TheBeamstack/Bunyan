@@ -380,7 +380,7 @@ from, and the reason it is a record rather than prose.
 - why: agent_start.py exited 1, "T-049 (PR #88) is held by B-20261019-04, an uncleared `scope: item` blocker at main — skip it"; B-20261019-03 is the same refusal for PR #72's flow merge
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-049 --root /home/ubuntu/projects/Bunyan; echo $?`
 - need: make diwan `agent_start.py --continue` admit the seat a blocker's own `need:` routes to its item, then run B-20261019-04's zayd fix
-- cleared: -
+- cleared: 2026-10-23T05:33Z
 
 ## B-20261020-01 PR #89's step 2 proved a hostile cache index throws out of openCacheIndex, so the file does not open
 
