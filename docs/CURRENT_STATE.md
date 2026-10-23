@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-d29-cache-sign-off-main` |
 | branch | `steward/d29-cache-sign-off-main` |
 | claimed-at | 2026-10-23T14:19:36Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #109 merged by `hmdnah` at 2026-10-23T19:39:56Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 25573db3f07d5131a3650123928cc996edd396c2
+last-verified-at: 99451e1dee7204005a3eb7b2dbc385bcb766ed2d
