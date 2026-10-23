@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-049` |
 | branch | `task/T-049-a-cache-restore-reads-each-batch-of-root` |
 | claimed-at | 2026-10-20T02:09:44Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #88 merged by `hmdnah` at 2026-10-23T07:02:19Z |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 876c5983374022e70df1005994e87877eaa22a38
+last-verified-at: e41f6148f6cd882560e46bc366811ccb262701bb
