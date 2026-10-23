@@ -271,3 +271,10 @@ Merged `origin/main` per the steward ruling: main's BLOCKERS kept, the branch's 
 Not done: the seeder was refused a fifth time ("requires approval"); no golden re-seeded. B-20261012-03 not re-filed.
 Next: a session permitted to run the seeder performs B-20261012-03's `need:` on this branch.
 Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — sixth turn on PR #72, merged with main (F1), incomplete — 2026-10-23 — seat: zayd
+
+Merged `origin/main`; only docs conflicted. The branch's PR #72 blockers were re-appended as B-20261012-09/-10, since main took -05/-06.
+BLOCKED was re-rendered by `blocked.py`. Six T-037 abstracts were kept, and T-037 stays `review`.
+Not done: no golden re-seeded and the seeder was not tried; B-20261012-03 stays uncleared.
+Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
