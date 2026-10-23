@@ -33,10 +33,10 @@ Numbering is preserved: `docs/BACKLOG.md` and the handoff record cite these as `
    backward). Bunyan's base rate the one time this was done exhaustively: **9 dirty of 18**.
 8. Protocol: `REVIEW-PROMPT.md` item 6 (weak green).
 9. **The verification split is real, and it is a debt that accumulates.** GL-only code is
-   browser-verified; everything with logic in it is headless-verified. Only `amer`/`khalihlna` may
-   report a browser claim as passing — `zayd`/`hmdnah` write `unverified here: <claim> — khalihlna to
-confirm`, and clearing it is the pc seat's first action next session. Keep logic headless wherever
-   possible: anything left browser-only is a review item only one seat can ever discharge.
+   browser-verified; everything with logic in it is headless-verified. A browser claim passes only on
+   a machine that probes `browser` green (`requires: browser`, diwan R79); elsewhere the seat writes
+   `unverified here: <claim> — <seat> to confirm` (`diwan/AGENTS.md §4`). Keep logic headless wherever
+   possible: anything left browser-only is a review item only a browser machine can discharge.
 10. Protocol: `diwan/AGENTS.md §6` (nothing is deleted from the record).
 11. **Box discipline is binding** (`docs/CURRENT_STATE.md §6a`). `zayd` and `hmdnah` never overload
     the Hetzner box; `portfolio-caddy-1` and `beamstack-contact` are live production and are never
