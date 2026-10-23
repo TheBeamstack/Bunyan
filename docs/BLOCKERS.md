@@ -357,3 +357,51 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-037 --root /home/ubuntu/projects/Bunyan; echo $?`; `gh pr view 72 --json mergeable` → CONFLICTING
 - need: perform B-20261012-03's `need:` and clear it, or make diwan `agent_start.py --continue` admit a flow-routed conflict merge on a blocker-held claim
 - cleared: -
+
+## B-20261019-04 PR #88's step 2 proved one corrupt cache entry rebuilds its whole batch, so it is not merged
+
+- opened: 2026-10-19T17:30Z
+- by: hmdnah
+- scope: item
+- item: PR#88
+- what: in PR #88 (T-049), one corrupt `.brep` entry makes `readRestoreBatch`'s `readMany` throw, and the catch (`cacherestore.ts:119`) rebuilds every root of the batch, up to 1,024; design §4 restores per root, and done-when 2 rules batch rebuild for cap errors only
+- why: a 3-root `.bnn` with one entry's DEFLATE data corrupted passes `loadBnn`, and `cache.read` throws `invalid block type`; at head `355d4cd` 0 roots restore, against 2 with main's `cacherestore.ts`/`document.ts`; `agent_finish.py --review --step 2` would stamp T-049 `done` (`agent_finish.py:604-606`), so the step-2 finish was not run
+- evidence: the probe in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md` (two DEFLATE bytes of `W00001/0.brep` set to `0xff` before `loadBnn`), run with `pnpm exec vitest run` at `355d4cd` and with `git checkout origin/main -- packages/document/src/{cacherestore,document}.ts`
+- need: make `readRestoreBatch` re-read each root alone after a non-cap `readMany` throw (fix in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`) in a zayd turn on `task/T-049-a-cache-restore-reads-each-batch-of-root`, then route PR #88 to hmdnah for step 2
+- cleared: -
+
+## B-20261019-05 PR #88's returned fix cannot reach zayd: start refuses T-049 while B-20261019-04 holds it
+
+- opened: 2026-10-19T17:31Z
+- by: brahim-loop
+- scope: item
+- item: PR#88
+- what: B-20261019-04's `need:` is a zayd turn on T-049's branch, but start refuses to resume an item that same blocker names, so the fix it asks for can never run
+- why: agent_start.py exited 1, "T-049 (PR #88) is held by B-20261019-04, an uncleared `scope: item` blocker at main — skip it"; B-20261019-03 is the same refusal for PR #72's flow merge
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-049 --root /home/ubuntu/projects/Bunyan; echo $?`
+- need: make diwan `agent_start.py --continue` admit the seat a blocker's own `need:` routes to its item, then run B-20261019-04's zayd fix
+- cleared: 2026-10-23T05:33Z
+
+## B-20261020-01 PR #89's step 2 proved a hostile cache index throws out of openCacheIndex, so the file does not open
+
+- opened: 2026-10-20T02:08Z
+- by: hmdnah
+- scope: item
+- item: PR#89
+- what: in PR #89 (T-043), `verifyCacheIndex` runs the recursive `canonicalJson` over the file's `records` before any shape check, so an `index.json` with deeply nested `records` throws `RangeError` out of `openCacheIndex` (`cacherestore.ts:89`) instead of returning `undefined`, and `rebuildAll` rejects
+- why: a ~400 KB index (`records.W1` = 200,000 nested `[]`, envelope = `current` plus `mac: 'x'`) parses, then `openCacheIndex` throws `Maximum call stack size exceeded` at head `76f95af`; `rebuildAll` on `emptyScene()` with that cache rejects, and resolves once the verify call is removed; `agent_finish.py --review --step 2` would stamp T-043 `done` (`agent_finish.py:605-606`), so the step-2 finish was not run
+- evidence: the probe in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`, run with `npx vitest run` at `76f95af` and with `cacherestore.ts:89-91` removed
+- need: make `openCacheIndex` return `undefined` when `verifyCacheIndex` throws (fix in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`) in a zayd turn on `task/T-043-d29-r5-the-cache-envelope-is-trusted-per`, then route PR #89 to hmdnah for step 2
+- cleared: 2026-10-23T01:52Z
+
+## B-20261020-02 PR #90's step 1 proved the CODE_ID chunk keeps its content-hash name after the stamp, so a stale codeId can be served
+
+- opened: 2026-10-20T02:44Z
+- by: hmdnah
+- scope: item
+- item: PR#90
+- what: in PR #90 (T-044), `codeIdPlugin` rewrites the `CODE_ID` chunk in `generateBundle`, after Rollup has named it by a content hash, so one URL serves a different `CODE_ID` per deploy and a URL-keyed cache can pair the old id with new code
+- why: two `npx vite build` runs of `apps/web` (with a temporary `CODE_ID` import in `bootstrap.ts`, and a one-line `App.tsx` change in the second run) give `assets/PartBatch-C8aMdl36.js` the same name in both runs, with bytes `8da496e7da50` → `55a5edc5570d` and `CODE_ID` `6cb5e4faace12c80` → `1b60a133b970e918`
+- evidence: the probe test in PR #90's step-1 review, run with `npx vitest run apps/web/src/hmProbe.test.ts` at `aca806e` → 1 failed
+- need: make the shipped `CODE_ID` unservable stale under an unchanged URL (fix shape in `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`) in a zayd turn on `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a`, land the probe test, then route PR #90 to hmdnah for step 2
+- cleared: 2026-10-23T02:53Z

@@ -24,7 +24,7 @@ export interface CacheEnvelope {
   readonly fingerprint: string;
   /** The writer's own, never `manifest.json`'s — a carry-through writer rewrites the manifest (§2a). */
   readonly kernelBuildId: string;
-  /** Which build of the Type code wrote the cache (§2d, open: `D-20261012-06`). */
+  /** Which build of the Type code wrote the cache: the shipped bundle's digest (§2d, `D-20261012-06`). */
   readonly codeId: string;
 }
 
@@ -70,8 +70,9 @@ function push<T>(map: Map<string, T[]>, key: string, value: T): void {
   else bucket.push(value);
 }
 
-export function cacheKeyTables(scene: Scene): CacheKeyTables {
-  const digest = sha256Utf8Hex(
+/** §2b's shared-table digest: the five tables whole, in every assembly's key. */
+export function cacheTablesDigest(scene: Scene): string {
+  return sha256Utf8Hex(
     canonicalJson({
       styles: scene.styles,
       materials: scene.materials,
@@ -80,6 +81,10 @@ export function cacheKeyTables(scene: Scene): CacheKeyTables {
       grids: scene.grids,
     }),
   );
+}
+
+export function cacheKeyTables(scene: Scene): CacheKeyTables {
+  const digest = cacheTablesDigest(scene);
   const hosted = new Map<ElementId, Element[]>();
   for (const e of Object.values(scene.elements))
     if (e.hostId !== undefined) push(hosted, e.hostId, e);
@@ -171,12 +176,25 @@ const K = new Uint32Array([
 const encoder = new TextEncoder();
 
 export function sha256Utf8Hex(text: string): string {
-  const data = encoder.encode(text);
-  const padded = new Uint8Array((((data.length + 8) >> 6) + 1) << 6);
-  padded.set(data);
-  padded[data.length] = 0x80;
+  return toHex(sha256(encoder.encode(text)));
+}
+
+export function toHex(bytes: Uint8Array): string {
+  return [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** SHA-256 of the concatenated `chunks`, copied once into the padded buffer (HMAC's two passes). */
+export function sha256(...chunks: readonly Uint8Array[]): Uint8Array {
+  const length = chunks.reduce((n, c) => n + c.length, 0);
+  const padded = new Uint8Array((((length + 8) >> 6) + 1) << 6);
+  let at = 0;
+  for (const c of chunks) {
+    padded.set(c, at);
+    at += c.length;
+  }
+  padded[length] = 0x80;
   const view = new DataView(padded.buffer);
-  const bits = data.length * 8;
+  const bits = length * 8;
   view.setUint32(padded.length - 8, Math.floor(bits / 0x100000000));
   view.setUint32(padded.length - 4, bits >>> 0);
 
@@ -211,5 +229,8 @@ export function sha256Utf8Hex(text: string): string {
     }
     [a, b, c, d, e, f, g, hh].forEach((x, i) => (h[i] = h[i]! + x)); // Uint32Array wraps mod 2³²
   }
-  return [...h].map((x) => x.toString(16).padStart(8, '0')).join('');
+  const out = new Uint8Array(32);
+  const outView = new DataView(out.buffer);
+  for (let i = 0; i < 8; i++) outView.setUint32(i * 4, h[i]!);
+  return out;
 }

@@ -82,20 +82,25 @@ TypeScript with no kernel call; its time at 16k is **not measured** and row R1 m
 ### 2d. What the input key cannot see: code
 
 A Type's `buildGeometry` fixed without a `version` bump builds a different solid from the same inputs, and no
-digest of `scene.json` moves. The envelope's `codeId` closes that. **Open: which `codeId`** — `D-20261012-06`.
-Recommended: a content hash of the shipped bundle stamped at build time (every deploy discards every cache, so
-the first open after an update is today's rebuild); the alternative, `typeVersions` + engine version, keeps
-caches across deploys and serves a stale solid whenever a fix forgets its bump.
+digest of `scene.json` moves. The envelope's `codeId` closes that: **the shipped bundle's sha256**
+(`D-20261012-06`, `bundle` by default, T-044), taken by `vite build` (`apps/web/codeIdPlugin.ts`) over every
+emitted file and stamped into each unhashed HTML entry's meta tag, never into a content-hashed chunk whose
+unchanged name a cache could serve stale (B-20261020-02), so every deploy discards every cache and the first open after an update is today's rebuild. An
+unstamped load (dev server, tests) has a fresh `codeId` per load and restores no cache it did not write.
 
 ### 2e. What no key can see: a hostile author
 
 A `.bnn` is a file a user can be **sent**, and the fingerprint is a public SHA-256, not a MAC: an author can write
 any solid, any tokens, a matching fingerprint and a matching input key. The recipient then sees and bills
 geometry the recipe would not build — for a product whose quantities are `basis: "exact"` (D30/D33), that is the
-failure that matters. **Open: whose caches are trusted** — `D-20261012-05`. Recommended: `own` — the envelope
-carries an HMAC (the in-house `sha256`, keyed by a per-install secret in browser storage) over the index; a file
-this install did not write restores nothing and opens at today's rebuild speed. That makes _"this solid is what
-the recipe built"_ true by provenance, and costs nothing on the common case, re-opening your own work.
+failure that matters. **Answered: `own`** (`D-20261012-05`, default applied 2026-10-20; built by R5,
+`cachetrust.ts`). The envelope carries `mac`, an HMAC-SHA-256 keyed by a per-install secret over the canonical
+JSON of its four fields and every record; a file this install did not write, or edited after, restores
+nothing and opens at today's rebuild speed. The records carry each `.brep`'s fingerprint, so the MAC covers the
+solids. That makes _"this solid is what the recipe built"_ true by provenance. Its cost is one HMAC pass over
+`index.json` per save and per open: **2,074 ms to sign at 16k** (R4's fixture, one run; verifying is the same
+pass, not timed). Persisting the secret in
+browser storage belongs to the app wiring (`docs/BACKLOG.md ## Discovered`, 2026-10-14).
 
 ---
 
@@ -177,7 +182,8 @@ Measured (§4j-2, one run, 60 solids, `handoff/archive/zayd/2026-07-30-d29-cache
 ⇒ **A save never exports. The cache is written LAZILY, and there is no option in v1.0.0.**
 
 - **After each commit**, the rebuilt assemblies are queued for export in idle worker time; an edit to one wall
-  costs that wall's few solids (~7 ms each), off the interaction path.
+  costs that wall's few solids (~7 ms each), off the interaction path. A commit that changes §2b's shared-table
+  digest queues every live assembly, rebuilt, restored or not (T-052): its key flipped, so none is carried.
 - **Restored and unbuilt (D66-deferred) assemblies are carried**, not re-exported: their entries are copied from
   the retained file bytes when their input key still matches the current scene.
 - **A save writes only entries whose key matches the scene it writes** — recomputed at save, so an unbuilt
@@ -198,9 +204,15 @@ to 16,000, box, 2026-10-14; method and command in `handoff/zayd/2026-10-14-T-042
 the ~61 MB above understated the inflated cache: 105 MB, inside every T-046 cap. A save of the full cache
 blocks for ~4 s; this fixture is curtain-wall heavy, so another mix moves both figures.
 
-**Autosave.** Spec §7 has autosave write the cache _"only if D29 lands it"_, and D93 landed it. A five-deep ring
-carrying R4's cache is ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. **Open: `D-20261012-07`**, recommended `omit` (recovery is rare,
-and a recovered session rebuilds as today).
+**T-056** splits `saveBnn` into `assembleBnnEntries` and `zipBnnEntries` (`bnnzip.ts`, fflate only), so a worker can
+run the ~4 s zip on posted entries and write `saveBnn`'s bytes (`tests/bnn-zip-worker-t056.test.ts`). The 16k
+re-run after the split (hmdnah, box, 2026-10-20, `tests/geometry-cache-export-d29.test.ts` with
+`BUNYAN_D29_MEASURE_16K=1`): `saveBnn` 4075.8 ms with the cache, 0.4 ms without (best of 3); `.brep` 687 B/solid
+compressed, `index.json` 227 B/solid — the split moves no figure.
+
+**Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
+carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
+`SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.
 
 ---
 
