@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-049` |
-| branch | `task/T-049-a-cache-restore-reads-each-batch-of-root` |
+| task | `STEWARD-d29-app-wiring` |
+| branch | `steward/d29-app-wiring` |
 | claimed-at | 2026-10-20T02:09:44Z |
-| status | merged — PR #88 merged by `hmdnah` at 2026-10-23T07:02:19Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -84,9 +84,6 @@ builder may claim.
 - **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
   - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
   - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261019-03** — `scope: item` · `item: PR#72` — PR #72's conflict fix cannot reach zayd: start refuses T-037 while B-20261012-03 holds it
-  - need: perform B-20261012-03's `need:` and clear it, or make diwan `agent_start.py --continue` admit a flow-routed conflict merge on a blocker-held claim
-  - opened 2026-10-19T16:04Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -208,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: e41f6148f6cd882560e46bc366811ccb262701bb
+last-verified-at: dffaffca56fcb776001aa5df1cb1116f39148dfc
