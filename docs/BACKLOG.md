@@ -125,6 +125,8 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-057 | done    | Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret kept in browser storage | frontend | box     | **high** | —            |
 | T-058 | done    | A named save in the app zips in a dedicated worker, byte-identical to saveBnn                                      | workers  | box     | **high** | T-056        |
 | T-059 | done    | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058 |
+| T-060 | ready   | A named save signs its geometry-cache index in the zip worker, not on the main thread                              | workers  | box     | **high** | T-058, T-059 |
+| T-061 | blocked | Opening a file verifies its geometry-cache index off the main thread                                               | workers  | box     | **high** | T-060        |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029        |
@@ -636,6 +638,33 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: T-057, T-058 · area: frontend · machine: box · risk: **high**
 - note: depends on T-058 so a cache-carrying save never ships blocking the main thread ~6 s at 16k (zip 4.1 s + sign 2.1 s, design §5/§2e); every done-when item checks under node; risk high per READY rule 8 (D29 save path)
 
+### T-060 — A named save signs its geometry-cache index in the zip worker, not on the main thread
+
+- outcome: geometryCacheFiles() hands the zip worker unsigned records and the envelope, and the worker computes the HMAC and writes index.json, so a 16k-solid named save no longer holds the main thread ~2.1 s on signing, and its bytes equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §5 (the T-058 paragraph), §6 R4/R5 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-20 (T-043), confirmed by a brahim R39 diagnosis 2026-10-23 at b927f6e (apps/web/src/App.tsx:328 signs via documentStorage.ts:89 before documentStorage.ts:109 posts; packages/document/src/cachetrust.ts:53-63)
+- done-when: test-first: canonicalJson, sha256 and the cache HMAC move to a leaf module exported as a new @bunyan/document subpath beside ./bnnzip, importing no scene/joins/document code; the zip worker still imports nothing else (apps/web/src/storage/bnnZip.ts:9)
+- done-when: a node test with a fake ZipPort shows the stored bytes equal saveBnn(scene, options) byte for byte, for the 20-solid fixture with a cache and a cache-less scene; revert-verified: signing on the caller again turns a spy assertion that no HMAC runs on the caller red
+- done-when: tests/geometry-cache-trust-d29.test.ts, every T-047 byte-identity test and tests/app-named-save-zip-worker-t058.test.ts pass unchanged
+- done-when: tools/browser-check/named-save.mjs saves through doc.geometryCacheFiles() at 16k, and the main-thread hold on the save gesture and the structured-clone cost of posting the records are measured and recorded in design §5 beside the T-058 figure
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify; node tools/browser-check/named-save.mjs
+- depends-on: T-058, T-059 · area: workers · machine: box · risk: **high**
+- requires: browser
+- note: save side only; the open-side verify is T-061, because making #stage's synchronous #openCache (packages/document/src/document.ts:1342, 1547-1551) async is the larger change; the T-058 124-133 ms browser figure excludes signing (saveCheckMain.ts:49-50 copies a pre-signed index); risk high per READY rule 8 (D29 save path)
+
+### T-061 — Opening a file verifies its geometry-cache index off the main thread
+
+- outcome: the D29 index's JSON.parse and HMAC verify run in a worker before rebuildAll, and #stage consumes the already-opened index, so a 16k-solid open no longer runs the verify pass on the main thread, and a file from another install still restores nothing.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §4, §6 R3/R5 · D29; provenance: BACKLOG ## Discovered 2026-10-20 (T-043), confirmed by a brahim R39 diagnosis 2026-10-23 at b927f6e (packages/document/src/cacherestore.ts:80,91 parse and verify synchronously from #openCache, document.ts:1342, 1547-1551)
+- done-when: test-first: the index is opened (parsed and verified) by a step that runs before rebuildAll through the T-060 leaf module, and #stage reads the opened result; a node test with a fake worker port shows the verify runs on the port, not the caller; revert-verified: calling verifyCacheIndex from #stage again turns it red
+- done-when: a file signed with another install's secret restores nothing, and a file without geometry-cache/ opens as today (the T-043 and T-057 tests pass unchanged)
+- done-when: every tests/*-d29.test.ts test and the T-049 and T-052 tests pass unchanged
+- done-when: the 16k verify time is measured under node and recorded in design §2e beside the 2,074 ms signing figure
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: T-060 · area: workers · machine: box · risk: **high**
+- note: blocked on T-060, whose leaf module this reuses; every done-when item checks under node; the save path's carried-cache verify (document.ts:709) is in scope only if it re-verifies an index already verified on open; risk high per READY rule 8 (D29 load path)
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -739,9 +768,6 @@ finding, the fix shape where one is known, and its disposition.)_
 **A finding becomes a task through a mechanism, not by hand** (R12): the steward runs
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
-
-- **2026-10-20 — signing a 16k `index.json` adds ~2.1 s to that save** (T-043, design §2e); verifying on open is
-  the same pass, not timed. Both run synchronously on the calling thread. Fix shape: run them in the save/open worker. Recorded, not claimed.
 
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
