@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-058` |
-| branch | `task/T-058-a-named-save-in-the-app-zips-in-a-dedica` |
-| claimed-at | 2026-10-23T12:04:21Z |
-| status | merged — PR #107 merged by `hmdnah` at 2026-10-23T13:21:36Z |
+| task | `T-059` |
+| branch | `task/T-059-the-app-exports-built-assemblies-in-idle` |
+| claimed-at | 2026-10-23T14:19:36Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 2df78d295c28572faef4e0fbc04a7e048972aa78
+last-verified-at: a0d29e73e4f300440f44cf041345145118c81dcd

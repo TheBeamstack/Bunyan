@@ -31,6 +31,7 @@ import {
   installSecret,
   latestAutosaveKey,
   listDocKeys,
+  namedSaveOptions,
   readInitial,
   requestOpen,
   saveDocument,
@@ -38,6 +39,7 @@ import {
   takeOpenRequest,
 } from './storage/documentStorage';
 import type { BnnZipper } from './storage/bnnZip';
+import { createIdleCacheExporter, type IdleCacheExporter } from './storage/idleCacheExport';
 import type { IndexedDbStore } from './storage/indexeddb';
 import { ViewportCanvas } from './render/ViewportCanvas';
 import type { HandleDrop, PointerSample } from './render/ViewportCanvas';
@@ -265,6 +267,24 @@ export function App() {
       });
   }, [app, view, selection, docLock]);
 
+  // ---- Idle cache export (D29 R4, T-059). Every commit, an edit's (`version`) or a build's (`built`),
+  //      queues its rebuilt roots; idle time exports them under the doc lock so a named save never does.
+  const exporterRef = useRef<IdleCacheExporter | null>(null);
+  useEffect(() => {
+    if (app === null) return;
+    const exporter = createIdleCacheExporter(app.doc, docLock, undefined, (error: unknown) => {
+      setBanner(formatError(error));
+    });
+    exporterRef.current = exporter;
+    return () => {
+      exporter.dispose();
+      exporterRef.current = null;
+    };
+  }, [app, docLock]);
+  useEffect(() => {
+    exporterRef.current?.kick();
+  }, [app, version, built]);
+
   // ---- Autosave (plan P4 step 5). After a real edit, debounce, then snapshot the whole `.bnn` into the
   //      ring. ⚠ The journal is `changeFeed()`, NEVER `history()` (the moat-losing bug). Recovery is an
   //      ordinary load of the snapshot, so it goes through the exact path a normal open does. ----------
@@ -305,11 +325,7 @@ export function App() {
           storage.store,
           trimmed,
           app.doc.scene,
-          {
-            kernelBuildId: app.kernel.buildId,
-            journal: app.doc.changeFeed(),
-            revision: app.doc.revision,
-          },
+          namedSaveOptions(app.doc, app.kernel.buildId),
           zipperRef.current,
         );
         setCurrentDoc(key);
