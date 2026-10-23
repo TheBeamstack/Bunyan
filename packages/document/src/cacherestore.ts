@@ -15,6 +15,8 @@ import type { ElementGeometry } from './build.js';
 import type { GeometryCacheReader } from './bnn.js';
 import type { CacheEnvelope, CacheKeyTables } from './cachekey.js';
 import { cacheInputKey, sameCacheEnvelope } from './cachekey.js';
+import type { SignedCacheEnvelope } from './cachetrust.js';
+import { verifyCacheIndex } from './cachetrust.js';
 import type { GeometryGateway } from './geometry.js';
 import type { Scene } from './scene.js';
 
@@ -46,14 +48,16 @@ export interface CacheRecord {
 
 /** `geometry-cache/index.json`. */
 export interface GeometryCacheIndex {
-  readonly envelope: CacheEnvelope;
+  readonly envelope: SignedCacheEnvelope;
   readonly records: Readonly<Record<ElementId, CacheRecord>>;
 }
 
-/** What a loaded document restores from: the file's reader, and the running build's own envelope. */
+/** What a loaded document restores from: the file's reader, the running build's envelope and install. */
 export interface GeometryCacheSource {
   readonly files: GeometryCacheReader;
   readonly current: CacheEnvelope;
+  /** This install's secret (R5, `cachetrust.ts`): an index it did not sign is never restored. */
+  readonly installSecret: Uint8Array;
 }
 
 /** The same shape `buildAssembly` returns, so `#stage` registers a restore exactly like a build. */
@@ -65,7 +69,8 @@ export interface RestoredAssembly {
 
 /**
  * The records this build may use, or `undefined` for the whole cache: an absent or unparseable index,
- * or an envelope differing from the reader's (§2a). Per-record shape is checked at restore time.
+ * an envelope differing from the reader's (§2a), or one this install did not sign (§2e, R5).
+ * Per-record shape is checked at restore time.
  */
 export function openCacheIndex(source: GeometryCacheSource): GeometryCacheIndex | undefined {
   const bytes = source.files.read('index.json');
@@ -81,6 +86,14 @@ export function openCacheIndex(source: GeometryCacheSource): GeometryCacheIndex 
   }
   const envelope = parsed['envelope'] as unknown as CacheEnvelope;
   if (!sameCacheEnvelope(envelope, source.current)) return undefined;
+  // Verifying walks untrusted `records` recursively: a throw (e.g. nesting past the stack) is a refusal.
+  try {
+    if (!verifyCacheIndex(parsed['envelope'], parsed['records'], source.installSecret)) {
+      return undefined;
+    }
+  } catch {
+    return undefined;
+  }
   return parsed as unknown as GeometryCacheIndex;
 }
 

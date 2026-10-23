@@ -56,10 +56,11 @@ import {
 import type { ElementBounds, UnprojectedElement, ViewResult } from './view.js';
 import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
-import { cacheInputKey, cacheKeyTables, sameCacheEnvelope } from './cachekey.js';
+import { cacheInputKey, cacheKeyTables, cacheTablesDigest, sameCacheEnvelope } from './cachekey.js';
 import type { CacheEnvelope, CacheKeyTables } from './cachekey.js';
 import { openCacheIndex, recordEntries, restoreAssembly, usableRecord } from './cacherestore.js';
 import type { CacheRecord, GeometryCacheIndex, GeometryCacheSource } from './cacherestore.js';
+import { sameInstallSecret, signedCacheIndex } from './cachetrust.js';
 import { exportAssembly } from './cacheexport.js';
 import type { GeometryCacheFiles } from './bnn.js';
 import { dependents } from './dependency.js';
@@ -123,10 +124,16 @@ export interface DocumentOptions {
   readonly geometryCache?: GeometryCacheSource | undefined;
   /**
    * D29 R4 — the running build's envelope, which a written cache is stamped with. Present (or implied by
-   * `geometryCache.current`) ⇒ built assemblies queue for `exportCacheIdle` and `geometryCacheFiles`
+   * `geometryCache.current`) ⇒ built assemblies (after a shared-table edit, every live one) queue for
+   * `exportCacheIdle` and `geometryCacheFiles`
    * answers; absent ⇒ this document writes no cache.
    */
   readonly geometryCacheEnvelope?: CacheEnvelope | undefined;
+  /**
+   * D29 R5 — the install secret a written cache is signed with (`cachetrust.ts`); defaults to
+   * `geometryCache.installSecret`. A write envelope without one throws: no reader would restore it.
+   */
+  readonly geometryCacheSecret?: Uint8Array | undefined;
 }
 
 export interface PartQuantity {
@@ -265,12 +272,15 @@ export class DocumentContext {
   #cacheIndex: GeometryCacheIndex | null | undefined;
   /** D29 R4: the envelope this document writes; `undefined` ⇒ it exports nothing. */
   readonly #writeEnvelope: CacheEnvelope | undefined;
+  readonly #writeSecret: Uint8Array | undefined;
   /** Built roots awaiting `exportCacheIdle`, oldest first. */
   readonly #exportQueue = new Set<ElementId>();
   readonly #exported = new Map<ElementId, ExportedEntry>();
   /** Roots whose live geometry was built from the recipe: never carried from the file (design §5). */
   readonly #builtRoots = new Set<ElementId>();
   #keyTables: { readonly scene: Scene; readonly tables: CacheKeyTables } | undefined;
+  /** `cacheTablesDigest` of the last committed scene; set only when this document exports. */
+  #tablesDigest: string | undefined;
 
   constructor(options: DocumentOptions) {
     this.#registries = options.registries;
@@ -281,6 +291,11 @@ export class DocumentContext {
     this.#revision = options.revision;
     this.#cacheSource = options.geometryCache;
     this.#writeEnvelope = options.geometryCacheEnvelope ?? options.geometryCache?.current;
+    this.#writeSecret = options.geometryCacheSecret ?? options.geometryCache?.installSecret;
+    if (this.#writeEnvelope !== undefined && this.#writeSecret === undefined) {
+      throw new Error('a geometry cache envelope needs geometryCacheSecret to sign what it writes');
+    }
+    if (this.#writeEnvelope !== undefined) this.#tablesDigest = cacheTablesDigest(this.#scene);
     if (options.journal !== undefined) this.#journal.restore(options.journal);
   }
 
@@ -350,6 +365,7 @@ export class DocumentContext {
     return [
       ...this.#scene.brokenRefs,
       ...danglingDesignOptionRefs(this.#scene),
+      ...primaryViolations(this.#scene),
       ...danglingAncestorRefs(this.#scene),
     ];
   }
@@ -668,11 +684,16 @@ export class DocumentContext {
    */
   geometryCacheFiles(): GeometryCacheFiles | undefined {
     const envelope = this.#writeEnvelope;
-    if (envelope === undefined) return undefined;
+    const secret = this.#writeSecret;
+    if (envelope === undefined || secret === undefined) return undefined;
     const scene = this.#scene;
     const tables = this.#tablesFor(scene);
+    // ⚠ Carried records are re-signed below, so only an index THIS secret verified may be carried (R5).
+    const source = this.#cacheSource;
     const loaded =
-      this.#cacheSource !== undefined && sameCacheEnvelope(this.#cacheSource.current, envelope)
+      source !== undefined &&
+      sameCacheEnvelope(source.current, envelope) &&
+      sameInstallSecret(source.installSecret, secret)
         ? this.#openCache()
         : undefined;
 
@@ -684,8 +705,8 @@ export class DocumentContext {
       const root = element.id;
       const key = cacheInputKey(scene, root, tables);
       const exported = this.#exported.get(root);
-      if (exported !== undefined) {
-        if (exported.record.key !== key) continue;
+      // A stale export (a restored root whose key flipped back on undo) falls through to the carry.
+      if (exported !== undefined && exported.record.key === key) {
         records[root] = exported.record;
         for (const [name, bytes] of exported.files) files[name] = bytes;
         continue;
@@ -706,7 +727,7 @@ export class DocumentContext {
       }
     }
 
-    files['index.json'] = new TextEncoder().encode(JSON.stringify({ envelope, records }));
+    files['index.json'] = signedCacheIndex(envelope, records, secret);
     return files;
   }
 
@@ -1483,6 +1504,17 @@ export class DocumentContext {
       this.#builtRoots.add(root);
       if (this.#writeEnvelope !== undefined) this.#exportQueue.add(root);
     }
+    // ⚠ A shared-table edit re-keys every assembly (design §2b) but rebuilds only the roots that read
+    // the edited row, so every other live root is queued too: restored, carried or untouched alike.
+    if (this.#writeEnvelope !== undefined) {
+      const digest = cacheTablesDigest(this.#scene);
+      if (digest !== this.#tablesDigest) {
+        this.#tablesDigest = digest;
+        for (const [root, element] of Object.entries(this.#scene.elements))
+          if (element.hostId === undefined && this.#geometryByElement.has(root))
+            this.#exportQueue.add(root);
+      }
+    }
     await this.#release(garbage);
   }
 
@@ -1546,6 +1578,41 @@ function danglingDesignOptionRefs(scene: Scene): readonly BrokenReference[] {
       ref: optionId,
       hostId: element.id,
       reason: `the design option "${optionId}" is not defined in this document, so this element is excluded from every enumerating consumer`,
+    });
+  }
+  return out;
+}
+
+/**
+ * ⚠ **A SET WITH ZERO OR TWO PRIMARIES** (T-055). `checkPrimaryInvariant` refuses one at the option
+ * verbs only; a `.bnn` or a code-assembled `Scene` still reaches it, and `isElementActive` then counts
+ * every tagged element in the set (two) or none (zero). Reported per tagged element, never healed.
+ *
+ * ⚠ An untagged element hosted on a tagged one gets no entry: its activity is its host's (D67), so the
+ * host's entry already names the cause. `hostId` is the element's own id (T-007's convention).
+ */
+function primaryViolations(scene: Scene): readonly BrokenReference[] {
+  const options = scene.designOptions;
+  if (options === undefined) return [];
+  const primaries = new Map<string, number>();
+  for (const option of Object.values(options)) {
+    primaries.set(
+      option.setName,
+      (primaries.get(option.setName) ?? 0) + (option.isPrimary ? 1 : 0),
+    );
+  }
+  const out: BrokenReference[] = [];
+  for (const element of Object.values(scene.elements)) {
+    const optionId = element.designOptionId;
+    const option = optionId === undefined ? undefined : options[optionId];
+    if (option === undefined) continue; // untagged, or dangling — `danglingDesignOptionRefs` owns that
+    const count = primaries.get(option.setName) ?? 0;
+    if (count === 1) continue;
+    out.push({
+      elementId: element.id,
+      ref: option.id,
+      hostId: element.id,
+      reason: `the design option set "${option.setName}" has ${String(count)} primary options where exactly one is required, so every consumer defaulting to the primary ${count === 0 ? 'excludes this element' : 'counts this element alongside its alternatives'}`,
     });
   }
   return out;
