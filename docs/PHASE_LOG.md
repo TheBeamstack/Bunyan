@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-059 — review step 1 of PR #108 — 2026-10-23 — seat: hmdnah
+
+Item 1: export outside `lock.run` → 1 red (`:253`); `namedSaveOptions` without `cache` → 2 red; restored → 3 green.
+`pnpm verify` green, 119 files / 1039 passed / 2 skipped; labeller on `431d6bf` says additive, not owner-gated. No defect proven.
+Flagged for step 2: "test-first" is unmet as written (purpose re-verified); the `App.tsx` kick wiring has no test. No approval.
+Body: `handoff/hmdnah/2026-10-23-T-059-review-step-1.md`
+
 ## T-059 — the app exports in idle time, and a named save carries the cache — 2026-10-23 — seat: zayd
 
 `createIdleCacheExporter` runs `doc.exportCacheIdle(1)` under the doc lock per idle slot, re-kicked by every edit/build.
