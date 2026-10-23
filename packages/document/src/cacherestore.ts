@@ -86,7 +86,12 @@ export function openCacheIndex(source: GeometryCacheSource): GeometryCacheIndex 
   }
   const envelope = parsed['envelope'] as unknown as CacheEnvelope;
   if (!sameCacheEnvelope(envelope, source.current)) return undefined;
-  if (!verifyCacheIndex(parsed['envelope'], parsed['records'], source.installSecret)) {
+  // Verifying walks untrusted `records` recursively: a throw (e.g. nesting past the stack) is a refusal.
+  try {
+    if (!verifyCacheIndex(parsed['envelope'], parsed['records'], source.installSecret)) {
+      return undefined;
+    }
+  } catch {
     return undefined;
   }
   return parsed as unknown as GeometryCacheIndex;

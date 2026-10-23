@@ -115,6 +115,14 @@ describe('D29 R5 — the envelope carries a MAC keyed by this install, and nothi
     expect(open(new TextEncoder().encode(text))).toMatchObject({ records: RECORDS });
   });
 
+  it('refuses, without throwing, a hostile index whose records nest past the stack (B-20261020-01)', () => {
+    const deep = '['.repeat(200_000) + ']'.repeat(200_000);
+    const envelope = JSON.stringify({ ...ENVELOPE, mac: 'x' });
+    const bytes = new TextEncoder().encode(`{"envelope":${envelope},"records":{"W1":${deep}}}`);
+    expect(() => JSON.parse(new TextDecoder().decode(bytes))).not.toThrow();
+    expect(open(bytes)).toBeUndefined();
+  });
+
   it('newInstallSecret draws 32 fresh random bytes', () => {
     const a = newInstallSecret();
     expect(a).toHaveLength(32);
