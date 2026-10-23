@@ -41,6 +41,7 @@ const ENVELOPE: CacheEnvelope = {
   kernelBuildId: KERNEL_BUILD_ID,
   codeId: 'test-bundle',
 };
+const SECRET = new Uint8Array(32).fill(7);
 const STEEL = { id: 'steel', name: 'S355', category: 'steel', density: 7850 };
 
 describe('T-052 — a shared-table edit re-queues every live assembly whose cache key flipped', () => {
@@ -148,7 +149,12 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     roots = Object.values(ids).sort();
     scene = doc.scene;
 
-    const built = make({ geometry: client, scene, geometryCacheEnvelope: ENVELOPE });
+    const built = make({
+      geometry: client,
+      scene,
+      geometryCacheEnvelope: ENVELOPE,
+      geometryCacheSecret: SECRET,
+    });
     await built.rebuildAll();
     await drain(built);
     full = saveBnn(scene, { kernelBuildId: KERNEL_BUILD_ID, cache: built.geometryCacheFiles() });
@@ -171,7 +177,12 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
   });
 
   it('a material edit rebuilds nothing, queues every root, and draining writes each under its current key', async () => {
-    const doc = make({ geometry: client, scene, geometryCacheEnvelope: ENVELOPE });
+    const doc = make({
+      geometry: client,
+      scene,
+      geometryCacheEnvelope: ENVELOPE,
+      geometryCacheSecret: SECRET,
+    });
     await doc.rebuildAll();
     await drain(doc);
     expect(Object.keys(writtenKeys(doc)).sort()).toEqual(roots);
@@ -185,7 +196,12 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
   });
 
   it('a style edit that rebuilds only its instances re-queues the roots that do not use it', async () => {
-    const doc = make({ geometry: client, scene, geometryCacheEnvelope: ENVELOPE });
+    const doc = make({
+      geometry: client,
+      scene,
+      geometryCacheEnvelope: ENVELOPE,
+      geometryCacheSecret: SECRET,
+    });
     await doc.rebuildAll();
     await drain(doc);
 
@@ -209,7 +225,8 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
       geometry: spy.gateway,
       scene: pkg.scene,
       geometryCacheEnvelope: ENVELOPE,
-      geometryCache: { files: pkg.cache!, current: ENVELOPE },
+      geometryCacheSecret: SECRET,
+      geometryCache: { files: pkg.cache!, current: ENVELOPE, installSecret: SECRET },
     });
     await doc.rebuildAll();
     const restored = (): string[] =>
@@ -231,7 +248,8 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
       geometry: client,
       scene: pkg.scene,
       geometryCacheEnvelope: ENVELOPE,
-      geometryCache: { files: pkg.cache!, current: ENVELOPE },
+      geometryCacheSecret: SECRET,
+      geometryCache: { files: pkg.cache!, current: ENVELOPE, installSecret: SECRET },
     });
     await doc.rebuildAll();
     await doc.execute('core.createMaterial', STEEL);

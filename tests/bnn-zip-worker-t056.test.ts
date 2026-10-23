@@ -198,6 +198,7 @@ describe('T-056 — the zip step a worker runs writes saveBnn bytes', () => {
       geometry: client,
       scene,
       geometryCacheEnvelope: ENVELOPE,
+      geometryCacheSecret: new Uint8Array(32).fill(7),
     });
     await built.rebuildAll();
     while ((await built.exportCacheIdle(8)) > 0);

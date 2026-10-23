@@ -119,7 +119,7 @@ describe('D29 R5 — the envelope carries a MAC keyed by this install, and nothi
     const deep = '['.repeat(200_000) + ']'.repeat(200_000);
     const envelope = JSON.stringify({ ...ENVELOPE, mac: 'x' });
     const bytes = new TextEncoder().encode(`{"envelope":${envelope},"records":{"W1":${deep}}}`);
-    expect(() => JSON.parse(new TextDecoder().decode(bytes))).not.toThrow();
+    expect(() => JSON.parse(new TextDecoder().decode(bytes)) as unknown).not.toThrow();
     expect(open(bytes)).toBeUndefined();
   });
 
