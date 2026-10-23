@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-057 — review step 1 of PR #106 — 2026-10-23 — seat: hmdnah
+
+Item 1: `geometryCache` dropped → restore test red (`expected Set{ 'extrude' } to deeply equal Set{ 'importBrep' }`); restored → green.
+One item-4 defect proven, back to zayd: `installSecret`'s comment says racing first boots agree, but a delayed-store probe gives `AeqB=false`.
+No geometry effect (a foreign MAC is refused, no app cache write yet). No watched file changed. Not owner-gated; no approval.
+Body: `handoff/hmdnah/2026-10-23-T-057-review-step-1.md`
+
 ## T-057 — Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret — 2026-10-23 — seat: zayd
 
 `readInitial` keeps `pkg.cache`; `documentOptions` (out of `bootstrap.ts`) wires the D29 cache options; `installSecret` writes one key.
