@@ -23,6 +23,8 @@ import {
   createRegistries,
   loadBnn,
   saveBnn,
+  isUnsignedGeometryCache,
+  signGeometryCache,
   signedCacheIndex,
 } from '@bunyan/document';
 import type {
@@ -35,6 +37,7 @@ import type {
   ParamValue,
   Registries,
   Scene,
+  UnsignedGeometryCache,
 } from '@bunyan/document';
 import {
   curtainWallColumnType,
@@ -157,8 +160,13 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     while ((await doc.exportCacheIdle(8)) > 0);
   };
 
-  const indexOf = (files: GeometryCacheFiles | undefined): GeometryCacheIndex =>
-    JSON.parse(new TextDecoder().decode(files!['index.json'])) as GeometryCacheIndex;
+  /** A saved cache's index, or the one `geometryCacheFiles()`'s unsigned cache is signed into. */
+  const indexOf = (
+    cache: GeometryCacheFiles | UnsignedGeometryCache | undefined,
+  ): GeometryCacheIndex => {
+    const files = isUnsignedGeometryCache(cache!) ? signGeometryCache(cache) : cache!;
+    return JSON.parse(new TextDecoder().decode(files['index.json'])) as GeometryCacheIndex;
+  };
 
   const cacheOf = (bytes: Uint8Array): Record<string, Uint8Array> => {
     const out: Record<string, Uint8Array> = {};

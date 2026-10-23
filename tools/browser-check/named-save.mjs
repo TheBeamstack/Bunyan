@@ -1,11 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Beamstack <https://beam-stack.com>
 // SPDX-License-Identifier: AGPL-3.0-only
 
-// T-058: a named save of a 16k-solid cached scene, in a real browser, keeps the main thread responsive.
+// T-058, T-060: a named save of a 16k-solid cached scene, in a real browser, keeps the main thread
+// responsive; since T-060 it saves through `doc.geometryCacheFiles()` and the worker signs the index.
 //
 //   node tools/browser-check/named-save.mjs --playwright <playwright-core/index.mjs> --browser <chrome>
 //
-// One foreground run: writes the 16k `.bnn` (the T-058 test under BUNYAN_T058_BNN_OUT), serves
+// One foreground run: writes the 16k `.bnn`, scene and cache (the T-060 test under BUNYAN_T060_BNN_OUT), serves
 // `apps/web` with Vite's dev server, opens `save-check.html` and saves three times through the app's
 // worker path, then once with `saveBnn` on the main thread (the control: the observer must see that
 // deflate). Exits 0 only when every worker save holds the main thread under 200 ms (the longer of the
@@ -32,11 +33,11 @@ if (playwright === undefined || executablePath === undefined) {
 const repo = fileURLToPath(new URL('../../', import.meta.url));
 const web = join(repo, 'apps/web');
 
-const bnn = join(mkdtempSync(join(tmpdir(), 't058-')), 'save-check.bnn');
+const bnn = join(mkdtempSync(join(tmpdir(), 't060-')), 'save-check.bnn');
 const gen = spawnSync(
   'npx',
-  ['vitest', 'run', 'tests/app-named-save-zip-worker-t058.test.ts', '-t', '16k'],
-  { cwd: repo, env: { ...process.env, BUNYAN_T058_BNN_OUT: bnn }, encoding: 'utf8' },
+  ['vitest', 'run', 'tests/app-named-save-signs-in-worker-t060.test.ts', '-t', '16k'],
+  { cwd: repo, env: { ...process.env, BUNYAN_T060_BNN_OUT: bnn }, encoding: 'utf8' },
 );
 if (gen.status !== 0 || !existsSync(bnn)) {
   console.error(gen.stdout, gen.stderr);

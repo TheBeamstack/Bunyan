@@ -22,6 +22,8 @@ import {
   createRegistries,
   loadBnn,
   saveBnn,
+  isUnsignedGeometryCache,
+  signGeometryCache,
 } from '@bunyan/document';
 import type {
   CacheEnvelope,
@@ -31,6 +33,7 @@ import type {
   GeometryGateway,
   Registries,
   Scene,
+  UnsignedGeometryCache,
 } from '@bunyan/document';
 import { wallType } from '@bunyan/types';
 
@@ -85,8 +88,13 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     while ((await doc.exportCacheIdle(8)) > 0);
   };
 
-  const indexOf = (files: GeometryCacheFiles | undefined): GeometryCacheIndex =>
-    JSON.parse(new TextDecoder().decode(files!['index.json'])) as GeometryCacheIndex;
+  /** A saved cache's index, or the one `geometryCacheFiles()`'s unsigned cache is signed into. */
+  const indexOf = (
+    cache: GeometryCacheFiles | UnsignedGeometryCache | undefined,
+  ): GeometryCacheIndex => {
+    const files = isUnsignedGeometryCache(cache!) ? signGeometryCache(cache) : cache!;
+    return JSON.parse(new TextDecoder().decode(files['index.json'])) as GeometryCacheIndex;
+  };
 
   /** Each root's written key, which must be its key against the document's current scene. */
   const writtenKeys = (doc: DocumentContext): Record<string, string> =>

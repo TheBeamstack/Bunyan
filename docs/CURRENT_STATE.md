@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-d29-cache-sign-off-main` |
-| branch | `steward/d29-cache-sign-off-main` |
-| claimed-at | 2026-10-23T14:19:36Z |
-| status | merged — PR #109 merged by `hmdnah` at 2026-10-23T19:39:56Z |
+| task | `T-060` |
+| branch | `task/T-060-a-named-save-signs-its-geometry-cache-in` |
+| claimed-at | 2026-10-23T19:41:17Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 99451e1dee7204005a3eb7b2dbc385bcb766ed2d
+last-verified-at: 09dad19270c0089156c433fce75a6a6001814caf

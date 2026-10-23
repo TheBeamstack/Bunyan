@@ -2,16 +2,25 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- * The named-save responsiveness check (`save-check.html`, T-058): opens `/save-check.bnn` and exposes
- * `window.__saveCheck(mode)`, which runs one named save of it and reports the longest main-thread task.
- * `worker` is the app's save (`saveDocument` + the zip worker, into IndexedDB); `main` is `saveBnn` on the
- * main thread, the control that shows the observer sees the deflate. Driven by
- * `tools/browser-check/named-save.mjs`.
+ * The named-save responsiveness check (`save-check.html`, T-058, T-060): opens `/save-check.bnn` into a
+ * `DocumentContext` whose cache source is that file, and exposes `window.__saveCheck(mode)`, which runs one
+ * named save and reports the longest main-thread task. `worker` is the app's save (`namedSaveOptions`, so
+ * `doc.geometryCacheFiles()`, then `saveDocument` + the zip worker, into IndexedDB); `main` is `saveBnn`
+ * of the same options on the main thread, the control that shows the observer sees the deflate and the
+ * HMAC. Driven by `tools/browser-check/named-save.mjs`, whose file is signed with the fixture's secret.
  */
 
-import { loadBnn, saveBnn, type SaveOptions } from '@bunyan/document';
+import {
+  DocumentContext,
+  assembleUnsignedBnnEntries,
+  createRegistries,
+  loadBnn,
+  saveBnn,
+  type CacheEnvelope,
+  type GeometryGateway,
+} from '@bunyan/document';
 
-import { createStore, saveDocument, spawnBnnZipper } from './documentStorage';
+import { createStore, namedSaveOptions, saveDocument, spawnBnnZipper } from './documentStorage';
 
 export interface SaveCheckResult {
   readonly mode: 'worker' | 'main';
@@ -21,11 +30,17 @@ export interface SaveCheckResult {
   /** The widest gap between two runs of a 0 ms timer chain: the longest the main thread was held. */
   readonly maxGapMs: number;
   readonly bytes: number;
+  /** `doc.geometryCacheFiles()` alone, after the save: every root's key recomputed and carried (T-060). */
+  readonly cacheFilesMs: number;
+  /** `structuredClone` of what the worker save posts beside the entries: records, envelope, secret. */
+  readonly cloneSigningMs: number;
 }
 
 declare global {
   interface Window {
-    __saveCheckReady?: { cacheEntries: number; fileBytes: number } | { error: string };
+    __saveCheckReady?:
+      | { cacheEntries: number; fileBytes: number; roots: number; openMs: number }
+      | { error: string };
     __saveCheck?: (mode: 'worker' | 'main') => Promise<SaveCheckResult>;
   }
 }
@@ -46,8 +61,20 @@ async function main(): Promise<void> {
   const pkg = loadBnn(file);
   const reader = pkg.cache;
   if (reader === undefined) throw new Error('save-check.bnn carries no geometry cache');
-  const cache = Object.fromEntries(reader.readMany(reader.names));
-  const options: SaveOptions = { kernelBuildId: pkg.manifest.kernelBuildId, journal: [], cache };
+  const index = reader.readMany(['index.json']).get('index.json')!;
+  const { envelope } = JSON.parse(new TextDecoder().decode(index)) as { envelope: CacheEnvelope };
+  const doc = new DocumentContext({
+    registries: createRegistries(),
+    geometry: {} as GeometryGateway, // a save calls no kernel op (design §5)
+    scene: pkg.scene,
+    // The T-060 test's fixture secret: the file was signed with it, so every record verifies and carries.
+    geometryCache: { files: reader, current: envelope, installSecret: new Uint8Array(32).fill(7) },
+  });
+  // The first call opens and verifies the index (the open-side HMAC, T-061's); later saves reuse it.
+  const opened = performance.now();
+  const roots = Object.keys(doc.geometryCacheFiles()?.records ?? {}).length;
+  const openMs = performance.now() - opened;
+  const kernelBuildId = pkg.manifest.kernelBuildId;
   const store = createStore();
   const zipper = spawnBnnZipper();
 
@@ -72,10 +99,11 @@ async function main(): Promise<void> {
     const start = performance.now();
     let bytes: number;
     if (mode === 'worker') {
-      const key = await saveDocument(store, 'save-check', pkg.scene, options, zipper);
+      const options = namedSaveOptions(doc, kernelBuildId);
+      const key = await saveDocument(store, 'save-check', doc.scene, options, zipper);
       bytes = (await store.read(key))!.length;
     } else {
-      bytes = saveBnn(pkg.scene, options).length;
+      bytes = saveBnn(doc.scene, namedSaveOptions(doc, kernelBuildId)).length;
     }
     const ms = performance.now() - start;
     await frame();
@@ -83,6 +111,14 @@ async function main(): Promise<void> {
     beating = false;
     for (const entry of observer.takeRecords()) tasks.push(entry.duration);
     observer.disconnect();
+    // The two main-thread costs the worker save still pays, timed alone after it.
+    const filesAt = performance.now();
+    const options = namedSaveOptions(doc, kernelBuildId);
+    const cacheFilesMs = performance.now() - filesAt;
+    const { signing } = assembleUnsignedBnnEntries(doc.scene, options);
+    const cloneAt = performance.now();
+    structuredClone(signing);
+    const cloneSigningMs = performance.now() - cloneAt;
     const result = {
       mode,
       ms,
@@ -90,11 +126,18 @@ async function main(): Promise<void> {
       longTasks: tasks.length,
       maxGapMs,
       bytes,
+      cacheFilesMs,
+      cloneSigningMs,
     };
     log(JSON.stringify(result));
     return result;
   };
-  window.__saveCheckReady = { cacheEntries: reader.names.length, fileBytes: file.length };
+  window.__saveCheckReady = {
+    cacheEntries: reader.names.length,
+    fileBytes: file.length,
+    roots,
+    openMs,
+  };
   log(JSON.stringify(window.__saveCheckReady));
 }
 

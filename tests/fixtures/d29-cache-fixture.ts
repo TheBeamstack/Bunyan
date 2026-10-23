@@ -10,13 +10,20 @@ import { expect } from 'vitest';
 import { KernelHost } from '@bunyan/kernel-core';
 import { InProcessTransport, KernelClient } from '@bunyan/kernel-client';
 import { FINGERPRINT_SCHEME, createOcctKernel } from '@bunyan/kernel-occt';
-import { CACHE_SCHEME, CORE_COMMANDS, DocumentContext, createRegistries } from '@bunyan/document';
+import {
+  CACHE_SCHEME,
+  CORE_COMMANDS,
+  DocumentContext,
+  createRegistries,
+  signGeometryCache,
+} from '@bunyan/document';
 import type {
   CacheEnvelope,
   GeometryCacheFiles,
   ParamValue,
   Registries,
   Scene,
+  UnsignedGeometryCache,
 } from '@bunyan/document';
 import {
   curtainWallColumnType,
@@ -54,8 +61,15 @@ const registries = (): Registries => {
   return r;
 };
 
-/** The authored scene and its fully exported cache, signed with `SECRET` under `ENVELOPE`. */
-export async function buildD29CacheFixture(): Promise<{ scene: Scene; cache: GeometryCacheFiles }> {
+/**
+ * The authored scene and its fully exported cache, signed with `SECRET` under `ENVELOPE`, and the same
+ * cache unsigned as `geometryCacheFiles()` returns it (T-060).
+ */
+export async function buildD29CacheFixture(): Promise<{
+  scene: Scene;
+  cache: GeometryCacheFiles;
+  unsigned: UnsignedGeometryCache;
+}> {
   const client = new KernelClient(new InProcessTransport(new KernelHost(await createOcctKernel())));
   const doc = new DocumentContext({ registries: registries(), geometry: client });
   for (const m of [
@@ -172,6 +186,6 @@ export async function buildD29CacheFixture(): Promise<{ scene: Scene; cache: Geo
   });
   await built.rebuildAll();
   while ((await built.exportCacheIdle(8)) > 0);
-  const cache = await Promise.resolve(built.geometryCacheFiles()!);
-  return { scene, cache };
+  const unsigned = built.geometryCacheFiles()!;
+  return { scene, cache: signGeometryCache(unsigned), unsigned };
 }

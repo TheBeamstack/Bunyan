@@ -10,56 +10,18 @@
  *
  * The records name each `.brep`'s fingerprint, which `importBrep` checks, so the MAC over the index
  * covers the solids too. Where the secret is kept (browser storage) is the caller's: this layer has none.
+ * Signing, and the MAC itself, are the leaf `cachesign.ts` (T-060), so the zip worker can sign.
  */
 
-import type { CacheEnvelope } from './cachekey.js';
-import { canonicalJson, sha256, toHex } from './cachekey.js';
-import type { CacheRecord } from './cacherestore.js';
-import type { ElementId } from './entities.js';
+import type { CacheEnvelope } from './cachesign.js';
+import { cacheIndexMac } from './cachesign.js';
 
 /** The envelope as `index.json` stores it: the writer's four fields plus its install's MAC. */
 export type SignedCacheEnvelope = CacheEnvelope & { readonly mac: string };
 
-const BLOCK = 64;
-const encoder = new TextEncoder();
-
-/** HMAC-SHA-256 (RFC 2104) over the UTF-8 of `message`, on the in-house `sha256` (no async `subtle`). */
-export function hmacSha256Hex(key: Uint8Array, message: string): string {
-  const k = new Uint8Array(BLOCK);
-  k.set(key.length > BLOCK ? sha256(key) : key);
-  const inner = k.map((b) => b ^ 0x36);
-  const outer = k.map((b) => b ^ 0x5c);
-  return toHex(sha256(outer, sha256(inner, encoder.encode(message))));
-}
-
 /** A fresh per-install secret: 32 bytes from the platform CSPRNG. */
 export function newInstallSecret(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(32));
-}
-
-/**
- * The MAC of an index. Only the four envelope fields are covered, by name, so a stored `mac` (or any
- * field a later scheme adds) never feeds itself; canonical JSON, so a reformatted index keeps its MAC.
- */
-function cacheIndexMac(envelope: CacheEnvelope, records: unknown, secret: Uint8Array): string {
-  const { cache, fingerprint, kernelBuildId, codeId } = envelope;
-  return hmacSha256Hex(
-    secret,
-    canonicalJson({ envelope: { cache, fingerprint, kernelBuildId, codeId }, records }),
-  );
-}
-
-/** `geometry-cache/index.json`'s bytes, its envelope carrying this install's MAC. */
-export function signedCacheIndex(
-  envelope: CacheEnvelope,
-  records: Readonly<Record<ElementId, CacheRecord>>,
-  secret: Uint8Array,
-): Uint8Array {
-  const { cache, fingerprint, kernelBuildId, codeId } = envelope;
-  const mac = cacheIndexMac(envelope, records, secret);
-  return encoder.encode(
-    JSON.stringify({ envelope: { cache, fingerprint, kernelBuildId, codeId, mac }, records }),
-  );
 }
 
 /** Whether a parsed index carries the MAC `secret` gives it — i.e. this install wrote it, unedited. */

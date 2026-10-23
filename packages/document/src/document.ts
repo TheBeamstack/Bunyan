@@ -57,7 +57,8 @@ import type { ElementBounds, UnprojectedElement, ViewResult } from './view.js';
 import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
 import { cacheInputKey, cacheKeyTables, cacheTablesDigest, sameCacheEnvelope } from './cachekey.js';
-import type { CacheEnvelope, CacheKeyTables } from './cachekey.js';
+import type { CacheKeyTables } from './cachekey.js';
+import type { CacheEnvelope, UnsignedGeometryCache } from './cachesign.js';
 import {
   RESTORE_BATCH_ROOTS,
   openCacheIndex,
@@ -72,9 +73,8 @@ import type {
   GeometryCacheSource,
   RestoreBatch,
 } from './cacherestore.js';
-import { sameInstallSecret, signedCacheIndex } from './cachetrust.js';
+import { sameInstallSecret } from './cachetrust.js';
 import { exportAssembly } from './cacheexport.js';
-import type { GeometryCacheFiles } from './bnn.js';
 import { dependents } from './dependency.js';
 import { unresolvedDesignOptions } from './designoptions.js';
 import type { ElementGeometry } from './build.js';
@@ -693,8 +693,11 @@ export class DocumentContext {
    * an `exportCacheIdle` export whose key still matches, or — for an assembly restored from the file or
    * never built (D66) — the file's own record and bytes, carried when its key still matches. A built
    * assembly not yet exported is absent; an unbuilt one whose neighbour moved is dropped, not written stale.
+   *
+   * ⚠ UNSIGNED (T-060): `index.json` is not written here. `saveBnn` signs it; the app's named save posts
+   * the records, envelope and secret to its zip worker, so the ~2 s HMAC at 16k is off the main thread.
    */
-  geometryCacheFiles(): GeometryCacheFiles | undefined {
+  geometryCacheFiles(): UnsignedGeometryCache | undefined {
     const envelope = this.#writeEnvelope;
     const secret = this.#writeSecret;
     if (envelope === undefined || secret === undefined) return undefined;
@@ -739,8 +742,7 @@ export class DocumentContext {
       }
     }
 
-    files['index.json'] = signedCacheIndex(envelope, records, secret);
-    return files;
+    return { envelope, records, secret, files };
   }
 
   /**

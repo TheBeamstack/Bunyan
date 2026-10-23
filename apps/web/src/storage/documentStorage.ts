@@ -18,7 +18,7 @@
  */
 
 import {
-  assembleBnnEntries,
+  assembleUnsignedBnnEntries,
   loadBnn,
   newInstallSecret,
   type DocumentContext,
@@ -96,8 +96,9 @@ export function namedSaveOptions(
 }
 
 /**
- * A named save: the entries are assembled here (every `saveBnn` refusal), zipped by `zipper` off the main
- * thread, and stored under `docKey(name)`. Its bytes equal `saveBnn(scene, options)`. Returns the key.
+ * A named save: the entries are assembled here (every `saveBnn` refusal), an unsigned cache's index is
+ * signed and the whole zipped by `zipper` off the main thread (T-058, T-060), and stored under
+ * `docKey(name)`. Its bytes equal `saveBnn(scene, options)`. Returns the key.
  */
 export async function saveDocument(
   store: StorageAdapter,
@@ -106,7 +107,8 @@ export async function saveDocument(
   options: SaveOptions,
   zipper: BnnZipper,
 ): Promise<string> {
-  const bytes = await zipper.zip(assembleBnnEntries(scene, options));
+  const { entries, signing } = assembleUnsignedBnnEntries(scene, options);
+  const bytes = await zipper.zip(entries, signing);
   const key = docKey(name);
   await store.write(key, bytes);
   return key;
