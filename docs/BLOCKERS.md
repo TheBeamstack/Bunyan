@@ -416,4 +416,4 @@ from, and the reason it is a record rather than prose.
 - why: `git show --stat 958d1f1 dc780f5 7952ee4` changes docs and handoff only, and lines 88-91 are unchanged at `7952ee4`; `agent_finish.py --review --step 2` would stamp T-057 `done` (`protocol.py:2469`), so the step-2 finish was not run
 - evidence: step 1's delayed-store probe in `handoff/hmdnah/2026-10-23-T-057-review-step-1.md` (`AeqB=false`); `git diff 7952ee4 -- apps/web/src/storage/documentStorage.ts` is empty against step 1's head
 - need: reword or make true `installSecret`'s race comment (options in `handoff/hmdnah/2026-10-23-T-057-review-step-2.md`) in a zayd turn on `task/T-057-opening-a-stored-bnn-in-the-app-restores`, then route PR #106 to hmdnah for step 2
-- cleared: -
+- cleared: 2026-10-23T11:41Z
