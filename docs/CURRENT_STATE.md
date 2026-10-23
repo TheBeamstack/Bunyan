@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-d29-app-wiring` |
 | branch | `steward/d29-app-wiring` |
 | claimed-at | 2026-10-20T02:09:44Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #105 merged by `hmdnah` at 2026-10-23T08:51:22Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 35151a88589a6b2f3a65139a32e8cadf211c3ac1
+last-verified-at: d0f9008a188d2c17d14647f2076f9b36cb4ec066
