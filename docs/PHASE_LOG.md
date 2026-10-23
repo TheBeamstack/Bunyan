@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-060 — a named save signs its geometry-cache index in the zip worker — 2026-10-23 — seat: zayd
+
+`geometryCacheFiles()` returns the cache unsigned; the worker signs `index.json` with the new leaf `@bunyan/document/cachesign`. Bytes equal `saveBnn`.
+T-060 test 3 passed, 1 skipped; signing on the caller again → "no HMAC runs on the caller" red. `pnpm verify` green.
+`named-save.mjs` at 16k: main thread held 1,431–1,476 ms against 8,515 ms for `saveBnn`. Its 200 ms bar fails: keys and the records clone still run on the main thread (Discovered).
+Body: `handoff/zayd/2026-10-23-T-060-sign-in-zip-worker.md`
+
 ## STEWARD-d29-cache-sign-off-main — review of PR #109 — 2026-10-23 — seat: hmdnah
 
 APPROVED, no defect proven. Item 1 (docs-only): deleting T-060's `implements:` → `gates.py docs` exit 1; restored → exit 0.

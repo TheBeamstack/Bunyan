@@ -167,7 +167,7 @@ describe('T-060 — a named save signs in the worker and stores saveBnn bytes', 
         }
         const placement = e.placement?.map((step) =>
           step.kind === 'translate'
-            ? { ...step, by: [step.by[0]! + dx, step.by[1]!, step.by[2]!] }
+            ? { ...step, by: [step.by[0] + dx, step.by[1], step.by[2]] }
             : step,
         );
         return {
