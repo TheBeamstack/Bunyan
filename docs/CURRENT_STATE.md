@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-061` |
 | branch | `task/T-061-opening-a-file-verifies-its-geometry-cac` |
 | claimed-at | 2026-10-23T21:27:35Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #111 merged by `hmdnah` at 2026-10-23T23:43:00Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 1423c14c7cc3136966b4d562e2ef44c175c89f8d
+last-verified-at: a6d46eba72978eed237ca9c93c3aa4aec4075665
