@@ -45,7 +45,7 @@ from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 Merged `origin/main` (`bd76cfe`) at `bd7b8e4`; only `BACKLOG.md`, `CURRENT_STATE.md` and `PHASE_LOG.md` conflicted, no code.
 The baton and `last-verified-at` come from the branch side; `## Discovered` drops the finding main turned into T-062/T-064. `pnpm verify` is green.
 Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
-Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
+Body: `handoff/zayd/2026-10-24-T-037-merge-main-f1.md`
 
 ## STEWARD-d29-cache-followups — re-review of PR #112 — 2026-10-24 — seat: hmdnah
 
