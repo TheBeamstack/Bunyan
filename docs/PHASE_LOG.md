@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-063 — review step 2 of PR #114 — 2026-10-24 — seat: hmdnah
+
+APPROVED, no defect proven, against done-when 4 as amended by #115. Item 1 at `2a32426`: caller `read('index.json')` restored → "expected 1 to be +0"; restored → 12 passed | 1 skipped.
+Item 2/3: the remaining `openCacheIndex` sites (`cacherestore.ts:132`, `document.ts:1624`) predate T-063; `checkCaps` precedes each index inflate. Item 6: dropping the worker cap check → red; dropping `cacheOpenWorker.ts`'s transfer list → still green (opinion).
+Merged `origin/main` in (`4430604`). Not owner-gated: run 40075634433 `RISK: additive`.
+Body: `handoff/hmdnah/2026-10-24-T-063-review-step-2.md`
+
 ## STEWARD-t063-done-when-4 — review of PR #115 — 2026-10-24 — seat: hmdnah
 
 APPROVED and merged (`agent_merge.py --seat hmdnah --pr 115 --wait-ci`, exit 0; verify on merge result 1052 passed). Item 1: PR #114's tree under main's unchanged T-061 pin → red at `t061.test.ts:157:58`; #114's amended pin → 6 passed.
