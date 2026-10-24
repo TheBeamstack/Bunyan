@@ -1,4 +1,4 @@
-# STEWARD-d29-cache-followups — T-062, T-063, T-064: the main-thread cost left after T-060 and T-061 — 2026-10-23 — brahim
+# STEWARD-d29-cache-followups — T-062, T-063, T-064: the main-thread cost left after T-060 and T-061 — 2026-10-24 — brahim
 
 ## What was done
 

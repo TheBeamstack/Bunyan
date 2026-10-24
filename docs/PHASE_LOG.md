@@ -40,12 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
-## STEWARD-d29-cache-followups — T-062, T-063, T-064 from the two 2026-10-23 findings — 2026-10-23 — seat: brahim
+## STEWARD-d29-cache-followups — T-062, T-063, T-064 from the two 2026-10-23 findings — 2026-10-24 — seat: brahim
 
 A diagnosis subagent at `624b5ba` confirmed both findings in part. A save keys each carried root twice (`document.ts:740,749`); an open inflates and parses the whole index on the caller (`cacherestore.ts:92`).
 T-062 (`ready`): one key per root, none for an unchanged scene. T-063 (`ready`): the worker inflates; per-root records parse lazily. T-064 (`blocked` on both, `requires: browser`): records posted as one transferred buffer.
 All `risk: high`; both findings deleted (R12). No code changed.
-Body: `handoff/brahim/2026-10-23-STEWARD-d29-cache-followups-t062.md`
+Body: `handoff/brahim/2026-10-24-STEWARD-d29-cache-followups-t062.md`
 
 ## T-061 — review step 2 of PR #111 — 2026-10-23 — seat: hmdnah
 
