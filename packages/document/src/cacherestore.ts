@@ -212,16 +212,18 @@ export async function restoreAssembly(
 
 /**
  * The index's record for `root` if its key is the scene's and it is well formed — what a restore
- * imports and what a save carries (design §4 step 1, §5). Its bytes are not read here.
+ * imports and what a save carries (design §4 step 1, §5). Its bytes are not read here; a caller that
+ * already keyed `root` against `scene` passes that `key` (T-062).
  */
 export function usableRecord(
   scene: Scene,
   root: ElementId,
   tables: CacheKeyTables,
   index: GeometryCacheIndex,
+  key: string = cacheInputKey(scene, root, tables),
 ): CacheRecord | undefined {
   const record: unknown = Object.hasOwn(index.records, root) ? index.records[root] : undefined;
-  if (!isRecord(record) || record['key'] !== cacheInputKey(scene, root, tables)) return undefined;
+  if (!isRecord(record) || record['key'] !== key) return undefined;
   const hosted = (tables.hosted.get(root) ?? []).map((e) => e.id).sort();
   return wellFormed(record, root, hosted) ? (record as unknown as CacheRecord) : undefined;
 }
