@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-062` |
 | branch | `task/T-062-a-named-save-keys-each-cached-root-once-` |
 | claimed-at | 2026-10-24T01:02:02Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #113 merged by `hmdnah` at 2026-10-24T07:03:58Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 03f37e115f90e14c3ef04e9030a652f6fcbf3210
+last-verified-at: f0f6ebd6388a85785951e6e9542292bebc4ac5ab
