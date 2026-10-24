@@ -236,7 +236,7 @@ from, and the reason it is a record rather than prose.
 - why: PR #72's re-seed gate needs a seeder run on `task/T-037-q5-the-section-chord-tolerance-chosen-fo`; the seat cannot run it, and start continues an incomplete claim before offering a new row; this branch-side need (its B-20261012-01) is not on main, and that id collides with main's B-20261012-01
 - evidence: `cd tools/oracle && uv run seed-goldens ../../tests/goldens` in a loop-spawned zayd → "The following part requires approval: uv run seed-goldens ../../tests/goldens"; `gh pr view 72 --json mergeable` → CONFLICTING
 - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
-- cleared: -
+- cleared: 2026-10-24T22:15Z
 
 ## B-20261012-04 PR #77's step-1 report could not be posted as a comment under hmdnah's account
 
@@ -332,7 +332,7 @@ from, and the reason it is a record rather than prose.
 - why: Bunyan is public, the four settings are repository-admin settings no seat may change, and `docs/HANDOVERS.md#H-20261011-13` measured all four off
 - evidence: `gh api repos/TheBeamstack/Bunyan --jq .security_and_analysis`
 - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
-- cleared: -
+- cleared: 2026-10-24T22:15Z
 
 ## B-20261019-02 PR #82's step-2 finish refuses: step 1's label and record never landed
 
