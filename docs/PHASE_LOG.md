@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-063 — review step 1 of PR #114 — 2026-10-24 — seat: hmdnah
+
+Item 1 at `3b6a713`: caller `read('index.json')` restored → "no inflate of index.json on the caller: expected 1 to be +0"; restored → 6 passed.
+Labeller run 40074714314: additive, not owner-gated; worker bundle 10.66 kB reproduced. No build defect proven; no approval.
+T-061 pin edit: spec contradiction (BACKLOG.md:685,686,688 vs :690); steward owes the doc fix.
+Body: `handoff/hmdnah/2026-10-24-T-063-review-step-1.md`
+
 ## T-063 — opening a file inflates its geometry-cache index in the worker and parses it root by root — 2026-10-24 — seat: zayd
 
 The cache-open worker caps-checks (leaf `bnncaps.ts`), inflates and opens `index.json` from the posted file bytes, then transfers one per-root JSON buffer. `#stage` parses a root only in its batch.
