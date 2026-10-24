@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-t063-done-when-4 — review of PR #115 — 2026-10-24 — seat: hmdnah
+
+APPROVED and merged (`agent_merge.py --seat hmdnah --pr 115 --wait-ci`, exit 0; verify on merge result 1052 passed). Item 1: PR #114's tree under main's unchanged T-061 pin → red at `t061.test.ts:157:58`; #114's amended pin → 6 passed.
+Fixed on the branch (`7f3b543`): the cited pin is `:157`, not `:158` (`:158` is the `cacheOpenWorker.ts` pin). Correction to the entry below and its body, both off by one: `:156`/`:157`/`:158`.
+`bnncaps.ts:16` on #114 `2a32426` imports `fflate` only. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-24-STEWARD-t063-done-when-4-review.md`
+
 ## STEWARD-t063-done-when-4 — T-063's done-when 4 admits the leaf its outcome requires — 2026-10-24 — seat: brahim
 
 Spec defect (hmdnah, PR #114 step 1): T-063's outcome, implements and done-when 2 put a leaf cap check (fflate `unzipSync`) in the worker; done-when 4 kept T-061 "unchanged", whose pin at `t061.test.ts:158` lets `cacheOpen.ts` import only `/cachesign`.
