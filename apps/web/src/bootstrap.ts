@@ -41,6 +41,7 @@ import {
 } from '@bunyan/types';
 
 import { documentOptions } from './documentOptions';
+import { openCacheIndexInWorker } from './storage/documentStorage';
 import { SCAFFOLD_TYPES } from './scaffold/types';
 import { createRenderGateway } from './render/RenderGateway';
 import type { RenderGateway } from './render/RenderGateway';
@@ -127,8 +128,17 @@ export async function bootstrap(
   for (const type of SCAFFOLD_TYPES) registries.types.register(type);
 
   const doc = new DocumentContext(
-    documentOptions(registries, client, handshake.kernel.buildId, initial, installSecret),
+    documentOptions(
+      registries,
+      client,
+      handshake.kernel.buildId,
+      initial,
+      installSecret,
+      openCacheIndexInWorker,
+    ),
   );
+  // The cache index is parsed and MAC-checked on a worker, before anything builds (T-061).
+  await doc.openGeometryCache();
 
   // Opening a saved file builds NOTHING here (D66 §3b, T-006): the caller builds what the camera sees
   // with `rebuildOnly` (`view/keepLive.ts`), and every aggregate FORCES the rest (§3c).

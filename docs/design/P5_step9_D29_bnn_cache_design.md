@@ -98,8 +98,10 @@ failure that matters. **Answered: `own`** (`D-20261012-05`, default applied 2026
 JSON of its four fields and every record; a file this install did not write, or edited after, restores
 nothing and opens at today's rebuild speed. The records carry each `.brep`'s fingerprint, so the MAC covers the
 solids. That makes _"this solid is what the recipe built"_ true by provenance. Its cost is one HMAC pass over
-`index.json` per save and per open: **2,074 ms to sign at 16k** (R4's fixture, one run; verifying is the same
-pass, not timed); a named save signs in its zip worker (T-060, §5). Persisting the secret in
+`index.json` per save and per open: **2,074 ms to sign at 16k** (R4's fixture, one run) and **2,195–2,229 ms
+to verify** (the same fixture at 16k solids, 64 MB index, two runs under node; parse 227–231 ms more). A named
+save signs in its zip worker (T-060, §5); an open parses and verifies in a worker (T-061), and the main thread
+pays the reply's `structuredClone` instead (337–343 ms under node, round trip). Persisting the secret in
 browser storage belongs to the app wiring (`docs/BACKLOG.md ## Discovered`, 2026-10-14).
 
 ---
@@ -225,7 +227,7 @@ saves), now through `doc.geometryCacheFiles()` on the fixture replicated to 16,0
 (18.0 MB): the main thread is held **1,431–1,476 ms** per save, against **8,515 ms** for `saveBnn` of the same
 options on it; ~9.3 s end to end. Timed alone, `geometryCacheFiles()` (every key recomputed) is 1,178–1,433 ms
 and `structuredClone` of the posted records 328–426 ms, so the tool's 200 ms bar fails
-(`docs/BACKLOG.md ## Discovered`, 2026-10-23).
+(T-062 removes the double key, T-064 the clone).
 
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops

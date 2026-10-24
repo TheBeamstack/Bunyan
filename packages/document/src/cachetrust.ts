@@ -10,29 +10,12 @@
  *
  * The records name each `.brep`'s fingerprint, which `importBrep` checks, so the MAC over the index
  * covers the solids too. Where the secret is kept (browser storage) is the caller's: this layer has none.
- * Signing, and the MAC itself, are the leaf `cachesign.ts` (T-060), so the zip worker can sign.
+ * Signing, verifying and the MAC itself are the leaf `cachesign.ts` (T-060, T-061), so a worker can run them.
  */
-
-import type { CacheEnvelope } from './cachesign.js';
-import { cacheIndexMac } from './cachesign.js';
-
-/** The envelope as `index.json` stores it: the writer's four fields plus its install's MAC. */
-export type SignedCacheEnvelope = CacheEnvelope & { readonly mac: string };
 
 /** A fresh per-install secret: 32 bytes from the platform CSPRNG. */
 export function newInstallSecret(): Uint8Array {
   return crypto.getRandomValues(new Uint8Array(32));
-}
-
-/** Whether a parsed index carries the MAC `secret` gives it — i.e. this install wrote it, unedited. */
-export function verifyCacheIndex(
-  envelope: Record<string, unknown>,
-  records: unknown,
-  secret: Uint8Array,
-): boolean {
-  const mac = envelope['mac'];
-  if (typeof mac !== 'string') return false;
-  return mac === cacheIndexMac(envelope as unknown as CacheEnvelope, records, secret);
 }
 
 /** Same secret, byte for byte: a carried record is re-signed only by the install that verified it. */

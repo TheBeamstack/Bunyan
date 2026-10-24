@@ -14,10 +14,9 @@ import type { Element, ElementId, Part } from './entities.js';
 import type { ElementGeometry } from './build.js';
 import type { GeometryCacheReader } from './bnn.js';
 import type { CacheKeyTables } from './cachekey.js';
-import type { CacheEnvelope } from './cachesign.js';
-import { cacheInputKey, sameCacheEnvelope } from './cachekey.js';
-import type { SignedCacheEnvelope } from './cachetrust.js';
-import { verifyCacheIndex } from './cachetrust.js';
+import type { CacheEnvelope, CacheIndexOpener, SignedCacheEnvelope } from './cachesign.js';
+import { cacheInputKey } from './cachekey.js';
+import { openSignedCacheIndex } from './cachesign.js';
 import type { GeometryGateway } from './geometry.js';
 import type { Scene } from './scene.js';
 
@@ -59,6 +58,8 @@ export interface GeometryCacheSource {
   readonly current: CacheEnvelope;
   /** This install's secret (R5, `cachetrust.ts`): an index it did not sign is never restored. */
   readonly installSecret: Uint8Array;
+  /** Where `doc.openGeometryCache()` parses and verifies the index (T-061); absent ⇒ in process. */
+  readonly openIndex?: CacheIndexOpener | undefined;
 }
 
 /** The same shape `buildAssembly` returns, so `#stage` registers a restore exactly like a build. */
@@ -71,31 +72,31 @@ export interface RestoredAssembly {
 /**
  * The records this build may use, or `undefined` for the whole cache: an absent or unparseable index,
  * an envelope differing from the reader's (§2a), or one this install did not sign (§2e, R5).
- * Per-record shape is checked at restore time.
+ * Per-record shape is checked at restore time. In process; the load path opens through `openIndexOf`.
  */
 export function openCacheIndex(source: GeometryCacheSource): GeometryCacheIndex | undefined {
   const bytes = source.files.read('index.json');
   if (bytes === undefined) return undefined;
-  let parsed: unknown;
+  return openSignedCacheIndex(bytes, source.current, source.installSecret) as
+    GeometryCacheIndex | undefined;
+}
+
+/**
+ * `openCacheIndex` through `source.openIndex` (T-061): only the stored bytes are read here; the parse and
+ * the MAC pass run where the opener runs. A failing opener restores nothing; it never throws.
+ */
+export async function openIndexOf(
+  source: GeometryCacheSource,
+): Promise<GeometryCacheIndex | undefined> {
+  if (source.openIndex === undefined) return openCacheIndex(source);
+  const bytes = source.files.read('index.json');
+  if (bytes === undefined) return undefined;
   try {
-    parsed = JSON.parse(new TextDecoder().decode(bytes));
+    const request = { bytes, current: source.current, secret: source.installSecret };
+    return (await source.openIndex(request)) as GeometryCacheIndex | undefined;
   } catch {
     return undefined;
   }
-  if (!isRecord(parsed) || !isRecord(parsed['envelope']) || !isRecord(parsed['records'])) {
-    return undefined;
-  }
-  const envelope = parsed['envelope'] as unknown as CacheEnvelope;
-  if (!sameCacheEnvelope(envelope, source.current)) return undefined;
-  // Verifying walks untrusted `records` recursively: a throw (e.g. nesting past the stack) is a refusal.
-  try {
-    if (!verifyCacheIndex(parsed['envelope'], parsed['records'], source.installSecret)) {
-      return undefined;
-    }
-  } catch {
-    return undefined;
-  }
-  return parsed as unknown as GeometryCacheIndex;
 }
 
 /**
