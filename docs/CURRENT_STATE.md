@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-062` |
-| branch | `task/T-062-a-named-save-keys-each-cached-root-once-` |
-| claimed-at | 2026-10-24T01:02:02Z |
-| status | merged — PR #113 merged by `hmdnah` at 2026-10-24T07:03:58Z |
+| task | `T-063` |
+| branch | `task/T-063-opening-a-file-inflates-its-geometry-cac` |
+| claimed-at | 2026-10-24T07:05:10Z |
+| status | working |
 
 <!-- END BATON -->
 
