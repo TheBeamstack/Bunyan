@@ -129,7 +129,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-061 | done    | Opening a file verifies its geometry-cache index off the main thread                                               | workers  | box     | **high** | T-060        |
 | T-062 | done    | A named save keys each cached root once, and not at all for an unchanged scene                                     | backend  | box     | **high** | —            |
 | T-063 | done    | Opening a file inflates its geometry-cache index in the worker and parses it root by root                          | workers  | box     | **high** | —            |
-| T-064 | ready   | A named save posts its geometry-cache records to the zip worker as one transferred buffer                          | workers  | box     | **high** | T-062, T-063 |
+| T-064 | review  | A named save posts its geometry-cache records to the zip worker as one transferred buffer                          | workers  | box     | **high** | T-062, T-063 |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029        |
@@ -810,6 +810,10 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-24 — the named save's 200 ms bar does not hold reliably, and the largest remaining main-thread
+  cost is the entries clone** (T-064). `structuredClone` of the 16k entries timed alone is 143–216 ms, and
+  the first timed save exceeded 200 ms in four of six unmodified runs (design §5, T-064 paragraph). The first save after an open is not timed at all, because
+  `save-check.html` calls `geometryCacheFiles()` before it saves. Fix shape: not known. Recorded, not claimed.
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
   turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:

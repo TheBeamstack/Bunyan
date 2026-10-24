@@ -441,3 +441,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `git diff 624b5ba..34bffdd`; `grep -n 'Discovered' docs/design/P5_step9_D29_bnn_cache_design.md`; `sed -n 81p;94p packages/document/src/cachesign.ts`; `node tools/browser-check/named-save.mjs; echo $?` prints the usage line and 2; full list in `handoff/hmdnah/2026-10-24-STEWARD-d29-cache-followups-review.md`
 - need: correct the four items on `steward/d29-cache-followups` in a brahim turn, then route PR #112 to hmdnah
 - cleared: 2026-10-24T00:29Z
+
+## B-20261024-02 T-064's 200 ms named-save bar at 16k fails on the first timed save, on a cost outside its scope
+
+- opened: 2026-10-24T11:18Z
+- by: zayd
+- scope: item
+- item: T-064
+- what: done-when 3 (`named-save.mjs` exits 0 on its 200 ms bar at 16k) is unmet, so T-064 stops incomplete per its row's note and PR #116 cannot pass step 2
+- why: in six unmodified runs at the PR head the first timed save held 165–246 ms and exceeded 200 ms in four (later saves 149–182 ms); the entries `structuredClone` that `postMessage` pays, which T-064 does not touch (`bnnZip.ts` "Entries are cloned, never transferred"), was 187–216 ms alone in the first iteration
+- evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser <chromium-1243 chrome>`, three runs at `4f43dea`: 165.2/181.5/161.1 PASS, 220.6/164.8/160.1 FAIL, 246.2/162.4/148.7 FAIL; figures in design §5 (T-064 paragraph) and `handoff/zayd/2026-10-24-T-064-records-one-buffer.md`
+- need: sequence a row that takes the 16k entries clone off the named save's main thread (BACKLOG `## Discovered` 2026-10-24) and make T-064's done-when 3 depend on it
+- cleared: -
