@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-064 — the 200 ms bar at 16k is unmet; figures recorded — 2026-10-24 — seat: zayd
+
+Three unmodified `named-save.mjs` runs at `4f43dea`: first saves 165.2 / 220.6 / 246.2 ms, later saves 148.7–181.5 ms; exit 0 once, 1 twice.
+The entries clone alone is 187–216 ms on the first iteration, and T-064 does not touch it. Design §5:242 is corrected; the bar and the done-when are unchanged. B-20261024-02. Incomplete.
+Body: `handoff/zayd/2026-10-24-T-064-bar-unmet.md`
+
 ## T-064 — review step 1 of PR #116 — 2026-10-24 — seat: hmdnah
 
 Item 1 at `7e40bfd`: posting `signing` as objects again → "one transferred ArrayBuffer: expected [] to have a length of 1"; restored → 3 passed. No build defect proven; no approval.

@@ -84,6 +84,9 @@ builder may claim.
 - **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
   - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
   - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261024-02** — `scope: item` · `item: T-064` — T-064's 200 ms named-save bar at 16k fails on the first timed save, on a cost outside its scope
+  - need: sequence a row that takes the 16k entries clone off the named save's main thread (BACKLOG `## Discovered` 2026-10-24) and make T-064's done-when 3 depend on it
+  - opened 2026-10-24T11:18Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
