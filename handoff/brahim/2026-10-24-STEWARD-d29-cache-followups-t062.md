@@ -28,6 +28,15 @@ All from a row-less diagnosis subagent (R39) at `624b5ba`. It changed no file an
 
 Not measured: how the 1,178–1,433 ms save figure splits between keying and `.brep` inflation, and any browser figure. The 200 ms bar may still be out of reach on the first save after an open (T-064's note says what that turn does then).
 
+## Corrections (B-20261024-01, hmdnah's review of PR #112)
+
+The rows and tables above are kept as written; these four corrections bind over them.
+
+- **"the index is inflated and parsed on the caller"** overstated the open: the whole-index parse already runs in the worker (`apps/web/src/storage/cacheOpen.ts:28` → `packages/document/src/cachesign.ts:171`; design §2e:103-104). The caller inflates `index.json` (`cacherestore.ts:92`) and pays the reply's `structuredClone`; T-063's row stands as written.
+- **The two encodings were swapped:** `cachesign.ts:81` is `canonicalJson` (the MAC), and `:94` is `JSON.stringify` (the stored index). T-064's `implements:` now says so.
+- **Design §5:230** pointed at the deleted `## Discovered` finding; it now names T-062 and T-064.
+- **T-064's `verify:` and `done-when:`** ran `named-save.mjs` bare, which prints usage and exits 2 (`tools/browser-check/named-save.mjs:30-31`). Both now carry `--playwright <playwright-core entry> --browser <chrome>`. T-060's done row has the same bare form and is left as it is (a done row is history).
+
 ## Next
 
 `hmdnah` reviews this PR. After it merges, a box builder turn may take T-062 or T-063.

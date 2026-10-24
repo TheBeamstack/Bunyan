@@ -696,12 +696,12 @@ overstatement cost a box seat a verification it had to record as undischarged.
 ### T-064 — A named save posts its geometry-cache records to the zip worker as one transferred buffer
 
 - outcome: each record's serialized JSON is kept at export and at open, and geometryCacheFiles() transfers them to the zip worker as one buffer that the worker signs and assembles index.json from, so posting the records clones no object graph, and the stored bytes still equal saveBnn exactly.
-- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §5 (the T-060 paragraph), §6 R4/R5 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-23 (T-060), confirmed by a brahim R39 diagnosis 2026-10-23 at 624b5ba (apps/web/src/storage/bnnZip.ts:52,84 clones records and entries; the stored index uses JSON.stringify order and the MAC canonicalJson, packages/document/src/cachesign.ts:81,94)
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §5 (the T-060 paragraph), §6 R4/R5 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-23 (T-060), confirmed by a brahim R39 diagnosis 2026-10-23 at 624b5ba (apps/web/src/storage/bnnZip.ts:52,84 clones records and entries; the MAC is over canonicalJson at packages/document/src/cachesign.ts:81 and the stored index is JSON.stringify at cachesign.ts:94)
 - done-when: test-first: a node test with a fake ZipPort shows the records are posted as one transferred ArrayBuffer and the stored bytes equal saveBnn(scene, options) byte for byte, for the 20-solid fixture with a cache and a cache-less scene; revert-verified: posting the record objects again turns the transfer assertion red
 - done-when: tests/geometry-cache-trust-d29.test.ts, every T-047 byte-identity test and the T-058, T-060, T-062 and T-063 tests pass unchanged
-- done-when: node tools/browser-check/named-save.mjs exits 0 on its 200 ms bar at 16k, and the main-thread hold is recorded in design §5 beside the T-060 figure
+- done-when: node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k, and the main-thread hold is recorded in design §5 beside the T-060 figure
 - done-when: no [frozen_surface] watched file changes
-- verify: pnpm verify; node tools/browser-check/named-save.mjs
+- verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
 - depends-on: T-062, T-063 · area: workers · machine: box · risk: **high**
 - requires: browser
 - note: blocked on T-062 (the key cost) and T-063 (whose per-root record bytes this reuses); the 200 ms bar is unproven reachable: the first save after an open may still exceed it without the keys computed during restore (cacherestore.ts:224), and a turn that cannot reach it records the figure and stops with a B- record, never a reworded bar; risk high per READY rule 8 (D29 save path)

@@ -429,3 +429,15 @@ from, and the reason it is a record rather than prose.
 - evidence: a scratch vitest at `91a25ce` (a port that never replies; fire `error`; the first `zip()` rejects "load failed"; a second `zip()` raced against a 2000 ms timer) printed `PROBE second save: pending after 2000 ms`; full probe in `handoff/hmdnah/2026-10-23-T-058-review-step-1.md`
 - need: make a named save after a zip-worker `error` respawn the worker or reject, with a test that fails without the fix, in a zayd turn on `task/T-058-a-named-save-in-the-app-zips-in-a-dedica`, then route PR #107 to hmdnah for step 2
 - cleared: 2026-10-23T12:58Z
+
+## B-20261024-01 PR #112's records misstate the code they cite and leave design §5 pointing at a deleted finding
+
+- opened: 2026-10-24T00:16Z
+- by: hmdnah
+- scope: item
+- item: PR#112
+- what: the review of PR #112 (STEWARD-d29-cache-followups) found four claims-vs-code defects in its rows and records, so it is not merged
+- why: (1) `docs/design/P5_step9_D29_bnn_cache_design.md:230` cites `docs/BACKLOG.md ## Discovered` 2026-10-23, which the PR deletes; (2) the log abstract and handoff say an open parses the whole index on the caller, but at `624b5ba` the worker parses it (`cacheOpen.ts:28` → `cachesign.ts:171`), as design §2e:103-104 says; (3) the handoff gives `cachesign.ts:81` as `JSON.stringify` and `:94` as `canonicalJson`, the reverse of the code; (4) T-064's `verify:` and `done-when:` run `node tools/browser-check/named-save.mjs` bare, which exits 2 on usage
+- evidence: `git diff 624b5ba..34bffdd`; `grep -n 'Discovered' docs/design/P5_step9_D29_bnn_cache_design.md`; `sed -n 81p;94p packages/document/src/cachesign.ts`; `node tools/browser-check/named-save.mjs; echo $?` prints the usage line and 2; full list in `handoff/hmdnah/2026-10-24-STEWARD-d29-cache-followups-review.md`
+- need: correct the four items on `steward/d29-cache-followups` in a brahim turn, then route PR #112 to hmdnah
+- cleared: -
