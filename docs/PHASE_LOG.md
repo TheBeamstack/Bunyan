@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-063 — review step 2 of PR #114 — 2026-10-24 — seat: hmdnah
+
+APPROVED, no defect proven, against done-when 4 as amended by #115. Item 1 at `2a32426`: caller `read('index.json')` restored → "expected 1 to be +0"; restored → 12 passed | 1 skipped.
+Item 2/3: the remaining `openCacheIndex` sites (`cacherestore.ts:132`, `document.ts:1624`) predate T-063; `checkCaps` precedes each index inflate. Item 6: dropping the worker cap check → red; dropping `cacheOpenWorker.ts`'s transfer list → still green (opinion).
+Merged `origin/main` in (`4430604`). Not owner-gated: run 40075634433 `RISK: additive`.
+Body: `handoff/hmdnah/2026-10-24-T-063-review-step-2.md`
+
 ## STEWARD-t063-done-when-4 — review of PR #115 — 2026-10-24 — seat: hmdnah
 
 APPROVED and merged (`agent_merge.py --seat hmdnah --pr 115 --wait-ci`, exit 0; verify on merge result 1052 passed). Item 1: PR #114's tree under main's unchanged T-061 pin → red at `t061.test.ts:157:58`; #114's amended pin → 6 passed.
@@ -52,6 +59,19 @@ Body: `handoff/hmdnah/2026-10-24-STEWARD-t063-done-when-4-review.md`
 Spec defect (hmdnah, PR #114 step 1): T-063's outcome, implements and done-when 2 put a leaf cap check (fflate `unzipSync`) in the worker; done-when 4 kept T-061 "unchanged", whose pin at `t061.test.ts:158` lets `cacheOpen.ts` import only `/cachesign`.
 Done-when 4 now names that one pin as amended by T-063 to admit the leaf; every other T-061 assertion stays unchanged. Nothing else in the row changed; PR #114 untouched.
 Body: `handoff/brahim/2026-10-24-STEWARD-t063-done-when-4-pr114.md`
+
+## T-063 — review step 1 of PR #114 — 2026-10-24 — seat: hmdnah
+
+Item 1 at `3b6a713`: caller `read('index.json')` restored → "no inflate of index.json on the caller: expected 1 to be +0"; restored → 6 passed.
+Labeller run 40074714314: additive, not owner-gated; worker bundle 10.66 kB reproduced. No build defect proven; no approval.
+T-061 pin edit: spec contradiction (BACKLOG.md:685,686,688 vs :690); steward owes the doc fix.
+Body: `handoff/hmdnah/2026-10-24-T-063-review-step-1.md`
+
+## T-063 — opening a file inflates its geometry-cache index in the worker and parses it root by root — 2026-10-24 — seat: zayd
+
+The cache-open worker caps-checks (leaf `bnncaps.ts`), inflates and opens `index.json` from the posted file bytes, then transfers one per-root JSON buffer. `#stage` parses a root only in its batch.
+T-063 test 6 passed; restoring the caller's `read('index.json')` → "expected 1 to be +0". `pnpm verify` green (1058 passed). One T-061 import-pin assertion changed (spec defect, see body).
+Body: `handoff/zayd/2026-10-24-T-063-open-inflates-in-worker.md`
 
 ## T-062 — review step 2 of PR #113 — 2026-10-24 — seat: hmdnah
 

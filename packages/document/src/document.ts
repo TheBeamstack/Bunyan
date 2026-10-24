@@ -66,12 +66,13 @@ import {
   openIndexOf,
   readRestoreBatch,
   recordEntries,
+  recordLookupOf,
   restoreAssembly,
   usableRecord,
 } from './cacherestore.js';
 import type {
   CacheRecord,
-  GeometryCacheIndex,
+  CacheRecordLookup,
   GeometryCacheSource,
   RestoreBatch,
 } from './cacherestore.js';
@@ -294,7 +295,7 @@ export class DocumentContext {
   readonly #geometryByElement = new Map<ElementId, ElementGeometry>();
   readonly #cacheSource: GeometryCacheSource | undefined;
   /** Opened on first use; `null` once the envelope or index was refused (design §2a). */
-  #cacheIndex: GeometryCacheIndex | null | undefined;
+  #cacheIndex: CacheRecordLookup | null | undefined;
   #cacheOpening: Promise<void> | undefined;
   /** D29 R4: the envelope this document writes; `undefined` ⇒ it exports nothing. */
   readonly #writeEnvelope: CacheEnvelope | undefined;
@@ -617,9 +618,10 @@ export class DocumentContext {
    * `geometryOf()`, and **preserved verbatim through save**. The building around it opens and edits.
    */
   /**
-   * D29 — open the loaded file's cache index (parse, envelope, MAC) through `geometryCache.openIndex`, the
-   * app's worker (T-061), so the 16k MAC pass never runs on the main thread. Once per document; the app
-   * calls it at boot, and `rebuildAll`/`rebuildOnly` await it, so `#stage` only reads the result.
+   * D29 — open the loaded file's cache index (inflate, parse, envelope, MAC) through
+   * `geometryCache.openIndex`, the app's worker (T-061, T-063), so none of it runs on the main thread, which
+   * parses a root's record only when its restore batch reads it. Once per document; the app calls it at
+   * boot, and `rebuildAll`/`rebuildOnly` await it, so `#stage` only reads the result.
    */
   async openGeometryCache(): Promise<void> {
     const source = this.#cacheSource;
@@ -1616,10 +1618,12 @@ export class DocumentContext {
   }
 
   /** The save's carry (`geometryCacheFiles`): the opened index, else opened here in process, once. */
-  #openCache(): GeometryCacheIndex | undefined {
+  #openCache(): CacheRecordLookup | undefined {
     if (this.#cacheSource === undefined) return undefined;
-    if (this.#cacheIndex === undefined)
-      this.#cacheIndex = openCacheIndex(this.#cacheSource) ?? null;
+    if (this.#cacheIndex === undefined) {
+      const index = openCacheIndex(this.#cacheSource);
+      this.#cacheIndex = index === undefined ? null : recordLookupOf(index);
+    }
     return this.#cacheIndex ?? undefined;
   }
 

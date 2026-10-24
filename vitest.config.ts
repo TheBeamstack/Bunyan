@@ -19,6 +19,9 @@ export default defineConfig({
       '@bunyan/document/bnnzip': fileURLToPath(
         new URL('./packages/document/src/bnnzip.ts', import.meta.url),
       ),
+      '@bunyan/document/cacheindexfile': fileURLToPath(
+        new URL('./packages/document/src/cacheindexfile.ts', import.meta.url),
+      ),
       '@bunyan/document/cachesign': fileURLToPath(
         new URL('./packages/document/src/cachesign.ts', import.meta.url),
       ),
