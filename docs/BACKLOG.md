@@ -810,6 +810,10 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-24 — the named save's 200 ms bar has little headroom, and the largest remaining main-thread
+  cost is the entries clone** (T-064). `structuredClone` of the 16k entries timed alone is 144–206 ms, and
+  one of four worker-open runs held 210–255 ms. The first save after an open is not timed at all, because
+  `save-check.html` calls `geometryCacheFiles()` before it saves. Fix shape: not known. Recorded, not claimed.
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
   turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:

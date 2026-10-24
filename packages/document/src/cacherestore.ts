@@ -21,7 +21,7 @@ import type {
   SignedCacheEnvelope,
 } from './cachesign.js';
 import { cacheInputKey } from './cachekey.js';
-import { openSignedCacheIndex } from './cachesign.js';
+import { keepRecordJson, openSignedCacheIndex } from './cachesign.js';
 import type { GeometryGateway } from './geometry.js';
 import type { Scene } from './scene.js';
 
@@ -99,7 +99,10 @@ export function recordLookupOf(index: GeometryCacheIndex): CacheRecordLookup {
   };
 }
 
-/** The worker's reply (`OpenedCacheRecords`): a root's slice is parsed only when it is asked for. */
+/**
+ * The worker's reply (`OpenedCacheRecords`): a root's slice is parsed only when it is asked for, and kept
+ * as that record's JSON for a save to post (T-064).
+ */
 export function lazyRecordLookup(opened: OpenedCacheRecords): CacheRecordLookup {
   const at = new Map(opened.roots.map((root, i) => [root, i]));
   const decoder = new TextDecoder();
@@ -107,10 +110,12 @@ export function lazyRecordLookup(opened: OpenedCacheRecords): CacheRecordLookup 
     record: (root) => {
       const i = at.get(root);
       if (i === undefined) return undefined;
+      const json = opened.json.subarray(opened.offsets[i], opened.offsets[i + 1]);
       try {
-        return JSON.parse(
-          decoder.decode(opened.json.subarray(opened.offsets[i], opened.offsets[i + 1])),
-        ) as unknown;
+        const record = JSON.parse(decoder.decode(json)) as unknown;
+        // The worker wrote `json` as this record's `JSON.stringify` (`serializeRecords`), so a save copies it.
+        if (typeof record === 'object' && record !== null) keepRecordJson(record, json);
+        return record;
       } catch {
         return undefined;
       }

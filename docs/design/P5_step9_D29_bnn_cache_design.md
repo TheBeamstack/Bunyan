@@ -231,6 +231,17 @@ options on it; ~9.3 s end to end. Timed alone, `geometryCacheFiles()` (every key
 and `structuredClone` of the posted records 328–426 ms, so the tool's 200 ms bar fails
 (T-062 removes the double key, T-064 the clone).
 
+**T-064** posts the records as one transferred buffer: each record's `JSON.stringify` bytes are kept when
+`exportCacheIdle` exports it and when the open worker's slice is parsed (`keepRecordJson`), `createBnnZipper`
+copies them into one buffer (`serializeRecords`), and the worker parses them back and signs; the bytes equal
+`saveBnn` (`tests/app-named-save-transfers-records-t064.test.ts`). The check page now opens through the
+cache-open worker, as `bootstrap` does. Measured as T-060 (box, 2026-10-24, five runs of three saves; the per-step timings below are from
+runs 3–5): the main thread is held **154–181 ms** per save in runs 3–5 (PASS), **210–255 ms**
+in run 2 (FAIL); run 1 opened in process, so no JSON was kept, and held 380–563 ms. Timed alone:
+`serializeRecords` 28–57 ms, `assembleUnsignedBnnEntries` 48–81 ms, and `structuredClone` of the entries, which
+`postMessage` copies, 144–206 ms. The bar holds with little headroom. It is not measured for the first save
+after an open: the page's first `geometryCacheFiles()`, which keys and parses every root, runs before the saves.
+
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
 `SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.
