@@ -687,7 +687,7 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - done-when: test-first: a node test with a fake worker port asserts the caller runs no unzipSync of index.json and no JSON.parse of the whole index, and that the reply is a transferred ArrayBuffer; revert-verified: restoring cacherestore.ts:92 turns it red
 - done-when: the cap check the worker runs is a leaf module importing no scene/joins/document code, and the worker bundle still imports only leaf modules (apps/web/src/storage/cacheOpen.ts:10)
 - done-when: a file signed with another install's secret restores nothing, and a file without geometry-cache/ opens as today
-- done-when: every tests/*-d29.test.ts test and the T-049, T-052, T-057 and T-061 tests pass unchanged
+- done-when: every tests/*-d29.test.ts test and the T-049, T-052, T-057 and T-061 tests pass unchanged, except the one T-061 import pin on cacheOpen.ts (tests/app-cache-open-verifies-in-worker-t061.test.ts:158), which T-063 amends to admit the new leaf cap-check module
 - done-when: no [frozen_surface] watched file changes
 - verify: pnpm verify
 - depends-on: — · area: workers · machine: box · risk: **high**
