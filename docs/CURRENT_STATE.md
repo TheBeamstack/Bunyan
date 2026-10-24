@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-t063-done-when-4` |
 | branch | `steward/t063-done-when-4` |
 | claimed-at | 2026-10-24T01:02:02Z |
-| status | finished — PR open, awaiting review |
+| status | merged — PR #115 merged by `hmdnah` at 2026-10-24T08:21:36Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: f385845f5c5809f3a21aeb04dc99212f73249f76
+last-verified-at: cfbfa14065c22317f059a0c24a4682e5df0a70de
