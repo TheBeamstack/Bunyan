@@ -127,6 +127,9 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-059 | done    | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058 |
 | T-060 | done    | A named save signs its geometry-cache index in the zip worker, not on the main thread                              | workers  | box     | **high** | T-058, T-059 |
 | T-061 | done    | Opening a file verifies its geometry-cache index off the main thread                                               | workers  | box     | **high** | T-060        |
+| T-062 | ready   | A named save keys each cached root once, and not at all for an unchanged scene                                     | backend  | box     | **high** | —            |
+| T-063 | ready   | Opening a file inflates its geometry-cache index in the worker and parses it root by root                          | workers  | box     | **high** | —            |
+| T-064 | blocked | A named save posts its geometry-cache records to the zip worker as one transferred buffer                          | workers  | box     | **high** | T-062, T-063 |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029        |
@@ -665,6 +668,44 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: T-060 · area: workers · machine: box · risk: **high**
 - note: blocked on T-060, whose leaf module this reuses; every done-when item checks under node; the save path's carried-cache verify (document.ts:709) is in scope only if it re-verifies an index already verified on open; risk high per READY rule 8 (D29 load path)
 
+### T-062 — A named save keys each cached root once, and not at all for an unchanged scene
+
+- outcome: geometryCacheFiles() passes the key it already computed into usableRecord instead of re-keying each carried root, and keeps a key map and the carried .brep bytes tied to the scene object, so a second save of an unchanged scene runs no cacheInputKey and re-inflates no carried entry, and its bytes still equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2b, §5 (the T-060 paragraph), §6 R1/R4 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-23 (T-060), confirmed by a brahim R39 diagnosis 2026-10-23 at 624b5ba (packages/document/src/document.ts:737-740 keys every root, document.ts:749 re-keys it through usableRecord at cacherestore.ts:224, document.ts:755 re-inflates every carried .brep)
+- done-when: test-first: a spy on cacheInputKey shows at most one call per root per save, and none on a second save of the same scene; revert-verified: restoring document.ts:740,749 turns it red
+- done-when: after the edits in tests/cache-requeue-table-edit.test.ts and tests/geometry-cache-export-d29.test.ts the kept keys equal cacheInputKeys(scene), and both files pass unchanged
+- done-when: every T-047 byte-identity test and the T-058 and T-060 tests pass unchanged
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: every done-when item checks under node; keys stay recomputed per scene object, never kept from the last commit, because a shared-table edit re-keys every root but rebuilds only its readers (document.ts:1543-1552) and design §5 drops an unbuilt root whose neighbour moved; the records-as-bytes post is T-064; risk high per READY rule 8 (D29 save path)
+
+### T-063 — Opening a file inflates its geometry-cache index in the worker and parses it root by root
+
+- outcome: the cache-open worker inflates index.json from posted file bytes under a leaf cap check, verifies it, and transfers back one buffer of per-root record JSON with offsets; #stage parses a root's record only inside its restore batch, so a 16k open runs no unzipSync of index.json, no whole-index JSON.parse and no object-graph clone on the main thread, and a file from another install still restores nothing.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §3 (the cap check moved to a leaf), §4, §6 R3/R5 · D29; provenance: BACKLOG ## Discovered 2026-10-23 (T-061), confirmed by a brahim R39 diagnosis 2026-10-23 at 624b5ba (packages/document/src/cacherestore.ts:92 reads index.json on the caller through bnn.ts:491-492,498; apps/web/src/storage/cacheOpen.ts:28,51 posts without a transfer and replies with an object graph; usableRecord needs an object per record, cacherestore.ts:223-226)
+- done-when: test-first: a node test with a fake worker port asserts the caller runs no unzipSync of index.json and no JSON.parse of the whole index, and that the reply is a transferred ArrayBuffer; revert-verified: restoring cacherestore.ts:92 turns it red
+- done-when: the cap check the worker runs is a leaf module importing no scene/joins/document code, and the worker bundle still imports only leaf modules (apps/web/src/storage/cacheOpen.ts:10)
+- done-when: a file signed with another install's secret restores nothing, and a file without geometry-cache/ opens as today
+- done-when: every tests/*-d29.test.ts test and the T-049, T-052, T-057 and T-061 tests pass unchanged
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: workers · machine: box · risk: **high**
+- note: every done-when item checks under node; replying with the whole index as bytes alone would move the parse back to the main thread, hence the per-root lazy parse; the file bytes stay with the reader (bnn.ts:489) so they are cloned, not transferred; a browser open timing is not in scope; T-064 reuses this row's per-root record bytes; risk high per READY rule 8 (D29 load path)
+
+### T-064 — A named save posts its geometry-cache records to the zip worker as one transferred buffer
+
+- outcome: each record's serialized JSON is kept at export and at open, and geometryCacheFiles() transfers them to the zip worker as one buffer that the worker signs and assembles index.json from, so posting the records clones no object graph, and the stored bytes still equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §5 (the T-060 paragraph), §6 R4/R5 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-23 (T-060), confirmed by a brahim R39 diagnosis 2026-10-23 at 624b5ba (apps/web/src/storage/bnnZip.ts:52,84 clones records and entries; the MAC is over canonicalJson at packages/document/src/cachesign.ts:81 and the stored index is JSON.stringify at cachesign.ts:94)
+- done-when: test-first: a node test with a fake ZipPort shows the records are posted as one transferred ArrayBuffer and the stored bytes equal saveBnn(scene, options) byte for byte, for the 20-solid fixture with a cache and a cache-less scene; revert-verified: posting the record objects again turns the transfer assertion red
+- done-when: tests/geometry-cache-trust-d29.test.ts, every T-047 byte-identity test and the T-058, T-060, T-062 and T-063 tests pass unchanged
+- done-when: node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k, and the main-thread hold is recorded in design §5 beside the T-060 figure
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
+- depends-on: T-062, T-063 · area: workers · machine: box · risk: **high**
+- requires: browser
+- note: blocked on T-062 (the key cost) and T-063 (whose per-root record bytes this reuses); the 200 ms bar is unproven reachable: the first save after an open may still exceed it without the keys computed during restore (cacherestore.ts:224), and a turn that cannot reach it records the figure and stops with a B- record, never a reworded bar; risk high per READY rule 8 (D29 save path)
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -769,17 +810,6 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
-- **2026-10-23 — a 16k open still inflates `index.json` and receives the opened index on the main thread
-  after T-061** (design §2e). `openIndexOf` reads the 64 MB index through the file's reader before posting,
-  and the worker's reply is an object graph (`structuredClone` round trip 337–343 ms under node); neither was
-  timed in a browser. Fix shape: the worker reads the entry from the file bytes, and replies with the records
-  as bytes. Recorded, not claimed.
-
-- **2026-10-23 — a 16k named save still holds the main thread ~1.45 s after T-060** (design §5).
-  `geometryCacheFiles()` recomputes every root's key per save (1,178–1,433 ms at 4,000 roots) and posting
-  the records clones an object graph (328–426 ms), so `tools/browser-check/named-save.mjs` exits 1 on its
-  200 ms bar. Fix shape: keys kept from the last commit rather than recomputed, and the records posted as
-  bytes. Recorded, not claimed.
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
   turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:

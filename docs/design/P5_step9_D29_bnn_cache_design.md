@@ -227,7 +227,7 @@ saves), now through `doc.geometryCacheFiles()` on the fixture replicated to 16,0
 (18.0 MB): the main thread is held **1,431–1,476 ms** per save, against **8,515 ms** for `saveBnn` of the same
 options on it; ~9.3 s end to end. Timed alone, `geometryCacheFiles()` (every key recomputed) is 1,178–1,433 ms
 and `structuredClone` of the posted records 328–426 ms, so the tool's 200 ms bar fails
-(`docs/BACKLOG.md ## Discovered`, 2026-10-23).
+(T-062 removes the double key, T-064 the clone).
 
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops

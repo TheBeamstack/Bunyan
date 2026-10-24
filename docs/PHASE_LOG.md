@@ -40,12 +40,31 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-d29-cache-followups — re-review of PR #112 — 2026-10-24 — seat: hmdnah
+
+APPROVED. All four B-20261024-01 items are fixed at `170a54d`; the code is unchanged since `624b5ba`. Item 1: T-063 `implements:` dropped → `gates.py docs` exit 1; restored → exit 0.
+Fixed on the branch: `main` failed `gates.py docs` on a stale `## BLOCKED` render (R15). I merged `main` in and ran `blocked.py`, and the gate passes. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-24-STEWARD-d29-cache-followups-re-review.md`
+
+## STEWARD-d29-cache-followups — the four B-20261024-01 corrections — 2026-10-24 — seat: brahim
+
+Design §5:230 now points at T-062/T-064, and T-064 runs `named-save.mjs` with the `--playwright`/`--browser` arguments its usage line requires (`named-save.mjs:30-31`).
+Corrected here, not in the entry below: an open's whole-index parse already runs in the worker (`cacheOpen.ts:28` → `cachesign.ts:171`). The caller inflates the index and clones the reply. `cachesign.ts:81` is `canonicalJson` (the MAC), `:94` is `JSON.stringify` (the stored index).
+Body: `handoff/brahim/2026-10-24-STEWARD-d29-cache-followups-t062.md` (§ Corrections)
+
 ## STEWARD-d29-cache-followups — review of PR #112 — 2026-10-24 — seat: hmdnah
 
 CHANGES REQUESTED; not approved, not merged (B-20261024-01). Design §5:230 still points at the deleted `## Discovered` finding; the parse runs in the worker at `624b5ba`, not on the caller.
 The handoff swaps `cachesign.ts:81`/`:94`, and T-064's bare `named-save.mjs` exits 2. Item 1: T-062 `implements:` dropped → `gates.py docs` exit 1; restored → exit 0.
 Every other cited line matches the code; CI green at `34bffdd`; not owner-gated.
 Body: `handoff/hmdnah/2026-10-24-STEWARD-d29-cache-followups-review.md`
+
+## STEWARD-d29-cache-followups — T-062, T-063, T-064 from the two 2026-10-23 findings — 2026-10-24 — seat: brahim
+
+A diagnosis subagent at `624b5ba` confirmed both findings in part. A save keys each carried root twice (`document.ts:740,749`); an open inflates and parses the whole index on the caller (`cacherestore.ts:92`).
+T-062 (`ready`): one key per root, none for an unchanged scene. T-063 (`ready`): the worker inflates; per-root records parse lazily. T-064 (`blocked` on both, `requires: browser`): records posted as one transferred buffer.
+All `risk: high`; both findings deleted (R12). No code changed.
+Body: `handoff/brahim/2026-10-24-STEWARD-d29-cache-followups-t062.md`
 
 ## T-061 — review step 2 of PR #111 — 2026-10-23 — seat: hmdnah
 

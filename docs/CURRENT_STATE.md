@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-061` |
-| branch | `task/T-061-opening-a-file-verifies-its-geometry-cac` |
+| task | `STEWARD-d29-cache-followups` |
+| branch | `steward/d29-cache-followups` |
 | claimed-at | 2026-10-23T21:27:35Z |
-| status | merged — PR #111 merged by `hmdnah` at 2026-10-23T23:43:00Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -84,9 +84,6 @@ builder may claim.
 - **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
   - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
   - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261024-01** — `scope: item` · `item: PR#112` — PR #112's records misstate the code they cite and leave design §5 pointing at a deleted finding
-  - need: correct the four items on `steward/d29-cache-followups` in a brahim turn, then route PR #112 to hmdnah
-  - opened 2026-10-24T00:16Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -208,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a6d46eba72978eed237ca9c93c3aa4aec4075665
+last-verified-at: 58b711706d4f0c7df466db00a7d8438ccdf19634
