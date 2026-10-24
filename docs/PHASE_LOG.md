@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-062 — review step 1 of PR #113 — 2026-10-24 — seat: hmdnah
+
+Item 1 at `cb225ac`: save loop re-keying → "at most one key per root: expected 2 to be 1" and "expected 3 to be +0"; carried-memo skip removed → "expected 6 to be 3"; restored → 3 passed.
+Labeller on `cb225ac` says additive, not owner-gated; figures trace to design §5 lines 201, 228. No defect proven; no approval.
+Flagged for step 2: memoized `.brep` buffers are shared across saves (safe while `bnnZip.ts:84` copies).
+Body: `handoff/hmdnah/2026-10-24-T-062-review-step-1.md`
+
 ## T-062 — a named save keys each cached root once, and not at all for an unchanged scene — 2026-10-24 — seat: zayd
 
 `geometryCacheFiles()` keeps root keys and carried `.brep` bytes per scene object and passes its key into `usableRecord`. A second save of the same scene keys nothing, inflates nothing and writes the same bytes.
