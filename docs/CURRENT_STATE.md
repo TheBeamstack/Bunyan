@@ -128,6 +128,9 @@ ACT.** It is mechanically available: `tests/freeze-boundary.test.ts` holds the f
 freezing is the policy change *"the baseline may no longer be updated without an owner ruling"*, with a
 machine holding the line afterwards.
 
+### T-064 — incomplete on this branch (PR #116)
+
+Done-when items 1, 2 and 4 are done and green. Done-when 3 (the 200 ms bar at 16k) is unmet: in six unmodified runs the first save exceeded the bar in four. B-20261024-02 has the figures and the next action. First, on this branch: a steward sequences that blocker's row; then re-run `named-save.mjs`. Never reword the bar.
 
 **Per-seat standing facts, the two items killed by measurement, the later/post-freeze list, the CLOSED list, and §6/§6a (environment, commands, box discipline) are `docs/CURRENT_STATE-reference.md`.**
 ---
@@ -208,4 +211,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 7b27176e412e81e51fddc6ee5b3c60cddca8a7d2
+last-verified-at: 1c75dee14b87c0defb18371e3a9df6ad21d1a991
