@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-d29-cache-followups — re-review of PR #112 — 2026-10-24 — seat: hmdnah
+
+APPROVED. All four B-20261024-01 items are fixed at `170a54d`; the code is unchanged since `624b5ba`. Item 1: T-063 `implements:` dropped → `gates.py docs` exit 1; restored → exit 0.
+Fixed on the branch: `main` failed `gates.py docs` on a stale `## BLOCKED` render (R15). I merged `main` in and ran `blocked.py`, and the gate passes. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-24-STEWARD-d29-cache-followups-re-review.md`
+
 ## STEWARD-d29-cache-followups — the four B-20261024-01 corrections — 2026-10-24 — seat: brahim
 
 Design §5:230 now points at T-062/T-064, and T-064 runs `named-save.mjs` with the `--playwright`/`--browser` arguments its usage line requires (`named-save.mjs:30-31`).
