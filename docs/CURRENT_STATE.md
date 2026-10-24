@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | steward |
+| role | builder |
 | machine | box |
-| task | `STEWARD-d29-cache-followups` |
-| branch | `steward/d29-cache-followups` |
-| claimed-at | 2026-10-23T21:27:35Z |
-| status | merged — PR #112 merged by `hmdnah` at 2026-10-24T00:41:42Z |
+| task | `T-062` |
+| branch | `task/T-062-a-named-save-keys-each-cached-root-once-` |
+| claimed-at | 2026-10-24T01:02:02Z |
+| status | working |
 
 <!-- END BATON -->
 
