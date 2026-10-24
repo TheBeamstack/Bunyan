@@ -33,10 +33,10 @@ import type {
   Scene,
   UnsignedGeometryCache,
 } from '@bunyan/document';
-import * as cachekey from '../packages/document/src/cachekey.ts';
+import * as cachekey from '../packages/document/src/cachekey.js';
 import { wallType } from '@bunyan/types';
 
-vi.mock('../packages/document/src/cachekey.ts', async (importOriginal) => {
+vi.mock('../packages/document/src/cachekey.js', async (importOriginal) => {
   const original = await importOriginal<typeof cachekey>();
   return { ...original, cacheInputKey: vi.fn(original.cacheInputKey) };
 });
@@ -158,7 +158,7 @@ describe('T-062 — a named save keys each cached root once, and not at all for 
     });
     await built.rebuildAll();
     await drain(built);
-    full = bnnOf(scene, built.geometryCacheFiles() as UnsignedGeometryCache);
+    full = bnnOf(scene, built.geometryCacheFiles());
     expect(Object.keys(cacheOfBnn(full)).filter((n) => n.endsWith('.brep')).length).toBe(3);
   }, 180_000);
 
