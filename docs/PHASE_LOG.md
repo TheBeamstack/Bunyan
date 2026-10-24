@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-d29-cache-followups — review of PR #112 — 2026-10-24 — seat: hmdnah
+
+CHANGES REQUESTED; not approved, not merged (B-20261024-01). Design §5:230 still points at the deleted `## Discovered` finding; the parse runs in the worker at `624b5ba`, not on the caller.
+The handoff swaps `cachesign.ts:81`/`:94`, and T-064's bare `named-save.mjs` exits 2. Item 1: T-062 `implements:` dropped → `gates.py docs` exit 1; restored → exit 0.
+Every other cited line matches the code; CI green at `34bffdd`; not owner-gated.
+Body: `handoff/hmdnah/2026-10-24-STEWARD-d29-cache-followups-review.md`
+
 ## T-061 — review step 2 of PR #111 — 2026-10-23 — seat: hmdnah
 
 APPROVED, no defect proven. Item 1 at `1a0d26c`: `openIndexOf` verifying on the caller → "opened before rebuildAll: expected +0 to be 1"; restored → 6 passed, 1 skipped.
