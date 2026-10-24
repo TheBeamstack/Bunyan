@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-063` |
-| branch | `task/T-063-opening-a-file-inflates-its-geometry-cac` |
-| claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #114 merged by `hmdnah` at 2026-10-24T08:55:42Z |
+| task | `T-064` |
+| branch | `task/T-064-a-named-save-posts-its-geometry-cache-re` |
+| claimed-at | 2026-10-24T10:27:02Z |
+| status | working |
 
 <!-- END BATON -->
 
