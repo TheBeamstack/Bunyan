@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-063` |
 | branch | `task/T-063-opening-a-file-inflates-its-geometry-cac` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #114 merged by `hmdnah` at 2026-10-24T08:55:42Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 86b0f25aa9b9ff55ce9a44ebc6d68f3b0a5f16e7
+last-verified-at: a5a95c7ef6d5432cc701141522e0b31c48943589
