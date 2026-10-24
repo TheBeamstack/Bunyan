@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-037 — eleventh turn on PR #72, merged with main again (F1) — 2026-10-24 — seat: zayd
+
+Merged `origin/main` (`bd76cfe`) at `bd7b8e4`; only `BACKLOG.md`, `CURRENT_STATE.md` and `PHASE_LOG.md` conflicted, no code.
+The baton and `last-verified-at` come from the branch side; `## Discovered` drops the finding main turned into T-062/T-064. `pnpm verify` is green.
+Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
+Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
+
 ## STEWARD-d29-cache-followups — re-review of PR #112 — 2026-10-24 — seat: hmdnah
 
 APPROVED. All four B-20261024-01 items are fixed at `170a54d`; the code is unchanged since `624b5ba`. Item 1: T-063 `implements:` dropped → `gates.py docs` exit 1; restored → exit 0.
