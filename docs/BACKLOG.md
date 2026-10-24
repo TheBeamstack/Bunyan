@@ -127,7 +127,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-059 | done    | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058 |
 | T-060 | done    | A named save signs its geometry-cache index in the zip worker, not on the main thread                              | workers  | box     | **high** | T-058, T-059 |
 | T-061 | done    | Opening a file verifies its geometry-cache index off the main thread                                               | workers  | box     | **high** | T-060        |
-| T-062 | review  | A named save keys each cached root once, and not at all for an unchanged scene                                     | backend  | box     | **high** | —            |
+| T-062 | done    | A named save keys each cached root once, and not at all for an unchanged scene                                     | backend  | box     | **high** | —            |
 | T-063 | ready   | Opening a file inflates its geometry-cache index in the worker and parses it root by root                          | workers  | box     | **high** | —            |
 | T-064 | blocked | A named save posts its geometry-cache records to the zip worker as one transferred buffer                          | workers  | box     | **high** | T-062, T-063 |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —            |
