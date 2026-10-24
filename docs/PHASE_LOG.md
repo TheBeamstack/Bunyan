@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-062 — review step 2 of PR #113 — 2026-10-24 — seat: hmdnah
+
+APPROVED, no defect proven. Item 1 at `d73d0d5`: `usableRecord` without `key` → "at most one key per root: expected 2 to be 1"; key memo bypassed → "expected 3 to be +0"; restored → 3 passed.
+Item 2/3: keys read only scene+tables, every `#scene` write replaces it, and consumers never write the shared entries. Item 6: keys carried across scenes → 6 red.
+Done-when 2: main's two test files pass against this code (16 passed, 1 skipped); the PR deletes no line of them. T-064 must not transfer `files` (opinion).
+Body: `handoff/hmdnah/2026-10-24-T-062-review-step-2.md`
+
 ## T-062 — review step 1 of PR #113 — 2026-10-24 — seat: hmdnah
 
 Item 1 at `cb225ac`: save loop re-keying → "at most one key per root: expected 2 to be 1" and "expected 3 to be +0"; carried-memo skip removed → "expected 6 to be 3"; restored → 3 passed.
