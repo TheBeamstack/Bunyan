@@ -58,3 +58,23 @@
 - This turn also changes the check page's open path, from in process to the worker. Without that change
   nothing is kept, and the bar fails (run 1).
 - Next: hmdnah, step 1 (risk high, D88).
+
+## Continue turn, after step 1 — the bar is unmet (B-20261024-02)
+
+- Changed:
+  - Design §5:242 ("The bar holds with little headroom") is replaced with the measured figures.
+  - The `## Discovered` 2026-10-24 entry is corrected to match.
+  - B-20261024-02 is filed and rendered by `blocked.py`.
+  - No code changed, and no bar or done-when item was reworded.
+- Verified: I ran `node tools/browser-check/named-save.mjs --playwright <Chantier_Manager playwright-core 1.60.0> --browser <chromium-1243>` three times, unmodified, at `4f43dea`, on headless Chromium 153.0.8010.12. Each figure is one worker save's max(longest task, widest timer gap), in ms:
+  - Run 1: 165.2 / 181.5 / 161.1, PASS (exit 0).
+  - Run 2: 220.6 / 164.8 / 160.1, FAIL (exit 1). The first save's longest task is 155 ms, so its gap spans more than one task.
+  - Run 3: 246.2 / 162.4 / 148.7, FAIL (exit 1).
+  - The control `saveBnn` held 7068.8 / 7077.6 / 7116.7. Every save is the size `saveBnn` writes.
+  - Timed alone, the entries `structuredClone` took 187.3 / 202.0 / 216.1 ms on the first iteration and 142.7–210.5 ms on later ones.
+  - Counting hmdnah's runs A–C, six unmodified runs give a first save of 165–246 ms, over 200 in four, and later saves of 149–182 ms. Two of the six exit 0.
+  - `pnpm verify` (via the finish entrypoint): 124 files, 1061 passed, 4 skipped.
+- Not verified: why the first save is the slow one (GC after the open, a cold IndexedDB, or JIT warm-up). No probe was run.
+- Notes:
+  - The bar is not made to hold here. The clone alone reaches 216 ms, and T-064 does not touch it, so splitting the save into tasks cannot bring the task that holds the clone under 200 ms.
+  - Next: the steward sequences B-20261024-02's row. T-064 stays `review` and incomplete on done-when 3.

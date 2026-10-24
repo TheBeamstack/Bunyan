@@ -44,7 +44,7 @@ from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
 Three unmodified `named-save.mjs` runs at `4f43dea`: first saves 165.2 / 220.6 / 246.2 ms, later saves 148.7–181.5 ms; exit 0 once, 1 twice.
 The entries clone alone is 187–216 ms on the first iteration, and T-064 does not touch it. Design §5:242 is corrected; the bar and the done-when are unchanged. B-20261024-02. Incomplete.
-Body: `handoff/zayd/2026-10-24-T-064-bar-unmet.md`
+Body: `handoff/zayd/2026-10-24-T-064-records-one-buffer.md` (continue-turn section)
 
 ## T-064 — review step 1 of PR #116 — 2026-10-24 — seat: hmdnah
 
