@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-062 — a named save keys each cached root once, and not at all for an unchanged scene — 2026-10-24 — seat: zayd
+
+`geometryCacheFiles()` keeps root keys and carried `.brep` bytes per scene object and passes its key into `usableRecord`. A second save of the same scene keys nothing, inflates nothing and writes the same bytes.
+T-062 test 3 passed; reverting `document.ts:740,749` → "expected 2 to be 1" and "expected 3 to be +0". `pnpm verify` green (1052 passed). No watched file changed; nothing timed.
+Body: `handoff/zayd/2026-10-24-T-062-save-keys-once.md`
+
 ## STEWARD-d29-cache-followups — re-review of PR #112 — 2026-10-24 — seat: hmdnah
 
 APPROVED. All four B-20261024-01 items are fixed at `170a54d`; the code is unchanged since `624b5ba`. Item 1: T-063 `implements:` dropped → `gates.py docs` exit 1; restored → exit 0.
