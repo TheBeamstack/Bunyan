@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-064 — review step 1 of PR #116 — 2026-10-24 — seat: hmdnah
+
+Item 1 at `7e40bfd`: posting `signing` as objects again → "one transferred ArrayBuffer: expected [] to have a length of 1"; restored → 3 passed. No build defect proven; no approval.
+Done-when 3 does not reproduce: `named-save.mjs` 16k exited 1 in 2 of 3 runs, each time on the first timed save (206.2 and 233.1 ms). Back to `zayd`.
+The first `geometryCacheFiles()` after an open takes 1437.9 ms and is outside the bar. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-24-T-064-review-step-1.md`
+
 ## T-064 — a named save posts its geometry-cache records to the zip worker as one transferred buffer — 2026-10-24 — seat: zayd
 
 Record JSON is kept at export and at open (`keepRecordJson`). `createBnnZipper` posts it as one transferred buffer, and the worker parses, signs and zips; the bytes equal `saveBnn`.
