@@ -2,30 +2,37 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- * The open path's cache-index worker (T-061, design `P5_step9_D29_bnn_cache_design.md` §2e, §4): the main
- * thread posts the stored `index.json` bytes, and the worker parses them and checks the envelope and the
- * MAC, so a 16k open does not hold the main thread on the ~2 s HMAC pass. The install secret crosses to this
- * same-origin worker with the bytes it verifies.
+ * The open path's cache-index worker (T-061, T-063, design `P5_step9_D29_bnn_cache_design.md` §2e, §4): the
+ * main thread posts the loaded `.bnn`'s bytes (cloned: the reader keeps them), and the worker inflates
+ * `index.json` under the zip caps, checks the envelope and the MAC, and transfers back one buffer of
+ * per-root record JSON, so a 16k open holds the main thread on no inflate, parse, HMAC pass or clone. The
+ * install secret crosses to this same-origin worker with the bytes it verifies.
  *
- * ⚠ Imports only the leaf `@bunyan/document/cachesign`, so the worker bundle carries no document code.
+ * ⚠ Imports only the leaves `@bunyan/document/cacheindexfile` and `@bunyan/document/cachesign`, so the
+ * worker bundle carries no document code.
  */
 
-import {
-  openSignedCacheIndex,
-  type CacheIndexOpenRequest,
-  type CacheIndexOpener,
-  type OpenedCacheIndex,
+import { openCacheIndexFile } from '@bunyan/document/cacheindexfile';
+import type {
+  CacheIndexOpenRequest,
+  CacheIndexOpener,
+  OpenedCacheRecords,
 } from '@bunyan/document/cachesign';
 
 export type { CacheIndexOpenRequest };
 
 export interface CacheOpenReply {
-  readonly index: OpenedCacheIndex | undefined;
+  readonly index: OpenedCacheRecords | undefined;
 }
 
 /** The worker side: one request, one reply. */
 export function handleCacheOpenRequest(request: CacheIndexOpenRequest): CacheOpenReply {
-  return { index: openSignedCacheIndex(request.bytes, request.current, request.secret) };
+  return { index: openCacheIndexFile(request) };
+}
+
+/** What the worker transfers with a reply: the records' one buffer, never a copy of it. */
+export function cacheOpenTransfer(reply: CacheOpenReply): ArrayBuffer[] {
+  return reply.index === undefined ? [] : [reply.index.json.buffer as ArrayBuffer];
 }
 
 /** What the opener needs of a `Worker`, so a node test can stand in for one. */

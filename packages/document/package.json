@@ -10,6 +10,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./bnnzip": "./src/bnnzip.ts",
+    "./cacheindexfile": "./src/cacheindexfile.ts",
     "./cachesign": "./src/cachesign.ts"
   },
   "scripts": {

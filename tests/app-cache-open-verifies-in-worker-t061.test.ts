@@ -152,9 +152,13 @@ describe('T-061 — the open-side code is a leaf the cache-open worker can impor
       ),
     ].map((m) => m[1]!);
 
-  it('cacheOpen.ts imports only /cachesign, and its worker only cacheOpen.ts', () => {
+  // T-063: the worker now inflates `index.json`, so cacheOpen.ts also imports the leaf /cacheindexfile.
+  it('cacheOpen.ts imports only the leaves /cacheindexfile and /cachesign, and its worker only cacheOpen.ts', () => {
     expect(imports('packages/document/src/cachesign.ts')).toEqual([]);
-    expect(imports('apps/web/src/storage/cacheOpen.ts')).toEqual(['@bunyan/document/cachesign']);
+    expect(imports('apps/web/src/storage/cacheOpen.ts')).toEqual([
+      '@bunyan/document/cacheindexfile',
+      '@bunyan/document/cachesign',
+    ]);
     expect(imports('apps/web/src/storage/cacheOpenWorker.ts')).toEqual(['./cacheOpen']);
   });
 });

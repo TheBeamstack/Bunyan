@@ -145,17 +145,43 @@ export interface OpenedCacheIndex {
   readonly records: Readonly<Record<string, unknown>>;
 }
 
-/** What opening an index needs: its stored bytes, the running build's envelope, this install's secret. */
+/**
+ * What opening an index needs: the whole `.bnn`'s bytes, which the opener inflates `index.json` from
+ * (T-063), the running build's envelope, and this install's secret.
+ */
 export interface CacheIndexOpenRequest {
-  readonly bytes: Uint8Array;
+  readonly file: Uint8Array;
   readonly current: CacheEnvelope;
   readonly secret: Uint8Array;
 }
 
-/** Opens an index somewhere — in process, or on a worker (T-061). `undefined` ⇒ the cache restores nothing. */
+/**
+ * An opened index, its records still serialized (T-063): `roots[i]`'s record is the UTF-8 JSON at
+ * `json[offsets[i], offsets[i + 1])`, so a caller parses one root when it needs it, never the whole index.
+ * `json` is the only view of its buffer, so a worker transfers it rather than cloning an object graph.
+ */
+export interface OpenedCacheRecords {
+  readonly envelope: SignedCacheEnvelope;
+  readonly roots: readonly string[];
+  readonly offsets: readonly number[];
+  readonly json: Uint8Array;
+}
+
+/** Opens an index on a worker (T-061, T-063). `undefined` ⇒ the cache restores nothing. */
 export type CacheIndexOpener = (
   request: CacheIndexOpenRequest,
-) => Promise<OpenedCacheIndex | undefined>;
+) => Promise<OpenedCacheRecords | undefined>;
+
+/** An opened index's records, one JSON slice per root in one buffer (`OpenedCacheRecords`). */
+export function serializeCacheRecords(opened: OpenedCacheIndex): OpenedCacheRecords {
+  const roots = Object.keys(opened.records);
+  const chunks = roots.map((root) => encoder.encode(JSON.stringify(opened.records[root])));
+  const offsets = [0];
+  for (const chunk of chunks) offsets.push(offsets[offsets.length - 1]! + chunk.length);
+  const json = new Uint8Array(offsets[offsets.length - 1]!);
+  for (const [i, chunk] of chunks.entries()) json.set(chunk, offsets[i]);
+  return { envelope: opened.envelope, roots, offsets, json };
+}
 
 /**
  * Parse `index.json` and check it (§2a, §2e): `undefined` for unparseable bytes, an envelope differing from

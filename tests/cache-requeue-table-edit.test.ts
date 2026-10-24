@@ -200,6 +200,7 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     expect(await doc.exportCacheIdle(), 'one exported, the rest wait').toBeGreaterThan(0);
     await drain(doc);
     expect(writtenKeys(doc)).toEqual(currentKeys(doc));
+    expect(Object.fromEntries(doc.cacheKeys()), 'the kept keys (T-062)').toEqual(currentKeys(doc));
     expect(Object.keys(writtenKeys(doc)).sort()).toEqual(roots);
   });
 
@@ -223,6 +224,7 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     expect([...edit.rebuilt].sort()).toEqual([ids.c]);
     await drain(doc);
     expect(writtenKeys(doc)).toEqual(currentKeys(doc));
+    expect(Object.fromEntries(doc.cacheKeys()), 'the kept keys (T-062)').toEqual(currentKeys(doc));
     expect(Object.keys(writtenKeys(doc)).sort()).toEqual(roots);
   });
 
@@ -247,6 +249,7 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     expect(restored(), 'no restored root was built from its recipe').toEqual(roots);
     expect(spy.ops.filter((op) => op === 'exportBrep').length).toBeGreaterThan(0);
     expect(writtenKeys(doc)).toEqual(currentKeys(doc));
+    expect(Object.fromEntries(doc.cacheKeys()), 'the kept keys (T-062)').toEqual(currentKeys(doc));
     expect(Object.keys(writtenKeys(doc)).sort()).toEqual(roots);
   });
 
@@ -265,6 +268,7 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     await doc.undo();
     // A save before the re-drain: each root's stale export must not block its file carry.
     expect(writtenKeys(doc)).toEqual(currentKeys(doc));
+    expect(Object.fromEntries(doc.cacheKeys()), 'the kept keys (T-062)').toEqual(currentKeys(doc));
   });
 
   it('with no geometryCacheEnvelope a material edit queues nothing', async () => {

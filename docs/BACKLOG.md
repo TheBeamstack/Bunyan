@@ -127,9 +127,9 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-059 | done    | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058 |
 | T-060 | done    | A named save signs its geometry-cache index in the zip worker, not on the main thread                              | workers  | box     | **high** | T-058, T-059 |
 | T-061 | done    | Opening a file verifies its geometry-cache index off the main thread                                               | workers  | box     | **high** | T-060        |
-| T-062 | ready   | A named save keys each cached root once, and not at all for an unchanged scene                                     | backend  | box     | **high** | —            |
-| T-063 | ready   | Opening a file inflates its geometry-cache index in the worker and parses it root by root                          | workers  | box     | **high** | —            |
-| T-064 | blocked | A named save posts its geometry-cache records to the zip worker as one transferred buffer                          | workers  | box     | **high** | T-062, T-063 |
+| T-062 | done    | A named save keys each cached root once, and not at all for an unchanged scene                                     | backend  | box     | **high** | —            |
+| T-063 | done    | Opening a file inflates its geometry-cache index in the worker and parses it root by root                          | workers  | box     | **high** | —            |
+| T-064 | ready   | A named save posts its geometry-cache records to the zip worker as one transferred buffer                          | workers  | box     | **high** | T-062, T-063 |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —            |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —            |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029        |
@@ -687,7 +687,7 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - done-when: test-first: a node test with a fake worker port asserts the caller runs no unzipSync of index.json and no JSON.parse of the whole index, and that the reply is a transferred ArrayBuffer; revert-verified: restoring cacherestore.ts:92 turns it red
 - done-when: the cap check the worker runs is a leaf module importing no scene/joins/document code, and the worker bundle still imports only leaf modules (apps/web/src/storage/cacheOpen.ts:10)
 - done-when: a file signed with another install's secret restores nothing, and a file without geometry-cache/ opens as today
-- done-when: every tests/*-d29.test.ts test and the T-049, T-052, T-057 and T-061 tests pass unchanged
+- done-when: every tests/*-d29.test.ts test and the T-049, T-052, T-057 and T-061 tests pass unchanged, except the one T-061 import pin on cacheOpen.ts (tests/app-cache-open-verifies-in-worker-t061.test.ts:157), which T-063 amends to admit the new leaf cap-check module
 - done-when: no [frozen_surface] watched file changes
 - verify: pnpm verify
 - depends-on: — · area: workers · machine: box · risk: **high**

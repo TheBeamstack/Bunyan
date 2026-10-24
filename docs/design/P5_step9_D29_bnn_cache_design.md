@@ -100,8 +100,9 @@ nothing and opens at today's rebuild speed. The records carry each `.brep`'s fin
 solids. That makes _"this solid is what the recipe built"_ true by provenance. Its cost is one HMAC pass over
 `index.json` per save and per open: **2,074 ms to sign at 16k** (R4's fixture, one run) and **2,195–2,229 ms
 to verify** (the same fixture at 16k solids, 64 MB index, two runs under node; parse 227–231 ms more). A named
-save signs in its zip worker (T-060, §5); an open parses and verifies in a worker (T-061), and the main thread
-pays the reply's `structuredClone` instead (337–343 ms under node, round trip). Persisting the secret in
+save signs in its zip worker (T-060, §5); an open inflates, parses and verifies in a worker (T-061, T-063), which
+transfers back one buffer of per-root record JSON, so the main thread clones no object graph and parses a root
+only in its restore batch (`cacheindexfile.ts`, `cacherestore.ts` `lazyRecordLookup`). Persisting the secret in
 browser storage belongs to the app wiring (`docs/BACKLOG.md ## Discovered`, 2026-10-14).
 
 ---
@@ -144,7 +145,8 @@ PROVISIONAL); this design makes it a directory, so one solid's refusal does not 
 ⚠ **The loader must not inflate what it ignores.** `loadBnn` calls `unzipSync` on everything, so a 61 MB cache
 would be decompressed on every open even by a build that discards it. The cache-aware `loadBnn` passes
 `unzipSync`'s `filter` to skip `geometry-cache/` and reads entries on demand from the retained file bytes.
-Today's build pays the inflation once and ignores the result — correct, merely slower.
+Today's build pays the inflation once and ignores the result — correct, merely slower. The caps live in the
+leaf `bnncaps.ts` (T-063), so the cache-open worker checks them before it inflates `index.json`.
 
 ---
 

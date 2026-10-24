@@ -20,6 +20,7 @@ import {
   CORE_COMMANDS,
   DocumentContext,
   GEOMETRY_CACHE_DIR,
+  cacheInputKeys,
   createRegistries,
   loadBnn,
   saveBnn,
@@ -411,6 +412,9 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     const after = indexOf(doc.geometryCacheFiles()).records;
     expect(Object.keys(after).sort()).toEqual(roots);
     expect(after[ids.column]!.key).not.toBe(indexOf(cacheOf(full)).records[ids.column]!.key);
+    expect(doc.cacheKeys(), "the kept keys are this scene's (T-062)").toEqual(
+      cacheInputKeys(doc.scene),
+    );
   });
 
   it('a restore refused and rebuilt under a matching key does not carry the refused bytes', async () => {
@@ -460,6 +464,9 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     });
     expect(await doc.exportCacheIdle(0)).toBe(roots.length);
     expect(indexOf(doc.geometryCacheFiles()).records).toEqual({});
+    expect(doc.cacheKeys(), "the kept keys are this scene's (T-062)").toEqual(
+      cacheInputKeys(doc.scene),
+    );
   });
 
   /**
@@ -553,6 +560,9 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     release();
     expect(await exporting, 'the edit queued the column again').toBe(1);
     expect(indexOf(doc.geometryCacheFiles()).records[ids.column]).toBeUndefined();
+    expect(doc.cacheKeys(), "the kept keys are this scene's (T-062)").toEqual(
+      cacheInputKeys(doc.scene),
+    );
 
     expect(await doc.exportCacheIdle(1)).toBe(0);
     const reopen = spying();

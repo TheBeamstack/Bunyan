@@ -66,12 +66,13 @@ import {
   openIndexOf,
   readRestoreBatch,
   recordEntries,
+  recordLookupOf,
   restoreAssembly,
   usableRecord,
 } from './cacherestore.js';
 import type {
   CacheRecord,
-  GeometryCacheIndex,
+  CacheRecordLookup,
   GeometryCacheSource,
   RestoreBatch,
 } from './cacherestore.js';
@@ -230,6 +231,17 @@ interface ExportedEntry {
   readonly files: ReadonlyMap<string, Uint8Array>;
 }
 
+/**
+ * What a save derives from one scene value (T-062): each root's key, filled on first use, and each carried
+ * root's record and bytes, or `null` when the file has none usable. Valid only for that scene object.
+ */
+interface KeyedScene {
+  readonly scene: Scene;
+  readonly tables: CacheKeyTables;
+  readonly keys: Map<ElementId, string>;
+  readonly carried: Map<ElementId, ExportedEntry | null>;
+}
+
 export interface ExecuteOptions {
   readonly coalesceKey?: string;
   /**
@@ -283,7 +295,7 @@ export class DocumentContext {
   readonly #geometryByElement = new Map<ElementId, ElementGeometry>();
   readonly #cacheSource: GeometryCacheSource | undefined;
   /** Opened on first use; `null` once the envelope or index was refused (design §2a). */
-  #cacheIndex: GeometryCacheIndex | null | undefined;
+  #cacheIndex: CacheRecordLookup | null | undefined;
   #cacheOpening: Promise<void> | undefined;
   /** D29 R4: the envelope this document writes; `undefined` ⇒ it exports nothing. */
   readonly #writeEnvelope: CacheEnvelope | undefined;
@@ -293,7 +305,8 @@ export class DocumentContext {
   readonly #exported = new Map<ElementId, ExportedEntry>();
   /** Roots whose live geometry was built from the recipe: never carried from the file (design §5). */
   readonly #builtRoots = new Set<ElementId>();
-  #keyTables: { readonly scene: Scene; readonly tables: CacheKeyTables } | undefined;
+  /** One scene value's key tables, root keys and carried entries (`#keyedFor`). */
+  #keyed: KeyedScene | undefined;
   /** `cacheTablesDigest` of the last committed scene; set only when this document exports. */
   #tablesDigest: string | undefined;
 
@@ -605,9 +618,10 @@ export class DocumentContext {
    * `geometryOf()`, and **preserved verbatim through save**. The building around it opens and edits.
    */
   /**
-   * D29 — open the loaded file's cache index (parse, envelope, MAC) through `geometryCache.openIndex`, the
-   * app's worker (T-061), so the 16k MAC pass never runs on the main thread. Once per document; the app
-   * calls it at boot, and `rebuildAll`/`rebuildOnly` await it, so `#stage` only reads the result.
+   * D29 — open the loaded file's cache index (inflate, parse, envelope, MAC) through
+   * `geometryCache.openIndex`, the app's worker (T-061, T-063), so none of it runs on the main thread, which
+   * parses a root's record only when its restore batch reads it. Once per document; the app calls it at
+   * boot, and `rebuildAll`/`rebuildOnly` await it, so `#stage` only reads the result.
    */
   async openGeometryCache(): Promise<void> {
     const source = this.#cacheSource;
@@ -698,7 +712,7 @@ export class DocumentContext {
         this.#geometry,
       );
       if (exported === undefined || this.#geometryByElement.get(root) !== live) continue;
-      const key = cacheInputKey(this.#scene, root, this.#tablesFor(this.#scene));
+      const key = this.#keyOf(this.#keyedFor(this.#scene), root);
       this.#exported.set(root, { record: { key, ...exported.record }, files: exported.files });
     }
     return this.#exportQueue.size;
@@ -708,7 +722,8 @@ export class DocumentContext {
    * D29 R4 — the `geometry-cache/` for a save of the CURRENT scene (`SaveOptions.cache`), or `undefined`
    * when this document writes no cache. **It calls no kernel op**: a save never exports (design §5).
    *
-   * Every key is recomputed against the scene being written, and an assembly is written only from:
+   * Every key is computed against the scene being written, once per scene value (T-062): a second save
+   * of the same scene keys nothing and reads no carried entry again. An assembly is written only from:
    * an `exportCacheIdle` export whose key still matches, or — for an assembly restored from the file or
    * never built (D66) — the file's own record and bytes, carried when its key still matches. A built
    * assembly not yet exported is absent; an unbuilt one whose neighbour moved is dropped, not written stale.
@@ -720,8 +735,7 @@ export class DocumentContext {
     const envelope = this.#writeEnvelope;
     const secret = this.#writeSecret;
     if (envelope === undefined || secret === undefined) return undefined;
-    const scene = this.#scene;
-    const tables = this.#tablesFor(scene);
+    const keyed = this.#keyedFor(this.#scene);
     // ⚠ Carried records are re-signed below, so only an index THIS secret verified may be carried (R5).
     const source = this.#cacheSource;
     const loaded =
@@ -733,11 +747,12 @@ export class DocumentContext {
 
     const records: Record<ElementId, CacheRecord> = {};
     const files: Record<string, Uint8Array> = {};
-    const carried = new Map<ElementId, CacheRecord>();
-    for (const element of Object.values(scene.elements)) {
+    const carry: ElementId[] = [];
+    const unread = new Map<ElementId, CacheRecord>();
+    for (const element of Object.values(keyed.scene.elements)) {
       if (element.hostId !== undefined) continue;
       const root = element.id;
-      const key = cacheInputKey(scene, root, tables);
+      const key = this.#keyOf(keyed, root);
       const exported = this.#exported.get(root);
       // A stale export (a restored root whose key flipped back on undo) falls through to the carry.
       if (exported !== undefined && exported.record.key === key) {
@@ -746,22 +761,44 @@ export class DocumentContext {
         continue;
       }
       if (loaded === undefined || this.#builtRoots.has(root)) continue;
-      const record = usableRecord(scene, root, tables, loaded);
-      if (record !== undefined) carried.set(root, record);
+      carry.push(root);
+      if (keyed.carried.has(root)) continue;
+      const record = usableRecord(keyed.scene, root, keyed.tables, loaded, key);
+      if (record === undefined) keyed.carried.set(root, null);
+      else unread.set(root, record);
     }
 
-    if (carried.size > 0 && this.#cacheSource !== undefined) {
-      const names = [...carried].flatMap(([root, record]) => recordEntries(root, record));
-      const bytes = this.#cacheSource.files.readMany(names);
-      for (const [root, record] of carried) {
+    if (unread.size > 0 && source !== undefined) {
+      const names = [...unread].flatMap(([root, record]) => recordEntries(root, record));
+      const bytes = source.files.readMany(names);
+      for (const [root, record] of unread) {
         const entries = recordEntries(root, record);
-        if (!entries.every((name) => bytes.has(name))) continue;
-        records[root] = record;
-        for (const name of entries) files[name] = bytes.get(name)!;
+        keyed.carried.set(
+          root,
+          entries.every((name) => bytes.has(name))
+            ? { record, files: new Map(entries.map((name) => [name, bytes.get(name)!])) }
+            : null,
+        );
       }
+    }
+    // After every export, in scene order: the order `index.json` and the zip were always written in.
+    for (const root of carry) {
+      const entry = keyed.carried.get(root);
+      if (entry === undefined || entry === null) continue;
+      records[root] = entry.record;
+      for (const [name, bytes] of entry.files) files[name] = bytes;
     }
 
     return { envelope, records, secret, files };
+  }
+
+  /** Every root's input key as the save keeps it for the current scene (T-062); equal to `cacheInputKeys`. */
+  cacheKeys(): ReadonlyMap<ElementId, string> {
+    const keyed = this.#keyedFor(this.#scene);
+    const keys = new Map<ElementId, string>();
+    for (const element of Object.values(keyed.scene.elements))
+      if (element.hostId === undefined) keys.set(element.id, this.#keyOf(keyed, element.id));
+    return keys;
   }
 
   /**
@@ -1560,18 +1597,33 @@ export class DocumentContext {
     this.#builtRoots.delete(root);
   }
 
-  /** `cacheKeyTables` once per scene value: a scene is replaced, never mutated, so identity is the test. */
+  /** Once per scene value: a scene is replaced, never mutated, so identity is the test. */
+  #keyedFor(scene: Scene): KeyedScene {
+    if (this.#keyed?.scene !== scene)
+      this.#keyed = { scene, tables: cacheKeyTables(scene), keys: new Map(), carried: new Map() };
+    return this.#keyed;
+  }
+
   #tablesFor(scene: Scene): CacheKeyTables {
-    if (this.#keyTables?.scene !== scene)
-      this.#keyTables = { scene, tables: cacheKeyTables(scene) };
-    return this.#keyTables.tables;
+    return this.#keyedFor(scene).tables;
+  }
+
+  #keyOf(keyed: KeyedScene, root: ElementId): string {
+    let key = keyed.keys.get(root);
+    if (key === undefined) {
+      key = cacheInputKey(keyed.scene, root, keyed.tables);
+      keyed.keys.set(root, key);
+    }
+    return key;
   }
 
   /** The save's carry (`geometryCacheFiles`): the opened index, else opened here in process, once. */
-  #openCache(): GeometryCacheIndex | undefined {
+  #openCache(): CacheRecordLookup | undefined {
     if (this.#cacheSource === undefined) return undefined;
-    if (this.#cacheIndex === undefined)
-      this.#cacheIndex = openCacheIndex(this.#cacheSource) ?? null;
+    if (this.#cacheIndex === undefined) {
+      const index = openCacheIndex(this.#cacheSource);
+      this.#cacheIndex = index === undefined ? null : recordLookupOf(index);
+    }
     return this.#cacheIndex ?? undefined;
   }
 
