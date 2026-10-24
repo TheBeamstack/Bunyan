@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-061` |
-| branch | `task/T-061-opening-a-file-verifies-its-geometry-cac` |
+| task | `STEWARD-d29-cache-followups` |
+| branch | `steward/d29-cache-followups` |
 | claimed-at | 2026-10-23T21:27:35Z |
-| status | merged — PR #111 merged by `hmdnah` at 2026-10-23T23:43:00Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 3addfb31d4fc04d9966c10b98727e6a5136468c7
+last-verified-at: bac6e9c51e07db1e875e42b01b47351f5f5f70e2
