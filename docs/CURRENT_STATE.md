@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `T-063` |
-| branch | `task/T-063-opening-a-file-inflates-its-geometry-cac` |
-| claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #114 merged by `hmdnah` at 2026-10-24T08:55:42Z |
+| task | `T-037` |
+| branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
+| claimed-at | 2026-10-14T16:33:13Z |
+| status | incomplete — branch open, continue on it |
 
 <!-- END BATON -->
 
@@ -84,6 +84,12 @@ builder may claim.
 - **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
   - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
   - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261012-09** — `scope: item` · `item: PR#72` — PR #72's re-seed gate is red: the goldens were not re-seeded
+  - need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
+  - opened 2026-10-12T02:56Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261012-10** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
+  - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
+  - opened 2026-10-12T04:42Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -124,6 +130,12 @@ contract, and every subsequent entry has moved no frozen byte. ⇒ THE FREEZE (P
 ACT.** It is mechanically available: `tests/freeze-boundary.test.ts` holds the frozen surface, so
 freezing is the policy change *"the baseline may no longer be updated without an owner ruling"*, with a
 machine holding the line afterwards.
+
+### T-037 (PR #72) — returned, incomplete
+
+T-037's code and test are done and the branch is merged with `main` (blocker ids per the steward ruling in
+T-037's backlog entry); its re-seed is not: the seeder is refused by zayd's box session permissions
+(B-20261012-03, uncleared). Next on this branch: a permitted session runs B-20261012-03's `need:`.
 
 
 **Per-seat standing facts, the two items killed by measurement, the later/post-freeze list, the CLOSED list, and §6/§6a (environment, commands, box discipline) are `docs/CURRENT_STATE-reference.md`.**
@@ -205,4 +217,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a5a95c7ef6d5432cc701141522e0b31c48943589
+last-verified-at: 42e24c7fb47b0f5c551e8fda43b0f542dd2ddcde
