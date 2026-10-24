@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-t063-done-when-4 — T-063's done-when 4 admits the leaf its outcome requires — 2026-10-24 — seat: brahim
+
+Spec defect (hmdnah, PR #114 step 1): T-063's outcome, implements and done-when 2 put a leaf cap check (fflate `unzipSync`) in the worker; done-when 4 kept T-061 "unchanged", whose pin at `t061.test.ts:158` lets `cacheOpen.ts` import only `/cachesign`.
+Done-when 4 now names that one pin as amended by T-063 to admit the leaf; every other T-061 assertion stays unchanged. Nothing else in the row changed; PR #114 untouched.
+Body: `handoff/brahim/2026-10-24-STEWARD-t063-done-when-4-pr114.md`
+
 ## T-062 — review step 2 of PR #113 — 2026-10-24 — seat: hmdnah
 
 APPROVED, no defect proven. Item 1 at `d73d0d5`: `usableRecord` without `key` → "at most one key per root: expected 2 to be 1"; key memo bypassed → "expected 3 to be +0"; restored → 3 passed.

@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-062` |
-| branch | `task/T-062-a-named-save-keys-each-cached-root-once-` |
+| task | `STEWARD-t063-done-when-4` |
+| branch | `steward/t063-done-when-4` |
 | claimed-at | 2026-10-24T01:02:02Z |
-| status | merged — PR #113 merged by `hmdnah` at 2026-10-24T07:03:58Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: f0f6ebd6388a85785951e6e9542292bebc4ac5ab
+last-verified-at: f385845f5c5809f3a21aeb04dc99212f73249f76
