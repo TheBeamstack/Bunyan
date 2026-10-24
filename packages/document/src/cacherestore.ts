@@ -14,7 +14,12 @@ import type { Element, ElementId, Part } from './entities.js';
 import type { ElementGeometry } from './build.js';
 import type { GeometryCacheReader } from './bnn.js';
 import type { CacheKeyTables } from './cachekey.js';
-import type { CacheEnvelope, CacheIndexOpener, SignedCacheEnvelope } from './cachesign.js';
+import type {
+  CacheEnvelope,
+  CacheIndexOpener,
+  OpenedCacheRecords,
+  SignedCacheEnvelope,
+} from './cachesign.js';
 import { cacheInputKey } from './cachekey.js';
 import { openSignedCacheIndex } from './cachesign.js';
 import type { GeometryGateway } from './geometry.js';
@@ -81,19 +86,65 @@ export function openCacheIndex(source: GeometryCacheSource): GeometryCacheIndex 
     GeometryCacheIndex | undefined;
 }
 
+/** The records a restore and a save read, one root at a time (T-063): as stored, unchecked. */
+export interface CacheRecordLookup {
+  /** `root`'s record, or `undefined` when the index has none (or its slice does not parse). */
+  record(root: ElementId): unknown;
+}
+
+/** An index parsed in process (`openCacheIndex`), looked up by own key only. */
+export function recordLookupOf(index: GeometryCacheIndex): CacheRecordLookup {
+  return {
+    record: (root) => (Object.hasOwn(index.records, root) ? index.records[root] : undefined),
+  };
+}
+
+/** The worker's reply (`OpenedCacheRecords`): a root's slice is parsed only when it is asked for. */
+export function lazyRecordLookup(opened: OpenedCacheRecords): CacheRecordLookup {
+  const at = new Map(opened.roots.map((root, i) => [root, i]));
+  const decoder = new TextDecoder();
+  return {
+    record: (root) => {
+      const i = at.get(root);
+      if (i === undefined) return undefined;
+      try {
+        return JSON.parse(
+          decoder.decode(opened.json.subarray(opened.offsets[i], opened.offsets[i + 1])),
+        ) as unknown;
+      } catch {
+        return undefined;
+      }
+    },
+  };
+}
+
 /**
- * `openCacheIndex` through `source.openIndex` (T-061): only the stored bytes are read here; the parse and
- * the MAC pass run where the opener runs. A failing opener restores nothing; it never throws.
+ * The opened index through `source.openIndex` (T-061, T-063): the file's bytes are posted as they are, and
+ * the inflate, parse and MAC pass run where the opener runs; a root is parsed when a restore or a save
+ * reads it. A failing opener restores nothing; it never throws. A reader with no file bytes (not
+ * `loadBnn`'s) opens in process.
  */
 export async function openIndexOf(
   source: GeometryCacheSource,
-): Promise<GeometryCacheIndex | undefined> {
-  if (source.openIndex === undefined) return openCacheIndex(source);
-  const bytes = source.files.read('index.json');
-  if (bytes === undefined) return undefined;
+): Promise<CacheRecordLookup | undefined> {
+  const file = source.files.file;
+  if (source.openIndex === undefined || file === undefined) {
+    const index = openCacheIndex(source);
+    return index === undefined ? undefined : recordLookupOf(index);
+  }
+  if (!source.files.names.includes('index.json')) return undefined;
   try {
-    const request = { bytes, current: source.current, secret: source.installSecret };
-    return (await source.openIndex(request)) as GeometryCacheIndex | undefined;
+    const request = { file, current: source.current, secret: source.installSecret };
+    const opened = await source.openIndex(request);
+    if (
+      opened === undefined ||
+      !(opened.json instanceof Uint8Array) ||
+      !Array.isArray(opened.roots) ||
+      opened.offsets.length !== opened.roots.length + 1
+    ) {
+      return undefined;
+    }
+    return lazyRecordLookup(opened);
   } catch {
     return undefined;
   }
@@ -123,7 +174,7 @@ export function readRestoreBatch(
   scene: Scene,
   roots: readonly ElementId[],
   tables: CacheKeyTables,
-  index: GeometryCacheIndex,
+  index: CacheRecordLookup,
   files: GeometryCacheReader,
 ): RestoreBatch {
   const records = new Map<ElementId, CacheRecord>();
@@ -219,10 +270,10 @@ export function usableRecord(
   scene: Scene,
   root: ElementId,
   tables: CacheKeyTables,
-  index: GeometryCacheIndex,
+  index: CacheRecordLookup,
   key: string = cacheInputKey(scene, root, tables),
 ): CacheRecord | undefined {
-  const record: unknown = Object.hasOwn(index.records, root) ? index.records[root] : undefined;
+  const record = index.record(root);
   if (!isRecord(record) || record['key'] !== key) return undefined;
   const hosted = (tables.hosted.get(root) ?? []).map((e) => e.id).sort();
   return wellFormed(record, root, hosted) ? (record as unknown as CacheRecord) : undefined;

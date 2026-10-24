@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-063 — opening a file inflates its geometry-cache index in the worker and parses it root by root — 2026-10-24 — seat: zayd
+
+The cache-open worker caps-checks (leaf `bnncaps.ts`), inflates and opens `index.json` from the posted file bytes, then transfers one per-root JSON buffer. `#stage` parses a root only in its batch.
+T-063 test 6 passed; restoring the caller's `read('index.json')` → "expected 1 to be +0". `pnpm verify` green (1058 passed). One T-061 import-pin assertion changed (spec defect, see body).
+Body: `handoff/zayd/2026-10-24-T-063-open-inflates-in-worker.md`
+
 ## T-062 — review step 2 of PR #113 — 2026-10-24 — seat: hmdnah
 
 APPROVED, no defect proven. Item 1 at `d73d0d5`: `usableRecord` without `key` → "at most one key per root: expected 2 to be 1"; key memo bypassed → "expected 3 to be +0"; restored → 3 passed.
