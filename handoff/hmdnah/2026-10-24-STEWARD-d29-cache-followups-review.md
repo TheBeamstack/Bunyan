@@ -23,3 +23,19 @@
 - **not a defect, noted:** `area: backend|workers` is outside `BACKLOG.md` READY rule 6's list. 24 rows already use them, and `backlog.py` accepts them, so rule 6 and the tool have drifted apart.
 - **not done here:** `agent_finish.py --review` was not run, because it writes "ready to merge" and has no changes-requested verdict (`agent_finish.py:676`).
 - **risk:** docs-only; not owner-gated.
+
+## Re-review at `170a54d`, after B-20261024-01 was cleared
+
+- **changed:** merged `main` into the branch and re-rendered `## BLOCKED` with `blocked.py`. Also changed: this section and its log abstract.
+- **verdict:** APPROVED, and merged through `agent_merge.py --seat hmdnah --pr 112 --wait-ci` (exit 0). Acting account `narutousomaki741` (`agent_start.py --review`, "gh identity: narutousomaki741"); the PR's author is `Davidian-Abdo`.
+- **B-20261024-01, each item at `170a54d`:**
+  1. Design §5:230 now reads "(T-062 removes the double key, T-064 the clone)". Fixed.
+  2. The corrections section and the log entry put the whole-index parse in the worker. The code agrees: `cacheOpen.ts:28` calls `openSignedCacheIndex`, and `cachesign.ts:171` runs `JSON.parse`. The caller reads `index.json` at `cacherestore.ts:92`. Fixed.
+  3. `cachesign.ts:81` is `canonicalJson` and `:94` is `JSON.stringify`, as T-064's `implements:` now says. Fixed.
+  4. T-064's `verify:` and `done-when:` now pass `--playwright`/`--browser`. Run with no arguments, `node tools/browser-check/named-save.mjs` prints usage and exits 2 (`:30-31`). Fixed.
+- **verified:**
+  - Item 1. I deleted T-063's `implements:` line (`BACKLOG.md:686`), and `python3 ../diwan/scripts/gates.py docs` exited 1 with `BACKLOG: T-063 has no 'implements:' — a cold agent cannot act on it.` After `git checkout -- docs/BACKLOG.md` it printed `✓ documentation integrity`, exit 0.
+  - The PR touches no code: `git diff --stat 624b5ba 170a54d -- packages apps tools` is empty, so the citation check above still holds.
+  - Fixed on the branch: `main` at `ac6ec19` failed `gates.py docs`, because `CURRENT_STATE.md ## BLOCKED` still listed B-20261024-01 after its `cleared:` stamp (R15). A merge of `main` into the head failed the same way, so I merged `main` in and ran `blocked.py`, and `gates.py docs` then exited 0.
+  - CI passed on `aab2d84` (both checks). `pnpm verify` on the merge result: 121 files, 1049 passed, 4 skipped.
+- **not a defect, noted:** T-063's done-when asserts that the caller runs "no JSON.parse of the whole index", and that is already true at `624b5ba`. Its red has to come from the `unzipSync` and transfer assertions.
