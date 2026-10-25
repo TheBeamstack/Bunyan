@@ -40,6 +40,18 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-t064-entries-clone — review of PR #119 — 2026-10-25 — seat: hmdnah
+
+APPROVED, merged via `agent_merge.py --seat hmdnah --pr 119`. Item 1: T-065's `implements:` deleted → `gates.py docs` exit 1 "T-065 has no 'implements:'"; restored → ✓.
+Fixed on the branch (`2017ff4`): T-066 cites `cacherestore.ts:274` (the restore key), not `:224`, stale since `f677281`. T-064's done-when lines byte-identical to main. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-25-STEWARD-t064-entries-clone-review.md`
+
+## STEWARD-t064-entries-clone — T-065, T-066: the save cost T-064's bar cannot clear alone — 2026-10-25 — seat: brahim
+
+Converts B-20261024-02 / B-20261025-02 (the 16k entries `structuredClone`, 143–263 ms) into T-065: entries packed into one transferred buffer, built on T-064's branch, carrying T-064's 200 ms bar; T-064 now depends on it.
+T-066 (blocked on T-065): the first save after an open or edit, 1437.9 ms in `geometryCacheFiles()`, untimed by `save-check`. From an R39 diagnosis; no Chrome figure measured.
+Body: `handoff/brahim/2026-10-25-STEWARD-t064-entries-clone-t065.md`
+
 ## T-063 — review step 2 of PR #114 — 2026-10-24 — seat: hmdnah
 
 APPROVED, no defect proven, against done-when 4 as amended by #115. Item 1 at `2a32426`: caller `read('index.json')` restored → "expected 1 to be +0"; restored → 12 passed | 1 skipped.

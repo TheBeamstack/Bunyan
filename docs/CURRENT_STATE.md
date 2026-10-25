@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-063` |
-| branch | `task/T-063-opening-a-file-inflates-its-geometry-cac` |
+| task | `STEWARD-t064-entries-clone` |
+| branch | `steward/t064-entries-clone` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #114 merged by `hmdnah` at 2026-10-24T08:55:42Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a5a95c7ef6d5432cc701141522e0b31c48943589
+last-verified-at: 1548c249ddc09e26028b3428175bb17a14e3d706
