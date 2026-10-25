@@ -442,6 +442,18 @@ from, and the reason it is a record rather than prose.
 - need: correct the four items on `steward/d29-cache-followups` in a brahim turn, then route PR #112 to hmdnah
 - cleared: 2026-10-24T00:29Z
 
+## B-20261024-02 T-064's 200 ms named-save bar at 16k fails on the first timed save, on a cost outside its scope
+
+- opened: 2026-10-24T11:18Z
+- by: zayd
+- scope: item
+- item: T-064
+- what: done-when 3 (`named-save.mjs` exits 0 on its 200 ms bar at 16k) is unmet, so T-064 stops incomplete per its row's note and PR #116 cannot pass step 2
+- why: in six unmodified runs at the PR head the first timed save held 165–246 ms and exceeded 200 ms in four (later saves 149–182 ms); the entries `structuredClone` that `postMessage` pays, which T-064 does not touch (`bnnZip.ts` "Entries are cloned, never transferred"), was 187–216 ms alone in the first iteration
+- evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser <chromium-1243 chrome>`, three runs at `4f43dea`: 165.2/181.5/161.1 PASS, 220.6/164.8/160.1 FAIL, 246.2/162.4/148.7 FAIL; figures in design §5 (T-064 paragraph) and `handoff/zayd/2026-10-24-T-064-records-one-buffer.md`
+- need: sequence a row that takes the 16k entries clone off the named save's main thread (BACKLOG `## Discovered` 2026-10-24) and make T-064's done-when 3 depend on it
+- cleared: -
+
 ## B-20261025-01 PR #118's `PR shape · reserved classes` check refuses every dependabot PR, so it cannot merge
 
 - opened: 2026-10-25T19:34Z
@@ -464,4 +476,28 @@ from, and the reason it is a record rather than prose.
 - why: three unmodified runs held 184.6/225.6/172.7, 299.4/165.9/165.5 and 167.9/161.3/162.1 ms and exited 1, 1, 0; the entries `structuredClone` alone was 148.9–263.2 ms; `agent_finish.py --review --step 2` would stamp T-064 `done` (`protocol.py:2469`), so the step-2 finish was not run
 - evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser ~/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome; echo $?` at `ef411ee`; figures in `handoff/hmdnah/2026-10-25-T-064-review-step-2.md` on `task/T-064-a-named-save-posts-its-geometry-cache-re`
 - need: sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k
+- cleared: -
+
+## B-20261025-03 T-065's done-when 1 and done-when 2 contradict on a cache-less save's transfer list
+
+- opened: 2026-10-25T20:56Z
+- by: zayd
+- scope: item
+- item: T-065
+- what: done-when 1 needs a cache-less save's packed buffer detached after the post, and done-when 2 needs T-064's test, which asserts that save transfers nothing, to pass unchanged, so both cannot hold
+- why: `tests/app-named-save-transfers-records-t064.test.ts:141` is `expect(posted.transfer).toEqual([])` for a cache-less save; with T-065's pack it fails, the only failure in `pnpm verify` (1 failed, 1064 passed); posting the cache-less entries unpacked instead turns T-065's cache-less cases red
+- evidence: `npx vitest run tests/app-named-save-transfers-records-t064.test.ts tests/app-named-save-transfers-entries-t065.test.ts` at `task/T-065-a-named-save-posts-its-entries-to-the-zi` prints 1 failed, "a scene without a cache posts no signing and transfers nothing"
+- need: amend T-065's done-when 2 or its cache-less case in a brahim turn so the two items agree, then route T-065 back to zayd
+- cleared: -
+
+## B-20261025-04 T-065's 200 ms named-save bar at 16k exits 0 in 1 of 3 runs after the entries clone is removed
+
+- opened: 2026-10-25T20:56Z
+- by: zayd
+- scope: item
+- item: T-065
+- what: done-when 4 (`named-save.mjs` exits 0 on its 200 ms bar at 16k in 3 of 3 unmodified runs) is unmet, so T-065 and T-064's done-when 3 stay open
+- why: three runs held 200.2/121.6/194.1, 211.2/204.1/125.0 and 143.6/141.3/136.6 ms and exited 1, 1, 0; the in-save split is `assembleUnsignedBnnEntries` 51.8–97.5 ms and the pack 55.2–123.3 ms, the other three steps 2.7–23.8 ms each
+- evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser ~/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome; echo $?` at `a3ebb93`; figures in design §5 (T-065 paragraph)
+- need: sequence the next shape off the named save's main thread (the row's note names the worker inflating carried entries from `reader.file`, `bnn.ts:378`) in a brahim turn, and make T-065's bar item depend on it
 - cleared: -

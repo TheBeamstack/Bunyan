@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-t064-entries-clone` |
-| branch | `steward/t064-entries-clone` |
-| claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #119 merged by `hmdnah` at 2026-10-25T20:38:40Z |
+| task | `T-065` |
+| branch | `task/T-065-a-named-save-posts-its-entries-to-the-zi` |
+| claimed-at | 2026-10-25T20:40:01Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -78,12 +78,21 @@ builder may claim.
 - **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
   - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
   - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261024-02** — `scope: item` · `item: T-064` — T-064's 200 ms named-save bar at 16k fails on the first timed save, on a cost outside its scope
+  - need: sequence a row that takes the 16k entries clone off the named save's main thread (BACKLOG `## Discovered` 2026-10-24) and make T-064's done-when 3 depend on it
+  - opened 2026-10-24T11:18Z by zayd · recorded in `docs/BLOCKERS.md`
 - **B-20261025-01** — `scope: item` · `item: PR#118` — PR #118's `PR shape · reserved classes` check refuses every dependabot PR, so it cannot merge
   - need: give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah
   - opened 2026-10-25T19:34Z by hmdnah · recorded in `docs/BLOCKERS.md`
 - **B-20261025-02** — `scope: item` · `item: PR#116` — PR #116's step 2 measured T-064's 200 ms named-save bar unmet at 16k, so it is not merged
   - need: sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k
   - opened 2026-10-25T19:50Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261025-03** — `scope: item` · `item: T-065` — T-065's done-when 1 and done-when 2 contradict on a cache-less save's transfer list
+  - need: amend T-065's done-when 2 or its cache-less case in a brahim turn so the two items agree, then route T-065 back to zayd
+  - opened 2026-10-25T20:56Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261025-04** — `scope: item` · `item: T-065` — T-065's 200 ms named-save bar at 16k exits 0 in 1 of 3 runs after the entries clone is removed
+  - need: sequence the next shape off the named save's main thread (the row's note names the worker inflating carried entries from `reader.file`, `bnn.ts:378`) in a brahim turn, and make T-065's bar item depend on it
+  - opened 2026-10-25T20:56Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -125,6 +134,9 @@ ACT.** It is mechanically available: `tests/freeze-boundary.test.ts` holds the f
 freezing is the policy change *"the baseline may no longer be updated without an owner ruling"*, with a
 machine holding the line afterwards.
 
+### T-065 — incomplete on this branch (carries T-064, PR #116)
+
+Done: entries, records and secret go to the zip worker in one transferred buffer for a cached save, and the in-save split is in design §5. Done-when 3 and 5 hold. Done-when 1 and 2 contradict on a cache-less save's transfer list (B-20261025-03), so the cache-less cases are `it.fails`, and done-when 4 exited 0 in 1 of 3 runs (B-20261025-04). Next, on this branch: a steward resolves both records, then re-run `named-save.mjs` 3 times. Never reword the bar.
 
 **Per-seat standing facts, the two items killed by measurement, the later/post-freeze list, the CLOSED list, and §6/§6a (environment, commands, box discipline) are `docs/CURRENT_STATE-reference.md`.**
 ---
@@ -205,4 +217,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: cd1ad7580937ad1c49762dab2fa4590ad00f627d
+last-verified-at: 9fc150712e8ef1c77580677a38681223be5b1fee

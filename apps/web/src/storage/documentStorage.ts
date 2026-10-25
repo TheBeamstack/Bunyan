@@ -28,7 +28,7 @@ import {
   type StorageAdapter,
 } from '@bunyan/document';
 
-import { createBnnZipper, type BnnZipper } from './bnnZip';
+import { createBnnZipper, type BnnZipper, type ZipStep } from './bnnZip';
 import { cacheIndexOpenerOn } from './cacheOpen';
 import { IndexedDbStore } from './indexeddb';
 import type { InitialDocument } from '../bootstrap';
@@ -74,10 +74,10 @@ function autosaveCounter(key: string): number {
   return Number(/autosave-(\d+)/.exec(key)?.[1] ?? 0);
 }
 
-/** The named save's zip worker (T-058); spawned once, on the first save. */
-export function spawnBnnZipper(): BnnZipper {
+/** The named save's zip worker (T-058); spawned once, on the first save. `observe`: `createBnnZipper`. */
+export function spawnBnnZipper(observe?: (step: ZipStep, ms: number) => void): BnnZipper {
   const worker = new Worker(new URL('./bnnZipWorker.ts', import.meta.url), { type: 'module' });
-  return createBnnZipper(worker);
+  return createBnnZipper(worker, observe);
 }
 
 /** Opens a loaded file's cache index on a worker spawned for that one open (T-061). */
@@ -110,7 +110,8 @@ export function namedSaveOptions(
 /**
  * A named save: the entries are assembled here (every `saveBnn` refusal), an unsigned cache's index is
  * signed and the whole zipped by `zipper` off the main thread (T-058, T-060), and stored under
- * `docKey(name)`. Its bytes equal `saveBnn(scene, options)`. Returns the key.
+ * `docKey(name)`. Its bytes equal `saveBnn(scene, options)`. Returns the key. `observe` gets the assembly's
+ * duration (`save-check`, T-065).
  */
 export async function saveDocument(
   store: StorageAdapter,
@@ -118,8 +119,11 @@ export async function saveDocument(
   scene: Scene,
   options: SaveOptions,
   zipper: BnnZipper,
+  observe?: (step: 'assemble', ms: number) => void,
 ): Promise<string> {
+  const assembling = performance.now();
   const { entries, signing } = assembleUnsignedBnnEntries(scene, options);
+  observe?.('assemble', performance.now() - assembling);
   const bytes = await zipper.zip(entries, signing);
   const key = docKey(name);
   await store.write(key, bytes);
