@@ -16,11 +16,18 @@ import {
   createRegistries,
   loadBnn,
   saveBnn,
+  serializeRecords,
   type CacheEnvelope,
   type GeometryGateway,
 } from '@bunyan/document';
 
-import { createStore, namedSaveOptions, saveDocument, spawnBnnZipper } from './documentStorage';
+import {
+  createStore,
+  namedSaveOptions,
+  openCacheIndexInWorker,
+  saveDocument,
+  spawnBnnZipper,
+} from './documentStorage';
 
 export interface SaveCheckResult {
   readonly mode: 'worker' | 'main';
@@ -32,8 +39,12 @@ export interface SaveCheckResult {
   readonly bytes: number;
   /** `doc.geometryCacheFiles()` alone, after the save: every root's key recomputed and carried (T-060). */
   readonly cacheFilesMs: number;
-  /** `structuredClone` of what the worker save posts beside the entries: records, envelope, secret. */
-  readonly cloneSigningMs: number;
+  /** `serializeRecords` of the records, what the zipper does before it posts them as one buffer (T-064). */
+  readonly serializeRecordsMs: number;
+  /** `assembleUnsignedBnnEntries` alone: the manifest, `scene.json` and the entry map (T-064). */
+  readonly assembleMs: number;
+  /** `structuredClone` of the entries, which `postMessage` copies: they are the doc's own buffers (T-064). */
+  readonly cloneEntriesMs: number;
 }
 
 declare global {
@@ -68,10 +79,17 @@ async function main(): Promise<void> {
     geometry: {} as GeometryGateway, // a save calls no kernel op (design §5)
     scene: pkg.scene,
     // The T-060 test's fixture secret: the file was signed with it, so every record verifies and carries.
-    geometryCache: { files: reader, current: envelope, installSecret: new Uint8Array(32).fill(7) },
+    // Opened on the app's cache-open worker, as `bootstrap` does (T-061, T-063).
+    geometryCache: {
+      files: reader,
+      current: envelope,
+      installSecret: new Uint8Array(32).fill(7),
+      openIndex: openCacheIndexInWorker,
+    },
   });
-  // The first call opens and verifies the index (the open-side HMAC, T-061's); later saves reuse it.
+  // The open and the first `geometryCacheFiles()` (every root keyed and parsed); later saves reuse both.
   const opened = performance.now();
+  await doc.openGeometryCache();
   const roots = Object.keys(doc.geometryCacheFiles()?.records ?? {}).length;
   const openMs = performance.now() - opened;
   const kernelBuildId = pkg.manifest.kernelBuildId;
@@ -115,10 +133,15 @@ async function main(): Promise<void> {
     const filesAt = performance.now();
     const options = namedSaveOptions(doc, kernelBuildId);
     const cacheFilesMs = performance.now() - filesAt;
-    const { signing } = assembleUnsignedBnnEntries(doc.scene, options);
+    const assembleAt = performance.now();
+    const { entries, signing } = assembleUnsignedBnnEntries(doc.scene, options);
+    const assembleMs = performance.now() - assembleAt;
     const cloneAt = performance.now();
-    structuredClone(signing);
-    const cloneSigningMs = performance.now() - cloneAt;
+    structuredClone(entries);
+    const cloneEntriesMs = performance.now() - cloneAt;
+    const serializeAt = performance.now();
+    if (signing !== undefined) serializeRecords(signing.records);
+    const serializeRecordsMs = performance.now() - serializeAt;
     const result = {
       mode,
       ms,
@@ -127,7 +150,9 @@ async function main(): Promise<void> {
       maxGapMs,
       bytes,
       cacheFilesMs,
-      cloneSigningMs,
+      serializeRecordsMs,
+      assembleMs,
+      cloneEntriesMs,
     };
     log(JSON.stringify(result));
     return result;

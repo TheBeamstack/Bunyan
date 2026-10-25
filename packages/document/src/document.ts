@@ -57,7 +57,7 @@ import type { ElementBounds, UnprojectedElement, ViewResult } from './view.js';
 import { isDerivedChildId } from './geometry.js';
 import { affectedAssemblies, assemblyRoot, buildAssembly, childStyleUsers } from './build.js';
 import { cacheInputKey, cacheKeyTables, cacheTablesDigest } from './cachekey.js';
-import { sameCacheEnvelope } from './cachesign.js';
+import { keepRecordJson, sameCacheEnvelope } from './cachesign.js';
 import type { CacheKeyTables } from './cachekey.js';
 import type { CacheEnvelope, UnsignedGeometryCache } from './cachesign.js';
 import {
@@ -224,6 +224,8 @@ interface StagedRebuild {
   readonly built: readonly ElementId[];
   readonly restored: readonly ElementId[];
 }
+
+const recordEncoder = new TextEncoder();
 
 /** An assembly `exportCacheIdle` exported: its record keyed against the scene it was exported in. */
 interface ExportedEntry {
@@ -713,7 +715,10 @@ export class DocumentContext {
       );
       if (exported === undefined || this.#geometryByElement.get(root) !== live) continue;
       const key = this.#keyOf(this.#keyedFor(this.#scene), root);
-      this.#exported.set(root, { record: { key, ...exported.record }, files: exported.files });
+      const record: CacheRecord = { key, ...exported.record };
+      // Stringified here, in idle time, so a save posts these bytes instead (T-064).
+      keepRecordJson(record, recordEncoder.encode(JSON.stringify(record)));
+      this.#exported.set(root, { record, files: exported.files });
     }
     return this.#exportQueue.size;
   }

@@ -52,6 +52,32 @@ Converts B-20261024-02 / B-20261025-02 (the 16k entries `structuredClone`, 143�
 T-066 (blocked on T-065): the first save after an open or edit, 1437.9 ms in `geometryCacheFiles()`, untimed by `save-check`. From an R39 diagnosis; no Chrome figure measured.
 Body: `handoff/brahim/2026-10-25-STEWARD-t064-entries-clone-t065.md`
 
+## T-064 — review step 2 of PR #116 — 2026-10-25 — seat: hmdnah
+
+CHANGES REQUESTED; not approved, not merged, row stays `review` (B-20261025-02). Done-when 3 unmet at `ef411ee`: `named-save.mjs` 16k
+exited 1 in 2 of 3 runs (184.6/225.6/172.7, 299.4/165.9/165.5, 167.9/161.3/162.1 ms). Item 1: post reverted → 2 red; restored → 3 green.
+Items 2, 3, 6: no defect. `pnpm verify` green; CI green; not owner-gated.
+Body: `handoff/hmdnah/2026-10-25-T-064-review-step-2.md`
+
+## T-064 — the 200 ms bar at 16k is unmet; figures recorded — 2026-10-24 — seat: zayd
+
+Three unmodified `named-save.mjs` runs at `4f43dea`: first saves 165.2 / 220.6 / 246.2 ms, later saves 148.7–181.5 ms; exit 0 once, 1 twice.
+The entries clone alone is 187–216 ms on the first iteration, and T-064 does not touch it. Design §5:242 is corrected; the bar and the done-when are unchanged. B-20261024-02. Incomplete.
+Body: `handoff/zayd/2026-10-24-T-064-records-one-buffer.md` (continue-turn section)
+
+## T-064 — review step 1 of PR #116 — 2026-10-24 — seat: hmdnah
+
+Item 1 at `7e40bfd`: posting `signing` as objects again → "one transferred ArrayBuffer: expected [] to have a length of 1"; restored → 3 passed. No build defect proven; no approval.
+Done-when 3 does not reproduce: `named-save.mjs` 16k exited 1 in 2 of 3 runs, each time on the first timed save (206.2 and 233.1 ms). Back to `zayd`.
+The first `geometryCacheFiles()` after an open takes 1437.9 ms and is outside the bar. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-24-T-064-review-step-1.md`
+
+## T-064 — a named save posts its geometry-cache records to the zip worker as one transferred buffer — 2026-10-24 — seat: zayd
+
+Record JSON is kept at export and at open (`keepRecordJson`). `createBnnZipper` posts it as one transferred buffer, and the worker parses, signs and zips; the bytes equal `saveBnn`.
+T-064 test 3 passed; posting the record objects again → "one transferred ArrayBuffer: expected [] to have a length of 1". `pnpm verify` green (1061 passed). `named-save.mjs` 16k: 154–181 ms PASS in 3 runs, 210–255 ms FAIL in 1.
+Body: `handoff/zayd/2026-10-24-T-064-records-one-buffer.md`
+
 ## T-063 — review step 2 of PR #114 — 2026-10-24 — seat: hmdnah
 
 APPROVED, no defect proven, against done-when 4 as amended by #115. Item 1 at `2a32426`: caller `read('index.json')` restored → "expected 1 to be +0"; restored → 12 passed | 1 skipped.
