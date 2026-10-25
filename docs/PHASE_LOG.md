@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-064 — review step 2 of PR #116 — 2026-10-25 — seat: hmdnah
+
+CHANGES REQUESTED; not approved, not merged, row stays `review` (B-20261025-02). Done-when 3 unmet at `ef411ee`: `named-save.mjs` 16k
+exited 1 in 2 of 3 runs (184.6/225.6/172.7, 299.4/165.9/165.5, 167.9/161.3/162.1 ms). Item 1: post reverted → 2 red; restored → 3 green.
+Items 2, 3, 6: no defect. `pnpm verify` green; CI green; not owner-gated.
+Body: `handoff/hmdnah/2026-10-25-T-064-review-step-2.md`
+
 ## T-064 — the 200 ms bar at 16k is unmet; figures recorded — 2026-10-24 — seat: zayd
 
 Three unmodified `named-save.mjs` runs at `4f43dea`: first saves 165.2 / 220.6 / 246.2 ms, later saves 148.7–181.5 ms; exit 0 once, 1 twice.
