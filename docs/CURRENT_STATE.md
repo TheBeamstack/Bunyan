@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-t064-entries-clone` |
-| branch | `steward/t064-entries-clone` |
-| claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #119 merged by `hmdnah` at 2026-10-25T20:38:40Z |
+| task | `T-065` |
+| branch | `task/T-065-a-named-save-posts-its-entries-to-the-zi` |
+| claimed-at | 2026-10-25T20:40:01Z |
+| status | working |
 
 <!-- END BATON -->
 
