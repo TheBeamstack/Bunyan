@@ -7,16 +7,15 @@
  * named save and reports the longest main-thread task. `worker` is the app's save (`namedSaveOptions`, so
  * `doc.geometryCacheFiles()`, then `saveDocument` + the zip worker, into IndexedDB); `main` is `saveBnn`
  * of the same options on the main thread, the control that shows the observer sees the deflate and the
- * HMAC. Driven by `tools/browser-check/named-save.mjs`, whose file is signed with the fixture's secret.
+ * HMAC. A worker save reports its main-thread steps as timed inside it (T-065). Driven by
+ * `tools/browser-check/named-save.mjs`, whose file is signed with the fixture's secret.
  */
 
 import {
   DocumentContext,
-  assembleUnsignedBnnEntries,
   createRegistries,
   loadBnn,
   saveBnn,
-  serializeRecords,
   type CacheEnvelope,
   type GeometryGateway,
 } from '@bunyan/document';
@@ -37,14 +36,17 @@ export interface SaveCheckResult {
   /** The widest gap between two runs of a 0 ms timer chain: the longest the main thread was held. */
   readonly maxGapMs: number;
   readonly bytes: number;
-  /** `doc.geometryCacheFiles()` alone, after the save: every root's key recomputed and carried (T-060). */
-  readonly cacheFilesMs: number;
-  /** `serializeRecords` of the records, what the zipper does before it posts them as one buffer (T-064). */
-  readonly serializeRecordsMs: number;
-  /** `assembleUnsignedBnnEntries` alone: the manifest, `scene.json` and the entry map (T-064). */
-  readonly assembleMs: number;
-  /** `structuredClone` of the entries, which `postMessage` copies: they are the doc's own buffers (T-064). */
-  readonly cloneEntriesMs: number;
+  /** A worker save's main-thread steps, timed inside it (T-065); zero for `main`. */
+  readonly split: SaveSplit;
+}
+
+/** `namedSaveOptions` (`geometryCacheFiles()`), `assembleUnsignedBnnEntries`, then the zipper's steps. */
+export interface SaveSplit {
+  geometryCacheFilesMs: number;
+  assembleMs: number;
+  serializeRecordsMs: number;
+  packMs: number;
+  postMs: number;
 }
 
 declare global {
@@ -59,6 +61,14 @@ declare global {
 const log = (line: string): void => {
   document.getElementById('log')!.textContent += `${line}\n`;
 };
+
+const emptySplit = (): SaveSplit => ({
+  geometryCacheFilesMs: 0,
+  assembleMs: 0,
+  serializeRecordsMs: 0,
+  packMs: 0,
+  postMs: 0,
+});
 
 const frame = (): Promise<void> =>
   new Promise((resolve) => {
@@ -94,7 +104,10 @@ async function main(): Promise<void> {
   const openMs = performance.now() - opened;
   const kernelBuildId = pkg.manifest.kernelBuildId;
   const store = createStore();
-  const zipper = spawnBnnZipper();
+  let split: SaveSplit = emptySplit();
+  const zipper = spawnBnnZipper((step, ms) => {
+    split[`${step}Ms`] += ms;
+  });
 
   window.__saveCheck = async (mode) => {
     // Two independent views of a stall: Long Tasks entries, and the widest gap a 0 ms timer chain sees.
@@ -116,9 +129,13 @@ async function main(): Promise<void> {
     await frame();
     const start = performance.now();
     let bytes: number;
+    split = emptySplit();
     if (mode === 'worker') {
       const options = namedSaveOptions(doc, kernelBuildId);
-      const key = await saveDocument(store, 'save-check', doc.scene, options, zipper);
+      split.geometryCacheFilesMs = performance.now() - start;
+      const key = await saveDocument(store, 'save-check', doc.scene, options, zipper, (_, ms) => {
+        split.assembleMs += ms;
+      });
       bytes = (await store.read(key))!.length;
     } else {
       bytes = saveBnn(doc.scene, namedSaveOptions(doc, kernelBuildId)).length;
@@ -129,19 +146,6 @@ async function main(): Promise<void> {
     beating = false;
     for (const entry of observer.takeRecords()) tasks.push(entry.duration);
     observer.disconnect();
-    // The two main-thread costs the worker save still pays, timed alone after it.
-    const filesAt = performance.now();
-    const options = namedSaveOptions(doc, kernelBuildId);
-    const cacheFilesMs = performance.now() - filesAt;
-    const assembleAt = performance.now();
-    const { entries, signing } = assembleUnsignedBnnEntries(doc.scene, options);
-    const assembleMs = performance.now() - assembleAt;
-    const cloneAt = performance.now();
-    structuredClone(entries);
-    const cloneEntriesMs = performance.now() - cloneAt;
-    const serializeAt = performance.now();
-    if (signing !== undefined) serializeRecords(signing.records);
-    const serializeRecordsMs = performance.now() - serializeAt;
     const result = {
       mode,
       ms,
@@ -149,10 +153,7 @@ async function main(): Promise<void> {
       longTasks: tasks.length,
       maxGapMs,
       bytes,
-      cacheFilesMs,
-      serializeRecordsMs,
-      assembleMs,
-      cloneEntriesMs,
+      split,
     };
     log(JSON.stringify(result));
     return result;

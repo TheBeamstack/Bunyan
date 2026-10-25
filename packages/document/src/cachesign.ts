@@ -189,16 +189,25 @@ export function keepRecordJson(record: object, json: Uint8Array): void {
   recordJson.set(record, json);
 }
 
-/** `records` as one buffer, in key order: a kept record's bytes are copied, any other is stringified. */
-export function serializeRecords(
-  records: Readonly<Record<string, unknown>>,
-): SerializedCacheRecords {
+/** Each record's JSON bytes, in key order: a kept record's bytes, any other stringified (T-064, T-065). */
+export function recordJsonChunks(records: Readonly<Record<string, unknown>>): {
+  readonly roots: readonly string[];
+  readonly chunks: readonly Uint8Array[];
+} {
   const roots = Object.keys(records);
   const chunks = roots.map((root) => {
     const record = records[root];
     const kept = typeof record === 'object' && record !== null ? recordJson.get(record) : undefined;
     return kept ?? encoder.encode(JSON.stringify(record));
   });
+  return { roots, chunks };
+}
+
+/** `records` as one buffer, in key order: a kept record's bytes are copied, any other is stringified. */
+export function serializeRecords(
+  records: Readonly<Record<string, unknown>>,
+): SerializedCacheRecords {
+  const { roots, chunks } = recordJsonChunks(records);
   const offsets = [0];
   for (const chunk of chunks) offsets.push(offsets[offsets.length - 1]! + chunk.length);
   const json = new Uint8Array(offsets[offsets.length - 1]!);
