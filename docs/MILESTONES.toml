@@ -81,8 +81,18 @@
 #
 # ════════════════════════════════════════════════════════════════════════════════════════════════
 
+[[release]]
+id = "R-bunyan-01"
+portfolio = "beamstack"
+goal = "the P5 step 6 freeze: SubShapeRef, BimObjectType, Command, scene.json, ParamSchema and UndoableEdit freeze with every pre-freeze reservation in them"
+done_when = ["owner:the P5 step 6 freeze is made: the tests/freeze-boundary.test.ts baseline may no longer be updated without an owner ruling"]
+covers = ["M-bunyan-01", "M-bunyan-02"]
+due = "2026-11-29"
+approved = ""
+
 [[milestone]]
 id = "M-bunyan-01"
+release = "R-bunyan-01"
 portfolio = "beamstack"
 goal = "the pre-freeze reservations land: dimension anchors, billable faces and motion tags are in the contract before the freeze"
 done_when = []
@@ -93,6 +103,7 @@ approved = ""
 
 [[milestone]]
 id = "M-bunyan-02"
+release = "R-bunyan-01"
 portfolio = "beamstack"
 goal = "a D52 baseline wall moves, rotates and copies through its motion tags, openings included"
 done_when = []
