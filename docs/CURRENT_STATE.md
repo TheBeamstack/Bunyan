@@ -87,6 +87,12 @@ builder may claim.
 - **B-20261025-02** — `scope: item` · `item: PR#116` — PR #116's step 2 measured T-064's 200 ms named-save bar unmet at 16k, so it is not merged
   - need: sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k
   - opened 2026-10-25T19:50Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261025-03** — `scope: item` · `item: T-065` — T-065's done-when 1 and done-when 2 contradict on a cache-less save's transfer list
+  - need: amend T-065's done-when 2 or its cache-less case in a brahim turn so the two items agree, then route T-065 back to zayd
+  - opened 2026-10-25T20:56Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261025-04** — `scope: item` · `item: T-065` — T-065's 200 ms named-save bar at 16k exits 0 in 1 of 3 runs after the entries clone is removed
+  - need: sequence the next shape off the named save's main thread (the row's note names the worker inflating carried entries from `reader.file`, `bnn.ts:378`) in a brahim turn, and make T-065's bar item depend on it
+  - opened 2026-10-25T20:56Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

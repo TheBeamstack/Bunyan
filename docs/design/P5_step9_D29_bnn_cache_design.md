@@ -245,6 +245,13 @@ four, the second and third held 149–182 ms, and the tool exited 0 in two; the 
 alone was 187–216 ms in zayd's three. It is not measured for the first save
 after an open: the page's first `geometryCacheFiles()`, which keys and parses every root, runs before the saves.
 
+**T-065** packs the entries, the records' JSON and a copy of the secret into one fresh buffer, transfers it, and
+the worker unpacks views in name order (`packZipRequest`, `tests/app-named-save-transfers-entries-t065.test.ts`).
+Measured as T-064 (box, 2026-10-25, three unmodified runs at `a3ebb93`), with `save-check` timing each step inside
+the save: the main thread is held **121.6–211.2 ms** per save, the five steps' sum, and the tool exited 1, 1, 0.
+In-save split: `geometryCacheFiles()` 5.3–23.8 ms, `assembleUnsignedBnnEntries` 51.8–97.5 ms, `serializeRecords`
+5.2–6.9 ms, pack 55.2–123.3 ms, post 2.7–6.9 ms. The entries clone is gone; assembly and the pack's copy (R4's table: 43.9 MB `.brep`, ~61 MB records) remain.
+
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
 `SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.

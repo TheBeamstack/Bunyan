@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-065 — entries, records and secret in one transferred buffer; the bar holds in 1 of 3 — 2026-10-25 — seat: zayd
+
+The T-065 test passes 4 of 4, and posting the entries object again fails 4 of 4. `pnpm verify`: 1 failed, 1064 passed. The one failure is T-064's cache-less `transfer` toEqual([]), which contradicts done-when 1 (B-20261025-03).
+`named-save.mjs` 16k at `a3ebb93`: 200.2/121.6/194.1, 211.2/204.1/125.0 and 143.6/141.3/136.6 ms; exit 1, 1, 0 (B-20261025-04). Split: assemble 51.8–97.5 ms, pack 55.2–123.3 ms. Incomplete.
+Body: `handoff/zayd/2026-10-25-T-065-entries-one-buffer.md`
+
 ## STEWARD-t064-entries-clone — review of PR #119 — 2026-10-25 — seat: hmdnah
 
 APPROVED, merged via `agent_merge.py --seat hmdnah --pr 119`. Item 1: T-065's `implements:` deleted → `gates.py docs` exit 1 "T-065 has no 'implements:'"; restored → ✓.
