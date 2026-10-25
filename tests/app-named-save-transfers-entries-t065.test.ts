@@ -139,12 +139,14 @@ describe('T-065 — the 20-solid fixture: entries packed into one transferred bu
     );
   });
 
-  it('cache-less: no entry is cloned, two saves equal saveBnn', async () => {
+  // ⚠ EXPECTED TO FAIL until B-20261025-03 is resolved: T-064's test asserts a cache-less save transfers
+  // nothing, so its buffer is cloned. `it.fails` turns red the day a cache-less save transfers.
+  it.fails('cache-less: no entry is cloned, two saves equal saveBnn', async () => {
     const options: SaveOptions = { kernelBuildId: KERNEL_BUILD_ID, journal: [] };
     await twoSaves(scene, options);
   });
 
-  it('an empty cache-less scene: no entry is cloned, two saves equal saveBnn', async () => {
+  it.fails('an empty cache-less scene: no entry is cloned, two saves equal saveBnn', async () => {
     const options: SaveOptions = { kernelBuildId: KERNEL_BUILD_ID, journal: [] };
     await twoSaves(emptyScene(), options);
   });

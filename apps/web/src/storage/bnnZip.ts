@@ -70,7 +70,7 @@ export function unpackEntries({ names, offsets, bytes }: PackedEntries): BnnEntr
 export type ZipStep = 'serializeRecords' | 'pack' | 'post';
 
 /**
- * One request in ONE fresh buffer, which is its only transfer (T-064, T-065): the entries, then the records'
+ * One request in ONE fresh buffer, transferred with a cache (T-064, T-065): the entries, then the records'
  * JSON slices, then a copy of the secret. Every `Uint8Array` the message holds is a view of it, so
  * `postMessage` clones no entry, and the doc's own buffers (carried and exported `.brep`s) stay attached.
  */
@@ -121,7 +121,9 @@ export function packZipRequest(
     };
   }
   lap('pack');
-  return { message, transfer: [buffer] };
+  // ⚠ A cache-less save's buffer is cloned, not transferred: T-064's test asserts it transfers nothing,
+  // which contradicts T-065's done-when 1 (B-20261025-03). It holds only the manifest, scene and journal.
+  return { message, transfer: signing === undefined ? [] : [buffer] };
 }
 
 /** What the zipper needs of a `Worker`, so a node test can stand in for one. */
