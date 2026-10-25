@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-t064-entries-clone` |
 | branch | `steward/t064-entries-clone` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #119 merged by `hmdnah` at 2026-10-25T20:38:40Z |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 1548c249ddc09e26028b3428175bb17a14e3d706
+last-verified-at: cd1ad7580937ad1c49762dab2fa4590ad00f627d
