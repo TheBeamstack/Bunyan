@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-065 — review step 1 of PR #120 — 2026-10-25 — seat: hmdnah
+
+No build defect proven; no approval. Item 1 at `2a3b9db`: entries object posted again → "no Uint8Array outside the transferred buffers"; T-064's kept JSON ignored → "the caller stringifies no record"; restored → green.
+B-20261025-03 confirmed (transfer always → 3 failed). `named-save.mjs` 16k: 124.4/117.1/180.9, 132.5/119.2/189.9, 188.0/132.0/131.8 ms, exit 0 ×3; pack 53.4–111.9 ms, assemble 49.5–64.1 ms. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-25-T-065-review-step-1.md`
+
 ## T-065 — entries, records and secret in one transferred buffer; the bar holds in 1 of 3 — 2026-10-25 — seat: zayd
 
 The cached and carried T-065 cases pass, and posting the entries object again fails them. A cache-less save is cloned, because T-064's `transfer` toEqual([]) contradicts done-when 1, and its 2 cases are `it.fails` (B-20261025-03).
