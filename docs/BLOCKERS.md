@@ -441,3 +441,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `git diff 624b5ba..34bffdd`; `grep -n 'Discovered' docs/design/P5_step9_D29_bnn_cache_design.md`; `sed -n 81p;94p packages/document/src/cachesign.ts`; `node tools/browser-check/named-save.mjs; echo $?` prints the usage line and 2; full list in `handoff/hmdnah/2026-10-24-STEWARD-d29-cache-followups-review.md`
 - need: correct the four items on `steward/d29-cache-followups` in a brahim turn, then route PR #112 to hmdnah
 - cleared: 2026-10-24T00:29Z
+
+## B-20261025-01 PR #118's `PR shape · reserved classes` check refuses every dependabot PR, so it cannot merge
+
+- opened: 2026-10-25T19:34Z
+- by: hmdnah
+- scope: item
+- item: PR#118
+- what: dependabot's vite 6.4.3 → 6.4.4 bump is red and unroutable, so it is not reviewed or merged
+- why: `scripts/pr-ready.mjs:27` accepts only a `T-nnn: ` or `STEWARD: ` title and dependabot titles its PRs `Bump …`; CI run 40150898247 exits 1 on "the PR title does not route", and agent_start.py prints PR #118 as "no routable title — reviewer cannot be routed"
+- evidence: `gh run view 40150898247 --log-failed`; `node scripts/pr-ready.mjs --title 'Bump vite from 6.4.3 to 6.4.4'; echo $?` prints the refusal and 1
+- need: give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah
+- cleared: -
