@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-063` |
-| branch | `task/T-063-opening-a-file-inflates-its-geometry-cac` |
+| task | `STEWARD-t064-entries-clone` |
+| branch | `steward/t064-entries-clone` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #114 merged by `hmdnah` at 2026-10-24T08:55:42Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -205,4 +205,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a5a95c7ef6d5432cc701141522e0b31c48943589
+last-verified-at: 6f5fd669da3cdc1f26b6b820a820f8f3baa148a8
