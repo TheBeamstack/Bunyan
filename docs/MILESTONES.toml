@@ -1,0 +1,112 @@
+# docs/MILESTONES.toml — this lane's milestones: what it builds towards, and by when.
+#
+# ════════════════════════════════════════════════════════════════════════════════════════════════
+#  HOW TO EDIT THIS FILE
+# ════════════════════════════════════════════════════════════════════════════════════════════════
+#
+# The steward copies this file from diwan `docs/MILESTONES-TEMPLATE.toml` to `.agent.toml [paths]
+# milestones` (default `docs/MILESTONES.toml`, beside the decisions file) and proposes milestones in it.
+# The owner approves one by writing the day's date in its `approved` line, on GitHub (pencil icon →
+# "Commit directly to the main branch"). Once a day diwan copies every approved block into its
+# `docs/owner/ROADMAP.toml`, where the owner sets each one's weight (the lane's share of the accounts).
+# Check this file on the lane's checkout with:   python3 $DIWAN/scripts/owner_files.py check --lane <repo>
+#
+# Who writes what: the steward appends a block with `approved = ""` (at most 3 open at once) and edits
+# only such blocks; the owner may edit any field, and alone writes `approved` and `dropped`. A change to
+# an approved block is not copied until the owner writes a new date in its `approved` line (`dropped`
+# excepted): until then ROADMAP keeps the approved copy and the digest says what changed, once.
+#
+# One [[milestone]] block per milestone. The lane's ACTIVE milestone is its first block, top to bottom,
+# that is approved and not dropped; its steward builds from it first. To change the sequence, move the blocks.
+#
+#   id         "M-<lane>-NN": the lane's name in diwan docs/lanes.toml and the next two-digit number; never reuse one.
+#   portfolio  "beamstack" or "revenue" (the apps that fund Beamstack): which folder of the
+#              progress record it is reported in.
+#   goal       one line: the result, not a task list.
+#   done_when  extra checks beyond "every covered task is done"; [] = none. Each is one of:
+#                "task:<repo>#T-nnn"   that task's row is done on main
+#                "epic:X-nnn"          every child of that CROSS.md epic is done
+#                "tag:<repo>@<name>"   that tag exists
+#                "file:<repo>:<path>"  that file exists on main
+#                "owner:<sentence>"    the owner confirms it when everything else is done
+#   covers     the tasks it is made of: "T-nnn" (this lane), "<repo>#T-nnn" or "X-nnn". The steward
+#              may add more later by tagging a task with the milestone; the report shows it.
+#   due        "YYYY-MM-DD", the target date; later than the day it was approved.
+#   size       how many tasks it should take, 1 to 50; the progress % never counts fewer.
+#   approved   "" while proposed; the owner's "YYYY-MM-DD" once approved.
+#   dropped    optional, owner only; a reason, e.g. "superseded by M-bunyan-03". A dropped one is never active.
+#
+# ── EXAMPLES ─────────────────────────────────────────────────────────────────────────────────────
+#
+# Propose a milestone (steward) — paste a block at the end of the file and fill it in:
+#
+#     [[milestone]]
+#     id = "M-bunyan-01"
+#     portfolio = "beamstack"
+#     goal = "the D29 cache ships in a release candidate"
+#     done_when = ["tag:Bunyan@v1.0.0-rc1"]
+#     covers = ["T-038", "T-039", "T-040", "T-041", "T-042", "T-043", "T-044", "T-045"]
+#     due = "2026-11-30"
+#     size = 8
+#     approved = ""
+#
+# Approve it (owner) — write today's date:
+#
+#     approved = "2026-10-23"
+#
+# Move a date (owner) — change `due`, and write today's date in `approved` so the change is copied:
+#
+#     due = "2026-12-15"
+#     approved = "2026-11-02"
+#
+# Drop it (owner) — add a `dropped` line with the reason; the next block becomes active:
+#
+#     dropped = "replaced by the native renderer"
+#
+# ── COMMON MISTAKES (each one is refused, with the line number) ─────────────────────────────────
+#
+#   id = "M-bunyan-1" or "bunyan-01" → "M-<lane>-NN" with this lane's name and two digits.
+#   the same id twice                → each milestone has its own id.
+#   lane = "bunyan" or weight = 4    → not here: the lane is this repo's, the weight is in diwan's ROADMAP.toml.
+#   portfolio = "Beamstack"          → "beamstack" or "revenue", lower case.
+#   done_when = ["tests pass"]       → only the five kinds of check above.
+#   covers = "T-041"                 → a list in brackets, even for one: ["T-041"].
+#   covers = [41]                    → each task in quotes, with its T-: "T-041".
+#   due = "30/11/2026"               → "YYYY-MM-DD".
+#   approved = "yes"                 → "" or "YYYY-MM-DD".
+#   due on or before `approved`      → a target date is later than its approval.
+#   size = 0                         → a whole number 1 to 50.
+#   a 4th block with approved = ""   → at most 3 proposals open at once.
+#   a block without its [[milestone]] line → each block starts with [[milestone]].
+#
+# ════════════════════════════════════════════════════════════════════════════════════════════════
+
+[[milestone]]
+id = "M-bunyan-01"
+portfolio = "beamstack"
+goal = "the pre-freeze reservations land: dimension anchors, billable faces and motion tags are in the contract before the freeze"
+done_when = []
+covers = ["T-033", "T-034", "T-050"]
+due = "2026-11-08"
+size = 3
+approved = ""
+
+[[milestone]]
+id = "M-bunyan-02"
+portfolio = "beamstack"
+goal = "a D52 baseline wall moves, rotates and copies through its motion tags, openings included"
+done_when = []
+covers = ["T-051", "T-036"]
+due = "2026-11-22"
+size = 2
+approved = ""
+
+[[milestone]]
+id = "M-bunyan-03"
+portfolio = "beamstack"
+goal = "the section chord tolerance is asserted, and a named save hands its cache records to the zip worker in one buffer"
+done_when = []
+covers = ["T-037", "T-064"]
+due = "2026-11-29"
+size = 2
+approved = ""
