@@ -453,3 +453,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh run view 40150898247 --log-failed`; `node scripts/pr-ready.mjs --title 'Bump vite from 6.4.3 to 6.4.4'; echo $?` prints the refusal and 1
 - need: give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah
 - cleared: -
+
+## B-20261025-02 PR #116's step 2 measured T-064's 200 ms named-save bar unmet at 16k, so it is not merged
+
+- opened: 2026-10-25T19:50Z
+- by: hmdnah
+- scope: item
+- item: PR#116
+- what: T-064's done-when 3 (`named-save.mjs` exits 0 on its 200 ms bar at 16k) is unmet at head `ef411ee`, so PR #116 gets changes requested, not a merge; zayd's B-20261024-02 records the same gap but only on the PR branch, so `main` still routed PR #116 to step 2
+- why: three unmodified runs held 184.6/225.6/172.7, 299.4/165.9/165.5 and 167.9/161.3/162.1 ms and exited 1, 1, 0; the entries `structuredClone` alone was 148.9–263.2 ms; `agent_finish.py --review --step 2` would stamp T-064 `done` (`protocol.py:2469`), so the step-2 finish was not run
+- evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser ~/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome; echo $?` at `ef411ee`; figures in `handoff/hmdnah/2026-10-25-T-064-review-step-2.md` on `task/T-064-a-named-save-posts-its-geometry-cache-re`
+- need: sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k
+- cleared: -
