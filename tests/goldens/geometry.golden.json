@@ -1,11 +1,11 @@
 {
   "$schema": "bunyan.goldens.v1",
-  "seededAt": "2026-08-21T10:09:41.777004+00:00",
+  "seededAt": "2026-10-26T22:05:12.913467+00:00",
   "env": {
     "oracle": "cadquery-ocp (OCP bindings to OCCT)",
     "ocpVersion": "7.9.3.1.1",
     "python": "3.12.13",
-    "platform": "Linux-7.0.0-22-generic-x86_64-with-glibc2.43"
+    "platform": "Linux-6.17.0-1020-oracle-aarch64-with-glibc2.39"
   },
   "note": "Scope (spec \u00a79.0): we trust OCCT; we verify our own code. `crossCheck` is the PRIMARY oracle \u2014 a native OCCT build (OCP), which catches our WASM-build and op-wiring errors. `analytic` is a closed-form sanity check that guards our own measurement/seeding code; the seeder aborts if the two disagree. Regression snapshots live in the TS harness.",
   "cases": [
@@ -266,7 +266,7 @@
         "radius": 50.0
       },
       "crossCheck": {
-        "volume": 1498658738.5212338,
+        "volume": 1498658738.521234,
         "area": 17145276.53166635,
         "edgeLength": 25257.079632679488,
         "counts": {
@@ -569,7 +569,7 @@
       },
       "crossCheck": {
         "volume": 5359119022.502015,
-        "area": 57718485.44302178,
+        "area": 57718485.44302177,
         "edgeLength": 42072.952180016124,
         "counts": {
           "solids": 1,
@@ -585,7 +585,7 @@
           ],
           "max": [
             7000.0,
-            4000.0000000000005,
+            4000.0,
             200.0
           ]
         }
@@ -607,8 +607,8 @@
         "distance": 50.0
       },
       "crossCheck": {
-        "volume": 1496874999.9999983,
-        "area": 17124276.695296634,
+        "volume": 1496874999.9999995,
+        "area": 17124276.695296638,
         "edgeLength": 25241.42135623731,
         "counts": {
           "solids": 1,
@@ -623,7 +623,7 @@
             0.0
           ],
           "max": [
-            3000.0000000000005,
+            3000.0,
             200.0,
             2500.0
           ]
@@ -681,7 +681,7 @@
         }
       },
       "crossCheck": {
-        "volume": 212057504.1173111,
+        "volume": 212057504.11731106,
         "area": 2968805.0576423546,
         "edgeLength": 4884.955592153876,
         "counts": {
@@ -757,7 +757,7 @@
       "crossCheck": {
         "volume": 7068583470.577034,
         "area": 32986722.862692825,
-        "edgeLength": 24849.555921538762,
+        "edgeLength": 24849.55592153876,
         "counts": {
           "solids": 1,
           "faces": 4,
@@ -830,9 +830,9 @@
         }
       },
       "crossCheck": {
-        "volume": 2094395102.3931944,
-        "area": 9424777.960769378,
-        "edgeLength": 7853.981633974486,
+        "volume": 2094395102.3931966,
+        "area": 9424777.960769381,
+        "edgeLength": 7853.981633974484,
         "counts": {
           "solids": 1,
           "faces": 2,
@@ -842,13 +842,13 @@
         "bounds": {
           "min": [
             -1000.0,
-            -1000.0,
-            0.0
+            -1000.0000000000003,
+            1.262177448353619e-29
           ],
           "max": [
-            1000.0,
-            1000.0,
-            999.9999999999999
+            1000.0000000000001,
+            1000.0000000000003,
+            1000.0000000000001
           ]
         }
       },
@@ -950,9 +950,9 @@
         }
       },
       "crossCheck": {
-        "volume": 1491959392.3271823,
-        "area": 8902781.612413337,
-        "edgeLength": 9834.417840456894,
+        "volume": 1491959392.330009,
+        "area": 8902781.612428103,
+        "edgeLength": 9834.41784045704,
         "counts": {
           "solids": 1,
           "faces": 4,
