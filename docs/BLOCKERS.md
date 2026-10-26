@@ -477,3 +477,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser ~/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome; echo $?` at `9b51781`; verdict in PR #120 comment 6409462589
 - need: perform B-20261025-03's and B-20261025-04's `need:` in a brahim turn, then route PR #120 to hmdnah for step 2 once both done-when items hold
 - cleared: -
+
+## B-20261026-02 hmdnah's commits in this checkout are authored as `Davidian-Abdo`, not as the reviewer
+
+- opened: 2026-10-26T06:55Z
+- by: brahim-loop
+- scope: item
+- item: -
+- what: hmdnah's review-record and re-measure commits for PR #120 and PR #121 carry the PR author's identity, so git history attributes each review to the account it should cross
+- why: `.git/config` sets `[user] name = Davidian-Abdo`, overriding `.agent.toml [git]` and the seat's pair; `59a0ace`, `ee6f7c4` and `f2f9d07` are hmdnah acts (`gh` identity narutousomaki741) authored `Davidian-Abdo`
+- evidence: `git log -1 --format='%an' f2f9d07`; `git config --show-origin user.name`
+- need: make diwan's finish and merge entrypoints commit with the acting seat's `scripts/accounts.toml` pair in a diwan turn
+- cleared: -

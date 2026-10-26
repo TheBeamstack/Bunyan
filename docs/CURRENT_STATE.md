@@ -87,6 +87,9 @@ builder may claim.
 - **B-20261026-01** — `scope: item` · `item: PR#120` — PR #120's step 2 found T-065's done-when 1 and done-when 4 unmet, so it is not merged
   - need: perform B-20261025-03's and B-20261025-04's `need:` in a brahim turn, then route PR #120 to hmdnah for step 2 once both done-when items hold
   - opened 2026-10-26T06:12Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261026-02** — `scope: item` · `item: -` — hmdnah's commits in this checkout are authored as `Davidian-Abdo`, not as the reviewer
+  - need: make diwan's finish and merge entrypoints commit with the acting seat's `scripts/accounts.toml` pair in a diwan turn
+  - opened 2026-10-26T06:55Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
