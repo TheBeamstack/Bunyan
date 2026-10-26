@@ -489,3 +489,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 ../diwan/scripts/agent_start.py --seat zayd --root . --continue T-067; echo $?` on `main` at `f2f9d07` exits 1
 - need: make diwan `agent_start.py` resume a seat's incomplete claim that no blocker holds (T-067) before one a blocker holds (T-064), then run T-067 in a zayd turn
 - cleared: -
+
+## B-20261026-03 start withholds zayd's T-068 claim until zayd merges PR #72, which is zayd's own T-037 PR
+
+- opened: 2026-10-26T22:41Z
+- by: zayd
+- scope: item
+- item: T-068
+- what: zayd cannot claim the `next ready` row T-068, because start routes zayd to review and merge PR #72 first and a builder never merges its own PR
+- why: `agent_start.py --seat zayd T-068` exited 1, "PR #72 (T-037) is ready to merge, and the protocol puts it before your claim", and every claim commit on PR #72's branch reads `claim: T-037 by zayd (box)`
+- evidence: `python3 ../diwan/scripts/agent_start.py --seat zayd T-068; echo $?` on `main` at `d70723e` exits 1
+- need: make diwan `agent_start.py` skip a PR whose task the acting seat built when it picks the predecessor PR to merge before a claim, then run T-068 in a zayd turn
+- cleared: -
