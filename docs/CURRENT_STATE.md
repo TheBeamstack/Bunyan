@@ -66,7 +66,7 @@ builder may claim.
 | machine | box |
 | task | `T-037` |
 | branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
-| claimed-at | 2026-10-25T19:35:43Z |
+| claimed-at | 2026-10-26T06:56:43Z |
 | status | working |
 
 <!-- END BATON -->
