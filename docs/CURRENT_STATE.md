@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `STEWARD-t064-entries-clone` |
-| branch | `steward/t064-entries-clone` |
+| task | `STEWARD-t065-carried-entries` |
+| branch | `steward/t065-carried-entries` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #119 merged by `hmdnah` at 2026-10-25T20:38:40Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: cd1ad7580937ad1c49762dab2fa4590ad00f627d
+last-verified-at: 0ad83627fbd1a2a2663f9ef55ff0d51583220a9d
