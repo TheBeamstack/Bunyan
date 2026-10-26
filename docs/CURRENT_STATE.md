@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-t065-carried-entries` |
 | branch | `steward/t065-carried-entries` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #121 merged by `hmdnah` at 2026-10-26T06:54:39Z |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 0ad83627fbd1a2a2663f9ef55ff0d51583220a9d
+last-verified-at: f2bea54c022f546d5dbf30eb0a9a17d9af1af7a7
