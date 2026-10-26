@@ -52,6 +52,18 @@ B-20261025-03 spec fix: T-065's done-when 2 now lets T-064's cache-less `transfe
 T-067 (from B-20261025-04): carried roots' `.brep` and record JSON cross by name, read in the worker from the opened file. Built on T-065's branch, it carries the 3-of-3 bar; T-065 and T-066 depend on it. T-068: Bunyan half of B-20261025-01. No `D-`, no `cleared:` (records are branch-only, or their routing waits).
 Body: `handoff/brahim/2026-10-26-STEWARD-t065-carried-entries-t067.md`
 
+## T-065 — review step 1 of PR #120 — 2026-10-25 — seat: hmdnah
+
+No build defect proven; no approval. Item 1 at `2a3b9db`: entries object posted again → "no Uint8Array outside the transferred buffers"; T-064's kept JSON ignored → "the caller stringifies no record"; restored → green.
+B-20261025-03 confirmed (transfer always → 3 failed). `named-save.mjs` 16k: 124.4/117.1/180.9, 132.5/119.2/189.9, 188.0/132.0/131.8 ms, exit 0 ×3; pack 53.4–111.9 ms, assemble 49.5–64.1 ms. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-25-T-065-review-step-1.md`
+
+## T-065 — entries, records and secret in one transferred buffer; the bar holds in 1 of 3 — 2026-10-25 — seat: zayd
+
+The cached and carried T-065 cases pass, and posting the entries object again fails them. A cache-less save is cloned, because T-064's `transfer` toEqual([]) contradicts done-when 1, and its 2 cases are `it.fails` (B-20261025-03).
+`named-save.mjs` 16k at `a3ebb93`: 200.2/121.6/194.1, 211.2/204.1/125.0 and 143.6/141.3/136.6 ms; exit 1, 1, 0 (B-20261025-04). Split: assemble 51.8–97.5 ms, pack 55.2–123.3 ms. Incomplete.
+Body: `handoff/zayd/2026-10-25-T-065-entries-one-buffer.md`
+
 ## STEWARD-t064-entries-clone — review of PR #119 — 2026-10-25 — seat: hmdnah
 
 APPROVED, merged via `agent_merge.py --seat hmdnah --pr 119`. Item 1: T-065's `implements:` deleted → `gates.py docs` exit 1 "T-065 has no 'implements:'"; restored → ✓.
@@ -63,6 +75,32 @@ Body: `handoff/hmdnah/2026-10-25-STEWARD-t064-entries-clone-review.md`
 Converts B-20261024-02 / B-20261025-02 (the 16k entries `structuredClone`, 143–263 ms) into T-065: entries packed into one transferred buffer, built on T-064's branch, carrying T-064's 200 ms bar; T-064 now depends on it.
 T-066 (blocked on T-065): the first save after an open or edit, 1437.9 ms in `geometryCacheFiles()`, untimed by `save-check`. From an R39 diagnosis; no Chrome figure measured.
 Body: `handoff/brahim/2026-10-25-STEWARD-t064-entries-clone-t065.md`
+
+## T-064 — review step 2 of PR #116 — 2026-10-25 — seat: hmdnah
+
+CHANGES REQUESTED; not approved, not merged, row stays `review` (B-20261025-02). Done-when 3 unmet at `ef411ee`: `named-save.mjs` 16k
+exited 1 in 2 of 3 runs (184.6/225.6/172.7, 299.4/165.9/165.5, 167.9/161.3/162.1 ms). Item 1: post reverted → 2 red; restored → 3 green.
+Items 2, 3, 6: no defect. `pnpm verify` green; CI green; not owner-gated.
+Body: `handoff/hmdnah/2026-10-25-T-064-review-step-2.md`
+
+## T-064 — the 200 ms bar at 16k is unmet; figures recorded — 2026-10-24 — seat: zayd
+
+Three unmodified `named-save.mjs` runs at `4f43dea`: first saves 165.2 / 220.6 / 246.2 ms, later saves 148.7–181.5 ms; exit 0 once, 1 twice.
+The entries clone alone is 187–216 ms on the first iteration, and T-064 does not touch it. Design §5:242 is corrected; the bar and the done-when are unchanged. B-20261024-02. Incomplete.
+Body: `handoff/zayd/2026-10-24-T-064-records-one-buffer.md` (continue-turn section)
+
+## T-064 — review step 1 of PR #116 — 2026-10-24 — seat: hmdnah
+
+Item 1 at `7e40bfd`: posting `signing` as objects again → "one transferred ArrayBuffer: expected [] to have a length of 1"; restored → 3 passed. No build defect proven; no approval.
+Done-when 3 does not reproduce: `named-save.mjs` 16k exited 1 in 2 of 3 runs, each time on the first timed save (206.2 and 233.1 ms). Back to `zayd`.
+The first `geometryCacheFiles()` after an open takes 1437.9 ms and is outside the bar. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-24-T-064-review-step-1.md`
+
+## T-064 — a named save posts its geometry-cache records to the zip worker as one transferred buffer — 2026-10-24 — seat: zayd
+
+Record JSON is kept at export and at open (`keepRecordJson`). `createBnnZipper` posts it as one transferred buffer, and the worker parses, signs and zips; the bytes equal `saveBnn`.
+T-064 test 3 passed; posting the record objects again → "one transferred ArrayBuffer: expected [] to have a length of 1". `pnpm verify` green (1061 passed). `named-save.mjs` 16k: 154–181 ms PASS in 3 runs, 210–255 ms FAIL in 1.
+Body: `handoff/zayd/2026-10-24-T-064-records-one-buffer.md`
 
 ## T-063 — review step 2 of PR #114 — 2026-10-24 — seat: hmdnah
 
