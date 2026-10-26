@@ -477,3 +477,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser ~/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome; echo $?` at `9b51781`; verdict in PR #120 comment 6409462589
 - need: perform B-20261025-03's and B-20261025-04's `need:` in a brahim turn, then route PR #120 to hmdnah for step 2 once both done-when items hold
 - cleared: -
+
+## B-20261026-02 start cannot hand zayd T-067: it resumes the blocker-held T-064, and `--continue T-067` needs an open PR
+
+- opened: 2026-10-26T22:34Z
+- by: zayd
+- scope: item
+- item: T-067
+- what: zayd's open claim on `task/T-067-a-named-save-names-its-carried-cache-ent` (`2aee811`, no PR) is unreachable by the start entrypoint, so the row that unblocks B-20261025-02 and B-20261026-01 is not built
+- why: plain start resumed T-064 (held by B-20261025-02) and pushed claim `3444be4` to its branch; `--continue T-067` on that checkout refused on the T-064 branch's `NEXT TURN: REVIEW ONLY` banner, and from `main` refused "no open PR names T-067 — --continue resumes a branch a reviewer already sent back"
+- evidence: `python3 ../diwan/scripts/agent_start.py --seat zayd --root . --continue T-067; echo $?` on `main` at `f2f9d07` exits 1
+- need: make diwan `agent_start.py` resume a seat's incomplete claim that no blocker holds (T-067) before one a blocker holds (T-064), then run T-067 in a zayd turn
+- cleared: -
