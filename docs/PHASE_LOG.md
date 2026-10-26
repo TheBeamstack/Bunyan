@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-t065-carried-entries — review of PR #121 — 2026-10-26 — seat: hmdnah
+
+APPROVED, merged via `agent_merge.py --seat hmdnah --pr 121`. Item 1: T-067's `implements:` deleted → `gates.py docs` exit 1 "T-067 has no 'implements:'"; restored → ✓.
+T-065 done-when 4 unchanged; the done-when 2 amendment fixes the real `t064.test.ts:141` contradiction. T-067 `requires: browser` covers `named-save.mjs`. No gate checks `requires:`. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-26-STEWARD-t065-carried-entries-review.md`
+
 ## STEWARD-t065-carried-entries — T-065's contradiction fixed; T-067 carries the 200 ms bar; T-068 — 2026-10-26 — seat: brahim
 
 B-20261025-03 spec fix: T-065's done-when 2 now lets T-064's cache-less `transfer` assertion (`t064.test.ts:141`) expect the packed buffer. Done-when 1 also forbids `it.fails`. The bar is unchanged.
