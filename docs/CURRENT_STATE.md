@@ -78,18 +78,18 @@ builder may claim.
 - **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
   - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
   - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
-- **B-20261012-03** — `scope: item` · `item: T-037` — the box loop cannot run the golden seeder, so every zayd turn is held on T-037
-  - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
-  - opened 2026-10-12T07:19Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
-  - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
-  - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261012-09** — `scope: item` · `item: PR#72` — PR #72's re-seed gate is red: the goldens were not re-seeded
-  - need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
-  - opened 2026-10-12T02:56Z by zayd · recorded in `docs/BLOCKERS.md`
 - **B-20261012-10** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
   - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
   - opened 2026-10-12T04:42Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261025-01** — `scope: item` · `item: PR#118` — PR #118's `PR shape · reserved classes` check refuses every dependabot PR, so it cannot merge
+  - need: give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah
+  - opened 2026-10-25T19:34Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261025-02** — `scope: item` · `item: PR#116` — PR #116's step 2 measured T-064's 200 ms named-save bar unmet at 16k, so it is not merged
+  - need: sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k
+  - opened 2026-10-25T19:50Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261026-01** — `scope: item` · `item: PR#120` — PR #120's step 2 found T-065's done-when 1 and done-when 4 unmet, so it is not merged
+  - need: perform B-20261025-03's and B-20261025-04's `need:` in a brahim turn, then route PR #120 to hmdnah for step 2 once both done-when items hold
+  - opened 2026-10-26T06:12Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
