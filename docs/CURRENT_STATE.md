@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-t065-carried-entries` |
-| branch | `steward/t065-carried-entries` |
-| claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #121 merged by `hmdnah` at 2026-10-26T06:54:39Z |
+| task | `T-067` |
+| branch | `task/T-067-a-named-save-names-its-carried-cache-ent` |
+| claimed-at | 2026-10-26T06:58:01Z |
+| status | working |
 
 <!-- END BATON -->
 
