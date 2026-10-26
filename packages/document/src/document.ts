@@ -1627,7 +1627,8 @@ export class DocumentContext {
     if (this.#cacheSource === undefined) return undefined;
     if (this.#cacheIndex === undefined) {
       const index = openCacheIndex(this.#cacheSource);
-      this.#cacheIndex = index === undefined ? null : recordLookupOf(index);
+      this.#cacheIndex =
+        index === undefined ? null : recordLookupOf(index, this.#cacheSource.files.file);
     }
     return this.#cacheIndex ?? undefined;
   }

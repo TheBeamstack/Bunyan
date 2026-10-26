@@ -189,13 +189,45 @@ export function keepRecordJson(record: object, json: Uint8Array): void {
   recordJson.set(record, json);
 }
 
-/** Each record's JSON bytes, in key order: a kept record's bytes, any other stringified (T-064, T-065). */
-export function recordJsonChunks(records: Readonly<Record<string, unknown>>): {
+/** Where a carried value came from: an opened file's bytes, and its zip path (a `.brep`) or root (a record). */
+export interface CarriedFrom {
+  readonly file: Uint8Array;
+  readonly name: string;
+}
+
+/** Each carried `.brep` and record, by identity (`keepCarried`). */
+const carriedValues = new WeakMap<object, CarriedFrom>();
+
+/**
+ * Marks `value` as read unchanged from `file` under `name` (T-067): a `.brep` the reader inflated, or a
+ * record parsed from the file's verified index. The named save posts it by name, and the zip worker reads it
+ * from the file again. A value is never mutated after it is marked.
+ */
+export function keepCarried(value: object, file: Uint8Array, name: string): void {
+  carriedValues.set(value, { file, name });
+}
+
+/** `keepCarried`'s mark on `value`, if any. */
+export function carriedFrom(value: unknown): CarriedFrom | undefined {
+  return typeof value === 'object' && value !== null ? carriedValues.get(value) : undefined;
+}
+
+const NO_BYTES = new Uint8Array(0);
+
+/**
+ * Each record's JSON bytes, in key order: a kept record's bytes, any other stringified (T-064, T-065), and
+ * none for a root `skip` names (T-067: carried by name).
+ */
+export function recordJsonChunks(
+  records: Readonly<Record<string, unknown>>,
+  skip?: (root: string) => boolean,
+): {
   readonly roots: readonly string[];
   readonly chunks: readonly Uint8Array[];
 } {
   const roots = Object.keys(records);
   const chunks = roots.map((root) => {
+    if (skip?.(root) === true) return NO_BYTES;
     const record = records[root];
     const kept = typeof record === 'object' && record !== null ? recordJson.get(record) : undefined;
     return kept ?? encoder.encode(JSON.stringify(record));
@@ -218,14 +250,19 @@ export function serializeRecords(
 /**
  * The records back, in `roots` order: `JSON.stringify` of the result equals that of the records serialized,
  * so an index signed from it has `saveBnn`'s bytes. `Object.fromEntries`, so a `__proto__` root stays a key.
+ * A root `carried` returns a record for takes that one instead of its slice (T-067).
  */
-export function deserializeRecords(serialized: SerializedCacheRecords): Record<string, unknown> {
+export function deserializeRecords(
+  serialized: SerializedCacheRecords,
+  carried?: (root: string) => unknown,
+): Record<string, unknown> {
   const decoder = new TextDecoder();
   const { roots, offsets, json } = serialized;
   return Object.fromEntries(
     roots.map((root, i) => [
       root,
-      JSON.parse(decoder.decode(json.subarray(offsets[i], offsets[i + 1]))) as unknown,
+      carried?.(root) ??
+        (JSON.parse(decoder.decode(json.subarray(offsets[i], offsets[i + 1]))) as unknown),
     ]),
   );
 }

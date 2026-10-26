@@ -21,7 +21,7 @@ import type {
   SignedCacheEnvelope,
 } from './cachesign.js';
 import { cacheInputKey } from './cachekey.js';
-import { keepRecordJson, openSignedCacheIndex } from './cachesign.js';
+import { keepCarried, keepRecordJson, openSignedCacheIndex } from './cachesign.js';
 import type { GeometryGateway } from './geometry.js';
 import type { Scene } from './scene.js';
 
@@ -92,18 +92,28 @@ export interface CacheRecordLookup {
   record(root: ElementId): unknown;
 }
 
-/** An index parsed in process (`openCacheIndex`), looked up by own key only. */
-export function recordLookupOf(index: GeometryCacheIndex): CacheRecordLookup {
+/**
+ * An index parsed in process (`openCacheIndex`), looked up by own key only. With the `file` it was read
+ * from, each record is marked carried from it (T-067).
+ */
+export function recordLookupOf(index: GeometryCacheIndex, file?: Uint8Array): CacheRecordLookup {
   return {
-    record: (root) => (Object.hasOwn(index.records, root) ? index.records[root] : undefined),
+    record: (root) => {
+      if (!Object.hasOwn(index.records, root)) return undefined;
+      const record = index.records[root];
+      if (file !== undefined && typeof record === 'object' && record !== null)
+        keepCarried(record, file, root);
+      return record;
+    },
   };
 }
 
 /**
  * The worker's reply (`OpenedCacheRecords`): a root's slice is parsed only when it is asked for, and kept
- * as that record's JSON for a save to post (T-064).
+ * as that record's JSON for a save to post (T-064), and marked carried from `file`, the bytes the worker
+ * opened (T-067).
  */
-export function lazyRecordLookup(opened: OpenedCacheRecords): CacheRecordLookup {
+export function lazyRecordLookup(opened: OpenedCacheRecords, file: Uint8Array): CacheRecordLookup {
   const at = new Map(opened.roots.map((root, i) => [root, i]));
   const decoder = new TextDecoder();
   return {
@@ -114,7 +124,10 @@ export function lazyRecordLookup(opened: OpenedCacheRecords): CacheRecordLookup 
       try {
         const record = JSON.parse(decoder.decode(json)) as unknown;
         // The worker wrote `json` as this record's `JSON.stringify` (`serializeRecords`), so a save copies it.
-        if (typeof record === 'object' && record !== null) keepRecordJson(record, json);
+        if (typeof record === 'object' && record !== null) {
+          keepRecordJson(record, json);
+          keepCarried(record, file, root);
+        }
         return record;
       } catch {
         return undefined;
@@ -135,7 +148,7 @@ export async function openIndexOf(
   const file = source.files.file;
   if (source.openIndex === undefined || file === undefined) {
     const index = openCacheIndex(source);
-    return index === undefined ? undefined : recordLookupOf(index);
+    return index === undefined ? undefined : recordLookupOf(index, file);
   }
   if (!source.files.names.includes('index.json')) return undefined;
   try {
@@ -149,7 +162,7 @@ export async function openIndexOf(
     ) {
       return undefined;
     }
-    return lazyRecordLookup(opened);
+    return lazyRecordLookup(opened, file);
   } catch {
     return undefined;
   }

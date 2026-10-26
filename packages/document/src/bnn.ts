@@ -29,7 +29,7 @@ import type { BnnEntries } from './bnnzip.js';
 import { zipBnnEntries } from './bnnzip.js';
 import { BnnCapError, checkCaps } from './bnncaps.js';
 import type { CacheSigning, UnsignedGeometryCache } from './cachesign.js';
-import { isUnsignedGeometryCache, signGeometryCache } from './cachesign.js';
+import { isUnsignedGeometryCache, keepCarried, signGeometryCache } from './cachesign.js';
 import type { Scene } from './scene.js';
 import { SCENE_SCHEMA_VERSION, emptyScene } from './scene.js';
 import type { UndoableEdit } from './undo.js';
@@ -371,6 +371,8 @@ function geometryCacheReader(bytes: Uint8Array, names: readonly string[]): Geome
     checkCaps(bytes, (name) => full.has(name));
     const files = unzipSync(bytes, { filter: (file) => full.has(file.name) });
     for (const [name, data] of Object.entries(files)) {
+      // So a named save posts it by name and its zip worker reads it from `bytes` again (T-067).
+      keepCarried(data, bytes, name);
       out.set(name.slice(GEOMETRY_CACHE_DIR.length), data);
     }
     return out;

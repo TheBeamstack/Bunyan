@@ -11,8 +11,10 @@
  * bundle carries no document code.
  */
 
-import { zipBnnEntries, type BnnEntries } from '@bunyan/document/bnnzip';
+import { readZipEntries, zipBnnEntries, type BnnEntries } from '@bunyan/document/bnnzip';
 import {
+  CACHE_INDEX_ENTRY,
+  carriedFrom,
   deserializeRecords,
   recordJsonChunks,
   signBnnEntries,
@@ -30,6 +32,18 @@ export interface PackedEntries {
   readonly bytes: Uint8Array;
 }
 
+/**
+ * What a save carries from the file it opened (T-067), by name: each named entry's and root's slice in the
+ * packed buffers is empty, and the worker reads it from `file` (cloned, since the document retains it).
+ */
+export interface CarriedNames {
+  readonly file: Uint8Array;
+  /** Zip paths of carried `.brep` entries. */
+  readonly entries: readonly string[];
+  /** Roots whose record is read from `file`'s `index.json`. */
+  readonly records: readonly string[];
+}
+
 export interface ZipRequest {
   readonly id: number;
   readonly entries: PackedEntries;
@@ -38,6 +52,7 @@ export interface ZipRequest {
    * transferred buffer (T-064), parsed here.
    */
   readonly signing?: PostedCacheSigning;
+  readonly carried?: CarriedNames;
 }
 
 export type ZipReply =
@@ -47,16 +62,52 @@ export type ZipReply =
 /** The worker side: one request, one reply. Equal entries give bytes equal to `saveBnn`. */
 export function handleZipRequest(request: ZipRequest): ZipReply {
   try {
-    const { signing } = request;
-    const entries = unpackEntries(request.entries);
+    const { signing, carried } = request;
+    const packedNames = new Set(request.entries.names);
+    for (const name of carried?.entries ?? []) {
+      if (!packedNames.has(name)) throw new Error(`carried entry "${name}" has no place in the zip`);
+    }
+    const fromFile = readCarried(carried);
+    const entries = { ...unpackEntries(request.entries), ...fromFile.entries };
     const signed =
       signing === undefined
         ? entries
-        : signBnnEntries(entries, { ...signing, records: deserializeRecords(signing.records) });
+        : signBnnEntries(entries, {
+            ...signing,
+            records: deserializeRecords(signing.records, fromFile.record),
+          });
     return { id: request.id, bytes: zipBnnEntries(signed) };
   } catch (error) {
     return { id: request.id, error: String(error) };
   }
+}
+
+/**
+ * The carried entries and records, read from the opened file in one pass under its caps (T-067). They were
+ * read from these same bytes when the save was assembled, and the records were verified there, so what is
+ * read equals what was carried; a name the file does not hold throws, and the save rejects.
+ */
+function readCarried(carried: CarriedNames | undefined): {
+  readonly entries: BnnEntries;
+  readonly record?: (root: string) => unknown;
+} {
+  if (carried === undefined) return { entries: {} };
+  const withIndex = carried.records.length > 0;
+  const read = readZipEntries(carried.file, [
+    ...carried.entries,
+    ...(withIndex ? [CACHE_INDEX_ENTRY] : []),
+  ]);
+  const entries = Object.fromEntries(carried.entries.map((name) => [name, read[name]!]));
+  if (!withIndex) return { entries };
+  const index = JSON.parse(new TextDecoder().decode(read[CACHE_INDEX_ENTRY])) as {
+    records?: Record<string, unknown>;
+  };
+  const records = index.records ?? {};
+  const named = new Set(carried.records);
+  for (const root of named) {
+    if (!Object.hasOwn(records, root)) throw new Error(`the opened file has no record "${root}"`);
+  }
+  return { entries, record: (root) => (named.has(root) ? records[root] : undefined) };
 }
 
 /** The entries back, views of the one buffer, in `names` order: equal to the entries packed. */
@@ -66,13 +117,16 @@ export function unpackEntries({ names, offsets, bytes }: PackedEntries): BnnEntr
   );
 }
 
+const NO_BYTES = new Uint8Array(0);
+
 /** The posting side's steps, timed for `save-check` (T-065). */
 export type ZipStep = 'serializeRecords' | 'pack' | 'post';
 
 /**
- * One request in ONE fresh buffer, transferred with a cache (T-064, T-065): the entries, then the records'
- * JSON slices, then a copy of the secret. Every `Uint8Array` the message holds is a view of it, so
- * `postMessage` clones no entry, and the doc's own buffers (carried and exported `.brep`s) stay attached.
+ * One request in ONE fresh buffer, always transferred (T-064, T-065): the entries, then the records' JSON
+ * slices, then a copy of the secret. A `.brep` or record read unchanged from the opened file is not copied:
+ * its slice is empty and `carried` names it, with that file (T-067). Every other `Uint8Array` the message
+ * holds is a view of the buffer, so `postMessage` clones no entry, and the doc's own buffers stay attached.
  */
 export function packZipRequest(
   id: number,
@@ -87,8 +141,26 @@ export function packZipRequest(
     at = now;
   };
   const names = Object.keys(entries);
-  const chunks = names.map((name) => entries[name]!);
-  const recordChunks = signing === undefined ? undefined : recordJsonChunks(signing.records);
+  // T-067: what was read unchanged from one opened file crosses by name, read there again by the worker.
+  let file: Uint8Array | undefined;
+  const fromFile = (value: unknown, name: string): boolean => {
+    const mark = carriedFrom(value);
+    if (mark === undefined || mark.name !== name) return false;
+    file ??= mark.file;
+    return mark.file === file;
+  };
+  const carriedEntries = names.filter((name) => fromFile(entries[name], name));
+  const carriedRoots =
+    signing === undefined
+      ? []
+      : Object.keys(signing.records).filter((root) => fromFile(signing.records[root], root));
+  const skipEntries = new Set(carriedEntries);
+  const skipRoots = new Set(carriedRoots);
+  const chunks = names.map((name) => (skipEntries.has(name) ? NO_BYTES : entries[name]!));
+  const recordChunks =
+    signing === undefined
+      ? undefined
+      : recordJsonChunks(signing.records, (root) => skipRoots.has(root));
   lap('serializeRecords');
   const all = [...chunks, ...(recordChunks?.chunks ?? []), ...(signing ? [signing.secret] : [])];
   const offsets = [0];
@@ -120,10 +192,11 @@ export function packZipRequest(
       },
     };
   }
+  if (file !== undefined) {
+    message = { ...message, carried: { file, entries: carriedEntries, records: carriedRoots } };
+  }
   lap('pack');
-  // ⚠ A cache-less save's buffer is cloned, not transferred: T-064's test asserts it transfers nothing,
-  // which contradicts T-065's done-when 1 (B-20261025-03). It holds only the manifest, scene and journal.
-  return { message, transfer: signing === undefined ? [] : [buffer] };
+  return { message, transfer: [buffer] };
 }
 
 /** What the zipper needs of a `Worker`, so a node test can stand in for one. */
