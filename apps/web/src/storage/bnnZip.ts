@@ -65,7 +65,8 @@ export function handleZipRequest(request: ZipRequest): ZipReply {
     const { signing, carried } = request;
     const packedNames = new Set(request.entries.names);
     for (const name of carried?.entries ?? []) {
-      if (!packedNames.has(name)) throw new Error(`carried entry "${name}" has no place in the zip`);
+      if (!packedNames.has(name))
+        throw new Error(`carried entry "${name}" has no place in the zip`);
     }
     const fromFile = readCarried(carried);
     const entries = { ...unpackEntries(request.entries), ...fromFile.entries };

@@ -210,7 +210,9 @@ describe('T-067 — carried roots cross by name and are read from the opened fil
     for (const posted of posts) {
       expectNoCarriedBytes(posted, cache, carried);
       for (const root of Object.keys(records)) {
-        expect(posted.packed.includes(`brep-bytes-of-${root}`), `${root}'s .brep packed`).toBe(true);
+        expect(posted.packed.includes(`brep-bytes-of-${root}`), `${root}'s .brep packed`).toBe(
+          true,
+        );
       }
     }
   });
@@ -245,7 +247,10 @@ describe('T-067 — the worker reads carried names under the leaf cap check', ()
 
   it("a carried entry past the file's caps is refused before it is inflated", () => {
     // 4 MiB of zeros deflates ~1000:1, past BNN_MAX_RATIO; the cap check refuses it from the directory.
-    const file = zipSync({ 'geometry-cache/R/0.brep': new Uint8Array(4 * 1024 * 1024) }, { level: 9 });
+    const file = zipSync(
+      { 'geometry-cache/R/0.brep': new Uint8Array(4 * 1024 * 1024) },
+      { level: 9 },
+    );
     const request: ZipRequest = {
       id: 1,
       entries: { names: ['geometry-cache/R/0.brep'], offsets: [0, 0], bytes: new Uint8Array(0) },
