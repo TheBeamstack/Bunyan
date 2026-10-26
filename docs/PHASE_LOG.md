@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## STEWARD-t065-carried-entries — T-065's contradiction fixed; T-067 carries the 200 ms bar; T-068 — 2026-10-26 — seat: brahim
+
+B-20261025-03 spec fix: T-065's done-when 2 now lets T-064's cache-less `transfer` assertion (`t064.test.ts:141`) expect the packed buffer. Done-when 1 also forbids `it.fails`. The bar is unchanged.
+T-067 (from B-20261025-04): carried roots' `.brep` and record JSON cross by name, read in the worker from the opened file. Built on T-065's branch, it carries the 3-of-3 bar; T-065 and T-066 depend on it. T-068: Bunyan half of B-20261025-01. No `D-`, no `cleared:` (records are branch-only, or their routing waits).
+Body: `handoff/brahim/2026-10-26-STEWARD-t065-carried-entries-t067.md`
+
 ## STEWARD-t064-entries-clone — review of PR #119 — 2026-10-25 — seat: hmdnah
 
 APPROVED, merged via `agent_merge.py --seat hmdnah --pr 119`. Item 1: T-065's `implements:` deleted → `gates.py docs` exit 1 "T-065 has no 'implements:'"; restored → ✓.

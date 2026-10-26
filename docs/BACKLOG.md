@@ -130,8 +130,10 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-062 | done    | A named save keys each cached root once, and not at all for an unchanged scene                                     | backend  | box     | **high** | —                   |
 | T-063 | done    | Opening a file inflates its geometry-cache index in the worker and parses it root by root                          | workers  | box     | **high** | —                   |
 | T-064 | ready   | A named save posts its geometry-cache records to the zip worker as one transferred buffer                          | workers  | box     | **high** | T-062, T-063, T-065 |
-| T-065 | ready   | A named save posts its entries to the zip worker as one transferred buffer                                         | workers  | box     | **high** | T-062, T-063        |
-| T-066 | blocked | The first named save after an open or an edit re-keys and re-inflates no unchanged root                            | backend  | box     | **high** | T-065               |
+| T-065 | ready   | A named save posts its entries to the zip worker as one transferred buffer                                         | workers  | box     | **high** | T-062, T-063, T-067 |
+| T-067 | ready   | A named save names its carried cache entries and records, and the zip worker reads them from the opened file       | workers  | box     | **high** | T-062, T-063        |
+| T-068 | ready   | A dependabot PR passes the PR-shape check by its head branch and bot author, not its title                         | infra    | box     | **high** | —                   |
+| T-066 | blocked | The first named save after an open or an edit re-keys and re-inflates no unchanged root                            | backend  | box     | **high** | T-065, T-067        |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —                   |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —                   |
 | T-031 | blocked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
@@ -712,15 +714,41 @@ overstatement cost a box seat a verification it had to record as undischarged.
 
 - outcome: the named save packs its entries into one buffer plus names and offsets and transfers it, so postMessage clones no entry Uint8Array, the worker unpacks them in name order, the document's carried and exported .brep buffers stay attached, and the stored bytes still equal saveBnn exactly.
 - implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (the T-058, T-060 and T-064 paragraphs), §6 R4 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: B-20261024-02, B-20261025-02, a brahim R39 diagnosis 2026-10-25 (BnnEntries is Record<string, Uint8Array>, packages/document/src/bnnzip.ts:16; the entries are cloned because the document keeps the carried and exported buffers, document.ts:716,760,776-779)
-- done-when: test-first: a node test with a fake ZipPort shows, for the 20-solid fixture with a cache and a cache-less scene, that the posted message holds no Uint8Array outside its transferred buffers, the caller's packed buffer is detached after the post, every carried and exported .brep buffer keeps its byteLength, and two consecutive saves each store bytes equal to saveBnn(scene, options); revert-verified: posting the entries object again turns the no-cloned-entry assertion red
-- done-when: every T-047 byte-identity test and the T-058, T-060, T-062, T-063, T-064 and geometry-cache-trust-d29 tests pass unchanged
+- done-when: test-first: a node test with a fake ZipPort shows, for the 20-solid fixture with a cache and a cache-less scene, that the posted message holds no Uint8Array outside its transferred buffers, the caller's packed buffer is detached after the post, every carried and exported .brep buffer keeps its byteLength, and two consecutive saves each store bytes equal to saveBnn(scene, options), and neither cache-less case is it.fails; revert-verified: posting the entries object again turns the no-cloned-entry assertion red
+- done-when: every T-047 byte-identity test and the T-058, T-060, T-062, T-063, T-064 and geometry-cache-trust-d29 tests pass unchanged, except T-064's cache-less expect(posted.transfer).toEqual([]) (tests/app-named-save-transfers-records-t064.test.ts:141), which T-065 amends to expect its one packed buffer, because done-when 1 detaches it (B-20261025-03)
 - done-when: save-check records the in-save split (geometryCacheFiles, assemble, serializeRecords, pack, post) in design §5 beside the T-064 figure
 - done-when: node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k in 3 of 3 unmodified runs, which is also T-064's done-when 3
 - done-when: no [frozen_surface] watched file changes
 - verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
-- depends-on: T-062, T-063 · area: workers · machine: box · risk: **high**
+- depends-on: T-062, T-063, T-067 · area: workers · machine: box · risk: **high**
 - requires: browser
 - note: built on origin/task/T-064-a-named-save-posts-its-geometry-cache-re, merged into this row's branch first, because T-064's records buffer and this row both change apps/web/src/storage/bnnZip.ts and T-064's bar cannot be met without this row; merging this PR lands PR #116's commits too; if the bar is still missed, record the figures and stop with a B- record, never a reworded bar (the next shape is the worker inflating carried entries from reader.file, bnn.ts:378); risk high per READY rule 8 (D29 save path)
+
+### T-067 — A named save names its carried cache entries and records, and the zip worker reads them from the opened file
+
+- outcome: a named save of a file opened with a geometry cache packs no carried root's .brep or record JSON bytes: it posts their names, and the zip worker reads both from the opened file's bytes (GeometryCacheReader.file, packages/document/src/bnn.ts) under the leaf cap check, so the main thread's pack copies only the manifest, scene, journal and the exported roots, and the stored bytes still equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §3 (the loader must not inflate what it ignores), §5 (the T-064 and T-065 paragraphs), §6 R4/R5 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: B-20261025-04 (T-065 branch), B-20261026-01, hmdnah's PR #120 step 2 2026-10-26 (pack 54.5-132.8 ms of a 105 MB copy, R4's 43.9 MB .brep and ~61 MB records; assemble 48.7-59.8 ms), apps/web/src/storage/bnnZip.ts:93-98 at 9b51781 copies every entry and record
+- done-when: test-first: a node test with a fake ZipPort, on a file opened through the cache-open worker (the 5-wall cached file of the T-064 and T-065 tests), shows the posted message holds no carried root's .brep or record JSON bytes and names those roots instead, and two consecutive saves each store bytes equal to saveBnn(scene, options); a save carrying some roots and exporting others stores saveBnn's bytes too; revert-verified: packing the carried bytes again turns the no-carried-bytes assertion red
+- done-when: the zip worker checks the file's caps through the leaf bnncaps.ts before it inflates a carried entry, its bundle still imports only leaf modules (apps/web/src/storage/bnnZip.ts:10), and a carried name the file does not hold rejects the save rather than storing a file without that entry
+- done-when: T-065's done-when 1 and 2 as amended 2026-10-26 hold at this row's head: a cache-less save's packed buffer is transferred and detached, and neither T-065 cache-less case is it.fails
+- done-when: every T-047 byte-identity test and the T-058, T-060, T-062, T-063 and geometry-cache-trust-d29 tests pass unchanged; the T-064 and T-065 tests pass, amended only in their opened-file cases (T-064's 'records carried from an opened file' and T-065's 'entries carried from an opened file' describes) to expect carried roots by name, each amendment listed in the PR body
+- done-when: save-check records the in-save split (geometryCacheFiles, assemble, serializeRecords, pack, post) in design §5 beside the T-065 figure, and node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k in 3 of 3 unmodified runs, which is also T-065's done-when 4 and T-064's done-when 3
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
+- depends-on: T-062, T-063 · area: workers · machine: box · risk: **high**
+- requires: browser
+- note: built on origin/task/T-065-a-named-save-posts-its-entries-to-the-zi, merged into this row's branch first, because both rows change apps/web/src/storage/bnnZip.ts and T-065's bar cannot be met without this row; merging this PR lands PR #116's and PR #120's commits; when that merge takes main's docs/BLOCKERS.md, re-append the branch-only B-20261024-02, B-20261025-03 and B-20261025-04 unchanged; if the bar is still missed, record the figures and stop with a B- record, never a reworded bar (one candidate next shape is assembling scene.json in the worker, 48.7-59.8 ms on the main thread); risk high per READY rule 8 (D29 save path)
+
+### T-068 — A dependabot PR passes the PR-shape check by its head branch and bot author, not its title
+
+- outcome: scripts/pr-ready.mjs --pr accepts a PR whose head branch starts with dependabot/ and whose author is the dependabot app, printing that it routed as a dependency PR, and still refuses every other PR whose title carries no T-nnn: or STEWARD: prefix, so a dependabot bump is no longer red on the title alone.
+- implements: diwan/AGENTS.md §1 (the PR title is the routing key, never --fill) · docs/INVARIANTS.md §2 (the PR shape · reserved classes CI step); provenance: B-20261025-01 (CI run 40150898247; scripts/pr-ready.mjs:27 accepts only T-nnn: or STEWARD:; PR #118 head dependabot/npm_and_yarn/vite-6.4.4, author app/dependabot, is_bot true, per gh pr view 118)
+- done-when: test-first in tests/protocol/pr-ready.test.ts through an injected PR view: title 'Bump vite from 6.4.3 to 6.4.4', head dependabot/npm_and_yarn/vite-6.4.4 and author app/dependabot (is_bot) routes; the same head with a human author, and the same title on a non-dependabot head, are refused; revert-verified: removing the dependabot route turns the first case red
+- done-when: the existing title tests pass unchanged, and node scripts/pr-ready.mjs --title 'Bump vite from 6.4.3 to 6.4.4' still exits 1, because a bare title carries no head or author
+- done-when: the mergeable half is unchanged: a dependabot PR that GitHub reports CONFLICTING or UNKNOWN still fails
+- verify: npx vitest run tests/protocol/pr-ready.test.ts && pnpm verify
+- depends-on: — · area: infra · machine: box · risk: **high**
+- note: Bunyan half of B-20261025-01 only; diwan agent_start.py routing a dependabot/* PR to a reviewer is diwan's and is not sequenced here, so B-20261025-01 stays uncleared until both halves land and PR #118 is routed to hmdnah; risk high because it loosens a CI merge gate; every done-when item checks under node
 
 ### T-066 — The first named save after an open or an edit re-keys and re-inflates no unchanged root
 
@@ -731,7 +759,7 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - done-when: save-check drops its warm-up geometryCacheFiles() before the timed saves, and node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k for the first save after an open, recorded in design §5
 - done-when: no [frozen_surface] watched file changes
 - verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
-- depends-on: T-065 · area: backend · machine: box · risk: **high**
+- depends-on: T-065, T-067 · area: backend · machine: box · risk: **high**
 - requires: browser
 - note: the split between keying, the lazy record parse and the .brep inflate inside the 1437.9 ms is not measured, so the turn measures it first; if the bar is missed, record the figures and stop with a B- record, never a reworded bar; risk high per READY rule 8 (D29 save path)
 
