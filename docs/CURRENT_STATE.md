@@ -66,8 +66,8 @@ builder may claim.
 | machine | box |
 | task | `T-064` |
 | branch | `task/T-064-a-named-save-posts-its-geometry-cache-re` |
-| claimed-at | 2026-10-24T10:27:02Z |
-| status | incomplete — branch open, continue on it |
+| claimed-at | 2026-10-26T22:33:17Z |
+| status | working |
 
 <!-- END BATON -->
 
