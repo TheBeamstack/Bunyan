@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-t065-carried-entries` |
 | branch | `steward/t065-carried-entries` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -208,4 +208,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a1f0f28c0c83a97717de5cf08ab5246964cf8117
+last-verified-at: 0ad83627fbd1a2a2663f9ef55ff0d51583220a9d
