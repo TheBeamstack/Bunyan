@@ -131,11 +131,10 @@ ACT.** It is mechanically available: `tests/freeze-boundary.test.ts` holds the f
 freezing is the policy change *"the baseline may no longer be updated without an owner ruling"*, with a
 machine holding the line afterwards.
 
-### T-037 (PR #72) — returned, incomplete
+### T-037 (PR #72) — re-seeded, awaiting review
 
-T-037's code and test are done and the branch is merged with `main` (blocker ids per the steward ruling in
-T-037's backlog entry); its re-seed is not: the seeder is refused by zayd's box session permissions
-(B-20261012-03, uncleared). Next on this branch: a permitted session runs B-20261012-03's `need:`.
+T-037's code, test and golden re-seed (box oracle, aarch64) are on the branch, merged with `main` at
+`f2f9d07`. Next: hmdnah reviews PR #72; D-20261021-01 (release or keep the claim) is still pending.
 
 
 **Per-seat standing facts, the two items killed by measurement, the later/post-freeze list, the CLOSED list, and §6/§6a (environment, commands, box discipline) are `docs/CURRENT_STATE-reference.md`.**

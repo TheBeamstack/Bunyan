@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-037 — thirteenth turn on PR #72, goldens re-seeded — 2026-10-26 — seat: zayd
+
+`uv run seed-goldens` ran on the box (aarch64) and was committed; values moved only in the last ulp against the x86_64 seed, and `env.platform` changed.
+Merged `origin/main` (`f2f9d07`); only docs conflicted, script-written blocks taken by side and `## BLOCKED` re-rendered. B-20261012-09 cleared.
+`pnpm verify` green (124 files, 1060 passed); the re-seed gate skipped locally without BASE_REF, so CI measures it. D-20261021-01 is still pending.
+Body: `handoff/zayd/2026-10-26-T-037-reseed.md`
+
 ## STEWARD-t065-carried-entries — review of PR #121 — 2026-10-26 — seat: hmdnah
 
 APPROVED, merged via `agent_merge.py --seat hmdnah --pr 121`. Item 1: T-067's `implements:` deleted → `gates.py docs` exit 1 "T-067 has no 'implements:'"; restored → ✓.
