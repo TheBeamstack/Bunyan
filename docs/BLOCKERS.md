@@ -465,3 +465,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser ~/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome; echo $?` at `ef411ee`; figures in `handoff/hmdnah/2026-10-25-T-064-review-step-2.md` on `task/T-064-a-named-save-posts-its-geometry-cache-re`
 - need: sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k
 - cleared: -
+
+## B-20261026-01 PR #120's step 2 found T-065's done-when 1 and done-when 4 unmet, so it is not merged
+
+- opened: 2026-10-26T06:12Z
+- by: hmdnah
+- scope: item
+- item: PR#120
+- what: at head `9b51781` T-065 (which carries T-064's PR #116) gets changes requested, not a merge; zayd's B-20261025-03 and B-20261025-04 record both gaps but only on the PR branch, so `main` still routed PR #120 to step 2
+- why: three unmodified 16k runs held 131.9/124.1/128.2, 128.6/124.6/201.5 and 135.9/119.0/217.1 ms and exited 0, 1, 1 (done-when 4 needs 3 of 3); a cache-less save transfers nothing (`bnnZip.ts:124-126`) and its two T-065 cases are `it.fails`, so done-when 1 is unmet; `agent_finish.py --review --step 2` would stamp T-065 `done` (`protocol.py:2469`), so it was not run
+- evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser ~/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome; echo $?` at `9b51781`; verdict in PR #120 comment 6409462589
+- need: perform B-20261025-03's and B-20261025-04's `need:` in a brahim turn, then route PR #120 to hmdnah for step 2 once both done-when items hold
+- cleared: -

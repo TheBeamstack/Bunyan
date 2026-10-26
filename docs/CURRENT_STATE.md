@@ -84,6 +84,9 @@ builder may claim.
 - **B-20261025-02** — `scope: item` · `item: PR#116` — PR #116's step 2 measured T-064's 200 ms named-save bar unmet at 16k, so it is not merged
   - need: sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k
   - opened 2026-10-25T19:50Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261026-01** — `scope: item` · `item: PR#120` — PR #120's step 2 found T-065's done-when 1 and done-when 4 unmet, so it is not merged
+  - need: perform B-20261025-03's and B-20261025-04's `need:` in a brahim turn, then route PR #120 to hmdnah for step 2 once both done-when items hold
+  - opened 2026-10-26T06:12Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
