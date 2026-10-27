@@ -501,3 +501,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 ../diwan/scripts/agent_start.py --seat zayd T-068; echo $?` on `main` at `d70723e` exits 1
 - need: make diwan `agent_start.py` skip a PR whose task the acting seat built when it picks the predecessor PR to merge before a claim, then run T-068 in a zayd turn
 - cleared: -
+
+## B-20261027-01 start refuses zayd's tickets T-067 and T-068 because the ticket records themselves hold those tasks
+
+- opened: 2026-10-27T06:05Z
+- by: zayd
+- scope: item
+- item: T-067
+- what: zayd cannot run T-067 (B-20261026-02's ticket) or T-068 (B-20261026-03's ticket), so the row that unblocks B-20261025-02 and B-20261026-01 is still not built
+- why: `agent_start.py --seat zayd T-067` exited 1, "T-067 is held by B-20261026-02, an uncleared `scope: item` blocker at main — skip it", and `T-068` the same against B-20261026-03; diwan `shape_builder` (agent_start.py:955, :998) checks raw `item_blockers`, and ticket admission (`holds`, :555) runs only under `--continue`, which needs an open PR
+- evidence: `python3 ../diwan/scripts/agent_start.py --seat zayd --root . T-067; echo $?` on `main` at `a46980a` exits 1
+- need: make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn
+- cleared: -
