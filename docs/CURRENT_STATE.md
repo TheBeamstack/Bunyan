@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-064` |
 | branch | `task/T-064-a-named-save-posts-its-geometry-cache-re` |
 | claimed-at | 2026-10-27T06:03:30Z |
-| status | working |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -102,9 +102,6 @@ builder may claim.
 - **B-20261027-02** — `scope: item` · `item: PR#120` — PR #120's flow-routed conflict merge cannot run: start refuses `--continue T-065` for the reviewer seat hmdnah
   - need: make diwan `agent_start.py --continue` admit a reviewer seat that holds the task's claim to a flow-routed conflict merge, then re-run hmdnah's `--continue T-065`
   - opened 2026-10-27T18:05Z by hmdnah · recorded in `docs/BLOCKERS.md`
-- **B-20261027-03** — `scope: item` · `item: PR#116` — PR #116's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-064` on B-20261025-02
-  - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-064`
-  - opened 2026-10-27T20:33Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -241,4 +238,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: f2bea54c022f546d5dbf30eb0a9a17d9af1af7a7
+last-verified-at: 7e1c0239d2da58405be134f9352987a504bd49cd

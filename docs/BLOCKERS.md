@@ -548,4 +548,4 @@ from, and the reason it is a record rather than prose.
 - why: `agent_start.py` exited 1, "T-064 (PR #116) is held by B-20261025-02, an uncleared `scope: item` blocker at main that is neither a change on task/T-064-… nor this seat's newest ticket"; diwan `agent_start.py:555` `holds` admits no flow-routed conflict merge; `gh pr view 116 --json mergeable` → CONFLICTING at `847dc23`
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan --continue T-064; echo $?` on `main` at `553cd83` exits 1
 - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-064`
-- cleared: -
+- cleared: 2026-10-27T21:12Z
