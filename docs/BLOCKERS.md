@@ -525,3 +525,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --root /home/ubuntu/projects/Bunyan --continue T-065; echo $?` on `main` at `6703c07` exits 1
 - need: make diwan `agent_start.py --continue` admit a reviewer seat that holds the task's claim to a flow-routed conflict merge, then re-run hmdnah's `--continue T-065`
 - cleared: -
+
+## B-20261027-03 PR #116's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-064` on B-20261025-02
+
+- opened: 2026-10-27T20:33Z
+- by: zayd
+- scope: item
+- item: PR#116
+- what: the manager's Flow line F1 routes zayd to merge `origin/main` into `task/T-064-a-named-save-posts-its-geometry-cache-re`, but start refuses because hmdnah's review blocker holds PR #116, so the PR stays CONFLICTING
+- why: `agent_start.py` exited 1, "T-064 (PR #116) is held by B-20261025-02, an uncleared `scope: item` blocker at main that is neither a change on task/T-064-… nor this seat's newest ticket"; diwan `agent_start.py:555` `holds` admits no flow-routed conflict merge; `gh pr view 116 --json mergeable` → CONFLICTING at `847dc23`
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan --continue T-064; echo $?` on `main` at `553cd83` exits 1
+- need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-064`
+- cleared: -
