@@ -513,3 +513,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 ../diwan/scripts/agent_start.py --seat zayd --root . T-067; echo $?` on `main` at `a46980a` exits 1
 - need: make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn
 - cleared: -
+
+## B-20261027-02 PR #120's flow-routed conflict merge cannot run: start refuses `--continue T-065` for the reviewer seat hmdnah
+
+- opened: 2026-10-27T18:05Z
+- by: hmdnah
+- scope: item
+- item: PR#120
+- what: the manager's Flow line F1 routes hmdnah, which holds the T-065 claim, to merge `origin/main` into `task/T-065-a-named-save-posts-its-entries-to-the-zi`, but start refuses before B-20261026-01's ticket is consulted
+- why: `agent_start.py` exited 1, "--continue is a builder operation; seat 'hmdnah' is a reviewer."; `gh pr view 120 --json mergeable` → CONFLICTING
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --root /home/ubuntu/projects/Bunyan --continue T-065; echo $?` on `main` at `6703c07` exits 1
+- need: make diwan `agent_start.py --continue` admit a reviewer seat that holds the task's claim to a flow-routed conflict merge, then re-run hmdnah's `--continue T-065`
+- cleared: -
