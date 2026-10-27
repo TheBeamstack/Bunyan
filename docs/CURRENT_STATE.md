@@ -96,6 +96,9 @@ builder may claim.
 - **B-20261027-01** — `scope: item` · `item: T-067` — start refuses zayd's tickets T-067 and T-068 because the ticket records themselves hold those tasks
   - need: make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn
   - opened 2026-10-27T06:05Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261027-02** — `scope: item` · `item: PR#120` — PR #120's flow-routed conflict merge cannot run: start refuses `--continue T-065` for the reviewer seat hmdnah
+  - need: make diwan `agent_start.py --continue` admit a reviewer seat that holds the task's claim to a flow-routed conflict merge, then re-run hmdnah's `--continue T-065`
+  - opened 2026-10-27T18:05Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
