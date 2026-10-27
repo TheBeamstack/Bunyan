@@ -78,15 +78,33 @@ builder may claim.
 - **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
   - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
   - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
-- **B-20261012-03** — `scope: item` · `item: T-037` — the box loop cannot run the golden seeder, so every zayd turn is held on T-037
-  - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
-  - opened 2026-10-12T07:19Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261019-01** — `scope: item` · `item: H-20261011-13` — secret scanning, push protection and Dependabot stay off on public Bunyan
-  - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
-  - opened 2026-10-19T10:34Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 - **B-20261024-02** — `scope: item` · `item: T-064` — T-064's 200 ms named-save bar at 16k fails on the first timed save, on a cost outside its scope
   - need: sequence a row that takes the 16k entries clone off the named save's main thread (BACKLOG `## Discovered` 2026-10-24) and make T-064's done-when 3 depend on it
   - opened 2026-10-24T11:18Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261025-01** — `scope: item` · `item: PR#118` — PR #118's `PR shape · reserved classes` check refuses every dependabot PR, so it cannot merge
+  - need: give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah
+  - opened 2026-10-25T19:34Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261025-02** — `scope: item` · `item: PR#116` — PR #116's step 2 measured T-064's 200 ms named-save bar unmet at 16k, so it is not merged
+  - need: sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k
+  - opened 2026-10-25T19:50Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261026-01** — `scope: item` · `item: PR#120` — PR #120's step 2 found T-065's done-when 1 and done-when 4 unmet, so it is not merged
+  - need: perform B-20261025-03's and B-20261025-04's `need:` in a brahim turn, then route PR #120 to hmdnah for step 2 once both done-when items hold
+  - opened 2026-10-26T06:12Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261026-02** — `scope: item` · `item: T-067` — start cannot hand zayd T-067: it resumes the blocker-held T-064, and `--continue T-067` needs an open PR
+  - need: make diwan `agent_start.py` resume a seat's incomplete claim that no blocker holds (T-067) before one a blocker holds (T-064), then run T-067 in a zayd turn
+  - opened 2026-10-26T22:34Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261026-03** — `scope: item` · `item: T-068` — start withholds zayd's T-068 claim until zayd merges PR #72, which is zayd's own T-037 PR
+  - need: make diwan `agent_start.py` skip a PR whose task the acting seat built when it picks the predecessor PR to merge before a claim, then run T-068 in a zayd turn
+  - opened 2026-10-26T22:41Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261027-01** — `scope: item` · `item: T-067` — start refuses zayd's tickets T-067 and T-068 because the ticket records themselves hold those tasks
+  - need: make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn
+  - opened 2026-10-27T06:05Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261027-02** — `scope: item` · `item: PR#120` — PR #120's flow-routed conflict merge cannot run: start refuses `--continue T-065` for the reviewer seat hmdnah
+  - need: make diwan `agent_start.py --continue` admit a reviewer seat that holds the task's claim to a flow-routed conflict merge, then re-run hmdnah's `--continue T-065`
+  - opened 2026-10-27T18:05Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261027-03** — `scope: item` · `item: PR#116` — PR #116's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-064` on B-20261025-02
+  - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-064`
+  - opened 2026-10-27T20:33Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -223,4 +241,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: d3b3e3ae75a629ed688f89fd89f1e73373607b5e
+last-verified-at: f2bea54c022f546d5dbf30eb0a9a17d9af1af7a7
