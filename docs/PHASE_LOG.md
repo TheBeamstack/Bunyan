@@ -40,6 +40,12 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-064 — origin/main merged into PR #116 (Flow F1) — 2026-10-27 — seat: zayd
+
+Merged `origin/main` at `13190ce`; four doc conflicts. BACKLOG took main's side; BLOCKERS and PHASE_LOG kept both append-only sides; BLOCKED re-rendered by `blocked.py`.
+No code changed; the 200 ms bar is T-067's (B-20261025-02). `pnpm verify` green (1061 passed, 4 skipped; docs:check 66 passed).
+Body: `handoff/zayd/2026-10-27-T-064-merge-main.md`
+
 ## STEWARD-t065-carried-entries — review of PR #121 — 2026-10-26 — seat: hmdnah
 
 APPROVED, merged via `agent_merge.py --seat hmdnah --pr 121`. Item 1: T-067's `implements:` deleted → `gates.py docs` exit 1 "T-067 has no 'implements:'"; restored → ✓.
