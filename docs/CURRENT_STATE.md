@@ -238,4 +238,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 7e1c0239d2da58405be134f9352987a504bd49cd
+last-verified-at: 03ba9aa4e41c21481f31539a38a75f303dabb952
