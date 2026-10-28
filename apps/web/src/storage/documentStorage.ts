@@ -17,8 +17,19 @@
  * Delta uncomputable (`bnn.ts` / plan step 10). `saveDocument` below takes `changeFeed` + `revision`.
  */
 
-import { loadBnn, type StorageAdapter } from '@bunyan/document';
+import {
+  assembleUnsignedBnnEntries,
+  loadBnn,
+  newInstallSecret,
+  type CacheIndexOpener,
+  type DocumentContext,
+  type SaveOptions,
+  type Scene,
+  type StorageAdapter,
+} from '@bunyan/document';
 
+import { createBnnZipper, type BnnZipper } from './bnnZip';
+import { cacheIndexOpenerOn } from './cacheOpen';
 import { IndexedDbStore } from './indexeddb';
 import type { InitialDocument } from '../bootstrap';
 
@@ -63,6 +74,58 @@ function autosaveCounter(key: string): number {
   return Number(/autosave-(\d+)/.exec(key)?.[1] ?? 0);
 }
 
+/** The named save's zip worker (T-058); spawned once, on the first save. */
+export function spawnBnnZipper(): BnnZipper {
+  const worker = new Worker(new URL('./bnnZipWorker.ts', import.meta.url), { type: 'module' });
+  return createBnnZipper(worker);
+}
+
+/** Opens a loaded file's cache index on a worker spawned for that one open (T-061). */
+export const openCacheIndexInWorker: CacheIndexOpener = async (request) => {
+  const worker = new Worker(new URL('./cacheOpenWorker.ts', import.meta.url), { type: 'module' });
+  try {
+    return await cacheIndexOpenerOn(worker)(request);
+  } finally {
+    worker.terminate();
+  }
+};
+
+/**
+ * A named save's options: the journal, never the undo stack (file header), and the geometry cache the idle
+ * exporter built (`idleCacheExport.ts`, D29 §5). Autosave never calls this: it stays cache-less (R7).
+ */
+export function namedSaveOptions(
+  doc: Pick<DocumentContext, 'changeFeed' | 'revision' | 'geometryCacheFiles'>,
+  kernelBuildId: string,
+): SaveOptions {
+  const cache = doc.geometryCacheFiles();
+  return {
+    kernelBuildId,
+    journal: doc.changeFeed(),
+    revision: doc.revision,
+    ...(cache === undefined ? {} : { cache }),
+  };
+}
+
+/**
+ * A named save: the entries are assembled here (every `saveBnn` refusal), an unsigned cache's index is
+ * signed and the whole zipped by `zipper` off the main thread (T-058, T-060), and stored under
+ * `docKey(name)`. Its bytes equal `saveBnn(scene, options)`. Returns the key.
+ */
+export async function saveDocument(
+  store: StorageAdapter,
+  name: string,
+  scene: Scene,
+  options: SaveOptions,
+  zipper: BnnZipper,
+): Promise<string> {
+  const { entries, signing } = assembleUnsignedBnnEntries(scene, options);
+  const bytes = await zipper.zip(entries, signing);
+  const key = docKey(name);
+  await store.write(key, bytes);
+  return key;
+}
+
 /** Read a stored `.bnn` and parse it into the `InitialDocument` the boot path rebuilds from. */
 export async function readInitial(
   store: StorageAdapter,
@@ -71,7 +134,33 @@ export async function readInitial(
   const bytes = await store.read(key);
   if (bytes === undefined) return undefined;
   const pkg = loadBnn(bytes);
-  return { scene: pkg.scene, journal: pkg.journal, revision: pkg.manifest.revision };
+  return {
+    scene: pkg.scene,
+    journal: pkg.journal,
+    revision: pkg.manifest.revision,
+    ...(pkg.cache === undefined ? {} : { cache: pkg.cache }),
+  };
+}
+
+/**
+ * The store key of this install's D29 cache secret (R5, design §2e). Neither `doc/` nor `autosave-`, so
+ * no file list, recover offer or autosave ring counts it.
+ */
+export const INSTALL_SECRET_KEY = 'bunyan:install-secret';
+
+/**
+ * This install's cache secret: read back if stored, else created once and stored, then read back.
+ * Two racing first boots (StrictMode) can still hold different secrets: one reads back its own write
+ * before the other overwrites it. The loser's signed cache is then refused by `verifyCacheIndex`
+ * (a lost restore, never a wrong solid).
+ */
+export async function installSecret(store: StorageAdapter): Promise<Uint8Array> {
+  const stored = await store.read(INSTALL_SECRET_KEY);
+  if (stored?.length === 32) return stored;
+  await store.write(INSTALL_SECRET_KEY, newInstallSecret());
+  const kept = await store.read(INSTALL_SECRET_KEY);
+  if (kept?.length !== 32) throw new Error('the install secret did not persist');
+  return kept;
 }
 
 /** Park a store key for the reload-based open (see the file header), then let the caller reload. */

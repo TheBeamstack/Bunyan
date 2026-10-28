@@ -23,7 +23,13 @@ import {
   createAgentSurface,
   createRegistries,
 } from '@bunyan/document';
-import type { AgentSurface, ModelRevision, Scene, UndoableEdit } from '@bunyan/document';
+import type {
+  AgentSurface,
+  GeometryCacheReader,
+  ModelRevision,
+  Scene,
+  UndoableEdit,
+} from '@bunyan/document';
 
 import {
   curtainWallType,
@@ -34,6 +40,8 @@ import {
   wallType,
 } from '@bunyan/types';
 
+import { documentOptions } from './documentOptions';
+import { openCacheIndexInWorker } from './storage/documentStorage';
 import { SCAFFOLD_TYPES } from './scaffold/types';
 import { createRenderGateway } from './render/RenderGateway';
 import type { RenderGateway } from './render/RenderGateway';
@@ -79,6 +87,8 @@ export interface InitialDocument {
   readonly scene: Scene;
   readonly journal?: readonly UndoableEdit[] | undefined;
   readonly revision?: ModelRevision | undefined;
+  /** The file's `geometry-cache/` (D29), restored only under this install's secret. */
+  readonly cache?: GeometryCacheReader | undefined;
 }
 
 export interface BunyanApp {
@@ -96,7 +106,11 @@ export interface BunyanApp {
   dispose(): void;
 }
 
-export async function bootstrap(initial?: InitialDocument): Promise<BunyanApp> {
+/** `installSecret` absent ⇒ the doc neither restores nor writes a geometry cache (D29). */
+export async function bootstrap(
+  initial?: InitialDocument,
+  installSecret?: Uint8Array,
+): Promise<BunyanApp> {
   // The real OCCT kernel. Swapping it for the mock is this one URL (the transport-agnostic promise).
   const worker = new Worker(new URL('@bunyan/kernel-occt/worker', import.meta.url), {
     type: 'module',
@@ -113,13 +127,18 @@ export async function bootstrap(initial?: InitialDocument): Promise<BunyanApp> {
   // Legacy, for saved documents only — see SHIPPED_TYPES above.
   for (const type of SCAFFOLD_TYPES) registries.types.register(type);
 
-  const doc = new DocumentContext({
-    registries,
-    geometry: client,
-    ...(initial === undefined
-      ? {}
-      : { scene: initial.scene, journal: initial.journal, revision: initial.revision }),
-  });
+  const doc = new DocumentContext(
+    documentOptions(
+      registries,
+      client,
+      handshake.kernel.buildId,
+      initial,
+      installSecret,
+      openCacheIndexInWorker,
+    ),
+  );
+  // The cache index is parsed and MAC-checked on a worker, before anything builds (T-061).
+  await doc.openGeometryCache();
 
   // Opening a saved file builds NOTHING here (D66 §3b, T-006): the caller builds what the camera sees
   // with `rebuildOnly` (`view/keepLive.ts`), and every aggregate FORCES the rest (§3c).

@@ -67,64 +67,76 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 >
 > A `done` row's `### T-nnn` entry is sealed in `docs/backlog-phase-01.md`.
 
-| ID    | Status  | Task                                                                                              | Area     | Machine | Risk     | Depends on   |
-| ----- | ------- | ------------------------------------------------------------------------------------------------- | -------- | ------- | -------- | ------------ |
-| T-001 | done    | The perpendicular-foot snap candidate                                                             | apps-web | pc      | normal   | —            |
-| T-002 | done    | The two-candidate-line intersection snap                                                          | apps-web | pc      | normal   | T-001        |
-| T-003 | done    | The in-app open-source licences screen                                                            | apps-web | pc      | normal   | —            |
-| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?                                          | document | box     | normal   | —            |
-| T-006 | done    | D66 §3a/b — the keep-live set and a lazy first paint                                              | apps-web | box     | normal   | T-005        |
-| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                                           | document | box     | normal   | —            |
-| T-008 | done    | Q19 — the belongs-to deletion reconciliation                                                      | document | box     | high     | —            |
-| T-009 | done    | Q18 — a hosted void may only host on its host's base part                                         | document | box     | high     | —            |
-| T-010 | done    | Q18 — two doors on one wall, confirmed in the browser                                             | apps-web | box     | normal   | T-009        |
-| T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`                                          | document | box     | high     | —            |
-| T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`                                             | infra    | box     | high     | —            |
-| T-013 | done    | The seat identity guard — `gh api user` must match the seat                                       | infra    | box     | high     | —            |
-| T-014 | done    | `--review` must read the task's `risk:`, not only the surface                                     | infra    | box     | high     | —            |
-| T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder                                      | infra    | box     | high     | —            |
-| T-016 | done    | `§0b`'s baton carries the builder separately from the holder                                      | infra    | box     | high     | T-015        |
-| T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself                                        | infra    | box     | normal   | —            |
-| T-018 | done    | D66's lazy-build design doc + measurement, reproduced                                             | document | box     | normal   | —            |
-| T-019 | done    | The move-tool gizmo + corner-drag, redone against `main`                                          | apps-web | box     | normal   | —            |
-| T-032 | done    | Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds | frontend | box     | normal   | —            |
-| T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows                                    | infra    | box     | high     | —            |
-| T-021 | done    | `pnpm verify` reaches green on the pc, confirmed there                                            | infra    | pc      | normal   | T-020        |
-| T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red                           | infra    | box     | high     | —            |
-| T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                                            | kernel   | box     | high     | —            |
-| T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there                                       | apps-web | pc      | normal   | T-022        |
-| T-005 | done    | D66 §3c — force-on-measure, and whether `save` reads built                                        | document | box     | normal   | T-018        |
-| T-026 | blocked | The identity gate fires at approve/merge, not only at claim                                       | infra    | box     | high     | —            |
-| T-025 | blocked | `--review` keeps an owner-gated row at `review`                                                   | infra    | box     | high     | —            |
-| T-028 | blocked | `agent-finish.mjs` is resumable after an interrupted run                                          | infra    | box     | normal   | —            |
-| T-027 | done    | §6's relink cap is measured, not guessed                                                          | infra    | box     | normal   | —            |
-| T-033 | review  | Q10 — `Dimension.anchors` excludes the free `point` anchor                                        | document | box     | **high** | —            |
-| T-034 | ready   | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                            | document | box     | **high** | —            |
-| T-035 | done    | Q8 — design: moving a D52 baseline wall, properly                                                 | design   | box     | normal   | —            |
-| T-050 | ready   | Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves                 | backend  | box     | **high** | —            |
-| T-051 | blocked | Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags                       | backend  | box     | **high** | T-050        |
-| T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                    | document | box     | **high** | T-051        |
-| T-037 | ready   | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                    | kernel   | box     | normal   | —            |
-| T-038 | done    | Q6 — design: the D29 cache in the `.bnn`                                                          | design   | box     | **high** | —            |
-| T-039 | done    | D29 R1 — the cache input key, one pass over the scene                                             | backend  | box     | **high** | —            |
-| T-040 | done    | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                           | backend  | box     | **high** | T-039        |
-| T-041 | done    | D29 R3 — the load-only restore substitution in `#stage`                                           | backend  | box     | **high** | T-039, T-040 |
-| T-042 | done    | D29 R4 — the lazy idle exporter; a save never exports                                             | workers  | box     | **high** | T-041        |
-| T-047 | done    | A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads               | backend  | box     | normal   | —            |
-| T-043 | ready   | D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05                      | backend  | box     | **high** | T-040        |
-| T-044 | ready   | D29 R6 — `codeId` is stamped per the owner answer to D-20261012-06                                | backend  | box     | **high** | T-040        |
-| T-045 | done    | D29 R7 — autosave carries the cache or not, per D-20261012-07                                     | backend  | box     | **high** | T-042        |
-| T-046 | done    | A hostile `.bnn` is refused before it inflates past an entry-count or size cap                    | backend  | box     | **high** | —            |
-| T-048 | done    | A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap                    | backend  | box     | **high** | —            |
-| T-049 | ready   | A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part     | backend  | box     | **high** | —            |
-| T-052 | done    | A shared-table edit re-queues every live assembly whose cache key flipped                         | backend  | box     | **high** | T-042        |
-| T-053 | done    | Wall auto-joins pair only walls whose vertical extents overlap                                    | backend  | box     | **high** | —            |
-| T-054 | done    | A container move re-stages every datum on a Level beneath it                                      | backend  | box     | **high** | —            |
-| T-055 | done    | A design-option set with no primary or two primaries surfaces in brokenRefs()                     | backend  | box     | normal   | —            |
-| T-056 | done    | A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn              | backend  | box     | **high** | —            |
-| T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                    | infra    | box     | high     | —            |
-| T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                     | infra    | box     | high     | —            |
-| T-031 | blocked | `requires:` supersedes a task's `machine:`                                                        | infra    | box     | high     | T-029        |
+| ID    | Status  | Task                                                                                                               | Area     | Machine | Risk     | Depends on          |
+| ----- | ------- | ------------------------------------------------------------------------------------------------------------------ | -------- | ------- | -------- | ------------------- |
+| T-001 | done    | The perpendicular-foot snap candidate                                                                              | apps-web | pc      | normal   | —                   |
+| T-002 | done    | The two-candidate-line intersection snap                                                                           | apps-web | pc      | normal   | T-001               |
+| T-003 | done    | The in-app open-source licences screen                                                                             | apps-web | pc      | normal   | —                   |
+| T-004 | done    | Does per-element build cost stay flat from 54 to 10,000?                                                           | document | box     | normal   | —                   |
+| T-006 | done    | D66 §3a/b — the keep-live set and a lazy first paint                                                               | apps-web | box     | normal   | T-005               |
+| T-007 | done    | Q17c — a dangling `designOptionId` becomes a broken ref                                                            | document | box     | normal   | —                   |
+| T-008 | done    | Q19 — the belongs-to deletion reconciliation                                                                       | document | box     | high     | —                   |
+| T-009 | done    | Q18 — a hosted void may only host on its host's base part                                                          | document | box     | high     | —                   |
+| T-010 | done    | Q18 — two doors on one wall, confirmed in the browser                                                              | apps-web | box     | normal   | T-009               |
+| T-011 | done    | Q17a — `scene.designOptions` becomes a `SceneCollection`                                                           | document | box     | high     | —                   |
+| T-012 | done    | `--review` routes a PR whose title carries no `T-nnn`                                                              | infra    | box     | high     | —                   |
+| T-013 | done    | The seat identity guard — `gh api user` must match the seat                                                        | infra    | box     | high     | —                   |
+| T-014 | done    | `--review` must read the task's `risk:`, not only the surface                                                      | infra    | box     | high     | —                   |
+| T-015 | done    | `agent-start.mjs --continue` returns a branch to its builder                                                       | infra    | box     | high     | —                   |
+| T-016 | done    | `§0b`'s baton carries the builder separately from the holder                                                       | infra    | box     | high     | T-015               |
+| T-017 | done    | `docs-budget.test.ts`'s newest-first check verifies itself                                                         | infra    | box     | normal   | —                   |
+| T-018 | done    | D66's lazy-build design doc + measurement, reproduced                                                              | document | box     | normal   | —                   |
+| T-019 | done    | The move-tool gizmo + corner-drag, redone against `main`                                                           | apps-web | box     | normal   | —                   |
+| T-032 | done    | Agent edits through `window.bunyan` wait on the same document lock as human edits and lazy builds                  | frontend | box     | normal   | —                   |
+| T-020 | done    | The pinned vitest cannot collect `tests/protocol/*` on Windows                                                     | infra    | box     | high     | —                   |
+| T-021 | done    | `pnpm verify` reaches green on the pc, confirmed there                                                             | infra    | pc      | normal   | T-020               |
+| T-024 | done    | `_baselinedAtEntry` names a position, so a cross-day §7 append goes red                                            | infra    | box     | high     | —                   |
+| T-022 | done    | `kernel-occt`'s glue decodes from growable WASM memory                                                             | kernel   | box     | high     | —                   |
+| T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there                                                        | apps-web | pc      | normal   | T-022               |
+| T-005 | done    | D66 §3c — force-on-measure, and whether `save` reads built                                                         | document | box     | normal   | T-018               |
+| T-026 | blocked | The identity gate fires at approve/merge, not only at claim                                                        | infra    | box     | high     | —                   |
+| T-025 | blocked | `--review` keeps an owner-gated row at `review`                                                                    | infra    | box     | high     | —                   |
+| T-028 | blocked | `agent-finish.mjs` is resumable after an interrupted run                                                           | infra    | box     | normal   | —                   |
+| T-027 | done    | §6's relink cap is measured, not guessed                                                                           | infra    | box     | normal   | —                   |
+| T-033 | review  | Q10 — `Dimension.anchors` excludes the free `point` anchor                                                         | document | box     | **high** | —                   |
+| T-034 | ready   | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                                             | document | box     | **high** | —                   |
+| T-035 | done    | Q8 — design: moving a D52 baseline wall, properly                                                                  | design   | box     | normal   | —                   |
+| T-050 | ready   | Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves                                  | backend  | box     | **high** | —                   |
+| T-051 | blocked | Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags                                        | backend  | box     | **high** | T-050               |
+| T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                                     | document | box     | **high** | T-051               |
+| T-037 | ready   | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                                     | kernel   | box     | normal   | —                   |
+| T-038 | done    | Q6 — design: the D29 cache in the `.bnn`                                                                           | design   | box     | **high** | —                   |
+| T-039 | done    | D29 R1 — the cache input key, one pass over the scene                                                              | backend  | box     | **high** | —                   |
+| T-040 | done    | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                                            | backend  | box     | **high** | T-039               |
+| T-041 | done    | D29 R3 — the load-only restore substitution in `#stage`                                                            | backend  | box     | **high** | T-039, T-040        |
+| T-042 | done    | D29 R4 — the lazy idle exporter; a save never exports                                                              | workers  | box     | **high** | T-041               |
+| T-047 | done    | A `.bnn` saved twice from one scene is byte-identical whatever the wall clock reads                                | backend  | box     | normal   | —                   |
+| T-043 | done    | D29 R5 — the cache envelope is trusted per the owner answer to D-20261012-05                                       | backend  | box     | **high** | T-040               |
+| T-044 | done    | D29 R6 — `codeId` is stamped per the owner answer to D-20261012-06                                                 | backend  | box     | **high** | T-040               |
+| T-045 | done    | D29 R7 — autosave carries the cache or not, per D-20261012-07                                                      | backend  | box     | **high** | T-042               |
+| T-046 | done    | A hostile `.bnn` is refused before it inflates past an entry-count or size cap                                     | backend  | box     | **high** | —                   |
+| T-048 | done    | A `.bnn` of many small high-ratio entries is refused by an aggregate ratio cap                                     | backend  | box     | **high** | —                   |
+| T-049 | done    | A cache restore reads each batch of roots' entries in one `readMany`, not one `read` per part                      | backend  | box     | **high** | —                   |
+| T-052 | done    | A shared-table edit re-queues every live assembly whose cache key flipped                                          | backend  | box     | **high** | T-042               |
+| T-053 | done    | Wall auto-joins pair only walls whose vertical extents overlap                                                     | backend  | box     | **high** | —                   |
+| T-054 | done    | A container move re-stages every datum on a Level beneath it                                                       | backend  | box     | **high** | —                   |
+| T-055 | done    | A design-option set with no primary or two primaries surfaces in brokenRefs()                                      | backend  | box     | normal   | —                   |
+| T-056 | done    | A save carrying the D29 cache can zip off the main thread, byte-identical to saveBnn                               | backend  | box     | **high** | —                   |
+| T-057 | done    | Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret kept in browser storage | frontend | box     | **high** | —                   |
+| T-058 | done    | A named save in the app zips in a dedicated worker, byte-identical to saveBnn                                      | workers  | box     | **high** | T-056               |
+| T-059 | done    | The app exports built assemblies in idle time, and a named save carries the geometry cache                         | frontend | box     | **high** | T-057, T-058        |
+| T-060 | done    | A named save signs its geometry-cache index in the zip worker, not on the main thread                              | workers  | box     | **high** | T-058, T-059        |
+| T-061 | done    | Opening a file verifies its geometry-cache index off the main thread                                               | workers  | box     | **high** | T-060               |
+| T-062 | done    | A named save keys each cached root once, and not at all for an unchanged scene                                     | backend  | box     | **high** | —                   |
+| T-063 | done    | Opening a file inflates its geometry-cache index in the worker and parses it root by root                          | workers  | box     | **high** | —                   |
+| T-064 | ready   | A named save posts its geometry-cache records to the zip worker as one transferred buffer                          | workers  | box     | **high** | T-062, T-063, T-065 |
+| T-065 | ready   | A named save posts its entries to the zip worker as one transferred buffer                                         | workers  | box     | **high** | T-062, T-063, T-067 |
+| T-067 | ready   | A named save names its carried cache entries and records, and the zip worker reads them from the opened file       | workers  | box     | **high** | T-062, T-063        |
+| T-068 | ready   | A dependabot PR passes the PR-shape check by its head branch and bot author, not its title                         | infra    | box     | **high** | —                   |
+| T-066 | blocked | The first named save after an open or an edit re-keys and re-inflates no unchanged root                            | backend  | box     | **high** | T-065, T-067        |
+| T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —                   |
+| T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —                   |
+| T-031 | blocked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
 
 ---
 
@@ -596,6 +608,161 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - depends-on: — · area: backend · machine: box · risk: **high**
 - note: a lower geometry-cache/ level is not the fix: level 1 saves ~25%, level 0 makes the file 6x larger against design §5 OPFS budget; fflate async zip() deflates entries under 160,000 B on the calling thread (fflate@0.8.3 esm/index.mjs:2287-2289), so a dedicated worker is needed; the kernel worker (apps/web/src/bootstrap.ts:101) is not it, it would stall OCCT; wiring the worker into apps/web needs a browser and T-044, and is a separate row; risk high per READY rule 8 (D29 save path)
 
+### T-057 — Opening a stored `.bnn` in the app restores its geometry cache, under a per-install secret kept in browser storage
+
+- outcome: readInitial keeps pkg.cache, and the boot path builds DocumentContext with geometryCache {files, current: cacheEnvelope(buildId), installSecret}, geometryCacheEnvelope and geometryCacheSecret; the secret is created once per store and read back on every later boot.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2a, §2d, §2e (secret persistence belongs to the app wiring), §4, §6 R3/R5/R6 · docs/contracts/V1.0.0_spec.md §6 (geometry-cache box) · D29; provenance: BACKLOG ## Discovered 2026-10-14 (T-042), confirmed by a brahim R39 diagnosis 2026-10-23 at 3d72653 (apps/web/src/storage/documentStorage.ts:67-75 drops pkg.cache; apps/web/src/bootstrap.ts:116-122 passes no geometryCache*)
+- done-when: test-first, on a MemoryStore: the secret helper returns the same 32 bytes on a second call and writes exactly one key, which listDocKeys, latestAutosaveKey and the Autosave ring do not count
+- done-when: a pure options builder factored out of bootstrap.ts (node-testable, no Worker) given a cached file signed with the stored secret builds a doc that restores (rebuildOnly calls no build for a matching root); given another secret it restores nothing; revert-verified: dropping geometryCache turns it red
+- done-when: a file without geometry-cache/ opens as today; every `tests/*-d29.test.ts` test and the T-049 and T-052 tests pass unchanged
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: frontend · machine: box · risk: **high**
+- note: every done-when item checks under node (vitest collects apps/**/*.test.ts; MemoryStore is bnn.ts:532); main-thread verify cost at 16k is unmeasured (## Discovered 2026-10-20); risk high per READY rule 8 (D29 load path); owner answers D-20261012-05/06/07 already applied per design §2e and §5
+
+### T-058 — A named save in the app zips in a dedicated worker, byte-identical to saveBnn
+
+- outcome: apps/web posts assembleBnnEntries output to a new zip worker (not the kernel worker, apps/web/src/bootstrap.ts:101) and writes the zipBnnEntries bytes it returns, so a save with a full cache does not block the main thread on deflate.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (budget and save policy, the T-056 paragraph), §6 R4 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: T-056 note (wiring the worker into apps/web is a separate row), brahim R39 diagnosis 2026-10-23 at 3d72653 (zipBnnEntries is called only from packages/document/src/bnn.ts:131)
+- done-when: test-first: a node test drives the worker message handler and gets bytes equal to saveBnn for the 20-solid fixture with a cache and for a cache-less scene; revert-verified: posting to the main-thread path instead turns the worker-usage assertion red
+- done-when: in a real browser, a named save of a scene with a large cache keeps the main thread responsive (longest task on the save gesture under 200 ms), measured and the figure recorded in design §5
+- done-when: every T-047 byte-identity test and tests/autosave-cache-d29.test.ts pass unchanged
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: T-056 · area: workers · machine: box · risk: **high**
+- requires: browser
+- note: signing (~2.1 s at 16k, ## Discovered 2026-10-20) could move into the same worker but is a separate finding; risk high per READY rule 8 (D29 save path)
+
+### T-059 — The app exports built assemblies in idle time, and a named save carries the geometry cache
+
+- outcome: an idle scheduler calls doc.exportCacheIdle(1) under docLock until it returns 0 and runs again after each commit; saveDoc passes cache: app.doc.geometryCacheFiles(); autosave stays cache-less (D-20261012-07).
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (commit queue, carry and save filter), §6 R4/R7 · docs/contracts/V1.0.0_spec.md §6 (geometry-cache box) · D29; provenance: BACKLOG ## Discovered 2026-10-14 (T-042), confirmed by a brahim R39 diagnosis 2026-10-23 at 3d72653 (apps/web/src/App.tsx:297-301 passes no cache)
+- done-when: test-first, with an injected fake idle scheduler and a real doc: one edit queues that root, the scheduled runs drain it, and a following save carries a geometry-cache/index.json that verifies under the install secret; the export takes the doc lock and never runs alongside an edit
+- done-when: a save before the export finishes writes only matching-key entries and calls no exportBrep; reopening that save through the T-057 path restores the exported roots
+- done-when: tests/autosave-cache-d29.test.ts and every T-047 byte-identity test pass unchanged
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: T-057, T-058 · area: frontend · machine: box · risk: **high**
+- note: depends on T-058 so a cache-carrying save never ships blocking the main thread ~6 s at 16k (zip 4.1 s + sign 2.1 s, design §5/§2e); every done-when item checks under node; risk high per READY rule 8 (D29 save path)
+
+### T-060 — A named save signs its geometry-cache index in the zip worker, not on the main thread
+
+- outcome: geometryCacheFiles() hands the zip worker unsigned records and the envelope, and the worker computes the HMAC and writes index.json, so a 16k-solid named save no longer holds the main thread ~2.1 s on signing, and its bytes equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §5 (the T-058 paragraph), §6 R4/R5 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-20 (T-043), confirmed by a brahim R39 diagnosis 2026-10-23 at b927f6e (apps/web/src/App.tsx:328 signs via documentStorage.ts:89 before documentStorage.ts:109 posts; packages/document/src/cachetrust.ts:53-63)
+- done-when: test-first: canonicalJson, sha256 and the cache HMAC move to a leaf module exported as a new @bunyan/document subpath beside ./bnnzip, importing no scene/joins/document code; the zip worker still imports nothing else (apps/web/src/storage/bnnZip.ts:9)
+- done-when: a node test with a fake ZipPort shows the stored bytes equal saveBnn(scene, options) byte for byte, for the 20-solid fixture with a cache and a cache-less scene; revert-verified: signing on the caller again turns a spy assertion that no HMAC runs on the caller red
+- done-when: tests/geometry-cache-trust-d29.test.ts, every T-047 byte-identity test and tests/app-named-save-zip-worker-t058.test.ts pass unchanged
+- done-when: tools/browser-check/named-save.mjs saves through doc.geometryCacheFiles() at 16k, and the main-thread hold on the save gesture and the structured-clone cost of posting the records are measured and recorded in design §5 beside the T-058 figure
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify; node tools/browser-check/named-save.mjs
+- depends-on: T-058, T-059 · area: workers · machine: box · risk: **high**
+- requires: browser
+- note: save side only; the open-side verify is T-061, because making #stage's synchronous #openCache (packages/document/src/document.ts:1342, 1547-1551) async is the larger change; the T-058 124-133 ms browser figure excludes signing (saveCheckMain.ts:49-50 copies a pre-signed index); risk high per READY rule 8 (D29 save path)
+
+### T-061 — Opening a file verifies its geometry-cache index off the main thread
+
+- outcome: the D29 index's JSON.parse and HMAC verify run in a worker before rebuildAll, and #stage consumes the already-opened index, so a 16k-solid open no longer runs the verify pass on the main thread, and a file from another install still restores nothing.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §4, §6 R3/R5 · D29; provenance: BACKLOG ## Discovered 2026-10-20 (T-043), confirmed by a brahim R39 diagnosis 2026-10-23 at b927f6e (packages/document/src/cacherestore.ts:80,91 parse and verify synchronously from #openCache, document.ts:1342, 1547-1551)
+- done-when: test-first: the index is opened (parsed and verified) by a step that runs before rebuildAll through the T-060 leaf module, and #stage reads the opened result; a node test with a fake worker port shows the verify runs on the port, not the caller; revert-verified: calling verifyCacheIndex from #stage again turns it red
+- done-when: a file signed with another install's secret restores nothing, and a file without geometry-cache/ opens as today (the T-043 and T-057 tests pass unchanged)
+- done-when: every tests/*-d29.test.ts test and the T-049 and T-052 tests pass unchanged
+- done-when: the 16k verify time is measured under node and recorded in design §2e beside the 2,074 ms signing figure
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: T-060 · area: workers · machine: box · risk: **high**
+- note: blocked on T-060, whose leaf module this reuses; every done-when item checks under node; the save path's carried-cache verify (document.ts:709) is in scope only if it re-verifies an index already verified on open; risk high per READY rule 8 (D29 load path)
+
+### T-062 — A named save keys each cached root once, and not at all for an unchanged scene
+
+- outcome: geometryCacheFiles() passes the key it already computed into usableRecord instead of re-keying each carried root, and keeps a key map and the carried .brep bytes tied to the scene object, so a second save of an unchanged scene runs no cacheInputKey and re-inflates no carried entry, and its bytes still equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2b, §5 (the T-060 paragraph), §6 R1/R4 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-23 (T-060), confirmed by a brahim R39 diagnosis 2026-10-23 at 624b5ba (packages/document/src/document.ts:737-740 keys every root, document.ts:749 re-keys it through usableRecord at cacherestore.ts:224, document.ts:755 re-inflates every carried .brep)
+- done-when: test-first: a spy on cacheInputKey shows at most one call per root per save, and none on a second save of the same scene; revert-verified: restoring document.ts:740,749 turns it red
+- done-when: after the edits in tests/cache-requeue-table-edit.test.ts and tests/geometry-cache-export-d29.test.ts the kept keys equal cacheInputKeys(scene), and both files pass unchanged
+- done-when: every T-047 byte-identity test and the T-058 and T-060 tests pass unchanged
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: **high**
+- note: every done-when item checks under node; keys stay recomputed per scene object, never kept from the last commit, because a shared-table edit re-keys every root but rebuilds only its readers (document.ts:1543-1552) and design §5 drops an unbuilt root whose neighbour moved; the records-as-bytes post is T-064; risk high per READY rule 8 (D29 save path)
+
+### T-063 — Opening a file inflates its geometry-cache index in the worker and parses it root by root
+
+- outcome: the cache-open worker inflates index.json from posted file bytes under a leaf cap check, verifies it, and transfers back one buffer of per-root record JSON with offsets; #stage parses a root's record only inside its restore batch, so a 16k open runs no unzipSync of index.json, no whole-index JSON.parse and no object-graph clone on the main thread, and a file from another install still restores nothing.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §3 (the cap check moved to a leaf), §4, §6 R3/R5 · D29; provenance: BACKLOG ## Discovered 2026-10-23 (T-061), confirmed by a brahim R39 diagnosis 2026-10-23 at 624b5ba (packages/document/src/cacherestore.ts:92 reads index.json on the caller through bnn.ts:491-492,498; apps/web/src/storage/cacheOpen.ts:28,51 posts without a transfer and replies with an object graph; usableRecord needs an object per record, cacherestore.ts:223-226)
+- done-when: test-first: a node test with a fake worker port asserts the caller runs no unzipSync of index.json and no JSON.parse of the whole index, and that the reply is a transferred ArrayBuffer; revert-verified: restoring cacherestore.ts:92 turns it red
+- done-when: the cap check the worker runs is a leaf module importing no scene/joins/document code, and the worker bundle still imports only leaf modules (apps/web/src/storage/cacheOpen.ts:10)
+- done-when: a file signed with another install's secret restores nothing, and a file without geometry-cache/ opens as today
+- done-when: every tests/*-d29.test.ts test and the T-049, T-052, T-057 and T-061 tests pass unchanged, except the one T-061 import pin on cacheOpen.ts (tests/app-cache-open-verifies-in-worker-t061.test.ts:157), which T-063 amends to admit the new leaf cap-check module
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: workers · machine: box · risk: **high**
+- note: every done-when item checks under node; replying with the whole index as bytes alone would move the parse back to the main thread, hence the per-root lazy parse; the file bytes stay with the reader (bnn.ts:489) so they are cloned, not transferred; a browser open timing is not in scope; T-064 reuses this row's per-root record bytes; risk high per READY rule 8 (D29 load path)
+
+### T-064 — A named save posts its geometry-cache records to the zip worker as one transferred buffer
+
+- outcome: each record's serialized JSON is kept at export and at open, and geometryCacheFiles() transfers them to the zip worker as one buffer that the worker signs and assembles index.json from, so posting the records clones no object graph, and the stored bytes still equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §5 (the T-060 paragraph), §6 R4/R5 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-23 (T-060), confirmed by a brahim R39 diagnosis 2026-10-23 at 624b5ba (apps/web/src/storage/bnnZip.ts:52,84 clones records and entries; the MAC is over canonicalJson at packages/document/src/cachesign.ts:81 and the stored index is JSON.stringify at cachesign.ts:94)
+- done-when: test-first: a node test with a fake ZipPort shows the records are posted as one transferred ArrayBuffer and the stored bytes equal saveBnn(scene, options) byte for byte, for the 20-solid fixture with a cache and a cache-less scene; revert-verified: posting the record objects again turns the transfer assertion red
+- done-when: tests/geometry-cache-trust-d29.test.ts, every T-047 byte-identity test and the T-058, T-060, T-062 and T-063 tests pass unchanged
+- done-when: node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k, and the main-thread hold is recorded in design §5 beside the T-060 figure
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
+- depends-on: T-062, T-063, T-065 · area: workers · machine: box · risk: **high**
+- requires: browser
+- note: blocked on T-062 (the key cost) and T-063 (whose per-root record bytes this reuses); the 200 ms bar is unproven reachable: the first save after an open may still exceed it without the keys computed during restore (cacherestore.ts:224), and a turn that cannot reach it records the figure and stops with a B- record, never a reworded bar; risk high per READY rule 8 (D29 save path)
+
+### T-065 — A named save posts its entries to the zip worker as one transferred buffer
+
+- outcome: the named save packs its entries into one buffer plus names and offsets and transfers it, so postMessage clones no entry Uint8Array, the worker unpacks them in name order, the document's carried and exported .brep buffers stay attached, and the stored bytes still equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (the T-058, T-060 and T-064 paragraphs), §6 R4 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: B-20261024-02, B-20261025-02, a brahim R39 diagnosis 2026-10-25 (BnnEntries is Record<string, Uint8Array>, packages/document/src/bnnzip.ts:16; the entries are cloned because the document keeps the carried and exported buffers, document.ts:716,760,776-779)
+- done-when: test-first: a node test with a fake ZipPort shows, for the 20-solid fixture with a cache and a cache-less scene, that the posted message holds no Uint8Array outside its transferred buffers, the caller's packed buffer is detached after the post, every carried and exported .brep buffer keeps its byteLength, and two consecutive saves each store bytes equal to saveBnn(scene, options), and neither cache-less case is it.fails; revert-verified: posting the entries object again turns the no-cloned-entry assertion red
+- done-when: every T-047 byte-identity test and the T-058, T-060, T-062, T-063, T-064 and geometry-cache-trust-d29 tests pass unchanged, except T-064's cache-less expect(posted.transfer).toEqual([]) (tests/app-named-save-transfers-records-t064.test.ts:141), which T-065 amends to expect its one packed buffer, because done-when 1 detaches it (B-20261025-03)
+- done-when: save-check records the in-save split (geometryCacheFiles, assemble, serializeRecords, pack, post) in design §5 beside the T-064 figure
+- done-when: node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k in 3 of 3 unmodified runs, which is also T-064's done-when 3
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
+- depends-on: T-062, T-063, T-067 · area: workers · machine: box · risk: **high**
+- requires: browser
+- note: built on origin/task/T-064-a-named-save-posts-its-geometry-cache-re, merged into this row's branch first, because T-064's records buffer and this row both change apps/web/src/storage/bnnZip.ts and T-064's bar cannot be met without this row; merging this PR lands PR #116's commits too; if the bar is still missed, record the figures and stop with a B- record, never a reworded bar (the next shape is the worker inflating carried entries from reader.file, bnn.ts:378); risk high per READY rule 8 (D29 save path)
+
+### T-067 — A named save names its carried cache entries and records, and the zip worker reads them from the opened file
+
+- outcome: a named save of a file opened with a geometry cache packs no carried root's .brep or record JSON bytes: it posts their names, and the zip worker reads both from the opened file's bytes (GeometryCacheReader.file, packages/document/src/bnn.ts) under the leaf cap check, so the main thread's pack copies only the manifest, scene, journal and the exported roots, and the stored bytes still equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §3 (the loader must not inflate what it ignores), §5 (the T-064 and T-065 paragraphs), §6 R4/R5 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: B-20261025-04 (T-065 branch), B-20261026-01, hmdnah's PR #120 step 2 2026-10-26 (pack 54.5-132.8 ms of a 105 MB copy, R4's 43.9 MB .brep and ~61 MB records; assemble 48.7-59.8 ms), apps/web/src/storage/bnnZip.ts:93-98 at 9b51781 copies every entry and record
+- done-when: test-first: a node test with a fake ZipPort, on a file opened through the cache-open worker (the 5-wall cached file of the T-064 and T-065 tests), shows the posted message holds no carried root's .brep or record JSON bytes and names those roots instead, and two consecutive saves each store bytes equal to saveBnn(scene, options); a save carrying some roots and exporting others stores saveBnn's bytes too; revert-verified: packing the carried bytes again turns the no-carried-bytes assertion red
+- done-when: the zip worker checks the file's caps through the leaf bnncaps.ts before it inflates a carried entry, its bundle still imports only leaf modules (apps/web/src/storage/bnnZip.ts:10), and a carried name the file does not hold rejects the save rather than storing a file without that entry
+- done-when: T-065's done-when 1 and 2 as amended 2026-10-26 hold at this row's head: a cache-less save's packed buffer is transferred and detached, and neither T-065 cache-less case is it.fails
+- done-when: every T-047 byte-identity test and the T-058, T-060, T-062, T-063 and geometry-cache-trust-d29 tests pass unchanged; the T-064 and T-065 tests pass, amended only in their opened-file cases (T-064's 'records carried from an opened file' and T-065's 'entries carried from an opened file' describes) to expect carried roots by name, each amendment listed in the PR body
+- done-when: save-check records the in-save split (geometryCacheFiles, assemble, serializeRecords, pack, post) in design §5 beside the T-065 figure, and node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k in 3 of 3 unmodified runs, which is also T-065's done-when 4 and T-064's done-when 3
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
+- depends-on: T-062, T-063 · area: workers · machine: box · risk: **high**
+- requires: browser
+- note: built on origin/task/T-065-a-named-save-posts-its-entries-to-the-zi, merged into this row's branch first, because both rows change apps/web/src/storage/bnnZip.ts and T-065's bar cannot be met without this row; merging this PR lands PR #116's and PR #120's commits; when that merge takes main's docs/BLOCKERS.md, re-append the branch-only B-20261024-02, B-20261025-03 and B-20261025-04 unchanged; if the bar is still missed, record the figures and stop with a B- record, never a reworded bar (one candidate next shape is assembling scene.json in the worker, 48.7-59.8 ms on the main thread); risk high per READY rule 8 (D29 save path)
+
+### T-068 — A dependabot PR passes the PR-shape check by its head branch and bot author, not its title
+
+- outcome: scripts/pr-ready.mjs --pr accepts a PR whose head branch starts with dependabot/ and whose author is the dependabot app, printing that it routed as a dependency PR, and still refuses every other PR whose title carries no T-nnn: or STEWARD: prefix, so a dependabot bump is no longer red on the title alone.
+- implements: diwan/AGENTS.md §1 (the PR title is the routing key, never --fill) · docs/INVARIANTS.md §2 (the PR shape · reserved classes CI step); provenance: B-20261025-01 (CI run 40150898247; scripts/pr-ready.mjs:27 accepts only T-nnn: or STEWARD:; PR #118 head dependabot/npm_and_yarn/vite-6.4.4, author app/dependabot, is_bot true, per gh pr view 118)
+- done-when: test-first in tests/protocol/pr-ready.test.ts through an injected PR view: title 'Bump vite from 6.4.3 to 6.4.4', head dependabot/npm_and_yarn/vite-6.4.4 and author app/dependabot (is_bot) routes; the same head with a human author, and the same title on a non-dependabot head, are refused; revert-verified: removing the dependabot route turns the first case red
+- done-when: the existing title tests pass unchanged, and node scripts/pr-ready.mjs --title 'Bump vite from 6.4.3 to 6.4.4' still exits 1, because a bare title carries no head or author
+- done-when: the mergeable half is unchanged: a dependabot PR that GitHub reports CONFLICTING or UNKNOWN still fails
+- verify: npx vitest run tests/protocol/pr-ready.test.ts && pnpm verify
+- depends-on: — · area: infra · machine: box · risk: **high**
+- note: Bunyan half of B-20261025-01 only; diwan agent_start.py routing a dependabot/* PR to a reviewer is diwan's and is not sequenced here, so B-20261025-01 stays uncleared until both halves land and PR #118 is routed to hmdnah; risk high because it loosens a CI merge gate; every done-when item checks under node
+
+### T-066 — The first named save after an open or an edit re-keys and re-inflates no unchanged root
+
+- outcome: carried .brep bytes and cache keys survive a new scene value for every root whose key is unchanged, and restore's keys seed the first save, so the first named save after an open or an edit does no full re-key and no synchronous re-inflate of unchanged roots, and the stored bytes still equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (the T-060, T-062 and T-064 paragraphs), §6 R4 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: hmdnah's PR #116 step-1 review 2026-10-24 (the first geometryCacheFiles() after an open took 1437.9 ms synchronously), a brahim R39 diagnosis 2026-10-25 (#keyedFor makes a new carried Map per scene value, document.ts:1601-1604; restore's keys are discarded, document.ts:1403; usableRecord's cacheInputKey, cacherestore.ts:274)
+- done-when: test-first: a node test shows that after an open and one save, a further save and a save after an edit that keeps a root's key inflate none of that root's entries (a counting readMany spy) and store bytes equal to saveBnn(scene, options); revert-verified: dropping the carry reuse turns the inflate count red
+- done-when: keys stay recomputed per scene object and never kept from the last commit (T-062's note); every T-047 byte-identity test and the T-058, T-060, T-062, T-063, T-064, T-065 and geometry-cache-trust-d29 tests pass unchanged
+- done-when: save-check drops its warm-up geometryCacheFiles() before the timed saves, and node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k for the first save after an open, recorded in design §5
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
+- depends-on: T-065, T-067 · area: backend · machine: box · risk: **high**
+- requires: browser
+- note: the split between keying, the lazy record parse and the .brep inflate inside the 1437.9 ms is not measured, so the turn measures it first; if the bar is missed, record the figures and stop with a B- record, never a reworded bar; risk high per READY rule 8 (D29 save path)
+
 ### T-029 — `seats.mjs` collapses `machine: any` to `box` in two functions
 
 `reviewerFor` and `builderFor` resolve a `machine: any` task by silently defaulting to `box` when no
@@ -700,9 +867,10 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
-- **2026-10-14 — no product caller runs the D29 export** (T-042). `exportCacheIdle` and `geometryCacheFiles`
-  are document-layer only: `apps/web` schedules no idle export and its saves pass no `cache`, because the
-  envelope needs a `codeId` (T-044, `D-20261012-06`). Fix shape: wire both when T-044 lands. Recorded, not claimed.
+- **2026-10-25 — diwan `agent_start.py` resumes a builder's open claim that a pending decision holds.** Its
+  `resume` skips a claim in `blocks` (`scope: item` blockers) but not one a pending `D-` names
+  (`agent_start.py:928-937`), so `--seat zayd` resumed T-037 (held by D-20261021-01) and pushed `1ab49aa`
+  instead of reaching T-064. Passing the task id selects it. A diwan item, not a Bunyan row.
 - **2026-10-12 — the freeze baseline cannot name the turn that authorised it** (T-033). `recordedAbstracts`
   resolves only `### ` headings (`scripts/docs-state.mjs` `NEW_HEADING`), but `docs/PHASE_LOG.md` entries
   are `## ` (diwan's shape), so `pnpm state --rebaseline` stamps §7's newest abstract

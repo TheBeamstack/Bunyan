@@ -236,7 +236,7 @@ from, and the reason it is a record rather than prose.
 - why: PR #72's re-seed gate needs a seeder run on `task/T-037-q5-the-section-chord-tolerance-chosen-fo`; the seat cannot run it, and start continues an incomplete claim before offering a new row; this branch-side need (its B-20261012-01) is not on main, and that id collides with main's B-20261012-01
 - evidence: `cd tools/oracle && uv run seed-goldens ../../tests/goldens` in a loop-spawned zayd → "The following part requires approval: uv run seed-goldens ../../tests/goldens"; `gh pr view 72 --json mergeable` → CONFLICTING
 - need: allow `uv run seed-goldens` in the box loop's session permissions, or run it on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push `tests/goldens/`
-- cleared: -
+- cleared: 2026-10-24T22:15Z
 
 ## B-20261012-04 PR #77's step-1 report could not be posted as a comment under hmdnah's account
 
@@ -332,7 +332,7 @@ from, and the reason it is a record rather than prose.
 - why: Bunyan is public, the four settings are repository-admin settings no seat may change, and `docs/HANDOVERS.md#H-20261011-13` measured all four off
 - evidence: `gh api repos/TheBeamstack/Bunyan --jq .security_and_analysis`
 - need: enable Dependabot alerts, Dependabot security updates, secret scanning and push protection under TheBeamstack/Bunyan Settings → Code security
-- cleared: -
+- cleared: 2026-10-24T22:15Z
 
 ## B-20261019-02 PR #82's step-2 finish refuses: step 1's label and record never landed
 
@@ -356,7 +356,7 @@ from, and the reason it is a record rather than prose.
 - why: agent_start.py exited 1, "T-037 (PR #72) is held by B-20261012-03, an uncleared scope: item blocker at main — skip it"; B-20261012-03's `need:` (seeder permission or a seeded push) is still unmet, so the conflict merge, which needs no seeder, is held with it
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-037 --root /home/ubuntu/projects/Bunyan; echo $?`; `gh pr view 72 --json mergeable` → CONFLICTING
 - need: perform B-20261012-03's `need:` and clear it, or make diwan `agent_start.py --continue` admit a flow-routed conflict merge on a blocker-held claim
-- cleared: -
+- cleared: 2026-10-23T07:03Z
 
 ## B-20261019-04 PR #88's step 2 proved one corrupt cache entry rebuilds its whole batch, so it is not merged
 
@@ -368,7 +368,7 @@ from, and the reason it is a record rather than prose.
 - why: a 3-root `.bnn` with one entry's DEFLATE data corrupted passes `loadBnn`, and `cache.read` throws `invalid block type`; at head `355d4cd` 0 roots restore, against 2 with main's `cacherestore.ts`/`document.ts`; `agent_finish.py --review --step 2` would stamp T-049 `done` (`agent_finish.py:604-606`), so the step-2 finish was not run
 - evidence: the probe in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md` (two DEFLATE bytes of `W00001/0.brep` set to `0xff` before `loadBnn`), run with `pnpm exec vitest run` at `355d4cd` and with `git checkout origin/main -- packages/document/src/{cacherestore,document}.ts`
 - need: make `readRestoreBatch` re-read each root alone after a non-cap `readMany` throw (fix in `handoff/hmdnah/2026-10-19-T-049-review-step-2.md`) in a zayd turn on `task/T-049-a-cache-restore-reads-each-batch-of-root`, then route PR #88 to hmdnah for step 2
-- cleared: -
+- cleared: 2026-10-23T06:06Z
 
 ## B-20261019-05 PR #88's returned fix cannot reach zayd: start refuses T-049 while B-20261019-04 holds it
 
@@ -380,7 +380,7 @@ from, and the reason it is a record rather than prose.
 - why: agent_start.py exited 1, "T-049 (PR #88) is held by B-20261019-04, an uncleared `scope: item` blocker at main — skip it"; B-20261019-03 is the same refusal for PR #72's flow merge
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --continue T-049 --root /home/ubuntu/projects/Bunyan; echo $?`
 - need: make diwan `agent_start.py --continue` admit the seat a blocker's own `need:` routes to its item, then run B-20261019-04's zayd fix
-- cleared: -
+- cleared: 2026-10-23T05:33Z
 
 ## B-20261020-01 PR #89's step 2 proved a hostile cache index throws out of openCacheIndex, so the file does not open
 
@@ -392,7 +392,7 @@ from, and the reason it is a record rather than prose.
 - why: a ~400 KB index (`records.W1` = 200,000 nested `[]`, envelope = `current` plus `mac: 'x'`) parses, then `openCacheIndex` throws `Maximum call stack size exceeded` at head `76f95af`; `rebuildAll` on `emptyScene()` with that cache rejects, and resolves once the verify call is removed; `agent_finish.py --review --step 2` would stamp T-043 `done` (`agent_finish.py:605-606`), so the step-2 finish was not run
 - evidence: the probe in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`, run with `npx vitest run` at `76f95af` and with `cacherestore.ts:89-91` removed
 - need: make `openCacheIndex` return `undefined` when `verifyCacheIndex` throws (fix in `handoff/hmdnah/2026-10-20-T-043-review-step-2.md`) in a zayd turn on `task/T-043-d29-r5-the-cache-envelope-is-trusted-per`, then route PR #89 to hmdnah for step 2
-- cleared: -
+- cleared: 2026-10-23T01:52Z
 
 ## B-20261020-02 PR #90's step 1 proved the CODE_ID chunk keeps its content-hash name after the stamp, so a stale codeId can be served
 
@@ -404,4 +404,136 @@ from, and the reason it is a record rather than prose.
 - why: two `npx vite build` runs of `apps/web` (with a temporary `CODE_ID` import in `bootstrap.ts`, and a one-line `App.tsx` change in the second run) give `assets/PartBatch-C8aMdl36.js` the same name in both runs, with bytes `8da496e7da50` → `55a5edc5570d` and `CODE_ID` `6cb5e4faace12c80` → `1b60a133b970e918`
 - evidence: the probe test in PR #90's step-1 review, run with `npx vitest run apps/web/src/hmProbe.test.ts` at `aca806e` → 1 failed
 - need: make the shipped `CODE_ID` unservable stale under an unchanged URL (fix shape in `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`) in a zayd turn on `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a`, land the probe test, then route PR #90 to hmdnah for step 2
+- cleared: 2026-10-23T02:53Z
+
+## B-20261023-01 PR #106's step 2 found step 1's installSecret comment defect unfixed, so it is not merged
+
+- opened: 2026-10-23T11:20Z
+- by: hmdnah
+- scope: item
+- item: PR#106
+- what: step 1 of PR #106 (T-057) proved that `apps/web/src/storage/documentStorage.ts:88-91` claims two racing first boots settle on one secret, which they do not always do; step 2 found that no commit since step 1 touches code
+- why: `git show --stat 958d1f1 dc780f5 7952ee4` changes docs and handoff only, and lines 88-91 are unchanged at `7952ee4`; `agent_finish.py --review --step 2` would stamp T-057 `done` (`protocol.py:2469`), so the step-2 finish was not run
+- evidence: step 1's delayed-store probe in `handoff/hmdnah/2026-10-23-T-057-review-step-1.md` (`AeqB=false`); `git diff 7952ee4 -- apps/web/src/storage/documentStorage.ts` is empty against step 1's head
+- need: reword or make true `installSecret`'s race comment (options in `handoff/hmdnah/2026-10-23-T-057-review-step-2.md`) in a zayd turn on `task/T-057-opening-a-stored-bnn-in-the-app-restores`, then route PR #106 to hmdnah for step 2
+- cleared: 2026-10-23T11:41Z
+
+## B-20261023-02 PR #107's named save hangs silently after its zip worker fails once
+
+- opened: 2026-10-23T12:28Z
+- by: hmdnah
+- scope: item
+- item: PR#107
+- what: step 1 of PR #107 (T-058) proved that once the zip worker fires `error`, every later named save in that session never settles: no file, no banner, no error
+- why: `createBnnZipper` (`apps/web/src/storage/bnnZip.ts`) rejects only the saves pending at the `error` event and keeps posting to the dead port, and `App.tsx:303` (`zipperRef.current ??= spawnBnnZipper()`) never drops the failed zipper; the replaced on-thread `saveBnn` path could not hang
+- evidence: a scratch vitest at `91a25ce` (a port that never replies; fire `error`; the first `zip()` rejects "load failed"; a second `zip()` raced against a 2000 ms timer) printed `PROBE second save: pending after 2000 ms`; full probe in `handoff/hmdnah/2026-10-23-T-058-review-step-1.md`
+- need: make a named save after a zip-worker `error` respawn the worker or reject, with a test that fails without the fix, in a zayd turn on `task/T-058-a-named-save-in-the-app-zips-in-a-dedica`, then route PR #107 to hmdnah for step 2
+- cleared: 2026-10-23T12:58Z
+
+## B-20261024-01 PR #112's records misstate the code they cite and leave design §5 pointing at a deleted finding
+
+- opened: 2026-10-24T00:16Z
+- by: hmdnah
+- scope: item
+- item: PR#112
+- what: the review of PR #112 (STEWARD-d29-cache-followups) found four claims-vs-code defects in its rows and records, so it is not merged
+- why: (1) `docs/design/P5_step9_D29_bnn_cache_design.md:230` cites `docs/BACKLOG.md ## Discovered` 2026-10-23, which the PR deletes; (2) the log abstract and handoff say an open parses the whole index on the caller, but at `624b5ba` the worker parses it (`cacheOpen.ts:28` → `cachesign.ts:171`), as design §2e:103-104 says; (3) the handoff gives `cachesign.ts:81` as `JSON.stringify` and `:94` as `canonicalJson`, the reverse of the code; (4) T-064's `verify:` and `done-when:` run `node tools/browser-check/named-save.mjs` bare, which exits 2 on usage
+- evidence: `git diff 624b5ba..34bffdd`; `grep -n 'Discovered' docs/design/P5_step9_D29_bnn_cache_design.md`; `sed -n 81p;94p packages/document/src/cachesign.ts`; `node tools/browser-check/named-save.mjs; echo $?` prints the usage line and 2; full list in `handoff/hmdnah/2026-10-24-STEWARD-d29-cache-followups-review.md`
+- need: correct the four items on `steward/d29-cache-followups` in a brahim turn, then route PR #112 to hmdnah
+- cleared: 2026-10-24T00:29Z
+
+## B-20261025-01 PR #118's `PR shape · reserved classes` check refuses every dependabot PR, so it cannot merge
+
+- opened: 2026-10-25T19:34Z
+- by: hmdnah
+- scope: item
+- item: PR#118
+- what: dependabot's vite 6.4.3 → 6.4.4 bump is red and unroutable, so it is not reviewed or merged
+- why: `scripts/pr-ready.mjs:27` accepts only a `T-nnn: ` or `STEWARD: ` title and dependabot titles its PRs `Bump …`; CI run 40150898247 exits 1 on "the PR title does not route", and agent_start.py prints PR #118 as "no routable title — reviewer cannot be routed"
+- evidence: `gh run view 40150898247 --log-failed`; `node scripts/pr-ready.mjs --title 'Bump vite from 6.4.3 to 6.4.4'; echo $?` prints the refusal and 1
+- need: give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah
+- cleared: -
+
+## B-20261025-02 PR #116's step 2 measured T-064's 200 ms named-save bar unmet at 16k, so it is not merged
+
+- opened: 2026-10-25T19:50Z
+- by: hmdnah
+- scope: item
+- item: PR#116
+- what: T-064's done-when 3 (`named-save.mjs` exits 0 on its 200 ms bar at 16k) is unmet at head `ef411ee`, so PR #116 gets changes requested, not a merge; zayd's B-20261024-02 records the same gap but only on the PR branch, so `main` still routed PR #116 to step 2
+- why: three unmodified runs held 184.6/225.6/172.7, 299.4/165.9/165.5 and 167.9/161.3/162.1 ms and exited 1, 1, 0; the entries `structuredClone` alone was 148.9–263.2 ms; `agent_finish.py --review --step 2` would stamp T-064 `done` (`protocol.py:2469`), so the step-2 finish was not run
+- evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser ~/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome; echo $?` at `ef411ee`; figures in `handoff/hmdnah/2026-10-25-T-064-review-step-2.md` on `task/T-064-a-named-save-posts-its-geometry-cache-re`
+- need: sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k
+- cleared: -
+
+## B-20261026-01 PR #120's step 2 found T-065's done-when 1 and done-when 4 unmet, so it is not merged
+
+- opened: 2026-10-26T06:12Z
+- by: hmdnah
+- scope: item
+- item: PR#120
+- what: at head `9b51781` T-065 (which carries T-064's PR #116) gets changes requested, not a merge; zayd's B-20261025-03 and B-20261025-04 record both gaps but only on the PR branch, so `main` still routed PR #120 to step 2
+- why: three unmodified 16k runs held 131.9/124.1/128.2, 128.6/124.6/201.5 and 135.9/119.0/217.1 ms and exited 0, 1, 1 (done-when 4 needs 3 of 3); a cache-less save transfers nothing (`bnnZip.ts:124-126`) and its two T-065 cases are `it.fails`, so done-when 1 is unmet; `agent_finish.py --review --step 2` would stamp T-065 `done` (`protocol.py:2469`), so it was not run
+- evidence: `node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser ~/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome; echo $?` at `9b51781`; verdict in PR #120 comment 6409462589
+- need: perform B-20261025-03's and B-20261025-04's `need:` in a brahim turn, then route PR #120 to hmdnah for step 2 once both done-when items hold
+- cleared: -
+
+## B-20261026-02 start cannot hand zayd T-067: it resumes the blocker-held T-064, and `--continue T-067` needs an open PR
+
+- opened: 2026-10-26T22:34Z
+- by: zayd
+- scope: item
+- item: T-067
+- what: zayd's open claim on `task/T-067-a-named-save-names-its-carried-cache-ent` (`2aee811`, no PR) is unreachable by the start entrypoint, so the row that unblocks B-20261025-02 and B-20261026-01 is not built
+- why: plain start resumed T-064 (held by B-20261025-02) and pushed claim `3444be4` to its branch; `--continue T-067` on that checkout refused on the T-064 branch's `NEXT TURN: REVIEW ONLY` banner, and from `main` refused "no open PR names T-067 — --continue resumes a branch a reviewer already sent back"
+- evidence: `python3 ../diwan/scripts/agent_start.py --seat zayd --root . --continue T-067; echo $?` on `main` at `f2f9d07` exits 1
+- need: make diwan `agent_start.py` resume a seat's incomplete claim that no blocker holds (T-067) before one a blocker holds (T-064), then run T-067 in a zayd turn
+- cleared: -
+
+## B-20261026-03 start withholds zayd's T-068 claim until zayd merges PR #72, which is zayd's own T-037 PR
+
+- opened: 2026-10-26T22:41Z
+- by: zayd
+- scope: item
+- item: T-068
+- what: zayd cannot claim the `next ready` row T-068, because start routes zayd to review and merge PR #72 first and a builder never merges its own PR
+- why: `agent_start.py --seat zayd T-068` exited 1, "PR #72 (T-037) is ready to merge, and the protocol puts it before your claim", and every claim commit on PR #72's branch reads `claim: T-037 by zayd (box)`
+- evidence: `python3 ../diwan/scripts/agent_start.py --seat zayd T-068; echo $?` on `main` at `d70723e` exits 1
+- need: make diwan `agent_start.py` skip a PR whose task the acting seat built when it picks the predecessor PR to merge before a claim, then run T-068 in a zayd turn
+- cleared: -
+
+## B-20261027-01 start refuses zayd's tickets T-067 and T-068 because the ticket records themselves hold those tasks
+
+- opened: 2026-10-27T06:05Z
+- by: zayd
+- scope: item
+- item: T-067
+- what: zayd cannot run T-067 (B-20261026-02's ticket) or T-068 (B-20261026-03's ticket), so the row that unblocks B-20261025-02 and B-20261026-01 is still not built
+- why: `agent_start.py --seat zayd T-067` exited 1, "T-067 is held by B-20261026-02, an uncleared `scope: item` blocker at main — skip it", and `T-068` the same against B-20261026-03; diwan `shape_builder` (agent_start.py:955, :998) checks raw `item_blockers`, and ticket admission (`holds`, :555) runs only under `--continue`, which needs an open PR
+- evidence: `python3 ../diwan/scripts/agent_start.py --seat zayd --root . T-067; echo $?` on `main` at `a46980a` exits 1
+- need: make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn
+- cleared: -
+
+## B-20261027-02 PR #120's flow-routed conflict merge cannot run: start refuses `--continue T-065` for the reviewer seat hmdnah
+
+- opened: 2026-10-27T18:05Z
+- by: hmdnah
+- scope: item
+- item: PR#120
+- what: the manager's Flow line F1 routes hmdnah, which holds the T-065 claim, to merge `origin/main` into `task/T-065-a-named-save-posts-its-entries-to-the-zi`, but start refuses before B-20261026-01's ticket is consulted
+- why: `agent_start.py` exited 1, "--continue is a builder operation; seat 'hmdnah' is a reviewer."; `gh pr view 120 --json mergeable` → CONFLICTING
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --root /home/ubuntu/projects/Bunyan --continue T-065; echo $?` on `main` at `6703c07` exits 1
+- need: make diwan `agent_start.py --continue` admit a reviewer seat that holds the task's claim to a flow-routed conflict merge, then re-run hmdnah's `--continue T-065`
+- cleared: -
+
+## B-20261027-03 PR #116's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-064` on B-20261025-02
+
+- opened: 2026-10-27T20:33Z
+- by: zayd
+- scope: item
+- item: PR#116
+- what: the manager's Flow line F1 routes zayd to merge `origin/main` into `task/T-064-a-named-save-posts-its-geometry-cache-re`, but start refuses because hmdnah's review blocker holds PR #116, so the PR stays CONFLICTING
+- why: `agent_start.py` exited 1, "T-064 (PR #116) is held by B-20261025-02, an uncleared `scope: item` blocker at main that is neither a change on task/T-064-… nor this seat's newest ticket"; diwan `agent_start.py:555` `holds` admits no flow-routed conflict merge; `gh pr view 116 --json mergeable` → CONFLICTING at `847dc23`
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan --continue T-064; echo $?` on `main` at `553cd83` exits 1
+- need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-064`
 - cleared: -
