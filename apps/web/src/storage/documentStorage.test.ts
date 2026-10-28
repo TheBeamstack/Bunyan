@@ -9,8 +9,45 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import { Autosave, MemoryStore, emptyScene } from '@bunyan/document';
 
-import { docKey, docName, latestAutosaveKey } from './documentStorage';
+import {
+  INSTALL_SECRET_KEY,
+  docKey,
+  docName,
+  installSecret,
+  latestAutosaveKey,
+  listDocKeys,
+} from './documentStorage';
+
+describe('T-057 — the per-install cache secret (D29 R5)', () => {
+  it('returns the same 32 bytes on a second call and writes exactly one key', async () => {
+    const store = new MemoryStore();
+    const first = await installSecret(store);
+    expect(first).toHaveLength(32);
+    expect(await store.list()).toEqual([INSTALL_SECRET_KEY]);
+    expect(await installSecret(store)).toEqual(first);
+    expect(await store.list()).toEqual([INSTALL_SECRET_KEY]);
+  });
+
+  it('is counted by no file list, recover offer or autosave ring', async () => {
+    const store = new MemoryStore();
+    await installSecret(store);
+    await store.write(docKey('house'), new Uint8Array([1]));
+    const ring = new Autosave(store, 2);
+    for (let i = 0; i < 3; i++) {
+      await ring.snapshotScene(emptyScene(), { kernelBuildId: 'test' });
+    }
+    const keys = await store.list();
+    expect(await listDocKeys(store)).toEqual(['doc/house.bnn']);
+    expect(latestAutosaveKey(keys)).toBe('autosave-3.bnn');
+    expect(keys.filter((k) => k.startsWith('autosave-')).sort()).toEqual([
+      'autosave-2.bnn',
+      'autosave-3.bnn',
+    ]);
+    expect(keys, 'the ring never prunes the secret').toContain(INSTALL_SECRET_KEY);
+  });
+});
 
 describe('document key derivation', () => {
   it('wraps a name into a doc/ key and back', () => {

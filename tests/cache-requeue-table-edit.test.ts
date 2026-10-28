@@ -22,6 +22,8 @@ import {
   createRegistries,
   loadBnn,
   saveBnn,
+  isUnsignedGeometryCache,
+  signGeometryCache,
 } from '@bunyan/document';
 import type {
   CacheEnvelope,
@@ -31,6 +33,7 @@ import type {
   GeometryGateway,
   Registries,
   Scene,
+  UnsignedGeometryCache,
 } from '@bunyan/document';
 import { wallType } from '@bunyan/types';
 
@@ -41,6 +44,7 @@ const ENVELOPE: CacheEnvelope = {
   kernelBuildId: KERNEL_BUILD_ID,
   codeId: 'test-bundle',
 };
+const SECRET = new Uint8Array(32).fill(7);
 const STEEL = { id: 'steel', name: 'S355', category: 'steel', density: 7850 };
 
 describe('T-052 — a shared-table edit re-queues every live assembly whose cache key flipped', () => {
@@ -84,8 +88,13 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     while ((await doc.exportCacheIdle(8)) > 0);
   };
 
-  const indexOf = (files: GeometryCacheFiles | undefined): GeometryCacheIndex =>
-    JSON.parse(new TextDecoder().decode(files!['index.json'])) as GeometryCacheIndex;
+  /** A saved cache's index, or the one `geometryCacheFiles()`'s unsigned cache is signed into. */
+  const indexOf = (
+    cache: GeometryCacheFiles | UnsignedGeometryCache | undefined,
+  ): GeometryCacheIndex => {
+    const files = isUnsignedGeometryCache(cache!) ? signGeometryCache(cache) : cache!;
+    return JSON.parse(new TextDecoder().decode(files['index.json'])) as GeometryCacheIndex;
+  };
 
   /** Each root's written key, which must be its key against the document's current scene. */
   const writtenKeys = (doc: DocumentContext): Record<string, string> =>
@@ -148,7 +157,12 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     roots = Object.values(ids).sort();
     scene = doc.scene;
 
-    const built = make({ geometry: client, scene, geometryCacheEnvelope: ENVELOPE });
+    const built = make({
+      geometry: client,
+      scene,
+      geometryCacheEnvelope: ENVELOPE,
+      geometryCacheSecret: SECRET,
+    });
     await built.rebuildAll();
     await drain(built);
     full = saveBnn(scene, { kernelBuildId: KERNEL_BUILD_ID, cache: built.geometryCacheFiles() });
@@ -171,7 +185,12 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
   });
 
   it('a material edit rebuilds nothing, queues every root, and draining writes each under its current key', async () => {
-    const doc = make({ geometry: client, scene, geometryCacheEnvelope: ENVELOPE });
+    const doc = make({
+      geometry: client,
+      scene,
+      geometryCacheEnvelope: ENVELOPE,
+      geometryCacheSecret: SECRET,
+    });
     await doc.rebuildAll();
     await drain(doc);
     expect(Object.keys(writtenKeys(doc)).sort()).toEqual(roots);
@@ -181,11 +200,17 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     expect(await doc.exportCacheIdle(), 'one exported, the rest wait').toBeGreaterThan(0);
     await drain(doc);
     expect(writtenKeys(doc)).toEqual(currentKeys(doc));
+    expect(Object.fromEntries(doc.cacheKeys()), 'the kept keys (T-062)').toEqual(currentKeys(doc));
     expect(Object.keys(writtenKeys(doc)).sort()).toEqual(roots);
   });
 
   it('a style edit that rebuilds only its instances re-queues the roots that do not use it', async () => {
-    const doc = make({ geometry: client, scene, geometryCacheEnvelope: ENVELOPE });
+    const doc = make({
+      geometry: client,
+      scene,
+      geometryCacheEnvelope: ENVELOPE,
+      geometryCacheSecret: SECRET,
+    });
     await doc.rebuildAll();
     await drain(doc);
 
@@ -199,6 +224,7 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     expect([...edit.rebuilt].sort()).toEqual([ids.c]);
     await drain(doc);
     expect(writtenKeys(doc)).toEqual(currentKeys(doc));
+    expect(Object.fromEntries(doc.cacheKeys()), 'the kept keys (T-062)').toEqual(currentKeys(doc));
     expect(Object.keys(writtenKeys(doc)).sort()).toEqual(roots);
   });
 
@@ -209,7 +235,8 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
       geometry: spy.gateway,
       scene: pkg.scene,
       geometryCacheEnvelope: ENVELOPE,
-      geometryCache: { files: pkg.cache!, current: ENVELOPE },
+      geometryCacheSecret: SECRET,
+      geometryCache: { files: pkg.cache!, current: ENVELOPE, installSecret: SECRET },
     });
     await doc.rebuildAll();
     const restored = (): string[] =>
@@ -222,6 +249,7 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     expect(restored(), 'no restored root was built from its recipe').toEqual(roots);
     expect(spy.ops.filter((op) => op === 'exportBrep').length).toBeGreaterThan(0);
     expect(writtenKeys(doc)).toEqual(currentKeys(doc));
+    expect(Object.fromEntries(doc.cacheKeys()), 'the kept keys (T-062)').toEqual(currentKeys(doc));
     expect(Object.keys(writtenKeys(doc)).sort()).toEqual(roots);
   });
 
@@ -231,7 +259,8 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
       geometry: client,
       scene: pkg.scene,
       geometryCacheEnvelope: ENVELOPE,
-      geometryCache: { files: pkg.cache!, current: ENVELOPE },
+      geometryCacheSecret: SECRET,
+      geometryCache: { files: pkg.cache!, current: ENVELOPE, installSecret: SECRET },
     });
     await doc.rebuildAll();
     await doc.execute('core.createMaterial', STEEL);
@@ -239,6 +268,7 @@ describe('T-052 — a shared-table edit re-queues every live assembly whose cach
     await doc.undo();
     // A save before the re-drain: each root's stale export must not block its file carry.
     expect(writtenKeys(doc)).toEqual(currentKeys(doc));
+    expect(Object.fromEntries(doc.cacheKeys()), 'the kept keys (T-062)').toEqual(currentKeys(doc));
   });
 
   it('with no geometryCacheEnvelope a material edit queues nothing', async () => {

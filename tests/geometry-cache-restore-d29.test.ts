@@ -26,6 +26,7 @@ import {
   hostedBy,
   loadBnn,
   saveBnn,
+  signedCacheIndex,
 } from '@bunyan/document';
 import type {
   CacheEnvelope,
@@ -57,6 +58,9 @@ const ENVELOPE: CacheEnvelope = {
   kernelBuildId: KERNEL_BUILD_ID,
   codeId: 'test-bundle',
 };
+/** This install's secret, and another install's (R5). */
+const SECRET = new Uint8Array(32).fill(7);
+const OTHER = new Uint8Array(32).fill(9);
 
 interface Fixture {
   readonly scene: Scene;
@@ -97,6 +101,8 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
     readonly gateway: GeometryGateway;
     /** The node id of every `importBrep` forwarded, refused or not. */
     readonly imports: string[];
+    /** Every op forwarded, in order. */
+    readonly ops: string[];
     /** The handles `importBrep` returned, and the handles `releaseShape` was handed. */
     readonly imported: Set<string>;
     readonly released: Set<string>;
@@ -104,10 +110,12 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
 
   const spying = (): Spy => {
     const imports: string[] = [];
+    const ops: string[] = [];
     const imported = new Set<string>();
     const released = new Set<string>();
     const gateway: GeometryGateway = {
       request: async (op, payload, options) => {
+        ops.push(op);
         if (op === 'importBrep') imports.push((payload as { nodeId: string }).nodeId);
         if (op === 'releaseShape') released.add((payload as { handle: string }).handle);
         const result = await client.request(op, payload, options);
@@ -115,20 +123,23 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
         return result;
       },
     };
-    return { gateway, imports, imported, released };
+    return { gateway, imports, ops, imported, released };
   };
 
   const open = (
     bytes: Uint8Array,
     gateway: GeometryGateway,
     current: CacheEnvelope = ENVELOPE,
+    installSecret: Uint8Array = SECRET,
   ): DocumentContext => {
     const pkg = loadBnn(bytes);
     const doc = new DocumentContext({
       registries: registries(),
       geometry: gateway,
       scene: pkg.scene,
-      ...(pkg.cache === undefined ? {} : { geometryCache: { files: pkg.cache, current } }),
+      ...(pkg.cache === undefined
+        ? {}
+        : { geometryCache: { files: pkg.cache, current, installSecret } }),
     });
     live.push(doc);
     return doc;
@@ -245,8 +256,7 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
       for (const v of voids) cachedVoids.push(await node(v));
       records[root] = { key, root: await node(g), voids: cachedVoids };
     }
-    const index: GeometryCacheIndex = { envelope: ENVELOPE, records };
-    files['index.json'] = new TextEncoder().encode(JSON.stringify(index));
+    files['index.json'] = signedCacheIndex(ENVELOPE, records, SECRET);
     return files;
   };
 
@@ -256,9 +266,10 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
   const indexOf = (files: GeometryCacheFiles): GeometryCacheIndex =>
     JSON.parse(new TextDecoder().decode(files['index.json'])) as GeometryCacheIndex;
 
+  /** `index` re-signed by this install: the case under test is a check behind the MAC (R5). */
   const withIndex = (index: GeometryCacheIndex): GeometryCacheFiles => ({
     ...cache,
-    'index.json': new TextEncoder().encode(JSON.stringify(index)),
+    'index.json': signedCacheIndex(index.envelope, index.records, SECRET),
   });
 
   beforeAll(async () => {
@@ -466,6 +477,46 @@ describe('D29 R3 — the load-only restore: restored ≡ rebuilt, and any refusa
     await doc.rebuildAll();
     expect(imports).toEqual([]);
     expect(await snapshot(doc)).toEqual(await snapshot(await rebuilt(edited)));
+  });
+
+  it('R5: a file another install wrote restores nothing and opens at rebuild speed', async () => {
+    const plain = spying();
+    const cold = open(saveBnn(fixture.scene, { kernelBuildId: KERNEL_BUILD_ID }), plain.gateway);
+    await cold.rebuildAll();
+    const t = performance.now();
+    const foreign = spying();
+    const doc = open(save(fixture.scene), foreign.gateway, ENVELOPE, OTHER);
+    await doc.rebuildAll();
+    const ms = performance.now() - t;
+    expect(foreign.imports).toEqual([]);
+    // Rebuild speed, measured as kernel work: exactly the op sequence of a cache-less open.
+    expect(foreign.ops).toEqual(plain.ops);
+    expect(await snapshot(doc)).toEqual(await snapshot(await rebuilt(fixture.scene)));
+    console.log(
+      `[D29 R5] foreign-install open: ${String(foreign.ops.length)} ops, ${ms.toFixed(0)} ms`,
+    );
+  });
+
+  it('R5: an index edited after this install signed it restores nothing', async () => {
+    const index = indexOf(cache);
+    const record = index.records[fixture.column]!;
+    const part = record.root.parts[0]!;
+    const edited: GeometryCacheIndex = {
+      ...index,
+      records: {
+        ...index.records,
+        [fixture.column]: {
+          ...record,
+          root: { ...record.root, parts: [{ ...part, materialId: 'timber' }] },
+        },
+      },
+    };
+    const files = { ...cache, 'index.json': new TextEncoder().encode(JSON.stringify(edited)) };
+    const { gateway, imports } = spying();
+    const doc = open(save(fixture.scene, files), gateway);
+    await doc.rebuildAll();
+    expect(imports).toEqual([]);
+    expect(await snapshot(doc)).toEqual(await snapshot(await rebuilt(fixture.scene)));
   });
 
   it('a different envelope ignores the whole cache', async () => {

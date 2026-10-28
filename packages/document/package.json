@@ -8,7 +8,10 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./bnnzip": "./src/bnnzip.ts",
+    "./cacheindexfile": "./src/cacheindexfile.ts",
+    "./cachesign": "./src/cachesign.ts"
   },
   "scripts": {
     "typecheck": "tsc --build"
