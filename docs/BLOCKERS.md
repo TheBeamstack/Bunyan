@@ -537,3 +537,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan --continue T-064; echo $?` on `main` at `553cd83` exits 1
 - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-064`
 - cleared: -
+
+## B-20261028-01 start's review mode claims PR #120 ahead of PR #118, so hmdnah cannot reach the retitled dependabot PR
+
+- opened: 2026-10-28T04:35Z
+- by: brahim-loop
+- scope: item
+- item: PR#118
+- what: brahim performed B-20261025-01's retitle (`STEWARD: bump vite 6.4.3 → 6.4.4 (dependabot)`) and its `PR shape` job now passes, but hmdnah's review turn was handed PR #120 instead
+- why: `agent_start.py --seat hmdnah --review` exited 0 printing "Claiming PR #120 for review." (STEP 2 of 2); `agent_start.py:620-644` takes the first routed PR no blocker holds, and B-20261027-02, a conflict-merge ticket naming hmdnah, admits #120 to a review it does not ask for; the selector takes no PR number
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/ubuntu/projects/Bunyan; echo $?` prints "Claiming PR #120 for review." while listing PR #118 as "→ YOURS"
+- need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118
+- cleared: -
