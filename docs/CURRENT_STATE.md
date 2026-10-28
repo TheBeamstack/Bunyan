@@ -102,6 +102,9 @@ builder may claim.
 - **B-20261027-03** — `scope: item` · `item: PR#116` — PR #116's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-064` on B-20261025-02
   - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-064`
   - opened 2026-10-27T20:33Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261028-01** — `scope: item` · `item: PR#118` — start's review mode claims PR #120 ahead of PR #118, so hmdnah cannot reach the retitled dependabot PR
+  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118
+  - opened 2026-10-28T04:35Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
