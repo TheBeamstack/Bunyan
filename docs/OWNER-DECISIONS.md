@@ -520,3 +520,62 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-30
 - ANSWER:
 - answered: -
+
+## D-20261028-01 PR #69 (T-033) is conflict-free again and needs an owner merge
+
+- opened: 2026-10-28T05:40Z
+- by: brahim-loop
+- item: PR#69
+- asks: whether to merge PR #69 at head 6930c96, which narrows `Dimension.anchors` to model anchors and re-baselines `tests/frozen-surface.snapshot.json`
+- context: D-20261020-04 expired unanswered on 2026-10-27, so its default `changes` applied and the PR stayed open.
+  It then conflicted with `main` again; a zayd turn on 2026-10-28 merged `main` into it (docs-only conflicts,
+  snapshot untouched). GitHub reports it MERGEABLE and both CI checks pass. It implements your D97 ruling (Q10)
+  and changes a frozen declaration, so it carries `needs-operator/contract-touching` and `needs-operator/freeze`.
+  PR #69, #70 and #93 each rewrite the snapshot, so whichever merges later is re-baselined first.
+  merge: a dedicated `hmdnah` review checks it and merges it with your sign-off. changes: it stays open.
+  close: it is dropped. The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-11-04
+- ANSWER:
+- answered: -
+
+## D-20261028-02 PR #70 (T-034) is conflict-free again and needs an owner merge
+
+- opened: 2026-10-28T05:40Z
+- by: brahim-loop
+- item: PR#70
+- asks: whether to merge PR #70 at head 7760e34, which adds an optional `FamilyPart.exposedFaces` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: D-20261020-05 expired unanswered on 2026-10-27, so its default `changes` applied and the PR stayed open.
+  It then conflicted with `main` again; a zayd turn on 2026-10-28 merged `main` into it (docs-only conflicts,
+  snapshot untouched). GitHub reports it MERGEABLE and both CI checks pass. It implements your `reserve` answer
+  to D-20261007-06 (Q9) and changes a frozen declaration, so it carries `needs-operator/contract-touching` and
+  `needs-operator/freeze`. PR #69, #70 and #93 each rewrite the snapshot, so whichever merges later is re-baselined first.
+  merge: a dedicated `hmdnah` review checks it and merges it with your sign-off. changes: it stays open.
+  close: it is dropped. The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-11-04
+- ANSWER:
+- answered: -
+
+## D-20261028-03 PR #93 (T-050) is conflict-free again and needs an owner merge
+
+- opened: 2026-10-28T05:40Z
+- by: brahim-loop
+- item: PR#93
+- asks: whether to merge PR #93 at head ae868a6, which adds an optional `ParamField.motion` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: D-20261020-06 expired unanswered on 2026-10-27, so its default `changes` applied and the PR stayed open.
+  It then conflicted with `main` again; a zayd turn on 2026-10-28 merged `main` into it (docs-only conflicts,
+  snapshot untouched). GitHub reports it MERGEABLE; its `PR shape` check passes and its main CI check was still
+  running when this was written, and the merge entrypoint refuses a red PR whatever you answer. It is the first
+  half of making walls movable (D95, D-20261012-03): an optional field nothing reads yet, which must land before
+  the P5 freeze, so it carries `needs-operator/contract-touching` and `needs-operator/freeze`.
+  PR #69, #70 and #93 each rewrite the snapshot, so whichever merges later is re-baselined first.
+  merge: a dedicated `hmdnah` review checks it and merges it with your sign-off. changes: it stays open.
+  close: it is dropped, and walls stay unmovable by the move commands. The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-11-04
+- ANSWER:
+- answered: -
