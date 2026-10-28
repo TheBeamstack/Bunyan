@@ -444,7 +444,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: changes
 - expires: 2026-10-27
 - ANSWER:
-- answered: -
+- answered: 2026-10-28T04:02Z
 
 ## D-20261020-05 PR #70 (T-034) no longer conflicts and needs an owner merge
 
@@ -464,7 +464,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: changes
 - expires: 2026-10-27
 - ANSWER:
-- answered: -
+- answered: 2026-10-28T04:02Z
 
 ## D-20261020-06 PR #93 (T-050) no longer conflicts and needs an owner merge
 
@@ -486,7 +486,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - default-if-silent: changes
 - expires: 2026-10-27
 - ANSWER:
-- answered: -
+- answered: 2026-10-28T04:02Z
 
 ## D-20261021-01 zayd's 7-day-old claim on T-037 has had no commit since 2026-10-14
 
