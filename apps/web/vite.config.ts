@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { codeIdPlugin } from './codeIdPlugin.js';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 
@@ -13,7 +14,7 @@ const here = fileURLToPath(new URL('.', import.meta.url));
 // pipeline rewrites for us, in dev and in build. So `worker.format` MUST be 'es', and the pre-bundler
 // must NOT try to swallow the multi-megabyte emscripten glue.
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), codeIdPlugin()],
   worker: {
     format: 'es',
   },
@@ -32,6 +33,7 @@ export default defineConfig({
         scale: resolve(here, 'scale.html'),
         storageCheck: resolve(here, 'storage-check.html'),
         firstPaint: resolve(here, 'first-paint.html'),
+        saveCheck: resolve(here, 'save-check.html'),
       },
     },
   },

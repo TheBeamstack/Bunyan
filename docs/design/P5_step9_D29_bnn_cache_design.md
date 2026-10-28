@@ -82,20 +82,28 @@ TypeScript with no kernel call; its time at 16k is **not measured** and row R1 m
 ### 2d. What the input key cannot see: code
 
 A Type's `buildGeometry` fixed without a `version` bump builds a different solid from the same inputs, and no
-digest of `scene.json` moves. The envelope's `codeId` closes that. **Open: which `codeId`** — `D-20261012-06`.
-Recommended: a content hash of the shipped bundle stamped at build time (every deploy discards every cache, so
-the first open after an update is today's rebuild); the alternative, `typeVersions` + engine version, keeps
-caches across deploys and serves a stale solid whenever a fix forgets its bump.
+digest of `scene.json` moves. The envelope's `codeId` closes that: **the shipped bundle's sha256**
+(`D-20261012-06`, `bundle` by default, T-044), taken by `vite build` (`apps/web/codeIdPlugin.ts`) over every
+emitted file and stamped into each unhashed HTML entry's meta tag, never into a content-hashed chunk whose
+unchanged name a cache could serve stale (B-20261020-02), so every deploy discards every cache and the first open after an update is today's rebuild. An
+unstamped load (dev server, tests) has a fresh `codeId` per load and restores no cache it did not write.
 
 ### 2e. What no key can see: a hostile author
 
 A `.bnn` is a file a user can be **sent**, and the fingerprint is a public SHA-256, not a MAC: an author can write
 any solid, any tokens, a matching fingerprint and a matching input key. The recipient then sees and bills
 geometry the recipe would not build — for a product whose quantities are `basis: "exact"` (D30/D33), that is the
-failure that matters. **Open: whose caches are trusted** — `D-20261012-05`. Recommended: `own` — the envelope
-carries an HMAC (the in-house `sha256`, keyed by a per-install secret in browser storage) over the index; a file
-this install did not write restores nothing and opens at today's rebuild speed. That makes _"this solid is what
-the recipe built"_ true by provenance, and costs nothing on the common case, re-opening your own work.
+failure that matters. **Answered: `own`** (`D-20261012-05`, default applied 2026-10-20; built by R5,
+`cachetrust.ts`). The envelope carries `mac`, an HMAC-SHA-256 keyed by a per-install secret over the canonical
+JSON of its four fields and every record; a file this install did not write, or edited after, restores
+nothing and opens at today's rebuild speed. The records carry each `.brep`'s fingerprint, so the MAC covers the
+solids. That makes _"this solid is what the recipe built"_ true by provenance. Its cost is one HMAC pass over
+`index.json` per save and per open: **2,074 ms to sign at 16k** (R4's fixture, one run) and **2,195–2,229 ms
+to verify** (the same fixture at 16k solids, 64 MB index, two runs under node; parse 227–231 ms more). A named
+save signs in its zip worker (T-060, §5); an open inflates, parses and verifies in a worker (T-061, T-063), which
+transfers back one buffer of per-root record JSON, so the main thread clones no object graph and parses a root
+only in its restore batch (`cacheindexfile.ts`, `cacherestore.ts` `lazyRecordLookup`). Persisting the secret in
+browser storage belongs to the app wiring (`docs/BACKLOG.md ## Discovered`, 2026-10-14).
 
 ---
 
@@ -137,7 +145,8 @@ PROVISIONAL); this design makes it a directory, so one solid's refusal does not 
 ⚠ **The loader must not inflate what it ignores.** `loadBnn` calls `unzipSync` on everything, so a 61 MB cache
 would be decompressed on every open even by a build that discards it. The cache-aware `loadBnn` passes
 `unzipSync`'s `filter` to skip `geometry-cache/` and reads entries on demand from the retained file bytes.
-Today's build pays the inflation once and ignores the result — correct, merely slower.
+Today's build pays the inflation once and ignores the result — correct, merely slower. The caps live in the
+leaf `bnncaps.ts` (T-063), so the cache-open worker checks them before it inflates `index.json`.
 
 ---
 
@@ -204,6 +213,23 @@ run the ~4 s zip on posted entries and write `saveBnn`'s bytes (`tests/bnn-zip-w
 re-run after the split (hmdnah, box, 2026-10-20, `tests/geometry-cache-export-d29.test.ts` with
 `BUNYAN_D29_MEASURE_16K=1`): `saveBnn` 4075.8 ms with the cache, 0.4 ms without (best of 3); `.brep` 687 B/solid
 compressed, `index.json` 227 B/solid — the split moves no figure.
+
+**T-058** wires it: the app's named save (`saveDocument`) posts `assembleBnnEntries` output to a dedicated zip
+worker (`apps/web/src/storage/bnnZipWorker.ts`) and stores the bytes it returns. Measured in headless Chromium
+153 (box, 2026-10-23, `node tools/browser-check/named-save.mjs`) on R4's cache replicated to 16,000 solids
+(17.9 MB file): the main thread is held at most **124–133 ms** per save over three saves (Long Tasks and a 0 ms
+timer chain agree), against **4,939 ms** for `saveBnn` on the main thread; each save takes ~4.9–5.4 s end to end.
+That page posted a pre-signed cache, so the figure excludes signing and `geometryCacheFiles()`.
+
+**T-060** signs in the zip worker: `geometryCacheFiles()` returns records, envelope and secret unsigned,
+`assembleUnsignedBnnEntries` leaves a placeholder `index.json`, and the worker signs it in place with the leaf
+`@bunyan/document/cachesign`; the bytes equal `saveBnn` (`tests/app-named-save-signs-in-worker-t060.test.ts`).
+Measured in headless Chromium 153 (box, 2026-10-23, `node tools/browser-check/named-save.mjs`, one run of three
+saves), now through `doc.geometryCacheFiles()` on the fixture replicated to 16,000 solids in 4,000 keyed roots
+(18.0 MB): the main thread is held **1,431–1,476 ms** per save, against **8,515 ms** for `saveBnn` of the same
+options on it; ~9.3 s end to end. Timed alone, `geometryCacheFiles()` (every key recomputed) is 1,178–1,433 ms
+and `structuredClone` of the posted records 328–426 ms, so the tool's 200 ms bar fails
+(T-062 removes the double key, T-064 the clone).
 
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops

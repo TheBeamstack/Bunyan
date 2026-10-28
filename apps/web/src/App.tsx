@@ -27,14 +27,19 @@ import type { BunyanApp, InitialDocument } from './bootstrap';
 import { seedDemoScene } from './scaffold/seed';
 import {
   createStore,
-  docKey,
   docName,
+  installSecret,
   latestAutosaveKey,
   listDocKeys,
+  namedSaveOptions,
   readInitial,
   requestOpen,
+  saveDocument,
+  spawnBnnZipper,
   takeOpenRequest,
 } from './storage/documentStorage';
+import type { BnnZipper } from './storage/bnnZip';
+import { createIdleCacheExporter, type IdleCacheExporter } from './storage/idleCacheExport';
 import type { IndexedDbStore } from './storage/indexeddb';
 import { ViewportCanvas } from './render/ViewportCanvas';
 import type { HandleDrop, PointerSample } from './render/ViewportCanvas';
@@ -65,7 +70,6 @@ import {
   Autosave,
   describeCommands,
   elevationOf,
-  saveBnn,
   type BrokenReference,
   type CommandDescriptor,
   type Element,
@@ -167,6 +171,8 @@ export function App() {
   // ---- Persistence (browser storage, plan P4 step 5). The store + autosave live in a ref (plain
   //      objects, not React state); the file list / current name / recover offer are state. ----------
   const storageRef = useRef<{ store: IndexedDbStore; autosave: Autosave } | null>(null);
+  /** The named save's zip worker (T-058), spawned on the first save. */
+  const zipperRef = useRef<BnnZipper | null>(null);
   const [savedDocs, setSavedDocs] = useState<readonly string[]>([]);
   /** The store key of the document currently open (a `doc/…bnn`), or null for the unsaved demo/scratch. */
   const [currentDoc, setCurrentDoc] = useState<string | null>(null);
@@ -195,7 +201,9 @@ export function App() {
           }
         }
 
-        const bunyan = await bootstrap(initial);
+        // No secret (storage refused) ⇒ boot as before, with no geometry cache restored or written.
+        const secret = await installSecret(store).catch(() => undefined);
+        const bunyan = await bootstrap(initial, secret);
         started = bunyan;
         // Unmounted while the ~14 MB kernel was booting (StrictMode double-mount): dispose it now,
         // because the cleanup below ran before `started` was set.
@@ -259,6 +267,24 @@ export function App() {
       });
   }, [app, view, selection, docLock]);
 
+  // ---- Idle cache export (D29 R4, T-059). Every commit, an edit's (`version`) or a build's (`built`),
+  //      queues its rebuilt roots; idle time exports them under the doc lock so a named save never does.
+  const exporterRef = useRef<IdleCacheExporter | null>(null);
+  useEffect(() => {
+    if (app === null) return;
+    const exporter = createIdleCacheExporter(app.doc, docLock, undefined, (error: unknown) => {
+      setBanner(formatError(error));
+    });
+    exporterRef.current = exporter;
+    return () => {
+      exporter.dispose();
+      exporterRef.current = null;
+    };
+  }, [app, docLock]);
+  useEffect(() => {
+    exporterRef.current?.kick();
+  }, [app, version, built]);
+
   // ---- Autosave (plan P4 step 5). After a real edit, debounce, then snapshot the whole `.bnn` into the
   //      ring. ⚠ The journal is `changeFeed()`, NEVER `history()` (the moat-losing bug). Recovery is an
   //      ordinary load of the snapshot, so it goes through the exact path a normal open does. ----------
@@ -294,13 +320,14 @@ export function App() {
       const trimmed = name.trim();
       if (trimmed === '') return;
       try {
-        const bytes = saveBnn(app.doc.scene, {
-          kernelBuildId: app.kernel.buildId,
-          journal: app.doc.changeFeed(),
-          revision: app.doc.revision,
-        });
-        const key = docKey(trimmed);
-        await storage.store.write(key, bytes);
+        if (zipperRef.current?.failed !== false) zipperRef.current = spawnBnnZipper();
+        const key = await saveDocument(
+          storage.store,
+          trimmed,
+          app.doc.scene,
+          namedSaveOptions(app.doc, app.kernel.buildId),
+          zipperRef.current,
+        );
         setCurrentDoc(key);
         setSavedDocs(await listDocKeys(storage.store));
         setBanner(`Saved “${trimmed}”`);

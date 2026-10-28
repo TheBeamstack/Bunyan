@@ -20,12 +20,17 @@ import {
   CORE_COMMANDS,
   DocumentContext,
   GEOMETRY_CACHE_DIR,
+  cacheInputKeys,
   createRegistries,
   loadBnn,
   saveBnn,
+  isUnsignedGeometryCache,
+  signGeometryCache,
+  signedCacheIndex,
 } from '@bunyan/document';
 import type {
   CacheEnvelope,
+  CacheRecord,
   ElementGeometry,
   GeometryCacheFiles,
   GeometryCacheIndex,
@@ -33,6 +38,7 @@ import type {
   ParamValue,
   Registries,
   Scene,
+  UnsignedGeometryCache,
 } from '@bunyan/document';
 import {
   curtainWallColumnType,
@@ -51,6 +57,9 @@ const ENVELOPE: CacheEnvelope = {
   kernelBuildId: KERNEL_BUILD_ID,
   codeId: 'test-bundle',
 };
+/** This install's secret, and another install's (R5). */
+const SECRET = new Uint8Array(32).fill(7);
+const OTHER = new Uint8Array(32).fill(9);
 
 describe('D29 R4 — the cache is exported in idle time and carried; a save never exports', () => {
   let kernel: OcctKernel;
@@ -109,16 +118,21 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     return spy;
   };
 
-  const open = (bytes: Uint8Array, gateway: GeometryGateway): DocumentContext => {
+  const open = (
+    bytes: Uint8Array,
+    gateway: GeometryGateway,
+    installSecret: Uint8Array = SECRET,
+  ): DocumentContext => {
     const pkg = loadBnn(bytes);
     const doc = new DocumentContext({
       registries: registries(),
       geometry: gateway,
       scene: pkg.scene,
       geometryCacheEnvelope: ENVELOPE,
+      geometryCacheSecret: installSecret,
       ...(pkg.cache === undefined
         ? {}
-        : { geometryCache: { files: pkg.cache, current: ENVELOPE } }),
+        : { geometryCache: { files: pkg.cache, current: ENVELOPE, installSecret } }),
     });
     live.push(doc);
     return doc;
@@ -130,6 +144,7 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
       geometry: gateway,
       scene: s,
       geometryCacheEnvelope: ENVELOPE,
+      geometryCacheSecret: SECRET,
     });
     live.push(doc);
     return doc;
@@ -146,8 +161,13 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     while ((await doc.exportCacheIdle(8)) > 0);
   };
 
-  const indexOf = (files: GeometryCacheFiles | undefined): GeometryCacheIndex =>
-    JSON.parse(new TextDecoder().decode(files!['index.json'])) as GeometryCacheIndex;
+  /** A saved cache's index, or the one `geometryCacheFiles()`'s unsigned cache is signed into. */
+  const indexOf = (
+    cache: GeometryCacheFiles | UnsignedGeometryCache | undefined,
+  ): GeometryCacheIndex => {
+    const files = isUnsignedGeometryCache(cache!) ? signGeometryCache(cache) : cache!;
+    return JSON.parse(new TextDecoder().decode(files['index.json'])) as GeometryCacheIndex;
+  };
 
   const cacheOf = (bytes: Uint8Array): Record<string, Uint8Array> => {
     const out: Record<string, Uint8Array> = {};
@@ -345,6 +365,42 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     expect(indexOf(saved).records).toEqual(indexOf(original).records);
   });
 
+  it("R5: another install's records are never carried into this install's signed save", async () => {
+    const spy = spying();
+    const doc = open(full, spy.gateway, OTHER);
+    await doc.rebuildOnly([ids.wallC]); // D66 first paint; the other four stay unbuilt
+    expect(restoredRoots(doc, spy), 'nothing restored from a foreign file').toEqual([]);
+    expect(indexOf(doc.geometryCacheFiles()).records).toEqual({});
+    await drain(doc);
+    expect(Object.keys(indexOf(doc.geometryCacheFiles()).records)).toEqual([ids.wallC]);
+  });
+
+  it('R5: records verified under one secret are not re-signed under another', async () => {
+    const pkg = loadBnn(full);
+    const doc = new DocumentContext({
+      registries: registries(),
+      geometry: client,
+      scene: pkg.scene,
+      geometryCache: { files: pkg.cache!, current: ENVELOPE, installSecret: SECRET },
+      geometryCacheSecret: OTHER,
+    });
+    live.push(doc);
+    await doc.rebuildOnly([ids.wallC]);
+    expect(indexOf(doc.geometryCacheFiles()).records).toEqual({});
+  });
+
+  it('a write envelope with no install secret is refused at construction', () => {
+    expect(
+      () =>
+        new DocumentContext({
+          registries: registries(),
+          geometry: client,
+          scene,
+          geometryCacheEnvelope: ENVELOPE,
+        }),
+    ).toThrow(/geometryCacheSecret/);
+  });
+
   it('a built assembly is not carried: absent until exported, then written under its new key', async () => {
     const doc = open(full, client);
     await doc.rebuildOnly([ids.wallC]);
@@ -356,6 +412,9 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     const after = indexOf(doc.geometryCacheFiles()).records;
     expect(Object.keys(after).sort()).toEqual(roots);
     expect(after[ids.column]!.key).not.toBe(indexOf(cacheOf(full)).records[ids.column]!.key);
+    expect(doc.cacheKeys(), "the kept keys are this scene's (T-062)").toEqual(
+      cacheInputKeys(doc.scene),
+    );
   });
 
   it('a restore refused and rebuilt under a matching key does not carry the refused bytes', async () => {
@@ -405,6 +464,9 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     });
     expect(await doc.exportCacheIdle(0)).toBe(roots.length);
     expect(indexOf(doc.geometryCacheFiles()).records).toEqual({});
+    expect(doc.cacheKeys(), "the kept keys are this scene's (T-062)").toEqual(
+      cacheInputKeys(doc.scene),
+    );
   });
 
   /**
@@ -416,7 +478,7 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     const source = cacheOf(full);
     const records = indexOf(source).records;
     const files: Record<string, Uint8Array> = {};
-    const out: Record<string, unknown> = {};
+    const out: Record<string, CacheRecord> = {};
     let n = 0;
     for (let copy = 0; n < solids; copy++) {
       for (const [root, record] of Object.entries(records)) {
@@ -430,9 +492,9 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
         }
       }
     }
-    files['index.json'] = new TextEncoder().encode(
-      JSON.stringify({ envelope: ENVELOPE, records: out }),
-    );
+    const signStart = performance.now();
+    files['index.json'] = signedCacheIndex(ENVELOPE, out, SECRET);
+    const signMs = performance.now() - signStart;
 
     const time = (cache?: GeometryCacheFiles): { ms: number; bytes: Uint8Array } => {
       let best = Infinity;
@@ -464,7 +526,8 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
       `compressed (${(packed / n).toFixed(0)} B/solid, ${(raw / packed).toFixed(2)}:1)`;
     return (
       `[D29 R4] ${String(n)} solids: ${line('.brep', size.brep)}; ${line('index.json', size.index)}; ` +
-      `saveBnn ${without.ms.toFixed(1)} ms without the cache, ${withCache.ms.toFixed(1)} ms with it`
+      `saveBnn ${without.ms.toFixed(1)} ms without the cache, ${withCache.ms.toFixed(1)} ms with it; ` +
+      `signing index.json (R5) ${signMs.toFixed(1)} ms`
     );
   };
 
@@ -497,6 +560,9 @@ describe('D29 R4 — the cache is exported in idle time and carried; a save neve
     release();
     expect(await exporting, 'the edit queued the column again').toBe(1);
     expect(indexOf(doc.geometryCacheFiles()).records[ids.column]).toBeUndefined();
+    expect(doc.cacheKeys(), "the kept keys are this scene's (T-062)").toEqual(
+      cacheInputKeys(doc.scene),
+    );
 
     expect(await doc.exportCacheIdle(1)).toBe(0);
     const reopen = spying();

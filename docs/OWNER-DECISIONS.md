@@ -381,7 +381,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-27
 - ANSWER: changes
 - free-text: GitHub shows merge conflicts; resolve them and ask again when clean
-- answered: -
+- answered: 2026-10-20T20:53Z
 
 ## D-20261020-02 PR #70 (T-034) is merge-ready again and needs an owner merge
 
@@ -402,7 +402,7 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-27
 - ANSWER: changes
 - free-text: GitHub shows merge conflicts; resolve them and ask again when clean
-- answered: -
+- answered: 2026-10-20T20:53Z
 
 ## D-20261020-03 PR #93 (T-050) reserves the wall-motion field and needs an owner merge
 
@@ -424,4 +424,99 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-10-27
 - ANSWER: changes
 - free-text: GitHub shows merge conflicts; resolve them and ask again when clean
+- answered: 2026-10-20T20:53Z
+
+## D-20261020-04 PR #69 (T-033) no longer conflicts and needs an owner merge
+
+- opened: 2026-10-20T20:53Z
+- by: brahim-loop
+- item: PR#69
+- asks: whether to merge PR #69 at head 4a6d4df, which narrows `Dimension.anchors` to model anchors and re-baselines `tests/frozen-surface.snapshot.json`
+- context: You answered D-20261020-01 `changes`: resolve the conflicts and ask again. A builder turn merged `main`
+  into it; the conflicts were in docs only, and the frozen-surface snapshot did not need re-baselining again.
+  GitHub now reports it mergeable with no conflicts, `pnpm verify` is green on the new head, and both CI checks pass.
+  It still implements your D97 ruling (Q10) and changes a frozen declaration, so it carries
+  `needs-operator/contract-touching` and `needs-operator/freeze`. PR #69, #70 and #93 each rewrite the snapshot,
+  so whichever merges later is re-baselined first. A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
+- ANSWER:
+- answered: 2026-10-28T04:02Z
+
+## D-20261020-05 PR #70 (T-034) no longer conflicts and needs an owner merge
+
+- opened: 2026-10-20T20:53Z
+- by: brahim-loop
+- item: PR#70
+- asks: whether to merge PR #70 at head 25c8f8d, which adds an optional `FamilyPart.exposedFaces` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: You answered D-20261020-02 `changes`: resolve the conflicts and ask again. A builder turn merged `main`
+  into it; the conflicts were in docs only, and the frozen-surface snapshot did not need re-baselining again.
+  GitHub now reports it mergeable with no conflicts, `pnpm verify` is green on the new head, and both CI checks pass.
+  It still implements your `reserve` answer to D-20261007-06 (Q9) and changes a frozen declaration, so it carries
+  `needs-operator/contract-touching` and `needs-operator/freeze`. PR #69, #70 and #93 each rewrite the snapshot,
+  so whichever merges later is re-baselined first. A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped.
+  The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
+- ANSWER:
+- answered: 2026-10-28T04:02Z
+
+## D-20261020-06 PR #93 (T-050) no longer conflicts and needs an owner merge
+
+- opened: 2026-10-20T20:53Z
+- by: brahim-loop
+- item: PR#93
+- asks: whether to merge PR #93 at head fb7638e, which adds an optional `ParamField.motion` and re-baselines `tests/frozen-surface.snapshot.json`
+- context: You answered D-20261020-03 `changes`: resolve the conflicts and ask again. A builder turn merged `main`
+  into it; the conflicts were in docs only, and the frozen-surface snapshot did not need re-baselining again.
+  GitHub now reports it mergeable with no conflicts and `pnpm verify` is green on the new head; its main CI
+  check was still queued when this was written, and the merge entrypoint refuses a red PR whatever you answer.
+  It is the first half of making walls movable (D95, D-20261012-03): an optional field nothing reads yet, which
+  must land before the P5 freeze, so it carries `needs-operator/contract-touching` and `needs-operator/freeze`.
+  PR #69, #70 and #93 each rewrite the snapshot, so whichever merges later is re-baselined first.
+  A dedicated `hmdnah` review runs either way.
+  merge: a reviewer checks it and merges it with your sign-off. changes: it stays open for a fix. close: it is dropped,
+  and walls stay unmovable by the move commands. The default (changes) merges nothing without you.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-10-27
+- ANSWER:
+- answered: 2026-10-28T04:02Z
+
+## D-20261021-01 zayd's 7-day-old claim on T-037 has had no commit since 2026-10-14
+
+- opened: 2026-10-21T16:50Z
+- by: brahim-loop
+- item: T-037
+- asks: whether to release zayd's claim on T-037 so a later builder resumes it from its existing branch
+- context: T-037 (Q5, the section chord tolerance) is PR #72; its branch's newest commit is the claim of
+  2026-10-14. It is stuck because the box builder may not run the golden seeder (B-20261012-03), and PR #72
+  conflicts with `main`. release frees the claim and keeps the branch, so whichever builder can run the seeder
+  (a pc seat, or the box once allowed) carries on from that work; keep leaves it with zayd. Either way the
+  blocker still holds T-037 until the seeder runs.
+- options: release | keep
+- default-if-silent: keep
+- expires: 2026-10-28
+- ANSWER:
+- answered: -
+
+## D-20261023-01 zayd's claim on T-025 has had no commit since 2026-10-06
+
+- opened: 2026-10-23T19:14Z
+- by: brahim-loop
+- item: T-025
+- asks: whether to release zayd's claim on T-025 so its branch stops reading as live work
+- context: T-025 fixed the old node turn engine, which was retired on your answer to D-20261006-01; its
+  PR #54 was closed unmerged on 2026-10-08 and the row is `blocked` as superseded. The claim on
+  `task/T-025-review-keeps-an-owner-gated-row-at-revie` still shows on every cycle sheet as live. release
+  frees the claim and keeps the branch; keep leaves it with zayd. Neither changes any code or unblocks the row.
+- options: release | keep
+- default-if-silent: keep
+- expires: 2026-10-30
+- ANSWER:
 - answered: -
