@@ -499,3 +499,10 @@ Merged main (F1). After a non-cap `readMany` throw, `readRestoreBatch` re-reads 
 read; a cap refusal still empties the batch. Step-2 probe as test 3: red (`[]`) before, then `W00000`, `W00002` restore.
 Cap branch forced off → test 2 red. `bnn.ts` unchanged.
 Body: `handoff/zayd/2026-10-23-T-049-corrupt-entry-per-root.md`
+
+## T-050 — merge origin/main into PR #93 (flow F1) — 2026-10-28 — seat: zayd
+
+Merged `origin/main`; no code changed. Conflicts in `BACKLOG.md` (main's rows, T-050 `review`), `PHASE_LOG.md` (both
+sides' abstracts) and `CURRENT_STATE.md` (this branch's baton). The frozen-surface snapshot did not conflict and was
+not re-baselined. `pnpm verify` green (1059 passed, 4 skipped). PR #93 stays owner-gated.
+Body: `handoff/zayd/2026-10-28-T-050-merge-main.md`
