@@ -586,8 +586,9 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - by: brahim-loop
 - item: PR#65
 - asks: whether to set Bunyan's GitHub description to `browser-native, serverless parametric BIM/CAD authoring platform for building design`
-- context: `gh api repos/TheBeamstack/Bunyan --jq .description` reads `browser-native, serverless parametric **BIM/CAD
-  authoring platform for building design`, with an unpaired `**`. The Custodianship lane reported it as handover
+- context: `gh api repos/TheBeamstack/Bunyan --jq .description` reads
+  `browser-native, serverless parametric **BIM/CAD authoring platform for building design`, with an unpaired `**`.
+  The Custodianship lane reported it as handover
   H-20261011-15 in PR #65, which can never merge (it now conflicts with `main`, and the merge entrypoint misreads its
   `custodianship/T-007` branch, B-20261011-06), so PR #65 is closed and this record replaces it.
   set: a loop sets the description to the text above, the current one with the `**` removed and nothing else changed.
