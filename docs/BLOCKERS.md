@@ -549,3 +549,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/ubuntu/projects/Bunyan; echo $?` prints "Claiming PR #120 for review." while listing PR #118 as "→ YOURS"
 - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118
 - cleared: -
+
+## B-20261029-01 start's review mode claims PR #120 ahead of PR #72, so hmdnah cannot review the re-seeded T-037 PR
+
+- opened: 2026-10-29T10:03Z
+- by: brahim-loop
+- scope: item
+- item: PR#72
+- what: PR #72 (T-037) is MERGEABLE with both checks green after the re-seed at 29e7acc, but the hmdnah review turn brahim routed to it was handed PR #120 instead; T-068 waits behind it (B-20261026-03)
+- why: `agent_start.py --seat hmdnah --review` exited 0 printing "Claiming PR #120 for review." while listing PR #72 as "→ YOURS"; the selector defect B-20261028-01 records for PR #118
+- evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/ubuntu/projects/Bunyan; echo $?` prints "Claiming PR #120 for review." while listing PR #72 as "→ YOURS"
+- need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
+- cleared: -
