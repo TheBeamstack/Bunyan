@@ -105,6 +105,9 @@ builder may claim.
 - **B-20261028-01** — `scope: item` · `item: PR#118` — start's review mode claims PR #120 ahead of PR #118, so hmdnah cannot reach the retitled dependabot PR
   - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118
   - opened 2026-10-28T04:35Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261029-01** — `scope: item` · `item: PR#72` — start's review mode claims PR #120 ahead of PR #72, so hmdnah cannot review the re-seeded T-037 PR
+  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
+  - opened 2026-10-29T10:03Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
