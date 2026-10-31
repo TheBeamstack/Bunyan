@@ -485,3 +485,31 @@ Merged main (F1). After a non-cap `readMany` throw, `readRestoreBatch` re-reads 
 read; a cap refusal still empties the batch. Step-2 probe as test 3: red (`[]`) before, then `W00000`, `W00002` restore.
 Cap branch forced off → test 2 red. `bnn.ts` unchanged.
 Body: `handoff/zayd/2026-10-23-T-049-corrupt-entry-per-root.md`
+
+## T-033 — `Dimension.anchors` excludes the free `point` anchor — 2026-10-12 — seat: zayd
+
+`Dimension.anchors` is `ModelAnchor[]` (`AnnotationAnchor` minus `point`, D97); `Tag` keeps `point`. A
+`@ts-expect-error` test fails `tsc` (TS2578) with the narrowing reverted. No `Dimension.anchors` reader
+under `packages/`. RISK: contract-touching (re-baselined) — owner merges. `pnpm verify` green (911).
+Body: `handoff/zayd/2026-10-12-T-033-dimension-model-anchors.md`
+
+## T-033 — flow fix: PR #69 merged with `origin/main` — 2026-10-20 — seat: zayd
+
+Merged `origin/main` into the branch; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (977 passed, 1 skipped).
+PR #69 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-033-main-merge.md`
+
+## T-033 — flow fix: PR #69 merged with `origin/main` again — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`7da6795`) per D-20261020-01's `changes`; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (1003 passed, 1 skipped).
+PR #69 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-033-main-merge.md`
+
+## T-033 — flow fix: PR #69 merged with `origin/main` (`26336a6`) — 2026-10-28 — seat: zayd
+
+Merged `origin/main` per the manager's F1; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (1059 passed, 4 skipped).
+PR #69 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-28-T-033-main-merge.md`

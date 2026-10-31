@@ -98,7 +98,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-025 | blocked | `--review` keeps an owner-gated row at `review`                                                                    | infra    | box     | high     | —                   |
 | T-028 | blocked | `agent-finish.mjs` is resumable after an interrupted run                                                           | infra    | box     | normal   | —                   |
 | T-027 | done    | §6's relink cap is measured, not guessed                                                                           | infra    | box     | normal   | —                   |
-| T-033 | ready   | Q10 — `Dimension.anchors` excludes the free `point` anchor                                                         | document | box     | **high** | —                   |
+| T-033 | review  | Q10 — `Dimension.anchors` excludes the free `point` anchor                                                         | document | box     | **high** | —                   |
 | T-034 | ready   | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                                             | document | box     | **high** | —                   |
 | T-035 | done    | Q8 — design: moving a D52 baseline wall, properly                                                                  | design   | box     | normal   | —                   |
 | T-050 | ready   | Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves                                  | backend  | box     | **high** | —                   |
@@ -871,6 +871,11 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   `resume` skips a claim in `blocks` (`scope: item` blockers) but not one a pending `D-` names
   (`agent_start.py:928-937`), so `--seat zayd` resumed T-037 (held by D-20261021-01) and pushed `1ab49aa`
   instead of reaching T-064. Passing the task id selects it. A diwan item, not a Bunyan row.
+- **2026-10-12 — the freeze baseline cannot name the turn that authorised it** (T-033). `recordedAbstracts`
+  resolves only `### ` headings (`scripts/docs-state.mjs` `NEW_HEADING`), but `docs/PHASE_LOG.md` entries
+  are `## ` (diwan's shape), so `pnpm state --rebaseline` stamps §7's newest abstract
+  (`STEWARD-x001 — 2026-09-04`) instead. Fix shape: accept `## ` in `recordedAbstracts`, key the rebaseline
+  on it. Recorded, not claimed.
 
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
