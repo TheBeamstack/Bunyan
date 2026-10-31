@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-034 — PR #70's conflict with `main` resolved a third time — 2026-10-28 — seat: zayd
+
+Merged `origin/main` (`8cfe6b4`, flow F1); three docs conflicted, no code. BACKLOG took `main`'s table with T-034 at `review`.
+The snapshot did not conflict and was not re-baselined. `pnpm verify` green (1060 passed, 4 skipped).
+PR #70 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-28-T-034-merge-main.md`
+
 ## STEWARD-t065-carried-entries — review of PR #121 — 2026-10-26 — seat: hmdnah
 
 APPROVED, merged via `agent_merge.py --seat hmdnah --pr 121`. Item 1: T-067's `implements:` deleted → `gates.py docs` exit 1 "T-067 has no 'implements:'"; restored → ✓.
@@ -341,6 +348,20 @@ Body: `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`
 main or worker moves the id. Revert-verified twice, 1 red then 3 green each. `pnpm verify` green (979).
 Body: `handoff/zayd/2026-10-20-T-044-d29-codeid-bundle.md`
 
+## T-034 — PR #70's conflict with `main` resolved again — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`7da6795`) per D-20261020-02's `changes`; conflicts only in CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot keeps the branch's baseline; `freeze-boundary.test.ts` passes on it. `pnpm verify` green (1004 passed, 1 skipped).
+PR #70 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-034-merge-main.md`
+
+## T-034 — PR #70's conflict with `main` resolved — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`ce61874`); three docs conflicted, no code. BACKLOG took `main`'s table with T-034 at `review`;
+PHASE_LOG kept both sides. The snapshot did not conflict and was not re-baselined. `pnpm verify` green (978 passed).
+RISK: contract-touching, unchanged — owner merges.
+Body: `handoff/zayd/2026-10-20-T-034-merge-main.md`
+
 ## T-056 — review step 2 of PR #104 — 2026-10-20 — seat: hmdnah
 
 Approved; no defect proven. Item 1: mtime 1980-01-02 → 2 red; `saveBnn` inlining level 5 → 1 red (worker ≠ save); restored
@@ -485,3 +506,10 @@ Merged main (F1). After a non-cap `readMany` throw, `readRestoreBatch` re-reads 
 read; a cap refusal still empties the batch. Step-2 probe as test 3: red (`[]`) before, then `W00000`, `W00002` restore.
 Cap branch forced off → test 2 red. `bnn.ts` unchanged.
 Body: `handoff/zayd/2026-10-23-T-049-corrupt-entry-per-root.md`
+
+## T-034 — `FamilyDefinition` names its billable faces — 2026-10-12 — seat: zayd
+
+`FamilyPart.exposedFaces?: FamilyFaceSelector[]` (`{ by: 'role', role }`, D96): absent ⇒ whole-solid, `[]` ⇒ 0.
+Removing it fails `tsc` (TS2339/TS2353, revert-verified); an OCCT build measures billed 2·W·H, buried 0.
+RISK: contract-touching (re-baselined) — owner merges. No interpreter reads it in v1.0.0.
+Body: `handoff/zayd/2026-10-12-T-034-family-billable-faces.md`
