@@ -108,6 +108,12 @@ export interface ParamField {
    * The expression grammar + evaluator are a later phase; the STRING slot freezes now.
    */
   readonly formula?: string;
+  /**
+   * ⚠ RESERVED (D95, `D-20261012-03`). How a rigid motion acts on this param. Absent ⇒ a motion never
+   * touches it. Position cannot be read off `kind` (a `'point'` also types directions and offsets), hence
+   * a member of its own. No type tags a param and no body reads it yet; `P4.5_baseline_move_design.md` §5 A.
+   */
+  readonly motion?: 'planPoint' | 'point' | 'direction';
 }
 
 /**

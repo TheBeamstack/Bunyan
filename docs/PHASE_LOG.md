@@ -437,6 +437,20 @@ green. Probes show the edge also covers `deleteContainer` and its undo. Two muta
 shield) each go red. Reserved classes: none. Not owner-gated.
 Body: `handoff/hmdnah/2026-10-20-T-054-review-step-2.md`
 
+## T-050 — `ParamField.motion?` is reserved — 2026-10-20 — seat: zayd
+
+`ParamField` has `motion?: 'planPoint' | 'point' | 'direction'` (D95, design §5 A); nothing tags or reads it.
+A `Record<motion, true>` test fails `tsc` (TS2353) with `'direction'` removed. The freeze boundary flagged
+`interface ParamField` alone ⇒ RISK: contract-touching (re-baselined), owner merges. `pnpm verify` green.
+Body: `handoff/zayd/2026-10-20-T-050-paramfield-motion.md`
+
+## T-050 — review step 1 of PR #93 — 2026-10-20 — seat: hmdnah
+
+Step 1 passes with no defect proven. Item 1: `'direction'` removed → `tsc` TS2353 red, restored → green.
+`pnpm verify` reproduced 979 passed | 1 skipped. The labeller ran at `91ac825`: contract-touching + freeze, so it is
+owner-gated and `D-20261020-03` is pending. Not approved, not merged; the row stays `review`.
+Body: `handoff/hmdnah/2026-10-20-T-050-review-step-1.md`
+
 ## T-043 — review step 2 of PR #89 — 2026-10-20 — seat: hmdnah
 
 DEFECT; not approved, not merged, row stays `review` (B-20261020-01). A hostile `index.json` with deeply nested `records`
@@ -485,3 +499,10 @@ Merged main (F1). After a non-cap `readMany` throw, `readRestoreBatch` re-reads 
 read; a cap refusal still empties the batch. Step-2 probe as test 3: red (`[]`) before, then `W00000`, `W00002` restore.
 Cap branch forced off → test 2 red. `bnn.ts` unchanged.
 Body: `handoff/zayd/2026-10-23-T-049-corrupt-entry-per-root.md`
+
+## T-050 — merge origin/main into PR #93 (flow F1) — 2026-10-28 — seat: zayd
+
+Merged `origin/main`; no code changed. Conflicts in `BACKLOG.md` (main's rows, T-050 `review`), `PHASE_LOG.md` (both
+sides' abstracts) and `CURRENT_STATE.md` (this branch's baton). The frozen-surface snapshot did not conflict and was
+not re-baselined. `pnpm verify` green (1059 passed, 4 skipped). PR #93 stays owner-gated.
+Body: `handoff/zayd/2026-10-28-T-050-merge-main.md`

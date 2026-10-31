@@ -101,7 +101,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-033 | ready   | Q10 — `Dimension.anchors` excludes the free `point` anchor                                                         | document | box     | **high** | —                   |
 | T-034 | ready   | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                                             | document | box     | **high** | —                   |
 | T-035 | done    | Q8 — design: moving a D52 baseline wall, properly                                                                  | design   | box     | normal   | —                   |
-| T-050 | ready   | Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves                                  | backend  | box     | **high** | —                   |
+| T-050 | review  | Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves                                  | backend  | box     | **high** | —                   |
 | T-051 | blocked | Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags                                        | backend  | box     | **high** | T-050               |
 | T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                                     | document | box     | **high** | T-051               |
 | T-037 | ready   | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                                     | kernel   | box     | normal   | —                   |
@@ -871,6 +871,9 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   `resume` skips a claim in `blocks` (`scope: item` blockers) but not one a pending `D-` names
   (`agent_start.py:928-937`), so `--seat zayd` resumed T-037 (held by D-20261021-01) and pushed `1ab49aa`
   instead of reaching T-064. Passing the task id selects it. A diwan item, not a Bunyan row.
+- **2026-10-20 — `pnpm state` reports a skipped test as FAILING** (T-050). §8 read "979/980 passing — 1
+  FAILING" on a run whose `.vitest-summary.json` has `numFailedTests: 0`, `numPendingTests: 1`
+  (`scripts/state.mjs:114` is `total - passed`). Fix shape: count `numFailedTests`. Recorded, not claimed.
 
 - **2026-10-11 — a `requires: browser` row's check can need more than a browser** (PR #66). T-010's
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
