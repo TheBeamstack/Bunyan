@@ -406,6 +406,30 @@ from, and the reason it is a record rather than prose.
 - need: make the shipped `CODE_ID` unservable stale under an unchanged URL (fix shape in `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`) in a zayd turn on `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a`, land the probe test, then route PR #90 to hmdnah for step 2
 - cleared: 2026-10-23T02:53Z
 
+## B-20261012-09 PR #72's re-seed gate is red: the goldens were not re-seeded
+
+- opened: 2026-10-12T02:56Z
+- by: zayd
+- scope: item
+- item: PR#72
+- what: PR #72 (T-037) changes `packages/kernel-occt/src/kernel.ts`, a re-seed source, and touches no golden, so CI's re-seed gate fails
+- why: `scripts/check-reseed.mjs` exits 1 when no golden file changed, before it reads the `Re-seed-unchanged:` trailer the commit carries, and zayd's session was denied permission to run `uv run seed-goldens`
+- evidence: `gh run view 38197377650 --log-failed` → "re-seed gate FAILED — geometry changed but no goldens were re-seeded."
+- need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
+- cleared: 2026-10-26T22:20Z
+
+## B-20261012-10 PR #72's changes-requested review cannot be recorded by the finish entrypoint
+
+- opened: 2026-10-12T04:42Z
+- by: hmdnah
+- scope: item
+- item: PR#72
+- what: hmdnah's `--review` finish for T-037 wrote `T-037 → done` and a baton reading "reviewed by `hmdnah` — ready to merge", though the verdict is changes requested; hmdnah reset the row to `review` by hand so `--continue T-037` admits zayd
+- why: `agent_finish.py` `review_routing` sets the row to `done` whenever `review_flips_to_done` is true (risk normal), and has no flag for a verdict that is not approval
+- evidence: `git show fdf8c82 -- docs/BACKLOG.md docs/CURRENT_STATE.md`
+- need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
+- cleared: -
+
 ## B-20261023-01 PR #106's step 2 found step 1's installSecret comment defect unfixed, so it is not merged
 
 - opened: 2026-10-23T11:20Z

@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-037 — thirteenth turn on PR #72, goldens re-seeded — 2026-10-26 — seat: zayd
+
+`uv run seed-goldens` ran on the box (aarch64) and was committed; values moved only in the last ulp against the x86_64 seed, and `env.platform` changed.
+Merged `origin/main` (`f2f9d07`); only docs conflicted, script-written blocks taken by side and `## BLOCKED` re-rendered. B-20261012-09 cleared.
+`pnpm verify` green (124 files, 1060 passed); the re-seed gate skipped locally without BASE_REF, so CI measures it. D-20261021-01 is still pending.
+Body: `handoff/zayd/2026-10-26-T-037-reseed.md`
+
 ## STEWARD-t065-carried-entries — review of PR #121 — 2026-10-26 — seat: hmdnah
 
 APPROVED, merged via `agent_merge.py --seat hmdnah --pr 121`. Item 1: T-067's `implements:` deleted → `gates.py docs` exit 1 "T-067 has no 'implements:'"; restored → ✓.
@@ -63,6 +70,13 @@ Body: `handoff/hmdnah/2026-10-25-STEWARD-t064-entries-clone-review.md`
 Converts B-20261024-02 / B-20261025-02 (the 16k entries `structuredClone`, 143–263 ms) into T-065: entries packed into one transferred buffer, built on T-064's branch, carrying T-064's 200 ms bar; T-064 now depends on it.
 T-066 (blocked on T-065): the first save after an open or edit, 1437.9 ms in `geometryCacheFiles()`, untimed by `save-check`. From an R39 diagnosis; no Chrome figure measured.
 Body: `handoff/brahim/2026-10-25-STEWARD-t064-entries-clone-t065.md`
+
+## T-037 — twelfth turn on PR #72, merged with main again (F1) — 2026-10-24 — seat: zayd
+
+Merged `origin/main` (`bbd6c5c`) at `c6cb1fe`; only `CURRENT_STATE.md` and `PHASE_LOG.md` conflicted, no code.
+The baton and `last-verified-at` come from the branch side. `pnpm verify` is green (1060 passed); the re-seed gate skipped locally.
+Not done: no golden was re-seeded (B-20261012-03); T-037 stays `review`.
+Body: `handoff/zayd/2026-10-24-T-037-merge-main-f1.md`
 
 ## T-063 — review step 2 of PR #114 — 2026-10-24 — seat: hmdnah
 
@@ -117,6 +131,13 @@ Body: `handoff/hmdnah/2026-10-24-T-062-review-step-1.md`
 T-062 test 3 passed; reverting `document.ts:740,749` → "expected 2 to be 1" and "expected 3 to be +0". `pnpm verify` green (1052 passed). No watched file changed; nothing timed.
 Body: `handoff/zayd/2026-10-24-T-062-save-keys-once.md`
 
+## T-037 — eleventh turn on PR #72, merged with main again (F1) — 2026-10-24 — seat: zayd
+
+Merged `origin/main` (`bd76cfe`) at `bd7b8e4`; only `BACKLOG.md`, `CURRENT_STATE.md` and `PHASE_LOG.md` conflicted, no code.
+The baton and `last-verified-at` come from the branch side; `## Discovered` drops the finding main turned into T-062/T-064. `pnpm verify` is green.
+Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
+Body: `handoff/zayd/2026-10-24-T-037-merge-main-f1.md`
+
 ## STEWARD-d29-cache-followups — re-review of PR #112 — 2026-10-24 — seat: hmdnah
 
 APPROVED. All four B-20261024-01 items are fixed at `170a54d`; the code is unchanged since `624b5ba`. Item 1: T-063 `implements:` dropped → `gates.py docs` exit 1; restored → exit 0.
@@ -163,6 +184,34 @@ Body: `handoff/hmdnah/2026-10-23-T-061-review-step-1.md`
 T-061 test 6 passed, 1 skipped; `#stage` opening the index again → "no parse or verify runs on the caller" red. D29/T-043–T-060 tests unchanged and green.
 16k under node: verify 2,195–2,229 ms, parse 227–231 ms; the reply clone (337–343 ms) stays on the main thread (Discovered). Not timed in a browser.
 Body: `handoff/zayd/2026-10-23-T-061-open-verifies-in-worker.md`
+
+## T-037 — tenth turn on PR #72, merged with main again (F1) — 2026-10-23 — seat: zayd
+
+Merged `origin/main` (`0f48335`) at `8ead22a`; only `BACKLOG.md`, `CURRENT_STATE.md` and `PHASE_LOG.md` conflicted, no code.
+The baton and `last-verified-at` come from the branch side; `## Discovered` and the log keep both sides. `pnpm verify` is green.
+Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
+Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
+
+## T-037 — ninth turn on PR #72, merged with main again (F1) — 2026-10-23 — seat: zayd
+
+Merged `origin/main` (`99451e1`) at `382d762`; only `BACKLOG.md`, `CURRENT_STATE.md` and `PHASE_LOG.md` conflicted, no code.
+The baton and `last-verified-at` come from the branch side; `## Discovered` drops the finding main turned into T-060. `pnpm verify` is green.
+Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
+Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
+
+## T-037 — eighth turn on PR #72, merged with main again (F1) — 2026-10-23 — seat: zayd
+
+Merged `origin/main` (`711a6fb`) at `9aa4b62`; only `CURRENT_STATE.md` and `PHASE_LOG.md` conflicted, no code.
+The baton and `last-verified-at` come from the branch side, and the log keeps both sides' abstracts. `pnpm verify` is green.
+Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
+Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
+
+## T-037 — seventh turn on PR #72, merged with main again (F1) — 2026-10-23 — seat: zayd
+
+Merged `origin/main` (`b1406c8`) at `cba69ef`; only `BLOCKERS.md` and `CURRENT_STATE.md` conflicted, no code.
+`BLOCKERS.md` keeps both sides' records. The baton and `last-verified-at` come from the branch side. `pnpm verify` is green, and so is `gates.py docs`.
+Not done: no golden was re-seeded; B-20261012-03 and D-20261021-01 are untouched, and T-037 stays `review`.
+Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
 
 ## T-060 — review step 2 of PR #110 — 2026-10-23 — seat: hmdnah
 
@@ -485,3 +534,52 @@ Merged main (F1). After a non-cap `readMany` throw, `readRestoreBatch` re-reads 
 read; a cap refusal still empties the batch. Step-2 probe as test 3: red (`[]`) before, then `W00000`, `W00002` restore.
 Cap branch forced off → test 2 red. `bnn.ts` unchanged.
 Body: `handoff/zayd/2026-10-23-T-049-corrupt-entry-per-root.md`
+
+## T-037 — the section chord tolerance, chosen for Revit-class drawings — 2026-10-12 — seat: zayd
+
+`SECTION_DEFLECTION` 0.5 → 0.01 mm: 0.01 mm on paper at 1:1, the smallest Revit-class scale (D92, §4.1).
+`tests/section-chord-tolerance.test.ts` bounds vertices and chord midpoints on r150/r600 columns; red at 0.02 and 0.5.
+Found: float32 point transfer exceeds the tolerance beyond 131 m from the view origin (`## Discovered`).
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — review of PR #72 — 2026-10-12 — seat: hmdnah
+
+Changes requested, back to zayd (`--continue T-037`): CI's re-seed gate is red and right — no golden was re-seeded (B-20261012-01).
+Item 1: `SECTION_DEFLECTION` 0.5 → red (worst 0.486 / 0.499 mm > 0.0102), restored → green; full suite 912/912.
+ISO 128 / Revit 1:1 claims unverified here (web denied) — amer to confirm.
+Body: `handoff/hmdnah/2026-10-12-T-037-review.md`
+
+## T-037 — return of PR #72, incomplete — 2026-10-12 — seat: zayd
+
+Not done: `uv run seed-goldens ../../tests/goldens` was refused again by this session's permissions ("requires approval").
+B-20261012-01 stays uncleared; PR #72's re-seed gate stays red. Only the log, state and body changed.
+Next on this branch: a session permitted to run the seeder performs B-20261012-01's `need:`.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — third turn on PR #72, incomplete — 2026-10-12 — seat: zayd
+
+Not done: the seeder was refused a third time ("requires approval"); no golden re-seeded, re-seed gate still red.
+Found: this branch conflicts with `main` on a duplicate blocker id B-20261012-01 (PR #72 vs PR #74); filed to `## Discovered`.
+Next: a steward rules the id collision; a permitted session runs B-20261012-01's `need:`.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — fourth turn on PR #72, incomplete — 2026-10-12 — seat: zayd
+
+Not done: the seeder was refused a fourth time ("requires approval"); no golden re-seeded, re-seed gate still red.
+Already recorded as B-20261012-03 on `main` (uncleared); not re-filed. No code changed.
+Next: a session permitted to run the seeder performs B-20261012-03's `need:` on this branch.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — fifth turn on PR #72, merged with main, incomplete — 2026-10-12 — seat: zayd
+
+Merged `origin/main` per the steward ruling: main's BLOCKERS kept, the branch's two records re-appended as B-20261012-05/-06.
+Not done: the seeder was refused a fifth time ("requires approval"); no golden re-seeded. B-20261012-03 not re-filed.
+Next: a session permitted to run the seeder performs B-20261012-03's `need:` on this branch.
+Body: `handoff/zayd/2026-10-12-T-037-section-chord-tolerance.md`
+
+## T-037 — sixth turn on PR #72, merged with main (F1), incomplete — 2026-10-23 — seat: zayd
+
+Merged `origin/main`; only docs conflicted. The branch's PR #72 blockers were re-appended as B-20261012-09/-10, since main took -05/-06.
+BLOCKED was re-rendered by `blocked.py`. Six T-037 abstracts were kept, and T-037 stays `review`.
+Not done: no golden re-seeded and the seeder was not tried; B-20261012-03 stays uncleared.
+Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`

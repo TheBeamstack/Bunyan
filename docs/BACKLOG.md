@@ -104,7 +104,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-050 | ready   | Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves                                  | backend  | box     | **high** | —                   |
 | T-051 | blocked | Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags                                        | backend  | box     | **high** | T-050               |
 | T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                                     | document | box     | **high** | T-051               |
-| T-037 | ready   | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                                     | kernel   | box     | normal   | —                   |
+| T-037 | review  | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                                     | kernel   | box     | normal   | —                   |
 | T-038 | done    | Q6 — design: the D29 cache in the `.bnn`                                                                           | design   | box     | **high** | —                   |
 | T-039 | done    | D29 R1 — the cache input key, one pass over the scene                                                              | backend  | box     | **high** | —                   |
 | T-040 | done    | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                                            | backend  | box     | **high** | T-039               |
@@ -867,6 +867,10 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
+- **2026-10-12 — section points cross the WASM boundary as float32** (T-037). `tools/kernel-build/src/kernel.cpp`
+  `sectionCut` casts each 2D point to `float`, so beyond 131 m from the view origin the rounding (0.016 mm)
+  exceeds D92's 0.01 mm chord tolerance (`P5_step6C_plan_section_design.md` §4.1). Fix shape: emit
+  `double` (a WASM rebuild; `SectionCutPayload` is unaffected). Recorded, not claimed.
 - **2026-10-25 — diwan `agent_start.py` resumes a builder's open claim that a pending decision holds.** Its
   `resume` skips a claim in `blocks` (`scope: item` blockers) but not one a pending `D-` names
   (`agent_start.py:928-937`), so `--seat zayd` resumed T-037 (held by D-20261021-01) and pushed `1ab49aa`

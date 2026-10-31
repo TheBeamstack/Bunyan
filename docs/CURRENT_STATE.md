@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-t065-carried-entries` |
-| branch | `steward/t065-carried-entries` |
-| claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #121 merged by `hmdnah` at 2026-10-26T06:54:39Z |
+| task | `T-037` |
+| branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
+| claimed-at | 2026-10-26T22:04:01Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -78,6 +78,9 @@ builder may claim.
 - **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
   - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
   - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261012-10** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
+  - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
+  - opened 2026-10-12T04:42Z by hmdnah · recorded in `docs/BLOCKERS.md`
 - **B-20261025-01** — `scope: item` · `item: PR#118` — PR #118's `PR shape · reserved classes` check refuses every dependabot PR, so it cannot merge
   - need: give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah
   - opened 2026-10-25T19:34Z by hmdnah · recorded in `docs/BLOCKERS.md`
@@ -148,6 +151,11 @@ contract, and every subsequent entry has moved no frozen byte. ⇒ THE FREEZE (P
 ACT.** It is mechanically available: `tests/freeze-boundary.test.ts` holds the frozen surface, so
 freezing is the policy change *"the baseline may no longer be updated without an owner ruling"*, with a
 machine holding the line afterwards.
+
+### T-037 (PR #72) — re-seeded, awaiting review
+
+T-037's code, test and golden re-seed (box oracle, aarch64) are on the branch, merged with `main` at
+`f2f9d07`. Next: hmdnah reviews PR #72; D-20261021-01 (release or keep the claim) is still pending.
 
 
 **Per-seat standing facts, the two items killed by measurement, the later/post-freeze list, the CLOSED list, and §6/§6a (environment, commands, box discipline) are `docs/CURRENT_STATE-reference.md`.**
@@ -229,4 +237,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: f2bea54c022f546d5dbf30eb0a9a17d9af1af7a7
+last-verified-at: 4ce59911c8c1a6bc089c06f804cb858a4995bb95
