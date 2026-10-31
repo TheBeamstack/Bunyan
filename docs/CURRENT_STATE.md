@@ -75,9 +75,6 @@ builder may claim.
 
 ## BLOCKED
 
-- **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
-  - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
-  - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
 - **B-20261025-01** — `scope: item` · `item: PR#118` — PR #118's `PR shape · reserved classes` check refuses every dependabot PR, so it cannot merge
   - need: give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah
   - opened 2026-10-25T19:34Z by hmdnah · recorded in `docs/BLOCKERS.md`
@@ -108,9 +105,6 @@ builder may claim.
 - **B-20261029-01** — `scope: item` · `item: PR#72` — start's review mode claims PR #120 ahead of PR #72, so hmdnah cannot review the re-seeded T-037 PR
   - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
   - opened 2026-10-29T10:03Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261031-01** — `scope: loop` · `item: -` — the box checkout at /home/brahim cannot push to github.com, so no turn can land
-  - need: configure a github.com git credential in the /home/brahim loop environment that pushes as the acting seat's roster account, install pnpm, uv and the repo's dependencies, then push local `main`
-  - opened 2026-10-31T02:10Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

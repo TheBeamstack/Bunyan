@@ -200,7 +200,7 @@ from, and the reason it is a record rather than prose.
 - why: diwan `agent_merge.py:279` takes `T-\d{3}` from the head branch `custodianship/T-007-descriptions`, which is the Custodianship lane's T-007, and Bunyan's T-007 entry is sealed in docs/backlog-phase-01.md, so `task_field` finds no `risk:` and line 289 exits 1; PR #64 passed the same check only because Bunyan's unrelated T-006 entry is live with `risk: normal`
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_merge.py --seat hmdnah --pr 65 --root /home/ubuntu/projects/Bunyan` → "REFUSED [1 refused on the repository]: PR #65 names T-007, and docs/BACKLOG.md has no readable 'risk:' for it."
 - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
-- cleared: -
+- cleared: 2026-10-31T10:33Z
 
 ## B-20261011-07 PR #55 is CONFLICTING with main and no entrypoint returns it to its builder
 
