@@ -561,3 +561,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/ubuntu/projects/Bunyan; echo $?` prints "Claiming PR #120 for review." while listing PR #72 as "→ YOURS"
 - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
 - cleared: -
+
+## B-20261031-01 the box checkout at /home/brahim cannot push to github.com, so no turn can land
+
+- opened: 2026-10-31T02:10Z
+- by: brahim-loop
+- scope: loop
+- item: -
+- what: brahim's stamp of expired D-20261023-01 (default keep) is committed on local `main` but cannot reach origin, and every claim, finish and conflict merge a spawned seat makes pushes the same way
+- why: `git push origin main` exited 128, "could not read Username for 'https://github.com'"; `git config --get-all credential.helper` prints nothing, and diwan `git_write` (`protocol.py:486`) pushes on ambient git credentials only, although `agent_start.py` resolved gh identity davidian-abdo from the token store; the box also has no `pnpm` or `uv` on PATH and no `node_modules`, so `[commands] verify` (`pnpm verify`) cannot run
+- evidence: `GIT_TERMINAL_PROMPT=0 git -C /home/brahim/projects/Bunyan push --dry-run origin main; echo $?; which pnpm uv`
+- need: configure a github.com git credential in the /home/brahim loop environment that pushes as the acting seat's roster account, install pnpm, uv and the repo's dependencies, then push local `main`
+- cleared: -
