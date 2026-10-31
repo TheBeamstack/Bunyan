@@ -572,4 +572,4 @@ from, and the reason it is a record rather than prose.
 - why: `git push origin main` exited 128, "could not read Username for 'https://github.com'"; `git config --get-all credential.helper` prints nothing, and diwan `git_write` (`protocol.py:486`) pushes on ambient git credentials only, although `agent_start.py` resolved gh identity davidian-abdo from the token store; the box also has no `pnpm` or `uv` on PATH and no `node_modules`, so `[commands] verify` (`pnpm verify`) cannot run
 - evidence: `GIT_TERMINAL_PROMPT=0 git -C /home/brahim/projects/Bunyan push --dry-run origin main; echo $?; which pnpm uv`
 - need: configure a github.com git credential in the /home/brahim loop environment that pushes as the acting seat's roster account, install pnpm, uv and the repo's dependencies, then push local `main`
-- cleared: -
+- cleared: 2026-10-31T06:06Z
