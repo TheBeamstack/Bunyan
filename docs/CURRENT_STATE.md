@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-t065-carried-entries` |
-| branch | `steward/t065-carried-entries` |
+| task | `T-037` |
+| branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #121 merged by `hmdnah` at 2026-10-26T06:54:39Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -232,4 +232,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 11987d27f9e0c7536de59dbdb72626758956aaf6
+last-verified-at: a1638e711eee195b4b168db3f9065bde73d5da70
