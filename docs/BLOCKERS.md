@@ -573,3 +573,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `GIT_TERMINAL_PROMPT=0 git -C /home/brahim/projects/Bunyan push --dry-run origin main; echo $?; which pnpm uv`
 - need: configure a github.com git credential in the /home/brahim loop environment that pushes as the acting seat's roster account, install pnpm, uv and the repo's dependencies, then push local `main`
 - cleared: 2026-10-31T06:06Z
+
+## B-20261101-01 PR #72's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-037` on B-20261029-01
+
+- opened: 2026-11-01T15:04Z
+- by: zayd
+- scope: item
+- item: PR#72
+- what: the manager's Flow line F4 routes zayd to merge `origin/main` into `task/T-037-q5-the-section-chord-tolerance-chosen-fo`, but start refuses because review-side blockers hold PR #72, so the PR stays CONFLICTING
+- why: `agent_start.py` exited 1, "T-037 (PR #72) is held by B-20261029-01, B-20261012-10, an uncleared `scope: item` blocker at main that is neither a change on task/T-037-q5-the-section-chord-tolerance-chosen-fo nor this seat's newest ticket"; `gh pr view 72 --json mergeable` → CONFLICTING at `8bfa24e`; B-20261027-03 is the same defect for PR #116
+- evidence: `python3 /home/brahim/projects/diwan/scripts/agent_start.py --seat zayd --root /home/brahim/projects/Bunyan --continue T-037; echo $?` on `main` at `d67282d` exits 1
+- need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
+- cleared: -
