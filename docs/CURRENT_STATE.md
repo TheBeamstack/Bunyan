@@ -108,9 +108,6 @@ builder may claim.
 - **B-20261029-01** — `scope: item` · `item: PR#72` — start's review mode claims PR #120 ahead of PR #72, so hmdnah cannot review the re-seeded T-037 PR
   - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
   - opened 2026-10-29T10:03Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261101-01** — `scope: item` · `item: PR#72` — PR #72's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-037` on B-20261029-01
-  - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
-  - opened 2026-11-01T15:04Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -232,4 +229,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a1638e711eee195b4b168db3f9065bde73d5da70
+last-verified-at: 213fc29d74e8bc682213163d8939d612ca28d0e7
