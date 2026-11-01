@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `zayd` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | builder |
+| role | reviewer |
 | machine | box |
-| task | `T-037` |
-| branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
-| claimed-at | 2026-10-26T22:04:01Z |
-| status | finished — PR open, awaiting review |
+| task | `STEWARD-t065-carried-entries` |
+| branch | `steward/t065-carried-entries` |
+| claimed-at | 2026-10-24T07:05:10Z |
+| status | merged — PR #121 merged by `hmdnah` at 2026-10-26T06:54:39Z |
 
 <!-- END BATON -->
 
@@ -75,9 +75,6 @@ builder may claim.
 
 ## BLOCKED
 
-- **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
-  - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
-  - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
 - **B-20261012-10** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
   - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
   - opened 2026-10-12T04:42Z by hmdnah · recorded in `docs/BLOCKERS.md`
@@ -90,6 +87,30 @@ builder may claim.
 - **B-20261026-01** — `scope: item` · `item: PR#120` — PR #120's step 2 found T-065's done-when 1 and done-when 4 unmet, so it is not merged
   - need: perform B-20261025-03's and B-20261025-04's `need:` in a brahim turn, then route PR #120 to hmdnah for step 2 once both done-when items hold
   - opened 2026-10-26T06:12Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261026-02** — `scope: item` · `item: T-067` — start cannot hand zayd T-067: it resumes the blocker-held T-064, and `--continue T-067` needs an open PR
+  - need: make diwan `agent_start.py` resume a seat's incomplete claim that no blocker holds (T-067) before one a blocker holds (T-064), then run T-067 in a zayd turn
+  - opened 2026-10-26T22:34Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261026-03** — `scope: item` · `item: T-068` — start withholds zayd's T-068 claim until zayd merges PR #72, which is zayd's own T-037 PR
+  - need: make diwan `agent_start.py` skip a PR whose task the acting seat built when it picks the predecessor PR to merge before a claim, then run T-068 in a zayd turn
+  - opened 2026-10-26T22:41Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261027-01** — `scope: item` · `item: T-067` — start refuses zayd's tickets T-067 and T-068 because the ticket records themselves hold those tasks
+  - need: make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn
+  - opened 2026-10-27T06:05Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261027-02** — `scope: item` · `item: PR#120` — PR #120's flow-routed conflict merge cannot run: start refuses `--continue T-065` for the reviewer seat hmdnah
+  - need: make diwan `agent_start.py --continue` admit a reviewer seat that holds the task's claim to a flow-routed conflict merge, then re-run hmdnah's `--continue T-065`
+  - opened 2026-10-27T18:05Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261027-03** — `scope: item` · `item: PR#116` — PR #116's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-064` on B-20261025-02
+  - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-064`
+  - opened 2026-10-27T20:33Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261028-01** — `scope: item` · `item: PR#118` — start's review mode claims PR #120 ahead of PR #118, so hmdnah cannot reach the retitled dependabot PR
+  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118
+  - opened 2026-10-28T04:35Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261029-01** — `scope: item` · `item: PR#72` — start's review mode claims PR #120 ahead of PR #72, so hmdnah cannot review the re-seeded T-037 PR
+  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
+  - opened 2026-10-29T10:03Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261101-01** — `scope: item` · `item: PR#72` — PR #72's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-037` on B-20261029-01
+  - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
+  - opened 2026-11-01T15:04Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -130,11 +151,6 @@ contract, and every subsequent entry has moved no frozen byte. ⇒ THE FREEZE (P
 ACT.** It is mechanically available: `tests/freeze-boundary.test.ts` holds the frozen surface, so
 freezing is the policy change *"the baseline may no longer be updated without an owner ruling"*, with a
 machine holding the line afterwards.
-
-### T-037 (PR #72) — re-seeded, awaiting review
-
-T-037's code, test and golden re-seed (box oracle, aarch64) are on the branch, merged with `main` at
-`f2f9d07`. Next: hmdnah reviews PR #72; D-20261021-01 (release or keep the claim) is still pending.
 
 
 **Per-seat standing facts, the two items killed by measurement, the later/post-freeze list, the CLOSED list, and §6/§6a (environment, commands, box discipline) are `docs/CURRENT_STATE-reference.md`.**
@@ -216,4 +232,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 4ce59911c8c1a6bc089c06f804cb858a4995bb95
+last-verified-at: f2bea54c022f546d5dbf30eb0a9a17d9af1af7a7
