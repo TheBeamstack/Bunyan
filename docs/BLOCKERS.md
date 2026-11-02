@@ -609,3 +609,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `git ls-remote --heads origin 'task/T-067*'` prints `2aee811` and the start sheet lists `T-067 (zayd, open)` under live claims
 - need: give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01
 - cleared: -
+
+## B-20261102-03 the owner answered `set` for the repository description, and the loop's token cannot edit it
+
+- opened: 2026-11-02T22:20Z
+- by: brahim-loop
+- scope: item
+- item: D-20261029-01
+- what: D-20261029-01 answered `set` (dd062dc), but the description still carries the stray `**`
+- why: `gh repo edit TheBeamstack/Bunyan --description …` as davidian-abdo returned "HTTP 403: Resource not accessible by personal access token"
+- evidence: `gh api repos/TheBeamstack/Bunyan --jq .description` prints `browser-native, serverless parametric **BIM/CAD authoring platform for building design`
+- need: owner: set Bunyan's GitHub description to `browser-native, serverless parametric BIM/CAD authoring platform for building design` under the repository's About settings
+- cleared: -
