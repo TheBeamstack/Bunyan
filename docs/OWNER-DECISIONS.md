@@ -598,3 +598,20 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - expires: 2026-11-05
 - ANSWER:
 - answered: -
+
+## D-20261102-01 zayd's claim on T-067 has had no commit since 2026-10-26
+
+- opened: 2026-11-02T07:34Z
+- by: brahim-loop
+- item: T-067
+- asks: whether to release zayd's claim on T-067 so its branch stops reading as live work
+- context: T-067 takes the 16k entries clone off the named save's main thread, the row that unblocks PR #116
+  (B-20261025-02) and PR #120 (B-20261026-01). zayd's claim on `task/T-067-a-named-save-names-its-carried-cache-ent`
+  last committed `2aee811` on 2026-10-26 and has no PR; start cannot hand it back to zayd (B-20261026-02,
+  B-20261027-01, both waiting on a diwan `agent_start.py` fix). release frees the claim and keeps the branch for
+  the next builder; keep leaves it with zayd. Neither changes code, and neither clears those blockers.
+- options: release | keep
+- default-if-silent: keep
+- expires: 2026-11-09
+- ANSWER:
+- answered: -
