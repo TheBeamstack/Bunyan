@@ -537,7 +537,8 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-11-04
-- ANSWER:
+- ANSWER: merge
+- free-text: owner 2026-11-02 in the coordinator session: "Merge all three (Recommended)"
 - answered: -
 
 ## D-20261028-02 PR #70 (T-034) is conflict-free again and needs an owner merge
@@ -556,7 +557,8 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-11-04
-- ANSWER:
+- ANSWER: merge
+- free-text: owner 2026-11-02 in the coordinator session: "Merge all three (Recommended)"
 - answered: -
 
 ## D-20261028-03 PR #93 (T-050) is conflict-free again and needs an owner merge
@@ -577,7 +579,8 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-11-04
-- ANSWER:
+- ANSWER: merge
+- free-text: owner 2026-11-02 in the coordinator session: "Merge all three (Recommended)"
 - answered: -
 
 ## D-20261029-01 [public] the public repository description carries a stray `**`, and only you can change it
