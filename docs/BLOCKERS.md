@@ -585,3 +585,27 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/brahim/projects/diwan/scripts/agent_start.py --seat zayd --root /home/brahim/projects/Bunyan --continue T-037; echo $?` on `main` at `d67282d` exits 1
 - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
 - cleared: -
+
+## B-20261102-01 the owner signed PR #69, #70 and #93 for merge, but start's review mode hands hmdnah PR #120 instead
+
+- opened: 2026-11-02T22:16Z
+- by: brahim-loop
+- scope: item
+- item: PR#69
+- what: D-20261028-01/-02/-03 answered `merge` (f30e337) for the owner-gated PRs #69, #70 and #93 (M-bunyan-01), but no dedicated hmdnah review can reach them, so none is merged and the answers are not acted on
+- why: a dedicated hmdnah turn for PR #69 found `agent_start.py --review` would claim PR #120, the first routed PR it does not hold (`agent_start.py:620-650`, the selector B-20261028-01 records); `--no-claim` returns before the selector runs, so no dry run names the PR
+- evidence: `python3 /home/brahim/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/brahim/projects/Bunyan` lists PR #120 first among the PRs it offers hmdnah, on `main` at `d77492d`
+- need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run one dedicated hmdnah merge each of PR #69, #70 and #93 under D-20261028-01, -02 and -03
+- cleared: -
+
+## B-20261102-02 the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim
+
+- opened: 2026-11-02T22:16Z
+- by: brahim-loop
+- scope: item
+- item: T-067
+- what: D-20261102-01 answered `release` (d77492d), which frees the claim and keeps the branch, but a live claim is any `refs/heads/task/*` on origin (`agent_start.py:215`), so keeping the branch keeps the claim
+- why: no diwan script has a release act (`grep -rn "release" /home/brahim/projects/diwan/scripts/*.py` finds only `flow.py:126`'s prompt to open the D-), and hand-editing the branch's §0b block is forbidden
+- evidence: `git ls-remote --heads origin 'task/T-067*'` prints `2aee811` and the start sheet lists `T-067 (zayd, open)` under live claims
+- need: give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01
+- cleared: -
