@@ -616,5 +616,6 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: release | keep
 - default-if-silent: keep
 - expires: 2026-11-09
-- ANSWER:
+- ANSWER: release
+- free-text: coordinator answer (technical), 2026-11-02: no commit since 2026-10-26 and no PR; the branch is kept for the next builder
 - answered: -
