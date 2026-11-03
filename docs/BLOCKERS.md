@@ -620,4 +620,4 @@ from, and the reason it is a record rather than prose.
 - why: `gh repo edit TheBeamstack/Bunyan --description …` as davidian-abdo returned "HTTP 403: Resource not accessible by personal access token"
 - evidence: `gh api repos/TheBeamstack/Bunyan --jq .description` prints `browser-native, serverless parametric **BIM/CAD authoring platform for building design`
 - need: owner: set Bunyan's GitHub description to `browser-native, serverless parametric BIM/CAD authoring platform for building design` under the repository's About settings
-- cleared: -
+- cleared: 2026-11-03T22:29Z
