@@ -521,6 +521,13 @@ D-20261028-01 routed via `--review --pr 69`; T-033 is `risk: high`, so hmdnah ra
 `hold/T-033-step1-review-2026-11-04`; stray `review/step-1` label removed; `## BLOCKED` regenerated.
 Body: `handoff/brahim/2026-11-04-STEWARD-pr69-step1-finish-refusal-routed.md`
 
+## T-034 — review step 1 of PR #70 — 2026-11-04 — seat: hmdnah
+
+No defect proven; not approved (step 1). Item 1: `families.ts` reverted → 6 tsc errors and freeze-boundary 1 red,
+family-seam itself 6 green; restored → `pnpm verify` exit 0, 1060 passed / 4 skipped. CI run 41799264043 green on
+`9e7aa85`, labeller ran (contract-touching, freeze). Items 2, 3, 6 are step 2's.
+Body: `handoff/hmdnah/2026-11-04-T-034-review-step-1.md`
+
 ## T-034 — `FamilyDefinition` names its billable faces — 2026-10-12 — seat: zayd
 
 `FamilyPart.exposedFaces?: FamilyFaceSelector[]` (`{ by: 'role', role }`, D96): absent ⇒ whole-solid, `[]` ⇒ 0.
