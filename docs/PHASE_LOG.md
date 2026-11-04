@@ -485,3 +485,10 @@ Merged main (F1). After a non-cap `readMany` throw, `readRestoreBatch` re-reads 
 read; a cap refusal still empties the batch. Step-2 probe as test 3: red (`[]`) before, then `W00000`, `W00002` restore.
 Cap branch forced off → test 2 red. `bnn.ts` unchanged.
 Body: `handoff/zayd/2026-10-23-T-049-corrupt-entry-per-root.md`
+
+## STEWARD-pr69-step1-finish-refusal — PR #69's owner-signed merge routed — 2026-11-04 — seat: brahim
+
+D-20261028-01 routed via `--review --pr 69`; T-033 is `risk: high`, so hmdnah ran step 1: no defect. Its finish refused:
+`stamp_tickets` stamps B-20261102-01 cleared on step 1 and the docs gate then fails (B-20261104-01). Work parked at local
+`hold/T-033-step1-review-2026-11-04`; stray `review/step-1` label removed; `## BLOCKED` regenerated.
+Body: `handoff/brahim/2026-11-04-STEWARD-pr69-step1-finish-refusal-routed.md`

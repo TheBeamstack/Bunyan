@@ -621,3 +621,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `gh api repos/TheBeamstack/Bunyan --jq .description` prints `browser-native, serverless parametric **BIM/CAD authoring platform for building design`
 - need: owner: set Bunyan's GitHub description to `browser-native, serverless parametric BIM/CAD authoring platform for building design` under the repository's About settings
 - cleared: 2026-11-03T22:29Z
+
+## B-20261104-01 hmdnah's step-1 review of PR #69 passed, and the finish refuses by stamping B-20261102-01 cleared
+
+- opened: 2026-11-04T06:57Z
+- by: brahim-loop
+- scope: item
+- item: PR#69
+- what: T-033 is `risk: high`, so `--review --pr 69` ran step 1 of 2; it found no defect (report at local ref `hold/T-033-step1-review-2026-11-04`, unpushed), but the finish refused, so no step-1 report is posted and PR #69 stays at `6930c96`
+- why: `agent_finish.py:709-719` `stamp_tickets` stamps every ticket naming the seat on any task finish, step 1 included, so B-20261102-01 (whose `need:` also covers #70 and #93) reads cleared, and the finish's own docs gate (`:927`) then fails on the unregenerated `## BLOCKED` section
+- evidence: `python3 /home/brahim/projects/diwan/scripts/agent_finish.py --seat hmdnah T-033 --review --step 1 --report handoff/hmdnah/2026-11-04-T-033-review-step-1.md --root /home/brahim/projects/Bunyan; echo $?` on `hold/T-033-step1-review-2026-11-04` exits non-zero after printing `✓ ticket B-20261102-01 stamped cleared`
+- need: make diwan `agent_finish.py` stamp a ticket only on the finish that performs its `need:` and regenerate `## BLOCKED` after any stamp, then run hmdnah's step 1 of PR #69
+- cleared: -
