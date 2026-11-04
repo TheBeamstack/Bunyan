@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-034` |
-| branch | `task/T-034-q9-familydefinition-reserves-a-way-for-d` |
+| task | `STEWARD-pr70-merged-log-roll` |
+| branch | `main` |
 | claimed-at | 2026-10-12T01:24:32Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -238,4 +238,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 27f70d74fe271117eed93bbcadd59239f6548b8e
+last-verified-at: 132f7582255509c9e71f63a7b91a2b166aef9b7f
