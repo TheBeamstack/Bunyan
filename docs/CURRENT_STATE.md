@@ -65,7 +65,7 @@ builder may claim.
 | role | steward |
 | machine | box |
 | task | `STEWARD-pr70-merged-log-roll` |
-| branch | `main` |
+| branch | `steward/pr70-merged-log-roll` |
 | claimed-at | 2026-10-12T01:24:32Z |
 | status | finished — PR open, awaiting review |
 
@@ -238,4 +238,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 132f7582255509c9e71f63a7b91a2b166aef9b7f
+last-verified-at: c873e1af8d4e53f5350cb1fbb580541f4a7b2720
