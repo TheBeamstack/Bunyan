@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-034` |
 | branch | `task/T-034-q9-familydefinition-reserves-a-way-for-d` |
 | claimed-at | 2026-10-12T01:24:32Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #70 merged by `hmdnah` at 2026-11-04T10:28:02Z |
 
 <!-- END BATON -->
 
@@ -238,4 +238,4 @@ _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 27f70d74fe271117eed93bbcadd59239f6548b8e
+last-verified-at: 132f7582255509c9e71f63a7b91a2b166aef9b7f
