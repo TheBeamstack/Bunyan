@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-034 — PR #70's conflict with `main` resolved a fourth time — 2026-11-04 — seat: zayd
+
+Merged `origin/main` (`0f76dbb`) as `7474457`; `CURRENT_STATE.md` and `PHASE_LOG.md` conflicted, no code.
+The snapshot was not re-baselined: no watched path or snapshot change on `main` since `8cfe6b4`. `pnpm verify` green.
+PR #70 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-11-04-T-034-merge-main.md`
+
 ## T-034 — PR #70's conflict with `main` resolved a third time — 2026-10-28 — seat: zayd
 
 Merged `origin/main` (`8cfe6b4`, flow F1); three docs conflicted, no code. BACKLOG took `main`'s table with T-034 at `review`.
