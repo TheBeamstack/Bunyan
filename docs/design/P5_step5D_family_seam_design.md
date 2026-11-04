@@ -152,7 +152,10 @@ readonly families?: Readonly<Record<FamilyId, FamilyDefinition>>;
 `revolve`, discriminated — plus ordered `FamilyModifier[]` — `chamfer`/`fillet`, with a semantic
 `FamilyEdgeSelector`, never an index) + `children?` (`FamilyChildPlacement`, D59) + `hosting?`
 (`FamilyHosting` — `voidPrimitive`+`leafParts`, a data door). Every scalar is a `FamilyValue` (a literal or
-a param ref → parametric). `formatVersion` migrates the grammar forward. The kept envelope idea below is
+a param ref → parametric). `formatVersion` migrates the grammar forward. **D96 (2026-10-10):** a
+`FamilyPart` names its billable faces in `exposedFaces?: FamilyFaceSelector[]` — `{ by: 'role', role }`, a
+face role on the part's base primitive (`x-max`, `lateral.1`), never an area or index; absent ⇒ whole-solid
+area, `[]` ⇒ zero, as D72's `BuiltPart.exposedRefs`. No interpreter reads it in v1.0.0. The kept envelope idea below is
 recorded only as the rejected alternative.
 
 <details><summary>Rejected alternative (Q2=A, opaque envelope)</summary>

@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
-| task | `STEWARD-pr69-step1-finish-refusal` |
-| branch | `main` |
-| claimed-at | 2026-10-24T07:05:10Z |
-| status | finished — PR open, awaiting review |
+| task | `T-034` |
+| branch | `task/T-034-q9-familydefinition-reserves-a-way-for-d` |
+| claimed-at | 2026-10-12T01:24:32Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -224,18 +224,18 @@ maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `task/T-027-6-s-relink-cap-is-measured-not-guessed` · `d6666b0` · clean |
-| open PRs | #65 custodianship/T-007-descriptions · #55 task/T-027-6-s-relink-cap-is-measured-not-guessed |
-| suite | **910 green** · 100 files · 279 suites |
+| branch · tip · tree | `task/T-034-q9-familydefinition-reserves-a-way-for-d` · `441830d` · dirty |
+| open PRs | #69 task/T-033-q10-dimension-anchors-excludes-the-free- · #65 custodianship/T-007-descriptions |
+| suite | **912 green** · 100 files · 280 suites |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 83 insertions(+), 3 deletions(-) (5 files) |
-| docs budget | current_state 13.1/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 108 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 2 declaration(s) moved — packages/document/src/families.ts :: interface FamilyPart, packages/document/src/families.ts :: type FamilyFaceSelector · baseline REWRITTEN this session |
+| diff vs origin/main | 6 files changed, 120 insertions(+), 17 deletions(-) (6 files) |
+| docs budget | current_state 12.9/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 111 |
 
 _Generated 2026-10-12 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: ea886e5d3dac1bb671ade43b287fd87955c27880
+last-verified-at: 27f70d74fe271117eed93bbcadd59239f6548b8e
