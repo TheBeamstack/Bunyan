@@ -40,6 +40,13 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-033 — review step 1 of PR #69 — 2026-11-04 — seat: hmdnah
+
+Item 1 at `6930c96`: `Dimension.anchors` back to `AnnotationAnchor[]` → `pnpm typecheck` exit 2, "TS2578: Unused '@ts-expect-error' directive" at `:266`; restored → exit 0.
+Labeller run 40632236609 on `6930c96`: contract-touching + freeze, as labelled. No `Dimension.anchors` reader in `packages/`. No defect proven; no approval.
+Flagged for step 2: this finish moves the head off `6930c96`, the head D-20261028-01 names.
+Body: `handoff/hmdnah/2026-11-04-T-033-review-step-1.md`
+
 ## STEWARD-t065-carried-entries — review of PR #121 — 2026-10-26 — seat: hmdnah
 
 APPROVED, merged via `agent_merge.py --seat hmdnah --pr 121`. Item 1: T-067's `implements:` deleted → `gates.py docs` exit 1 "T-067 has no 'implements:'"; restored → ✓.
