@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-050` |
-| branch | `task/T-050-q8a-paramfield-motion-is-reserved-a-sche` |
+| task | `STEWARD-log-roll-03-d02-stamp` |
+| branch | `steward/log-roll-03-d02-stamp` |
 | claimed-at | 2026-10-20T04:35:42Z |
-| status | merged — PR #93 merged by `hmdnah` at 2026-11-05T06:54:33Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -238,4 +238,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 9a3db95a3c58857afe1b78832f1912a6a916877f
+last-verified-at: 87167d07aa9bfb20ba471f6c8f85d4fbbca7a3ed
