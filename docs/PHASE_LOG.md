@@ -95,3 +95,30 @@ PR #70 (T-034) and PR #93 (T-050) are MERGED, yet their rows still read `review`
 Cause: `agent_start.py:790` lists 20 merged PRs ordered by creation, which leaves out these two older PRs.
 T-051 promoted: its depends-on T-050 is `done`, and its note's seeder hold B-20261012-03 is cleared.
 Body: `handoff/brahim/2026-11-05-STEWARD-backstop-t034-t050-flips.md`
+
+## T-051 — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags — 2026-11-05 — seat: zayd
+
+`core.wall` tags `start`/`end` `planPoint`, and `positioningOf` reads the tags rather than `baselineOf`. The verbs move the tagged params and leave `placement` alone.
+The §A probe passes on both demo walls, 6 of 6. dz ≠ 0, a tilt, a mirror and `setPlacement` refuse with named reasons. Removing the tags turns 5 of 8 tests red.
+`pnpm verify` 1069 passed. The box re-seed moved values only by aarch64 floating-point noise, so the seed is kept with a `Re-seed-unchanged:` trailer.
+Body: `handoff/zayd/2026-11-05-T-051-wall-motion-tags.md`
+
+## T-051 — review step 1 of PR #124 — 2026-11-05 — seat: hmdnah
+
+DEFECT PROVEN: done-when 6 is unmet. `wall.ts` is a re-seed path and no golden is committed, so `check-reseed.mjs:55-61` exits 1 before the trailer is read (CI run 42010045830).
+Item 1: with the tags removed, `tests/wall-motion.test.ts` → 5 failed | 3 passed; restored → green. Reserved-class scan: additive, not owner-gated. Filed B-20261105-02 for zayd; changes requested, the row stays `review`.
+Body: `handoff/hmdnah/2026-11-05-T-051-review-step-1.md`
+
+## T-051 — re-seed committed for PR #124's gate (B-20261105-02) — 2026-11-05 — seat: zayd
+
+`uv run seed-goldens` re-ran on the aarch64 box and was committed. Of 19 moved values, the largest is 1.9e-12 relative (`column-through-duct`); the other 18 are at most 1.0e-15.
+`check-reseed.mjs` against `main` → exit 0, "golden VALUES moved". The golden and re-seed tests pass, 60 of 60.
+The grid-bound test now asserts a rotate refusal that names `grid`; with the tags removed it goes red.
+Body: `handoff/zayd/2026-11-05-T-051-wall-motion-tags.md`
+
+## T-051 — review step 2 of PR #124 — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: tags removed → `wall-motion.test.ts` 6 failed | 2 passed, grid-bound now red; restored → 31 passed.
+Re-seeding with the pinned oracle here matches the committed golden exactly (`seededAt` excluded). Max drift from x86_64 is 1.89e-12 relative. CI 42020545530 at `03c4d58` is green, re-seed gate included.
+`core.move` and `core.setParams` give identical tessellated geometry, joined partner included.
+Body: `handoff/hmdnah/2026-11-05-T-051-review-step-2.md`

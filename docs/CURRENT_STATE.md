@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
-| task | `STEWARD-backstop-t034-t050` |
-| branch | `main` |
-| claimed-at | 2026-10-20T04:35:42Z |
-| status | finished — PR open, awaiting review |
+| task | `T-051` |
+| branch | `task/T-051-q8a-core-move-rotate-copy-move-a-d52-wal` |
+| claimed-at | 2026-11-05T09:36:32Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -241,4 +241,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a0311fec9a306a5d4e0de3219db1e25fa1fa301a
+last-verified-at: 795aa77c3e85343f8d1edd9e47eff74a1d470b5b

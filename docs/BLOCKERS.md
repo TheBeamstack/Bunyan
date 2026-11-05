@@ -645,3 +645,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `cd /home/brahim/projects/diwan/scripts && python3 -c "import protocol; print(protocol.browser_cmd())"` prints `None`
 - need: install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn
 - cleared: -
+
+## B-20261105-02 PR #124's re-seed gate is red: T-051 edits `packages/types/src/wall.ts` and commits no golden
+
+- opened: 2026-11-05T10:25Z
+- by: hmdnah
+- scope: item
+- item: PR#124
+- what: hmdnah's step 1 of PR #124 found T-051's done-when 6 unmet, so CI's re-seed gate fails and the PR cannot merge
+- why: `scripts/check-reseed.mjs:55-61` exits 1 when a `GEOMETRY_PATHS` file changes and no `tests/goldens/` file does; the `Re-seed-unchanged:` trailer is read only after goldens are touched (line 113), and PR #124 touches none
+- evidence: `node --input-type=module -e "process.env.BASE_REF='main'; await import('./scripts/check-reseed.mjs');"` on `e0075d2` exits 1, "geometry changed but no goldens were re-seeded"; CI run 42010045830 job 127186447636 fails at the same step
+- need: re-seed and commit `tests/goldens/` on PR #124's branch in a zayd turn for T-051, then route PR #124 to hmdnah for step 1
+- cleared: 2026-11-05T11:28Z

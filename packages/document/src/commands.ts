@@ -50,10 +50,14 @@ import type {
   ViewDescriptor,
 } from './documentation.js';
 import { joinOverridesOf, wallsMeet } from './joins.js';
+import type { MotionField } from './placement.js';
 import {
   applyMotions,
   frameOriginOf,
+  motionCentroid,
+  motionFieldsOf,
   motionIssues,
+  moveParams,
   positioningOf,
   positioningRefusal,
   reorients,
@@ -767,10 +771,11 @@ export const createElementCommand: Command = {
       }
       const to = frameOriginAfter(element.placement, id);
       const refusal = positioningRefusal(
-        positioningOf(ctx.scene, element, constraints),
+        positioningOf(ctx.scene, element, type.parameterSchema, constraints),
         [0, 0, 0],
         to,
         reorients(undefined, element.placement),
+        element.placement.some((m) => m.kind === 'mirror'),
       );
       if (refusal !== undefined) {
         throw new CommandFailure(
@@ -2912,14 +2917,74 @@ function checkPositioning(
 ): void {
   const to = frameOriginAfter(placement, element.id);
   const refusal = positioningRefusal(
-    positioningOf(ctx.scene, element),
+    positioningOf(ctx.scene, element, ctx.registries.types.get(element.typeId)?.parameterSchema),
     from,
     to,
     reorients(element.placement, placement),
+    placement.some((m) => m.kind === 'mirror'),
   );
   if (refusal !== undefined) {
     throw new CommandFailure('REFUSED', `cannot move "${element.id}": ${refusal}`);
   }
+}
+
+/**
+ * The element's `motion`-tagged params when the PARAMS carry its position (D95), else `undefined` and the
+ * verb moves its `placement`. A hosted element is never params-positioned here: its rung outranks this
+ * one, and `checkPositioning` refuses it with its own reason.
+ */
+function paramsPositioned(
+  ctx: CommandContext,
+  element: Element,
+): readonly MotionField[] | undefined {
+  if (element.hostId !== undefined) return undefined;
+  const fields = motionFieldsOf(ctx.registries.types.get(element.typeId)?.parameterSchema);
+  return fields.length > 0 ? fields : undefined;
+}
+
+/**
+ * Apply `motion` to the tagged params, refusing by name what cannot be represented (`moveParams`). The
+ * `placement` is left untouched: the params are where the element is.
+ *
+ * ⚠ A `grid` constraint still derives an element's XY (the datum rung), so a params-positioned element
+ * bound to one refuses any motion that moves a tagged point in plan, exactly as a placed one does.
+ */
+function movedParams(
+  ctx: CommandContext,
+  element: Element,
+  fields: readonly MotionField[],
+  motion: RigidMotion,
+): Params {
+  const moved = moveParams(element.params, fields, motion);
+  if ('refused' in moved) {
+    throw new CommandFailure('REFUSED', `cannot move "${element.id}": ${moved.refused}`);
+  }
+  const gridBound = constraintsOf(ctx.scene, element.id).some((c) => c.kind === 'grid');
+  const shifted = fields.some(
+    (f) => JSON.stringify(element.params[f.name]) !== JSON.stringify(moved.params[f.name]),
+  );
+  if (gridBound && shifted) {
+    throw new CommandFailure(
+      'REFUSED',
+      `cannot move "${element.id}": ${positioningRefusal({ kind: 'datum', plan: true, vertical: false }, [0, 0, 0], [1, 0, 0])!}`,
+    );
+  }
+  return moved.params;
+}
+
+function paramsMotionEdit(
+  ctx: CommandContext,
+  element: Element,
+  fields: readonly MotionField[],
+  motion: RigidMotion,
+  label: string,
+): UndoableEdit {
+  const after: Element = { ...element, params: movedParams(ctx, element, fields, motion) };
+  return ctx.edit(
+    label,
+    [{ collection: 'elements', id: element.id, before: element, after }],
+    movedWithHosted(ctx, element),
+  );
 }
 
 /** The new placement's own frame origin, or a typed refusal if a motion in it is degenerate. */
@@ -2965,7 +3030,7 @@ export const setPlacementCommand: Command = {
   id: 'core.setPlacement',
   label: 'Set placement',
   description:
-    "Replace an element's placement outright — the rigid motions that put it in the world, applied after its openings are cut. Absolute; idempotent. ⚠ An element positioned by its params (a D52 baseline wall) or by a datum is moved with core.setParams / by moving the datum, and is REFUSED here (P4.5 §9).",
+    "Replace an element's placement outright — the rigid motions that put it in the world, applied after its openings are cut. Absolute; idempotent. ⚠ An element positioned by its `motion`-tagged params is moved with core.move / core.rotate, one positioned by a datum by moving the datum, and both are REFUSED here (P4.5 §9, D95).",
   argsSchema: {
     elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
     placement: {
@@ -2986,6 +3051,8 @@ export const setPlacementCommand: Command = {
       throw new CommandFailure('INVALID_ARGS', `invalid placement for "${element.id}"`, issues);
     }
     const placement = raw as unknown as readonly RigidMotion[];
+    // ⚠ Refused outright on a params-positioned element (`positioningRefusal`'s `params` rung names
+    // `core.move`), whatever the motion: an absolute placement means nothing there.
     checkPositioning(ctx, element, from, placement);
     return placementEdit(ctx, element, placement, 'Place');
   },
@@ -3000,7 +3067,7 @@ export const moveCommand: Command = {
   id: 'core.move',
   label: 'Move',
   description:
-    'Translate an element by a delta, in mm. ⚠ Only for an element whose position lives in its PLACEMENT: a D52 baseline wall moves by core.setParams (both endpoints), a hosted opening by its own offset params, and both are REFUSED here (P4.5 §9, owner-ruled).',
+    'Translate an element by a delta, in mm. An element whose schema tags params with `motion` (D95) moves those params and keeps its placement; a plan point refuses dz ≠ 0. A hosted opening moves by its own offset params and is REFUSED here.',
   argsSchema: {
     elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
     by: { kind: 'point', label: 'By', unit: 'mm', required: true, description: '[dx, dy, dz]' },
@@ -3009,6 +3076,10 @@ export const moveCommand: Command = {
     const args = checkArgs(moveCommand, rawArgs);
     const { element, from } = movableElement(ctx, args['elementId']);
     const by = vec3(args['by'])!;
+    const fields = paramsPositioned(ctx, element);
+    if (fields !== undefined) {
+      return paramsMotionEdit(ctx, element, fields, { kind: 'translate', by }, 'Move');
+    }
     const placement = withTranslation(element.placement, by);
     checkPositioning(ctx, element, from, placement);
     return placementEdit(ctx, element, placement, 'Move');
@@ -3026,7 +3097,7 @@ export const rotateCommand: Command = {
   id: 'core.rotate',
   label: 'Rotate',
   description:
-    "Rotate an element about an axis, in DEGREES. `about` defaults to the element's own frame origin — i.e. it spins in place. Same placement-vs-params rule as core.move.",
+    "Rotate an element about an axis, in DEGREES. `about` defaults to the element's own frame origin — i.e. it spins in place — or, for an element whose params carry `motion` tags, to the centroid of its tagged points. A plan point refuses a non-vertical axis. Same placement-vs-params rule as core.move.",
   argsSchema: {
     elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
     axis: {
@@ -3055,7 +3126,24 @@ export const rotateCommand: Command = {
     const args = checkArgs(rotateCommand, rawArgs);
     const { element, from } = movableElement(ctx, args['elementId']);
     const axis = vec3(args['axis'])!;
-    const about = args['about'] === undefined ? from : vec3(args['about'])!;
+    const fields = paramsPositioned(ctx, element);
+    // ⚠ A params-positioned element's frame origin is the WORLD origin (its placement is empty), so D80's
+    // default would orbit it across the site; its own default is the centroid of its tagged points.
+    const own = fields === undefined ? from : (motionCentroid(element.params, fields) ?? from);
+    const about = args['about'] === undefined ? own : vec3(args['about'])!;
+    if (fields !== undefined) {
+      const issues = motionIssues([{ kind: 'rotate', axis, degrees: num(args['angle']) }]);
+      if (issues.length > 0) {
+        throw new CommandFailure('INVALID_ARGS', `invalid rotation for "${element.id}"`, issues);
+      }
+      const motion: RigidMotion = {
+        kind: 'rotate',
+        axis,
+        degrees: num(args['angle']),
+        origin: about,
+      };
+      return paramsMotionEdit(ctx, element, fields, motion, 'Rotate');
+    }
     const placement = withRotation(element.placement, axis, num(args['angle']), about);
     const issues = motionIssues(placement);
     if (issues.length > 0) {
@@ -3097,13 +3185,18 @@ export const copyCommand: Command = {
     const args = checkArgs(copyCommand, rawArgs);
     const { element, from } = movableElement(ctx, args['elementId']);
     const by = vec3(args['by'])!;
-    const placement = withTranslation(element.placement, by);
-    checkPositioning(ctx, element, from, placement);
+    // A params-positioned copy moves its tagged params and keeps the source's placement (D95).
+    const fields = paramsPositioned(ctx, element);
+    const placement =
+      fields === undefined ? withTranslation(element.placement, by) : element.placement;
+    const params =
+      fields === undefined
+        ? element.params
+        : movedParams(ctx, element, fields, { kind: 'translate', by });
+    if (fields === undefined) checkPositioning(ctx, element, from, placement!);
 
-    // ⚠ EVERYTHING THAT POINTS AT THE SOURCE. A join override can only exist on a baseline wall, which
-    // `checkPositioning` has already refused — it is listed anyway because it costs nothing, it names the
-    // real problem for a caller, and it still holds if the baseline rung is ever relaxed (defence in
-    // depth, stated as such rather than counted as a second guard).
+    // ⚠ EVERYTHING THAT POINTS AT THE SOURCE: a hosted opening (D94's deep-copy, T-036, lifts that one),
+    // a sketch constraint, a join override.
     const pointing = [
       ...hostedBy(ctx.scene, element.id).map((e) => `hosted element "${e.id}"`),
       ...sketchConstraintsOf(ctx.scene, element.id).map((c) => `sketch constraint "${c.id}"`),
@@ -3122,7 +3215,12 @@ export const copyCommand: Command = {
 
     const type = ctx.registries.types.require(element.typeId);
     const id = ctx.mintId(element.typeId.split('.')[1] ?? 'element');
-    const copy: Element = { ...element, id, placement };
+    const copy: Element = {
+      ...element,
+      id,
+      params,
+      ...(placement === undefined ? {} : { placement }),
+    };
     // The datum constraints come WITH it — same kinds, same targets, same offsets, fresh ids.
     const constraints = constraintsOf(ctx.scene, element.id).map((c): DatumConstraint => ({
       ...c,
