@@ -49,15 +49,10 @@
 
 Performs B-20261105-02's `need:` and answers hmdnah's step-1 report; it supersedes done-when 6 and the re-seed note above.
 
-- `tests/goldens/geometry.golden.json` (`0ab004d`): `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on this
-  box (aarch64, ocp 7.9.3.1.1, Python 3.12.3), committed as PR #72's `29e7acc` was.
-- `tests/wall-motion.test.ts` (`3aa2983`): the grid-bound test also asserts that a `core.rotate` refuses naming the `grid` constraint.
-- Golden drift against the x86_64 seed, from a Python walk of both JSON payloads that excludes `seededAt`/`env`: 19 values
-  moved. The largest is `column-through-duct` (a boolean) at 1.9e-12 relative, and the other 18 are at most 1.0e-15 relative.
-- `pnpm exec vitest run` over the 5 `golden-*` tests and the 2 `reseed-gate*` tests → 7 files, 60 passed.
-- `node --input-type=module -e "process.env.BASE_REF='main'; await import('./scripts/check-reseed.mjs');"` → exit 0,
-  "geometry changed and golden VALUES moved".
-- Test revert-check: deleting both `motion: 'planPoint'` lines from `wall.ts` turns the grid-bound test red. The placement
-  road refuses the rotate as "also REORIENTS it", with no `grid` constraint text; restored → `tests/wall-motion.test.ts` 8 passed.
-- `5a6d132`'s `Re-seed-unchanged:` trailer says "last floating-point digit", which understates the 1.9e-12 move. The gate passes on the moved values and does not read it.
-- Whether aarch64 noise should replace the x86_64 seed stays the steward's ruling (hmdnah step 1, point a). This turn follows the steward's routing.
+- `0ab004d`: `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on this box (aarch64, ocp 7.9.3.1.1, Python 3.12.3), committed as PR #72's `29e7acc` was.
+- Drift against the x86_64 seed (a Python walk of both payloads, `seededAt`/`env` excluded): 19 values moved; the largest
+  is `column-through-duct` (a boolean) at 1.9e-12 relative, the other 18 at most 1.0e-15. The 5 `golden-*` and 2 `reseed-gate*` tests → 60 passed.
+- `node --input-type=module -e "process.env.BASE_REF='main'; await import('./scripts/check-reseed.mjs');"` → exit 0, "golden VALUES moved".
+- `3aa2983`: the grid-bound test also asserts a `core.rotate` refusal naming the `grid` constraint. With both `motion` tags deleted
+  it goes red, because the placement road refuses as "also REORIENTS it"; restored → `tests/wall-motion.test.ts` 8 passed.
+- `5a6d132`'s `Re-seed-unchanged:` trailer says "last floating-point digit", which understates the 1.9e-12 move; the gate does not read it now.

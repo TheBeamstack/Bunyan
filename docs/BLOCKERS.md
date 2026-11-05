@@ -656,4 +656,4 @@ from, and the reason it is a record rather than prose.
 - why: `scripts/check-reseed.mjs:55-61` exits 1 when a `GEOMETRY_PATHS` file changes and no `tests/goldens/` file does; the `Re-seed-unchanged:` trailer is read only after goldens are touched (line 113), and PR #124 touches none
 - evidence: `node --input-type=module -e "process.env.BASE_REF='main'; await import('./scripts/check-reseed.mjs');"` on `e0075d2` exits 1, "geometry changed but no goldens were re-seeded"; CI run 42010045830 job 127186447636 fails at the same step
 - need: re-seed and commit `tests/goldens/` on PR #124's branch in a zayd turn for T-051, then route PR #124 to hmdnah for step 1
-- cleared: -
+- cleared: 2026-11-05T11:28Z
