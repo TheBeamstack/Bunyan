@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-036` |
-| branch | `task/T-036-q7-core-copy-deep-copies-a-host-s-openin` |
+| task | `DEPS-118` |
+| branch | `dependabot/npm_and_yarn/vite-6.4.4` |
 | claimed-at | 2026-11-05T14:18:05Z |
-| status | merged — PR #125 merged by `hmdnah` at 2026-11-05T15:12:55Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -241,4 +241,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a6f23852cd801f3a572397ba5eff9df266a763aa
+last-verified-at: 9f482b46e93dafdecdb929fff7431db203804d17
