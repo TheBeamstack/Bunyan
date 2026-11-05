@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `DEPS-126` |
-| branch | `dependabot/npm_and_yarn/vite-6.4.5` |
+| task | `DEPS-127` |
+| branch | `dependabot/npm_and_yarn/vitest-4.1.11` |
 | claimed-at | 2026-11-05T14:18:05Z |
-| status | merged — PR #126 merged by `hmdnah` at 2026-11-05T18:10:49Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -241,4 +241,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 29ae89e5e6067e5f32bdf353663661f0dace183a
+last-verified-at: 324df4ed694fddcbb4d98a38001ade15f7110704
