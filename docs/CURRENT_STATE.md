@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-050` |
-| branch | `task/T-050-q8a-paramfield-motion-is-reserved-a-sche` |
+| task | `STEWARD-log-roll-03-d02-stamp` |
+| branch | `steward/log-roll-03-d02-stamp` |
 | claimed-at | 2026-10-20T04:35:42Z |
-| status | merged — PR #93 merged by `hmdnah` at 2026-11-05T06:54:33Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -238,4 +238,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 9a3db95a3c58857afe1b78832f1912a6a916877f
+last-verified-at: 19d3dd6da32c9ada5cb093a3dc445ccc40330161
