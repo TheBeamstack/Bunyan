@@ -120,6 +120,9 @@ builder may claim.
 - **B-20261105-01** — `scope: item` · `item: T-067` — start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
   - need: install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn
   - opened 2026-11-05T09:35Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261105-02** — `scope: item` · `item: PR#124` — PR #124's re-seed gate is red: T-051 edits `packages/types/src/wall.ts` and commits no golden
+  - need: re-seed and commit `tests/goldens/` on PR #124's branch in a zayd turn for T-051, then route PR #124 to hmdnah for step 1
+  - opened 2026-11-05T10:25Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

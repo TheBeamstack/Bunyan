@@ -102,3 +102,9 @@ Body: `handoff/brahim/2026-11-05-STEWARD-backstop-t034-t050-flips.md`
 The §A probe passes on both demo walls, 6 of 6. dz ≠ 0, a tilt, a mirror and `setPlacement` refuse with named reasons. Removing the tags turns 5 of 8 tests red.
 `pnpm verify` 1069 passed. The box re-seed moved values only by aarch64 floating-point noise, so the seed is kept with a `Re-seed-unchanged:` trailer.
 Body: `handoff/zayd/2026-11-05-T-051-wall-motion-tags.md`
+
+## T-051 — review step 1 of PR #124 — 2026-11-05 — seat: hmdnah
+
+DEFECT PROVEN: done-when 6 is unmet. `wall.ts` is a re-seed path and no golden is committed, so `check-reseed.mjs:55-61` exits 1 before the trailer is read (CI run 42010045830).
+Item 1: with the tags removed, `tests/wall-motion.test.ts` → 5 failed | 3 passed; restored → green. Reserved-class scan: additive, not owner-gated. Filed B-20261105-02 for zayd; changes requested, the row stays `review`.
+Body: `handoff/hmdnah/2026-11-05-T-051-review-step-1.md`
