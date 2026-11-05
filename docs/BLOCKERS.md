@@ -524,7 +524,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_start.py --seat zayd T-068` exited 1, "PR #72 (T-037) is ready to merge, and the protocol puts it before your claim", and every claim commit on PR #72's branch reads `claim: T-037 by zayd (box)`
 - evidence: `python3 ../diwan/scripts/agent_start.py --seat zayd T-068; echo $?` on `main` at `d70723e` exits 1
 - need: make diwan `agent_start.py` skip a PR whose task the acting seat built when it picks the predecessor PR to merge before a claim, then run T-068 in a zayd turn
-- cleared: -
+- cleared: 2026-11-05T19:20Z
 
 ## B-20261027-01 start refuses zayd's tickets T-067 and T-068 because the ticket records themselves hold those tasks
 
