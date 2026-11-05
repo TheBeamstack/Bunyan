@@ -148,3 +148,10 @@ Body: `handoff/hmdnah/2026-11-05-T-036-review-step-1.md`
 No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: `commands.ts` at main → `host-deep-copy.test.ts` 3 failed | 1 passed; restored → 4 passed.
 Done-when 2 is met but not test-pinned. `.replace` differs only on a hostRef naming another element's face, which `createElement` accepts; a deleted probe caught that, while the other 35 tests stayed green.
 Body: `handoff/hmdnah/2026-11-05-T-036-review-step-2.md`
+
+## DEPS-118 — review of PR #118 (vite 6.4.3 → 6.4.4, dependabot) — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: bump reverted → installed vite `6.4.3`, assert exits 1; restored → `6.4.4`, exit 0.
+On the merge with main `eeb1c40`: `pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed; `apps/web` `vite build` built.
+Lockfile integrities for `rollup@4.65.0` and its new optional `@napi-rs/lzma-linux-x64-gnu@1.5.1` match `npm view`.
+Body: `handoff/hmdnah/2026-11-05-DEPS-118-review.md`
