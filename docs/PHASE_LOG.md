@@ -155,3 +155,10 @@ No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 
 On the merge with main `eeb1c40`: `pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed; `apps/web` `vite build` built.
 Lockfile integrities for `rollup@4.65.0` and its new optional `@napi-rs/lzma-linux-x64-gnu@1.5.1` match `npm view`.
 Body: `handoff/hmdnah/2026-11-05-DEPS-118-review.md`
+
+## DEPS-126 — review of PR #126 (vite 6.4.4 → 6.4.5, dependabot) — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: bump reverted → installed vite `6.4.4`, assert exits 1; restored → `6.4.5`, exit 0.
+On `608a2d7` (base = origin/main `d92e28c`): `pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed; `apps/web` `vite build` built.
+Lockfile integrities for vite 6.4.5, rollup 4.67.5, postcss 8.5.32 and `@types/estree` 1.0.10 match `npm view`.
+Body: `handoff/hmdnah/2026-11-05-DEPS-126-review.md`
