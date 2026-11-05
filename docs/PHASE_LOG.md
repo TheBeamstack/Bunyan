@@ -108,3 +108,10 @@ Body: `handoff/zayd/2026-11-05-T-051-wall-motion-tags.md`
 DEFECT PROVEN: done-when 6 is unmet. `wall.ts` is a re-seed path and no golden is committed, so `check-reseed.mjs:55-61` exits 1 before the trailer is read (CI run 42010045830).
 Item 1: with the tags removed, `tests/wall-motion.test.ts` → 5 failed | 3 passed; restored → green. Reserved-class scan: additive, not owner-gated. Filed B-20261105-02 for zayd; changes requested, the row stays `review`.
 Body: `handoff/hmdnah/2026-11-05-T-051-review-step-1.md`
+
+## T-051 — re-seed committed for PR #124's gate (B-20261105-02) — 2026-11-05 — seat: zayd
+
+`uv run seed-goldens` re-ran on the aarch64 box and was committed. Of 19 moved values, the largest is 1.9e-12 relative (`column-through-duct`); the other 18 are at most 1.0e-15.
+`check-reseed.mjs` against `main` → exit 0, "golden VALUES moved". The golden and re-seed tests pass, 60 of 60.
+The grid-bound test now asserts a rotate refusal that names `grid`; with the tags removed it goes red.
+Body: `handoff/zayd/2026-11-05-T-051-reseed.md`
