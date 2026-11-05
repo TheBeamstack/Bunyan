@@ -250,4 +250,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 97477bc8d93b30f92b4123c47aac358ea8829bd9
+last-verified-at: 0b4fee343698cd0da8b67c98afbb37232a4a1912
