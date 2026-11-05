@@ -95,3 +95,10 @@ PR #70 (T-034) and PR #93 (T-050) are MERGED, yet their rows still read `review`
 Cause: `agent_start.py:790` lists 20 merged PRs ordered by creation, which leaves out these two older PRs.
 T-051 promoted: its depends-on T-050 is `done`, and its note's seeder hold B-20261012-03 is cleared.
 Body: `handoff/brahim/2026-11-05-STEWARD-backstop-t034-t050-flips.md`
+
+## T-051 — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags — 2026-11-05 — seat: zayd
+
+`core.wall` tags `start`/`end` `planPoint`, and `positioningOf` reads the tags rather than `baselineOf`. The verbs move the tagged params and leave `placement` alone.
+The §A probe passes on both demo walls, 6 of 6. dz ≠ 0, a tilt, a mirror and `setPlacement` refuse with named reasons. Removing the tags turns 5 of 8 tests red.
+`pnpm verify` 1069 passed. The box re-seed moved values only by aarch64 floating-point noise, so the seed is kept with a `Re-seed-unchanged:` trailer.
+Body: `handoff/zayd/2026-11-05-T-051-wall-motion-tags.md`
