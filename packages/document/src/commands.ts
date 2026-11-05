@@ -50,10 +50,14 @@ import type {
   ViewDescriptor,
 } from './documentation.js';
 import { joinOverridesOf, wallsMeet } from './joins.js';
+import type { MotionField } from './placement.js';
 import {
   applyMotions,
   frameOriginOf,
+  motionCentroid,
+  motionFieldsOf,
   motionIssues,
+  moveParams,
   positioningOf,
   positioningRefusal,
   reorients,
@@ -80,7 +84,8 @@ import { validateParams, withDefaults } from './schema.js';
 import type { UndoableEdit } from './undo.js';
 import type { ModelRevision } from './revision.js';
 import type { RigidMotion, Vec3 } from '@bunyan/protocol';
-import { decodeSubShapeRef } from '@bunyan/protocol';
+import { decodeSubShapeRef, encodeSubShapeRef } from '@bunyan/protocol';
+import { partNodeId } from './geometry.js';
 import { nextRevision } from './revision.js';
 
 /**
@@ -767,10 +772,11 @@ export const createElementCommand: Command = {
       }
       const to = frameOriginAfter(element.placement, id);
       const refusal = positioningRefusal(
-        positioningOf(ctx.scene, element, constraints),
+        positioningOf(ctx.scene, element, type.parameterSchema, constraints),
         [0, 0, 0],
         to,
         reorients(undefined, element.placement),
+        element.placement.some((m) => m.kind === 'mirror'),
       );
       if (refusal !== undefined) {
         throw new CommandFailure(
@@ -2912,14 +2918,74 @@ function checkPositioning(
 ): void {
   const to = frameOriginAfter(placement, element.id);
   const refusal = positioningRefusal(
-    positioningOf(ctx.scene, element),
+    positioningOf(ctx.scene, element, ctx.registries.types.get(element.typeId)?.parameterSchema),
     from,
     to,
     reorients(element.placement, placement),
+    placement.some((m) => m.kind === 'mirror'),
   );
   if (refusal !== undefined) {
     throw new CommandFailure('REFUSED', `cannot move "${element.id}": ${refusal}`);
   }
+}
+
+/**
+ * The element's `motion`-tagged params when the PARAMS carry its position (D95), else `undefined` and the
+ * verb moves its `placement`. A hosted element is never params-positioned here: its rung outranks this
+ * one, and `checkPositioning` refuses it with its own reason.
+ */
+function paramsPositioned(
+  ctx: CommandContext,
+  element: Element,
+): readonly MotionField[] | undefined {
+  if (element.hostId !== undefined) return undefined;
+  const fields = motionFieldsOf(ctx.registries.types.get(element.typeId)?.parameterSchema);
+  return fields.length > 0 ? fields : undefined;
+}
+
+/**
+ * Apply `motion` to the tagged params, refusing by name what cannot be represented (`moveParams`). The
+ * `placement` is left untouched: the params are where the element is.
+ *
+ * ⚠ A `grid` constraint still derives an element's XY (the datum rung), so a params-positioned element
+ * bound to one refuses any motion that moves a tagged point in plan, exactly as a placed one does.
+ */
+function movedParams(
+  ctx: CommandContext,
+  element: Element,
+  fields: readonly MotionField[],
+  motion: RigidMotion,
+): Params {
+  const moved = moveParams(element.params, fields, motion);
+  if ('refused' in moved) {
+    throw new CommandFailure('REFUSED', `cannot move "${element.id}": ${moved.refused}`);
+  }
+  const gridBound = constraintsOf(ctx.scene, element.id).some((c) => c.kind === 'grid');
+  const shifted = fields.some(
+    (f) => JSON.stringify(element.params[f.name]) !== JSON.stringify(moved.params[f.name]),
+  );
+  if (gridBound && shifted) {
+    throw new CommandFailure(
+      'REFUSED',
+      `cannot move "${element.id}": ${positioningRefusal({ kind: 'datum', plan: true, vertical: false }, [0, 0, 0], [1, 0, 0])!}`,
+    );
+  }
+  return moved.params;
+}
+
+function paramsMotionEdit(
+  ctx: CommandContext,
+  element: Element,
+  fields: readonly MotionField[],
+  motion: RigidMotion,
+  label: string,
+): UndoableEdit {
+  const after: Element = { ...element, params: movedParams(ctx, element, fields, motion) };
+  return ctx.edit(
+    label,
+    [{ collection: 'elements', id: element.id, before: element, after }],
+    movedWithHosted(ctx, element),
+  );
 }
 
 /** The new placement's own frame origin, or a typed refusal if a motion in it is degenerate. */
@@ -2965,7 +3031,7 @@ export const setPlacementCommand: Command = {
   id: 'core.setPlacement',
   label: 'Set placement',
   description:
-    "Replace an element's placement outright — the rigid motions that put it in the world, applied after its openings are cut. Absolute; idempotent. ⚠ An element positioned by its params (a D52 baseline wall) or by a datum is moved with core.setParams / by moving the datum, and is REFUSED here (P4.5 §9).",
+    "Replace an element's placement outright — the rigid motions that put it in the world, applied after its openings are cut. Absolute; idempotent. ⚠ An element positioned by its `motion`-tagged params is moved with core.move / core.rotate, one positioned by a datum by moving the datum, and both are REFUSED here (P4.5 §9, D95).",
   argsSchema: {
     elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
     placement: {
@@ -2986,6 +3052,8 @@ export const setPlacementCommand: Command = {
       throw new CommandFailure('INVALID_ARGS', `invalid placement for "${element.id}"`, issues);
     }
     const placement = raw as unknown as readonly RigidMotion[];
+    // ⚠ Refused outright on a params-positioned element (`positioningRefusal`'s `params` rung names
+    // `core.move`), whatever the motion: an absolute placement means nothing there.
     checkPositioning(ctx, element, from, placement);
     return placementEdit(ctx, element, placement, 'Place');
   },
@@ -3000,7 +3068,7 @@ export const moveCommand: Command = {
   id: 'core.move',
   label: 'Move',
   description:
-    'Translate an element by a delta, in mm. ⚠ Only for an element whose position lives in its PLACEMENT: a D52 baseline wall moves by core.setParams (both endpoints), a hosted opening by its own offset params, and both are REFUSED here (P4.5 §9, owner-ruled).',
+    'Translate an element by a delta, in mm. An element whose schema tags params with `motion` (D95) moves those params and keeps its placement; a plan point refuses dz ≠ 0. A hosted opening moves by its own offset params and is REFUSED here.',
   argsSchema: {
     elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
     by: { kind: 'point', label: 'By', unit: 'mm', required: true, description: '[dx, dy, dz]' },
@@ -3009,6 +3077,10 @@ export const moveCommand: Command = {
     const args = checkArgs(moveCommand, rawArgs);
     const { element, from } = movableElement(ctx, args['elementId']);
     const by = vec3(args['by'])!;
+    const fields = paramsPositioned(ctx, element);
+    if (fields !== undefined) {
+      return paramsMotionEdit(ctx, element, fields, { kind: 'translate', by }, 'Move');
+    }
     const placement = withTranslation(element.placement, by);
     checkPositioning(ctx, element, from, placement);
     return placementEdit(ctx, element, placement, 'Move');
@@ -3026,7 +3098,7 @@ export const rotateCommand: Command = {
   id: 'core.rotate',
   label: 'Rotate',
   description:
-    "Rotate an element about an axis, in DEGREES. `about` defaults to the element's own frame origin — i.e. it spins in place. Same placement-vs-params rule as core.move.",
+    "Rotate an element about an axis, in DEGREES. `about` defaults to the element's own frame origin — i.e. it spins in place — or, for an element whose params carry `motion` tags, to the centroid of its tagged points. A plan point refuses a non-vertical axis. Same placement-vs-params rule as core.move.",
   argsSchema: {
     elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
     axis: {
@@ -3055,7 +3127,24 @@ export const rotateCommand: Command = {
     const args = checkArgs(rotateCommand, rawArgs);
     const { element, from } = movableElement(ctx, args['elementId']);
     const axis = vec3(args['axis'])!;
-    const about = args['about'] === undefined ? from : vec3(args['about'])!;
+    const fields = paramsPositioned(ctx, element);
+    // ⚠ A params-positioned element's frame origin is the WORLD origin (its placement is empty), so D80's
+    // default would orbit it across the site; its own default is the centroid of its tagged points.
+    const own = fields === undefined ? from : (motionCentroid(element.params, fields) ?? from);
+    const about = args['about'] === undefined ? own : vec3(args['about'])!;
+    if (fields !== undefined) {
+      const issues = motionIssues([{ kind: 'rotate', axis, degrees: num(args['angle']) }]);
+      if (issues.length > 0) {
+        throw new CommandFailure('INVALID_ARGS', `invalid rotation for "${element.id}"`, issues);
+      }
+      const motion: RigidMotion = {
+        kind: 'rotate',
+        axis,
+        degrees: num(args['angle']),
+        origin: about,
+      };
+      return paramsMotionEdit(ctx, element, fields, motion, 'Rotate');
+    }
     const placement = withRotation(element.placement, axis, num(args['angle']), about);
     const issues = motionIssues(placement);
     if (issues.length > 0) {
@@ -3070,19 +3159,18 @@ export const rotateCommand: Command = {
  * ⚠⚠ A COPY IS EXACT OR IT IS REFUSED, and that rule is the command. The copy carries the source's params,
  * style, container, classification and reserved metadata verbatim, **plus its datum constraints** (a copy
  * of a Level-spanning column that did not span the Level would be a different kind of thing wearing the
- * same recipe). Anything else in the scene that points AT the source — a hosted opening, a sketch
- * constraint, a join override — makes the copy inexact, so it refuses and names what it found.
+ * same recipe). A sketch constraint or join override pointing AT the source makes the copy inexact, so it
+ * refuses and names what it found.
  *
- * ⚠ The hosted case is the one that matters and it is a D1 question, not a laziness: an opening's `hostRef`
- * is a `SubShapeRef` **token containing the host's element id**, so copying the door means rewriting an
- * identity token — the one thing the naming rules forbid doing quietly. It is an owner ruling, surfaced,
- * not a body decision.
+ * ⚠ A HOST IS DEEP-COPIED (D94, owner-ruled): each hosted element is copied with it under a fresh PEI
+ * (D44), its `hostRef` re-pointed at the copy by `copiedHostRef` — the owner-ruled re-identification D51
+ * requires, in the same edit, never a silent one.
  */
 export const copyCommand: Command = {
   id: 'core.copy',
   label: 'Copy',
   description:
-    'Copy an element, offset by a delta in mm. The new element id is in the returned edit. Exact or refused: datum constraints come with it, and a source that anything else points at (a hosted opening, a sketch constraint, a join override) is REFUSED rather than half-copied.',
+    "Copy an element, offset by a delta in mm. The new element id is in the returned edit. Exact or refused: datum constraints come with it, a host's hosted openings are copied with it onto the copy (D94), and a source that a sketch constraint or join override points at is REFUSED rather than half-copied.",
   argsSchema: {
     elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
     by: {
@@ -3097,49 +3185,95 @@ export const copyCommand: Command = {
     const args = checkArgs(copyCommand, rawArgs);
     const { element, from } = movableElement(ctx, args['elementId']);
     const by = vec3(args['by'])!;
-    const placement = withTranslation(element.placement, by);
-    checkPositioning(ctx, element, from, placement);
+    // A params-positioned copy moves its tagged params and keeps the source's placement (D95).
+    const fields = paramsPositioned(ctx, element);
+    const placement =
+      fields === undefined ? withTranslation(element.placement, by) : element.placement;
+    const params =
+      fields === undefined
+        ? element.params
+        : movedParams(ctx, element, fields, { kind: 'translate', by });
+    if (fields === undefined) checkPositioning(ctx, element, from, placement!);
 
-    // ⚠ EVERYTHING THAT POINTS AT THE SOURCE. A join override can only exist on a baseline wall, which
-    // `checkPositioning` has already refused — it is listed anyway because it costs nothing, it names the
-    // real problem for a caller, and it still holds if the baseline rung is ever relaxed (defence in
-    // depth, stated as such rather than counted as a second guard).
-    const pointing = [
-      ...hostedBy(ctx.scene, element.id).map((e) => `hosted element "${e.id}"`),
-      ...sketchConstraintsOf(ctx.scene, element.id).map((c) => `sketch constraint "${c.id}"`),
-      ...joinOverridesOf(ctx.scene, element.id).map((c) => `join override "${c.id}"`),
-    ];
+    // The hosted elements are deep-copied (D94); what else points at the source, or at one of them, refuses.
+    const hosted = hostedBy(ctx.scene, element.id);
+    const pointing = [element, ...hosted].flatMap((e) => [
+      ...(e === element ? [] : hostedBy(ctx.scene, e.id).map((h) => `hosted element "${h.id}"`)),
+      ...sketchConstraintsOf(ctx.scene, e.id).map((c) => `sketch constraint "${c.id}"`),
+      ...joinOverridesOf(ctx.scene, e.id).map((c) => `join override "${c.id}"`),
+    ]);
     if (pointing.length > 0) {
       throw new CommandFailure(
         'REFUSED',
-        `"${element.id}" cannot be copied exactly: ${pointing.join(', ')} ${pointing.length === 1 ? 'points' : 'point'} at it. ` +
-          `Copying a HOST would mean rewriting each opening's hostRef — a SubShapeRef token that contains ` +
-          `the host's element id — and a command never silently re-identifies (D51, D1). A copy that ` +
-          `silently dropped them would hand back a wall with no window in it.`,
+        `"${element.id}" cannot be copied exactly: ${pointing.join(', ')} ${pointing.length === 1 ? 'points' : 'point'} at it ` +
+          `or at an element it hosts. A copy carrying that reference would share it with the source, and ` +
+          `one dropping it would be a different design.`,
         pointing,
       );
     }
 
     const type = ctx.registries.types.require(element.typeId);
     const id = ctx.mintId(element.typeId.split('.')[1] ?? 'element');
-    const copy: Element = { ...element, id, placement };
-    // The datum constraints come WITH it — same kinds, same targets, same offsets, fresh ids.
-    const constraints = constraintsOf(ctx.scene, element.id).map((c): DatumConstraint => ({
-      ...c,
-      id: ctx.mintId('constraint'),
-      element: id,
+    const copy: Element = {
+      ...element,
+      id,
+      params,
+      ...(placement === undefined ? {} : { placement }),
+    };
+    // Each hosted element rides its host's frame (`build.ts`), so its params and placement copy verbatim.
+    const copies = hosted.map((h): Element => ({
+      ...h,
+      id: ctx.mintId(h.typeId.split('.')[1] ?? 'element'),
+      hostId: id,
+      ...(h.hostRef === undefined ? {} : { hostRef: copiedHostRef(h, id) }),
     }));
+    // The datum constraints come WITH it — same kinds, same targets, same offsets, fresh ids.
+    const constraints = [
+      [element, copy],
+      ...hosted.map((h, i) => [h, copies[i]!] as const),
+    ].flatMap(([from, to]) =>
+      constraintsOf(ctx.scene, from.id).map((c): DatumConstraint => ({
+        ...c,
+        id: ctx.mintId('constraint'),
+        element: to.id,
+      })),
+    );
 
     return ctx.edit(
       `Copy ${type.label}`,
       [
         { collection: 'elements', id, after: copy },
+        ...copies.map((c): SceneChange => ({ collection: 'elements', id: c.id, after: c })),
         ...constraints.map((c): SceneChange => ({ collection: 'constraints', id: c.id, after: c })),
       ],
-      [id],
+      [id, ...copies.map((c) => c.id)],
     );
   },
 };
+
+/**
+ * A hosted element's `hostRef`, re-pointed at the host's copy (D94, D1): decoded into its structure, the
+ * part's node re-derived by `partNodeId` for the copy, `kind`/`role`/`occurrence` kept — the face the
+ * copy's own build mints for the same part, role and occurrence. A ref that is not on one of the host's
+ * own parts cannot be re-derived, so it refuses rather than guess (D51).
+ */
+function copiedHostRef(hosted: Element, copyId: ElementId): string {
+  const ref = decodeSubShapeRef(hosted.hostRef!);
+  const hostId = hosted.hostId!;
+  const partName =
+    ref !== undefined && ref.nodeId.startsWith(`${hostId}.`)
+      ? ref.nodeId.slice(hostId.length + 1)
+      : undefined;
+  if (ref === undefined || partName === undefined) {
+    throw new CommandFailure(
+      'REFUSED',
+      `"${hostId}" cannot be copied exactly: hosted element "${hosted.id}"'s hostRef "${hosted.hostRef!}" ` +
+        `is not a face of one of its host's parts, so its face on the copy cannot be derived (D1, D51).`,
+      [hosted.id],
+    );
+  }
+  return encodeSubShapeRef({ ...ref, nodeId: partNodeId(copyId, partName) });
+}
 
 /**
  * ⚠⚠ RESERVED SHAPE, NO BODY — owner-ruled (Q4): *"`core.array`: SHAPE ONLY — body is v1.0.x."*
