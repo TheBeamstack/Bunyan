@@ -10,7 +10,73 @@
  * still in. A test that could not reproduce it would be a test of the happy path wearing its name.
  */
 import { describe, expect, it } from 'vitest';
-import { mergeableState, titleRoutes } from '../../scripts/pr-ready.mjs';
+import { checkPr, mergeableState, titleRoutes, type PrView } from '../../scripts/pr-ready.mjs';
+
+/** A `gh pr view` stand-in: answers the title/head/author read with `pr` and the poll with `mergeable`. */
+function fakeView(pr: PrView, mergeable = 'MERGEABLE') {
+  return (_root: string, _n: unknown, fields: string[]): PrView =>
+    fields.includes('mergeable') ? { mergeable, mergeStateStatus: null } : pr;
+}
+
+const BOT = { login: 'app/dependabot', is_bot: true };
+const BUMP = 'Bump vite from 6.4.3 to 6.4.4';
+const DEP_HEAD = 'dependabot/npm_and_yarn/vite-6.4.4';
+const poll = { attempts: 2, waitMs: 1 };
+
+describe('a dependabot PR routes by its head branch and bot author', () => {
+  it('routes a dependabot head opened by the dependabot app', () => {
+    const view = fakeView({ title: BUMP, headRefName: DEP_HEAD, author: BOT });
+    const got = checkPr({ root: '.', pr: '118', view, poll });
+    expect(got.failures).toEqual([]);
+    expect(got.passes.join('\n')).toMatch(/routed as a dependency PR/);
+  });
+
+  it('refuses the same head opened by a human', () => {
+    const view = fakeView({
+      title: BUMP,
+      headRefName: DEP_HEAD,
+      author: { login: 'davidian-abdo', is_bot: false },
+    });
+    expect(checkPr({ root: '.', pr: '118', view, poll }).failures).toHaveLength(1);
+  });
+
+  // Each half of the author check alone: the human case above flips both, so it pins neither.
+  it('refuses the dependabot login when it is not a bot', () => {
+    const view = fakeView({
+      title: BUMP,
+      headRefName: DEP_HEAD,
+      author: { ...BOT, is_bot: false },
+    });
+    expect(checkPr({ root: '.', pr: '118', view, poll }).failures).toHaveLength(1);
+  });
+
+  it('refuses a bot that is not the dependabot app', () => {
+    const view = fakeView({
+      title: BUMP,
+      headRefName: DEP_HEAD,
+      author: { login: 'app/renovate', is_bot: true },
+    });
+    expect(checkPr({ root: '.', pr: '118', view, poll }).failures).toHaveLength(1);
+  });
+
+  it('refuses the same title on a non-dependabot head, even from the bot', () => {
+    const view = fakeView({ title: BUMP, headRefName: 'task/T-068-x', author: BOT });
+    expect(checkPr({ root: '.', pr: '118', view, poll }).failures).toHaveLength(1);
+  });
+
+  it('still fails a dependabot PR GitHub reports CONFLICTING or UNKNOWN', () => {
+    for (const state of ['CONFLICTING', 'UNKNOWN']) {
+      const view = fakeView({ title: BUMP, headRefName: DEP_HEAD, author: BOT }, state);
+      const got = checkPr({ root: '.', pr: '118', view, poll });
+      expect(got.failures, state).toHaveLength(1);
+      expect(got.failures?.[0], state).toMatch(state === 'UNKNOWN' ? /UNKNOWN/ : /not mergeable/);
+    }
+  });
+
+  it('refuses a bare dependabot title, which carries no head or author', () => {
+    expect(checkPr({ root: '.', title: BUMP }).failures).toHaveLength(1);
+  });
+});
 
 describe('the title predicate', () => {
   it('accepts the two routable shapes', () => {

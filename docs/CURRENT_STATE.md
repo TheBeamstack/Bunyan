@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `DEPS-127` |
-| branch | `dependabot/npm_and_yarn/vitest-4.1.11` |
-| claimed-at | 2026-11-05T14:18:05Z |
-| status | merged — PR #127 merged by `hmdnah` at 2026-11-05T19:00:45Z |
+| task | `T-068` |
+| branch | `task/T-068-a-dependabot-pr-passes-the-pr-shape-chec` |
+| claimed-at | 2026-11-05T19:03:40Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -87,9 +87,6 @@ builder may claim.
 - **B-20261026-02** — `scope: item` · `item: T-067` — start cannot hand zayd T-067: it resumes the blocker-held T-064, and `--continue T-067` needs an open PR
   - need: make diwan `agent_start.py` resume a seat's incomplete claim that no blocker holds (T-067) before one a blocker holds (T-064), then run T-067 in a zayd turn
   - opened 2026-10-26T22:34Z by zayd · recorded in `docs/BLOCKERS.md`
-- **B-20261026-03** — `scope: item` · `item: T-068` — start withholds zayd's T-068 claim until zayd merges PR #72, which is zayd's own T-037 PR
-  - need: make diwan `agent_start.py` skip a PR whose task the acting seat built when it picks the predecessor PR to merge before a claim, then run T-068 in a zayd turn
-  - opened 2026-10-26T22:41Z by zayd · recorded in `docs/BLOCKERS.md`
 - **B-20261027-01** — `scope: item` · `item: T-067` — start refuses zayd's tickets T-067 and T-068 because the ticket records themselves hold those tasks
   - need: make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn
   - opened 2026-10-27T06:05Z by zayd · recorded in `docs/BLOCKERS.md`
@@ -241,4 +238,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 187dec6a956e80626f4ca6c37021eb30794740bb
+last-verified-at: 0c66680d88663a9bb89c92db884063b27123fdd1

@@ -169,3 +169,24 @@ No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 
 On `412d126` (base = origin/main `fe87966`): `pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed.
 Lockfile integrities for vitest 4.1.11, the `@vitest/*` 4.1.11 set and 6 transitive bumps match `npm view`.
 Body: `handoff/hmdnah/2026-11-05-DEPS-127-review.md`
+
+## T-068 — a dependabot PR routes by head branch and bot author — 2026-11-05 — seat: zayd
+
+`scripts/pr-ready.mjs` routes a PR on a `dependabot/` head authored by `app/dependabot` (is_bot); `main` now calls an injectable `checkPr`.
+Test-first 5 red → 12 passed; revert-verify: route disabled → the bot case red. Bare dependabot `--title` still exits 1; CONFLICTING/UNKNOWN still fail.
+`pnpm verify` → 125 files, 1078 passed, 4 skipped; docs:check 71 passed. B-20261025-01 stays open for diwan's half.
+Body: `handoff/zayd/2026-11-05-T-068-dependabot-pr-shape.md`
+
+## T-068 — review step 1 of PR #128 — 2026-11-05 — seat: hmdnah
+
+No defect proven at `5f7a2d2`. Item 1: with the dependabot branch deleted, `pr-ready.test.ts` → 2 failed | 10 passed; restored → 12 passed.
+Live `gh pr view 118` author/head fed to `dependabotRoutes` → `true`; reserved-class scan `classes: []` (CI: RISK additive). `pnpm verify` → 1078 passed, 4 skipped.
+Step 1 only: no approval, no merge; the row stays `review`.
+Body: `handoff/hmdnah/2026-11-05-T-068-review-step-1.md`
+
+## T-068 — review step 2 of PR #128 — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: route forced `false` → `pr-ready.test.ts` 2 failed | 10 passed; restored → 12 passed.
+Item 6: dropping either the `is_bot` or the `login` half of `dependabotRoutes` left all 12 green; two added cases each turn their mutant red (1 failed | 13 passed); restored → 14 passed.
+Item 3: the labeller step behind `pr-ready` already ran on dependabot-authored PR #127 (run 42088259170, "labels already correct").
+Body: `handoff/hmdnah/2026-11-05-T-068-review-step-2.md`
