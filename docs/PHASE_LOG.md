@@ -88,3 +88,10 @@ Body: `handoff/brahim/2026-11-05-STEWARD-log-roll-03-d02-stamp-redo.md`
 APPROVED, merged via `agent_merge.py --seat hmdnah --pr 123`. Item 1: `main`'s log restored beside the volume → `gates.py docs` exit 1, 74 live-and-sealed; restored → ✓.
 The 79 entries on `main` are byte-exact: 5 stay live and 74 are sealed, in order. The decisions diff is only D-20261028-02's `answered:`. Fixed the volume-03 pointer: it also seals T-034's 10-12 entry. Not owner-gated.
 Body: `handoff/hmdnah/2026-11-05-STEWARD-log-roll-03-d02-stamp-review.md`
+
+## STEWARD-backstop-t034-t050 — T-034 and T-050 flipped `done`, T-051 promoted `ready` — 2026-11-05 — seat: brahim
+
+PR #70 (T-034) and PR #93 (T-050) are MERGED, yet their rows still read `review` and the start sheet printed "backstop: nothing to flip".
+Cause: `agent_start.py:790` lists 20 merged PRs ordered by creation, which leaves out these two older PRs.
+T-051 promoted: its depends-on T-050 is `done`, and its note's seeder hold B-20261012-03 is cleared.
+Body: `handoff/brahim/2026-11-05-STEWARD-backstop-t034-t050-flips.md`
