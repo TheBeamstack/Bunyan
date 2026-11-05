@@ -39,7 +39,7 @@ identity fields, and compressing a body never moves the population a reference r
 **Sealed volumes** (never edited again): `docs/phase-log-01.md` — §A–§E, Entries 1–88 and the
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20. `docs/phase-log-03.md` — the turns
-from 2026-10-19 through T-034's step-2 review · sealed 2026-11-05.
+from 2026-10-19 through T-034's step-2 review, plus T-034's 2026-10-12 build · sealed 2026-11-05.
 
 ## T-050 — `ParamField.motion?` is reserved — 2026-10-20 — seat: zayd
 
@@ -82,3 +82,9 @@ PR #122 closed: it conflicted with `main` and no entrypoint continues a steward 
 `docs/phase-log-03.md` (PR #122's 74 entries); PR #93's five T-050 entries stay live.
 D-20261028-02 stamped: PR #70 merged as `132f758`.
 Body: `handoff/brahim/2026-11-05-STEWARD-log-roll-03-d02-stamp-redo.md`
+
+## STEWARD-log-roll-03-d02-stamp — review of PR #123 — 2026-11-05 — seat: hmdnah
+
+APPROVED, merged via `agent_merge.py --seat hmdnah --pr 123`. Item 1: `main`'s log restored beside the volume → `gates.py docs` exit 1, 74 live-and-sealed; restored → ✓.
+The 79 entries on `main` are byte-exact: 5 stay live and 74 are sealed, in order. The decisions diff is only D-20261028-02's `answered:`. Fixed the volume-03 pointer: it also seals T-034's 10-12 entry. Not owner-gated.
+Body: `handoff/hmdnah/2026-11-05-STEWARD-log-roll-03-d02-stamp-review.md`
