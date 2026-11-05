@@ -122,3 +122,9 @@ No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 
 Re-seeding with the pinned oracle here matches the committed golden exactly (`seededAt` excluded). Max drift from x86_64 is 1.89e-12 relative. CI 42020545530 at `03c4d58` is green, re-seed gate included.
 `core.move` and `core.setParams` give identical tessellated geometry, joined partner included.
 Body: `handoff/hmdnah/2026-11-05-T-051-review-step-2.md`
+
+## STEWARD-promote-t036 — T-036 promoted `ready` — 2026-11-05 — seat: brahim
+
+T-036's only depends-on, T-051, is `done`: PR #124 MERGED 2026-11-05T13:57:54Z, step 2 by hmdnah.
+Its note's hold (T-035's design ruled, built by T-050 then T-051) is discharged by that merge.
+Body: `handoff/brahim/2026-11-05-STEWARD-promote-t036-ready.md`
