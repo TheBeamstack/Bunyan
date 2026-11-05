@@ -208,5 +208,9 @@ describe('T-051: a D52 wall moves, rotates and copies through its motion tags (D
     await expect(doc.execute('core.move', { elementId: id, by: [1000, 0, 0] })).rejects.toThrow(
       /`grid` constraint/,
     );
+    // Only the params road names the `grid` constraint here; the placement road refuses a rotate as REORIENTING.
+    await expect(
+      doc.execute('core.rotate', { elementId: id, axis: [0, 0, 1], angle: 90 }),
+    ).rejects.toThrow(/`grid` constraint/);
   });
 });
