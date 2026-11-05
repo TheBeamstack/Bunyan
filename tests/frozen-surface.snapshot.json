@@ -168,7 +168,7 @@
     },
     "packages/document/src/schema.ts": {
       "type ParamKind": "3886e7b7e5f7a358",
-      "interface ParamField": "2b703450f54c38ac",
+      "interface ParamField": "0dfe601fe3b02b84",
       "interface ParamCondition": "4aba6eadfb6c233f",
       "type ParamSchema": "4bac9b04a0ff1204",
       "interface ValidationIssue": "61784806b8ae7804",
