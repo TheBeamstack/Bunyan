@@ -569,3 +569,10 @@ Merged `origin/main` at `132f758`; no code changed. Conflicts: `PHASE_LOG.md` (b
 `CURRENT_STATE.md` (this branch's baton), `frozen-surface.snapshot.json` (main's side, then `pnpm state --rebaseline`:
 215 declarations, #70's `FamilyPart`/`FamilyFaceSelector` and #93's `ParamField`). `pnpm verify` green (1061 passed).
 Body: `handoff/zayd/2026-11-05-T-050-merge-main.md`
+
+## T-050 — review step 2 of PR #93 — 2026-11-05 — seat: hmdnah
+
+No defect proven; approved for an owner-signed merge (D-20261028-03). Item 1: `schema.ts` reverted → 4 tsc errors, freeze-boundary 1 red; restored → 41 passed.
+Item 6: the new case's runtime asserts pass with the member removed, but `pnpm typecheck` (verify, CI) rejects that. Items 2/3: nothing reads `motion`, and `checkField` dispatches on `kind`.
+The snapshot differs from main only in `interface ParamField`.
+Body: `handoff/hmdnah/2026-11-05-T-050-review-step-2.md`
