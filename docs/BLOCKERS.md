@@ -657,3 +657,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `node --input-type=module -e "process.env.BASE_REF='main'; await import('./scripts/check-reseed.mjs');"` on `e0075d2` exits 1, "geometry changed but no goldens were re-seeded"; CI run 42010045830 job 127186447636 fails at the same step
 - need: re-seed and commit `tests/goldens/` on PR #124's branch in a zayd turn for T-051, then route PR #124 to hmdnah for step 1
 - cleared: 2026-11-05T11:28Z
+
+## B-20261105-03 PR #69's frozen-surface snapshot was merged with T-034's, not re-baselined, so its declaration count is wrong
+
+- opened: 2026-11-05T23:43Z
+- by: hmdnah
+- scope: item
+- item: PR#69
+- what: hmdnah's step 1 of PR #69 at `ee4d7b9` found `tests/frozen-surface.snapshot.json` is a textual merge that `scripts/frozen-surface.mjs` would never write, so changes are requested
+- why: SYNC merge `36473d8` took T-034's `families.ts` declaration into `surface` (216 entries) and kept both sides' `_declarationCount: 215`; D-20261028-01, the owner's signed context, says whichever of PR #69, #70 and #93 merges later "is re-baselined first"
+- evidence: `node --input-type=module -e "import {buildSurface} from './scripts/frozen-surface.mjs'; …"` in Bunyan at `ee4d7b9` → generator count 216, committed `_declarationCount` 215, `diffSurface` empty
+- need: re-baseline `tests/frozen-surface.snapshot.json` on PR #69's branch with `pnpm state --rebaseline` in a zayd turn for T-033, then route PR #69 to hmdnah for step 1
+- cleared: -

@@ -117,6 +117,9 @@ builder may claim.
 - **B-20261105-01** — `scope: item` · `item: T-067` — start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
   - need: install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn
   - opened 2026-11-05T09:35Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261105-03** — `scope: item` · `item: PR#69` — PR #69's frozen-surface snapshot was merged with T-034's, not re-baselined, so its declaration count is wrong
+  - need: re-baseline `tests/frozen-surface.snapshot.json` on PR #69's branch with `pnpm state --rebaseline` in a zayd turn for T-033, then route PR #69 to hmdnah for step 1
+  - opened 2026-11-05T23:43Z by hmdnah · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
