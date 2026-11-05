@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `DEPS-127` |
-| branch | `dependabot/npm_and_yarn/vitest-4.1.11` |
-| claimed-at | 2026-11-05T14:18:05Z |
-| status | merged — PR #127 merged by `hmdnah` at 2026-11-05T19:00:45Z |
+| task | `T-068` |
+| branch | `task/T-068-a-dependabot-pr-passes-the-pr-shape-chec` |
+| claimed-at | 2026-11-05T19:03:40Z |
+| status | working |
 
 <!-- END BATON -->
 
