@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | steward |
+| role | builder |
 | machine | box |
-| task | `STEWARD-backstop-t034-t050` |
-| branch | `main` |
-| claimed-at | 2026-10-20T04:35:42Z |
-| status | finished — PR open, awaiting review |
+| task | `T-051` |
+| branch | `task/T-051-q8a-core-move-rotate-copy-move-a-d52-wal` |
+| claimed-at | 2026-11-05T09:36:32Z |
+| status | working |
 
 <!-- END BATON -->
 
