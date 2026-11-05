@@ -67,7 +67,7 @@ builder may claim.
 | task | `DEPS-127` |
 | branch | `dependabot/npm_and_yarn/vitest-4.1.11` |
 | claimed-at | 2026-11-05T14:18:05Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #127 merged by `hmdnah` at 2026-11-05T19:00:45Z |
 
 <!-- END BATON -->
 
@@ -241,4 +241,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 324df4ed694fddcbb4d98a38001ade15f7110704
+last-verified-at: 187dec6a956e80626f4ca6c37021eb30794740bb
