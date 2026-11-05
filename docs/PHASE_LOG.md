@@ -115,3 +115,10 @@ Body: `handoff/hmdnah/2026-11-05-T-051-review-step-1.md`
 `check-reseed.mjs` against `main` → exit 0, "golden VALUES moved". The golden and re-seed tests pass, 60 of 60.
 The grid-bound test now asserts a rotate refusal that names `grid`; with the tags removed it goes red.
 Body: `handoff/zayd/2026-11-05-T-051-wall-motion-tags.md`
+
+## T-051 — review step 2 of PR #124 — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: tags removed → `wall-motion.test.ts` 6 failed | 2 passed, grid-bound now red; restored → 31 passed.
+Re-seeding with the pinned oracle here matches the committed golden exactly (`seededAt` excluded). Max drift from x86_64 is 1.89e-12 relative. CI 42020545530 at `03c4d58` is green, re-seed gate included.
+`core.move` and `core.setParams` give identical tessellated geometry, joined partner included.
+Body: `handoff/hmdnah/2026-11-05-T-051-review-step-2.md`
