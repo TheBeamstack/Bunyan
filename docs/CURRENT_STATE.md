@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-051` |
 | branch | `task/T-051-q8a-core-move-rotate-copy-move-a-d52-wal` |
 | claimed-at | 2026-11-05T09:36:32Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #124 merged by `hmdnah` at 2026-11-05T13:57:58Z |
 
 <!-- END BATON -->
 
@@ -241,4 +241,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 795aa77c3e85343f8d1edd9e47eff74a1d470b5b
+last-verified-at: 4f81ff975d2e38d73632fab4b5f383f2a5818cef
