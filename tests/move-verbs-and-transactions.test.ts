@@ -255,7 +255,7 @@ describe('the five move verbs + transactionId atomicity (P4.5 rows ⓑ/ⓘ, Entr
     expect((await boundsOf(doc, copyId)).max[2]).toBeCloseTo(3000, 6);
   });
 
-  it('core.copy REFUSES a source anything points at — a wall copied without its window is not a copy', async () => {
+  it('core.copy carries a hosted window onto the copy — a wall copied without its window is not a copy (D94)', async () => {
     const doc = newDoc();
     const wall = await makeStyledWall(doc);
     const face = doc.partsOf(wall)![0]!.refs.find((r) => r.includes('/face/'))!;
@@ -266,9 +266,10 @@ describe('the five move verbs + transactionId atomicity (P4.5 rows ⓑ/ⓘ, Entr
       params: { width: 900, height: 1200 },
     });
 
-    await expect(doc.execute('core.copy', { elementId: wall, by: [1000, 0, 0] })).rejects.toThrow(
-      /cannot be copied exactly.*hosted element/s,
-    );
+    const edit = await doc.execute('core.copy', { elementId: wall, by: [1000, 0, 0] });
+    const window = doc.scene.elements[edit.changes[1]!.id]!;
+    expect(window.hostId).toBe(edit.changes[0]!.id);
+    expect(doc.partsOf(window.hostId!)![0]!.refs).toContain(window.hostRef);
   });
 
   it('core.array is a REGISTERED, RESERVED SHAPE that refuses — the argsSchema freezes, the body is v1.0.x', async () => {

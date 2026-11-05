@@ -128,3 +128,10 @@ Body: `handoff/hmdnah/2026-11-05-T-051-review-step-2.md`
 T-036's only depends-on, T-051, is `done`: PR #124 MERGED 2026-11-05T13:57:54Z, step 2 by hmdnah.
 Its note's hold (T-035's design ruled, built by T-050 then T-051) is discharged by that merge.
 Body: `handoff/brahim/2026-11-05-STEWARD-promote-t036-ready.md`
+
+## T-036 — `core.copy` deep-copies a host's openings (D94) — 2026-11-05 — seat: zayd
+
+`core.copy` of a host now copies each hosted element under a fresh PEI, in the same edit; its `hostRef` is re-derived on the copy with `partNodeId`.
+`tests/host-deep-copy.test.ts` (real OCCT, demo wall + 2 openings): 4 passed; with the deep-copy removed, 2 failed.
+`pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed.
+Body: `handoff/zayd/2026-11-05-T-036-host-deep-copy.md`
