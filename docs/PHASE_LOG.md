@@ -142,3 +142,9 @@ Step 1 passes with no defect proven. `copiedHostRef` meets done-when 2: it decod
 Item 1: with `commands.ts` reverted to main, `tests/host-deep-copy.test.ts` → 3 failed | 1 passed; restored → 35 passed across 3 files.
 Not owner-gated: no frozen or reserved path is touched. Not approved, not merged; the row stays `review`.
 Body: `handoff/hmdnah/2026-11-05-T-036-review-step-1.md`
+
+## T-036 — review step 2 of PR #125 — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: `commands.ts` at main → `host-deep-copy.test.ts` 3 failed | 1 passed; restored → 4 passed.
+Done-when 2 is met but not test-pinned. `.replace` differs only on a hostRef naming another element's face, which `createElement` accepts; a deleted probe caught that, while the other 35 tests stayed green.
+Body: `handoff/hmdnah/2026-11-05-T-036-review-step-2.md`
