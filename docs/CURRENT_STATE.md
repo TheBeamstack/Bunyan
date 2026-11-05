@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
-| task | `STEWARD-promote-t036` |
-| branch | `main` |
-| claimed-at | 2026-11-05T09:36:32Z |
-| status | finished — PR open, awaiting review |
+| task | `T-036` |
+| branch | `task/T-036-q7-core-copy-deep-copies-a-host-s-openin` |
+| claimed-at | 2026-11-05T14:18:05Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -241,4 +241,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 18b5b2889a6e23effa0ac49e65a2b98f76769fe8
+last-verified-at: 63f9c5c7c27c9cb1004210fe73f2d257c0ef9088

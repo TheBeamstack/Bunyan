@@ -179,7 +179,7 @@ describe('T-051: a D52 wall moves, rotates and copies through its motion tags (D
     ).rejects.toThrow(/cannot create .* with that placement.*core\.move/s);
   });
 
-  it('core.copy of a wall that hosts an opening still refuses at the hosted check (T-036 lifts it)', async () => {
+  it('core.copy of a wall that hosts an opening copies the opening onto the copy (T-036 lifted the refusal)', async () => {
     const { doc, walls } = await demo();
     const face = doc.partsOf(walls[0]!)![0]!.refs.find((r) => r.includes('/face/lateral.1'))!;
     await doc.execute('core.createElement', {
@@ -188,11 +188,9 @@ describe('T-051: a D52 wall moves, rotates and copies through its motion tags (D
       hostRef: face,
       params: { width: 900, height: 2100, offsetU: 1000 },
     });
-    const failure = await failureOf(
-      doc.execute('core.copy', { elementId: walls[0]!, by: [0, 5000, 0] }),
-    );
-    expect(failure?.code).toBe('REFUSED');
-    expect(failure?.message).toMatch(/cannot be copied exactly.*hosted element/s);
+    const edit = await doc.execute('core.copy', { elementId: walls[0]!, by: [0, 5000, 0] });
+    const opening = doc.scene.elements[edit.changes[1]!.id]!;
+    expect(opening.hostId).toBe(edit.changes[0]!.id);
   });
 
   it('a grid-bound params-positioned element refuses a plan motion (the datum rung still holds)', async () => {

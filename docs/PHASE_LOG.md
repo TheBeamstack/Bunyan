@@ -128,3 +128,23 @@ Body: `handoff/hmdnah/2026-11-05-T-051-review-step-2.md`
 T-036's only depends-on, T-051, is `done`: PR #124 MERGED 2026-11-05T13:57:54Z, step 2 by hmdnah.
 Its note's hold (T-035's design ruled, built by T-050 then T-051) is discharged by that merge.
 Body: `handoff/brahim/2026-11-05-STEWARD-promote-t036-ready.md`
+
+## T-036 — `core.copy` deep-copies a host's openings (D94) — 2026-11-05 — seat: zayd
+
+`core.copy` of a host now copies each hosted element under a fresh PEI, in the same edit; its `hostRef` is re-derived on the copy with `partNodeId`.
+`tests/host-deep-copy.test.ts` (real OCCT, demo wall + 2 openings): 4 passed; with the deep-copy removed, 2 failed.
+`pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed.
+Body: `handoff/zayd/2026-11-05-T-036-host-deep-copy.md`
+
+## T-036 — review step 1 of PR #125 — 2026-11-05 — seat: hmdnah
+
+Step 1 passes with no defect proven. `copiedHostRef` meets done-when 2: it decodes the token and re-derives `nodeId` with `partNodeId`.
+Item 1: with `commands.ts` reverted to main, `tests/host-deep-copy.test.ts` → 3 failed | 1 passed; restored → 35 passed across 3 files.
+Not owner-gated: no frozen or reserved path is touched. Not approved, not merged; the row stays `review`.
+Body: `handoff/hmdnah/2026-11-05-T-036-review-step-1.md`
+
+## T-036 — review step 2 of PR #125 — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: `commands.ts` at main → `host-deep-copy.test.ts` 3 failed | 1 passed; restored → 4 passed.
+Done-when 2 is met but not test-pinned. `.replace` differs only on a hostRef naming another element's face, which `createElement` accepts; a deleted probe caught that, while the other 35 tests stayed green.
+Body: `handoff/hmdnah/2026-11-05-T-036-review-step-2.md`

@@ -84,7 +84,8 @@ import { validateParams, withDefaults } from './schema.js';
 import type { UndoableEdit } from './undo.js';
 import type { ModelRevision } from './revision.js';
 import type { RigidMotion, Vec3 } from '@bunyan/protocol';
-import { decodeSubShapeRef } from '@bunyan/protocol';
+import { decodeSubShapeRef, encodeSubShapeRef } from '@bunyan/protocol';
+import { partNodeId } from './geometry.js';
 import { nextRevision } from './revision.js';
 
 /**
@@ -3158,19 +3159,18 @@ export const rotateCommand: Command = {
  * ⚠⚠ A COPY IS EXACT OR IT IS REFUSED, and that rule is the command. The copy carries the source's params,
  * style, container, classification and reserved metadata verbatim, **plus its datum constraints** (a copy
  * of a Level-spanning column that did not span the Level would be a different kind of thing wearing the
- * same recipe). Anything else in the scene that points AT the source — a hosted opening, a sketch
- * constraint, a join override — makes the copy inexact, so it refuses and names what it found.
+ * same recipe). A sketch constraint or join override pointing AT the source makes the copy inexact, so it
+ * refuses and names what it found.
  *
- * ⚠ The hosted case is the one that matters and it is a D1 question, not a laziness: an opening's `hostRef`
- * is a `SubShapeRef` **token containing the host's element id**, so copying the door means rewriting an
- * identity token — the one thing the naming rules forbid doing quietly. It is an owner ruling, surfaced,
- * not a body decision.
+ * ⚠ A HOST IS DEEP-COPIED (D94, owner-ruled): each hosted element is copied with it under a fresh PEI
+ * (D44), its `hostRef` re-pointed at the copy by `copiedHostRef` — the owner-ruled re-identification D51
+ * requires, in the same edit, never a silent one.
  */
 export const copyCommand: Command = {
   id: 'core.copy',
   label: 'Copy',
   description:
-    'Copy an element, offset by a delta in mm. The new element id is in the returned edit. Exact or refused: datum constraints come with it, and a source that anything else points at (a hosted opening, a sketch constraint, a join override) is REFUSED rather than half-copied.',
+    "Copy an element, offset by a delta in mm. The new element id is in the returned edit. Exact or refused: datum constraints come with it, a host's hosted openings are copied with it onto the copy (D94), and a source that a sketch constraint or join override points at is REFUSED rather than half-copied.",
   argsSchema: {
     elementId: { kind: 'ref', refTo: 'element', label: 'Element', required: true },
     by: {
@@ -3195,20 +3195,19 @@ export const copyCommand: Command = {
         : movedParams(ctx, element, fields, { kind: 'translate', by });
     if (fields === undefined) checkPositioning(ctx, element, from, placement!);
 
-    // ⚠ EVERYTHING THAT POINTS AT THE SOURCE: a hosted opening (D94's deep-copy, T-036, lifts that one),
-    // a sketch constraint, a join override.
-    const pointing = [
-      ...hostedBy(ctx.scene, element.id).map((e) => `hosted element "${e.id}"`),
-      ...sketchConstraintsOf(ctx.scene, element.id).map((c) => `sketch constraint "${c.id}"`),
-      ...joinOverridesOf(ctx.scene, element.id).map((c) => `join override "${c.id}"`),
-    ];
+    // The hosted elements are deep-copied (D94); what else points at the source, or at one of them, refuses.
+    const hosted = hostedBy(ctx.scene, element.id);
+    const pointing = [element, ...hosted].flatMap((e) => [
+      ...(e === element ? [] : hostedBy(ctx.scene, e.id).map((h) => `hosted element "${h.id}"`)),
+      ...sketchConstraintsOf(ctx.scene, e.id).map((c) => `sketch constraint "${c.id}"`),
+      ...joinOverridesOf(ctx.scene, e.id).map((c) => `join override "${c.id}"`),
+    ]);
     if (pointing.length > 0) {
       throw new CommandFailure(
         'REFUSED',
-        `"${element.id}" cannot be copied exactly: ${pointing.join(', ')} ${pointing.length === 1 ? 'points' : 'point'} at it. ` +
-          `Copying a HOST would mean rewriting each opening's hostRef — a SubShapeRef token that contains ` +
-          `the host's element id — and a command never silently re-identifies (D51, D1). A copy that ` +
-          `silently dropped them would hand back a wall with no window in it.`,
+        `"${element.id}" cannot be copied exactly: ${pointing.join(', ')} ${pointing.length === 1 ? 'points' : 'point'} at it ` +
+          `or at an element it hosts. A copy carrying that reference would share it with the source, and ` +
+          `one dropping it would be a different design.`,
         pointing,
       );
     }
@@ -3221,23 +3220,60 @@ export const copyCommand: Command = {
       params,
       ...(placement === undefined ? {} : { placement }),
     };
-    // The datum constraints come WITH it — same kinds, same targets, same offsets, fresh ids.
-    const constraints = constraintsOf(ctx.scene, element.id).map((c): DatumConstraint => ({
-      ...c,
-      id: ctx.mintId('constraint'),
-      element: id,
+    // Each hosted element rides its host's frame (`build.ts`), so its params and placement copy verbatim.
+    const copies = hosted.map((h): Element => ({
+      ...h,
+      id: ctx.mintId(h.typeId.split('.')[1] ?? 'element'),
+      hostId: id,
+      ...(h.hostRef === undefined ? {} : { hostRef: copiedHostRef(h, id) }),
     }));
+    // The datum constraints come WITH it — same kinds, same targets, same offsets, fresh ids.
+    const constraints = [
+      [element, copy],
+      ...hosted.map((h, i) => [h, copies[i]!] as const),
+    ].flatMap(([from, to]) =>
+      constraintsOf(ctx.scene, from.id).map((c): DatumConstraint => ({
+        ...c,
+        id: ctx.mintId('constraint'),
+        element: to.id,
+      })),
+    );
 
     return ctx.edit(
       `Copy ${type.label}`,
       [
         { collection: 'elements', id, after: copy },
+        ...copies.map((c): SceneChange => ({ collection: 'elements', id: c.id, after: c })),
         ...constraints.map((c): SceneChange => ({ collection: 'constraints', id: c.id, after: c })),
       ],
-      [id],
+      [id, ...copies.map((c) => c.id)],
     );
   },
 };
+
+/**
+ * A hosted element's `hostRef`, re-pointed at the host's copy (D94, D1): decoded into its structure, the
+ * part's node re-derived by `partNodeId` for the copy, `kind`/`role`/`occurrence` kept — the face the
+ * copy's own build mints for the same part, role and occurrence. A ref that is not on one of the host's
+ * own parts cannot be re-derived, so it refuses rather than guess (D51).
+ */
+function copiedHostRef(hosted: Element, copyId: ElementId): string {
+  const ref = decodeSubShapeRef(hosted.hostRef!);
+  const hostId = hosted.hostId!;
+  const partName =
+    ref !== undefined && ref.nodeId.startsWith(`${hostId}.`)
+      ? ref.nodeId.slice(hostId.length + 1)
+      : undefined;
+  if (ref === undefined || partName === undefined) {
+    throw new CommandFailure(
+      'REFUSED',
+      `"${hostId}" cannot be copied exactly: hosted element "${hosted.id}"'s hostRef "${hosted.hostRef!}" ` +
+        `is not a face of one of its host's parts, so its face on the copy cannot be derived (D1, D51).`,
+      [hosted.id],
+    );
+  }
+  return encodeSubShapeRef({ ...ref, nodeId: partNodeId(copyId, partName) });
+}
 
 /**
  * ⚠⚠ RESERVED SHAPE, NO BODY — owner-ruled (Q4): *"`core.array`: SHAPE ONLY — body is v1.0.x."*
