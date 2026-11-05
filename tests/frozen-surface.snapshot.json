@@ -168,7 +168,7 @@
     },
     "packages/document/src/schema.ts": {
       "type ParamKind": "3886e7b7e5f7a358",
-      "interface ParamField": "2b703450f54c38ac",
+      "interface ParamField": "0dfe601fe3b02b84",
       "interface ParamCondition": "4aba6eadfb6c233f",
       "type ParamSchema": "4bac9b04a0ff1204",
       "interface ValidationIssue": "61784806b8ae7804",
@@ -229,7 +229,8 @@
       "type FamilyPrimitive": "1460590e7e5bb3e0",
       "type FamilyEdgeSelector": "92ed09551b6d030a",
       "type FamilyModifier": "b094ffb814ef7ba1",
-      "interface FamilyPart": "da3bc66ba8c12a42",
+      "type FamilyFaceSelector": "c838479162039f0e",
+      "interface FamilyPart": "102c9d0b5a1c7e72",
       "interface FamilyChildPlacement": "452d4b94b80c9e31",
       "interface FamilyHosting": "8fe0f0429061b647",
       "interface FamilyDefinition": "d1579d32b68fa211"
