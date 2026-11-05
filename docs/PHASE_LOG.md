@@ -40,6 +40,20 @@ identity fields, and compressing a body never moves the population a reference r
 `T-nnn`/`STEWARD-slug` turns through 2026-08-31 · sealed 2026-10-07. `docs/phase-log-02.md` — the turns
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20.
 
+## T-034 — PR #70's conflict with `main` resolved a fourth time — 2026-11-04 — seat: zayd
+
+Merged `origin/main` (`0f76dbb`) as `7474457`; `CURRENT_STATE.md` and `PHASE_LOG.md` conflicted, no code.
+The snapshot was not re-baselined: no watched path or snapshot change on `main` since `8cfe6b4`. `pnpm verify` green.
+PR #70 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-11-04-T-034-merge-main.md`
+
+## T-034 — PR #70's conflict with `main` resolved a third time — 2026-10-28 — seat: zayd
+
+Merged `origin/main` (`8cfe6b4`, flow F1); three docs conflicted, no code. BACKLOG took `main`'s table with T-034 at `review`.
+The snapshot did not conflict and was not re-baselined. `pnpm verify` green (1060 passed, 4 skipped).
+PR #70 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-28-T-034-merge-main.md`
+
 ## STEWARD-t065-carried-entries — review of PR #121 — 2026-10-26 — seat: hmdnah
 
 APPROVED, merged via `agent_merge.py --seat hmdnah --pr 121`. Item 1: T-067's `implements:` deleted → `gates.py docs` exit 1 "T-067 has no 'implements:'"; restored → ✓.
@@ -341,6 +355,20 @@ Body: `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`
 main or worker moves the id. Revert-verified twice, 1 red then 3 green each. `pnpm verify` green (979).
 Body: `handoff/zayd/2026-10-20-T-044-d29-codeid-bundle.md`
 
+## T-034 — PR #70's conflict with `main` resolved again — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`7da6795`) per D-20261020-02's `changes`; conflicts only in CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot keeps the branch's baseline; `freeze-boundary.test.ts` passes on it. `pnpm verify` green (1004 passed, 1 skipped).
+PR #70 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-034-merge-main.md`
+
+## T-034 — PR #70's conflict with `main` resolved — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`ce61874`); three docs conflicted, no code. BACKLOG took `main`'s table with T-034 at `review`;
+PHASE_LOG kept both sides. The snapshot did not conflict and was not re-baselined. `pnpm verify` green (978 passed).
+RISK: contract-touching, unchanged — owner merges.
+Body: `handoff/zayd/2026-10-20-T-034-merge-main.md`
+
 ## T-056 — review step 2 of PR #104 — 2026-10-20 — seat: hmdnah
 
 Approved; no defect proven. Item 1: mtime 1980-01-02 → 2 red; `saveBnn` inlining level 5 → 1 red (worker ≠ save); restored
@@ -506,3 +534,38 @@ Merged `origin/main`; no code changed. Conflicts in `BACKLOG.md` (main's rows, T
 sides' abstracts) and `CURRENT_STATE.md` (this branch's baton). The frozen-surface snapshot did not conflict and was
 not re-baselined. `pnpm verify` green (1059 passed, 4 skipped). PR #93 stays owner-gated.
 Body: `handoff/zayd/2026-10-28-T-050-merge-main.md`
+
+## STEWARD-pr69-step1-finish-refusal — PR #69's owner-signed merge routed — 2026-11-04 — seat: brahim
+
+D-20261028-01 routed via `--review --pr 69`; T-033 is `risk: high`, so hmdnah ran step 1: no defect. Its finish refused:
+`stamp_tickets` stamps B-20261102-01 cleared on step 1 and the docs gate then fails (B-20261104-01). Work parked at local
+`hold/T-033-step1-review-2026-11-04`; stray `review/step-1` label removed; `## BLOCKED` regenerated.
+Body: `handoff/brahim/2026-11-04-STEWARD-pr69-step1-finish-refusal-routed.md`
+
+## T-034 — review step 2 of PR #70 — 2026-11-04 — seat: hmdnah
+
+No defect proven; approved for an owner-signed merge (D-20261028-02). Item 1: `families.ts` reverted → 6 tsc errors, freeze-boundary 1 red; restored → 25 passed.
+Item 6: done-when 3 holds as written, because removing the type-only field fails `pnpm typecheck` in `verify`. Items 2/3: `parts` and `leafParts` share `FamilyPart`; no cache/codec site reads `families`.
+Contract unchanged since signed head `7760e34`. CI green on `668eb0c`.
+Body: `handoff/hmdnah/2026-11-04-T-034-review-step-2.md`
+
+## T-034 — review step 1 of PR #70 — 2026-11-04 — seat: hmdnah
+
+No defect proven; not approved (step 1). Item 1: `families.ts` reverted → 6 tsc errors and freeze-boundary 1 red,
+family-seam itself 6 green; restored → `pnpm verify` exit 0, 1060 passed / 4 skipped. CI run 41799264043 green on
+`9e7aa85`, labeller ran (contract-touching, freeze). Items 2, 3, 6 are step 2's.
+Body: `handoff/hmdnah/2026-11-04-T-034-review-step-1.md`
+
+## T-034 — `FamilyDefinition` names its billable faces — 2026-10-12 — seat: zayd
+
+`FamilyPart.exposedFaces?: FamilyFaceSelector[]` (`{ by: 'role', role }`, D96): absent ⇒ whole-solid, `[]` ⇒ 0.
+Removing it fails `tsc` (TS2339/TS2353, revert-verified); an OCCT build measures billed 2·W·H, buried 0.
+RISK: contract-touching (re-baselined) — owner merges. No interpreter reads it in v1.0.0.
+Body: `handoff/zayd/2026-10-12-T-034-family-billable-faces.md`
+
+## T-050 — merge origin/main into PR #93 after PR #70 — 2026-11-05 — seat: zayd
+
+Merged `origin/main` at `132f758`; no code changed. Conflicts: `PHASE_LOG.md` (both sides' abstracts kept),
+`CURRENT_STATE.md` (this branch's baton), `frozen-surface.snapshot.json` (main's side, then `pnpm state --rebaseline`:
+215 declarations, #70's `FamilyPart`/`FamilyFaceSelector` and #93's `ParamField`). `pnpm verify` green (1061 passed).
+Body: `handoff/zayd/2026-11-05-T-050-merge-main.md`

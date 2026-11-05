@@ -75,9 +75,6 @@ builder may claim.
 
 ## BLOCKED
 
-- **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
-  - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
-  - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
 - **B-20261025-01** — `scope: item` · `item: PR#118` — PR #118's `PR shape · reserved classes` check refuses every dependabot PR, so it cannot merge
   - need: give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah
   - opened 2026-10-25T19:34Z by hmdnah · recorded in `docs/BLOCKERS.md`
@@ -105,6 +102,21 @@ builder may claim.
 - **B-20261028-01** — `scope: item` · `item: PR#118` — start's review mode claims PR #120 ahead of PR #118, so hmdnah cannot reach the retitled dependabot PR
   - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118
   - opened 2026-10-28T04:35Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261029-01** — `scope: item` · `item: PR#72` — start's review mode claims PR #120 ahead of PR #72, so hmdnah cannot review the re-seeded T-037 PR
+  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
+  - opened 2026-10-29T10:03Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261101-01** — `scope: item` · `item: PR#72` — PR #72's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-037` on B-20261029-01
+  - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
+  - opened 2026-11-01T15:04Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261102-01** — `scope: item` · `item: PR#69` — the owner signed PR #69, #70 and #93 for merge, but start's review mode hands hmdnah PR #120 instead
+  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run one dedicated hmdnah merge each of PR #69, #70 and #93 under D-20261028-01, -02 and -03
+  - opened 2026-11-02T22:16Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261102-02** — `scope: item` · `item: T-067` — the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim
+  - need: give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01
+  - opened 2026-11-02T22:16Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261104-01** — `scope: item` · `item: PR#69` — hmdnah's step-1 review of PR #69 passed, and the finish refuses by stamping B-20261102-01 cleared
+  - need: make diwan `agent_finish.py` stamp a ticket only on the finish that performs its `need:` and regenerate `## BLOCKED` after any stamp, then run hmdnah's step 1 of PR #69
+  - opened 2026-11-04T06:57Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -224,18 +236,18 @@ that cannot re-execute the claim is a reader.
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `task/T-050-q8a-paramfield-motion-is-reserved-a-sche` · `2d83a5e` · dirty |
-| open PRs | #90 task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a · #89 task/T-043-d29-r5-the-cache-envelope-is-trusted-per · #88 task/T-049-a-cache-restore-reads-each-batch-of-root · #72 task/T-037-q5-the-section-chord-tolerance-chosen-fo · #70 task/T-034-q9-familydefinition-reserves-a-way-for-d · #69 task/T-033-q10-dimension-anchors-excludes-the-free- · #65 custodianship/T-007-descriptions |
-| suite | ⚠⚠ 979/980 passing — **1 FAILING** |
+| branch · tip · tree | `task/T-050-q8a-paramfield-motion-is-reserved-a-sche` · `ae868a6` · dirty |
+| open PRs | #122 steward/pr70-merged-log-roll · #120 task/T-065-a-named-save-posts-its-entries-to-the-zi · #118 dependabot/npm_and_yarn/vite-6.4.4 · #116 task/T-064-a-named-save-posts-its-geometry-cache-re · #93 task/T-050-q8a-paramfield-motion-is-reserved-a-sche · #72 task/T-037-q5-the-section-chord-tolerance-chosen-fo · #69 task/T-033-q10-dimension-anchors-excludes-the-free- |
+| suite | ⚠⚠ 1061/1065 passing — **4 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: contract-touching (re-baselined)** — 1 declaration(s) moved — packages/document/src/schema.ts :: interface ParamField · baseline REWRITTEN this session |
-| diff vs origin/main | 4 files changed, 36 insertions(+), 16 deletions(-) (4 files) |
-| docs budget | current_state 15.7/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 157 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 3 declaration(s) moved — packages/document/src/schema.ts :: interface ParamField, packages/document/src/families.ts :: interface FamilyPart, packages/document/src/families.ts :: type FamilyFaceSelector · baseline REWRITTEN this session |
+| diff vs origin/main | 22 files changed, 709 insertions(+), 28 deletions(-) (22 files) |
+| docs budget | current_state 16.9/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 240 |
 
-_Generated 2026-10-20 by `pnpm state`._
+_Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 14af8239f40093f22fd764f38c36db590ac8cc31
+last-verified-at: 97477bc8d93b30f92b4123c47aac358ea8829bd9
