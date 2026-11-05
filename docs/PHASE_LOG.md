@@ -162,3 +162,10 @@ No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 
 On `608a2d7` (base = origin/main `d92e28c`): `pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed; `apps/web` `vite build` built.
 Lockfile integrities for vite 6.4.5, rollup 4.67.5, postcss 8.5.32 and `@types/estree` 1.0.10 match `npm view`.
 Body: `handoff/hmdnah/2026-11-05-DEPS-126-review.md`
+
+## DEPS-127 — review of PR #127 (vitest 4.1.10 → 4.1.11, dependabot) — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: bump reverted → installed vitest `4.1.10`, assert exits 1; restored → `4.1.11`, exit 0.
+On `412d126` (base = origin/main `fe87966`): `pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed.
+Lockfile integrities for vitest 4.1.11, the `@vitest/*` 4.1.11 set and 6 transitive bumps match `npm view`.
+Body: `handoff/hmdnah/2026-11-05-DEPS-127-review.md`
