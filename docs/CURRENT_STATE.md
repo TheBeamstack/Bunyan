@@ -66,7 +66,7 @@ builder may claim.
 | machine | box |
 | task | `T-067` |
 | branch | `task/T-067-a-named-save-names-its-carried-cache-ent` |
-| claimed-at | 2026-10-26T06:58:01Z |
+| claimed-at | 2026-11-05T09:34:43Z |
 | status | working |
 
 <!-- END BATON -->
