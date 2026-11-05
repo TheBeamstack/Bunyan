@@ -135,3 +135,10 @@ Body: `handoff/brahim/2026-11-05-STEWARD-promote-t036-ready.md`
 `tests/host-deep-copy.test.ts` (real OCCT, demo wall + 2 openings): 4 passed; with the deep-copy removed, 2 failed.
 `pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed.
 Body: `handoff/zayd/2026-11-05-T-036-host-deep-copy.md`
+
+## T-036 — review step 1 of PR #125 — 2026-11-05 — seat: hmdnah
+
+Step 1 passes with no defect proven. `copiedHostRef` meets done-when 2: it decodes the token and re-derives `nodeId` with `partNodeId`.
+Item 1: with `commands.ts` reverted to main, `tests/host-deep-copy.test.ts` → 3 failed | 1 passed; restored → 35 passed across 3 files.
+Not owner-gated: no frozen or reserved path is touched. Not approved, not merged; the row stays `review`.
+Body: `handoff/hmdnah/2026-11-05-T-036-review-step-1.md`
