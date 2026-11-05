@@ -117,6 +117,9 @@ builder may claim.
 - **B-20261104-01** — `scope: item` · `item: PR#69` — hmdnah's step-1 review of PR #69 passed, and the finish refuses by stamping B-20261102-01 cleared
   - need: make diwan `agent_finish.py` stamp a ticket only on the finish that performs its `need:` and regenerate `## BLOCKED` after any stamp, then run hmdnah's step 1 of PR #69
   - opened 2026-11-04T06:57Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261105-01** — `scope: item` · `item: T-067` — start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
+  - need: install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn
+  - opened 2026-11-05T09:35Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 

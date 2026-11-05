@@ -633,3 +633,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/brahim/projects/diwan/scripts/agent_finish.py --seat hmdnah T-033 --review --step 1 --report handoff/hmdnah/2026-11-04-T-033-review-step-1.md --root /home/brahim/projects/Bunyan; echo $?` on `hold/T-033-step1-review-2026-11-04` exits non-zero after printing `✓ ticket B-20261102-01 stamped cleared`
 - need: make diwan `agent_finish.py` stamp a ticket only on the finish that performs its `need:` and regenerate `## BLOCKED` after any stamp, then run hmdnah's step 1 of PR #69
 - cleared: -
+
+## B-20261105-01 start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
+
+- opened: 2026-11-05T09:35Z
+- by: zayd
+- scope: item
+- item: T-067
+- what: T-067 `requires: browser` and its done-when 5 is `named-save.mjs`'s 200 ms bar in a browser, so zayd did not build it and left the branch at start's claim commit `c4423d2`
+- why: `agent_start.py --seat zayd` printed `browser: absent` and still resumed the T-067 claim; diwan `protocol.browser_cmd()` returns None here because `/home/brahim/.cache/ms-playwright` holds no `chromium-*` and `AGENT_BROWSER_CMD` is unset
+- evidence: `cd /home/brahim/projects/diwan/scripts && python3 -c "import protocol; print(protocol.browser_cmd())"` prints `None`
+- need: install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn
+- cleared: -
