@@ -244,4 +244,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 3672871c8776a35102dfde5bcdcb3b15e43feb40
+last-verified-at: 4fddd6f44bf07ab3c95c8ac8828ab2af20f420f0

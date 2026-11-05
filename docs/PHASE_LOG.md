@@ -114,4 +114,4 @@ Body: `handoff/hmdnah/2026-11-05-T-051-review-step-1.md`
 `uv run seed-goldens` re-ran on the aarch64 box and was committed. Of 19 moved values, the largest is 1.9e-12 relative (`column-through-duct`); the other 18 are at most 1.0e-15.
 `check-reseed.mjs` against `main` → exit 0, "golden VALUES moved". The golden and re-seed tests pass, 60 of 60.
 The grid-bound test now asserts a rotate refusal that names `grid`; with the tags removed it goes red.
-Body: `handoff/zayd/2026-11-05-T-051-reseed.md`
+Body: `handoff/zayd/2026-11-05-T-051-wall-motion-tags.md`
