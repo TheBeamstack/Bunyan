@@ -75,9 +75,6 @@ builder may claim.
 
 ## BLOCKED
 
-- **B-20261011-06** — `scope: item` · `item: PR#65` — PR #65's merge refuses: its branch's Custodianship task id T-007 is read as Bunyan's T-007
-  - need: make diwan `agent_merge.py` resolve a task id only from a branch or title in this repo's own namespace (not `custodianship/`), then re-run hmdnah's merge of PR #65
-  - opened 2026-10-11T22:00Z by hmdnah · recorded in `docs/BLOCKERS.md`
 - **B-20261024-02** — `scope: item` · `item: T-064` — T-064's 200 ms named-save bar at 16k fails on the first timed save, on a cost outside its scope
   - need: sequence a row that takes the 16k entries clone off the named save's main thread (BACKLOG `## Discovered` 2026-10-24) and make T-064's done-when 3 depend on it
   - opened 2026-10-24T11:18Z by zayd · recorded in `docs/BLOCKERS.md`
@@ -93,15 +90,33 @@ builder may claim.
 - **B-20261026-02** — `scope: item` · `item: T-067` — start cannot hand zayd T-067: it resumes the blocker-held T-064, and `--continue T-067` needs an open PR
   - need: make diwan `agent_start.py` resume a seat's incomplete claim that no blocker holds (T-067) before one a blocker holds (T-064), then run T-067 in a zayd turn
   - opened 2026-10-26T22:34Z by zayd · recorded in `docs/BLOCKERS.md`
-- **B-20261026-03** — `scope: item` · `item: T-068` — start withholds zayd's T-068 claim until zayd merges PR #72, which is zayd's own T-037 PR
-  - need: make diwan `agent_start.py` skip a PR whose task the acting seat built when it picks the predecessor PR to merge before a claim, then run T-068 in a zayd turn
-  - opened 2026-10-26T22:41Z by zayd · recorded in `docs/BLOCKERS.md`
 - **B-20261027-01** — `scope: item` · `item: T-067` — start refuses zayd's tickets T-067 and T-068 because the ticket records themselves hold those tasks
   - need: make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn
   - opened 2026-10-27T06:05Z by zayd · recorded in `docs/BLOCKERS.md`
 - **B-20261027-02** — `scope: item` · `item: PR#120` — PR #120's flow-routed conflict merge cannot run: start refuses `--continue T-065` for the reviewer seat hmdnah
   - need: make diwan `agent_start.py --continue` admit a reviewer seat that holds the task's claim to a flow-routed conflict merge, then re-run hmdnah's `--continue T-065`
   - opened 2026-10-27T18:05Z by hmdnah · recorded in `docs/BLOCKERS.md`
+- **B-20261028-01** — `scope: item` · `item: PR#118` — start's review mode claims PR #120 ahead of PR #118, so hmdnah cannot reach the retitled dependabot PR
+  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118
+  - opened 2026-10-28T04:35Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261029-01** — `scope: item` · `item: PR#72` — start's review mode claims PR #120 ahead of PR #72, so hmdnah cannot review the re-seeded T-037 PR
+  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
+  - opened 2026-10-29T10:03Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261101-01** — `scope: item` · `item: PR#72` — PR #72's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-037` on B-20261029-01
+  - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
+  - opened 2026-11-01T15:04Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261102-01** — `scope: item` · `item: PR#69` — the owner signed PR #69, #70 and #93 for merge, but start's review mode hands hmdnah PR #120 instead
+  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run one dedicated hmdnah merge each of PR #69, #70 and #93 under D-20261028-01, -02 and -03
+  - opened 2026-11-02T22:16Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261102-02** — `scope: item` · `item: T-067` — the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim
+  - need: give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01
+  - opened 2026-11-02T22:16Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261104-01** — `scope: item` · `item: PR#69` — hmdnah's step-1 review of PR #69 passed, and the finish refuses by stamping B-20261102-01 cleared
+  - need: make diwan `agent_finish.py` stamp a ticket only on the finish that performs its `need:` and regenerate `## BLOCKED` after any stamp, then run hmdnah's step 1 of PR #69
+  - opened 2026-11-04T06:57Z by brahim-loop · recorded in `docs/BLOCKERS.md`
+- **B-20261105-01** — `scope: item` · `item: T-067` — start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
+  - need: install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn
+  - opened 2026-11-05T09:35Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
@@ -224,18 +239,18 @@ that cannot re-execute the claim is a reader.
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `task/T-027-6-s-relink-cap-is-measured-not-guessed` · `d6666b0` · clean |
-| open PRs | #65 custodianship/T-007-descriptions · #55 task/T-027-6-s-relink-cap-is-measured-not-guessed |
-| suite | **910 green** · 100 files · 279 suites |
+| branch · tip · tree | `task/T-050-q8a-paramfield-motion-is-reserved-a-sche` · `ae868a6` · dirty |
+| open PRs | #122 steward/pr70-merged-log-roll · #120 task/T-065-a-named-save-posts-its-entries-to-the-zi · #118 dependabot/npm_and_yarn/vite-6.4.4 · #116 task/T-064-a-named-save-posts-its-geometry-cache-re · #93 task/T-050-q8a-paramfield-motion-is-reserved-a-sche · #72 task/T-037-q5-the-section-chord-tolerance-chosen-fo · #69 task/T-033-q10-dimension-anchors-excludes-the-free- |
+| suite | ⚠⚠ 1061/1065 passing — **4 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: additive** — unchanged vs baseline |
-| diff vs origin/main | 5 files changed, 83 insertions(+), 3 deletions(-) (5 files) |
-| docs budget | current_state 13.1/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 108 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 3 declaration(s) moved — packages/document/src/schema.ts :: interface ParamField, packages/document/src/families.ts :: interface FamilyPart, packages/document/src/families.ts :: type FamilyFaceSelector · baseline REWRITTEN this session |
+| diff vs origin/main | 22 files changed, 709 insertions(+), 28 deletions(-) (22 files) |
+| docs budget | current_state 16.9/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 240 |
 
-_Generated 2026-10-12 by `pnpm state`._
+_Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 03ba9aa4e41c21481f31539a38a75f303dabb952
+last-verified-at: 2a2a67e494b21a4231dfc76cfa1e316e2439c9ee
