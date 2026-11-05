@@ -156,6 +156,41 @@ On the merge with main `eeb1c40`: `pnpm verify` → 125 files, 1073 passed, 4 sk
 Lockfile integrities for `rollup@4.65.0` and its new optional `@napi-rs/lzma-linux-x64-gnu@1.5.1` match `npm view`.
 Body: `handoff/hmdnah/2026-11-05-DEPS-118-review.md`
 
+## DEPS-126 — review of PR #126 (vite 6.4.4 → 6.4.5, dependabot) — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: bump reverted → installed vite `6.4.4`, assert exits 1; restored → `6.4.5`, exit 0.
+On `608a2d7` (base = origin/main `d92e28c`): `pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed; `apps/web` `vite build` built.
+Lockfile integrities for vite 6.4.5, rollup 4.67.5, postcss 8.5.32 and `@types/estree` 1.0.10 match `npm view`.
+Body: `handoff/hmdnah/2026-11-05-DEPS-126-review.md`
+
+## DEPS-127 — review of PR #127 (vitest 4.1.10 → 4.1.11, dependabot) — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: bump reverted → installed vitest `4.1.10`, assert exits 1; restored → `4.1.11`, exit 0.
+On `412d126` (base = origin/main `fe87966`): `pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed.
+Lockfile integrities for vitest 4.1.11, the `@vitest/*` 4.1.11 set and 6 transitive bumps match `npm view`.
+Body: `handoff/hmdnah/2026-11-05-DEPS-127-review.md`
+
+## T-068 — a dependabot PR routes by head branch and bot author — 2026-11-05 — seat: zayd
+
+`scripts/pr-ready.mjs` routes a PR on a `dependabot/` head authored by `app/dependabot` (is_bot); `main` now calls an injectable `checkPr`.
+Test-first 5 red → 12 passed; revert-verify: route disabled → the bot case red. Bare dependabot `--title` still exits 1; CONFLICTING/UNKNOWN still fail.
+`pnpm verify` → 125 files, 1078 passed, 4 skipped; docs:check 71 passed. B-20261025-01 stays open for diwan's half.
+Body: `handoff/zayd/2026-11-05-T-068-dependabot-pr-shape.md`
+
+## T-068 — review step 1 of PR #128 — 2026-11-05 — seat: hmdnah
+
+No defect proven at `5f7a2d2`. Item 1: with the dependabot branch deleted, `pr-ready.test.ts` → 2 failed | 10 passed; restored → 12 passed.
+Live `gh pr view 118` author/head fed to `dependabotRoutes` → `true`; reserved-class scan `classes: []` (CI: RISK additive). `pnpm verify` → 1078 passed, 4 skipped.
+Step 1 only: no approval, no merge; the row stays `review`.
+Body: `handoff/hmdnah/2026-11-05-T-068-review-step-1.md`
+
+## T-068 — review step 2 of PR #128 — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: route forced `false` → `pr-ready.test.ts` 2 failed | 10 passed; restored → 12 passed.
+Item 6: dropping either the `is_bot` or the `login` half of `dependabotRoutes` left all 12 green; two added cases each turn their mutant red (1 failed | 13 passed); restored → 14 passed.
+Item 3: the labeller step behind `pr-ready` already ran on dependabot-authored PR #127 (run 42088259170, "labels already correct").
+Body: `handoff/hmdnah/2026-11-05-T-068-review-step-2.md`
+
 ## T-033 — `Dimension.anchors` excludes the free `point` anchor — 2026-10-12 — seat: zayd
 
 `Dimension.anchors` is `ModelAnchor[]` (`AnnotationAnchor` minus `point`, D97); `Tag` keeps `point`. A
