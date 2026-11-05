@@ -609,3 +609,75 @@ from, and the reason it is a record rather than prose.
 - evidence: `python3 /home/brahim/projects/diwan/scripts/agent_start.py --seat zayd --root /home/brahim/projects/Bunyan --continue T-037; echo $?` on `main` at `d67282d` exits 1
 - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
 - cleared: 2026-11-01T15:35Z
+
+## B-20261102-01 the owner signed PR #69, #70 and #93 for merge, but start's review mode hands hmdnah PR #120 instead
+
+- opened: 2026-11-02T22:16Z
+- by: brahim-loop
+- scope: item
+- item: PR#69
+- what: D-20261028-01/-02/-03 answered `merge` (f30e337) for the owner-gated PRs #69, #70 and #93 (M-bunyan-01), but no dedicated hmdnah review can reach them, so none is merged and the answers are not acted on
+- why: a dedicated hmdnah turn for PR #69 found `agent_start.py --review` would claim PR #120, the first routed PR it does not hold (`agent_start.py:620-650`, the selector B-20261028-01 records); `--no-claim` returns before the selector runs, so no dry run names the PR
+- evidence: `python3 /home/brahim/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/brahim/projects/Bunyan` lists PR #120 first among the PRs it offers hmdnah, on `main` at `d77492d`
+- need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run one dedicated hmdnah merge each of PR #69, #70 and #93 under D-20261028-01, -02 and -03
+- cleared: -
+
+## B-20261102-02 the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim
+
+- opened: 2026-11-02T22:16Z
+- by: brahim-loop
+- scope: item
+- item: T-067
+- what: D-20261102-01 answered `release` (d77492d), which frees the claim and keeps the branch, but a live claim is any `refs/heads/task/*` on origin (`agent_start.py:215`), so keeping the branch keeps the claim
+- why: no diwan script has a release act (`grep -rn "release" /home/brahim/projects/diwan/scripts/*.py` finds only `flow.py:126`'s prompt to open the D-), and hand-editing the branch's §0b block is forbidden
+- evidence: `git ls-remote --heads origin 'task/T-067*'` prints `2aee811` and the start sheet lists `T-067 (zayd, open)` under live claims
+- need: give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01
+- cleared: -
+
+## B-20261102-03 the owner answered `set` for the repository description, and the loop's token cannot edit it
+
+- opened: 2026-11-02T22:20Z
+- by: brahim-loop
+- scope: item
+- item: D-20261029-01
+- what: D-20261029-01 answered `set` (dd062dc), but the description still carries the stray `**`
+- why: `gh repo edit TheBeamstack/Bunyan --description …` as davidian-abdo returned "HTTP 403: Resource not accessible by personal access token"
+- evidence: `gh api repos/TheBeamstack/Bunyan --jq .description` prints `browser-native, serverless parametric **BIM/CAD authoring platform for building design`
+- need: owner: set Bunyan's GitHub description to `browser-native, serverless parametric BIM/CAD authoring platform for building design` under the repository's About settings
+- cleared: 2026-11-03T22:29Z
+
+## B-20261104-01 hmdnah's step-1 review of PR #69 passed, and the finish refuses by stamping B-20261102-01 cleared
+
+- opened: 2026-11-04T06:57Z
+- by: brahim-loop
+- scope: item
+- item: PR#69
+- what: T-033 is `risk: high`, so `--review --pr 69` ran step 1 of 2; it found no defect (report at local ref `hold/T-033-step1-review-2026-11-04`, unpushed), but the finish refused, so no step-1 report is posted and PR #69 stays at `6930c96`
+- why: `agent_finish.py:709-719` `stamp_tickets` stamps every ticket naming the seat on any task finish, step 1 included, so B-20261102-01 (whose `need:` also covers #70 and #93) reads cleared, and the finish's own docs gate (`:927`) then fails on the unregenerated `## BLOCKED` section
+- evidence: `python3 /home/brahim/projects/diwan/scripts/agent_finish.py --seat hmdnah T-033 --review --step 1 --report handoff/hmdnah/2026-11-04-T-033-review-step-1.md --root /home/brahim/projects/Bunyan; echo $?` on `hold/T-033-step1-review-2026-11-04` exits non-zero after printing `✓ ticket B-20261102-01 stamped cleared`
+- need: make diwan `agent_finish.py` stamp a ticket only on the finish that performs its `need:` and regenerate `## BLOCKED` after any stamp, then run hmdnah's step 1 of PR #69
+- cleared: -
+
+## B-20261105-01 start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
+
+- opened: 2026-11-05T09:35Z
+- by: zayd
+- scope: item
+- item: T-067
+- what: T-067 `requires: browser` and its done-when 5 is `named-save.mjs`'s 200 ms bar in a browser, so zayd did not build it and left the branch at start's claim commit `c4423d2`
+- why: `agent_start.py --seat zayd` printed `browser: absent` and still resumed the T-067 claim; diwan `protocol.browser_cmd()` returns None here because `/home/brahim/.cache/ms-playwright` holds no `chromium-*` and `AGENT_BROWSER_CMD` is unset
+- evidence: `cd /home/brahim/projects/diwan/scripts && python3 -c "import protocol; print(protocol.browser_cmd())"` prints `None`
+- need: install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn
+- cleared: -
+
+## B-20261105-02 PR #124's re-seed gate is red: T-051 edits `packages/types/src/wall.ts` and commits no golden
+
+- opened: 2026-11-05T10:25Z
+- by: hmdnah
+- scope: item
+- item: PR#124
+- what: hmdnah's step 1 of PR #124 found T-051's done-when 6 unmet, so CI's re-seed gate fails and the PR cannot merge
+- why: `scripts/check-reseed.mjs:55-61` exits 1 when a `GEOMETRY_PATHS` file changes and no `tests/goldens/` file does; the `Re-seed-unchanged:` trailer is read only after goldens are touched (line 113), and PR #124 touches none
+- evidence: `node --input-type=module -e "process.env.BASE_REF='main'; await import('./scripts/check-reseed.mjs');"` on `e0075d2` exits 1, "geometry changed but no goldens were re-seeded"; CI run 42010045830 job 127186447636 fails at the same step
+- need: re-seed and commit `tests/goldens/` on PR #124's branch in a zayd turn for T-051, then route PR #124 to hmdnah for step 1
+- cleared: 2026-11-05T11:28Z

@@ -56,8 +56,8 @@
  */
 
 import type { RigidMotion, Vec3 } from '@bunyan/protocol';
-import type { DatumConstraint, Element, ElementId } from './entities.js';
-import { baselineOf } from './joins.js';
+import type { DatumConstraint, Element, ElementId, ParamValue, Params } from './entities.js';
+import type { ParamField, ParamSchema } from './schema.js';
 import type { Scene } from './scene.js';
 import { constraintsOf } from './scene.js';
 
@@ -250,8 +250,21 @@ export function frameOriginOf(element: Element): Vec3 | undefined {
 /** Which part of an element's position the RECIPE derives — the reason a placement verb may refuse. */
 export type RecipePositioning =
   | { readonly kind: 'host'; readonly hostId: ElementId }
-  | { readonly kind: 'baseline' }
+  | { readonly kind: 'params'; readonly fields: readonly string[] }
   | { readonly kind: 'datum'; readonly plan: boolean; readonly vertical: boolean };
+
+/** A param a rigid motion acts on, and how — read from the schema's `motion` tag (D95). */
+export interface MotionField {
+  readonly name: string;
+  readonly motion: NonNullable<ParamField['motion']>;
+}
+
+/** The schema's motion-tagged params, in declaration order. Empty ⇒ the element's params carry no position. */
+export function motionFieldsOf(schema: ParamSchema | undefined): readonly MotionField[] {
+  return Object.entries(schema ?? {}).flatMap(([name, field]) =>
+    field.motion === undefined ? [] : [{ name, motion: field.motion }],
+  );
+}
 
 /**
  * What derives this element's position, other than its `placement`. `undefined` ⇒ nothing does, so the
@@ -263,6 +276,8 @@ export type RecipePositioning =
 export function positioningOf(
   scene: Scene,
   element: Element,
+  /** The element's Type's `parameterSchema`; its `motion` tags are what make it params-positioned. */
+  schema: ParamSchema | undefined,
   /**
    * The element's datum constraints, when they are not (yet) in the scene — `core.createElement` mints an
    * element and its constraints in ONE edit (D50 step 0b), so at that moment the scene cannot answer.
@@ -270,9 +285,10 @@ export function positioningOf(
   datumConstraints?: readonly DatumConstraint[],
 ): RecipePositioning | undefined {
   if (element.hostId !== undefined) return { kind: 'host', hostId: element.hostId };
-  // ⚠ The SAME function the join resolver uses to decide whether an element is a baseline wall — so this
-  // is not a guess about a Type, it is the engine's own test (`joins.ts`, D52/D69/D72).
-  if (baselineOf(element) !== undefined) return { kind: 'baseline' };
+  // ⚠ Read from the SCHEMA, never from a Type id or a param name (D95): a D61 data family tagged the same
+  // way is params-positioned by the same test.
+  const fields = motionFieldsOf(schema);
+  if (fields.length > 0) return { kind: 'params', fields: fields.map((f) => f.name) };
   const datums = datumConstraints ?? constraintsOf(scene, element.id);
   const plan = datums.some((c) => c.kind === 'grid');
   const vertical = datums.some((c) => c.kind === 'base' || c.kind === 'top');
@@ -324,12 +340,15 @@ function canonicalTurns(motions: readonly RigidMotion[] | undefined): string {
  *
  * @param turns `true` when the change also REORIENTS the element (`reorients`), which is when the
  *   frame-origin displacement stops describing the solid's.
+ * @param mirrors `true` when the new placement contains a `mirror` — refused on a params-positioned
+ *   element for its own reason (§6), not the generic one.
  */
 export function positioningRefusal(
   positioning: RecipePositioning | undefined,
   from: Vec3,
   to: Vec3,
   turns = false,
+  mirrors = false,
 ): string | undefined {
   if (positioning === undefined) return undefined;
   const d = sub(to, from);
@@ -345,14 +364,14 @@ export function positioningRefusal(
         `feed the element moved — so it is refused. Move it with \`core.setParams\` (a door is positioned ` +
         `by its own offset params along the host face), or move the HOST.`
       );
-    case 'baseline':
+    case 'params':
+      if (mirrors) return MIRROR_REFUSAL;
       return (
-        `this element is positioned by its {start, end} BASELINE params (D52), which is also what the ` +
-        `join resolver, the room solver and the billed axis length are derived from (joins.ts, room.ts, ` +
-        `D72). A placement written beside them moves the SOLID and leaves every one of those derivations ` +
-        `at the old baseline. Translate the baseline instead: \`core.setParams\` with both endpoints ` +
-        `moved (dragging one end is \`core.setParams\` on that endpoint alone) — the owner-ruled split, ` +
-        `P4.5 design §9.`
+        `this element is positioned by its params {${positioning.fields.join(', ')}}, which its schema ` +
+        `tags \`motion\` (D95) and which the engine derives everything else from — joins, room bounding, ` +
+        `the billed axis length (joins.ts, room.ts, D72). A \`placement\` written beside them moves the ` +
+        `SOLID and leaves every one of those derivations behind, so an absolute placement means nothing ` +
+        `here. Move it with \`core.move\`, \`core.rotate\` or \`core.copy\`, which move those params.`
       );
     case 'datum': {
       if (turns) {
@@ -387,4 +406,121 @@ export function positioningRefusal(
       return undefined;
     }
   }
+}
+
+/* ================================================================================================
+ * PARAMS-POSITIONED ELEMENTS — a rigid motion applied to the schema's `motion`-tagged params (D95)
+ * ============================================================================================= */
+
+/**
+ * ⚠ Why a mirror is refused rather than applied (`P4.5_baseline_move_design.md` §6): mirroring an element's
+ * points is not a mirror of the element. A HANDED element — one whose sides are named relative to the
+ * direction between its points — needs its points swapped as well, and which ones is Type knowledge the
+ * schema does not carry.
+ */
+const MIRROR_REFUSAL =
+  `a mirror of an element positioned by its \`motion\`-tagged params is refused: mirroring its points ` +
+  `is not a mirror of the element, because a handed element also needs its points swapped, and which ` +
+  `ones only its Type knows (P4.5 baseline-move design §6). Rebuild it mirrored by hand, or move it ` +
+  `with \`core.move\` / \`core.rotate\`.`;
+
+/** Below this, a direction has no horizontal component (a unit-vector component). */
+const VERTICAL_TOL = 1e-12;
+
+/** A well-formed point param: `n` finite numbers. */
+function readPoint(value: ParamValue | undefined, n: 2 | 3): readonly number[] | undefined {
+  if (!Array.isArray(value) || value.length !== n) return undefined;
+  const nums = value as readonly ParamValue[];
+  return nums.every((v) => typeof v === 'number' && Number.isFinite(v))
+    ? (nums as readonly number[])
+    : undefined;
+}
+
+const asVec3 = (p: readonly number[]): Vec3 => [p[0]!, p[1]!, p[2] ?? 0];
+
+/**
+ * The params after `motion` is applied to every tagged field, or the named reason it cannot be.
+ *
+ * - `planPoint` — `[x, y]` in the Level plane. Its Z is its Level, so a translation with `dz ≠ 0` or a
+ *   rotation about a non-vertical axis is refused (the Level moves with `core.updateContainer`).
+ * - `point` — `[x, y, z]`, the whole motion.
+ * - `direction` — `[x, y, z]`, the rotation only: a translation does not turn a direction.
+ *
+ * An absent optional field is left absent. `placement` is not this function's business.
+ */
+export function moveParams(
+  params: Params,
+  fields: readonly MotionField[],
+  motion: RigidMotion,
+): { readonly params: Params } | { readonly refused: string } {
+  if (motion.kind === 'mirror') return { refused: MIRROR_REFUSAL };
+  const out: Record<string, ParamValue> = { ...params };
+  for (const { name, motion: tag } of fields) {
+    const value = params[name];
+    if (value === undefined) continue;
+    const point = readPoint(value, tag === 'planPoint' ? 2 : 3);
+    if (point === undefined) {
+      const shape = tag === 'planPoint' ? 'an [x, y]' : 'an [x, y, z]';
+      return {
+        refused: `param "${name}" is tagged \`motion: '${tag}'\` but is not ${shape} point, so the motion cannot say where it goes`,
+      };
+    }
+    if (tag === 'planPoint') {
+      const off = planPointRefusal(name, motion);
+      if (off !== undefined) return { refused: off };
+    }
+    let turned: Vec3 | undefined;
+    if (tag !== 'direction') turned = applyMotions(asVec3(point), [motion]);
+    else if (motion.kind === 'rotate') {
+      turned = applyMotions(asVec3(point), [
+        { kind: 'rotate', axis: motion.axis, degrees: motion.degrees },
+      ]);
+    } else turned = asVec3(point);
+    if (turned === undefined) {
+      return {
+        refused: `the motion is degenerate (a zero-length axis), so param "${name}" has nowhere to go`,
+      };
+    }
+    out[name] = tag === 'planPoint' ? [turned[0], turned[1]] : [turned[0], turned[1], turned[2]];
+  }
+  return { params: out };
+}
+
+/** Why a plan point cannot take this motion, or `undefined` when it can. */
+function planPointRefusal(name: string, motion: RigidMotion): string | undefined {
+  const level =
+    `Its height comes from its Level: move the Level with \`core.updateContainer\`, or edit the ` +
+    `element's \`base\`/\`top\` constraint.`;
+  if (motion.kind === 'translate' && Math.abs(motion.by[2]) > DISPLACEMENT_TOL) {
+    return (
+      `param "${name}" is a plan point (\`motion: 'planPoint'\`) in its Level's plane, so a translation ` +
+      `with dz = ${String(motion.by[2])} cannot move it. ${level}`
+    );
+  }
+  if (motion.kind === 'rotate') {
+    const k = unit(motion.axis);
+    if (k !== undefined && Math.hypot(k[0], k[1]) > VERTICAL_TOL) {
+      return (
+        `param "${name}" is a plan point (\`motion: 'planPoint'\`) in its Level's plane, so a rotation ` +
+        `about the non-vertical axis [${motion.axis.join(', ')}] would tip it out of that plane. Rotate ` +
+        `about a vertical axis ([0, 0, 1]). ${level}`
+      );
+    }
+  }
+  return undefined;
+}
+
+/**
+ * The centroid of the element's tagged POINTS (`planPoint` at z = 0, `point`; never a `direction`) —
+ * `core.rotate`'s default `about` for a params-positioned element, whose frame origin is the world origin
+ * and would orbit it across the site. `undefined` ⇒ no tagged point is present.
+ */
+export function motionCentroid(params: Params, fields: readonly MotionField[]): Vec3 | undefined {
+  const points = fields.flatMap(({ name, motion }) => {
+    if (motion === 'direction') return [];
+    const p = readPoint(params[name], motion === 'planPoint' ? 2 : 3);
+    return p === undefined ? [] : [asVec3(p)];
+  });
+  if (points.length === 0) return undefined;
+  return scale(points.reduce<Vec3>(add, [0, 0, 0]), 1 / points.length);
 }

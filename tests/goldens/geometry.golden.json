@@ -1,10 +1,10 @@
 {
   "$schema": "bunyan.goldens.v1",
-  "seededAt": "2026-10-26T22:05:12.913467+00:00",
+  "seededAt": "2026-11-05T18:15:08.079600+00:00",
   "env": {
     "oracle": "cadquery-ocp (OCP bindings to OCCT)",
     "ocpVersion": "7.9.3.1.1",
-    "python": "3.12.13",
+    "python": "3.12.3",
     "platform": "Linux-6.17.0-1020-oracle-aarch64-with-glibc2.39"
   },
   "note": "Scope (spec \u00a79.0): we trust OCCT; we verify our own code. `crossCheck` is the PRIMARY oracle \u2014 a native OCCT build (OCP), which catches our WASM-build and op-wiring errors. `analytic` is a closed-form sanity check that guards our own measurement/seeding code; the seeder aborts if the two disagree. Regression snapshots live in the TS harness.",

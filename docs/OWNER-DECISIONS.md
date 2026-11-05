@@ -537,7 +537,8 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-11-04
-- ANSWER:
+- ANSWER: merge
+- free-text: owner 2026-11-02 in the coordinator session: "Merge all three (Recommended)"
 - answered: -
 
 ## D-20261028-02 PR #70 (T-034) is conflict-free again and needs an owner merge
@@ -556,8 +557,9 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-11-04
-- ANSWER:
-- answered: -
+- ANSWER: merge
+- free-text: owner 2026-11-02 in the coordinator session: "Merge all three (Recommended)"
+- answered: 2026-11-05T06:57Z
 
 ## D-20261028-03 PR #93 (T-050) is conflict-free again and needs an owner merge
 
@@ -577,8 +579,9 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: merge | changes | close
 - default-if-silent: changes
 - expires: 2026-11-04
-- ANSWER:
-- answered: -
+- ANSWER: merge
+- free-text: owner 2026-11-02 in the coordinator session: "Merge all three (Recommended)"
+- answered: 2026-11-05T06:55Z
 
 ## D-20261029-01 [public] the public repository description carries a stray `**`, and only you can change it
 
@@ -596,5 +599,24 @@ Q4 (answered in `docs/design/P5_step6C_plan_section_design.md:362`), Q21 and Q22
 - options: set | leave
 - default-if-silent: leave
 - expires: 2026-11-05
-- ANSWER:
+- ANSWER: set
+- free-text: owner 2026-11-02 in the coordinator session: "Set (Recommended)"
+- answered: 2026-11-03T22:33Z
+
+## D-20261102-01 zayd's claim on T-067 has had no commit since 2026-10-26
+
+- opened: 2026-11-02T07:34Z
+- by: brahim-loop
+- item: T-067
+- asks: whether to release zayd's claim on T-067 so its branch stops reading as live work
+- context: T-067 takes the 16k entries clone off the named save's main thread, the row that unblocks PR #116
+  (B-20261025-02) and PR #120 (B-20261026-01). zayd's claim on `task/T-067-a-named-save-names-its-carried-cache-ent`
+  last committed `2aee811` on 2026-10-26 and has no PR; start cannot hand it back to zayd (B-20261026-02,
+  B-20261027-01, both waiting on a diwan `agent_start.py` fix). release frees the claim and keeps the branch for
+  the next builder; keep leaves it with zayd. Neither changes code, and neither clears those blockers.
+- options: release | keep
+- default-if-silent: keep
+- expires: 2026-11-09
+- ANSWER: release
+- free-text: coordinator answer (technical), 2026-11-02: no commit since 2026-10-26 and no PR; the branch is kept for the next builder
 - answered: -

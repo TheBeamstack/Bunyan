@@ -108,6 +108,13 @@ export type FamilyModifier =
   | { readonly op: 'fillet'; readonly radius: FamilyValue; readonly edges: FamilyEdgeSelector };
 
 /**
+ * ⚠ WHICH FACE OF A PART'S BASE PRIMITIVE BILLS (D96) — by the face's `SubShapeRef` role (`x-max`,
+ * `lateral.1`, `cap-start`), which the primitive's op assigns by derivation (D1, D26). Never an area (rule
+ * 15: the area is MEASURED per face) and never a position in `refs`. A richer selector is an additive member.
+ */
+export type FamilyFaceSelector = { readonly by: 'role'; readonly role: string };
+
+/**
  * ONE PART of a family (D30 — an element is its ordered parts). A primitive + ordered modifiers, a material,
  * a discipline. The `name` is the part's slot in the element's own vocabulary (→ `BuiltPart.name`), authored
  * by the family, never by OCCT — the identity discipline of `partNodeId` (D30), one level up as data.
@@ -120,6 +127,12 @@ export interface FamilyPart {
   readonly discipline?: Discipline;
   readonly base: FamilyPrimitive;
   readonly modifiers?: readonly FamilyModifier[];
+  /**
+   * The faces a trade bills — the data twin of `BuiltPart.exposedRefs` (D72, D96); an interpreter resolves
+   * each role to this part's refs. ⚠ Absent ⇒ the whole-solid area; `[]` ⇒ zero (a buried part). No
+   * interpreter reads it in v1.0.0.
+   */
+  readonly exposedFaces?: readonly FamilyFaceSelector[];
 }
 
 /**
