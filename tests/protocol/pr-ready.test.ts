@@ -40,6 +40,25 @@ describe('a dependabot PR routes by its head branch and bot author', () => {
     expect(checkPr({ root: '.', pr: '118', view, poll }).failures).toHaveLength(1);
   });
 
+  // Each half of the author check alone: the human case above flips both, so it pins neither.
+  it('refuses the dependabot login when it is not a bot', () => {
+    const view = fakeView({
+      title: BUMP,
+      headRefName: DEP_HEAD,
+      author: { ...BOT, is_bot: false },
+    });
+    expect(checkPr({ root: '.', pr: '118', view, poll }).failures).toHaveLength(1);
+  });
+
+  it('refuses a bot that is not the dependabot app', () => {
+    const view = fakeView({
+      title: BUMP,
+      headRefName: DEP_HEAD,
+      author: { login: 'app/renovate', is_bot: true },
+    });
+    expect(checkPr({ root: '.', pr: '118', view, poll }).failures).toHaveLength(1);
+  });
+
   it('refuses the same title on a non-dependabot head, even from the bot', () => {
     const view = fakeView({ title: BUMP, headRefName: 'task/T-068-x', author: BOT });
     expect(checkPr({ root: '.', pr: '118', view, poll }).failures).toHaveLength(1);

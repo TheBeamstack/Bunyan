@@ -183,3 +183,10 @@ No defect proven at `5f7a2d2`. Item 1: with the dependabot branch deleted, `pr-r
 Live `gh pr view 118` author/head fed to `dependabotRoutes` → `true`; reserved-class scan `classes: []` (CI: RISK additive). `pnpm verify` → 1078 passed, 4 skipped.
 Step 1 only: no approval, no merge; the row stays `review`.
 Body: `handoff/hmdnah/2026-11-05-T-068-review-step-1.md`
+
+## T-068 — review step 2 of PR #128 — 2026-11-05 — seat: hmdnah
+
+No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 1: route forced `false` → `pr-ready.test.ts` 2 failed | 10 passed; restored → 12 passed.
+Item 6: dropping either the `is_bot` or the `login` half of `dependabotRoutes` left all 12 green; two added cases each turn their mutant red (1 failed | 13 passed); restored → 14 passed.
+Item 3: the labeller step behind `pr-ready` already ran on dependabot-authored PR #127 (run 42088259170, "labels already correct").
+Body: `handoff/hmdnah/2026-11-05-T-068-review-step-2.md`
