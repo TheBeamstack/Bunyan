@@ -102,7 +102,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-034 | done    | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                                             | document | box     | **high** | —                   |
 | T-035 | done    | Q8 — design: moving a D52 baseline wall, properly                                                                  | design   | box     | normal   | —                   |
 | T-050 | done    | Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves                                  | backend  | box     | **high** | —                   |
-| T-051 | ready   | Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags                                        | backend  | box     | **high** | T-050               |
+| T-051 | review  | Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags                                        | backend  | box     | **high** | T-050               |
 | T-036 | blocked | Q7 — `core.copy` deep-copies a host's openings                                                                     | document | box     | **high** | T-051               |
 | T-037 | ready   | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                                     | kernel   | box     | normal   | —                   |
 | T-038 | done    | Q6 — design: the D29 cache in the `.bnn`                                                                           | design   | box     | **high** | —                   |
