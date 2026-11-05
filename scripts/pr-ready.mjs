@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- * scripts/pr-ready.mjs — checks the opened PR's title routes (`T-nnn: ` / `STEWARD: `) and that GitHub
- * reports it MERGEABLE.
+ * scripts/pr-ready.mjs — checks the opened PR's title routes (`T-nnn: ` / `STEWARD: `, or a dependabot
+ * PR by head branch and bot author) and that GitHub reports it MERGEABLE.
  *
  * ⚠ `--fill`, a hand-typed title and `gh pr edit --title` all reach GitHub without any script
  * checking the title first, so this re-asks on the PR that actually got opened.
@@ -29,6 +29,20 @@ const PR_TITLE_RE = /^(T-\d{3}: |STEWARD: )/;
 /** `true` when a PR title carries a routable `T-nnn:` / `STEWARD:` prefix. */
 export function titleRoutes(title) {
   return PR_TITLE_RE.test(title ?? '');
+}
+
+/**
+ * `true` for a dependabot bump: head branch `dependabot/…` AND author the dependabot app. Its title is
+ * dependabot's own (`Bump x from a to b`), so it routes by provenance; both halves are required, so a
+ * human cannot borrow the route by naming a branch.
+ */
+export function dependabotRoutes(pr) {
+  return (
+    typeof pr?.headRefName === 'string' &&
+    pr.headRefName.startsWith('dependabot/') &&
+    pr.author?.login === 'app/dependabot' &&
+    pr.author?.is_bot === true
+  );
 }
 
 /** `gh pr view` as JSON, or `null` when gh cannot answer. */
@@ -64,38 +78,25 @@ export function mergeableState(root, pr, { attempts = 6, waitMs = 5000, view = p
   return { mergeable: 'UNKNOWN', mergeStateStatus: null };
 }
 
-export function main(argv = process.argv.slice(2)) {
-  let root = SELF_ROOT;
-  let pr;
-  let title;
-  for (let i = 0; i < argv.length; i++) {
-    const t = argv[i];
-    if (t === '--root') root = argv[++i];
-    else if (t === '--pr') pr = argv[++i];
-    else if (t === '--title') title = argv[++i];
-    else {
-      console.error(`pr-ready.mjs: unknown flag '${t}'`);
-      process.exit(2);
-    }
-  }
-
+/**
+ * Both checks against `pr` (read through `view`) or a bare `title`. Returns `{ passes, failures }`;
+ * `failures` is `null` when gh could not read the PR at all.
+ */
+export function checkPr({ root, pr, title, view = prView, poll = {} }) {
+  const passes = [];
   const failures = [];
 
   // ── 1. the title ────────────────────────────────────────────────────────────────────────────
+  let data = null;
   if (title === undefined && pr) {
-    const data = prView(root, pr, ['title']);
-    if (data === null) {
-      console.error(`✖ gh could not read PR ${pr}. Is \`gh\` authenticated?`);
-      process.exit(1);
-    }
+    data = view(root, pr, ['title', 'headRefName', 'author']);
+    if (data === null) return { passes, failures: null };
     title = data.title;
   }
-  if (title === undefined) {
-    console.error('usage: pr-ready.mjs --pr <n> | --title <title>');
-    process.exit(2);
-  }
   if (titleRoutes(title)) {
-    console.log(`✓ title routes: ${title}`);
+    passes.push(`✓ title routes: ${title}`);
+  } else if (dependabotRoutes(data)) {
+    passes.push(`✓ routed as a dependency PR: ${data.headRefName} by ${data.author.login}`);
   } else {
     failures.push(
       `the PR title does not route:\n      ${title}\n` +
@@ -107,11 +108,11 @@ export function main(argv = process.argv.slice(2)) {
 
   // ── 2. mergeable ────────────────────────────────────────────────────────────────────────────
   if (pr) {
-    const { mergeable, mergeStateStatus } = mergeableState(root, pr);
+    const { mergeable, mergeStateStatus } = mergeableState(root, pr, { ...poll, view });
     if (mergeable === null) {
       failures.push(`gh could not read PR ${pr}'s mergeable state.`);
     } else if (mergeable === 'MERGEABLE') {
-      console.log(`✓ mergeable: MERGEABLE${mergeStateStatus ? ` (${mergeStateStatus})` : ''}`);
+      passes.push(`✓ mergeable: MERGEABLE${mergeStateStatus ? ` (${mergeStateStatus})` : ''}`);
     } else if (mergeable === 'UNKNOWN') {
       // ⚠ NOT a pass and NOT a hard failure of the PR itself — GitHub never finished computing.
       // Said out loud rather than swallowed, because a gate that reports green on UNKNOWN is the
@@ -130,7 +131,34 @@ export function main(argv = process.argv.slice(2)) {
       );
     }
   }
+  return { passes, failures };
+}
 
+export function main(argv = process.argv.slice(2)) {
+  let root = SELF_ROOT;
+  let pr;
+  let title;
+  for (let i = 0; i < argv.length; i++) {
+    const t = argv[i];
+    if (t === '--root') root = argv[++i];
+    else if (t === '--pr') pr = argv[++i];
+    else if (t === '--title') title = argv[++i];
+    else {
+      console.error(`pr-ready.mjs: unknown flag '${t}'`);
+      process.exit(2);
+    }
+  }
+  if (title === undefined && !pr) {
+    console.error('usage: pr-ready.mjs --pr <n> | --title <title>');
+    process.exit(2);
+  }
+
+  const { passes, failures } = checkPr({ root, pr, title });
+  if (failures === null) {
+    console.error(`✖ gh could not read PR ${pr}. Is \`gh\` authenticated?`);
+    process.exit(1);
+  }
+  for (const p of passes) console.log(p);
   if (failures.length) {
     console.error('');
     for (const f of failures) console.error(`  ✖ ${f}`);

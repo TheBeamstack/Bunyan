@@ -169,3 +169,10 @@ No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 
 On `412d126` (base = origin/main `fe87966`): `pnpm verify` → 125 files, 1073 passed, 4 skipped; docs:check 66 passed.
 Lockfile integrities for vitest 4.1.11, the `@vitest/*` 4.1.11 set and 6 transitive bumps match `npm view`.
 Body: `handoff/hmdnah/2026-11-05-DEPS-127-review.md`
+
+## T-068 — a dependabot PR routes by head branch and bot author — 2026-11-05 — seat: zayd
+
+`scripts/pr-ready.mjs` routes a PR on a `dependabot/` head authored by `app/dependabot` (is_bot); `main` now calls an injectable `checkPr`.
+Test-first 5 red → 12 passed; revert-verify: route disabled → the bot case red. Bare dependabot `--title` still exits 1; CONFLICTING/UNKNOWN still fail.
+`pnpm verify` → 125 files, 1078 passed, 4 skipped; docs:check 71 passed. B-20261025-01 stays open for diwan's half.
+Body: `handoff/zayd/2026-11-05-T-068-dependabot-pr-shape.md`
