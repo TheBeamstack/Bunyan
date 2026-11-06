@@ -105,6 +105,9 @@ builder may claim.
 - **B-20261105-01** — `scope: item` · `item: T-067` — start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
   - need: install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn
   - opened 2026-11-05T09:35Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261106-01** — `scope: item` · `item: T-069` — T-069's relink cannot run: the unattended session's permissions refuse `docker` and the OCCT libs
+  - need: allow `docker` and read access to `/home/brahim/occt-wasm-spike/install` in the box loop's Claude Code permission settings, then run T-069 in a zayd turn
+  - opened 2026-11-06T09:42Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
