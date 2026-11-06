@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-037` |
 | branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #72 merged by `hmdnah` at 2026-11-06T03:40:13Z |
 
 <!-- END BATON -->
 
@@ -226,4 +226,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a9be15b1e20eb83db5cdff060c0c57fe3c4f0edd
+last-verified-at: 13e3417ee50fbfa28f90b7fbe6bf4caa43e76fcd
