@@ -369,4 +369,4 @@ Body: `handoff/brahim/2026-11-06-STEWARD-backstop-t033-flip.md`
 
 T-069 (`ready`, `risk: high`, `requires: docker`) makes `sectionCut` emit float64 points; it replaces the 2026-10-12 `## Discovered` float32 finding, re-measured at `0f62778` (`kernel.cpp:2541-2542`).
 `core_logic.md:372` now records the `Dimension.anchors` narrowing as fixed by D97 / T-033 (PR #69).
-Body: `handoff/brahim/2026-11-06-STEWARD-float64-section-points.md`
+Body: `handoff/brahim/2026-11-06-STEWARD-float64-section-points-t069.md`
