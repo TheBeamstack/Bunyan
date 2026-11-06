@@ -75,9 +75,6 @@ builder may claim.
 
 ## BLOCKED
 
-- **B-20261012-10** — `scope: item` · `item: PR#72` — PR #72's changes-requested review cannot be recorded by the finish entrypoint
-  - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
-  - opened 2026-10-12T04:42Z by hmdnah · recorded in `docs/BLOCKERS.md`
 - **B-20261025-01** — `scope: item` · `item: PR#118` — PR #118's `PR shape · reserved classes` check refuses every dependabot PR, so it cannot merge
   - need: give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah
   - opened 2026-10-25T19:34Z by hmdnah · recorded in `docs/BLOCKERS.md`
@@ -102,9 +99,6 @@ builder may claim.
 - **B-20261028-01** — `scope: item` · `item: PR#118` — start's review mode claims PR #120 ahead of PR #118, so hmdnah cannot reach the retitled dependabot PR
   - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118
   - opened 2026-10-28T04:35Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261029-01** — `scope: item` · `item: PR#72` — start's review mode claims PR #120 ahead of PR #72, so hmdnah cannot review the re-seeded T-037 PR
-  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
-  - opened 2026-10-29T10:03Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 - **B-20261102-02** — `scope: item` · `item: T-067` — the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim
   - need: give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01
   - opened 2026-11-02T22:16Z by brahim-loop · recorded in `docs/BLOCKERS.md`
@@ -232,4 +226,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: b16ab66985f3e95168834066c65df636ceec9ad1
+last-verified-at: 7f1433172cee1b046a9a181dce1a5a1f48067e45
