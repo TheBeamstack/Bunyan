@@ -406,6 +406,30 @@ from, and the reason it is a record rather than prose.
 - need: make the shipped `CODE_ID` unservable stale under an unchanged URL (fix shape in `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`) in a zayd turn on `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a`, land the probe test, then route PR #90 to hmdnah for step 2
 - cleared: 2026-10-23T02:53Z
 
+## B-20261012-09 PR #72's re-seed gate is red: the goldens were not re-seeded
+
+- opened: 2026-10-12T02:56Z
+- by: zayd
+- scope: item
+- item: PR#72
+- what: PR #72 (T-037) changes `packages/kernel-occt/src/kernel.ts`, a re-seed source, and touches no golden, so CI's re-seed gate fails
+- why: `scripts/check-reseed.mjs` exits 1 when no golden file changed, before it reads the `Re-seed-unchanged:` trailer the commit carries, and zayd's session was denied permission to run `uv run seed-goldens`
+- evidence: `gh run view 38197377650 --log-failed` → "re-seed gate FAILED — geometry changed but no goldens were re-seeded."
+- need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
+- cleared: 2026-10-26T22:20Z
+
+## B-20261012-10 PR #72's changes-requested review cannot be recorded by the finish entrypoint
+
+- opened: 2026-10-12T04:42Z
+- by: hmdnah
+- scope: item
+- item: PR#72
+- what: hmdnah's `--review` finish for T-037 wrote `T-037 → done` and a baton reading "reviewed by `hmdnah` — ready to merge", though the verdict is changes requested; hmdnah reset the row to `review` by hand so `--continue T-037` admits zayd
+- why: `agent_finish.py` `review_routing` sets the row to `done` whenever `review_flips_to_done` is true (risk normal), and has no flag for a verdict that is not approval
+- evidence: `git show fdf8c82 -- docs/BACKLOG.md docs/CURRENT_STATE.md`
+- need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
+- cleared: 2026-11-06T03:11Z
+
 ## B-20261023-01 PR #106's step 2 found step 1's installSecret comment defect unfixed, so it is not merged
 
 - opened: 2026-10-23T11:20Z
@@ -572,7 +596,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_start.py --seat hmdnah --review` exited 0 printing "Claiming PR #120 for review." while listing PR #72 as "→ YOURS"; the selector defect B-20261028-01 records for PR #118
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/ubuntu/projects/Bunyan; echo $?` prints "Claiming PR #120 for review." while listing PR #72 as "→ YOURS"
 - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
-- cleared: -
+- cleared: 2026-11-06T03:11Z
 
 ## B-20261031-01 the box checkout at /home/brahim cannot push to github.com, so no turn can land
 
@@ -596,7 +620,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_start.py` exited 1, "T-037 (PR #72) is held by B-20261029-01, B-20261012-10, an uncleared `scope: item` blocker at main that is neither a change on task/T-037-q5-the-section-chord-tolerance-chosen-fo nor this seat's newest ticket"; `gh pr view 72 --json mergeable` → CONFLICTING at `8bfa24e`; B-20261027-03 is the same defect for PR #116
 - evidence: `python3 /home/brahim/projects/diwan/scripts/agent_start.py --seat zayd --root /home/brahim/projects/Bunyan --continue T-037; echo $?` on `main` at `d67282d` exits 1
 - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
-- cleared: -
+- cleared: 2026-11-01T15:35Z
 
 ## B-20261102-01 the owner signed PR #69, #70 and #93 for merge, but start's review mode hands hmdnah PR #120 instead
 
