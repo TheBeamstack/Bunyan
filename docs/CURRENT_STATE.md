@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-068` |
-| branch | `task/T-068-a-dependabot-pr-passes-the-pr-shape-chec` |
-| claimed-at | 2026-11-05T19:03:40Z |
-| status | merged — PR #128 merged by `hmdnah` at 2026-11-05T20:20:33Z |
+| task | `T-033` |
+| branch | `task/T-033-q10-dimension-anchors-excludes-the-free-` |
+| claimed-at | 2026-10-12T01:01:48Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -105,15 +105,9 @@ builder may claim.
 - **B-20261101-01** — `scope: item` · `item: PR#72` — PR #72's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-037` on B-20261029-01
   - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
   - opened 2026-11-01T15:04Z by zayd · recorded in `docs/BLOCKERS.md`
-- **B-20261102-01** — `scope: item` · `item: PR#69` — the owner signed PR #69, #70 and #93 for merge, but start's review mode hands hmdnah PR #120 instead
-  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run one dedicated hmdnah merge each of PR #69, #70 and #93 under D-20261028-01, -02 and -03
-  - opened 2026-11-02T22:16Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 - **B-20261102-02** — `scope: item` · `item: T-067` — the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim
   - need: give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01
   - opened 2026-11-02T22:16Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261104-01** — `scope: item` · `item: PR#69` — hmdnah's step-1 review of PR #69 passed, and the finish refuses by stamping B-20261102-01 cleared
-  - need: make diwan `agent_finish.py` stamp a ticket only on the finish that performs its `need:` and regenerate `## BLOCKED` after any stamp, then run hmdnah's step 1 of PR #69
-  - opened 2026-11-04T06:57Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 - **B-20261105-01** — `scope: item` · `item: T-067` — start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
   - need: install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn
   - opened 2026-11-05T09:35Z by zayd · recorded in `docs/BLOCKERS.md`
@@ -224,18 +218,18 @@ maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `task/T-050-q8a-paramfield-motion-is-reserved-a-sche` · `ae868a6` · dirty |
-| open PRs | #122 steward/pr70-merged-log-roll · #120 task/T-065-a-named-save-posts-its-entries-to-the-zi · #118 dependabot/npm_and_yarn/vite-6.4.4 · #116 task/T-064-a-named-save-posts-its-geometry-cache-re · #93 task/T-050-q8a-paramfield-motion-is-reserved-a-sche · #72 task/T-037-q5-the-section-chord-tolerance-chosen-fo · #69 task/T-033-q10-dimension-anchors-excludes-the-free- |
-| suite | ⚠⚠ 1061/1065 passing — **4 FAILING** |
+| branch · tip · tree | `task/T-033-q10-dimension-anchors-excludes-the-free-` · `6a14b23` · dirty |
+| open PRs | #120 task/T-065-a-named-save-posts-its-entries-to-the-zi · #116 task/T-064-a-named-save-posts-its-geometry-cache-re · #72 task/T-037-q5-the-section-chord-tolerance-chosen-fo · #69 task/T-033-q10-dimension-anchors-excludes-the-free- |
+| suite | ⚠⚠ 1081/1085 passing — **4 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: contract-touching (re-baselined)** — 3 declaration(s) moved — packages/document/src/schema.ts :: interface ParamField, packages/document/src/families.ts :: interface FamilyPart, packages/document/src/families.ts :: type FamilyFaceSelector · baseline REWRITTEN this session |
-| diff vs origin/main | 22 files changed, 709 insertions(+), 28 deletions(-) (22 files) |
-| docs budget | current_state 16.9/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 240 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 2 declaration(s) moved — packages/document/src/documentation.ts :: interface Dimension, packages/document/src/documentation.ts :: type ModelAnchor · baseline REWRITTEN this session |
+| diff vs origin/main | 12 files changed, 245 insertions(+), 26 deletions(-) (12 files) |
+| docs budget | current_state 17.4/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 262 |
 
-_Generated 2026-11-05 by `pnpm state`._
+_Generated 2026-11-06 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 2a2a67e494b21a4231dfc76cfa1e316e2439c9ee
+last-verified-at: 3ea65eb67c74191bdf63aa04536ad6747c6237f0
