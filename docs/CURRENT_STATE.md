@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-037` |
-| branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
+| task | `STEWARD-float64-section-points` |
+| branch | `steward/float64-section-points-core-logic-372` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #72 merged by `hmdnah` at 2026-11-06T03:40:13Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -226,4 +226,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: e5338caf2a55f255dcfcfcdb5f2721d6da464a84
+last-verified-at: bfc749d296806a61fec9ad7448ded4f8a13ee0ba
