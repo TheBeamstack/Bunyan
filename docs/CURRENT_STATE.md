@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `zayd` |
 | builder | `zayd` |
-| role | reviewer |
+| role | builder |
 | machine | box |
-| task | `STEWARD-float64-section-points` |
-| branch | `steward/float64-section-points-core-logic-372` |
-| claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #129 merged by `hmdnah` at 2026-11-06T04:48:52Z |
+| task | `T-069` |
+| branch | `task/T-069-section-points-cross-the-wasm-boundary-a` |
+| claimed-at | 2026-11-06T09:41:11Z |
+| status | working |
 
 <!-- END BATON -->
 
