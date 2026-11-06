@@ -153,6 +153,12 @@ BLOCKED was re-rendered by `blocked.py`. Six T-037 abstracts were kept, and T-03
 Not done: no golden re-seeded and the seeder was not tried; B-20261012-03 stays uncleared.
 Body: `handoff/zayd/2026-10-23-T-037-merge-main-f1.md`
 
+## T-064 — origin/main merged into PR #116 (Flow F1) — 2026-10-27 — seat: zayd
+
+Merged `origin/main` at `13190ce`; four doc conflicts. BACKLOG took main's side; BLOCKERS and PHASE_LOG kept both append-only sides; BLOCKED re-rendered by `blocked.py`.
+No code changed; the 200 ms bar is T-067's (B-20261025-02). `pnpm verify` green (1061 passed, 4 skipped; docs:check 66 passed).
+Body: `handoff/zayd/2026-10-27-T-064-merge-main.md`
+
 ## T-050 — `ParamField.motion?` is reserved — 2026-10-20 — seat: zayd
 
 `ParamField` has `motion?: 'planPoint' | 'point' | 'direction'` (D95, design §5 A); nothing tags or reads it.
@@ -180,6 +186,32 @@ Merged `origin/main` at `132f758`; no code changed. Conflicts: `PHASE_LOG.md` (b
 `CURRENT_STATE.md` (this branch's baton), `frozen-surface.snapshot.json` (main's side, then `pnpm state --rebaseline`:
 215 declarations, #70's `FamilyPart`/`FamilyFaceSelector` and #93's `ParamField`). `pnpm verify` green (1061 passed).
 Body: `handoff/zayd/2026-11-05-T-050-merge-main.md`
+
+## T-064 — review step 2 of PR #116 — 2026-10-25 — seat: hmdnah
+
+CHANGES REQUESTED; not approved, not merged, row stays `review` (B-20261025-02). Done-when 3 unmet at `ef411ee`: `named-save.mjs` 16k
+exited 1 in 2 of 3 runs (184.6/225.6/172.7, 299.4/165.9/165.5, 167.9/161.3/162.1 ms). Item 1: post reverted → 2 red; restored → 3 green.
+Items 2, 3, 6: no defect. `pnpm verify` green; CI green; not owner-gated.
+Body: `handoff/hmdnah/2026-10-25-T-064-review-step-2.md`
+
+## T-064 — the 200 ms bar at 16k is unmet; figures recorded — 2026-10-24 — seat: zayd
+
+Three unmodified `named-save.mjs` runs at `4f43dea`: first saves 165.2 / 220.6 / 246.2 ms, later saves 148.7–181.5 ms; exit 0 once, 1 twice.
+The entries clone alone is 187–216 ms on the first iteration, and T-064 does not touch it. Design §5:242 is corrected; the bar and the done-when are unchanged. B-20261024-02. Incomplete.
+Body: `handoff/zayd/2026-10-24-T-064-records-one-buffer.md` (continue-turn section)
+
+## T-064 — review step 1 of PR #116 — 2026-10-24 — seat: hmdnah
+
+Item 1 at `7e40bfd`: posting `signing` as objects again → "one transferred ArrayBuffer: expected [] to have a length of 1"; restored → 3 passed. No build defect proven; no approval.
+Done-when 3 does not reproduce: `named-save.mjs` 16k exited 1 in 2 of 3 runs, each time on the first timed save (206.2 and 233.1 ms). Back to `zayd`.
+The first `geometryCacheFiles()` after an open takes 1437.9 ms and is outside the bar. Not owner-gated.
+Body: `handoff/hmdnah/2026-10-24-T-064-review-step-1.md`
+
+## T-064 — a named save posts its geometry-cache records to the zip worker as one transferred buffer — 2026-10-24 — seat: zayd
+
+Record JSON is kept at export and at open (`keepRecordJson`). `createBnnZipper` posts it as one transferred buffer, and the worker parses, signs and zips; the bytes equal `saveBnn`.
+T-064 test 3 passed; posting the record objects again → "one transferred ArrayBuffer: expected [] to have a length of 1". `pnpm verify` green (1061 passed). `named-save.mjs` 16k: 154–181 ms PASS in 3 runs, 210–255 ms FAIL in 1.
+Body: `handoff/zayd/2026-10-24-T-064-records-one-buffer.md`
 
 ## T-050 — review step 2 of PR #93 — 2026-11-05 — seat: hmdnah
 

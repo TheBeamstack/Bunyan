@@ -12,13 +12,22 @@
  */
 
 import { zipBnnEntries, type BnnEntries } from '@bunyan/document/bnnzip';
-import { signBnnEntries, type CacheSigning } from '@bunyan/document/cachesign';
+import {
+  deserializeRecords,
+  serializeRecords,
+  signBnnEntries,
+  type CacheSigning,
+  type PostedCacheSigning,
+} from '@bunyan/document/cachesign';
 
 export interface ZipRequest {
   readonly id: number;
   readonly entries: BnnEntries;
-  /** Present ⇒ `entries` holds a placeholder index, signed here before the zip (T-060). */
-  readonly signing?: CacheSigning;
+  /**
+   * Present ⇒ `entries` holds a placeholder index, signed here before the zip (T-060). Its records are one
+   * transferred buffer (T-064), parsed here.
+   */
+  readonly signing?: PostedCacheSigning;
 }
 
 export type ZipReply =
@@ -29,7 +38,10 @@ export type ZipReply =
 export function handleZipRequest(request: ZipRequest): ZipReply {
   try {
     const { entries, signing } = request;
-    const signed = signing === undefined ? entries : signBnnEntries(entries, signing);
+    const signed =
+      signing === undefined
+        ? entries
+        : signBnnEntries(entries, { ...signing, records: deserializeRecords(signing.records) });
     return { id: request.id, bytes: zipBnnEntries(signed) };
   } catch (error) {
     return { id: request.id, error: String(error) };
@@ -38,7 +50,7 @@ export function handleZipRequest(request: ZipRequest): ZipReply {
 
 /** What the zipper needs of a `Worker`, so a node test can stand in for one. */
 export interface ZipPort {
-  postMessage(message: ZipRequest): void;
+  postMessage(message: ZipRequest, transfer: ArrayBuffer[]): void;
   addEventListener(type: 'message', listener: (event: { data: ZipReply }) => void): void;
   addEventListener(type: 'error', listener: (event: { message?: string }) => void): void;
 }
@@ -49,7 +61,10 @@ export interface BnnZipper {
   readonly failed: boolean;
 }
 
-/** The posting side. ⚠ Entries are cloned, never transferred: a carried cache entry is the doc's own buffer. */
+/**
+ * The posting side. ⚠ Entries are cloned, never transferred: a carried cache entry is the doc's own buffer.
+ * The records are serialized into one fresh buffer, which is transferred (T-064).
+ */
 export function createBnnZipper(port: ZipPort): BnnZipper {
   const pending = new Map<
     number,
@@ -81,7 +96,15 @@ export function createBnnZipper(port: ZipPort): BnnZipper {
         }
         const id = next++;
         pending.set(id, { resolve, reject });
-        port.postMessage(signing === undefined ? { id, entries } : { id, entries, signing });
+        if (signing === undefined) {
+          port.postMessage({ id, entries }, []);
+          return;
+        }
+        const { envelope, secret } = signing;
+        const records = serializeRecords(signing.records);
+        port.postMessage({ id, entries, signing: { envelope, records, secret } }, [
+          records.json.buffer as ArrayBuffer,
+        ]);
       }),
   };
 }
