@@ -221,17 +221,17 @@ maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `task/T-050-q8a-paramfield-motion-is-reserved-a-sche` · `ae868a6` · dirty |
-| open PRs | #122 steward/pr70-merged-log-roll · #120 task/T-065-a-named-save-posts-its-entries-to-the-zi · #118 dependabot/npm_and_yarn/vite-6.4.4 · #116 task/T-064-a-named-save-posts-its-geometry-cache-re · #93 task/T-050-q8a-paramfield-motion-is-reserved-a-sche · #72 task/T-037-q5-the-section-chord-tolerance-chosen-fo · #69 task/T-033-q10-dimension-anchors-excludes-the-free- |
-| suite | ⚠⚠ 1061/1065 passing — **4 FAILING** |
+| branch · tip · tree | `task/T-033-q10-dimension-anchors-excludes-the-free-` · `6a14b23` · dirty |
+| open PRs | #120 task/T-065-a-named-save-posts-its-entries-to-the-zi · #116 task/T-064-a-named-save-posts-its-geometry-cache-re · #72 task/T-037-q5-the-section-chord-tolerance-chosen-fo · #69 task/T-033-q10-dimension-anchors-excludes-the-free- |
+| suite | ⚠⚠ 1081/1085 passing — **4 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: contract-touching (re-baselined)** — 3 declaration(s) moved — packages/document/src/schema.ts :: interface ParamField, packages/document/src/families.ts :: interface FamilyPart, packages/document/src/families.ts :: type FamilyFaceSelector · baseline REWRITTEN this session |
-| diff vs origin/main | 22 files changed, 709 insertions(+), 28 deletions(-) (22 files) |
-| docs budget | current_state 16.9/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 240 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 2 declaration(s) moved — packages/document/src/documentation.ts :: interface Dimension, packages/document/src/documentation.ts :: type ModelAnchor · baseline REWRITTEN this session |
+| diff vs origin/main | 12 files changed, 245 insertions(+), 26 deletions(-) (12 files) |
+| docs budget | current_state 17.4/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 262 |
 
-_Generated 2026-11-05 by `pnpm state`._
+_Generated 2026-11-06 by `pnpm state`._
 
 <!-- END GENERATED -->
 

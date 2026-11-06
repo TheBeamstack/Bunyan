@@ -225,3 +225,9 @@ DEFECT PROVEN at `ee4d7b9`: SYNC merge `36473d8` merged T-034's snapshot textual
 Item 1: with `Dimension.anchors` reverted, `tsc -p tsconfig.json` → TS2578 at `documentation-anchoring.test.ts(266,9)`, exit 2; restored → exit 0. Labeller: contract-touching + freeze, as the diff warrants.
 Filed B-20261105-03 for zayd; changes requested, the row stays `review`.
 Body: `handoff/hmdnah/2026-11-06-T-033-review-step-1.md`
+
+## T-033 — PR #69's snapshot re-baselined (B-20261105-03) — 2026-11-06 — seat: zayd
+
+`pnpm state --rebaseline` set `_declarationCount` 215 → 216, the only field it moved; a second run left the file byte-identical.
+`pnpm verify` exit 0 (1081 passed, 4 skipped). PR #69 stays owner-gated; next is hmdnah's step 1.
+Body: `handoff/zayd/2026-11-06-T-033-snapshot-rebaseline.md`
