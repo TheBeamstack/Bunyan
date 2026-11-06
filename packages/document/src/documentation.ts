@@ -56,6 +56,9 @@ export type AnnotationAnchor =
   | { readonly kind: 'element'; readonly elementId: ElementId }
   | { readonly kind: 'point'; readonly at: readonly [number, number] };
 
+/** An anchor that follows the model — every `AnnotationAnchor` but the free paper `point` (D97). */
+export type ModelAnchor = Exclude<AnnotationAnchor, { readonly kind: 'point' }>;
+
 /* ================================================================================================
  * ANNOTATIONS — a Dimension or a Tag. STORE AN ANCHOR + A RULE, NEVER A VALUE.
  * ============================================================================================= */
@@ -76,8 +79,11 @@ export interface Dimension {
   readonly kind: 'dimension';
   /** The view this dimension is drawn in (a plan/section). Absent ⇒ a schedule-independent model dimension. */
   readonly viewId?: ViewId;
-  /** ≥ 2 anchors; the value is the measured distance/angle between them, DERIVED from live geometry. */
-  readonly anchors: readonly AnnotationAnchor[];
+  /**
+   * ≥ 2 anchors; the value is the measured distance/angle between them, DERIVED from live geometry.
+   * Model anchors only (D97, Q10): a `point` would freeze the number against every edit (rule 17).
+   */
+  readonly anchors: readonly ModelAnchor[];
   /** How the anchors are read into a number. `radial`/further kinds are additive members, never an edit. */
   readonly dimensionKind: 'linear' | 'angular' | 'radial';
 }

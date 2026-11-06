@@ -222,3 +222,65 @@ No defect proven; approve and merge via `agent_merge.py`, not owner-gated. Item 
 Item 6: dropping either the `is_bot` or the `login` half of `dependabotRoutes` left all 12 green; two added cases each turn their mutant red (1 failed | 13 passed); restored → 14 passed.
 Item 3: the labeller step behind `pr-ready` already ran on dependabot-authored PR #127 (run 42088259170, "labels already correct").
 Body: `handoff/hmdnah/2026-11-05-T-068-review-step-2.md`
+
+## T-033 — `Dimension.anchors` excludes the free `point` anchor — 2026-10-12 — seat: zayd
+
+`Dimension.anchors` is `ModelAnchor[]` (`AnnotationAnchor` minus `point`, D97); `Tag` keeps `point`. A
+`@ts-expect-error` test fails `tsc` (TS2578) with the narrowing reverted. No `Dimension.anchors` reader
+under `packages/`. RISK: contract-touching (re-baselined) — owner merges. `pnpm verify` green (911).
+Body: `handoff/zayd/2026-10-12-T-033-dimension-model-anchors.md`
+
+## T-033 — flow fix: PR #69 merged with `origin/main` — 2026-10-20 — seat: zayd
+
+Merged `origin/main` into the branch; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (977 passed, 1 skipped).
+PR #69 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-033-main-merge.md`
+
+## T-033 — flow fix: PR #69 merged with `origin/main` again — 2026-10-20 — seat: zayd
+
+Merged `origin/main` (`7da6795`) per D-20261020-01's `changes`; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (1003 passed, 1 skipped).
+PR #69 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-20-T-033-main-merge.md`
+
+## T-033 — flow fix: PR #69 merged with `origin/main` (`26336a6`) — 2026-10-28 — seat: zayd
+
+Merged `origin/main` per the manager's F1; conflicts only in BACKLOG, CURRENT_STATE and PHASE_LOG, no code.
+The frozen-surface snapshot is untouched (main moved no watched path). `pnpm verify` green (1059 passed, 4 skipped).
+PR #69 stays owner-gated; not merged.
+Body: `handoff/zayd/2026-10-28-T-033-main-merge.md`
+
+## T-033 — review step 1 of PR #69 — 2026-11-06 — seat: hmdnah
+
+DEFECT PROVEN at `ee4d7b9`: SYNC merge `36473d8` merged T-034's snapshot textually, not by re-baselining it. `surface` holds 216 declarations, but `_declarationCount` reads 215.
+Item 1: with `Dimension.anchors` reverted, `tsc -p tsconfig.json` → TS2578 at `documentation-anchoring.test.ts(266,9)`, exit 2; restored → exit 0. Labeller: contract-touching + freeze, as the diff warrants.
+Filed B-20261105-03 for zayd; changes requested, the row stays `review`.
+Body: `handoff/hmdnah/2026-11-06-T-033-review-step-1.md`
+
+## T-033 — PR #69's snapshot re-baselined (B-20261105-03) — 2026-11-06 — seat: zayd
+
+`pnpm state --rebaseline` set `_declarationCount` 215 → 216, the only field it moved; a second run left the file byte-identical.
+`pnpm verify` exit 0 (1081 passed, 4 skipped). PR #69 stays owner-gated; next is hmdnah's step 1.
+Body: `handoff/zayd/2026-11-06-T-033-snapshot-rebaseline.md`
+
+## T-033 — review step 1 of PR #69, re-run — 2026-11-06 — seat: hmdnah
+
+No defect proven at `9cf4604`; the snapshot is byte-identical to `baselineSnapshot(buildSurface('.'))` (216/216).
+Item 1: the reverted narrowing gives `tsc` exit 2 (TS2578) and a red `freeze-boundary` (`interface Dimension` CHANGED); restored, both are green. `pnpm verify` exits 0 (1081 passed, 4 skipped).
+Labeller: contract-touching + freeze, which matches the diff. No approval, no merge; the row stays `review` for step 2.
+Body: `handoff/hmdnah/2026-11-06-T-033-review-step-1.md`
+
+## T-033 — review step 2 of PR #69 — 2026-11-06 — seat: hmdnah
+
+No defect proven at `c6bd581`; approve, and merge on D-20261028-01's owner sign-off (contract-touching + freeze released).
+Item 1: the reverted narrowing makes `tsc` exit 2 (TS2578) and turns `freeze-boundary` red; restored, both are green. Items 2/3: `Dimension.anchors` has no reader, and `annotations` is still a reservation.
+Item 6: vitest alone passes the new test reverted, but `tsc` (CI `pnpm typecheck`) holds it. `core_logic.md:372` still calls the narrowing "NOT FIXED", which a brahim turn should annotate.
+Body: `handoff/hmdnah/2026-11-06-T-033-review-step-2.md`
+
+## STEWARD-backstop-t033 — T-033 flipped `done` — 2026-11-06 — seat: brahim
+
+PR #69 (T-033) is MERGED as `f5223cf`, yet its row still read `review` and the start sheet printed "backstop: nothing to flip".
+Cause: as on 2026-11-05, `agent_start.py` lists 20 merged PRs ordered by creation, which leaves out #69. No promotion: no row depends on T-033.
+Not landed: the finish refused D-20261028-01's `answered:` stamp and the `core_logic.md:372` note as outside the bookkeeping paths.
+Body: `handoff/brahim/2026-11-06-STEWARD-backstop-t033-flip.md`

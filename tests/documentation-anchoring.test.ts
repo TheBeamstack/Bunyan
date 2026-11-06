@@ -256,6 +256,27 @@ describe('Ⓐ freeze-safety — the documentation shapes are optional and additi
     expect(anchors.map((a) => a.kind)).toEqual(['ref', 'vertex', 'element', 'point']);
   });
 
+  it('a Dimension admits only model anchors — a free `point` is refused at compile time (D97, Q10)', () => {
+    const dim: Dimension = {
+      id: 'd-point',
+      kind: 'dimension',
+      dimensionKind: 'linear',
+      anchors: [
+        { kind: 'element', elementId: 'w1' },
+        // @ts-expect-error — D97: a dimension's number must re-derive from the model; a paper point cannot
+        { kind: 'point', at: [100, 200] },
+      ],
+    };
+    const tag: Tag = {
+      id: 't-point',
+      kind: 'tag',
+      anchor: { kind: 'point', at: [0, 0] },
+      subject: 'mark',
+    };
+    expect(dim.anchors).toHaveLength(2);
+    expect(tag.anchor.kind).toBe('point');
+  });
+
   it('every ScheduleColumn source is a distinct, additive member', () => {
     const columns: ScheduleColumn[] = [
       { source: 'field', key: 'mark' },
