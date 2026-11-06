@@ -67,7 +67,7 @@ builder may claim.
 | task | `T-033` |
 | branch | `task/T-033-q10-dimension-anchors-excludes-the-free-` |
 | claimed-at | 2026-10-12T01:01:48Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #69 merged by `hmdnah` at 2026-11-06T01:21:37Z |
 
 <!-- END BATON -->
 
@@ -232,4 +232,4 @@ _Generated 2026-11-06 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 3ea65eb67c74191bdf63aa04536ad6747c6237f0
+last-verified-at: f5223cf1f17b6445cfceac62b0c360c4a4a4445f
