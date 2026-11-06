@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
-| task | `STEWARD-backstop-t033` |
-| branch | `main` |
-| claimed-at | 2026-10-12T01:01:48Z |
-| status | finished — PR open, awaiting review |
+| task | `T-037` |
+| branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
+| claimed-at | 2026-10-24T07:05:10Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -99,12 +99,6 @@ builder may claim.
 - **B-20261028-01** — `scope: item` · `item: PR#118` — start's review mode claims PR #120 ahead of PR #118, so hmdnah cannot reach the retitled dependabot PR
   - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118
   - opened 2026-10-28T04:35Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261029-01** — `scope: item` · `item: PR#72` — start's review mode claims PR #120 ahead of PR #72, so hmdnah cannot review the re-seeded T-037 PR
-  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
-  - opened 2026-10-29T10:03Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261101-01** — `scope: item` · `item: PR#72` — PR #72's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-037` on B-20261029-01
-  - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
-  - opened 2026-11-01T15:04Z by zayd · recorded in `docs/BLOCKERS.md`
 - **B-20261102-02** — `scope: item` · `item: T-067` — the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim
   - need: give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01
   - opened 2026-11-02T22:16Z by brahim-loop · recorded in `docs/BLOCKERS.md`
@@ -218,18 +212,18 @@ maintenance and does NOT get an entry of its own.**
 | | |
 | --- | --- |
 | **newest entry** | **STEWARD-x001-seven-seat-roster (brahim, 2026-09-04)** |
-| branch · tip · tree | `task/T-033-q10-dimension-anchors-excludes-the-free-` · `6a14b23` · dirty |
-| open PRs | #120 task/T-065-a-named-save-posts-its-entries-to-the-zi · #116 task/T-064-a-named-save-posts-its-geometry-cache-re · #72 task/T-037-q5-the-section-chord-tolerance-chosen-fo · #69 task/T-033-q10-dimension-anchors-excludes-the-free- |
-| suite | ⚠⚠ 1081/1085 passing — **4 FAILING** |
+| branch · tip · tree | `task/T-050-q8a-paramfield-motion-is-reserved-a-sche` · `ae868a6` · dirty |
+| open PRs | #122 steward/pr70-merged-log-roll · #120 task/T-065-a-named-save-posts-its-entries-to-the-zi · #118 dependabot/npm_and_yarn/vite-6.4.4 · #116 task/T-064-a-named-save-posts-its-geometry-cache-re · #93 task/T-050-q8a-paramfield-motion-is-reserved-a-sche · #72 task/T-037-q5-the-section-chord-tolerance-chosen-fo · #69 task/T-033-q10-dimension-anchors-excludes-the-free- |
+| suite | ⚠⚠ 1061/1065 passing — **4 FAILING** |
 | protocol | 22 live ops · 2 reserved (of 24 declared) |
 | shipped source | 6 `BimObjectType`s in `@bunyan/types` · 43 command ids in `commands.ts` · 1 `FormatCodec` |
 | schema | `SCENE_SCHEMA_VERSION` 2 |
-| **frozen surface** | **RISK: contract-touching (re-baselined)** — 2 declaration(s) moved — packages/document/src/documentation.ts :: interface Dimension, packages/document/src/documentation.ts :: type ModelAnchor · baseline REWRITTEN this session |
-| diff vs origin/main | 12 files changed, 245 insertions(+), 26 deletions(-) (12 files) |
-| docs budget | current_state 17.4/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 262 |
+| **frozen surface** | **RISK: contract-touching (re-baselined)** — 3 declaration(s) moved — packages/document/src/schema.ts :: interface ParamField, packages/document/src/families.ts :: interface FamilyPart, packages/document/src/families.ts :: type FamilyFaceSelector · baseline REWRITTEN this session |
+| diff vs origin/main | 22 files changed, 709 insertions(+), 28 deletions(-) (22 files) |
+| docs budget | current_state 16.9/96.0 KB · §7 4.6/32.0 KB · abstracts 1/10 · bodies 240 |
 
-_Generated 2026-11-06 by `pnpm state`._
+_Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 974e81f3ca091ba76907ed7e1acf5b5328585c82
+last-verified-at: a9be15b1e20eb83db5cdff060c0c57fe3c4f0edd
