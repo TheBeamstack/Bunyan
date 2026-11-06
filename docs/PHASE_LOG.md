@@ -41,6 +41,13 @@ identity fields, and compressing a body never moves the population a reference r
 from 2026-10-06 through T-053's step-2 review · sealed 2026-10-20. `docs/phase-log-03.md` — the turns
 from 2026-10-19 through T-034's step-2 review, plus T-034's 2026-10-12 build · sealed 2026-11-05.
 
+## T-037 — review of PR #72, approved — 2026-11-06 — seat: hmdnah
+
+Approved at `87874db`: CI's re-seed gate now passes (run 42152954799), the 2026-10-12 defect; both checks green.
+Item 1: `SECTION_DEFLECTION` 0.5 → red (0.486 / 0.499 mm > 0.0102), 0.02 → red, restored → green; `pnpm verify` 1083 passed.
+ISO 128 / Revit 1:1 claims still unverified here — amer to confirm.
+Body: `handoff/hmdnah/2026-11-06-T-037-review.md`
+
 ## T-037 — fourteenth turn on PR #72, merged with main (F4), incomplete — 2026-11-01 — seat: zayd
 
 Merged `origin/main` (`36e1785`) at `11987d2` on ticket B-20261101-01; main's side was docs only.
