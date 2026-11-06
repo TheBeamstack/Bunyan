@@ -364,3 +364,9 @@ PR #69 (T-033) is MERGED as `f5223cf`, yet its row still read `review` and the s
 Cause: as on 2026-11-05, `agent_start.py` lists 20 merged PRs ordered by creation, which leaves out #69. No promotion: no row depends on T-033.
 Not landed: the finish refused D-20261028-01's `answered:` stamp and the `core_logic.md:372` note as outside the bookkeeping paths.
 Body: `handoff/brahim/2026-11-06-STEWARD-backstop-t033-flip.md`
+
+## STEWARD-float64-section-points — T-069 cut, `core_logic.md:372` annotated — 2026-11-06 — seat: brahim
+
+T-069 (`ready`, `risk: high`, `requires: docker`) makes `sectionCut` emit float64 points; it replaces the 2026-10-12 `## Discovered` float32 finding, re-measured at `0f62778` (`kernel.cpp:2541-2542`).
+`core_logic.md:372` now records the `Dimension.anchors` narrowing as fixed by D97 / T-033 (PR #69).
+Body: `handoff/brahim/2026-11-06-STEWARD-float64-section-points.md`
