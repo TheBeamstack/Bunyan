@@ -219,9 +219,9 @@ The frozen-surface snapshot is untouched (main moved no watched path). `pnpm ver
 PR #69 stays owner-gated; not merged.
 Body: `handoff/zayd/2026-10-28-T-033-main-merge.md`
 
-## T-033 — review step 1 of PR #69 — 2026-11-05 — seat: hmdnah
+## T-033 — review step 1 of PR #69 — 2026-11-06 — seat: hmdnah
 
 DEFECT PROVEN at `ee4d7b9`: SYNC merge `36473d8` merged T-034's snapshot textually, not by re-baselining it. `surface` holds 216 declarations, but `_declarationCount` reads 215.
 Item 1: with `Dimension.anchors` reverted, `tsc -p tsconfig.json` → TS2578 at `documentation-anchoring.test.ts(266,9)`, exit 2; restored → exit 0. Labeller: contract-touching + freeze, as the diff warrants.
 Filed B-20261105-03 for zayd; changes requested, the row stays `review`.
-Body: `handoff/hmdnah/2026-11-05-T-033-review-step-1.md`
+Body: `handoff/hmdnah/2026-11-06-T-033-review-step-1.md`
