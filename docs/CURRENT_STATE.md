@@ -67,7 +67,7 @@ builder may claim.
 | task | `STEWARD-float64-section-points` |
 | branch | `steward/float64-section-points-core-logic-372` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | reviewed by `hmdnah` — ready to merge |
+| status | merged — PR #129 merged by `hmdnah` at 2026-11-06T04:48:52Z |
 
 <!-- END BATON -->
 
@@ -226,4 +226,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: c1a70a66601cbb21947e2d487a14c69c15fc5909
+last-verified-at: 9510ebcc60049cf256840df5d684def6b0c70e71
