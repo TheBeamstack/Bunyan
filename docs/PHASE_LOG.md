@@ -245,3 +245,10 @@ No defect proven at `c6bd581`; approve, and merge on D-20261028-01's owner sign-
 Item 1: the reverted narrowing makes `tsc` exit 2 (TS2578) and turns `freeze-boundary` red; restored, both are green. Items 2/3: `Dimension.anchors` has no reader, and `annotations` is still a reservation.
 Item 6: vitest alone passes the new test reverted, but `tsc` (CI `pnpm typecheck`) holds it. `core_logic.md:372` still calls the narrowing "NOT FIXED", which a brahim turn should annotate.
 Body: `handoff/hmdnah/2026-11-06-T-033-review-step-2.md`
+
+## STEWARD-backstop-t033 — T-033 flipped `done` — 2026-11-06 — seat: brahim
+
+PR #69 (T-033) is MERGED as `f5223cf`, yet its row still read `review` and the start sheet printed "backstop: nothing to flip".
+Cause: as on 2026-11-05, `agent_start.py` lists 20 merged PRs ordered by creation, which leaves out #69. No promotion: no row depends on T-033.
+Not landed: the finish refused D-20261028-01's `answered:` stamp and the `core_logic.md:372` note as outside the bookkeeping paths.
+Body: `handoff/brahim/2026-11-06-STEWARD-backstop-t033-flip.md`

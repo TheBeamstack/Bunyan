@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `hmdnah` |
+| seat | `brahim` |
 | builder | `zayd` |
-| role | reviewer |
+| role | steward |
 | machine | box |
-| task | `T-033` |
-| branch | `task/T-033-q10-dimension-anchors-excludes-the-free-` |
+| task | `STEWARD-backstop-t033` |
+| branch | `main` |
 | claimed-at | 2026-10-12T01:01:48Z |
-| status | merged — PR #69 merged by `hmdnah` at 2026-11-06T01:21:37Z |
+| status | finished — PR open, awaiting review |
 
 <!-- END BATON -->
 
@@ -232,4 +232,4 @@ _Generated 2026-11-06 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: f5223cf1f17b6445cfceac62b0c360c4a4a4445f
+last-verified-at: 974e81f3ca091ba76907ed7e1acf5b5328585c82

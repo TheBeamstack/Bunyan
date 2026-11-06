@@ -98,7 +98,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-025 | blocked | `--review` keeps an owner-gated row at `review`                                                                    | infra    | box     | high     | —                   |
 | T-028 | blocked | `agent-finish.mjs` is resumable after an interrupted run                                                           | infra    | box     | normal   | —                   |
 | T-027 | done    | §6's relink cap is measured, not guessed                                                                           | infra    | box     | normal   | —                   |
-| T-033 | review  | Q10 — `Dimension.anchors` excludes the free `point` anchor                                                         | document | box     | **high** | —                   |
+| T-033 | done    | Q10 — `Dimension.anchors` excludes the free `point` anchor                                                         | document | box     | **high** | —                   |
 | T-034 | done    | Q9 — `FamilyDefinition` reserves a way for data to name billable faces                                             | document | box     | **high** | —                   |
 | T-035 | done    | Q8 — design: moving a D52 baseline wall, properly                                                                  | design   | box     | normal   | —                   |
 | T-050 | done    | Q8a — `ParamField.motion?` is reserved: a schema says which params a motion moves                                  | backend  | box     | **high** | —                   |
