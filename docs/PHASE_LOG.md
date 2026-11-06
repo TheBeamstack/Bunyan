@@ -231,3 +231,10 @@ Body: `handoff/hmdnah/2026-11-06-T-033-review-step-1.md`
 `pnpm state --rebaseline` set `_declarationCount` 215 → 216, the only field it moved; a second run left the file byte-identical.
 `pnpm verify` exit 0 (1081 passed, 4 skipped). PR #69 stays owner-gated; next is hmdnah's step 1.
 Body: `handoff/zayd/2026-11-06-T-033-snapshot-rebaseline.md`
+
+## T-033 — review step 1 of PR #69, re-run — 2026-11-06 — seat: hmdnah
+
+No defect proven at `9cf4604`; the snapshot is byte-identical to `baselineSnapshot(buildSurface('.'))` (216/216).
+Item 1: the reverted narrowing gives `tsc` exit 2 (TS2578) and a red `freeze-boundary` (`interface Dimension` CHANGED); restored, both are green. `pnpm verify` exits 0 (1081 passed, 4 skipped).
+Labeller: contract-touching + freeze, which matches the diff. No approval, no merge; the row stays `review` for step 2.
+Body: `handoff/hmdnah/2026-11-06-T-033-review-step-1.md`
