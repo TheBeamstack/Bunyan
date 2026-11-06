@@ -105,6 +105,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-051 | done    | Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags                                        | backend  | box     | **high** | T-050               |
 | T-036 | done    | Q7 — `core.copy` deep-copies a host's openings                                                                     | document | box     | **high** | T-051               |
 | T-037 | done    | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                                     | kernel   | box     | normal   | —                   |
+| T-069 | ready   | Section points cross the WASM boundary as float64, within D92's chord tolerance far from the view origin           | kernel   | box     | **high** | —                   |
 | T-038 | done    | Q6 — design: the D29 cache in the `.bnn`                                                                           | design   | box     | **high** | —                   |
 | T-039 | done    | D29 R1 — the cache input key, one pass over the scene                                                              | backend  | box     | **high** | —                   |
 | T-040 | done    | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                                            | backend  | box     | **high** | T-039               |
@@ -406,6 +407,20 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - verify: pnpm verify
 - depends-on: — · area: kernel · machine: box · risk: normal
 - note: steward ruling 2026-10-12: merging `main` into this branch, take `main`'s `docs/BLOCKERS.md` and re-append the branch's two unmerged records as `B-20261012-05`/`-06` — they were never on `main`, so this edits no record; `main`'s `B-20261012-03` already carries the re-seed need.
+
+### T-069 — Section points cross the WASM boundary as float64, within D92's chord tolerance far from the view origin
+
+- outcome: sectionCut emits its 2D points in double precision end to end (tools/kernel-build/src/kernel.cpp SectionOut.points, packages/kernel-occt/src/kernel.ts, wasm/bunyan-kernel.d.ts), so a section polyline whose coordinates lie beyond 131 m from its view origin stays within D92's 0.01 mm of the exact curve, where float32 adds a half-ulp of 0.0078 mm per coordinate beyond 131 m and 0.0156 mm beyond 262 m.
+- implements: docs/decisions.md D92 · docs/design/P5_step6C_plan_section_design.md §4.1 (the float32 limit row, :222); provenance: BACKLOG ## Discovered 2026-10-12 (T-037); kernel.cpp:2434,2541-2542 casts to float and kernel.ts:799 reads a Float32Array at main 0f62778
+- done-when: test-first, red at main: a real-OCCT test cuts a circular column centred at (300000, 300000) mm from its view origin and every vertex and chord midpoint lies within BUDGET_MM of the exact radius with no ulp allowance; revert-verified: the prebuilt float32 artefact turns it red
+- done-when: SectionOut.points in kernel.cpp is std::vector<double> with no float cast, kernel.ts copies it into a Float64Array and bunyan-kernel.d.ts types points: Float64Array
+- done-when: the artefact is relinked with tools/kernel-build/link.sh on toolchain.json's pinned emsdk digest, never hand-edited; node tools/kernel-build/verify.mjs passes and toolchain.json verifiedBy names the new wasm and glue sha256
+- done-when: tests/section-chord-tolerance.test.ts drops its + ulp allowance and §4.1's float32 row records the limit as removed
+- done-when: no [frozen_surface] watched file changes (SectionCutPayload and SectionCurve in packages/protocol/src/ops.ts are byte-unchanged), and the re-seed gate is cleared by a Re-seed-unchanged: trailer because tests/goldens holds no section case (docs/INVARIANTS.md §5)
+- verify: pnpm verify && node tools/kernel-build/verify.mjs
+- depends-on: — · area: kernel · machine: box · risk: **high**
+- requires: docker
+- note: risk high per T-022's rationale (it changes the committed WASM artefact and the toolchain pin's verifiedBy), not READY rule 8; needs the pinned emsdk image and the prebuilt OCCT 7.9.3 static libs (tools/kernel-build/README.md), and without the libs it is a ~2.5 h OCCT rebuild: stop and record a B- instead; the float32 tessellation mesh is display-only and out of scope
 
 ### T-038 — Q6 — design: the D29 cache in the `.bnn`
 
@@ -867,10 +882,6 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
-- **2026-10-12 — section points cross the WASM boundary as float32** (T-037). `tools/kernel-build/src/kernel.cpp`
-  `sectionCut` casts each 2D point to `float`, so beyond 131 m from the view origin the rounding (0.016 mm)
-  exceeds D92's 0.01 mm chord tolerance (`P5_step6C_plan_section_design.md` §4.1). Fix shape: emit
-  `double` (a WASM rebuild; `SectionCutPayload` is unaffected). Recorded, not claimed.
 - **2026-10-25 — diwan `agent_start.py` resumes a builder's open claim that a pending decision holds.** Its
   `resume` skips a claim in `blocks` (`scope: item` blockers) but not one a pending `D-` names
   (`agent_start.py:928-937`), so `--seat zayd` resumed T-037 (held by D-20261021-01) and pushed `1ab49aa`

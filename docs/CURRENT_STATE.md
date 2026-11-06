@@ -64,10 +64,10 @@ builder may claim.
 | builder | `zayd` |
 | role | reviewer |
 | machine | box |
-| task | `T-037` |
-| branch | `task/T-037-q5-the-section-chord-tolerance-chosen-fo` |
+| task | `STEWARD-float64-section-points` |
+| branch | `steward/float64-section-points-core-logic-372` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | merged — PR #72 merged by `hmdnah` at 2026-11-06T03:40:13Z |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -226,4 +226,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: 13e3417ee50fbfa28f90b7fbe6bf4caa43e76fcd
+last-verified-at: c1a70a66601cbb21947e2d487a14c69c15fc5909
