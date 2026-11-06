@@ -60,14 +60,14 @@ builder may claim.
 
 | Field | Value |
 |---|---|
-| seat | `brahim` |
+| seat | `hmdnah` |
 | builder | `zayd` |
-| role | steward |
+| role | reviewer |
 | machine | box |
 | task | `STEWARD-float64-section-points` |
 | branch | `steward/float64-section-points-core-logic-372` |
 | claimed-at | 2026-10-24T07:05:10Z |
-| status | finished — PR open, awaiting review |
+| status | reviewed by `hmdnah` — ready to merge |
 
 <!-- END BATON -->
 
@@ -226,4 +226,4 @@ _Generated 2026-11-05 by `pnpm state`._
 
 <!-- END GENERATED -->
 
-last-verified-at: a89f4c5b4770f1041e1698c7af972499ec7ee795
+last-verified-at: c1a70a66601cbb21947e2d487a14c69c15fc5909
