@@ -238,3 +238,10 @@ No defect proven at `9cf4604`; the snapshot is byte-identical to `baselineSnapsh
 Item 1: the reverted narrowing gives `tsc` exit 2 (TS2578) and a red `freeze-boundary` (`interface Dimension` CHANGED); restored, both are green. `pnpm verify` exits 0 (1081 passed, 4 skipped).
 Labeller: contract-touching + freeze, which matches the diff. No approval, no merge; the row stays `review` for step 2.
 Body: `handoff/hmdnah/2026-11-06-T-033-review-step-1.md`
+
+## T-033 — review step 2 of PR #69 — 2026-11-06 — seat: hmdnah
+
+No defect proven at `c6bd581`; approve, and merge on D-20261028-01's owner sign-off (contract-touching + freeze released).
+Item 1: the reverted narrowing makes `tsc` exit 2 (TS2578) and turns `freeze-boundary` red; restored, both are green. Items 2/3: `Dimension.anchors` has no reader, and `annotations` is still a reservation.
+Item 6: vitest alone passes the new test reverted, but `tsc` (CI `pnpm typecheck`) holds it. `core_logic.md:372` still calls the narrowing "NOT FIXED", which a brahim turn should annotate.
+Body: `handoff/hmdnah/2026-11-06-T-033-review-step-2.md`
