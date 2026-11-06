@@ -406,6 +406,30 @@ from, and the reason it is a record rather than prose.
 - need: make the shipped `CODE_ID` unservable stale under an unchanged URL (fix shape in `handoff/hmdnah/2026-10-20-T-044-review-step-1.md`) in a zayd turn on `task/T-044-d29-r6-codeid-is-stamped-per-the-owner-a`, land the probe test, then route PR #90 to hmdnah for step 2
 - cleared: 2026-10-23T02:53Z
 
+## B-20261012-09 PR #72's re-seed gate is red: the goldens were not re-seeded
+
+- opened: 2026-10-12T02:56Z
+- by: zayd
+- scope: item
+- item: PR#72
+- what: PR #72 (T-037) changes `packages/kernel-occt/src/kernel.ts`, a re-seed source, and touches no golden, so CI's re-seed gate fails
+- why: `scripts/check-reseed.mjs` exits 1 when no golden file changed, before it reads the `Re-seed-unchanged:` trailer the commit carries, and zayd's session was denied permission to run `uv run seed-goldens`
+- evidence: `gh run view 38197377650 --log-failed` → "re-seed gate FAILED — geometry changed but no goldens were re-seeded."
+- need: run `cd tools/oracle && uv run seed-goldens ../../tests/goldens` on `task/T-037-q5-the-section-chord-tolerance-chosen-fo` and push the re-seeded `tests/goldens/`, whose values should not move
+- cleared: 2026-10-26T22:20Z
+
+## B-20261012-10 PR #72's changes-requested review cannot be recorded by the finish entrypoint
+
+- opened: 2026-10-12T04:42Z
+- by: hmdnah
+- scope: item
+- item: PR#72
+- what: hmdnah's `--review` finish for T-037 wrote `T-037 → done` and a baton reading "reviewed by `hmdnah` — ready to merge", though the verdict is changes requested; hmdnah reset the row to `review` by hand so `--continue T-037` admits zayd
+- why: `agent_finish.py` `review_routing` sets the row to `done` whenever `review_flips_to_done` is true (risk normal), and has no flag for a verdict that is not approval
+- evidence: `git show fdf8c82 -- docs/BACKLOG.md docs/CURRENT_STATE.md`
+- need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
+- cleared: 2026-11-06T03:11Z
+
 ## B-20261023-01 PR #106's step 2 found step 1's installSecret comment defect unfixed, so it is not merged
 
 - opened: 2026-10-23T11:20Z
@@ -596,7 +620,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_start.py --seat hmdnah --review` exited 0 printing "Claiming PR #120 for review." while listing PR #72 as "→ YOURS"; the selector defect B-20261028-01 records for PR #118
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/ubuntu/projects/Bunyan; echo $?` prints "Claiming PR #120 for review." while listing PR #72 as "→ YOURS"
 - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
-- cleared: -
+- cleared: 2026-11-06T03:11Z
 
 ## B-20261031-01 the box checkout at /home/brahim cannot push to github.com, so no turn can land
 
@@ -620,7 +644,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_start.py` exited 1, "T-037 (PR #72) is held by B-20261029-01, B-20261012-10, an uncleared `scope: item` blocker at main that is neither a change on task/T-037-q5-the-section-chord-tolerance-chosen-fo nor this seat's newest ticket"; `gh pr view 72 --json mergeable` → CONFLICTING at `8bfa24e`; B-20261027-03 is the same defect for PR #116
 - evidence: `python3 /home/brahim/projects/diwan/scripts/agent_start.py --seat zayd --root /home/brahim/projects/Bunyan --continue T-037; echo $?` on `main` at `d67282d` exits 1
 - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
-- cleared: -
+- cleared: 2026-11-01T15:35Z
 
 ## B-20261102-01 the owner signed PR #69, #70 and #93 for merge, but start's review mode hands hmdnah PR #120 instead
 
@@ -632,7 +656,7 @@ from, and the reason it is a record rather than prose.
 - why: a dedicated hmdnah turn for PR #69 found `agent_start.py --review` would claim PR #120, the first routed PR it does not hold (`agent_start.py:620-650`, the selector B-20261028-01 records); `--no-claim` returns before the selector runs, so no dry run names the PR
 - evidence: `python3 /home/brahim/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/brahim/projects/Bunyan` lists PR #120 first among the PRs it offers hmdnah, on `main` at `d77492d`
 - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run one dedicated hmdnah merge each of PR #69, #70 and #93 under D-20261028-01, -02 and -03
-- cleared: -
+- cleared: 2026-11-05T23:53Z
 
 ## B-20261102-02 the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim
 
@@ -668,7 +692,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_finish.py:709-719` `stamp_tickets` stamps every ticket naming the seat on any task finish, step 1 included, so B-20261102-01 (whose `need:` also covers #70 and #93) reads cleared, and the finish's own docs gate (`:927`) then fails on the unregenerated `## BLOCKED` section
 - evidence: `python3 /home/brahim/projects/diwan/scripts/agent_finish.py --seat hmdnah T-033 --review --step 1 --report handoff/hmdnah/2026-11-04-T-033-review-step-1.md --root /home/brahim/projects/Bunyan; echo $?` on `hold/T-033-step1-review-2026-11-04` exits non-zero after printing `✓ ticket B-20261102-01 stamped cleared`
 - need: make diwan `agent_finish.py` stamp a ticket only on the finish that performs its `need:` and regenerate `## BLOCKED` after any stamp, then run hmdnah's step 1 of PR #69
-- cleared: -
+- cleared: 2026-11-05T23:53Z
 
 ## B-20261105-01 start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
 
@@ -693,3 +717,27 @@ from, and the reason it is a record rather than prose.
 - evidence: `node --input-type=module -e "process.env.BASE_REF='main'; await import('./scripts/check-reseed.mjs');"` on `e0075d2` exits 1, "geometry changed but no goldens were re-seeded"; CI run 42010045830 job 127186447636 fails at the same step
 - need: re-seed and commit `tests/goldens/` on PR #124's branch in a zayd turn for T-051, then route PR #124 to hmdnah for step 1
 - cleared: 2026-11-05T11:28Z
+
+## B-20261105-03 PR #69's frozen-surface snapshot was merged with T-034's, not re-baselined, so its declaration count is wrong
+
+- opened: 2026-11-05T23:43Z
+- by: hmdnah
+- scope: item
+- item: PR#69
+- what: hmdnah's step 1 of PR #69 at `ee4d7b9` found `tests/frozen-surface.snapshot.json` is a textual merge that `scripts/frozen-surface.mjs` would never write, so changes are requested
+- why: SYNC merge `36473d8` took T-034's `families.ts` declaration into `surface` (216 entries) and kept both sides' `_declarationCount: 215`; D-20261028-01, the owner's signed context, says whichever of PR #69, #70 and #93 merges later "is re-baselined first"
+- evidence: `node --input-type=module -e "import {buildSurface} from './scripts/frozen-surface.mjs'; …"` in Bunyan at `ee4d7b9` → generator count 216, committed `_declarationCount` 215, `diffSurface` empty
+- need: re-baseline `tests/frozen-surface.snapshot.json` on PR #69's branch with `pnpm state --rebaseline` in a zayd turn for T-033, then route PR #69 to hmdnah for step 1
+- cleared: 2026-11-06T00:29Z
+
+## B-20261106-01 T-069's relink cannot run: the unattended session's permissions refuse `docker` and the OCCT libs
+
+- opened: 2026-11-06T09:42Z
+- by: zayd
+- scope: item
+- item: T-069
+- what: start claimed T-069 for zayd and pushed claim commit `88c8022`; zayd stopped before the first edit, so no code changed
+- why: start's `requires: docker` probe (diwan `protocol.py:1011`, `docker version`) passes and `test -d /home/brahim/occt-wasm-spike/install/lib` exits 0, but the `claude -p` session's tool permissions refuse `docker version` ("This command requires approval") and listing that directory (outside the session's allowed directories), so `link.sh` and `verify.mjs` cannot run; this is B-20261010-02's cause for `docker`
+- evidence: `docker version` and `ls -la /home/brahim/occt-wasm-spike/install/lib`, run from a `claude -p` zayd turn
+- need: allow `docker` and read access to `/home/brahim/occt-wasm-spike/install` in the box loop's Claude Code permission settings, then run T-069 in a zayd turn
+- cleared: -

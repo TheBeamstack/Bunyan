@@ -64,11 +64,14 @@ export const OCCT_BUILD_ID = 'occt-7.9.3-emcc-6.0.2';
  * ⚠⚠ IT IS A DISPLAY PARAMETER AND IT MUST NEVER REACH A QUANTITY (domain rule 15; owner Q5, taken as
  * "mine, documented"). A section of a cylinder is an exact circle and `SectionCurve.points` is a
  * polyline, so SOME tolerance has to be chosen — but the exact identity travels beside it in `ref`, so
- * a dimension anchored in the drawing reads the MODEL, never this approximation. 0.5 mm is below the
- * line weight of any drawing scale this product targets (at 1:100 it is 5 µm on paper), so it is
- * invisible where it is displayed and irrelevant where it is measured.
+ * a dimension anchored in the drawing reads the MODEL, never this approximation.
+ *
+ * 0.01 mm is chosen against the smallest scale a Revit-class tool prints — 1:1 full-size details (D92)
+ * — where it is 0.01 mm on paper, a quarter of a 600 dpi dot; at 1:5 it is 2 µm. The value, its
+ * cost and its float32 limit are `P5_step6C_plan_section_design.md` §4.1;
+ * `tests/section-chord-tolerance.test.ts` holds it.
  */
-const SECTION_DEFLECTION = 0.5;
+const SECTION_DEFLECTION = 0.01;
 
 /**
  * Everything about this kernel that is NOT derived from its handlers.

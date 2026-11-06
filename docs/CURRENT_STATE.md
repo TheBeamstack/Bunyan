@@ -108,24 +108,15 @@ builder may claim.
 - **B-20261028-01** — `scope: item` · `item: PR#118` — start's review mode claims PR #120 ahead of PR #118, so hmdnah cannot reach the retitled dependabot PR
   - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118
   - opened 2026-10-28T04:35Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261029-01** — `scope: item` · `item: PR#72` — start's review mode claims PR #120 ahead of PR #72, so hmdnah cannot review the re-seeded T-037 PR
-  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
-  - opened 2026-10-29T10:03Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261101-01** — `scope: item` · `item: PR#72` — PR #72's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-037` on B-20261029-01
-  - need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-037`
-  - opened 2026-11-01T15:04Z by zayd · recorded in `docs/BLOCKERS.md`
-- **B-20261102-01** — `scope: item` · `item: PR#69` — the owner signed PR #69, #70 and #93 for merge, but start's review mode hands hmdnah PR #120 instead
-  - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run one dedicated hmdnah merge each of PR #69, #70 and #93 under D-20261028-01, -02 and -03
-  - opened 2026-11-02T22:16Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 - **B-20261102-02** — `scope: item` · `item: T-067` — the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim
   - need: give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01
   - opened 2026-11-02T22:16Z by brahim-loop · recorded in `docs/BLOCKERS.md`
-- **B-20261104-01** — `scope: item` · `item: PR#69` — hmdnah's step-1 review of PR #69 passed, and the finish refuses by stamping B-20261102-01 cleared
-  - need: make diwan `agent_finish.py` stamp a ticket only on the finish that performs its `need:` and regenerate `## BLOCKED` after any stamp, then run hmdnah's step 1 of PR #69
-  - opened 2026-11-04T06:57Z by brahim-loop · recorded in `docs/BLOCKERS.md`
 - **B-20261105-01** — `scope: item` · `item: T-067` — start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
   - need: install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn
   - opened 2026-11-05T09:35Z by zayd · recorded in `docs/BLOCKERS.md`
+- **B-20261106-01** — `scope: item` · `item: T-069` — T-069's relink cannot run: the unattended session's permissions refuse `docker` and the OCCT libs
+  - need: allow `docker` and read access to `/home/brahim/occt-wasm-spike/install` in the box loop's Claude Code permission settings, then run T-069 in a zayd turn
+  - opened 2026-11-06T09:42Z by zayd · recorded in `docs/BLOCKERS.md`
 
 <!-- END BLOCKED -->
 
