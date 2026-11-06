@@ -428,7 +428,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_finish.py` `review_routing` sets the row to `done` whenever `review_flips_to_done` is true (risk normal), and has no flag for a verdict that is not approval
 - evidence: `git show fdf8c82 -- docs/BACKLOG.md docs/CURRENT_STATE.md`
 - need: add a changes-requested verdict to diwan `agent_finish.py --review` that keeps the row `review` and writes a baton naming the builder, then re-run hmdnah's T-037 finish with it
-- cleared: -
+- cleared: 2026-11-06T03:11Z
 
 ## B-20261023-01 PR #106's step 2 found step 1's installSecret comment defect unfixed, so it is not merged
 
@@ -584,7 +584,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_start.py --seat hmdnah --review` exited 0 printing "Claiming PR #120 for review." while listing PR #72 as "→ YOURS"; the selector defect B-20261028-01 records for PR #118
 - evidence: `python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/ubuntu/projects/Bunyan; echo $?` prints "Claiming PR #120 for review." while listing PR #72 as "→ YOURS"
 - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #72
-- cleared: -
+- cleared: 2026-11-06T03:11Z
 
 ## B-20261031-01 the box checkout at /home/brahim cannot push to github.com, so no turn can land
 
