@@ -596,7 +596,7 @@ from, and the reason it is a record rather than prose.
 - why: a dedicated hmdnah turn for PR #69 found `agent_start.py --review` would claim PR #120, the first routed PR it does not hold (`agent_start.py:620-650`, the selector B-20261028-01 records); `--no-claim` returns before the selector runs, so no dry run names the PR
 - evidence: `python3 /home/brahim/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/brahim/projects/Bunyan` lists PR #120 first among the PRs it offers hmdnah, on `main` at `d77492d`
 - need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run one dedicated hmdnah merge each of PR #69, #70 and #93 under D-20261028-01, -02 and -03
-- cleared: -
+- cleared: 2026-11-05T23:53Z
 
 ## B-20261102-02 the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim
 
@@ -632,7 +632,7 @@ from, and the reason it is a record rather than prose.
 - why: `agent_finish.py:709-719` `stamp_tickets` stamps every ticket naming the seat on any task finish, step 1 included, so B-20261102-01 (whose `need:` also covers #70 and #93) reads cleared, and the finish's own docs gate (`:927`) then fails on the unregenerated `## BLOCKED` section
 - evidence: `python3 /home/brahim/projects/diwan/scripts/agent_finish.py --seat hmdnah T-033 --review --step 1 --report handoff/hmdnah/2026-11-04-T-033-review-step-1.md --root /home/brahim/projects/Bunyan; echo $?` on `hold/T-033-step1-review-2026-11-04` exits non-zero after printing `✓ ticket B-20261102-01 stamped cleared`
 - need: make diwan `agent_finish.py` stamp a ticket only on the finish that performs its `need:` and regenerate `## BLOCKED` after any stamp, then run hmdnah's step 1 of PR #69
-- cleared: -
+- cleared: 2026-11-05T23:53Z
 
 ## B-20261105-01 start resumed zayd's T-067 on the box with no browser, so its browser done-when cannot run
 
