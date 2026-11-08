@@ -57,13 +57,7 @@ function backlogSrc(rows) {
 
 const CURRENT_STATE = (extraAbstract = '') => `# Fixture — docs/CURRENT_STATE.md
 
-## §0b — Live claim (this branch)
-
-<!-- BEGIN BATON — written by agent_start.py; pushed before work begins -->
-
-*(no live claim on this branch)*
-
-<!-- END BATON -->
+Work state (claims, blockers, rows) is the \`diwan-state\` branch: \`python3 $DIWAN/scripts/state.py show\`.
 
 ## §7 — Entry abstracts (newest 10)
 
