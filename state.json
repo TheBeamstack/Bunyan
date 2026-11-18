@@ -3204,6 +3204,13 @@
    "line": 150,
    "reason": "agent-finish.mjs retired; T-024 done",
    "text": "- **2026-08-19 — the stable key is not the identity `agent-finish.mjs` uses, and T-024 did not sweep it.**\n  `agent-finish.mjs:280`'s handoff gate stays on `find(a => a.id === task && a.seat === seat)` — a subset\n  of the key, and exactly the tuple whose collisions the same PR records; that is why a D88 step 2 passes\n  on step 1's abstract. Two smaller sites: the seven `docs-budget` messages moved `.n` → `.id`, the one\n  field that is never unique; and `isSyntheticEntryNumber` guards `(990, 1000]` while a turn appends\n  before rotating, so §7's transient 11th index mints `990` and is reported as a legacy number. Recorded,\n  not claimed."
+  },
+  {
+   "at": "2026-11-18T08:39Z",
+   "by": "brahim",
+   "line": 157,
+   "reason": "agent-finish.mjs --review --step 2 retired (absent from main)",
+   "text": "- **2026-08-19 — `--review --step 2` accepts step 1's abstract and body as step 2's handoff artifacts,\n  and prints the merge commands.** Its gate checks only that _some_ §7 abstract names the task and seat,\n  and step 1 has already written one. Every prior step 2 wrote its own by hand — convention, not gate.\n  Fix shape: key the gate on the step. Recorded, not claimed."
   }
  ],
  "rows": {

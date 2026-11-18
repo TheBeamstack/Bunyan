@@ -976,10 +976,6 @@ hmdnah` TWICE** — same heading, same `FULL:` path, bodies differing only in th
   Third occurrence of the same cry-wolf shape, and the one the `_README` policy makes load-bearing after
   the freeze. Fix shape: class `freeze` on a `surface` diff and report an audit-field-only edit as a
   separate, non-gating class. Recorded, not claimed.
-- **2026-08-19 — `--review --step 2` accepts step 1's abstract and body as step 2's handoff artifacts,
-  and prints the merge commands.** Its gate checks only that _some_ §7 abstract names the task and seat,
-  and step 1 has already written one. Every prior step 2 wrote its own by hand — convention, not gate.
-  Fix shape: key the gate on the step. Recorded, not claimed.
 - **2026-08-19 — T-024 has cost a real turn its §7 abstract.** Step 2 of PR #37 could not append an
   abstract dated 2026-08-19 at all: `_baselinedAtEntry` is the positional key `1000`, so its date
   disagreed with `_baselinedAt`, reddening `freeze-boundary` having moved no declaration. The only
