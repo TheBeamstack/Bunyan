@@ -2287,6 +2287,51 @@
     ]
    ],
    "title": "Nothing is ready for the box builder; whether the steward proposes the next milestone"
+  },
+  "P-20261118-01": {
+   "fields": [
+    [
+     "opened",
+     "2026-11-18T16:35Z"
+    ],
+    [
+     "by",
+     "brahim"
+    ],
+    [
+     "item",
+     "direction/perf-bars"
+    ],
+    [
+     "asks",
+     "whether a failed timing bar in a done-when is met by cutting the next optimisation as its own row, or held for you each time"
+    ],
+    [
+     "context",
+     "Bunyan's rows carry timing bars, such as T-067's 200 ms limit on how long a named save may freeze the page. When a builder measures a miss, the steward today asks you a D- each time (D-20261118-01). cut-row: the steward adds the next optimisation the design names as a ready row and the failing row waits on it; the bar itself is never lowered. ask: every miss comes to you as a D-."
+    ],
+    [
+     "options",
+     "cut-row | ask"
+    ],
+    [
+     "default-if-silent",
+     "cut-row"
+    ],
+    [
+     "expires",
+     "2026-11-25"
+    ],
+    [
+     "ANSWER",
+     ""
+    ],
+    [
+     "answered",
+     "-"
+    ]
+   ],
+   "title": "what the steward does when a measured performance bar fails"
   }
  },
  "discovered": [
