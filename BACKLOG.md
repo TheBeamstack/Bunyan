@@ -1000,11 +1000,6 @@ green · 96 files` committed and `907 · 95` on an uncommitted regen, the latter
   not claimed.
 - **2026-08-15 — `state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync` with no
   `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
-- **2026-08-15 — `--review` cannot route a PR whose title carries no `T-nnn`**, so neither open PR was
-  claimable by any reviewer seat: `reviewerFor` is called only when `^T-\d{3}` matches. The mechanical
-  fallback is the branch's seat prefix, which derives the reviewer from the machine the work ran on. ⚠⚠
-  Safety-critical routing, so a `STEWARD:` PR carrying a test, not a direct commit — ✅ **promoted to
-  `T-012`.**
 - **2026-08-15 — ⚠⚠ `hmdnah` HAS NO GITHUB CREDENTIAL ON THE BOX**, so the crossed-account approval
   `AGENTS.md §0` is built on does not exist here: `gh auth status` lists only `Davidian-Abdo`, and
   `gh pr review 20 --approve` returned `GraphQL: Review Can not approve your own pull request`. ⚠

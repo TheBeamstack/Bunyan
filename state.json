@@ -3309,6 +3309,13 @@
    "line": 248,
    "reason": "§0b baton retired with agent-finish.mjs (absent from main)",
    "text": "- **2026-08-15 — ⚠⚠ the `§0b` baton names the last seat to FINISH, not the seat that claimed.**\n  `agent-finish.mjs` rewrites it with the finishing seat on the `--review` path too, so a reviewed branch\n  claims its reviewer built it; the builder's identity then survives only in the claim commit message.\n  Found reviewing PR #25, where a T-015 criterion written against the baton would have admitted the\n  reviewer and refused the builder. ⇒ T-015 derives the seat from the task row (a route-around) and\n  **T-016** fixes the baton itself."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 254,
+   "reason": "agent-start.mjs --review routing retired; diwan routes reviews",
+   "text": "- **2026-08-15 — `--review` cannot route a PR whose title carries no `T-nnn`**, so neither open PR was\n  claimable by any reviewer seat: `reviewerFor` is called only when `^T-\\d{3}` matches. The mechanical\n  fallback is the branch's seat prefix, which derives the reviewer from the machine the work ran on. ⚠⚠\n  Safety-critical routing, so a `STEWARD:` PR carrying a test, not a direct commit — ✅ **promoted to\n  `T-012`.**"
   }
  ],
  "rows": {
