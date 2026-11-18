@@ -3337,6 +3337,13 @@
    "line": 270,
    "reason": "self-marked FIXED in PR #20",
    "text": "- **2026-08-15 — the `ready`→`review` status flip fails `format:check`, so every builder turn opens a red\n  PR.** The longer word goes into a cell padded for `ready`, leaving one trailing space prettier rejects.\n  ✅ **FIXED at the writer in PR #20** — `setRowStatus` is hoisted, exported and repads to the width it\n  found, with a case in `tests/protocol/agent-finish.test.ts`. ⚠ Repadding one branch would not have\n  held: the same writer stamps `done` at the end of a review turn."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 275,
+   "reason": "self-marked RULED D88, promoted to T-015 (done)",
+   "text": "- **2026-08-15 — D88's \"a proven defect goes back to the builder on the existing claim\" has no scripted\n  route** — a claim reading `finished — PR open, awaiting review` is refused as \"not an incomplete turn\n  to continue\". ✅ **RULED `D88` as amended: the route is `agent-start.mjs --continue <T-nnn>`, promoted\n  to `T-015`.**"
   }
  ],
  "rows": {
