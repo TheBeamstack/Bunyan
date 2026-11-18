@@ -981,11 +981,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
   path, pre-existing on unmodified `main`. A/B: 145 and 148 boot, 151 does not ⇒ the window is Chrome
   149–151. ⚠ **Worked around, not fixed**: `BUNYAN_BROWSER_CMD` is a persistent Windows user env var
   pinned to cached Chromium 148. The real fix is **T-022**, confirmed by **T-023**.
-- **2026-08-17 — `NEXT TURN: REVIEW ONLY` is cleared only on a `--review` finish**, so a PR merged any
-  other way strands the banner and halts every builder turn on both machines (`agent-finish.mjs:335`
-  gates the clear on `if (review)`; `agent-start.mjs:789` refuses a builder claim while it stands).
-  T-011's banner outlived PR #32; cleared by direct commit. Fix shape: clear it on every finish whose
-  task the banner names. Recorded, not claimed.
 - **2026-08-17 — `agent-finish.mjs` runs `pnpm verify` (step 1) before regenerating §8 (step 2)**, so
   every turn that edits §7 burns a full verify (~9 min) before failing on "§8 agrees with §7". Step
   ordering in the writer, not a protocol question.

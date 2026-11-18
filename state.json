@@ -3232,6 +3232,13 @@
    "line": 172,
    "reason": "agent-start.mjs §8 check retired (absent from main)",
    "text": "- **2026-08-18 — every merge lands a branch-shaped `§8` on `main`, so the next builder's\n  `agent-start.mjs` measures a disagreement and refuses.** `§8` is regenerated on the task branch, where\n  its `branch · tip · tree`, `open PRs` and `diff vs origin/main` rows describe that branch; the merge\n  commits them verbatim onto `main`, where they are false. Worked around twice by a bare `pnpm state`\n  regen of `main`. The refusal is correct; what is wrong is that a clean merge guarantees the\n  disagreement. Fix shape: the reviewer's `--review` regenerates `§8` from `main` after merging, or the\n  branch-scoped rows leave the committed `§8` altogether. Recorded, not claimed."
+  },
+  {
+   "at": "2026-11-18T08:39Z",
+   "by": "brahim",
+   "line": 184,
+   "reason": "NEXT TURN banner: agent-*.mjs retired (absent from main)",
+   "text": "- **2026-08-17 — `NEXT TURN: REVIEW ONLY` is cleared only on a `--review` finish**, so a PR merged any\n  other way strands the banner and halts every builder turn on both machines (`agent-finish.mjs:335`\n  gates the clear on `if (review)`; `agent-start.mjs:789` refuses a builder claim while it stands).\n  T-011's banner outlived PR #32; cleared by direct commit. Fix shape: clear it on every finish whose\n  task the banner names. Recorded, not claimed."
   }
  ],
  "rows": {
