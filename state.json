@@ -3288,6 +3288,13 @@
    "line": 226,
    "reason": "T-024 done in state",
    "text": "- **2026-08-17 — `_baselinedAtEntry` names a POSITION, not an entry, under the `T-nnn` scheme**, so every\n  new §7 abstract silently re-points the frozen-surface baseline's audit trail and `baselineEntryIssues`\n  goes red on a PR that touched no frozen shape. Cleared by `--rebaseline`, i.e. the gate demanded a\n  re-baseline to record nothing. ⚠ **Post-freeze it is worse than cry-wolf**, because the baseline may\n  not be rewritten without an owner ruling, so the gate would have no green path. **⇒ T-024.**"
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 239,
+   "reason": "agent-start.mjs --review claim loop retired (absent from main)",
+   "text": "- **2026-08-16 — `--review`'s reviewer-claim loop takes the first PR in `gh pr list` order\n  (newest-first), not the one furthest along its own review pipeline.** Measured on #31 (past step 1,\n  labelled) and #32 (just opened): both route to `hmdnah`, and the script claimed #32. Worked around by\n  hand. Recorded rather than decomposed — superseded by the 2026-08-17 row above."
   }
  ],
  "rows": {

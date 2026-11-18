@@ -998,10 +998,6 @@ green · 96 files` committed and `907 · 95` on an uncommitted regen, the latter
   both numbers come from the same stale file, so they agree while being wrong. Fix shape: refuse a
   summary whose mtime predates the newest source file, or record the commit the run measured. Recorded,
   not claimed.
-- **2026-08-16 — `--review`'s reviewer-claim loop takes the first PR in `gh pr list` order
-  (newest-first), not the one furthest along its own review pipeline.** Measured on #31 (past step 1,
-  labelled) and #32 (just opened): both route to `hmdnah`, and the script claimed #32. Worked around by
-  hand. Recorded rather than decomposed — superseded by the 2026-08-17 row above.
 - **2026-08-15 — `docs/CURRENT_STATE.md §3`/`§5` called the plan/section unit blocked on Q1–Q3 after it
   shipped** (Entry 77). Fixed. ⚠ The class: rows phrased "blocked on a ruling" go stale because the
   ruling gets recorded elsewhere.
