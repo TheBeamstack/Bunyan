@@ -989,13 +989,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
 - **2026-08-17 — T-017's review left two `OWES: brahim` follow-ups**, recorded here so they outlive §7's
   rotation: `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment cites a gate that holds only to day
   granularity without saying so, and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through `.n`.
-- **2026-08-17 — `agent-finish.mjs` resolves a turn's handoff body by ALPHABETICAL order, so a second
-  turn on the same task and date cannot finish.** It takes the last of
-  `readdirSync(handoff/<seat>).filter(f => f.includes(task)).sort()` and requires the newest abstract's
-  `FULL:` to name it — correct only while the date prefix separates candidates, which a D88 defect return
-  breaks. Worked around by naming the body so it sorts last. Fix shape: resolve the body **by the
-  abstract's own `FULL:` field** and check the file exists — the entry is the authority on which body it
-  has. Recorded, not claimed.
 - **2026-08-17 — the `--review` wrong-PR claim recurred a third time, and there is still no flag to name
   a PR.** With #32 (due step 2) and #33 (due step 1) both routed to `hmdnah`, `--review` claimed #33 and
   posted a claim comment on it while the session's assignment was #32. ⚠ The 2026-08-16 row judged this

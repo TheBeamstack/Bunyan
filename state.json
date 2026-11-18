@@ -3267,6 +3267,13 @@
    "line": 209,
    "reason": "old --review step-1 label flow retired with agent-finish.mjs",
    "text": "- **2026-08-17 — a step-1 review's `review/step-1` label can land while its findings comment does not,\n  and the §7 abstract still claims the comment was posted.** Measured on PR #33: label applied, no report\n  among the PR's six comments; step 1's findings survive only on the branch. The opposite direction of\n  T-014's OWES note, which named a report with no label; nothing checks either way. Step 2 reads the\n  branch body instead. Recorded, not decomposed."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 214,
+   "reason": "agent-finish.mjs handoff resolution retired (absent from main)",
+   "text": "- **2026-08-17 — `agent-finish.mjs` resolves a turn's handoff body by ALPHABETICAL order, so a second\n  turn on the same task and date cannot finish.** It takes the last of\n  `readdirSync(handoff/<seat>).filter(f => f.includes(task)).sort()` and requires the newest abstract's\n  `FULL:` to name it — correct only while the date prefix separates candidates, which a D88 defect return\n  breaks. Worked around by naming the body so it sorts last. Fix shape: resolve the body **by the\n  abstract's own `FULL:` field** and check the file exists — the entry is the authority on which body it\n  has. Recorded, not claimed."
   }
  ],
  "rows": {
