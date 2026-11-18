@@ -252,6 +252,14 @@ the save: the main thread is held **121.6–211.2 ms** per save, the five steps'
 In-save split: `geometryCacheFiles()` 5.3–23.8 ms, `assembleUnsignedBnnEntries` 51.8–97.5 ms, `serializeRecords`
 5.2–6.9 ms, pack 55.2–123.3 ms, post 2.7–6.9 ms. The entries clone is gone; assembly and the pack's copy (R4's table: 43.9 MB `.brep`, ~61 MB records) remain.
 
+**T-067** posts carried `.brep` entries and records by name with the opened file, and the zip worker reads them
+from it under the leaf `checkCaps` (`readZipEntries`, `tests/app-named-save-carries-by-name-t067.test.ts`).
+Measured as T-065 (box, 2026-11-18, six unmodified runs at `c5c2f35`, 2 cores at load 2.6–4.1 from other lanes):
+the main thread is held **89.5–300 ms** per save, and the tool exited 0, 1, 0, 1 in the four runs whose exit was
+read; the other two printed PASS and FAIL. In-save split, five runs: `geometryCacheFiles()` 5.3–26.4 ms, assemble
+48.7–122.8 ms, `serializeRecords` 8.1–31.7 ms, pack 5.2–44.9 ms, post 17.7–101 ms. The pack's copy is gone; the
+200 ms bar still fails, and assembly is the largest remaining main-thread step.
+
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
 `SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.
