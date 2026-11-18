@@ -990,11 +990,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
   rotation: `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment cites a gate that holds only to day
   granularity without saying so, and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through `.n`.
 <n>` flag, or order candidates by review-pipeline position rather than `gh pr list` order.
-- **2026-08-17 — `_baselinedAtEntry` names a POSITION, not an entry, under the `T-nnn` scheme**, so every
-  new §7 abstract silently re-points the frozen-surface baseline's audit trail and `baselineEntryIssues`
-  goes red on a PR that touched no frozen shape. Cleared by `--rebaseline`, i.e. the gate demanded a
-  re-baseline to record nothing. ⚠ **Post-freeze it is worse than cry-wolf**, because the baseline may
-  not be rewritten without an owner ruling, so the gate would have no green path. **⇒ T-024.**
 - **2026-08-17 — ⚠⚠ `pnpm state` does not measure the suite; it reads `.vitest-summary.json`**, which is
   untracked, branch-agnostic and written by whichever `pnpm test` ran last anywhere in the worktree. §8's
   suite line therefore reports the last branch tested, as green. Measured: the same commit reads `915

@@ -3281,6 +3281,13 @@
    "line": 221,
    "reason": "agent-start.mjs --review routing retired; diwan routes reviews",
    "text": "- **2026-08-17 — the `--review` wrong-PR claim recurred a third time, and there is still no flag to name\n  a PR.** With #32 (due step 2) and #33 (due step 1) both routed to `hmdnah`, `--review` claimed #33 and\n  posted a claim comment on it while the session's assignment was #32. ⚠ The 2026-08-16 row judged this\n  self-correctable and recorded it; three occurrences say that judgement was wrong. Fix shape: a `--pr"
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 226,
+   "reason": "T-024 done in state",
+   "text": "- **2026-08-17 — `_baselinedAtEntry` names a POSITION, not an entry, under the `T-nnn` scheme**, so every\n  new §7 abstract silently re-points the frozen-surface baseline's audit trail and `baselineEntryIssues`\n  goes red on a PR that touched no frozen shape. Cleared by `--rebaseline`, i.e. the gate demanded a\n  re-baseline to record nothing. ⚠ **Post-freeze it is worse than cry-wolf**, because the baseline may\n  not be rewritten without an owner ruling, so the gate would have no green path. **⇒ T-024.**"
   }
  ],
  "rows": {
