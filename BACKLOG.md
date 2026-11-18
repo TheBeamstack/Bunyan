@@ -1000,11 +1000,6 @@ green · 96 files` committed and `907 · 95` on an uncommitted regen, the latter
   not claimed.
 - **2026-08-15 — `state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync` with no
   `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
-- **2026-08-15 — ⚠⚠ `--review` reads the frozen surface and never the task's `risk:` field**, so a
-  `risk: high` task is stamped `done` and its reviewer told to merge it. The two gates disagree by
-  construction: the builder half writes `NEXT TURN: REVIEW ONLY` on `risk: high` **or**
-  `contract-touching`, the review half holds the row for `contract-touching` alone. Measured on T-008;
-  row corrected by hand. ⇒ **T-014**, and the fix must honour the stricter of the two.
 - **2026-08-15 — the `ready`→`review` status flip fails `format:check`, so every builder turn opens a red
   PR.** The longer word goes into a cell padded for `ready`, leaving one trailing space prettier rejects.
   ✅ **FIXED at the writer in PR #20** — `setRowStatus` is hoisted, exported and repads to the width it

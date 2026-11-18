@@ -3323,6 +3323,13 @@
    "line": 259,
    "reason": "hmdnah now has its own GitHub credential (narutousomaki741)",
    "text": "- **2026-08-15 — ⚠⚠ `hmdnah` HAS NO GITHUB CREDENTIAL ON THE BOX**, so the crossed-account approval\n  `AGENTS.md §0` is built on does not exist here: `gh auth status` lists only `Davidian-Abdo`, and\n  `gh pr review 20 --approve` returned `GraphQL: Review Can not approve your own pull request`. ⚠\n  GitHub's refusal is the only thing that caught it, and **`gh pr merge` is not similarly blocked for a\n  repo admin**. ✅ **RESOLVED same day by owner ruling `D87`**; the durable rule it leaves is **T-013** —\n  a seat confirms `gh api user` is its own account before approving or merging."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 265,
+   "reason": "agent-finish.mjs --review retired; diwan tier from diff (R94)",
+   "text": "- **2026-08-15 — ⚠⚠ `--review` reads the frozen surface and never the task's `risk:` field**, so a\n  `risk: high` task is stamped `done` and its reviewer told to merge it. The two gates disagree by\n  construction: the builder half writes `NEXT TURN: REVIEW ONLY` on `risk: high` **or**\n  `contract-touching`, the review half holds the row for `contract-touching` alone. Measured on T-008;\n  row corrected by hand. ⇒ **T-014**, and the fix must honour the stricter of the two."
   }
  ],
  "rows": {
