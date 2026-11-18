@@ -3707,7 +3707,7 @@
     "title": "`requires:` supersedes a task's `machine:`",
     "verify": "`pnpm verify`"
    },
-   "status": "ready"
+   "status": "parked"
   },
   "T-032": {
    "approved": "migrated 94a5c4766aae",

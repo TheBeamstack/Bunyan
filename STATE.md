@@ -1,6 +1,6 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: blocked: depends on T-029 (parked) — T-031
+next: blocked: depends on T-065 (ready) — T-064
 
 ## Claims
 
@@ -21,7 +21,6 @@ none
 
 ## BLOCKED
 
-- T-031 — depends on T-029 (parked)
 - T-064 — depends on T-065 (ready)
 - T-065 — depends on T-067 (claimed)
 - T-066 — depends on T-065 (ready); depends on T-067 (claimed)

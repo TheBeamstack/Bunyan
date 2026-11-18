@@ -137,7 +137,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-066 | blocked | The first named save after an open or an edit re-keys and re-inflates no unchanged root                            | backend  | box     | **high** | T-065, T-067        |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —                   |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —                   |
-| T-031 | blocked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
+| T-031 | parked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
 
 ---
 
