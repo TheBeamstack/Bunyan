@@ -651,3 +651,15 @@
 - expires: 2026-11-25
 - ANSWER:
 - answered: -
+
+## P-20261118-05 who v1.0.0 is built for first
+- opened: 2026-11-18T16:36Z
+- by: brahim
+- item: direction/users
+- asks: which user's building-design task v1.0.0 must complete end to end first
+- context: The spec says v1.0.0 must be usable for a real, if simple, building-design task, without saying whose. small-practice: an architect in a small office drawing a house or small building to permit-set level. student: architecture students and hobbyists, who need ease over completeness. engineering: a bureau d'etudes checking and quantifying a design, which puts schedules and quantities first. The answer orders which tools and drawings are built first.
+- options: small-practice | student | engineering | other
+- default-if-silent: small-practice
+- expires: 2026-11-25
+- ANSWER:
+- answered: -
