@@ -976,13 +976,6 @@ hmdnah` TWICE** — same heading, same `FULL:` path, bodies differing only in th
   Third occurrence of the same cry-wolf shape, and the one the `_README` policy makes load-bearing after
   the freeze. Fix shape: class `freeze` on a `surface` diff and report an audit-field-only edit as a
   separate, non-gating class. Recorded, not claimed.
-- **2026-08-18 — every merge lands a branch-shaped `§8` on `main`, so the next builder's
-  `agent-start.mjs` measures a disagreement and refuses.** `§8` is regenerated on the task branch, where
-  its `branch · tip · tree`, `open PRs` and `diff vs origin/main` rows describe that branch; the merge
-  commits them verbatim onto `main`, where they are false. Worked around twice by a bare `pnpm state`
-  regen of `main`. The refusal is correct; what is wrong is that a clean merge guarantees the
-  disagreement. Fix shape: the reviewer's `--review` regenerates `§8` from `main` after merging, or the
-  branch-scoped rows leave the committed `§8` altogether. Recorded, not claimed.
 - **2026-08-17 — the pc's system Chrome (151) cannot boot the OCCT kernel** — `Failed to execute 'decode'
 on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `kernel-occt`'s boot
   path, pre-existing on unmodified `main`. A/B: 145 and 148 boot, 151 does not ⇒ the window is Chrome
