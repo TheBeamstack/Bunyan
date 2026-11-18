@@ -923,20 +923,6 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   A genuinely no-op change to a watched path has no sanctioned way to pass short of running the seeder.
   Worked around for D90 by excluding the 14 affected files. Fix shape: a third branch — or the design may
   be intentional. Found by `khalihlna` on PR #44. Recorded, not claimed.
-- **2026-08-23 — two real pc-only defects found and fixed (not the em-dash T-020 blamed).** **(1) A
-  leading shebang collides with Vite's SSR import-hoist** — the hoisted-imports line is spliced with
-  `…;#!/usr/bin/env node` on one line, a bare `#` mid-statement, which V8 reports as a position-less
-  "Invalid or unexpected token". All five failing `tests/protocol/*` files import a shebang script; the
-  two passing ones do not; CRLF and the em-dash are present in all of them and are not the cause. None of
-  the six scripts is git-executable and every invocation is `node scripts/x.mjs` — shebangs removed.
-  **(2) The fake-`gh` test stand-in cannot run on Windows at all**, by two independent mechanisms: a
-  `chmod`-ed bash script is never interpreted by `CreateProcess`, the `PATH` join used a literal `:`, and
-  since CVE-2024-27980 `execFileSync` will not spawn a `.bat`/`.cmd` without `shell: true`. Fixed by
-  `seats.mjs`'s `ghSpawn` (honouring `BUNYAN_GH_CMD`) plus a plain `.cjs` stand-in spawned as
-  `[process.execPath, scriptPath]`. `agent-start.test.ts`: 13 failures → 4. **What is left is resource
-  contention, not correctness** — the remaining failures are timeouts under full-suite concurrency, plus
-  one bare `execFileSync('node', …)` PATH-search failure of defect 2's shape at a different call site.
-  Found and fixed by `light_brahim` continuing `amer`'s T-001 turn.
 - **2026-08-23 — an interrupted `agent-finish.mjs` strands the turn, and nothing recovers it.** The
   multi-minute `pnpm verify` leaves the branch committed-but-unpushed or written-but-uncommitted, after
   which `agent-start.mjs` refuses at its own `git checkout main` reporting only "pull failed — resolve by

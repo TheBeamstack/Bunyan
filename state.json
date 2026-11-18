@@ -3169,6 +3169,13 @@
    "line": 50,
    "reason": "self-declared not a Bunyan item (mahjob runner); OWNER-ACTIONS.md gone",
    "text": "- **2026-09-04 — the single-runner queue delay is measured on two repos and Bunyan is the worse.** 55.6\n  min of queue for ~11 min of work here, against `maitre_d_ouvrage`'s 39 min for 23 min. One VM\n  serialising every job. Evidence for `OWNER-ACTIONS.md` **OA-008**. ⚠ Not a Bunyan work item — the\n  runner is `mahjob`'s, and ADR-0002 §2.10 puts this VM on the deletion path once Bunyan goes public."
+  },
+  {
+   "at": "2026-11-18T08:39Z",
+   "by": "brahim",
+   "line": 66,
+   "reason": "self-recorded fixed 08-23; agent-start.test.ts gone from main",
+   "text": "- **2026-08-23 — two real pc-only defects found and fixed (not the em-dash T-020 blamed).** **(1) A\n  leading shebang collides with Vite's SSR import-hoist** — the hoisted-imports line is spliced with\n  `…;#!/usr/bin/env node` on one line, a bare `#` mid-statement, which V8 reports as a position-less\n  \"Invalid or unexpected token\". All five failing `tests/protocol/*` files import a shebang script; the\n  two passing ones do not; CRLF and the em-dash are present in all of them and are not the cause. None of\n  the six scripts is git-executable and every invocation is `node scripts/x.mjs` — shebangs removed.\n  **(2) The fake-`gh` test stand-in cannot run on Windows at all**, by two independent mechanisms: a\n  `chmod`-ed bash script is never interpreted by `CreateProcess`, the `PATH` join used a literal `:`, and\n  since CVE-2024-27980 `execFileSync` will not spawn a `.bat`/`.cmd` without `shell: true`. Fixed by\n  `seats.mjs`'s `ghSpawn` (honouring `BUNYAN_GH_CMD`) plus a plain `.cjs` stand-in spawned as\n  `[process.execPath, scriptPath]`. `agent-start.test.ts`: 13 failures → 4. **What is left is resource\n  contention, not correctness** — the remaining failures are timeouts under full-suite concurrency, plus\n  one bare `execFileSync('node', …)` PATH-search failure of defect 2's shape at a different call site.\n  Found and fixed by `light_brahim` continuing `amer`'s T-001 turn."
   }
  ],
  "rows": {
