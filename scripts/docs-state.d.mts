@@ -10,7 +10,6 @@ export declare const BUDGET: {
   section7: number;
   maxAbstracts: number;
   decisions: number;
-  history: number;
 };
 
 /** The eight mandatory fields of a §7 entry abstract. */
@@ -101,6 +100,12 @@ export interface RecordedAbstract {
  * `newestAbstract` throws on an empty §7. See the implementation.
  */
 export declare function recordedAbstracts(root: string): RecordedAbstract[];
+
+export declare const ARCHIVE_TAG: string;
+/** The archived phase log's text, from `docs/` or, once archived, from `ARCHIVE_TAG`. */
+export declare function archiveText(root: string): string;
+/** `p` is in the working tree, or was archived at `ARCHIVE_TAG`. */
+export declare function existsOrArchived(root: string, p: string): boolean;
 
 export declare function readCurrentState(root: string): string;
 export declare function section7(src: string): string;

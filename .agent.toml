@@ -9,8 +9,6 @@ diwan    = "../diwan"
 [paths]
 state     = "docs/CURRENT_STATE.md"
 backlog   = "docs/BACKLOG.md"
-phase_log = "docs/PHASE_LOG.md"
-handoff   = "handoff"
 docs      = "docs"
 lock      = "docs/.turn-lock"
 stop      = "docs/.loop-stop"          # the live kill switch, named by both orchestrator prompts
@@ -43,11 +41,7 @@ step1_label        = "review/step-1"
 [cycle]
 summary_adapter = "backlog"
 evidence = [
-  "docs/BACKLOG.md",         # backlog readiness — a row sequenced, rescoped or made ready
-  "docs/OWNER-DECISIONS.md", # the owner interface, `[paths] decisions` — opened or closed
-  "docs/decisions.md",       # the ratified-ruling register (D1-D91) — this lane's ADR equivalent
-  "docs/PHASE_LOG.md",       # phase decomposition — this cycle's abstract
-  "handoff/",                # sequencing/routing — a turn ends by naming which seat is next
+  "docs/decisions.md", # the ratified-ruling register (D1-D97) — this lane's ADR equivalent
 ]
 
 # The frozen surface (D13, P5 freeze): `contract-touching` and `freeze` are decided from this table.
