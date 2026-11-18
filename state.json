@@ -614,7 +614,7 @@
   },
   "B-20261102-02": {
    "by": "brahim-loop",
-   "cleared": "-",
+   "cleared": "2026-11-18T06:48Z",
    "evidence": "`git ls-remote --heads origin 'task/T-067*'` prints `2aee811` and the start sheet lists `T-067 (zayd, open)` under live claims",
    "item": "T-067",
    "need": "give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01",

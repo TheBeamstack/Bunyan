@@ -27,5 +27,4 @@ none
 
 ## Open blockers
 
-- B-20261102-02 the coordinator answered `release` for zayd's T-067 claim, and no entrypoint releases a claim — need: give diwan a claim-release act that frees a `task/*` claim while keeping its commits, then release zayd's T-067 claim under D-20261102-01
 - B-20261106-01 T-069's relink cannot run: the unattended session's permissions refuse `docker` and the OCCT libs — need: allow `docker` and read access to `/home/brahim/occt-wasm-spike/install` in the box loop's Claude Code permission settings, then run T-069 in a zayd turn
