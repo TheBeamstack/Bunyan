@@ -1000,3 +1000,4 @@ green · 96 files` committed and `907 · 95` on an uncommitted regen, the latter
   not claimed.
 - **2026-08-15 — `state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync` with no
   `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
+- 2026-11-18 disc:1 parked tests/docs-budget.test.ts:154 — pnpm verify on box main is red while CI is green: the docs-budget body check reads the gitignored, untracked handoff/zayd/2026-11-18-T-067-carried-by-name.md left by zayd's T-067 turn, so a local QUIET verify fails on a file git does not hold (harm: none, by brahim)
