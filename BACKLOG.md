@@ -989,11 +989,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
 - **2026-08-17 — T-017's review left two `OWES: brahim` follow-ups**, recorded here so they outlive §7's
   rotation: `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment cites a gate that holds only to day
   granularity without saying so, and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through `.n`.
-- **2026-08-17 — T-016 step 2 left two `OWES: brahim` follow-ups.** (1) An end-to-end test of
-  `agent-finish.mjs`'s baton write — closable, but a 113-test blast radius on `zayd`'s harness. (2) Four
-  copies of one rationale, all stale since T-016 merged; wants one copy and three pointers per
-  `AGENTS.md §7.2`. Neither decomposed: (1) is a builder-harness call, (2) spans files outside any one
-  task's diff.
 - **2026-08-17 — a step-1 review's `review/step-1` label can land while its findings comment does not,
   and the §7 abstract still claims the comment was posted.** Measured on PR #33: label applied, no report
   among the PR's six comments; step 1's findings survive only on the branch. The opposite direction of
