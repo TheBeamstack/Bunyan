@@ -2809,6 +2809,16 @@
    "status": "parked",
    "text": "pnpm verify on box main is red while CI is green: the docs-budget body check reads the gitignored, untracked handoff/zayd/2026-11-18-T-067-carried-by-name.md left by zayd's T-067 turn, so a local QUIET verify fails on a file git does not hold",
    "where": "tests/docs-budget.test.ts:154"
+  },
+  {
+   "at": "2026-11-18T18:09Z",
+   "by": "brahim",
+   "harm": "none",
+   "id": "disc:2",
+   "main": "12ddc5f32aa2adff126fda1aa998b948e64d1ecd",
+   "status": "parked",
+   "text": "local pnpm verify is red on clean main: docs-budget's body check reads the gitignored, untracked handoff/zayd/2026-11-18-T-067-carried-by-name.md that a T-067 zayd turn left in the box checkout (cycle_end.py --seat brahim, verify at 2026-11-18T18:08:43Z, 1 failed of 1087), so every local verify on this box fails until that file is indexed or removed",
+   "where": "tests/docs-budget.test.ts:155"
   }
  ],
  "lane": "Bunyan",
