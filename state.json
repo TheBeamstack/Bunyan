@@ -554,7 +554,7 @@
   },
   "B-20261028-01": {
    "by": "brahim-loop",
-   "cleared": "-",
+   "cleared": "2026-11-18T02:08Z",
    "evidence": "`python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat hmdnah --review --root /home/ubuntu/projects/Bunyan; echo $?` prints \"Claiming PR #120 for review.\" while listing PR #118 as \"→ YOURS\"",
    "item": "PR#118",
    "need": "make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118",
