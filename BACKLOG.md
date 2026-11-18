@@ -883,10 +883,6 @@ finding, the fix shape where one is known, and its disposition.)_
 `$DIWAN/scripts/backlog.py add --after T-nnn …`, which allocates the id and refuses a row missing any
 READY field, then deletes the finding. The provenance travels in `implements:`, as the rows below already do.
 
-- **2026-10-25 — diwan `agent_start.py` resumes a builder's open claim that a pending decision holds.** Its
-  `resume` skips a claim in `blocks` (`scope: item` blockers) but not one a pending `D-` names
-  (`agent_start.py:928-937`), so `--seat zayd` resumed T-037 (held by D-20261021-01) and pushed `1ab49aa`
-  instead of reaching T-064. Passing the task id selects it. A diwan item, not a Bunyan row.
 - **2026-10-12 — the freeze baseline cannot name the turn that authorised it** (T-033). `recordedAbstracts`
   resolves only `### ` headings (`scripts/docs-state.mjs` `NEW_HEADING`), but `docs/PHASE_LOG.md` entries
   are `## ` (diwan's shape), so `pnpm state --rebaseline` stamps §7's newest abstract

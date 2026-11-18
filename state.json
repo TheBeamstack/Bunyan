@@ -3141,6 +3141,15 @@
  ],
  "next_id": 70,
  "parked": [],
+ "retired": [
+  {
+   "at": "2026-11-18T08:39Z",
+   "by": "brahim",
+   "line": 8,
+   "reason": "diwan agent_start.py defect: diwan's, not a Bunyan item",
+   "text": "- **2026-10-25 — diwan `agent_start.py` resumes a builder's open claim that a pending decision holds.** Its\n  `resume` skips a claim in `blocks` (`scope: item` blockers) but not one a pending `D-` names\n  (`agent_start.py:928-937`), so `--seat zayd` resumed T-037 (held by D-20261021-01) and pushed `1ab49aa`\n  instead of reaching T-064. Passing the task id selects it. A diwan item, not a Bunyan row."
+  }
+ ],
  "rows": {
   "T-001": {
    "approved": "migrated 94a5c4766aae",
