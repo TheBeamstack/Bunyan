@@ -976,12 +976,6 @@ hmdnah` TWICE** — same heading, same `FULL:` path, bodies differing only in th
   Third occurrence of the same cry-wolf shape, and the one the `_README` policy makes load-bearing after
   the freeze. Fix shape: class `freeze` on a `surface` diff and report an audit-field-only edit as a
   separate, non-gating class. Recorded, not claimed.
-- **2026-08-19 — T-024 has cost a real turn its §7 abstract.** Step 2 of PR #37 could not append an
-  abstract dated 2026-08-19 at all: `_baselinedAtEntry` is the positional key `1000`, so its date
-  disagreed with `_baselinedAt`, reddening `freeze-boundary` having moved no declaration. The only
-  alternatives were falsifying the date or an owner-gated re-baseline, so the abstract went straight into
-  `docs/PHASE_LOG.md` §E and §7 carries none for that turn (body
-  `handoff/hmdnah/2026-08-19-T-020-review-step2.md`). Recorded against **T-024**.
 - **2026-08-18 — `--review` prints `gh pr merge` on an owner-gated PR**, because it reads `pnpm state`'s
   risk verdict and not `reserved-classes.mjs`'s class; the two disagree by construction on a re-baseline.
   Only `REVIEW.md` item 7's ⚠ stands between the printed command and a seat merging an owner-gated PR —

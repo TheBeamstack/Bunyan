@@ -3211,6 +3211,13 @@
    "line": 157,
    "reason": "agent-finish.mjs --review --step 2 retired (absent from main)",
    "text": "- **2026-08-19 — `--review --step 2` accepts step 1's abstract and body as step 2's handoff artifacts,\n  and prints the merge commands.** Its gate checks only that _some_ §7 abstract names the task and seat,\n  and step 1 has already written one. Every prior step 2 wrote its own by hand — convention, not gate.\n  Fix shape: key the gate on the step. Recorded, not claimed."
+  },
+  {
+   "at": "2026-11-18T08:39Z",
+   "by": "brahim",
+   "line": 161,
+   "reason": "T-024 done in state",
+   "text": "- **2026-08-19 — T-024 has cost a real turn its §7 abstract.** Step 2 of PR #37 could not append an\n  abstract dated 2026-08-19 at all: `_baselinedAtEntry` is the positional key `1000`, so its date\n  disagreed with `_baselinedAt`, reddening `freeze-boundary` having moved no declaration. The only\n  alternatives were falsifying the date or an owner-gated re-baseline, so the abstract went straight into\n  `docs/PHASE_LOG.md` §E and §7 carries none for that turn (body\n  `handoff/hmdnah/2026-08-19-T-020-review-step2.md`). Recorded against **T-024**."
   }
  ],
  "rows": {
