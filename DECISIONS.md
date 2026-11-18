@@ -574,6 +574,6 @@
 - options: release | keep
 - default-if-silent: keep
 - expires: 2026-11-09
-- ANSWER: release
-- free-text: coordinator answer (technical), 2026-11-02: no commit since 2026-10-26 and no PR; the branch is kept for the next builder
+- ANSWER: keep
+- free-text: coordinator correction 2026-11-18: the 11-02 technical answer "release" was never acted on (no tool releases a claim and keeps its branch); keep, so zayd resumes T-067
 - answered: -
