@@ -3302,6 +3302,13 @@
    "line": 243,
    "reason": "self-marked Fixed (Entry 77)",
    "text": "- **2026-08-15 — `docs/CURRENT_STATE.md §3`/`§5` called the plan/section unit blocked on Q1–Q3 after it\n  shipped** (Entry 77). Fixed. ⚠ The class: rows phrased \"blocked on a ruling\" go stale because the\n  ruling gets recorded elsewhere."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 248,
+   "reason": "§0b baton retired with agent-finish.mjs (absent from main)",
+   "text": "- **2026-08-15 — ⚠⚠ the `§0b` baton names the last seat to FINISH, not the seat that claimed.**\n  `agent-finish.mjs` rewrites it with the finishing seat on the `--review` path too, so a reviewed branch\n  claims its reviewer built it; the builder's identity then survives only in the claim commit message.\n  Found reviewing PR #25, where a T-015 criterion written against the baton would have admitted the\n  reviewer and refused the builder. ⇒ T-015 derives the seat from the task row (a route-around) and\n  **T-016** fixes the baton itself."
   }
  ],
  "rows": {

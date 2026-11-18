@@ -1000,12 +1000,6 @@ green · 96 files` committed and `907 · 95` on an uncommitted regen, the latter
   not claimed.
 - **2026-08-15 — `state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync` with no
   `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
-- **2026-08-15 — ⚠⚠ the `§0b` baton names the last seat to FINISH, not the seat that claimed.**
-  `agent-finish.mjs` rewrites it with the finishing seat on the `--review` path too, so a reviewed branch
-  claims its reviewer built it; the builder's identity then survives only in the claim commit message.
-  Found reviewing PR #25, where a T-015 criterion written against the baton would have admitted the
-  reviewer and refused the builder. ⇒ T-015 derives the seat from the task row (a route-around) and
-  **T-016** fixes the baton itself.
 - **2026-08-15 — `--review` cannot route a PR whose title carries no `T-nnn`**, so neither open PR was
   claimable by any reviewer seat: `reviewerFor` is called only when `^T-\d{3}` matches. The mechanical
   fallback is the branch's seat prefix, which derives the reviewer from the machine the work ran on. ⚠⚠
