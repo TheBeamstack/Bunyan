@@ -3274,6 +3274,13 @@
    "line": 214,
    "reason": "agent-finish.mjs handoff resolution retired (absent from main)",
    "text": "- **2026-08-17 — `agent-finish.mjs` resolves a turn's handoff body by ALPHABETICAL order, so a second\n  turn on the same task and date cannot finish.** It takes the last of\n  `readdirSync(handoff/<seat>).filter(f => f.includes(task)).sort()` and requires the newest abstract's\n  `FULL:` to name it — correct only while the date prefix separates candidates, which a D88 defect return\n  breaks. Worked around by naming the body so it sorts last. Fix shape: resolve the body **by the\n  abstract's own `FULL:` field** and check the file exists — the entry is the authority on which body it\n  has. Recorded, not claimed."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 221,
+   "reason": "agent-start.mjs --review routing retired; diwan routes reviews",
+   "text": "- **2026-08-17 — the `--review` wrong-PR claim recurred a third time, and there is still no flag to name\n  a PR.** With #32 (due step 2) and #33 (due step 1) both routed to `hmdnah`, `--review` claimed #33 and\n  posted a claim comment on it while the session's assignment was #32. ⚠ The 2026-08-16 row judged this\n  self-correctable and recorded it; three occurrences say that judgement was wrong. Fix shape: a `--pr"
   }
  ],
  "rows": {

@@ -989,10 +989,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
 - **2026-08-17 — T-017's review left two `OWES: brahim` follow-ups**, recorded here so they outlive §7's
   rotation: `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment cites a gate that holds only to day
   granularity without saying so, and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through `.n`.
-- **2026-08-17 — the `--review` wrong-PR claim recurred a third time, and there is still no flag to name
-  a PR.** With #32 (due step 2) and #33 (due step 1) both routed to `hmdnah`, `--review` claimed #33 and
-  posted a claim comment on it while the session's assignment was #32. ⚠ The 2026-08-16 row judged this
-  self-correctable and recorded it; three occurrences say that judgement was wrong. Fix shape: a `--pr
 <n>` flag, or order candidates by review-pipeline position rather than `gh pr list` order.
 - **2026-08-17 — `_baselinedAtEntry` names a POSITION, not an entry, under the `T-nnn` scheme**, so every
   new §7 abstract silently re-points the frozen-surface baseline's audit trail and `baselineEntryIssues`
