@@ -896,12 +896,6 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   `tools/browser-check/two-doors.mjs` imports `playwright-core`, which is not a Bunyan dependency; both
   turns borrowed `Chantier_Manager`'s copy. `browser` probes green on a Chromium binary alone. Fix shape:
   a root devDependency, or a need. Recorded, not claimed.
-- **2026-10-10 — diwan `scripts/backlog.py add` cannot write this repo's `area:` vocabulary, nor `requires:`.**
-  Its `AREAS` is `backend|frontend|workers|infra|spec` (`backlog.py:73`), against this file's
-  `kernel|document|apps-web|infra|design`, and it has no `--requires` flag. T-033…T-038 were written by it
-  with `--area spec`, then that one token was corrected by hand (and the ids renumbered by hand on the
-  2026-10-11 rebase, from `next-id`). Fix shape: read the area set from the
-  repo, add `--requires`. A diwan item, not a Bunyan row.
 - **2026-10-08 — a deferred element's broken `hostRef` surfaces only once it is built** (T-006). The
   keep-live set keeps an unregistered Type and a missing host live, both decidable from the recipe; a
   `hostRef` naming a face the host no longer has is measured by the build, so an out-of-view one is
