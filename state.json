@@ -494,7 +494,7 @@
   },
   "B-20261026-02": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-18T02:08Z",
    "evidence": "`python3 ../diwan/scripts/agent_start.py --seat zayd --root . --continue T-067; echo $?` on `main` at `f2f9d07` exits 1",
    "item": "T-067",
    "need": "make diwan `agent_start.py` resume a seat's incomplete claim that no blocker holds (T-067) before one a blocker holds (T-064), then run T-067 in a zayd turn",
