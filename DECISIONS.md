@@ -577,3 +577,16 @@
 - ANSWER: keep
 - free-text: coordinator correction 2026-11-18: the 11-02 technical answer "release" was never acted on (no tool releases a claim and keeps its branch); keep, so zayd resumes T-067
 - answered: 2026-11-18T06:48Z
+
+## D-20261118-01 T-067's 200 ms named-save bar still fails; whether to cut scene.json assembly into the zip worker as its own row
+- opened: 2026-11-18T15:10Z
+- by: brahim
+- item: T-067
+- asks: whether to add a row that moves scene.json assembly off the main thread into the zip worker, so T-067 can meet its 200 ms bar
+- context: When you save a named file in Bunyan, the browser's main thread freezes while the file is built. T-067's acceptance test needs that freeze to stay under 200 ms on a 16k-element model. zayd's turn on 2026-11-18 measured 89.5-300 ms (B-20261118-01), so the test passes in some runs and fails in others. The largest remaining step is assembling scene.json on the main thread (48.7-122.8 ms). The candidate fix named in T-067's own note is to do that assembly inside the zip worker. cut-row: the steward adds that as a new ready box row, and T-067 waits on it, then re-runs its bar. hold: T-067 stays blocked and nothing is cut. T-065, T-064 and T-066 queue behind T-067 either way.
+- options: cut-row | hold
+- default-if-silent: cut-row
+- expires: 2026-11-25
+- directions-read: none in force
+- ANSWER:
+- answered: -
