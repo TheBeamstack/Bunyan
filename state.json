@@ -3239,6 +3239,13 @@
    "line": 184,
    "reason": "NEXT TURN banner: agent-*.mjs retired (absent from main)",
    "text": "- **2026-08-17 — `NEXT TURN: REVIEW ONLY` is cleared only on a `--review` finish**, so a PR merged any\n  other way strands the banner and halts every builder turn on both machines (`agent-finish.mjs:335`\n  gates the clear on `if (review)`; `agent-start.mjs:789` refuses a builder claim while it stands).\n  T-011's banner outlived PR #32; cleared by direct commit. Fix shape: clear it on every finish whose\n  task the banner names. Recorded, not claimed."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 189,
+   "reason": "agent-finish.mjs step order: script absent from main",
+   "text": "- **2026-08-17 — `agent-finish.mjs` runs `pnpm verify` (step 1) before regenerating §8 (step 2)**, so\n  every turn that edits §7 burns a full verify (~9 min) before failing on \"§8 agrees with §7\". Step\n  ordering in the writer, not a protocol question."
   }
  ],
  "rows": {

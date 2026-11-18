@@ -981,9 +981,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
   path, pre-existing on unmodified `main`. A/B: 145 and 148 boot, 151 does not ⇒ the window is Chrome
   149–151. ⚠ **Worked around, not fixed**: `BUNYAN_BROWSER_CMD` is a persistent Windows user env var
   pinned to cached Chromium 148. The real fix is **T-022**, confirmed by **T-023**.
-- **2026-08-17 — `agent-finish.mjs` runs `pnpm verify` (step 1) before regenerating §8 (step 2)**, so
-  every turn that edits §7 burns a full verify (~9 min) before failing on "§8 agrees with §7". Step
-  ordering in the writer, not a protocol question.
 - **2026-08-17 — the orchestrator loop and its subagents contend for one working tree.** The loop's step
   2 runs `git checkout main` every cycle while a spawned subagent holds the same checkout on its task
   branch. Git refuses cleanly and it self-resolves, so it is an isolation/wording question (a worktree
