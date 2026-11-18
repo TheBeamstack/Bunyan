@@ -24,7 +24,6 @@ none
 
 ## Open blockers
 
-- B-20261027-01 start refuses zayd's tickets T-067 and T-068 because the ticket records themselves hold those tasks — need: make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn
 - B-20261027-02 PR #120's flow-routed conflict merge cannot run: start refuses `--continue T-065` for the reviewer seat hmdnah — need: make diwan `agent_start.py --continue` admit a reviewer seat that holds the task's claim to a flow-routed conflict merge, then re-run hmdnah's `--continue T-065`
 - B-20261027-03 PR #116's flow-routed conflict merge cannot run: start refuses zayd's `--continue T-064` on B-20261025-02 — need: make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-064`
 - B-20261028-01 start's review mode claims PR #120 ahead of PR #118, so hmdnah cannot reach the retitled dependabot PR — need: make diwan `agent_start.py --review` admit a PR past a hold only for the act its ticket's `need:` names, then run hmdnah's review of PR #118

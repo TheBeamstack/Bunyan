@@ -518,7 +518,7 @@
   },
   "B-20261027-01": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-18T02:08Z",
    "evidence": "`python3 ../diwan/scripts/agent_start.py --seat zayd --root . T-067; echo $?` on `main` at `a46980a` exits 1",
    "item": "T-067",
    "need": "make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn",
