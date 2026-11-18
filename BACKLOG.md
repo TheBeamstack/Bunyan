@@ -989,11 +989,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
 - **2026-08-17 — T-017's review left two `OWES: brahim` follow-ups**, recorded here so they outlive §7's
   rotation: `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment cites a gate that holds only to day
   granularity without saying so, and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through `.n`.
-- **2026-08-17 — a step-1 review's `review/step-1` label can land while its findings comment does not,
-  and the §7 abstract still claims the comment was posted.** Measured on PR #33: label applied, no report
-  among the PR's six comments; step 1's findings survive only on the branch. The opposite direction of
-  T-014's OWES note, which named a report with no label; nothing checks either way. Step 2 reads the
-  branch body instead. Recorded, not decomposed.
 - **2026-08-17 — `agent-finish.mjs` resolves a turn's handoff body by ALPHABETICAL order, so a second
   turn on the same task and date cannot finish.** It takes the last of
   `readdirSync(handoff/<seat>).filter(f => f.includes(task)).sort()` and requires the newest abstract's

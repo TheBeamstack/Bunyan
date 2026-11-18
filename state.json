@@ -3260,6 +3260,13 @@
    "line": 204,
    "reason": "baton writer agent-finish.mjs retired (absent from main)",
    "text": "- **2026-08-17 — T-016 step 2 left two `OWES: brahim` follow-ups.** (1) An end-to-end test of\n  `agent-finish.mjs`'s baton write — closable, but a 113-test blast radius on `zayd`'s harness. (2) Four\n  copies of one rationale, all stale since T-016 merged; wants one copy and three pointers per\n  `AGENTS.md §7.2`. Neither decomposed: (1) is a builder-harness call, (2) spans files outside any one\n  task's diff."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 209,
+   "reason": "old --review step-1 label flow retired with agent-finish.mjs",
+   "text": "- **2026-08-17 — a step-1 review's `review/step-1` label can land while its findings comment does not,\n  and the §7 abstract still claims the comment was posted.** Measured on PR #33: label applied, no report\n  among the PR's six comments; step 1's findings survive only on the branch. The opposite direction of\n  T-014's OWES note, which named a report with no label; nothing checks either way. Step 2 reads the\n  branch body instead. Recorded, not decomposed."
   }
  ],
  "rows": {
