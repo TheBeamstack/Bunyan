@@ -998,9 +998,6 @@ green · 96 files` committed and `907 · 95` on an uncommitted regen, the latter
   both numbers come from the same stale file, so they agree while being wrong. Fix shape: refuse a
   summary whose mtime predates the newest source file, or record the commit the run measured. Recorded,
   not claimed.
-- **2026-08-15 — `docs/CURRENT_STATE.md §3`/`§5` called the plan/section unit blocked on Q1–Q3 after it
-  shipped** (Entry 77). Fixed. ⚠ The class: rows phrased "blocked on a ruling" go stale because the
-  ruling gets recorded elsewhere.
 - **2026-08-15 — `state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync` with no
   `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
 - **2026-08-15 — ⚠⚠ the `§0b` baton names the last seat to FINISH, not the seat that claimed.**

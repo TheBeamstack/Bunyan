@@ -3295,6 +3295,13 @@
    "line": 239,
    "reason": "agent-start.mjs --review claim loop retired (absent from main)",
    "text": "- **2026-08-16 — `--review`'s reviewer-claim loop takes the first PR in `gh pr list` order\n  (newest-first), not the one furthest along its own review pipeline.** Measured on #31 (past step 1,\n  labelled) and #32 (just opened): both route to `hmdnah`, and the script claimed #32. Worked around by\n  hand. Recorded rather than decomposed — superseded by the 2026-08-17 row above."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 243,
+   "reason": "self-marked Fixed (Entry 77)",
+   "text": "- **2026-08-15 — `docs/CURRENT_STATE.md §3`/`§5` called the plan/section unit blocked on Q1–Q3 after it\n  shipped** (Entry 77). Fixed. ⚠ The class: rows phrased \"blocked on a ruling\" go stale because the\n  ruling gets recorded elsewhere."
   }
  ],
  "rows": {
