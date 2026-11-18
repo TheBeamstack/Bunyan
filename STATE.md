@@ -24,7 +24,6 @@ none
 
 ## Open blockers
 
-- B-20261025-02 PR #116's step 2 measured T-064's 200 ms named-save bar unmet at 16k, so it is not merged — need: sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k
 - B-20261026-01 PR #120's step 2 found T-065's done-when 1 and done-when 4 unmet, so it is not merged — need: perform B-20261025-03's and B-20261025-04's `need:` in a brahim turn, then route PR #120 to hmdnah for step 2 once both done-when items hold
 - B-20261026-02 start cannot hand zayd T-067: it resumes the blocker-held T-064, and `--continue T-067` needs an open PR — need: make diwan `agent_start.py` resume a seat's incomplete claim that no blocker holds (T-067) before one a blocker holds (T-064), then run T-067 in a zayd turn
 - B-20261027-01 start refuses zayd's tickets T-067 and T-068 because the ticket records themselves hold those tasks — need: make diwan `agent_start.py` admit a builder past a `scope: item` record whose `need:` names that seat and the task when it resumes or claims a task with no PR, then run T-067 in a zayd turn

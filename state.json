@@ -470,7 +470,7 @@
   },
   "B-20261025-02": {
    "by": "hmdnah",
-   "cleared": "-",
+   "cleared": "2026-11-18T02:08Z",
    "evidence": "`node tools/browser-check/named-save.mjs --playwright <playwright-core 1.60.0 index.mjs> --browser ~/.cache/ms-playwright/chromium-1243/chrome-linux-arm64/chrome; echo $?` at `ef411ee`; figures in `handoff/hmdnah/2026-10-25-T-064-review-step-2.md` on `task/T-064-a-named-save-posts-its-geometry-cache-re`",
    "item": "PR#116",
    "need": "sequence the row that takes the 16k entries clone off the named save's main thread (B-20261024-02's `need:`) in a brahim turn, then route PR #116 to hmdnah for step 2 once `named-save.mjs` exits 0 at 16k",
