@@ -3197,6 +3197,13 @@
    "line": 144,
    "reason": "agent-finish.mjs --review retired (absent from main)",
    "text": "- **2026-08-19 — `agent-finish.mjs --review` stamps the backlog row `done` on an owner-gated PR.**\n  `reviewFlipsToDone` reads `contractTouching` from §8's frozen-surface row, so `('high', 2, false)` is\n  `true` on a PR carrying `needs-operator/freeze`: measured on PR #38, which wrote `T-024 → done` while\n  the owner had not merged. `done` is what satisfies a `depends-on:`, so this releases dependents on an\n  unmerged PR. `AGENTS.md §5` names three owner-gated classes; `reviewFlipsToDone` knows only one. ⚠\n  **Fired a second time 2026-08-20** on the step-2 re-run; row reset by hand both times. **⇒ T-025.**"
+  },
+  {
+   "at": "2026-11-18T08:39Z",
+   "by": "brahim",
+   "line": 150,
+   "reason": "agent-finish.mjs retired; T-024 done",
+   "text": "- **2026-08-19 — the stable key is not the identity `agent-finish.mjs` uses, and T-024 did not sweep it.**\n  `agent-finish.mjs:280`'s handoff gate stays on `find(a => a.id === task && a.seat === seat)` — a subset\n  of the key, and exactly the tuple whose collisions the same PR records; that is why a D88 step 2 passes\n  on step 1's abstract. Two smaller sites: the seven `docs-budget` messages moved `.n` → `.id`, the one\n  field that is never unique; and `isSyntheticEntryNumber` guards `(990, 1000]` while a turn appends\n  before rotating, so §7's transient 11th index mints `990` and is reported as a legacy number. Recorded,\n  not claimed."
   }
  ],
  "rows": {

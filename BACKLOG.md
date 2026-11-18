@@ -976,13 +976,6 @@ hmdnah` TWICE** — same heading, same `FULL:` path, bodies differing only in th
   Third occurrence of the same cry-wolf shape, and the one the `_README` policy makes load-bearing after
   the freeze. Fix shape: class `freeze` on a `surface` diff and report an audit-field-only edit as a
   separate, non-gating class. Recorded, not claimed.
-- **2026-08-19 — the stable key is not the identity `agent-finish.mjs` uses, and T-024 did not sweep it.**
-  `agent-finish.mjs:280`'s handoff gate stays on `find(a => a.id === task && a.seat === seat)` — a subset
-  of the key, and exactly the tuple whose collisions the same PR records; that is why a D88 step 2 passes
-  on step 1's abstract. Two smaller sites: the seven `docs-budget` messages moved `.n` → `.id`, the one
-  field that is never unique; and `isSyntheticEntryNumber` guards `(990, 1000]` while a turn appends
-  before rotating, so §7's transient 11th index mints `990` and is reported as a legacy number. Recorded,
-  not claimed.
 - **2026-08-19 — `--review --step 2` accepts step 1's abstract and body as step 2's handoff artifacts,
   and prints the merge commands.** Its gate checks only that _some_ §7 abstract names the task and seat,
   and step 1 has already written one. Every prior step 2 wrote its own by hand — convention, not gate.
