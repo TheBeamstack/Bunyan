@@ -1000,8 +1000,3 @@ green · 96 files` committed and `907 · 95` on an uncommitted regen, the latter
   not claimed.
 - **2026-08-15 — `state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync` with no
   `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
-- **2026-08-15 — the `NEXT TURN: REVIEW ONLY` banner cannot route a review turn.** It is written into the
-  task branch and read after `git checkout main`, so it has never existed on `main` and routing comes
-  from the PR title. ✅ **RULED `D88` as amended: a `review/step-1` PR label routes step 2**, and T-014's
-  criterion is rewritten to it. The banner keeps its existing job of telling the next session on that
-  branch that the turn is review-only.
