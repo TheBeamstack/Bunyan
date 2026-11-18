@@ -3162,6 +3162,13 @@
    "line": 29,
    "reason": "diwan gap closed: state.py add has --requires; rows via state.py",
    "text": "- **2026-10-10 — diwan `scripts/backlog.py add` cannot write this repo's `area:` vocabulary, nor `requires:`.**\n  Its `AREAS` is `backend|frontend|workers|infra|spec` (`backlog.py:73`), against this file's\n  `kernel|document|apps-web|infra|design`, and it has no `--requires` flag. T-033…T-038 were written by it\n  with `--area spec`, then that one token was corrected by hand (and the ids renumbered by hand on the\n  2026-10-11 rebase, from `next-id`). Fix shape: read the area set from the\n  repo, add `--requires`. A diwan item, not a Bunyan row."
+  },
+  {
+   "at": "2026-11-18T08:39Z",
+   "by": "brahim",
+   "line": 50,
+   "reason": "self-declared not a Bunyan item (mahjob runner); OWNER-ACTIONS.md gone",
+   "text": "- **2026-09-04 — the single-runner queue delay is measured on two repos and Bunyan is the worse.** 55.6\n  min of queue for ~11 min of work here, against `maitre_d_ouvrage`'s 39 min for 23 min. One VM\n  serialising every job. Evidence for `OWNER-ACTIONS.md` **OA-008**. ⚠ Not a Bunyan work item — the\n  runner is `mahjob`'s, and ADR-0002 §2.10 puts this VM on the deletion path once Bunyan goes public."
   }
  ],
  "rows": {

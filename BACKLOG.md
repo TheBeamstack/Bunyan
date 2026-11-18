@@ -911,10 +911,6 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   while the runner reported `online busy=false`; two readers diagnosed a wedged listener. It was queue
   latency. A null read as a negative (§1c-7). **The only sound liveness check is whether a job eventually
   starts.** Recorded, not claimed.
-- **2026-09-04 — the single-runner queue delay is measured on two repos and Bunyan is the worse.** 55.6
-  min of queue for ~11 min of work here, against `maitre_d_ouvrage`'s 39 min for 23 min. One VM
-  serialising every job. Evidence for `OWNER-ACTIONS.md` **OA-008**. ⚠ Not a Bunyan work item — the
-  runner is `mahjob`'s, and ADR-0002 §2.10 puts this VM on the deletion path once Bunyan goes public.
 - **2026-09-04 — `REVIEW.md`'s "GitHub itself refuses the Entry 74 self-merge" is false, and
   `.github/workflows/ci.yml:91` names a test that does not exist.** GitHub refuses an approval from the
   PR's own author, not the _merge_, which is what Entry 74 did; what refuses it here is
