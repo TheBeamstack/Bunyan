@@ -28,3 +28,4 @@ none
 ## Open blockers
 
 - B-20261106-01 T-069's relink cannot run: the unattended session's permissions refuse `docker` and the OCCT libs — need: allow `docker` and read access to `/home/brahim/occt-wasm-spike/install` in the box loop's Claude Code permission settings, then run T-069 in a zayd turn
+- B-20261118-01 T-067's done-when 5 fails: named-save.mjs exits 0 in 2 of 4 read runs at c5c2f35, held 89.5-300 ms at 16k — need: steward: sequence the next main-thread cut of the named save (the row's candidate, scene.json assembled in the zip worker; assemble measured 48.7-122.8 ms) as its own row or amend T-067, per design §5's T-067 paragraph
