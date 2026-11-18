@@ -627,3 +627,15 @@
 - expires: 2026-11-25
 - ANSWER:
 - answered: -
+
+## P-20261118-03 what happens to a builder's claim that has not moved in 7 days
+- opened: 2026-11-18T16:35Z
+- by: brahim
+- item: direction/stale-claims
+- asks: whether a claim whose branch has had no commit for 7 days is released, or kept, without a D- each time
+- context: A builder holds a row while it works; a stalled claim makes the row read as live work and nobody else takes it. You have been asked this per claim (T-025 on 2026-10-23, T-067 on 2026-11-02). release: the claim is freed and the branch kept, so the next builder continues from it. keep: the claim stays until the builder returns.
+- options: release | keep
+- default-if-silent: keep
+- expires: 2026-11-25
+- ANSWER:
+- answered: -
