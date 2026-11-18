@@ -650,7 +650,7 @@
   },
   "B-20261105-01": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-18T02:08Z",
    "evidence": "`cd /home/brahim/projects/diwan/scripts && python3 -c \"import protocol; print(protocol.browser_cmd())\"` prints `None`",
    "item": "T-067",
    "need": "install a Playwright Chromium that diwan `browser_cmd()` finds for the box loop's user, then run T-067 in a builder turn",
