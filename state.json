@@ -3190,6 +3190,13 @@
    "line": 95,
    "reason": "agent-finish.mjs identity gate retired (absent from main)",
    "text": "- **2026-08-21 — the seat identity gate guards the CLAIM, and the merge happens outside it.** A reviewer\n  approves and merges after `agent-finish.mjs` has returned, so a session reaching the merge without a\n  fresh claim is unguarded; measured on PR #39, where the box `gh` default resolved to the PR's own\n  author and only the seat reading `AGENTS.md §6` stopped it. `gh pr merge` would have succeeded — the\n  self-approval refusal does not extend to merge. Compounding it, `--review` writes the verdict as\n  accomplished fact (PR #39 said \"APPROVED, and merged by me\" with **zero** reviews). **⇒ T-026.**"
+  },
+  {
+   "at": "2026-11-18T08:39Z",
+   "by": "brahim",
+   "line": 144,
+   "reason": "agent-finish.mjs --review retired (absent from main)",
+   "text": "- **2026-08-19 — `agent-finish.mjs --review` stamps the backlog row `done` on an owner-gated PR.**\n  `reviewFlipsToDone` reads `contractTouching` from §8's frozen-surface row, so `('high', 2, false)` is\n  `true` on a PR carrying `needs-operator/freeze`: measured on PR #38, which wrote `T-024 → done` while\n  the owner had not merged. `done` is what satisfies a `depends-on:`, so this releases dependents on an\n  unmerged PR. `AGENTS.md §5` names three owner-gated classes; `reviewFlipsToDone` knows only one. ⚠\n  **Fired a second time 2026-08-20** on the step-2 re-run; row reset by hand both times. **⇒ T-025.**"
   }
  ],
  "rows": {
