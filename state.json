@@ -3535,7 +3535,7 @@
    "approved": "migrated 94a5c4766aae",
    "blockers": [],
    "branch": "",
-   "entry": "### T-023 — The kernel boots on the pc's system Chrome, confirmed there\n\n- implements: T-022's fix\n- verify: a browser run on the pc\n- done-when:\n  - the app boots on that machine's system Chrome (151.x) with **no `BUNYAN_BROWSER_CMD` override**, and\n    the `TextDecoder` error is gone by name;\n  - console-error-free boot;\n  - revert-verified: the pre-fix artifact still hangs on the same browser;\n  - ⚠ **the workaround is removed once the fix is proven** — the persistent `BUNYAN_BROWSER_CMD` pinning\n    Chromium 148 is unset and the removal recorded, so it cannot outlive what it works around.\n- depends-on: T-022\n- area: apps-web · machine: **pc** · risk: **normal**",
+   "entry": "### T-023 — The kernel boots on the pc's system Chrome, confirmed there\n\n- implements: T-022's fix\n- verify: a browser run on the pc\n- done-when:\n  - the app boots on that machine's system Chrome (151.x) with **no `BUNYAN_BROWSER_CMD` override**, and\n    the `TextDecoder` error is gone by name;\n  - console-error-free boot;\n  - revert-verified: the pre-fix artifact still hangs on the same browser;\n  - ⚠ **the workaround is removed once the fix is proven** — the persistent `BUNYAN_BROWSER_CMD` pinning\n    Chromium 148 is unset and the removal recorded, so it cannot outlive what it works around.\n- depends-on: T-022\n- area: apps-web · machine: **pc** · risk: **normal**\n- session: 10",
    "holder": "",
    "line": "| T-023 | ready   | The kernel boots on the pc's system Chrome, confirmed there                                                        | apps-web | pc      | normal   | T-022               |",
    "pr": 0,
@@ -3546,6 +3546,7 @@
     "implements": "T-022's fix",
     "machine": "pc",
     "risk": "normal",
+    "session": "10",
     "title": "The kernel boots on the pc's system Chrome, confirmed there",
     "verify": "a browser run on the pc"
    },

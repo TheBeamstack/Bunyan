@@ -224,6 +224,7 @@ D82 made). `docs/CURRENT_STATE.md §5` (Amer, item 3) still names this open.
     Chromium 148 is unset and the removal recorded, so it cannot outlive what it works around.
 - depends-on: T-022
 - area: apps-web · machine: **pc** · risk: **normal**
+- session: 10
 
 ### T-026 — The identity gate fires at approve/merge, not only at claim
 
