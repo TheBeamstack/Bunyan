@@ -3246,6 +3246,13 @@
    "line": 189,
    "reason": "agent-finish.mjs step order: script absent from main",
    "text": "- **2026-08-17 — `agent-finish.mjs` runs `pnpm verify` (step 1) before regenerating §8 (step 2)**, so\n  every turn that edits §7 burns a full verify (~9 min) before failing on \"§8 agrees with §7\". Step\n  ordering in the writer, not a protocol question."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 200,
+   "reason": "agent-start.mjs claim path retired (absent from main)",
+   "text": "- **2026-08-17 — `agent-start.mjs`'s named-task claim path never consults `liveClaims`, so a finished\n  task is claimable by name.** The auto-select path skips a held row on both disjuncts; the `wantTask`\n  path above it checks only `rowStatus === 'ready'` and `canClaim`. Measured on T-011. Reachable only by\n  naming the task explicitly — the loop's builder turns pass no task and are safe. Recorded, not claimed."
   }
  ],
  "rows": {

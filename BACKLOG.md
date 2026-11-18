@@ -989,10 +989,6 @@ on 'TextDecoder': The provided ArrayBuffer value must not be resizable`, from `k
 - **2026-08-17 — T-017's review left two `OWES: brahim` follow-ups**, recorded here so they outlive §7's
   rotation: `docs-state.mjs`'s "SYNTHETIC SORT KEYS" comment cites a gate that holds only to day
   granularity without saying so, and `frozen-surface.mjs:269` resolves `_baselinedAtEntry` through `.n`.
-- **2026-08-17 — `agent-start.mjs`'s named-task claim path never consults `liveClaims`, so a finished
-  task is claimable by name.** The auto-select path skips a held row on both disjuncts; the `wantTask`
-  path above it checks only `rowStatus === 'ready'` and `canClaim`. Measured on T-011. Reachable only by
-  naming the task explicitly — the loop's builder turns pass no task and are safe. Recorded, not claimed.
 - **2026-08-17 — T-016 step 2 left two `OWES: brahim` follow-ups.** (1) An end-to-end test of
   `agent-finish.mjs`'s baton write — closable, but a 113-test blast radius on `zayd`'s harness. (2) Four
   copies of one rationale, all stale since T-016 merged; wants one copy and three pointers per
