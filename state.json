@@ -458,7 +458,7 @@
   },
   "B-20261025-01": {
    "by": "hmdnah",
-   "cleared": "-",
+   "cleared": "2026-11-18T02:08Z",
    "evidence": "`gh run view 40150898247 --log-failed`; `node scripts/pr-ready.mjs --title 'Bump vite from 6.4.3 to 6.4.4'; echo $?` prints the refusal and 1",
    "item": "PR#118",
    "need": "give dependabot PRs a routable shape (a `dependabot/*` route in `scripts/pr-ready.mjs` and diwan `agent_start.py`, or a retitle convention) in a brahim turn, then route PR #118 to hmdnah",
