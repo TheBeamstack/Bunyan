@@ -1000,12 +1000,6 @@ green · 96 files` committed and `907 · 95` on an uncommitted regen, the latter
   not claimed.
 - **2026-08-15 — `state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync` with no
   `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
-- **2026-08-15 — ⚠⚠ `hmdnah` HAS NO GITHUB CREDENTIAL ON THE BOX**, so the crossed-account approval
-  `AGENTS.md §0` is built on does not exist here: `gh auth status` lists only `Davidian-Abdo`, and
-  `gh pr review 20 --approve` returned `GraphQL: Review Can not approve your own pull request`. ⚠
-  GitHub's refusal is the only thing that caught it, and **`gh pr merge` is not similarly blocked for a
-  repo admin**. ✅ **RESOLVED same day by owner ruling `D87`**; the durable rule it leaves is **T-013** —
-  a seat confirms `gh api user` is its own account before approving or merging.
 - **2026-08-15 — ⚠⚠ `--review` reads the frozen surface and never the task's `risk:` field**, so a
   `risk: high` task is stamped `done` and its reviewer told to merge it. The two gates disagree by
   construction: the builder half writes `NEXT TURN: REVIEW ONLY` on `risk: high` **or**
