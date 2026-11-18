@@ -615,3 +615,15 @@
 - expires: 2026-11-25
 - ANSWER:
 - answered: -
+
+## P-20261118-02 what the steward does when the box builder has nothing ready
+- opened: 2026-11-18T16:35Z
+- by: brahim
+- item: direction/empty-queue
+- asks: whether the steward proposes the next milestone from the spec's next phase whenever the box queue is empty, or lets the lane idle
+- context: Every approved Bunyan milestone's rows are done or waiting on something only you can move, so the box builder has nothing to take (D-20261118-02). propose: the steward drafts the next milestone in docs/MILESTONES.toml with approved left empty and cuts no row from it until you approve it, so nothing is built that you did not approve. idle: the lane waits until a blocker or decision moves.
+- options: propose | idle
+- default-if-silent: propose
+- expires: 2026-11-25
+- ANSWER:
+- answered: -
