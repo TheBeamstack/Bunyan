@@ -2422,6 +2422,51 @@
     ]
    ],
    "title": "what happens to a builder's claim that has not moved in 7 days"
+  },
+  "P-20261118-04": {
+   "fields": [
+    [
+     "opened",
+     "2026-11-18T16:35Z"
+    ],
+    [
+     "by",
+     "brahim"
+    ],
+    [
+     "item",
+     "direction/platform"
+    ],
+    [
+     "asks",
+     "which platforms a done-when may treat as the v1.0.0 target: desktop Chromium only, every major desktop browser, or desktop plus tablets"
+    ],
+    [
+     "context",
+     "Bunyan runs the OCCT kernel as WebAssembly in the browser, and its browser checks run today on Chromium (the pc's Chrome, T-023). desktop-chromium: only Chrome and Edge on a desktop must pass, the cheapest to test. desktop-all: Firefox and Safari must pass too, which adds a browser row per check. desktop-and-tablet: also an iPad-class device, which adds touch input and a memory limit to the design."
+    ],
+    [
+     "options",
+     "desktop-chromium | desktop-all | desktop-and-tablet | other"
+    ],
+    [
+     "default-if-silent",
+     "desktop-chromium"
+    ],
+    [
+     "expires",
+     "2026-11-25"
+    ],
+    [
+     "ANSWER",
+     ""
+    ],
+    [
+     "answered",
+     "-"
+    ]
+   ],
+   "title": "which browsers and devices v1.0.0 must work on"
   }
  },
  "discovered": [
