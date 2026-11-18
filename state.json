@@ -2238,6 +2238,55 @@
     ]
    ],
    "title": "T-067's 200 ms named-save bar still fails; whether to cut scene.json assembly into the zip worker as its own row"
+  },
+  "D-20261118-02": {
+   "fields": [
+    [
+     "opened",
+     "2026-11-18T16:04Z"
+    ],
+    [
+     "by",
+     "brahim"
+    ],
+    [
+     "item",
+     "queue"
+    ],
+    [
+     "asks",
+     "whether the steward proposes M-bunyan-02 from the next spec phase while every box row waits"
+    ],
+    [
+     "context",
+     "Bunyan's box lane has no row a builder can take. M-bunyan-01 (T-033, T-034, T-050) is done. T-067 waits on your answer to D-20261118-01, and T-064, T-065 and T-066 queue behind it. T-069 waits on B-20261106-01, a permission only you can grant (docker and the OCCT install in the loop's settings). T-023 needs the pc. propose: the steward drafts M-bunyan-02 from the spec's next phase in docs/MILESTONES.toml with approved left empty, and cuts no row from it until you approve it. wait: the lane idles until D-20261118-01 or B-20261106-01 moves."
+    ],
+    [
+     "options",
+     "propose | wait"
+    ],
+    [
+     "default-if-silent",
+     "propose"
+    ],
+    [
+     "expires",
+     "2026-11-25"
+    ],
+    [
+     "directions-read",
+     "none in force"
+    ],
+    [
+     "ANSWER",
+     ""
+    ],
+    [
+     "answered",
+     "-"
+    ]
+   ],
+   "title": "Nothing is ready for the box builder; whether the steward proposes the next milestone"
   }
  },
  "discovered": [
