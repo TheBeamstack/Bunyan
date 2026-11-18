@@ -11,7 +11,7 @@
  * budget to make a failure go away without saying so in the entry.
  */
 import { describe, it, expect } from 'vitest';
-import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -22,6 +22,8 @@ import {
   parseAbstracts,
   newestAbstract,
   recordedAbstracts,
+  archiveText,
+  existsOrArchived,
   entryBodies,
   archiveCanonical,
   generatedBlock,
@@ -94,9 +96,8 @@ describe('the handoff docs stay within budget', () => {
     expect(abstracts.length).toBeLessThanOrEqual(BUDGET.maxAbstracts);
   });
 
-  it('decisions.md and docs/PHASE_LOG.md are under budget', () => {
+  it('decisions.md is under budget', () => {
     expect(bytes('docs/decisions.md')).toBeLessThanOrEqual(BUDGET.decisions);
-    expect(bytes('docs/PHASE_LOG.md')).toBeLessThanOrEqual(BUDGET.history);
   });
 });
 
@@ -135,7 +136,7 @@ describe('every §7 abstract is well formed', () => {
       expect(p, `Entry ${String(a.key)}'s FULL: must name a handoff/ path`).toMatch(
         /^handoff\/\w+\/.+\.md$/,
       );
-      expect(existsSync(join(ROOT, p)), `Entry ${String(a.key)}: ${p} does not exist`).toBe(true);
+      expect(existsOrArchived(ROOT, p), `Entry ${String(a.key)}: ${p} does not exist`).toBe(true);
     }
     // The converse is deliberately weaker: a body may outlive its abstract (that is what rotation
     // does), but it must then be indexed in docs/PHASE_LOG.md so nothing becomes unreachable.
@@ -144,10 +145,7 @@ describe('every §7 abstract is well formed', () => {
     // without rewriting the paths already written into docs/PHASE_LOG.md's prose before the move —
     // that prose is dated evidence of what was true when it was written. A body is indexed if the
     // history names it under EITHER its current path or the pre-archive path it moved from.
-    const history = readdirSync(join(ROOT, 'docs'))
-      .filter((f) => f === 'PHASE_LOG.md' || /^phase-log-.+\.md$/.test(f))
-      .map((f) => readFileSync(join(ROOT, 'docs', f), 'utf8'))
-      .join('\n');
+    const history = archiveText(ROOT);
     const referenced = new Set(abstracts.map((a) => a.fields.FULL?.replace(/`/g, '').trim()));
     for (const b of bodies) {
       if (referenced.has(b)) continue;
@@ -360,9 +358,7 @@ describe('the doc tree is intact', () => {
       'docs/contracts/V1.0.0_spec.md',
       'docs/contracts/v1.0.0_imp_plan.md',
       'docs/decisions.md',
-      'docs/PHASE_LOG.md',
       'REVIEW.md',
-      'docs/OWNER-DECISIONS.md',
     ]) {
       expect(
         existsSync(join(ROOT, p)),
@@ -379,7 +375,6 @@ describe('the doc tree is intact', () => {
       'docs/contracts/core_logic.md',
       'docs/contracts/v1.0.0_imp_plan.md',
       'docs/CURRENT_STATE.md',
-      'handoff/',
     ]) {
       expect(ignore, `.prettierignore does not exempt ${p}`).toContain(p);
     }

@@ -88,7 +88,7 @@ goal = "the P5 step 6 freeze: SubShapeRef, BimObjectType, Command, scene.json, P
 done_when = ["owner:the P5 step 6 freeze is made: the tests/freeze-boundary.test.ts baseline may no longer be updated without an owner ruling"]
 covers = ["M-bunyan-01", "M-bunyan-02"]
 due = "2026-11-29"
-approved = ""
+approved = "2026-11-02"
 
 [[milestone]]
 id = "M-bunyan-01"
@@ -99,7 +99,7 @@ done_when = []
 covers = ["T-033", "T-034", "T-050"]
 due = "2026-11-08"
 size = 3
-approved = ""
+approved = "2026-11-02"
 
 [[milestone]]
 id = "M-bunyan-02"
@@ -110,7 +110,7 @@ done_when = []
 covers = ["T-051", "T-036"]
 due = "2026-11-22"
 size = 2
-approved = ""
+approved = "2026-11-02"
 
 [[milestone]]
 id = "M-bunyan-03"
@@ -120,4 +120,4 @@ done_when = []
 covers = ["T-037", "T-064"]
 due = "2026-11-29"
 size = 2
-approved = ""
+approved = "2026-11-02"

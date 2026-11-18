@@ -82,7 +82,7 @@ note anchors to a paper point. New kinds (a grid intersection, a level datum) ar
 `Annotation = Dimension | Tag` (a tagged union on `kind`; a text note / revision cloud / spot elevation is
 an additive member). Both **store an anchor + a rule, never a value.**
 
-- **`Dimension`** — `anchors: AnnotationAnchor[]` (≥ 2), a `dimensionKind` (`linear`/`angular`/`radial`),
+- **`Dimension`** — `anchors: ModelAnchor[]` (≥ 2; every anchor kind but `point`, D97), a `dimensionKind` (`linear`/`angular`/`radial`),
   an optional `viewId`. The number is the measured distance/angle between the anchors, **derived from live
   geometry** (via the frozen `bounds`/`distance` kernel query ops — never off the mesh).
 - **`Tag`** — one `anchor`, plus a `subject` **key** naming which derived value it displays. The subject is

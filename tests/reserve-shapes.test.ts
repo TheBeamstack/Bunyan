@@ -167,6 +167,20 @@ describe('0g freeze-safety: every reserved field is optional and additive', () =
     expect(plain.relevantWhen).toBeUndefined();
   });
 
+  it('ParamField gains optional motion with exactly three members (D95, T-050)', () => {
+    // A member removed from the union fails `tsc` here as an excess key; one added fails as a missing key.
+    const members: Record<NonNullable<ParamField['motion']>, true> = {
+      planPoint: true,
+      point: true,
+      direction: true,
+    };
+    expect(Object.keys(members)).toEqual(['planPoint', 'point', 'direction']);
+    const start: ParamField = { kind: 'array', label: 'Start', motion: 'planPoint' };
+    expect(start.motion).toBe('planPoint');
+    const plain: ParamField = { kind: 'number', label: 'Width' };
+    expect(plain.motion).toBeUndefined();
+  });
+
   it('BimObjectType gains optional ifcMapping and migrateStyle; a bare type is still valid', () => {
     const mapping: IfcMapping = {
       ifcClass: 'IfcWallStandardCase',

@@ -42,6 +42,8 @@ export const wallType: BimObjectType = {
       required: true,
       description: '[x, y] baseline start in the Level plane, mm.',
       items: { kind: 'number', label: 'mm', unit: 'mm' },
+      // D95: the move verbs move a wall by moving its baseline, so joins, rooms and D72 move with it.
+      motion: 'planPoint',
     },
     end: {
       kind: 'array',
@@ -49,6 +51,7 @@ export const wallType: BimObjectType = {
       required: true,
       description: '[x, y] baseline end in the Level plane, mm.',
       items: { kind: 'number', label: 'mm', unit: 'mm' },
+      motion: 'planPoint',
     },
     // Fallback ONLY: used when the wall has no top constraint (an un-constrained wall). A constrained wall
     // derives its height from base/top Levels (D52) and never reads this.

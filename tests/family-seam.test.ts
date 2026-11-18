@@ -40,6 +40,7 @@ import type {
   FamilyDefinition,
   FamilyHosting,
   FamilyModifier,
+  FamilyPart,
   FamilyValue,
   Params,
   Scene,
@@ -119,6 +120,10 @@ function makeFamilyType(def: FamilyDefinition): BimObjectType {
         ];
         const nodeId = ctx.nodeId(part.name);
         const solid = await ctx.geometry.request('makeBox', { nodeId, dx, dy, dz });
+        // D96: a role names a face by derivation (`${nodeId}/face/${role}#…`), never by position in `refs`.
+        const exposedRefs = part.exposedFaces?.flatMap((f) =>
+          solid.refs.filter((ref) => ref.startsWith(`${nodeId}/face/${f.role}#`)),
+        );
         parts.push({
           name: part.name,
           materialId: part.materialId,
@@ -126,6 +131,7 @@ function makeFamilyType(def: FamilyDefinition): BimObjectType {
           nodeId,
           handle: solid.handle,
           refs: solid.refs,
+          ...(exposedRefs === undefined ? {} : { exposedRefs }),
         });
       }
       return parts;
@@ -304,6 +310,79 @@ describe('Ⓓ family seam — the reservation is optional, additive, and round-t
     const scene: Scene = { ...emptyScene(), families: { [full.id]: full } };
     const { scene: loaded } = loadBnn(saveBnn(scene, { kernelBuildId: KERNEL_BUILD }));
     expect(loaded.families).toEqual(scene.families);
+  });
+});
+
+/* ================================================================================================
+ * PART 3 — A FAMILY NAMES ITS BILLABLE FACES (D96, the data twin of D72's `BuiltPart.exposedRefs`)
+ * ============================================================================================= */
+
+/** A one-part slab whose data bills only its two `y` faces; `buried` declares none; `undeclared` says nothing. */
+function billedSlabFamily(): FamilyDefinition {
+  const size: readonly [FamilyValue, FamilyValue, FamilyValue] = [W, D, HGT];
+  const billed: FamilyPart = {
+    name: 'billed',
+    materialId: 'concrete',
+    base: { op: 'box', size },
+    exposedFaces: [
+      { by: 'role', role: 'y-min' },
+      { by: 'role', role: 'y-max' },
+    ],
+  };
+  return {
+    id: mintPei('family'),
+    label: 'Billed slab',
+    formatVersion: 1,
+    parameterSchema: {},
+    defaultClassification: { ifcClass: 'IfcBuildingElementProxy', loadBearing: false },
+    parts: [
+      billed,
+      { name: 'buried', materialId: 'concrete', base: { op: 'box', size }, exposedFaces: [] },
+      { name: 'undeclared', materialId: 'concrete', base: { op: 'box', size } },
+    ],
+  };
+}
+
+describe('Ⓓ family seam — a family names the faces that bill (D96)', () => {
+  it('`FamilyPart.exposedFaces` round-trips through scene.json unchanged, `[]` kept distinct from absent', () => {
+    const family = billedSlabFamily();
+    const scene: Scene = { ...emptyScene(), families: { [family.id]: family } };
+    const { scene: loaded } = loadBnn(saveBnn(scene, { kernelBuildId: KERNEL_BUILD }));
+    const parts = loaded.families![family.id]!.parts!;
+    expect(parts[0]!.exposedFaces).toEqual([
+      { by: 'role', role: 'y-min' },
+      { by: 'role', role: 'y-max' },
+    ]);
+    expect(parts[1]!.exposedFaces).toEqual([]);
+    expect(parts[2]!).not.toHaveProperty('exposedFaces');
+  });
+
+  it('⭐ the declared roles drive a MEASURED billable area vs OCCT (absent ⇒ whole solid, [] ⇒ 0)', async () => {
+    const kernel = await createOcctKernel();
+    const client = new KernelClient(new InProcessTransport(new KernelHost(kernel)));
+    try {
+      const family = billedSlabFamily();
+      const registries = createRegistries();
+      registries.types.register(makeFamilyType(family));
+      for (const command of CORE_COMMANDS) registries.commands.register(command);
+      const doc = new DocumentContext({ registries, geometry: client });
+      await doc.execute('core.createMaterial', {
+        id: 'concrete',
+        name: 'C25/30',
+        category: 'concrete',
+        density: CONCRETE_RHO,
+      });
+      const id = (await doc.execute('core.createElement', { typeId: family.id, params: {} }))
+        .changes[0]!.id;
+      const q = await doc.quantities(id);
+      const area = (name: string) => q.parts.find((p) => p.name === name)!.area;
+      expect(area('billed')).toBeCloseTo(2 * W * HGT, 0);
+      expect(area('buried')).toBe(0);
+      expect(area('undeclared')).toBeCloseTo(2 * (W * D + W * HGT + D * HGT), 0);
+    } finally {
+      client.dispose();
+      kernel.dispose?.();
+    }
   });
 });
 

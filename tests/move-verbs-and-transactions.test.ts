@@ -255,7 +255,7 @@ describe('the five move verbs + transactionId atomicity (P4.5 rows ⓑ/ⓘ, Entr
     expect((await boundsOf(doc, copyId)).max[2]).toBeCloseTo(3000, 6);
   });
 
-  it('core.copy REFUSES a source anything points at — a wall copied without its window is not a copy', async () => {
+  it('core.copy carries a hosted window onto the copy — a wall copied without its window is not a copy (D94)', async () => {
     const doc = newDoc();
     const wall = await makeStyledWall(doc);
     const face = doc.partsOf(wall)![0]!.refs.find((r) => r.includes('/face/'))!;
@@ -266,9 +266,10 @@ describe('the five move verbs + transactionId atomicity (P4.5 rows ⓑ/ⓘ, Entr
       params: { width: 900, height: 1200 },
     });
 
-    await expect(doc.execute('core.copy', { elementId: wall, by: [1000, 0, 0] })).rejects.toThrow(
-      /cannot be copied exactly.*hosted element/s,
-    );
+    const edit = await doc.execute('core.copy', { elementId: wall, by: [1000, 0, 0] });
+    const window = doc.scene.elements[edit.changes[1]!.id]!;
+    expect(window.hostId).toBe(edit.changes[0]!.id);
+    expect(doc.partsOf(window.hostId!)![0]!.refs).toContain(window.hostRef);
   });
 
   it('core.array is a REGISTERED, RESERVED SHAPE that refuses — the argsSchema freezes, the body is v1.0.x', async () => {
@@ -391,14 +392,12 @@ describe('the five move verbs + transactionId atomicity (P4.5 rows ⓑ/ⓘ, Entr
     expect(baselineOf(placed.scene.elements[b]!)).toEqual(baselineOf(doc.scene.elements[b]!));
     expect(builtAxisLength(placed.scene, b)).toBe(lengthHome);
 
-    // ⇒ which is why the verbs refuse it, and name the road that works.
-    const failure = await doc
-      .execute('core.move', { elementId: b, by: [5000, 0, 0] })
-      .then(() => undefined)
-      .catch((e: unknown) => e as CommandFailure);
-    expect(failure?.code).toBe('REFUSED');
-    expect(failure?.message).toMatch(/BASELINE params/);
-    expect(failure?.message).toMatch(/core\.setParams/);
+    // ⇒ which is why the verbs never write a wall's placement: since D95 (T-051) `core.move` moves the
+    //   `motion`-tagged baseline instead, so the solid and every derivation move together.
+    await doc.execute('core.move', { elementId: b, by: [5000, 0, 0] });
+    expect(doc.scene.elements[b]!.placement).toBeUndefined();
+    expect(baselineOf(doc.scene.elements[b]!)).toEqual({ start: [10000, 0], end: [10000, 4000] });
+    expect((await boundsOf(doc, b)).min[0]).toBeCloseTo(home.min[0] + 5000, 6);
   });
 
   it('⚠ the guard is on BOTH doors: core.createElement refuses a placement on a baseline wall too', async () => {

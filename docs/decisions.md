@@ -1,6 +1,6 @@
 # Bunyan — `decisions.md`
 
-**What it is, and who reads it when.** The **full text of every ruling** — D1–D90, the five big rulings
+**What it is, and who reads it when.** The **full text of every ruling** — D1–D97, the five big rulings
 (4e–4i), the verification-scope rule (4b) and the open items on the owner's desk (4j). Read on lookup,
 when a decision is questioned, extended or built against — not every session. That is why it is not in
 `docs/CURRENT_STATE.md`, which is read in full every run and keeps a **one-line index** (§4) pointing

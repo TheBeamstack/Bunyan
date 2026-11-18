@@ -24,4 +24,25 @@ export declare function mergeableState(
   },
 ): MergeableView;
 
+/** The `gh pr view` fields the checks read; one `view` answers both the title read and the poll. */
+export interface PrView {
+  title?: string;
+  headRefName?: string;
+  author?: { login?: string; is_bot?: boolean };
+  mergeable?: string | null;
+  mergeStateStatus?: string | null;
+}
+
+/** `true` for a `dependabot/…` head opened by the `app/dependabot` bot — both halves required. */
+export declare function dependabotRoutes(pr: PrView | null | undefined): boolean;
+
+/** Both checks; `failures` is `null` when gh could not read the PR at all. */
+export declare function checkPr(opts: {
+  root: string;
+  pr?: string | number;
+  title?: string;
+  view?: (root: string, pr: string | number, fields: string[]) => PrView | null;
+  poll?: { attempts?: number; waitMs?: number };
+}): { passes: string[]; failures: string[] | null };
+
 export declare function main(argv?: string[]): void;
