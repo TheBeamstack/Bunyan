@@ -3330,6 +3330,13 @@
    "line": 265,
    "reason": "agent-finish.mjs --review retired; diwan tier from diff (R94)",
    "text": "- **2026-08-15 — ⚠⚠ `--review` reads the frozen surface and never the task's `risk:` field**, so a\n  `risk: high` task is stamped `done` and its reviewer told to merge it. The two gates disagree by\n  construction: the builder half writes `NEXT TURN: REVIEW ONLY` on `risk: high` **or**\n  `contract-touching`, the review half holds the row for `contract-touching` alone. Measured on T-008;\n  row corrected by hand. ⇒ **T-014**, and the fix must honour the stricter of the two."
+  },
+  {
+   "at": "2026-11-18T08:40Z",
+   "by": "brahim",
+   "line": 270,
+   "reason": "self-marked FIXED in PR #20",
+   "text": "- **2026-08-15 — the `ready`→`review` status flip fails `format:check`, so every builder turn opens a red\n  PR.** The longer word goes into a cell padded for `ready`, leaving one trailing space prettier rejects.\n  ✅ **FIXED at the writer in PR #20** — `setRowStatus` is hoisted, exported and repads to the width it\n  found, with a case in `tests/protocol/agent-finish.test.ts`. ⚠ Repadding one branch would not have\n  held: the same writer stamps `done` at the end of a review turn."
   }
  ],
  "rows": {

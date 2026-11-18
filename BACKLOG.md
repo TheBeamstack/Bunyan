@@ -1000,11 +1000,6 @@ green · 96 files` committed and `907 · 95` on an uncommitted regen, the latter
   not claimed.
 - **2026-08-15 — `state.mjs --rebaseline` crashes when `tests/` does not exist** (`writeFileSync` with no
   `mkdir`). Only reachable from a bare fixture, so recorded rather than fixed.
-- **2026-08-15 — the `ready`→`review` status flip fails `format:check`, so every builder turn opens a red
-  PR.** The longer word goes into a cell padded for `ready`, leaving one trailing space prettier rejects.
-  ✅ **FIXED at the writer in PR #20** — `setRowStatus` is hoisted, exported and repads to the width it
-  found, with a case in `tests/protocol/agent-finish.test.ts`. ⚠ Repadding one branch would not have
-  held: the same writer stamps `done` at the end of a review turn.
 - **2026-08-15 — D88's "a proven defect goes back to the builder on the existing claim" has no scripted
   route** — a claim reading `finished — PR open, awaiting review` is refused as "not an incomplete turn
   to continue". ✅ **RULED `D88` as amended: the route is `agent-start.mjs --continue <T-nnn>`, promoted
