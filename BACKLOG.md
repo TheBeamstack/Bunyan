@@ -933,12 +933,6 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   enumeration loses is a deferred parent's D59 children, so a schedule filtered to `core.wall` could
   build only the Types declaring `buildChildren`. Pure optimisation, no correctness content, unmeasured
   at the 10 000-element target. Recorded, not claimed.
-- **2026-08-21 — the seat identity gate guards the CLAIM, and the merge happens outside it.** A reviewer
-  approves and merges after `agent-finish.mjs` has returned, so a session reaching the merge without a
-  fresh claim is unguarded; measured on PR #39, where the box `gh` default resolved to the PR's own
-  author and only the seat reading `AGENTS.md §6` stopped it. `gh pr merge` would have succeeded — the
-  self-approval refusal does not extend to merge. Compounding it, `--review` writes the verdict as
-  accomplished fact (PR #39 said "APPROVED, and merged by me" with **zero** reviews). **⇒ T-026.**
 - **2026-08-21 — `docs/CURRENT_STATE.md §6`'s relink recipe caps memory at `--memory=2g`, and the link
   fits in 1 GB** — 78 s, exit 0, output byte-identical to the committed pair under a hard 1 GB cgroup cap
   with swap off. The overstatement cost step 1 of the same PR its relink, recorded as an `unverified
