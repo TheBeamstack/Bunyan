@@ -542,7 +542,7 @@
   },
   "B-20261027-03": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-18T02:08Z",
    "evidence": "`python3 /home/ubuntu/projects/diwan/scripts/agent_start.py --seat zayd --root /home/ubuntu/projects/Bunyan --continue T-064; echo $?` on `main` at `553cd83` exits 1",
    "item": "PR#116",
    "need": "make diwan `agent_start.py --continue` admit the task's builder to a flow-routed conflict merge on a PR a review blocker holds, then re-run zayd's `--continue T-064`",
