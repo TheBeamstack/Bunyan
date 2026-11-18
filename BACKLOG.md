@@ -923,11 +923,6 @@ READY field, then deletes the finding. The provenance travels in `implements:`, 
   A genuinely no-op change to a watched path has no sanctioned way to pass short of running the seeder.
   Worked around for D90 by excluding the 14 affected files. Fix shape: a third branch — or the design may
   be intentional. Found by `khalihlna` on PR #44. Recorded, not claimed.
-- **2026-08-23 — an interrupted `agent-finish.mjs` strands the turn, and nothing recovers it.** The
-  multi-minute `pnpm verify` leaves the branch committed-but-unpushed or written-but-uncommitted, after
-  which `agent-start.mjs` refuses at its own `git checkout main` reporting only "pull failed — resolve by
-  hand". Three turns in one batch (T-024 step 2, T-022 steps 1 and 2), each needing a hand-directed
-  session. Running the finish detached (`nohup`) worked every time, but that is a workaround. **⇒ T-028.**
 - **2026-08-22 — `ModelElement.hasParts` cannot be read without `state`, and nothing enforces that.** A
   `stale` element carries `hasParts: false` for the same reason a pure void does, so the field alone
   cannot separate _nothing to measure_ from _not measured yet_. Unreachable today because all five
