@@ -976,11 +976,6 @@ hmdnah` TWICE** — same heading, same `FULL:` path, bodies differing only in th
   Third occurrence of the same cry-wolf shape, and the one the `_README` policy makes load-bearing after
   the freeze. Fix shape: class `freeze` on a `surface` diff and report an audit-field-only edit as a
   separate, non-gating class. Recorded, not claimed.
-- **2026-08-18 — `--review` prints `gh pr merge` on an owner-gated PR**, because it reads `pnpm state`'s
-  risk verdict and not `reserved-classes.mjs`'s class; the two disagree by construction on a re-baseline.
-  Only `REVIEW.md` item 7's ⚠ stands between the printed command and a seat merging an owner-gated PR —
-  an instruction where T-014 established a gate belongs. Fix shape: suppress the merge commands whenever
-  a reserved class is present. Recorded, not claimed.
 - **2026-08-18 — every merge lands a branch-shaped `§8` on `main`, so the next builder's
   `agent-start.mjs` measures a disagreement and refuses.** `§8` is regenerated on the task branch, where
   its `branch · tip · tree`, `open PRs` and `diff vs origin/main` rows describe that branch; the merge

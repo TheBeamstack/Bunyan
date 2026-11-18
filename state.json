@@ -3218,6 +3218,13 @@
    "line": 161,
    "reason": "T-024 done in state",
    "text": "- **2026-08-19 — T-024 has cost a real turn its §7 abstract.** Step 2 of PR #37 could not append an\n  abstract dated 2026-08-19 at all: `_baselinedAtEntry` is the positional key `1000`, so its date\n  disagreed with `_baselinedAt`, reddening `freeze-boundary` having moved no declaration. The only\n  alternatives were falsifying the date or an owner-gated re-baseline, so the abstract went straight into\n  `docs/PHASE_LOG.md` §E and §7 carries none for that turn (body\n  `handoff/hmdnah/2026-08-19-T-020-review-step2.md`). Recorded against **T-024**."
+  },
+  {
+   "at": "2026-11-18T08:39Z",
+   "by": "brahim",
+   "line": 167,
+   "reason": "agent-finish.mjs --review retired (absent from main)",
+   "text": "- **2026-08-18 — `--review` prints `gh pr merge` on an owner-gated PR**, because it reads `pnpm state`'s\n  risk verdict and not `reserved-classes.mjs`'s class; the two disagree by construction on a re-baseline.\n  Only `REVIEW.md` item 7's ⚠ stands between the printed command and a seat merging an owner-gated PR —\n  an instruction where T-014 established a gate belongs. Fix shape: suppress the merge commands whenever\n  a reserved class is present. Recorded, not claimed."
   }
  ],
  "rows": {
