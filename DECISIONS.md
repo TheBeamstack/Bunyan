@@ -604,6 +604,19 @@
 - ANSWER:
 - answered: -
 
+## D-20261120-01 zayd's claim on T-069 has had no commit since 2026-11-06
+- opened: 2026-11-20T00:04Z
+- by: brahim
+- item: T-069
+- asks: whether to release zayd's claim on T-069 so its branch stops reading as live work
+- context: T-069 carries section points across the wasm boundary, which needs a kernel relink. zayd's claim on task/T-069-section-points-cross-the-wasm-boundary-a last committed on 2026-11-06 and has no PR, because the relink needs docker and the OCCT install, which the box loop's permissions refuse (B-20261106-01, a permission only you can grant). release frees the claim and keeps the branch for the next builder; keep leaves it with zayd. Neither grants the permission, so T-069 stays stopped until B-20261106-01 is performed either way.
+- options: release | keep
+- default-if-silent: keep
+- expires: 2026-11-27
+- directions-read: none in force
+- ANSWER:
+- answered: -
+
 ## P-20261118-01 what the steward does when a measured performance bar fails
 - opened: 2026-11-18T16:35Z
 - by: brahim
