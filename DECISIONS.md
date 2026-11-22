@@ -663,7 +663,7 @@
 - default-if-silent: desktop-chromium
 - expires: 2026-11-25
 - ANSWER: desktop-chromium
-- answered: -
+- answered: 2026-11-22T00:34Z
 
 ## P-20261118-05 who v1.0.0 is built for first
 - opened: 2026-11-18T16:36Z
