@@ -5511,7 +5511,7 @@
     "title": "A named save assembles scene.json in the zip worker, off the main thread",
     "verify": "pnpm verify"
    },
-   "status": "review"
+   "status": "done"
   },
   "T-071": {
    "approved": "",

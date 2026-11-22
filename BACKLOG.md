@@ -138,7 +138,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —                   |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —                   |
 | T-031 | parked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
-| T-070 | review | A named save assembles scene.json in the zip worker, off the main thread | workers | box | **high** | T-062, T-063 |
+| T-070 | done | A named save assembles scene.json in the zip worker, off the main thread | workers | box | **high** | T-062, T-063 |
 | T-071 | done | The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify | infra | box | normal | — |
 
 ---
