@@ -768,7 +768,7 @@
   },
   "B-20261122-06": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-22T15:38Z",
    "item": "T-069",
    "key": "podman-vocabulary",
    "need": "diwan: add podman to the requires vocabulary (protocol.py NEEDS; rootless podman 4.9.3 is on box 2), then steward edits T-069's requires/done-when/note from docker to podman",

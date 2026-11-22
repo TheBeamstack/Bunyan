@@ -1,6 +1,6 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: blocked: depends on T-065 (ready) — T-064
+next: reviewer (box): approve — T-069
 
 ## Claims
 
@@ -12,7 +12,7 @@ none
 
 ## Awaiting approval (R93)
 
-none
+- T-069 Section points cross the WASM boundary as float64, within D92's chord tolerance far from the view origin
 
 ## Waits for the owner's session
 
@@ -23,12 +23,10 @@ none
 - T-064 — depends on T-065 (ready)
 - T-065 — depends on T-067 (claimed)
 - T-066 — depends on T-065 (ready); depends on T-067 (claimed)
-- T-069 — B-20261122-06 open
 
 ## Open blockers
 
 - B-20261118-02 agent_finish.py --incomplete never converges on exit 75: each rerun commits an empty WIP (allow_empty, agent_finish.py:304), moving HEAD and restarting the head-keyed verify; 9 WIP commits 7f0506c..86b321a — need: diwan: make agent_finish.py --incomplete skip the WIP commit when the tree and handoff body are unchanged since the branch's last WIP commit, so a rerun after exit 75 keeps the head its detached verify is keyed to
 - B-20261122-01 state.py edit refuses T-067's depends-on T-070: 'T-067 is claimed; only a ready, parked or dropped row is edited' (python3 diwan/scripts/state.py edit --seat brahim --depends-on 'T-062, T-063, T-070' T-067) — need: diwan: let state.py edit set depends-on on a claimed row, so T-067 waits on T-070 while zayd keeps the claim
 - B-20261122-02 [incident] pnpm verify fails on any turn's handoff body: tests/docs-budget.test.ts:150 counts the untracked handoff/<seat>/*.md the finish requires (scripts/docs-state.mjs:386 entryBodies walks the disk), 'has no abstract and is not indexed in docs/PHASE_LOG.md' (agent_finish.py --seat brahim STEWARD-propose-M-bunyan-04, 1 failed of 1087) — need: builder: make entryBodies count only git-tracked handoff bodies, so a finish's untracked body passes docs-budget
-- B-20261122-06 T-069 rework to podman (owner 2026-11-22 'Rework to podman'): podman is not in the requires vocabulary — need: diwan: add podman to the requires vocabulary (protocol.py NEEDS; rootless podman 4.9.3 is on box 2), then steward edits T-069's requires/done-when/note from docker to podman
 - B-20261122-07 state.py clear refuses zayd on B-20261122-02 though zayd performed its 'builder:' need (T-071, PR #133 merged): 'B-20261122-02 was opened by brahim; only it, a seat its need: names or the steward clears it' (state.py clear --seat zayd B-20261122-02) — need: diwan: make state.py clear admit a seat whose role the need: names (builder, reviewer), so T-071's builder clears B-20261122-02 and the steward proposes M-bunyan-04 per P-20261118-02
