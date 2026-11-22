@@ -1,6 +1,6 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: reviewer (box): approve — T-069
+next: builder (box) — T-069
 
 ## Claims
 
@@ -12,7 +12,7 @@ none
 
 ## Awaiting approval (R93)
 
-- T-069 Section points cross the WASM boundary as float64, within D92's chord tolerance far from the view origin
+none
 
 ## Waits for the owner's session
 
