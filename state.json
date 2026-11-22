@@ -748,7 +748,7 @@
   },
   "B-20261122-04": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-22T03:07Z",
    "item": "T-071",
    "key": "t071-finish-d20261120-01",
    "need": "steward: rewrite D-20261120-01's directions-read to name P-20261118-01..05 (or derive it) so gates.py docs passes, then a zayd turn reruns agent_finish.py --seat zayd T-071",
