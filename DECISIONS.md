@@ -616,8 +616,9 @@
 - default-if-silent: keep
 - expires: 2026-11-27
 - directions-read: none in force
+- derived: release from P-20261118-03 — zayd's T-069 claim has had no commit since 2026-11-06, past P-03's 7 days
 - ANSWER:
-- answered: -
+- answered: 2026-11-22T03:07Z
 
 ## P-20261118-01 what the steward does when a measured performance bar fails
 - opened: 2026-11-18T16:35Z
