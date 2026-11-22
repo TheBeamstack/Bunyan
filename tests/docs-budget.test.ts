@@ -25,7 +25,7 @@ import {
   archiveText,
   existsOrArchived,
   entryBodies,
-  archiveCanonical,
+  unindexedBodies,
   generatedBlock,
   MARKERS,
   type EntryAbstract,
@@ -147,13 +147,10 @@ describe('every §7 abstract is well formed', () => {
     // history names it under EITHER its current path or the pre-archive path it moved from.
     const history = archiveText(ROOT);
     const referenced = new Set(abstracts.map((a) => a.fields.FULL?.replace(/`/g, '').trim()));
-    for (const b of bodies) {
-      if (referenced.has(b)) continue;
-      expect(
-        history.includes(b) || history.includes(archiveCanonical(b)),
-        `${b} has no abstract and is not indexed in docs/PHASE_LOG.md`,
-      ).toBe(true);
-    }
+    expect(
+      unindexedBodies(bodies, referenced, history),
+      'these bodies have no abstract and are not indexed in docs/PHASE_LOG.md',
+    ).toEqual([]);
   });
 
   it('numbers entries uniquely — the parallel-agent collision detector', () => {

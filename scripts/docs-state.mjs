@@ -371,32 +371,22 @@ export function riskVerdict(moved, rebaselined = false) {
 }
 
 /**
- * Every entry body actually present on disk, as repo-relative paths.
+ * Every git-tracked entry body under `handoff/`, at any depth, as repo-relative paths.
  *
- * ⚠ RECURSES, RATHER THAN ASSUMING ONE LEVEL OF `<seat>/<file>.md` — R34 (`90a9b30`) added
- * `handoff/archive/<seat>/<file>.md`, a second directory level, and `handoff/README.md` itself: a
- * FILE sitting where this used to assume every top-level entry was a seat directory. A one-level
- * `readdirSync` throws `ENOTDIR` on the first (`handoff/README.md`) and misses every archived body
- * under the second (`handoff/archive/<seat>/`).
+ * ⚠ TRACKED ONLY (T-071): a finish writes its turn's body to `handoff/<seat>/` untracked and posts it
+ * as the PR body (diwan `docs/LANE-CONTRACT.md §7`); a disk walk counted it and failed every finish.
  *
- * `README.md` is skipped at every level — R34's own `handoff/README.md` and per-seat READMEs are
- * navigation, never a turn's body (`handoff/README.md`: "one lane index … and a three-line pointer
- * per seat"), and were never counted before R34 added them alongside the archive move.
+ * `README.md` is skipped at every level — `handoff/README.md` and per-seat READMEs are navigation,
+ * never a turn's body.
  */
 export function entryBodies(root) {
-  const dir = join(root, 'handoff');
-  if (!existsSync(dir)) return [];
-  const out = [];
-  const walk = (rel) => {
-    for (const entry of readdirSync(join(root, rel), { withFileTypes: true })) {
-      if (entry.name === 'README.md') continue;
-      const relPath = `${rel}/${entry.name}`;
-      if (entry.isDirectory()) walk(relPath);
-      else if (entry.name.endsWith('.md')) out.push(relPath);
-    }
-  };
-  walk('handoff');
-  return out.sort();
+  return execFileSync('git', ['-C', root, 'ls-files', '-z', '--', 'handoff'], {
+    encoding: 'utf8',
+    maxBuffer: 1 << 26,
+  })
+    .split('\0')
+    .filter((p) => p.endsWith('.md') && !/(^|\/)README\.md$/.test(p))
+    .sort();
 }
 
 /**
@@ -409,6 +399,16 @@ export function entryBodies(root) {
  */
 export function archiveCanonical(p) {
   return p.replace(/^handoff\/archive\//, 'handoff/');
+}
+
+/**
+ * The bodies with no abstract (`referenced`, the §7 `FULL:` paths) that `history` (the phase log)
+ * does not index under either path `archiveCanonical` names — what docs-budget refuses.
+ */
+export function unindexedBodies(bodies, referenced, history) {
+  return bodies.filter(
+    (b) => !referenced.has(b) && !history.includes(b) && !history.includes(archiveCanonical(b)),
+  );
 }
 
 /** The generated block's bounds in a file, or null. */
