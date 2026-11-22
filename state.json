@@ -2292,12 +2292,16 @@
      "none in force"
     ],
     [
+     "derived",
+     "propose from P-20261118-02 — no box row is claimable; the steward drafts the next milestone unapproved and cuts no row from it"
+    ],
+    [
      "ANSWER",
      ""
     ],
     [
      "answered",
-     "-"
+     "2026-11-22T00:37Z"
     ]
    ],
    "title": "Nothing is ready for the box builder; whether the steward proposes the next milestone"

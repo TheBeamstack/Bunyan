@@ -602,8 +602,9 @@
 - default-if-silent: propose
 - expires: 2026-11-25
 - directions-read: none in force
+- derived: propose from P-20261118-02 — no box row is claimable; the steward drafts the next milestone unapproved and cuts no row from it
 - ANSWER:
-- answered: -
+- answered: 2026-11-22T00:37Z
 
 ## D-20261120-01 zayd's claim on T-069 has had no commit since 2026-11-06
 - opened: 2026-11-20T00:04Z
