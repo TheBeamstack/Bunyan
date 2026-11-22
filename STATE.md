@@ -1,11 +1,10 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: blocked: depends on T-065 (ready) — T-064
+next: builder (box) — T-069
 
 ## Claims
 
 - T-067 zayd on task/T-067-a-named-save-names-its-carried-cache-ent
-- T-069 zayd on task/T-069-section-points-cross-the-wasm-boundary-a
 
 ## Review
 
