@@ -686,7 +686,7 @@
   },
   "B-20261106-01": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-22T06:44Z",
    "evidence": "`docker version` and `ls -la /home/brahim/occt-wasm-spike/install/lib`, run from a `claude -p` zayd turn",
    "item": "T-069",
    "need": "allow `docker` and read access to `/home/brahim/occt-wasm-spike/install` in the box loop's Claude Code permission settings, then run T-069 in a zayd turn",
