@@ -5526,7 +5526,7 @@
     "title": "The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify",
     "verify": "pnpm verify"
    },
-   "status": "review"
+   "status": "done"
   }
  },
  "schema": 1
