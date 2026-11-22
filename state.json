@@ -5441,8 +5441,8 @@
   "T-070": {
    "approved": "not asked: risk: high alone (R94)",
    "blockers": [],
-   "branch": "",
-   "holder": "",
+   "branch": "task/T-070-a-named-save-assembles-scene-json-in-the",
+   "holder": "zayd",
    "pr": 0,
    "spec": {
     "area": "workers",
@@ -5463,7 +5463,7 @@
     "title": "A named save assembles scene.json in the zip worker, off the main thread",
     "verify": "pnpm verify"
    },
-   "status": "ready"
+   "status": "claimed"
   },
   "T-071": {
    "approved": "",
