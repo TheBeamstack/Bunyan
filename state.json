@@ -5491,7 +5491,7 @@
    ],
    "branch": "task/T-070-a-named-save-assembles-scene-json-in-the",
    "holder": "zayd",
-   "pr": 0,
+   "pr": 134,
    "spec": {
     "area": "workers",
     "depends_on": "T-062, T-063",
@@ -5511,7 +5511,7 @@
     "title": "A named save assembles scene.json in the zip worker, off the main thread",
     "verify": "pnpm verify"
    },
-   "status": "claimed"
+   "status": "review"
   },
   "T-071": {
    "approved": "",
