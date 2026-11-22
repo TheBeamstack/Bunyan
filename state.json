@@ -5509,7 +5509,7 @@
    ],
    "branch": "task/T-071-the-docs-budget-gate-counts-only-git-tra",
    "holder": "zayd",
-   "pr": 0,
+   "pr": 133,
    "spec": {
     "area": "infra",
     "done_when": [
@@ -5526,7 +5526,7 @@
     "title": "The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify",
     "verify": "pnpm verify"
    },
-   "status": "claimed"
+   "status": "review"
   }
  },
  "schema": 1

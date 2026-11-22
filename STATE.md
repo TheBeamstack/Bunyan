@@ -1,17 +1,16 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: blocked: depends on T-065 (ready) — T-064
+next: reviewer (box): PR #133 — T-071
 
 ## Claims
 
 - T-067 zayd on task/T-067-a-named-save-names-its-carried-cache-ent
 - T-069 zayd on task/T-069-section-points-cross-the-wasm-boundary-a
 - T-070 zayd on task/T-070-a-named-save-assembles-scene-json-in-the
-- T-071 zayd on task/T-071-the-docs-budget-gate-counts-only-git-tra
 
 ## Review
 
-none
+- T-071 PR #133 by zayd — reviewer (box): PR #133
 
 ## Awaiting approval (R93)
 
