@@ -785,6 +785,16 @@
    "opened": "2026-11-22T08:29Z",
    "scope": "item",
    "title": "state.py clear refuses zayd on B-20261122-02 though zayd performed its 'builder:' need (T-071, PR #133 merged): 'B-20261122-02 was opened by brahim; only it, a seat its need: names or the steward clears it' (state.py clear --seat zayd B-20261122-02)"
+  },
+  "B-20261122-08": {
+   "by": "stop-rule",
+   "cleared": "-",
+   "item": "lane bunyan",
+   "key": "c1c57795aa87",
+   "need": "steward: remove what makes agent_finish.py refuse in this lane",
+   "opened": "2026-11-22T13:40Z",
+   "scope": "item",
+   "title": "stop rule: lane bunyan, refused twice by agent_finish.py: [commands] verify failed (1): pnpm verify"
   }
  },
  "decisions": {
