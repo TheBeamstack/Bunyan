@@ -775,6 +775,16 @@
    "opened": "2026-11-22T06:44Z",
    "scope": "item",
    "title": "T-069 rework to podman (owner 2026-11-22 'Rework to podman'): podman is not in the requires vocabulary"
+  },
+  "B-20261122-07": {
+   "by": "brahim",
+   "cleared": "-",
+   "item": "STEWARD-propose-M-bunyan-04",
+   "key": "clear-role-need",
+   "need": "diwan: make state.py clear admit a seat whose role the need: names (builder, reviewer), so T-071's builder clears B-20261122-02 and the steward proposes M-bunyan-04 per P-20261118-02",
+   "opened": "2026-11-22T08:29Z",
+   "scope": "item",
+   "title": "state.py clear refuses zayd on B-20261122-02 though zayd performed its 'builder:' need (T-071, PR #133 merged): 'B-20261122-02 was opened by brahim; only it, a seat its need: names or the steward clears it' (state.py clear --seat zayd B-20261122-02)"
   }
  },
  "decisions": {
