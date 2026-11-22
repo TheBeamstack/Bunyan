@@ -758,7 +758,7 @@
   },
   "B-20261122-05": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-22T15:38Z",
    "item": "T-069",
    "key": "claim-release-tool",
    "need": "diwan: add a state.py command that releases a claim and keeps its branch, then steward releases zayd's T-069 claim per D-20261120-01",
