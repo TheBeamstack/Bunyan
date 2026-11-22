@@ -651,7 +651,7 @@
 - default-if-silent: keep
 - expires: 2026-11-25
 - ANSWER: release
-- answered: -
+- answered: 2026-11-22T00:34Z
 
 ## P-20261118-04 which browsers and devices v1.0.0 must work on
 - opened: 2026-11-18T16:35Z
