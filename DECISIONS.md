@@ -626,7 +626,7 @@
 - options: cut-row | ask
 - default-if-silent: cut-row
 - expires: 2026-11-25
-- ANSWER:
+- ANSWER: cut-row
 - answered: -
 
 ## P-20261118-02 what the steward does when the box builder has nothing ready
