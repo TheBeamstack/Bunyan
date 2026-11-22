@@ -133,6 +133,12 @@ export declare function entryBodies(root: string): string[];
  * See the implementation for why a body is indexed under either path.
  */
 export declare function archiveCanonical(p: string): string;
+/** The bodies with no abstract that the phase log does not index; docs-budget refuses each. */
+export declare function unindexedBodies(
+  bodies: string[],
+  referenced: Set<string | undefined>,
+  history: string,
+): string[];
 export declare function generatedBlock(
   src: string,
   begin: string,
