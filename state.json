@@ -738,7 +738,7 @@
   },
   "B-20261122-03": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-22T07:37Z",
    "item": "T-070",
    "key": "t070-waits-t071",
    "need": "builder: merge T-071 (B-20261122-02's repair), then finish T-070 with agent_finish.py --seat zayd T-070 and clear this record",
