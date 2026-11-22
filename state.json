@@ -2979,7 +2979,8 @@
    "harm": "none",
    "id": "disc:3",
    "main": "12ddc5f32aa2adff126fda1aa998b948e64d1ecd",
-   "status": "parked",
+   "pr": 133,
+   "status": "closed",
    "text": "docs truth: tests/docs-budget.test.ts's body check walks the working tree, not git: entryBodies(ROOT) lists the gitignored handoff/zayd/2026-11-18-T-067-carried-by-name.md left on the box from T-067's turn, so pnpm verify on a clean main is red on this box (1 failed, 1082 passed, run by cycle_end.py at 2026-11-20T00:10Z) while main CI is green (run 44228748505); a builder's local gate on this box fails the same way until the body is indexed, committed or removed",
    "where": "tests/docs-budget.test.ts:37"
   },
