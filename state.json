@@ -735,6 +735,16 @@
    "opened": "2026-11-22T00:54Z",
    "scope": "item",
    "title": "[incident] pnpm verify fails on any turn's handoff body: tests/docs-budget.test.ts:150 counts the untracked handoff/<seat>/*.md the finish requires (scripts/docs-state.mjs:386 entryBodies walks the disk), 'has no abstract and is not indexed in docs/PHASE_LOG.md' (agent_finish.py --seat brahim STEWARD-propose-M-bunyan-04, 1 failed of 1087)"
+  },
+  "B-20261122-03": {
+   "by": "brahim",
+   "cleared": "-",
+   "item": "T-070",
+   "key": "t070-waits-t071",
+   "need": "builder: merge T-071 (B-20261122-02's repair), then finish T-070 with agent_finish.py --seat zayd T-070 and clear this record",
+   "opened": "2026-11-22T02:34Z",
+   "scope": "item",
+   "title": "T-070's finish cannot pass verify until T-071 lands; start keeps handing zayd T-070 so T-071 is never claimed"
   }
  },
  "decisions": {
@@ -5440,7 +5450,9 @@
   },
   "T-070": {
    "approved": "not asked: risk: high alone (R94)",
-   "blockers": [],
+   "blockers": [
+    "B-20261122-03"
+   ],
    "branch": "task/T-070-a-named-save-assembles-scene-json-in-the",
    "holder": "zayd",
    "pr": 0,
