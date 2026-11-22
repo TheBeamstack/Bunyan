@@ -725,6 +725,16 @@
    "opened": "2026-11-22T00:36Z",
    "scope": "item",
    "title": "state.py edit refuses T-067's depends-on T-070: 'T-067 is claimed; only a ready, parked or dropped row is edited' (python3 diwan/scripts/state.py edit --seat brahim --depends-on 'T-062, T-063, T-070' T-067)"
+  },
+  "B-20261122-02": {
+   "by": "brahim",
+   "cleared": "-",
+   "item": "STEWARD-propose-M-bunyan-04",
+   "key": "docs-budget-untracked-handoff",
+   "need": "builder: make entryBodies count only git-tracked handoff bodies, so a finish's untracked body passes docs-budget",
+   "opened": "2026-11-22T00:54Z",
+   "scope": "item",
+   "title": "[incident] pnpm verify fails on any turn's handoff body: tests/docs-budget.test.ts:150 counts the untracked handoff/<seat>/*.md the finish requires (scripts/docs-state.mjs:386 entryBodies walks the disk), 'has no abstract and is not indexed in docs/PHASE_LOG.md' (agent_finish.py --seat brahim STEWARD-propose-M-bunyan-04, 1 failed of 1087)"
   }
  },
  "decisions": {
