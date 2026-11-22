@@ -30,7 +30,7 @@ author_email = "narutousomaki741@gmail.com"
 # Lane-only session rules (diwan launch-loop `lane_tools`). `uv`: the re-seed gate's seeder,
 # `cd tools/oracle && uv run seed-goldens ../../tests/goldens` (B-20261012-03).
 [tools]
-allow = ["Bash(uv *)"]
+allow = ["Bash(uv *)", "Bash(podman *)"]
 
 [review]
 # D88: a `risk: high` row gets two review turns in separate sessions. Not owner-gated — step 2 merges.
