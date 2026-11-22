@@ -2960,6 +2960,16 @@
    "status": "parked",
    "text": "docs truth: tests/docs-budget.test.ts's body check walks the working tree, not git: entryBodies(ROOT) lists the gitignored handoff/zayd/2026-11-18-T-067-carried-by-name.md left on the box from T-067's turn, so pnpm verify on a clean main is red on this box (1 failed, 1082 passed, run by cycle_end.py at 2026-11-20T00:10Z) while main CI is green (run 44228748505); a builder's local gate on this box fails the same way until the body is indexed, committed or removed",
    "where": "tests/docs-budget.test.ts:37"
+  },
+  {
+   "at": "2026-11-22T11:27Z",
+   "by": "brahim",
+   "harm": "none",
+   "id": "disc:4",
+   "main": "4d17b64e207ec28d6dc9500bbb0e335b28348b93",
+   "status": "parked",
+   "text": "two T-048 tests exceed vitest's 30 s timeout under box load (32026 ms, 35410 ms; load avg 7.7) in pnpm verify at 4d17b64, which CI passes at the same sha (gh run list --branch main): a box-only red on any turn's verify gate",
+   "where": "tests/bnn-aggregate-ratio-t048.test.ts:96"
   }
  ],
  "lane": "Bunyan",
