@@ -650,7 +650,7 @@
 - options: release | keep
 - default-if-silent: keep
 - expires: 2026-11-25
-- ANSWER:
+- ANSWER: release
 - answered: -
 
 ## P-20261118-04 which browsers and devices v1.0.0 must work on
