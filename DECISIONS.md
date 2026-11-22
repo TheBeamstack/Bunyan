@@ -674,5 +674,5 @@
 - options: small-practice | student | engineering | other
 - default-if-silent: small-practice
 - expires: 2026-11-25
-- ANSWER:
+- ANSWER: small-practice
 - answered: -
