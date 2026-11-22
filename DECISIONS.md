@@ -639,7 +639,7 @@
 - default-if-silent: propose
 - expires: 2026-11-25
 - ANSWER: propose
-- answered: -
+- answered: 2026-11-22T00:34Z
 
 ## P-20261118-03 what happens to a builder's claim that has not moved in 7 days
 - opened: 2026-11-18T16:35Z
