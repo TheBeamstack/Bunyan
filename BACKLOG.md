@@ -139,6 +139,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —                   |
 | T-031 | parked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
 | T-070 | ready | A named save assembles scene.json in the zip worker, off the main thread | workers | box | **high** | T-062, T-063 |
+| T-071 | ready | The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify | infra | box | normal | — |
 
 ---
 
@@ -887,6 +888,17 @@ informational provenance.
 - note: built on origin/task/T-067-a-named-save-names-its-carried-cache-ent, merged into this row's branch first, because both rows change the named save path and T-067's 200 ms bar waits on this row; depends-on omits T-067 because T-067 depends on this row; the 200 ms bar stays T-067's done-when 5, so this row needs no browser and records no browser figure; if posting the scene would cost the main thread what stringifying did, record the measurement and stop with a B- record, never a reworded bar; risk high per READY rule 8 (D29 save path)
 - milestone: M-bunyan-03
 - from: D-20261118-01
+
+### T-071 — The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify
+- outcome: pnpm verify passes with an untracked handoff/<seat>/<date>-<label>-<slug>.md on disk, as agent_finish.py requires, and still fails on a tracked body that has no abstract and is not indexed.
+- implements: diwan docs/LANE-CONTRACT.md §7 (the handoff/<seat>/ row: the finish posts the body and no commit carries it) and AGENTS.md §2 (old handoffs live on tag archive/records-2026-11) · tests/docs-budget.test.ts 'points at a body that exists, and every body has an abstract or is archived'; provenance: B-20261122-02, scripts/docs-state.mjs:386 entryBodies walks the disk at 12ddc5f
+- done-when: test-first: a node test creates an untracked handoff/<seat>/<file>.md and shows entryBodies omits it and the docs-budget check passes; revert-verified: walking the disk again turns that test red
+- done-when: a git-tracked handoff body with no abstract and no PHASE_LOG.md index still fails the docs-budget check
+- done-when: pnpm verify exits 0 with an untracked handoff body present
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: infra · machine: box · risk: normal
+- repair: incident B-20261122-02
 
 ## Discovered
 

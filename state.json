@@ -3591,7 +3591,7 @@
    ""
   ]
  ],
- "next_id": 71,
+ "next_id": 72,
  "parked": [],
  "retired": [
   {
@@ -5461,6 +5461,30 @@
     "outcome": "a named save no longer serialises the scene on the main thread: the zip worker builds scene.json's bytes (JSON.stringify(scene, null, 2), UTF-8) from the scene it is posted, so the main thread's assemble step drops its largest cost (T-067 measured assemble 48.7-122.8 ms at 16k), and the stored bytes still equal saveBnn exactly.",
     "risk": "high",
     "title": "A named save assembles scene.json in the zip worker, off the main thread",
+    "verify": "pnpm verify"
+   },
+   "status": "ready"
+  },
+  "T-071": {
+   "approved": "",
+   "blockers": [],
+   "branch": "",
+   "holder": "",
+   "pr": 0,
+   "spec": {
+    "area": "infra",
+    "done_when": [
+     "test-first: a node test creates an untracked handoff/<seat>/<file>.md and shows entryBodies omits it and the docs-budget check passes; revert-verified: walking the disk again turns that test red",
+     "a git-tracked handoff body with no abstract and no PHASE_LOG.md index still fails the docs-budget check",
+     "pnpm verify exits 0 with an untracked handoff body present",
+     "no [frozen_surface] watched file changes"
+    ],
+    "implements": "diwan docs/LANE-CONTRACT.md §7 (the handoff/<seat>/ row: the finish posts the body and no commit carries it) and AGENTS.md §2 (old handoffs live on tag archive/records-2026-11) · tests/docs-budget.test.ts 'points at a body that exists, and every body has an abstract or is archived'; provenance: B-20261122-02, scripts/docs-state.mjs:386 entryBodies walks the disk at 12ddc5f",
+    "machine": "box",
+    "outcome": "pnpm verify passes with an untracked handoff/<seat>/<date>-<label>-<slug>.md on disk, as agent_finish.py requires, and still fails on a tracked body that has no abstract and is not indexed.",
+    "repair": "incident B-20261122-02",
+    "risk": "normal",
+    "title": "The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify",
     "verify": "pnpm verify"
    },
    "status": "ready"
