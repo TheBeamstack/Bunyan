@@ -260,6 +260,12 @@ read; the other two printed PASS and FAIL. In-save split, five runs: `geometryCa
 48.7–122.8 ms, `serializeRecords` 8.1–31.7 ms, pack 5.2–44.9 ms, post 17.7–101 ms. The pack's copy is gone; the
 200 ms bar still fails, and assembly is the largest remaining main-thread step.
 
+**T-070** assembles with an empty `scene.json`, posts the scene, and the zip worker builds `sceneJsonBytes` from it
+(`tests/app-named-save-scene-in-worker-t070.test.ts`). Measured in node on the T-060 file's 4,800-element scene
+(2.52 MB `scene.json`, box, 2026-11-22, seven runs each): `JSON.stringify` + encode 10.6–15.7 ms, the whole assembly
+12.2–22.3 ms, and `v8.serialize`, the sending half of `postMessage`'s clone, 7.6–9.6 ms, which the post now pays.
+No browser figure: the 200 ms bar stays T-067's.
+
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
 `SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.

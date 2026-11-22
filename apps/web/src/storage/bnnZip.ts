@@ -11,7 +11,13 @@
  * bundle carries no document code.
  */
 
-import { readZipEntries, zipBnnEntries, type BnnEntries } from '@bunyan/document/bnnzip';
+import {
+  SCENE_ENTRY,
+  readZipEntries,
+  sceneJsonBytes,
+  zipBnnEntries,
+  type BnnEntries,
+} from '@bunyan/document/bnnzip';
 import {
   CACHE_INDEX_ENTRY,
   carriedFrom,
@@ -53,6 +59,11 @@ export interface ZipRequest {
    */
   readonly signing?: PostedCacheSigning;
   readonly carried?: CarriedNames;
+  /**
+   * Present ⇒ `entries` holds an empty `scene.json`, built here from this scene (T-070), so the caller never
+   * stringifies it. Structured-cloned by `postMessage`.
+   */
+  readonly scene?: unknown;
 }
 
 export type ZipReply =
@@ -69,7 +80,11 @@ export function handleZipRequest(request: ZipRequest): ZipReply {
         throw new Error(`carried entry "${name}" has no place in the zip`);
     }
     const fromFile = readCarried(carried);
-    const entries = { ...unpackEntries(request.entries), ...fromFile.entries };
+    const entries = {
+      ...unpackEntries(request.entries),
+      ...fromFile.entries,
+      ...sceneJson(request),
+    };
     const signed =
       signing === undefined
         ? entries
@@ -81,6 +96,23 @@ export function handleZipRequest(request: ZipRequest): ZipReply {
   } catch (error) {
     return { id: request.id, error: String(error) };
   }
+}
+
+/**
+ * `scene.json` built from the posted scene (T-070). An empty `scene.json` slice with no scene posted, or a
+ * scene posted with no `scene.json` place, throws: the save rejects rather than storing a file without it.
+ */
+function sceneJson(request: ZipRequest): BnnEntries {
+  const { names, offsets } = request.entries;
+  const at = names.indexOf(SCENE_ENTRY);
+  if (request.scene === undefined) {
+    if (at >= 0 && offsets[at] === offsets[at + 1]) {
+      throw new Error(`${SCENE_ENTRY} is a placeholder and no scene was posted`);
+    }
+    return {};
+  }
+  if (at < 0) throw new Error(`a scene was posted and ${SCENE_ENTRY} has no place in the zip`);
+  return { [SCENE_ENTRY]: sceneJsonBytes(request.scene) };
 }
 
 /**
@@ -134,6 +166,7 @@ export function packZipRequest(
   entries: BnnEntries,
   signing?: CacheSigning,
   observe?: (step: ZipStep, ms: number) => void,
+  scene?: unknown,
 ): { readonly message: ZipRequest; readonly transfer: ArrayBuffer[] } {
   let at = performance.now();
   const lap = (step: ZipStep): void => {
@@ -196,6 +229,7 @@ export function packZipRequest(
   if (file !== undefined) {
     message = { ...message, carried: { file, entries: carriedEntries, records: carriedRoots } };
   }
+  if (scene !== undefined) message = { ...message, scene };
   lap('pack');
   return { message, transfer: [buffer] };
 }
@@ -208,7 +242,8 @@ export interface ZipPort {
 }
 
 export interface BnnZipper {
-  zip(entries: BnnEntries, signing?: CacheSigning): Promise<Uint8Array>;
+  /** `scene` ⇒ `entries`' `scene.json` is a placeholder the worker fills (T-070). */
+  zip(entries: BnnEntries, signing?: CacheSigning, scene?: unknown): Promise<Uint8Array>;
   /** True once the worker fired `error`: every later `zip()` rejects, so the caller spawns a new zipper. */
   readonly failed: boolean;
 }
@@ -243,7 +278,7 @@ export function createBnnZipper(
     get failed() {
       return failure !== undefined;
     },
-    zip: (entries, signing) =>
+    zip: (entries, signing, scene) =>
       new Promise((resolve, reject) => {
         if (failure !== undefined) {
           reject(failure);
@@ -251,7 +286,7 @@ export function createBnnZipper(
         }
         const id = next++;
         pending.set(id, { resolve, reject });
-        const { message, transfer } = packZipRequest(id, entries, signing, observe);
+        const { message, transfer } = packZipRequest(id, entries, signing, observe, scene);
         const posting = performance.now();
         port.postMessage(message, transfer);
         observe?.('post', performance.now() - posting);

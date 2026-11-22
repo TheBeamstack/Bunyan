@@ -17,6 +17,18 @@ import { checkCaps } from './bnncaps.js';
 /** A `.bnn`'s entries by zip path, as `assembleBnnEntries` returns them. Survives `structuredClone`. */
 export type BnnEntries = Readonly<Record<string, Uint8Array>>;
 
+export const SCENE_ENTRY = 'scene.json';
+
+/**
+ * `scene.json`'s bytes: the scene's 2-space `JSON.stringify` as UTF-8, here so the zip worker builds them
+ * (T-070). A scene with no JSON form (`undefined`, a function) throws rather than giving empty bytes.
+ */
+export function sceneJsonBytes(scene: unknown): Uint8Array {
+  const json: unknown = JSON.stringify(scene, null, 2);
+  if (typeof json !== 'string') throw new Error(`the scene has no JSON form, so no ${SCENE_ENTRY}`);
+  return new TextEncoder().encode(json);
+}
+
 /** Every zip entry's timestamp: the earliest DOS date, in local time (see `zipBnnEntries`). */
 const BNN_ZIP_MTIME = new Date(1980, 0, 1);
 

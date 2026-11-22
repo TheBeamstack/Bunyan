@@ -108,9 +108,9 @@ export function namedSaveOptions(
 }
 
 /**
- * A named save: the entries are assembled here (every `saveBnn` refusal), an unsigned cache's index is
- * signed and the whole zipped by `zipper` off the main thread (T-058, T-060), and stored under
- * `docKey(name)`. Its bytes equal `saveBnn(scene, options)`. Returns the key. `observe` gets the assembly's
+ * A named save: the entries are assembled here (every `saveBnn` refusal); `scene.json` is built, an
+ * unsigned cache's index signed and the whole zipped by `zipper` off the main thread (T-058, T-060,
+ * T-070), and stored under `docKey(name)`. Its bytes equal `saveBnn(scene, options)`. Returns the key. `observe` gets the assembly's
  * duration (`save-check`, T-065).
  */
 export async function saveDocument(
@@ -122,9 +122,9 @@ export async function saveDocument(
   observe?: (step: 'assemble', ms: number) => void,
 ): Promise<string> {
   const assembling = performance.now();
-  const { entries, signing } = assembleUnsignedBnnEntries(scene, options);
+  const { entries, signing } = assembleUnsignedBnnEntries(scene, options, true);
   observe?.('assemble', performance.now() - assembling);
-  const bytes = await zipper.zip(entries, signing);
+  const bytes = await zipper.zip(entries, signing, scene);
   const key = docKey(name);
   await store.write(key, bytes);
   return key;
