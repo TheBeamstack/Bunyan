@@ -588,8 +588,9 @@
 - default-if-silent: cut-row
 - expires: 2026-11-25
 - directions-read: none in force
+- derived: cut-row from P-20261118-01 — T-067 missed its 200 ms bar (B-20261118-01); the design names scene.json assembly in the zip worker as the next cut, the bar unchanged
 - ANSWER:
-- answered: -
+- answered: 2026-11-22T00:35Z
 
 ## D-20261118-02 Nothing is ready for the box builder; whether the steward proposes the next milestone
 - opened: 2026-11-18T16:04Z

@@ -2229,12 +2229,16 @@
      "none in force"
     ],
     [
+     "derived",
+     "cut-row from P-20261118-01 — T-067 missed its 200 ms bar (B-20261118-01); the design names scene.json assembly in the zip worker as the next cut, the bar unchanged"
+    ],
+    [
      "ANSWER",
      ""
     ],
     [
      "answered",
-     "-"
+     "2026-11-22T00:35Z"
     ]
    ],
    "title": "T-067's 200 ms named-save bar still fails; whether to cut scene.json assembly into the zip worker as its own row"
