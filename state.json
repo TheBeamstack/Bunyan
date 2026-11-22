@@ -2957,7 +2957,8 @@
    "harm": "none",
    "id": "disc:1",
    "main": "12ddc5f32aa2adff126fda1aa998b948e64d1ecd",
-   "status": "parked",
+   "pr": 133,
+   "status": "closed",
    "text": "pnpm verify on box main is red while CI is green: the docs-budget body check reads the gitignored, untracked handoff/zayd/2026-11-18-T-067-carried-by-name.md left by zayd's T-067 turn, so a local QUIET verify fails on a file git does not hold",
    "where": "tests/docs-budget.test.ts:154"
   },
