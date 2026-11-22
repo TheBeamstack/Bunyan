@@ -121,3 +121,13 @@ covers = ["T-037", "T-064"]
 due = "2026-11-29"
 size = 2
 approved = "2026-11-02"
+
+[[milestone]]
+id = "M-bunyan-04"
+portfolio = "beamstack"
+goal = "a small practice's house gets its plan and one section as real cuts of the live model that update on edit, in desktop Chrome (P6 steps 1-2, design P5_step6C)"
+done_when = ["owner:a plan and a section of a small house open in desktop Chrome as section cuts of the live model and change when a wall moves"]
+covers = ["T-069"]
+due = "2027-01-31"
+size = 8
+approved = ""
