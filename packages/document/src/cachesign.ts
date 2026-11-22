@@ -156,15 +156,115 @@ export interface CacheIndexOpenRequest {
 }
 
 /**
- * An opened index, its records still serialized (T-063): `roots[i]`'s record is the UTF-8 JSON at
- * `json[offsets[i], offsets[i + 1])`, so a caller parses one root when it needs it, never the whole index.
+ * Records serialized (T-063, T-064): `roots[i]`'s record is its `JSON.stringify` as UTF-8 at
+ * `json[offsets[i], offsets[i + 1])`, so a reader parses one root when it needs it, never the whole index.
  * `json` is the only view of its buffer, so a worker transfers it rather than cloning an object graph.
  */
-export interface OpenedCacheRecords {
-  readonly envelope: SignedCacheEnvelope;
+export interface SerializedCacheRecords {
   readonly roots: readonly string[];
   readonly offsets: readonly number[];
   readonly json: Uint8Array;
+}
+
+/** An opened index, its records still serialized (T-063). */
+export interface OpenedCacheRecords extends SerializedCacheRecords {
+  readonly envelope: SignedCacheEnvelope;
+}
+
+/** `CacheSigning` as the named save posts it to the zip worker (T-064): the records as one buffer. */
+export interface PostedCacheSigning {
+  readonly envelope: CacheEnvelope;
+  readonly records: SerializedCacheRecords;
+  readonly secret: Uint8Array;
+}
+
+/** Each kept record's `JSON.stringify` bytes, by identity (`keepRecordJson`). */
+const recordJson = new WeakMap<object, Uint8Array>();
+
+/**
+ * Keeps `json`, which must be `record`'s `JSON.stringify` as UTF-8, so `serializeRecords` copies it rather
+ * than stringifying `record` on a save (T-064). Called at export and at open; a record is never mutated.
+ */
+export function keepRecordJson(record: object, json: Uint8Array): void {
+  recordJson.set(record, json);
+}
+
+/** Where a carried value came from: an opened file's bytes, and its zip path (a `.brep`) or root (a record). */
+export interface CarriedFrom {
+  readonly file: Uint8Array;
+  readonly name: string;
+}
+
+/** Each carried `.brep` and record, by identity (`keepCarried`). */
+const carriedValues = new WeakMap<object, CarriedFrom>();
+
+/**
+ * Marks `value` as read unchanged from `file` under `name` (T-067): a `.brep` the reader inflated, or a
+ * record parsed from the file's verified index. The named save posts it by name, and the zip worker reads it
+ * from the file again. A value is never mutated after it is marked.
+ */
+export function keepCarried(value: object, file: Uint8Array, name: string): void {
+  carriedValues.set(value, { file, name });
+}
+
+/** `keepCarried`'s mark on `value`, if any. */
+export function carriedFrom(value: unknown): CarriedFrom | undefined {
+  return typeof value === 'object' && value !== null ? carriedValues.get(value) : undefined;
+}
+
+const NO_BYTES = new Uint8Array(0);
+
+/**
+ * Each record's JSON bytes, in key order: a kept record's bytes, any other stringified (T-064, T-065), and
+ * none for a root `skip` names (T-067: carried by name).
+ */
+export function recordJsonChunks(
+  records: Readonly<Record<string, unknown>>,
+  skip?: (root: string) => boolean,
+): {
+  readonly roots: readonly string[];
+  readonly chunks: readonly Uint8Array[];
+} {
+  const roots = Object.keys(records);
+  const chunks = roots.map((root) => {
+    if (skip?.(root) === true) return NO_BYTES;
+    const record = records[root];
+    const kept = typeof record === 'object' && record !== null ? recordJson.get(record) : undefined;
+    return kept ?? encoder.encode(JSON.stringify(record));
+  });
+  return { roots, chunks };
+}
+
+/** `records` as one buffer, in key order: a kept record's bytes are copied, any other is stringified. */
+export function serializeRecords(
+  records: Readonly<Record<string, unknown>>,
+): SerializedCacheRecords {
+  const { roots, chunks } = recordJsonChunks(records);
+  const offsets = [0];
+  for (const chunk of chunks) offsets.push(offsets[offsets.length - 1]! + chunk.length);
+  const json = new Uint8Array(offsets[offsets.length - 1]!);
+  for (const [i, chunk] of chunks.entries()) json.set(chunk, offsets[i]);
+  return { roots, offsets, json };
+}
+
+/**
+ * The records back, in `roots` order: `JSON.stringify` of the result equals that of the records serialized,
+ * so an index signed from it has `saveBnn`'s bytes. `Object.fromEntries`, so a `__proto__` root stays a key.
+ * A root `carried` returns a record for takes that one instead of its slice (T-067).
+ */
+export function deserializeRecords(
+  serialized: SerializedCacheRecords,
+  carried?: (root: string) => unknown,
+): Record<string, unknown> {
+  const decoder = new TextDecoder();
+  const { roots, offsets, json } = serialized;
+  return Object.fromEntries(
+    roots.map((root, i) => [
+      root,
+      carried?.(root) ??
+        (JSON.parse(decoder.decode(json.subarray(offsets[i], offsets[i + 1]))) as unknown),
+    ]),
+  );
 }
 
 /** Opens an index on a worker (T-061, T-063). `undefined` ⇒ the cache restores nothing. */
@@ -174,13 +274,7 @@ export type CacheIndexOpener = (
 
 /** An opened index's records, one JSON slice per root in one buffer (`OpenedCacheRecords`). */
 export function serializeCacheRecords(opened: OpenedCacheIndex): OpenedCacheRecords {
-  const roots = Object.keys(opened.records);
-  const chunks = roots.map((root) => encoder.encode(JSON.stringify(opened.records[root])));
-  const offsets = [0];
-  for (const chunk of chunks) offsets.push(offsets[offsets.length - 1]! + chunk.length);
-  const json = new Uint8Array(offsets[offsets.length - 1]!);
-  for (const [i, chunk] of chunks.entries()) json.set(chunk, offsets[i]);
-  return { envelope: opened.envelope, roots, offsets, json };
+  return { envelope: opened.envelope, ...serializeRecords(opened.records) };
 }
 
 /**

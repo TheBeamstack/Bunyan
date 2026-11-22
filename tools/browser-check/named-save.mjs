@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 // T-058, T-060: a named save of a 16k-solid cached scene, in a real browser, keeps the main thread
-// responsive; since T-060 it saves through `doc.geometryCacheFiles()` and the worker signs the index.
+// responsive; since T-060 it saves through `doc.geometryCacheFiles()` and the worker signs the index;
+// since T-064 the page opens the index on the cache-open worker, as `bootstrap` does.
 //
 //   node tools/browser-check/named-save.mjs --playwright <playwright-core/index.mjs> --browser <chrome>
 //

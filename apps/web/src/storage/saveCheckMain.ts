@@ -7,12 +7,12 @@
  * named save and reports the longest main-thread task. `worker` is the app's save (`namedSaveOptions`, so
  * `doc.geometryCacheFiles()`, then `saveDocument` + the zip worker, into IndexedDB); `main` is `saveBnn`
  * of the same options on the main thread, the control that shows the observer sees the deflate and the
- * HMAC. Driven by `tools/browser-check/named-save.mjs`, whose file is signed with the fixture's secret.
+ * HMAC. A worker save reports its main-thread steps as timed inside it (T-065). Driven by
+ * `tools/browser-check/named-save.mjs`, whose file is signed with the fixture's secret.
  */
 
 import {
   DocumentContext,
-  assembleUnsignedBnnEntries,
   createRegistries,
   loadBnn,
   saveBnn,
@@ -20,7 +20,13 @@ import {
   type GeometryGateway,
 } from '@bunyan/document';
 
-import { createStore, namedSaveOptions, saveDocument, spawnBnnZipper } from './documentStorage';
+import {
+  createStore,
+  namedSaveOptions,
+  openCacheIndexInWorker,
+  saveDocument,
+  spawnBnnZipper,
+} from './documentStorage';
 
 export interface SaveCheckResult {
   readonly mode: 'worker' | 'main';
@@ -30,10 +36,17 @@ export interface SaveCheckResult {
   /** The widest gap between two runs of a 0 ms timer chain: the longest the main thread was held. */
   readonly maxGapMs: number;
   readonly bytes: number;
-  /** `doc.geometryCacheFiles()` alone, after the save: every root's key recomputed and carried (T-060). */
-  readonly cacheFilesMs: number;
-  /** `structuredClone` of what the worker save posts beside the entries: records, envelope, secret. */
-  readonly cloneSigningMs: number;
+  /** A worker save's main-thread steps, timed inside it (T-065); zero for `main`. */
+  readonly split: SaveSplit;
+}
+
+/** `namedSaveOptions` (`geometryCacheFiles()`), `assembleUnsignedBnnEntries`, then the zipper's steps. */
+export interface SaveSplit {
+  geometryCacheFilesMs: number;
+  assembleMs: number;
+  serializeRecordsMs: number;
+  packMs: number;
+  postMs: number;
 }
 
 declare global {
@@ -48,6 +61,14 @@ declare global {
 const log = (line: string): void => {
   document.getElementById('log')!.textContent += `${line}\n`;
 };
+
+const emptySplit = (): SaveSplit => ({
+  geometryCacheFilesMs: 0,
+  assembleMs: 0,
+  serializeRecordsMs: 0,
+  packMs: 0,
+  postMs: 0,
+});
 
 const frame = (): Promise<void> =>
   new Promise((resolve) => {
@@ -68,15 +89,25 @@ async function main(): Promise<void> {
     geometry: {} as GeometryGateway, // a save calls no kernel op (design §5)
     scene: pkg.scene,
     // The T-060 test's fixture secret: the file was signed with it, so every record verifies and carries.
-    geometryCache: { files: reader, current: envelope, installSecret: new Uint8Array(32).fill(7) },
+    // Opened on the app's cache-open worker, as `bootstrap` does (T-061, T-063).
+    geometryCache: {
+      files: reader,
+      current: envelope,
+      installSecret: new Uint8Array(32).fill(7),
+      openIndex: openCacheIndexInWorker,
+    },
   });
-  // The first call opens and verifies the index (the open-side HMAC, T-061's); later saves reuse it.
+  // The open and the first `geometryCacheFiles()` (every root keyed and parsed); later saves reuse both.
   const opened = performance.now();
+  await doc.openGeometryCache();
   const roots = Object.keys(doc.geometryCacheFiles()?.records ?? {}).length;
   const openMs = performance.now() - opened;
   const kernelBuildId = pkg.manifest.kernelBuildId;
   const store = createStore();
-  const zipper = spawnBnnZipper();
+  let split: SaveSplit = emptySplit();
+  const zipper = spawnBnnZipper((step, ms) => {
+    split[`${step}Ms`] += ms;
+  });
 
   window.__saveCheck = async (mode) => {
     // Two independent views of a stall: Long Tasks entries, and the widest gap a 0 ms timer chain sees.
@@ -98,9 +129,13 @@ async function main(): Promise<void> {
     await frame();
     const start = performance.now();
     let bytes: number;
+    split = emptySplit();
     if (mode === 'worker') {
       const options = namedSaveOptions(doc, kernelBuildId);
-      const key = await saveDocument(store, 'save-check', doc.scene, options, zipper);
+      split.geometryCacheFilesMs = performance.now() - start;
+      const key = await saveDocument(store, 'save-check', doc.scene, options, zipper, (_, ms) => {
+        split.assembleMs += ms;
+      });
       bytes = (await store.read(key))!.length;
     } else {
       bytes = saveBnn(doc.scene, namedSaveOptions(doc, kernelBuildId)).length;
@@ -111,14 +146,6 @@ async function main(): Promise<void> {
     beating = false;
     for (const entry of observer.takeRecords()) tasks.push(entry.duration);
     observer.disconnect();
-    // The two main-thread costs the worker save still pays, timed alone after it.
-    const filesAt = performance.now();
-    const options = namedSaveOptions(doc, kernelBuildId);
-    const cacheFilesMs = performance.now() - filesAt;
-    const { signing } = assembleUnsignedBnnEntries(doc.scene, options);
-    const cloneAt = performance.now();
-    structuredClone(signing);
-    const cloneSigningMs = performance.now() - cloneAt;
     const result = {
       mode,
       ms,
@@ -126,8 +153,7 @@ async function main(): Promise<void> {
       longTasks: tasks.length,
       maxGapMs,
       bytes,
-      cacheFilesMs,
-      cloneSigningMs,
+      split,
     };
     log(JSON.stringify(result));
     return result;

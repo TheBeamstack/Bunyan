@@ -26,10 +26,10 @@
 
 import { unzipSync } from 'fflate';
 import type { BnnEntries } from './bnnzip.js';
-import { zipBnnEntries } from './bnnzip.js';
+import { SCENE_ENTRY, sceneJsonBytes, zipBnnEntries } from './bnnzip.js';
 import { BnnCapError, checkCaps } from './bnncaps.js';
 import type { CacheSigning, UnsignedGeometryCache } from './cachesign.js';
-import { isUnsignedGeometryCache, signGeometryCache } from './cachesign.js';
+import { isUnsignedGeometryCache, keepCarried, signGeometryCache } from './cachesign.js';
 import type { Scene } from './scene.js';
 import { SCENE_SCHEMA_VERSION, emptyScene } from './scene.js';
 import type { UndoableEdit } from './undo.js';
@@ -158,19 +158,22 @@ const UNSIGNED_INDEX = new Uint8Array(0);
  * `assembleBnnEntries` with an unsigned cache's HMAC left out (T-060): its `index.json` is a placeholder
  * and `signing` is what `signBnnEntries` needs to sign it in place, so a worker signs and the bytes equal
  * `saveBnn`'s. Every refusal is still made here; a signed or absent cache gives no `signing`.
+ * `sceneInWorker` (T-070): `scene.json` is an empty placeholder too, which the zip worker replaces with
+ * `sceneJsonBytes` of the scene posted to it, so the caller never stringifies the scene.
  */
 export function assembleUnsignedBnnEntries(
   scene: Scene,
   options: SaveOptions,
+  sceneInWorker = false,
 ): { readonly entries: BnnEntries; readonly signing?: CacheSigning } {
   const cache = options.cache;
   if (cache === undefined || !isUnsignedGeometryCache(cache)) {
-    return { entries: assembleEntries(scene, cache, options) };
+    return { entries: assembleEntries(scene, cache, options, sceneInWorker) };
   }
   const { envelope, records, secret, files } = cache;
   const placeholder = { ...files, 'index.json': UNSIGNED_INDEX };
   return {
-    entries: assembleEntries(scene, placeholder, options),
+    entries: assembleEntries(scene, placeholder, options, sceneInWorker),
     signing: { envelope, records, secret },
   };
 }
@@ -179,6 +182,7 @@ function assembleEntries(
   scene: Scene,
   cache: GeometryCacheFiles | undefined,
   options: SaveOptions,
+  sceneInWorker = false,
 ): BnnEntries {
   // ⚠⚠ NEITHER FORCE NOR DECLARE, AND THE SIGNATURE IS THE PROOF (D66 §3c, T-005): it takes a `Scene`
   // — the recipe — so no built state is within its reach and a lazily built document writes the same
@@ -220,7 +224,7 @@ function assembleEntries(
 
   const files: Record<string, Uint8Array> = {
     'manifest.json': encoder.encode(JSON.stringify(manifest, null, 2)),
-    'scene.json': encoder.encode(JSON.stringify(scene, null, 2)),
+    [SCENE_ENTRY]: sceneInWorker ? new Uint8Array(0) : sceneJsonBytes(scene),
   };
   if (options.journal !== undefined) {
     files['history.json'] = encoder.encode(JSON.stringify(options.journal, null, 2));
@@ -371,6 +375,8 @@ function geometryCacheReader(bytes: Uint8Array, names: readonly string[]): Geome
     checkCaps(bytes, (name) => full.has(name));
     const files = unzipSync(bytes, { filter: (file) => full.has(file.name) });
     for (const [name, data] of Object.entries(files)) {
+      // So a named save posts it by name and its zip worker reads it from `bytes` again (T-067).
+      keepCarried(data, bytes, name);
       out.set(name.slice(GEOMETRY_CACHE_DIR.length), data);
     }
     return out;
