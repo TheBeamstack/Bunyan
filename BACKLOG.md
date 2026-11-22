@@ -139,7 +139,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —                   |
 | T-031 | parked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
 | T-070 | claimed | A named save assembles scene.json in the zip worker, off the main thread | workers | box | **high** | T-062, T-063 |
-| T-071 | ready | The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify | infra | box | normal | — |
+| T-071 | claimed | The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify | infra | box | normal | — |
 
 ---
 
