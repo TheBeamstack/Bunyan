@@ -138,6 +138,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —                   |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —                   |
 | T-031 | parked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
+| T-070 | ready | A named save assembles scene.json in the zip worker, off the main thread | workers | box | **high** | T-062, T-063 |
 
 ---
 
@@ -873,6 +874,19 @@ informational provenance.
 - note: `blocked` 2026-10-08 (steward): superseded, not done (nothing merged for it). `requires:` is
   diwan's job, in `scripts/protocol.py` (owner, 2026-10-08), not a port into this repo; T-029, which it
   depends on, fixed `scripts/seats.mjs`, deleted with the node turn engine.
+
+### T-070 — A named save assembles scene.json in the zip worker, off the main thread
+- outcome: a named save no longer serialises the scene on the main thread: the zip worker builds scene.json's bytes (JSON.stringify(scene, null, 2), UTF-8) from the scene it is posted, so the main thread's assemble step drops its largest cost (T-067 measured assemble 48.7-122.8 ms at 16k), and the stored bytes still equal saveBnn exactly.
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (the T-060, T-065 and T-067 paragraphs: assembleUnsignedBnnEntries runs on the main thread, and assembly is the largest remaining main-thread step) · docs/contracts/V1.0.0_spec.md §6 (the .bnn tree, scene.json) and §6.5 (determinism, T-047); provenance: B-20261118-01, D-20261118-01 derived from P-20261118-01, packages/document/src/bnn.ts:223 at 86b321a stringifies the scene on the caller's thread
+- done-when: test-first: a node test with a fake ZipPort, on the 5-wall cached file of the T-064, T-065 and T-067 tests and on a cache-less save, shows the main thread's save path makes no JSON.stringify of the scene and the posted message holds no scene.json bytes, and two consecutive saves each store bytes equal to saveBnn(scene, options); revert-verified: building scene.json on the main thread again turns the no-scene-bytes assertion red
+- done-when: the zip worker's bundle still imports only leaf modules (apps/web/src/storage/bnnZip.ts:10), and a scene the worker cannot serialise rejects the save rather than storing a file without scene.json
+- done-when: every T-047 byte-identity test and the T-058, T-060, T-062, T-063, T-064, T-065, T-067 and geometry-cache-trust-d29 tests pass unchanged
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: T-062, T-063 · area: workers · machine: box · risk: **high**
+- note: built on origin/task/T-067-a-named-save-names-its-carried-cache-ent, merged into this row's branch first, because both rows change the named save path and T-067's 200 ms bar waits on this row; depends-on omits T-067 because T-067 depends on this row; the 200 ms bar stays T-067's done-when 5, so this row needs no browser and records no browser figure; if posting the scene would cost the main thread what stringifying did, record the measurement and stop with a B- record, never a reworded bar; risk high per READY rule 8 (D29 save path)
+- milestone: M-bunyan-03
+- from: D-20261118-01
 
 ## Discovered
 
