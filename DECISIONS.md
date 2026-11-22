@@ -662,7 +662,7 @@
 - options: desktop-chromium | desktop-all | desktop-and-tablet | other
 - default-if-silent: desktop-chromium
 - expires: 2026-11-25
-- ANSWER:
+- ANSWER: desktop-chromium
 - answered: -
 
 ## P-20261118-05 who v1.0.0 is built for first
