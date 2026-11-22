@@ -745,6 +745,16 @@
    "opened": "2026-11-22T02:34Z",
    "scope": "item",
    "title": "T-070's finish cannot pass verify until T-071 lands; start keeps handing zayd T-070 so T-071 is never claimed"
+  },
+  "B-20261122-04": {
+   "by": "zayd",
+   "cleared": "-",
+   "item": "T-071",
+   "key": "t071-finish-d20261120-01",
+   "need": "steward: rewrite D-20261120-01's directions-read to name P-20261118-01..05 (or derive it) so gates.py docs passes, then a zayd turn reruns agent_finish.py --seat zayd T-071",
+   "opened": "2026-11-22T03:06Z",
+   "scope": "item",
+   "title": "agent_finish.py --seat zayd T-071 refuses after verify and test passed: gates.py docs, DECISIONS.md:609 D-20261120-01 (by brahim) has directions-read 'none in force' while P-20261118-01..05 are in force; commit 767d7f5 pushed, no PR"
   }
  },
  "decisions": {
@@ -5479,7 +5489,9 @@
   },
   "T-071": {
    "approved": "",
-   "blockers": [],
+   "blockers": [
+    "B-20261122-04"
+   ],
    "branch": "task/T-071-the-docs-budget-gate-counts-only-git-tra",
    "holder": "zayd",
    "pr": 0,
