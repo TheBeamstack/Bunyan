@@ -5,7 +5,6 @@ next: blocked: depends on T-065 (ready) — T-064
 ## Claims
 
 - T-067 zayd on task/T-067-a-named-save-names-its-carried-cache-ent
-- T-069 zayd on task/T-069-section-points-cross-the-wasm-boundary-a
 
 ## Review
 
@@ -24,6 +23,7 @@ none
 - T-064 — depends on T-065 (ready)
 - T-065 — depends on T-067 (claimed)
 - T-066 — depends on T-065 (ready); depends on T-067 (claimed)
+- T-069 — B-20261122-06 open
 
 ## Open blockers
 
