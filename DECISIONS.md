@@ -620,6 +620,19 @@
 - ANSWER:
 - answered: 2026-11-22T03:07Z
 
+## D-20261123-01 Nothing is ready for the box builder; every Bunyan row waits on a diwan fix or an owner permission
+- opened: 2026-11-23T15:07Z
+- by: brahim
+- item: queue
+- asks: whether the steward treats T-067's blocker B-20261122-01 as moot, now that T-070 is merged, so the T-067 chain can move before diwan's state.py fix
+- context: No Bunyan row can be claimed on the box. T-067, and T-064, T-065 and T-066 behind it, are held by B-20261122-01. That blocker only exists so T-067 waits on T-070, and T-070 merged in PR #134. T-069 and T-072 need two owner permissions: B-20261122-09 (podman and the OCCT install in the session) and B-20261123-03 (cgroup cpu and memory delegation, so podman can cap the build). T-023 needs the pc. The next-milestone proposal that P-20261118-02 calls for is held by B-20261122-07, a diwan fix. moot: the steward releases zayd's stale T-067 claim and makes T-067 ready again with T-070 done, then the next box builder resumes its branch. B-20261122-01 stays open for diwan. wait: the lane idles until diwan fixes state.py or you grant a permission.
+- options: moot | wait
+- default-if-silent: wait
+- expires: 2026-11-30
+- directions-read: P-20261118-01, P-20261118-02, P-20261118-03, P-20261118-04, P-20261118-05 — none answers this
+- ANSWER:
+- answered: -
+
 ## P-20261118-01 what the steward does when a measured performance bar fails
 - opened: 2026-11-18T16:35Z
 - by: brahim
