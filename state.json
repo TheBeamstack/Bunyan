@@ -815,6 +815,16 @@
    "opened": "2026-11-23T15:04Z",
    "scope": "item",
    "title": "stop rule: T-072, refused twice by agent_start.py: zayd cannot claim T-072: awaits the reviewer's approve (R93)."
+  },
+  "B-20261123-02": {
+   "by": "hmdnah",
+   "cleared": "-",
+   "item": "T-072",
+   "key": "t072-podman-cgroup-caps",
+   "need": "steward: rewrite T-072's done-when 2 to caps box's rootless podman applies (cmake --build -j 2 without podman --memory/--cpus), or move the cgroup delegation to a permission: need, before re-routing T-072 to hmdnah's approve",
+   "opened": "2026-11-23T15:05Z",
+   "scope": "item",
+   "title": "hmdnah does not approve T-072 (R93): done-when 2's podman run --memory=2g --cpus=2 is not executable under box's rootless podman — 'podman run --rm --memory=2g docker.io/library/busybox:latest true' exits 126 'rootless needs no limits + no cgrouppath when no permission is granted for cgroups', the same run with no limits or with --userns=keep-id exits 0; podman info: rootless true, cgroupfs v2, controllers [memory pids]"
   }
  },
  "decisions": {
@@ -5610,7 +5620,8 @@
   "T-072": {
    "approved": "",
    "blockers": [
-    "B-20261123-01"
+    "B-20261123-01",
+    "B-20261123-02"
    ],
    "branch": "",
    "holder": "",
