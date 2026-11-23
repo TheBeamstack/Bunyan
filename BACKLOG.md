@@ -105,7 +105,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-051 | done    | Q8a — `core.move`/`rotate`/`copy` move a D52 wall through its `motion` tags                                        | backend  | box     | **high** | T-050               |
 | T-036 | done    | Q7 — `core.copy` deep-copies a host's openings                                                                     | document | box     | **high** | T-051               |
 | T-037 | done    | Q5 — the section chord tolerance, chosen for Revit-class drawings and asserted                                     | kernel   | box     | normal   | —                   |
-| T-069 | ready   | Section points cross the WASM boundary as float64, within D92's chord tolerance far from the view origin           | kernel   | box     | **high** | —                   |
+| T-069 | blocked | Section points cross the WASM boundary as float64, within D92's chord tolerance far from the view origin | kernel | box | **high** | T-072 |
 | T-038 | done    | Q6 — design: the D29 cache in the `.bnn`                                                                           | design   | box     | **high** | —                   |
 | T-039 | done    | D29 R1 — the cache input key, one pass over the scene                                                              | backend  | box     | **high** | —                   |
 | T-040 | done    | D29 R2 — `geometry-cache/` in the `.bnn`, optional and filtered on load                                            | backend  | box     | **high** | T-039               |
@@ -422,7 +422,7 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - done-when: tests/section-chord-tolerance.test.ts drops its + ulp allowance and §4.1's float32 row records the limit as removed
 - done-when: no [frozen_surface] watched file changes (SectionCutPayload and SectionCurve in packages/protocol/src/ops.ts are byte-unchanged), and the re-seed gate is cleared by a Re-seed-unchanged: trailer because tests/goldens holds no section case (docs/INVARIANTS.md §5)
 - verify: pnpm verify && node tools/kernel-build/verify.mjs
-- depends-on: — · area: kernel · machine: box · risk: **high**
+- depends-on: T-072 · area: kernel · machine: box · risk: **high**
 - requires: podman
 - note: risk high per T-022's rationale (it changes the committed WASM artefact and the toolchain pin's verifiedBy), not READY rule 8; owner 2026-11-22 "Rework to podman": seats never get docker, so the pinned emsdk image runs under rootless podman (tools/kernel-build/README.md's docker run lines, as podman run; --userns=keep-id keeps mounted files owned by the lane user); it also needs read access to the prebuilt OCCT 7.9.3 static libs at /home/brahim/occt-wasm-spike/install (B-20261106-01's other need), and if the session refuses podman or that path, or the libs are absent (a ~2.5 h OCCT rebuild), stop and record a B- instead; the release keeps branch task/T-069-section-points-cross-the-wasm-boundary-a (claim 88c8022, no code); the float32 tessellation mesh is display-only and out of scope
 
