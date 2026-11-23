@@ -805,6 +805,16 @@
    "opened": "2026-11-22T16:41Z",
    "scope": "item",
    "title": "zayd's box session lacks T-069's requires: podman and the OCCT libs: 'podman info' is refused 'This command requires approval', and /home/brahim/occt-wasm-spike/install is outside the session's allowed directories (ls blocked; Glob: 'Directory does not exist')"
+  },
+  "B-20261123-01": {
+   "by": "stop-rule",
+   "cleared": "-",
+   "item": "T-072",
+   "key": "fe0b3809780c",
+   "need": "steward: make T-072 pass agent_start.py or drop it",
+   "opened": "2026-11-23T15:04Z",
+   "scope": "item",
+   "title": "stop rule: T-072, refused twice by agent_start.py: zayd cannot claim T-072: awaits the reviewer's approve (R93)."
   }
  },
  "decisions": {
@@ -5599,7 +5609,9 @@
   },
   "T-072": {
    "approved": "",
-   "blockers": [],
+   "blockers": [
+    "B-20261123-01"
+   ],
    "branch": "",
    "holder": "",
    "pr": 0,

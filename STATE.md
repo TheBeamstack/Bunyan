@@ -1,6 +1,6 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: reviewer (box): approve — T-072
+next: blocked: depends on T-065 (ready) — T-064
 
 ## Claims
 
@@ -12,7 +12,7 @@ none
 
 ## Awaiting approval (R93)
 
-- T-072 The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest
+none
 
 ## Waits for the owner's session
 
@@ -24,6 +24,7 @@ none
 - T-065 — depends on T-067 (claimed)
 - T-066 — depends on T-065 (ready); depends on T-067 (claimed)
 - T-069 — depends on T-072 (ready)
+- T-072 — B-20261123-01 open
 
 ## Open blockers
 
@@ -32,3 +33,4 @@ none
 - B-20261122-02 [incident] pnpm verify fails on any turn's handoff body: tests/docs-budget.test.ts:150 counts the untracked handoff/<seat>/*.md the finish requires (scripts/docs-state.mjs:386 entryBodies walks the disk), 'has no abstract and is not indexed in docs/PHASE_LOG.md' (agent_finish.py --seat brahim STEWARD-propose-M-bunyan-04, 1 failed of 1087) — need: builder: make entryBodies count only git-tracked handoff bodies, so a finish's untracked body passes docs-budget
 - B-20261122-07 state.py clear refuses zayd on B-20261122-02 though zayd performed its 'builder:' need (T-071, PR #133 merged): 'B-20261122-02 was opened by brahim; only it, a seat its need: names or the steward clears it' (state.py clear --seat zayd B-20261122-02) — need: diwan: make state.py clear admit a seat whose role the need: names (builder, reviewer), so T-071's builder clears B-20261122-02 and the steward proposes M-bunyan-04 per P-20261118-02
 - B-20261122-09 zayd's box session lacks T-069's requires: podman and the OCCT libs: 'podman info' is refused 'This command requires approval', and /home/brahim/occt-wasm-spike/install is outside the session's allowed directories (ls blocked; Glob: 'Directory does not exist') — need: permission: grant zayd's box session rootless podman (podman info, podman run) and read access to /home/brahim/occt-wasm-spike/install, then the steward releases T-069 so the next box turn claims it
+- B-20261123-01 stop rule: T-072, refused twice by agent_start.py: zayd cannot claim T-072: awaits the reviewer's approve (R93). — need: steward: make T-072 pass agent_start.py or drop it
