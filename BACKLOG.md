@@ -140,6 +140,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-031 | parked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
 | T-070 | done | A named save assembles scene.json in the zip worker, off the main thread | workers | box | **high** | T-062, T-063 |
 | T-071 | done | The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify | infra | box | normal | — |
+| T-072 | ready | The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest | infra | box | normal | — |
 
 ---
 
@@ -899,6 +900,19 @@ informational provenance.
 - verify: pnpm verify
 - depends-on: — · area: infra · machine: box · risk: normal
 - repair: incident B-20261122-02
+
+### T-072 — The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest
+- outcome: /home/brahim/occt-wasm-spike/install holds upstream OCCT 7.9.3's static WebAssembly libs and headers, compiled by tools/kernel-build/configure.sh under rootless podman on toolchain.json's pinned emsdk digest, so T-069's relink (link.sh) has the libs it links against; the libs are proved right by relinking main's unchanged kernel to the committed artefact byte for byte
+- implements: tools/kernel-build/README.md ## Build (steps 1-2: configure and compile OCCT; ## Pinned toolchain) · tools/kernel-build/toolchain.json (occt V7_9_3 unpatched; emsdk digest) · docs/CURRENT_STATE-reference.md §6 (the link recipe, Q14/Entry 79 pin) and §6a (box discipline: cap memory and -j) · T-069's note and B-20261122-09 (the libs at /home/brahim/occt-wasm-spike/install are absent on box 2)
+- done-when: /home/brahim/occt-wasm-spike/install/lib holds every libTK*.a that link.sh's LIBS names (TKMesh … TKernel, 17) and install/include/opencascade exists, compiled from upstream tag V7_9_3, unpatched, with tools/kernel-build/configure.sh unchanged; OCCT's source and build tree stay under /home/brahim/occt-wasm-spike, out of the repo and off /tmp
+- done-when: every configure and compile step ran as podman run --userns=keep-id on toolchain.json's emsdk image@digest, rootless (podman info reports rootless), never docker and never sudo, capped at --memory=2g --cpus=2 and cmake --build -j 2 (§6a); the PR body gives each command, its exit code and the compile's wall time
+- done-when: proof, not trust: link.sh run in rootless podman against the new install on main's unchanged kernel.cpp gives a dist/bunyan-kernel.wasm whose sha256 equals the committed packages/kernel-occt/wasm/bunyan-kernel.wasm's, and node tools/kernel-build/verify.mjs passes; if the sha256 differs, stop and record a B- with both hashes instead of committing anything
+- done-when: tools/kernel-build/README.md's Build and naming-probe recipes read podman run --userns=keep-id where they read docker run --user, and say 'Needs rootless podman'; no other repo file changes (no artefact, toolchain.json, configure.sh or link.sh), so pnpm verify stays green
+- verify: pnpm verify && node tools/kernel-build/verify.mjs && ls /home/brahim/occt-wasm-spike/install/lib/libTKMesh.a /home/brahim/occt-wasm-spike/install/lib/libTKernel.a
+- depends-on: — · area: infra · machine: box · risk: normal
+- note: the producer of T-069's libs (owner 2026-11-22 'Rework to podman': seats never get docker); the compile is ~2.5 h on 2 cores (README ## Build) and cmake --build resumes an interrupted build from /home/brahim/occt-wasm-spike/build, so a turn that runs out continues in the next one from the same build dir, never from scratch; if the session refuses podman or writing under /home/brahim/occt-wasm-spike, stop and record a B-; the seat's .agent.toml [tools] read_dirs entry for the install dir (diwan #265) is added only once the dir exists
+- milestone: M-bunyan-03
+- requires: podman
 
 ## Discovered
 
