@@ -818,7 +818,7 @@
   },
   "B-20261123-02": {
    "by": "hmdnah",
-   "cleared": "-",
+   "cleared": "2026-11-23T15:06Z",
    "item": "T-072",
    "key": "t072-podman-cgroup-caps",
    "need": "steward: rewrite T-072's done-when 2 to caps box's rootless podman applies (cmake --build -j 2 without podman --memory/--cpus), or move the cgroup delegation to a permission: need, before re-routing T-072 to hmdnah's approve",
