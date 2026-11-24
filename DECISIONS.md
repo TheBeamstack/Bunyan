@@ -630,7 +630,7 @@
 - default-if-silent: wait
 - expires: 2026-11-30
 - directions-read: P-20261118-01, P-20261118-02, P-20261118-03, P-20261118-04, P-20261118-05 — none answers this
-- ANSWER:
+- ANSWER: moot
 - answered: -
 
 ## P-20261118-01 what the steward does when a measured performance bar fails
