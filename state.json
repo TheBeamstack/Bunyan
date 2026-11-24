@@ -2528,6 +2528,55 @@
    ],
    "title": "Nothing is ready for the box builder; every Bunyan row waits on a diwan fix or an owner permission"
   },
+  "D-20261124-01": {
+   "fields": [
+    [
+     "opened",
+     "2026-11-24T13:05Z"
+    ],
+    [
+     "by",
+     "brahim"
+    ],
+    [
+     "item",
+     "queue"
+    ],
+    [
+     "asks",
+     "whether the steward clears B-20261122-01 and B-20261122-02 on the performers' behalf, since the work each needs is already done, so T-067 and the M-bunyan-04 proposal can move"
+    ],
+    [
+     "context",
+     "After your moot answer on D-20261123-01 the steward released T-067 and set its depends-on to T-062, T-063, T-070, which is what B-20261122-01 asked diwan to allow. T-067 still cannot be claimed: start skips it for B-20261122-01, and state.py holds it for B-20261118-02 (a diwan fix to agent_finish.py --incomplete). B-20261122-02's need, a builder fix, was done by T-071 (PR #133 merged), but state.py would not let zayd clear it (B-20261122-07), so the next-milestone proposal P-20261118-02 calls for is also held. The loop rule is that a seat never clears a blocker whose need it did not perform. clear: the steward clears B-20261122-01 and B-20261122-02, naming the edit and PR #133 as evidence, then proposes M-bunyan-04; T-067 still waits for diwan on B-20261118-02. wait: both stay open until diwan ships its state.py fixes, and the lane idles."
+    ],
+    [
+     "options",
+     "clear | wait"
+    ],
+    [
+     "default-if-silent",
+     "wait"
+    ],
+    [
+     "expires",
+     "2026-12-01"
+    ],
+    [
+     "directions-read",
+     "P-20261118-01, P-20261118-02, P-20261118-03, P-20261118-04, P-20261118-05 — none answers this"
+    ],
+    [
+     "ANSWER",
+     ""
+    ],
+    [
+     "answered",
+     "-"
+    ]
+   ],
+   "title": "Nothing is ready for the box builder; T-067 and the M-bunyan-04 proposal wait on blockers whose work is already done"
+  },
   "P-20261118-01": {
    "fields": [
     [
