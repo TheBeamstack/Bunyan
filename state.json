@@ -828,7 +828,7 @@
   },
   "B-20261123-03": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-24T13:17Z",
    "item": "T-072",
    "key": "cgroup-delegation",
    "need": "permission: delegate the cpu and memory cgroup controllers to user brahim on box (systemd user@.service Delegate=cpu memory pids, with a systemd user session as podman's cgroup manager), so 'podman run --rm --memory=2g --cpus=2 docker.io/library/busybox:latest true' exits 0 and hmdnah can approve T-072",
