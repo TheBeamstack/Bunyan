@@ -23,7 +23,7 @@ none
 - T-064 — depends on T-065 (ready)
 - T-065 — depends on T-067 (claimed)
 - T-066 — depends on T-065 (ready); depends on T-067 (claimed)
-- T-069 — depends on T-072 (ready)
+- T-069 — depends on T-072 (ready); B-20261124-01 open
 - T-072 — B-20261123-01 open
 
 ## Open blockers
@@ -34,3 +34,4 @@ none
 - B-20261122-07 state.py clear refuses zayd on B-20261122-02 though zayd performed its 'builder:' need (T-071, PR #133 merged): 'B-20261122-02 was opened by brahim; only it, a seat its need: names or the steward clears it' (state.py clear --seat zayd B-20261122-02) — need: diwan: make state.py clear admit a seat whose role the need: names (builder, reviewer), so T-071's builder clears B-20261122-02 and the steward proposes M-bunyan-04 per P-20261118-02
 - B-20261123-01 stop rule: T-072, refused twice by agent_start.py: zayd cannot claim T-072: awaits the reviewer's approve (R93). — need: steward: make T-072 pass agent_start.py or drop it
 - B-20261123-03 box's rootless podman cannot apply T-072 done-when 2's --memory=2g --cpus=2: no cgroup cpu delegation to user brahim (podman info: cgroupfs v2, controllers [memory pids]; 'podman run --rm --memory=2g docker.io/library/busybox:latest true' exits 126, per B-20261123-02) — need: permission: delegate the cpu and memory cgroup controllers to user brahim on box (systemd user@.service Delegate=cpu memory pids, with a systemd user session as podman's cgroup manager), so 'podman run --rm --memory=2g --cpus=2 docker.io/library/busybox:latest true' exits 0 and hmdnah can approve T-072
+- B-20261124-01 T-069 still needs read access to the OCCT libs, which T-072 builds: [tools] read_dirs can name the dir only once it exists — need: steward: once T-072 is done and /home/brahim/occt-wasm-spike/install exists, add it to Bunyan's .agent.toml [tools] read_dirs (diwan #265; doctor.read_dirs refuses a missing directory), so zayd's session can read the prebuilt OCCT 7.9.3 libs; podman is already granted (doctor --needs true since 2026-11-23T17:03Z)
