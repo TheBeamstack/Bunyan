@@ -728,7 +728,7 @@
   },
   "B-20261122-02": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-24T18:05Z",
    "item": "STEWARD-propose-M-bunyan-04",
    "key": "docs-budget-untracked-handoff",
    "need": "builder: make entryBodies count only git-tracked handoff bodies, so a finish's untracked body passes docs-budget",
