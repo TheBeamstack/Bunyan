@@ -4,7 +4,7 @@ next: blocked: depends on T-065 (ready) — T-064
 
 ## Claims
 
-- T-067 zayd on task/T-067-a-named-save-names-its-carried-cache-ent
+none
 
 ## Review
 
@@ -21,8 +21,9 @@ none
 ## BLOCKED
 
 - T-064 — depends on T-065 (ready)
-- T-065 — depends on T-067 (claimed)
-- T-066 — depends on T-065 (ready); depends on T-067 (claimed)
+- T-065 — depends on T-067 (ready)
+- T-066 — depends on T-065 (ready); depends on T-067 (ready)
+- T-067 — B-20261118-02 open
 - T-069 — depends on T-072 (ready); B-20261124-01 open
 - T-072 — B-20261123-01 open
 
