@@ -798,7 +798,7 @@
   },
   "B-20261122-09": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-24T12:55Z",
    "item": "T-069",
    "key": "t069-capabilities",
    "need": "permission: grant zayd's box session rootless podman (podman info, podman run) and read access to /home/brahim/occt-wasm-spike/install, then the steward releases T-069 so the next box turn claims it",
