@@ -132,7 +132,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-063 | done    | Opening a file inflates its geometry-cache index in the worker and parses it root by root                          | workers  | box     | **high** | —                   |
 | T-064 | ready   | A named save posts its geometry-cache records to the zip worker as one transferred buffer                          | workers  | box     | **high** | T-062, T-063, T-065 |
 | T-065 | ready   | A named save posts its entries to the zip worker as one transferred buffer                                         | workers  | box     | **high** | T-062, T-063, T-067 |
-| T-067 | blocked   | A named save names its carried cache entries and records, and the zip worker reads them from the opened file       | workers  | box     | **high** | T-062, T-063        |
+| T-067 | blocked | A named save names its carried cache entries and records, and the zip worker reads them from the opened file | workers | box | **high** | T-062, T-063, T-070 |
 | T-068 | done    | A dependabot PR passes the PR-shape check by its head branch and bot author, not its title                         | infra    | box     | **high** | —                   |
 | T-066 | blocked | The first named save after an open or an edit re-keys and re-inflates no unchanged root                            | backend  | box     | **high** | T-065, T-067        |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —                   |
@@ -754,7 +754,7 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - done-when: save-check records the in-save split (geometryCacheFiles, assemble, serializeRecords, pack, post) in design §5 beside the T-065 figure, and node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k in 3 of 3 unmodified runs, which is also T-065's done-when 4 and T-064's done-when 3
 - done-when: no [frozen_surface] watched file changes
 - verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
-- depends-on: T-062, T-063 · area: workers · machine: box · risk: **high**
+- depends-on: T-062, T-063, T-070 · area: workers · machine: box · risk: **high**
 - requires: browser
 - note: built on origin/task/T-065-a-named-save-posts-its-entries-to-the-zi, merged into this row's branch first, because both rows change apps/web/src/storage/bnnZip.ts and T-065's bar cannot be met without this row; merging this PR lands PR #116's and PR #120's commits; when that merge takes main's docs/BLOCKERS.md, re-append the branch-only B-20261024-02, B-20261025-03 and B-20261025-04 unchanged; if the bar is still missed, record the figures and stop with a B- record, never a reworded bar (one candidate next shape is assembling scene.json in the worker, 48.7-59.8 ms on the main thread); risk high per READY rule 8 (D29 save path)
 
