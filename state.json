@@ -778,7 +778,7 @@
   },
   "B-20261122-07": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-24T18:05Z",
    "item": "STEWARD-propose-M-bunyan-04",
    "key": "clear-role-need",
    "need": "diwan: make state.py clear admit a seat whose role the need: names (builder, reviewer), so T-071's builder clears B-20261122-02 and the steward proposes M-bunyan-04 per P-20261118-02",
