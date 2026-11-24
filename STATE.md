@@ -1,6 +1,6 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: blocked: depends on T-065 (ready) — T-064
+next: reviewer (box): approve — T-072
 
 ## Claims
 
@@ -12,7 +12,7 @@ none
 
 ## Awaiting approval (R93)
 
-none
+- T-072 The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest
 
 ## Waits for the owner's session
 
@@ -25,7 +25,6 @@ none
 - T-066 — depends on T-065 (ready); depends on T-067 (ready)
 - T-067 — B-20261118-02 open
 - T-069 — depends on T-072 (ready); B-20261124-01 open
-- T-072 — B-20261123-01 open
 
 ## Open blockers
 
@@ -33,5 +32,4 @@ none
 - B-20261122-01 state.py edit refuses T-067's depends-on T-070: 'T-067 is claimed; only a ready, parked or dropped row is edited' (python3 diwan/scripts/state.py edit --seat brahim --depends-on 'T-062, T-063, T-070' T-067) — need: diwan: let state.py edit set depends-on on a claimed row, so T-067 waits on T-070 while zayd keeps the claim
 - B-20261122-02 [incident] pnpm verify fails on any turn's handoff body: tests/docs-budget.test.ts:150 counts the untracked handoff/<seat>/*.md the finish requires (scripts/docs-state.mjs:386 entryBodies walks the disk), 'has no abstract and is not indexed in docs/PHASE_LOG.md' (agent_finish.py --seat brahim STEWARD-propose-M-bunyan-04, 1 failed of 1087) — need: builder: make entryBodies count only git-tracked handoff bodies, so a finish's untracked body passes docs-budget
 - B-20261122-07 state.py clear refuses zayd on B-20261122-02 though zayd performed its 'builder:' need (T-071, PR #133 merged): 'B-20261122-02 was opened by brahim; only it, a seat its need: names or the steward clears it' (state.py clear --seat zayd B-20261122-02) — need: diwan: make state.py clear admit a seat whose role the need: names (builder, reviewer), so T-071's builder clears B-20261122-02 and the steward proposes M-bunyan-04 per P-20261118-02
-- B-20261123-01 stop rule: T-072, refused twice by agent_start.py: zayd cannot claim T-072: awaits the reviewer's approve (R93). — need: steward: make T-072 pass agent_start.py or drop it
 - B-20261124-01 T-069 still needs read access to the OCCT libs, which T-072 builds: [tools] read_dirs can name the dir only once it exists — need: steward: once T-072 is done and /home/brahim/occt-wasm-spike/install exists, add it to Bunyan's .agent.toml [tools] read_dirs (diwan #265; doctor.read_dirs refuses a missing directory), so zayd's session can read the prebuilt OCCT 7.9.3 libs; podman is already granted (doctor --needs true since 2026-11-23T17:03Z)

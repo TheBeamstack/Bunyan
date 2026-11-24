@@ -808,7 +808,7 @@
   },
   "B-20261123-01": {
    "by": "stop-rule",
-   "cleared": "-",
+   "cleared": "2026-11-24T13:17Z",
    "item": "T-072",
    "key": "fe0b3809780c",
    "need": "steward: make T-072 pass agent_start.py or drop it",
