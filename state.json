@@ -848,7 +848,7 @@
   },
   "B-20261124-02": {
    "by": "hmdnah",
-   "cleared": "-",
+   "cleared": "2026-11-25T21:35Z",
    "item": "T-072",
    "key": "t072-spike-dir-write",
    "need": "steward: make /home/brahim/occt-wasm-spike writable from the bunyan lane's sessions without a podman mount of /home/brahim (pre-create it owned by brahim or grant it to the lane), then route T-072 back to hmdnah's approve",
