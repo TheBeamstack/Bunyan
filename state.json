@@ -5833,8 +5833,8 @@
   "T-074": {
    "approved": "",
    "blockers": [],
-   "branch": "",
-   "holder": "",
+   "branch": "task/T-074-a-cut-only-elevation-s-plane-is-ruled-so",
+   "holder": "zayd",
    "pr": 0,
    "spec": {
     "area": "spec",
@@ -5853,7 +5853,7 @@
     "title": "A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled",
     "verify": "pnpm docs:check"
    },
-   "status": "ready"
+   "status": "claimed"
   },
   "T-075": {
    "approved": "",
