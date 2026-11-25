@@ -3836,7 +3836,7 @@
    ""
   ]
  ],
- "next_id": 73,
+ "next_id": 74,
  "parked": [],
  "retired": [
   {
@@ -5792,6 +5792,31 @@
     "risk": "normal",
     "title": "The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest",
     "verify": "pnpm verify && node tools/kernel-build/verify.mjs && ls /home/brahim/occt-wasm-spike/install/lib/libTKMesh.a /home/brahim/occt-wasm-spike/install/lib/libTKernel.a"
+   },
+   "status": "ready"
+  },
+  "T-073": {
+   "approved": "",
+   "blockers": [],
+   "branch": "",
+   "holder": "",
+   "pr": 0,
+   "spec": {
+    "area": "backend",
+    "done_when": [
+     "test-first, red at main: a real-OCCT test asserts registries.views has a plan member and that dispatching a stored plan view returns curves deep-equal to doc.projectView(descriptor) for the same descriptor",
+     "the same assertion holds for an elevation member on a fixture whose geometry crosses the elevation's cut plane",
+     "revert-verified: removing either registration turns its assertion red",
+     "no [frozen_surface] watched file changes, and tests/plan-section.test.ts passes unchanged"
+    ],
+    "implements": "docs/contracts/v1.0.0_imp_plan.md:728 (Phase 6 step 2, register a plan view and one elevation in the View/Representation registry) · docs/contracts/V1.0.0_spec.md §4.4 View / Representation Registry · docs/design/P5_step6C_plan_section_design.md §4.5 (DocumentContext.projectView) · packages/document/src/registries.ts:162-178",
+    "machine": "box",
+    "milestone": "M-bunyan-04",
+    "note": "the registries.ts comment block saying nothing registers a ViewDefinition is updated in the same PR (Entry 60)",
+    "outcome": "registries.views holds a plan and an elevation ViewDefinition with the projection member and dispatcher packages/document/src/registries.ts:162-178 reserves, and dispatching a stored view through the registry returns DocumentContext.projectView's ViewResult unchanged",
+    "risk": "normal",
+    "title": "A plan view and an elevation register as ViewDefinitions and project through the views registry",
+    "verify": "pnpm verify"
    },
    "status": "ready"
   }

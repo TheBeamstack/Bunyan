@@ -141,6 +141,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-070 | done | A named save assembles scene.json in the zip worker, off the main thread | workers | box | **high** | T-062, T-063 |
 | T-071 | done | The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify | infra | box | normal | — |
 | T-072 | ready | The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest | infra | box | normal | — |
+| T-073 | ready | A plan view and an elevation register as ViewDefinitions and project through the views registry | backend | box | normal | — |
 
 ---
 
@@ -913,6 +914,18 @@ informational provenance.
 - note: the producer of T-069's libs (owner 2026-11-22 'Rework to podman': seats never get docker); the compile is ~2.5 h on 2 cores (README ## Build) and cmake --build resumes an interrupted build from /home/brahim/occt-wasm-spike/build, so a turn that runs out continues in the next one from the same build dir, never from scratch; if the session refuses podman or writing under /home/brahim/occt-wasm-spike, stop and record a B-; the seat's .agent.toml [tools] read_dirs entry for the install dir (diwan #265) is added only once the dir exists
 - milestone: M-bunyan-03
 - requires: podman
+
+### T-073 — A plan view and an elevation register as ViewDefinitions and project through the views registry
+- outcome: registries.views holds a plan and an elevation ViewDefinition with the projection member and dispatcher packages/document/src/registries.ts:162-178 reserves, and dispatching a stored view through the registry returns DocumentContext.projectView's ViewResult unchanged
+- implements: docs/contracts/v1.0.0_imp_plan.md:728 (Phase 6 step 2, register a plan view and one elevation in the View/Representation registry) · docs/contracts/V1.0.0_spec.md §4.4 View / Representation Registry · docs/design/P5_step6C_plan_section_design.md §4.5 (DocumentContext.projectView) · packages/document/src/registries.ts:162-178
+- done-when: test-first, red at main: a real-OCCT test asserts registries.views has a plan member and that dispatching a stored plan view returns curves deep-equal to doc.projectView(descriptor) for the same descriptor
+- done-when: the same assertion holds for an elevation member on a fixture whose geometry crosses the elevation's cut plane
+- done-when: revert-verified: removing either registration turns its assertion red
+- done-when: no [frozen_surface] watched file changes, and tests/plan-section.test.ts passes unchanged
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: normal
+- note: the registries.ts comment block saying nothing registers a ViewDefinition is updated in the same PR (Entry 60)
+- milestone: M-bunyan-04
 
 ## Discovered
 
