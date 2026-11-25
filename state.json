@@ -718,7 +718,7 @@
   },
   "B-20261122-01": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-25T12:03Z",
    "item": "T-067",
    "key": "t067-depends-t070",
    "need": "diwan: let state.py edit set depends-on on a claimed row, so T-067 waits on T-070 while zayd keeps the claim",
