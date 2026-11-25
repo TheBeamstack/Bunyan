@@ -865,6 +865,16 @@
    "opened": "2026-11-24T15:35Z",
    "scope": "item",
    "title": "steward cannot perform B-20261124-02's need: mkdir /home/brahim/occt-wasm-spike outside the lane's granted dirs needs a permission prompt an unattended session cannot answer"
+  },
+  "B-20261125-01": {
+   "by": "zayd",
+   "cleared": "-",
+   "item": "T-072",
+   "key": "verify-mjs-stale",
+   "need": "steward: edit T-072 to allow the one-file fix in tools/kernel-build/verify.mjs (kernel.measure(h) to kernel.measure(h, -1, 0)), or cut that fix as its own row and drop the verify.mjs clause from T-072",
+   "opened": "2026-11-25T22:43Z",
+   "scope": "item",
+   "title": "T-072 done-when unmet: tools/kernel-build/verify.mjs calls measure(h) with one argument and fails 14 checks on the byte-identical artefact"
   }
  },
  "decisions": {
@@ -5882,7 +5892,8 @@
     "B-20261123-02",
     "B-20261123-03",
     "B-20261124-02",
-    "B-20261124-03"
+    "B-20261124-03",
+    "B-20261125-01"
    ],
    "branch": "task/T-072-the-prebuilt-occt-7-9-3-webassembly-stat",
    "holder": "zayd",
