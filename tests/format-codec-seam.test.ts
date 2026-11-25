@@ -22,7 +22,14 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { BNN_CODEC, createRegistries, codecFor, emptyScene, saveBnn } from '@bunyan/document';
+import {
+  BNN_CODEC,
+  CORE_VIEWS,
+  createRegistries,
+  codecFor,
+  emptyScene,
+  saveBnn,
+} from '@bunyan/document';
 import type { CodecReadResult, CodecWriteInput, FormatCodec, Scene } from '@bunyan/document';
 
 describe('the format-codec seam — a new format is an additive registration (rule 5)', () => {
@@ -135,13 +142,13 @@ describe('the format-codec seam — a new format is an additive registration (ru
    * §3 — THE HONEST BOUNDARY. What is still a reservation is SAID to be one.
    * ========================================================================================= */
 
-  it('⚠ the VIEWS registry is still a reserved shape — recorded, not quietly left', () => {
+  it('the VIEWS registry is empty until `CORE_VIEWS` is registered, as codecs are until `BNN_CODEC` is', () => {
+    // T-073 made views a working seam (`tests/view-registry-t073.test.ts` proves the dispatch); this
+    // pins that `createRegistries` itself registers nothing, for views exactly as for codecs.
     const registries = createRegistries();
-    // Nothing registers a view and nothing dispatches one; the P6 bodies (D58) are what change this.
-    // It is asserted so that the day a view IS registered, somebody has to come here and say so —
-    // which is exactly the check the codec registry never had.
     expect(registries.views.size).toBe(0);
-    // ⚠ And the direct comparison that makes the point: the codec registry is no longer in this state.
+    for (const view of CORE_VIEWS) registries.views.register(view);
+    expect(registries.views.list().map((v) => v.kind)).toEqual(['elevation', 'plan']);
     const withBnn = createRegistries();
     withBnn.codecs.register(BNN_CODEC);
     expect(codecFor(withBnn, 'x.bnn')).toBeDefined();
