@@ -693,3 +693,15 @@ from, and the reason it is a record rather than prose.
 - evidence: `node --input-type=module -e "import {buildSurface} from './scripts/frozen-surface.mjs'; …"` in Bunyan at `ee4d7b9` → generator count 216, committed `_declarationCount` 215, `diffSurface` empty
 - need: re-baseline `tests/frozen-surface.snapshot.json` on PR #69's branch with `pnpm state --rebaseline` in a zayd turn for T-033, then route PR #69 to hmdnah for step 1
 - cleared: 2026-11-06T00:29Z
+
+## B-20261106-01 T-069's relink cannot run: the unattended session's permissions refuse `docker` and the OCCT libs
+
+- opened: 2026-11-06T09:42Z
+- by: zayd
+- scope: item
+- item: T-069
+- what: start claimed T-069 for zayd and pushed claim commit `88c8022`; zayd stopped before the first edit, so no code changed
+- why: start's `requires: docker` probe (diwan `protocol.py:1011`, `docker version`) passes and `test -d /home/brahim/occt-wasm-spike/install/lib` exits 0, but the `claude -p` session's tool permissions refuse `docker version` ("This command requires approval") and listing that directory (outside the session's allowed directories), so `link.sh` and `verify.mjs` cannot run; this is B-20261010-02's cause for `docker`
+- evidence: `docker version` and `ls -la /home/brahim/occt-wasm-spike/install/lib`, run from a `claude -p` zayd turn
+- need: allow `docker` and read access to `/home/brahim/occt-wasm-spike/install` in the box loop's Claude Code permission settings, then run T-069 in a zayd turn
+- cleared: -

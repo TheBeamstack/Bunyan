@@ -231,6 +231,41 @@ options on it; ~9.3 s end to end. Timed alone, `geometryCacheFiles()` (every key
 and `structuredClone` of the posted records 328–426 ms, so the tool's 200 ms bar fails
 (T-062 removes the double key, T-064 the clone).
 
+**T-064** posts the records as one transferred buffer: each record's `JSON.stringify` bytes are kept when
+`exportCacheIdle` exports it and when the open worker's slice is parsed (`keepRecordJson`), `createBnnZipper`
+copies them into one buffer (`serializeRecords`), and the worker parses them back and signs; the bytes equal
+`saveBnn` (`tests/app-named-save-transfers-records-t064.test.ts`). The check page now opens through the
+cache-open worker, as `bootstrap` does. Measured as T-060 (box, 2026-10-24, five runs of three saves; the per-step timings below are from
+runs 3–5): the main thread is held **154–181 ms** per save in runs 3–5 (PASS), **210–255 ms**
+in run 2 (FAIL); run 1 opened in process, so no JSON was kept, and held 380–563 ms. Timed alone:
+`serializeRecords` 28–57 ms, `assembleUnsignedBnnEntries` 48–81 ms, and `structuredClone` of the entries, which
+`postMessage` copies, 144–206 ms. The bar does not hold reliably: in six later unmodified runs (box, 2026-10-24,
+three by hmdnah's step-1 review and three by zayd) the first timed save held 165–246 ms and exceeded 200 ms in
+four, the second and third held 149–182 ms, and the tool exited 0 in two; the first iteration's entries clone
+alone was 187–216 ms in zayd's three. It is not measured for the first save
+after an open: the page's first `geometryCacheFiles()`, which keys and parses every root, runs before the saves.
+
+**T-065** packs the entries, the records' JSON and a copy of the secret into one fresh buffer, transfers it, and
+the worker unpacks views in name order (`packZipRequest`, `tests/app-named-save-transfers-entries-t065.test.ts`).
+Measured as T-064 (box, 2026-10-25, three unmodified runs at `a3ebb93`), with `save-check` timing each step inside
+the save: the main thread is held **121.6–211.2 ms** per save, the five steps' sum, and the tool exited 1, 1, 0.
+In-save split: `geometryCacheFiles()` 5.3–23.8 ms, `assembleUnsignedBnnEntries` 51.8–97.5 ms, `serializeRecords`
+5.2–6.9 ms, pack 55.2–123.3 ms, post 2.7–6.9 ms. The entries clone is gone; assembly and the pack's copy (R4's table: 43.9 MB `.brep`, ~61 MB records) remain.
+
+**T-067** posts carried `.brep` entries and records by name with the opened file, and the zip worker reads them
+from it under the leaf `checkCaps` (`readZipEntries`, `tests/app-named-save-carries-by-name-t067.test.ts`).
+Measured as T-065 (box, 2026-11-18, six unmodified runs at `c5c2f35`, 2 cores at load 2.6–4.1 from other lanes):
+the main thread is held **89.5–300 ms** per save, and the tool exited 0, 1, 0, 1 in the four runs whose exit was
+read; the other two printed PASS and FAIL. In-save split, five runs: `geometryCacheFiles()` 5.3–26.4 ms, assemble
+48.7–122.8 ms, `serializeRecords` 8.1–31.7 ms, pack 5.2–44.9 ms, post 17.7–101 ms. The pack's copy is gone; the
+200 ms bar still fails, and assembly is the largest remaining main-thread step.
+
+**T-070** assembles with an empty `scene.json`, posts the scene, and the zip worker builds `sceneJsonBytes` from it
+(`tests/app-named-save-scene-in-worker-t070.test.ts`). Measured in node on the T-060 file's 4,800-element scene
+(2.52 MB `scene.json`, box, 2026-11-22, seven runs each): `JSON.stringify` + encode 10.6–15.7 ms, the whole assembly
+12.2–22.3 ms, and `v8.serialize`, the sending half of `postMessage`'s clone, 7.6–9.6 ms, which the post now pays.
+No browser figure: the 200 ms bar stays T-067's.
+
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
 `SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.

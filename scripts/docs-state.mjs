@@ -10,6 +10,7 @@
  */
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 /** Byte budgets, not counts: the measured post-migration size plus real headroom. */
 export const BUDGET = {
@@ -17,7 +18,6 @@ export const BUDGET = {
   section7: 32 * 1024, // measured ~13 KB for ten abstracts
   maxAbstracts: 10,
   decisions: 160 * 1024,
-  history: 400 * 1024,
 };
 
 /** The eight fields every §7 abstract must carry. Missing one fails `docs:check`. */
@@ -208,6 +208,42 @@ export function abstractKey(a) {
   return a.scheme === 'legacy' ? a.n : `${a.id} — ${a.date} — ${a.seat}`;
 }
 
+/** The archived phase log's text: on main until 2026-11, since then at the tag `ARCHIVE_TAG` (diwan fix plan D4). */
+export const ARCHIVE_TAG = 'archive/records-2026-11';
+
+export function archiveText(root) {
+  const docs = (f) => /^phase-log-.+\.md$/.test(f);
+  if (existsSync(join(root, 'docs', 'PHASE_LOG.md'))) {
+    return [...readdirSync(join(root, 'docs')).filter(docs).sort(), 'PHASE_LOG.md']
+      .map((f) => readFileSync(join(root, 'docs', f), 'utf8'))
+      .join('\n');
+  }
+  const git = (...args) =>
+    execFileSync('git', ['-C', root, ...args], { encoding: 'utf8', maxBuffer: 1 << 26 });
+  try {
+    const names = git('ls-tree', '--name-only', `${ARCHIVE_TAG}:docs`).split('\n').filter(docs);
+    return [...names.sort(), 'PHASE_LOG.md']
+      .map((f) => git('show', `${ARCHIVE_TAG}:docs/${f}`))
+      .join('\n');
+  } catch {
+    throw new Error(
+      `docs/PHASE_LOG.md is archived and the tag ${ARCHIVE_TAG} is not in this clone.\n` +
+        `Run \`git fetch origin tag ${ARCHIVE_TAG}\`.`,
+    );
+  }
+}
+
+/** `p` is in the working tree, or was archived at `ARCHIVE_TAG`. */
+export function existsOrArchived(root, p) {
+  if (existsSync(join(root, p))) return true;
+  try {
+    execFileSync('git', ['-C', root, 'cat-file', '-e', `${ARCHIVE_TAG}:${p}`], { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * ⚠⚠ THE POPULATION A DURABLE REFERENCE RESOLVES AGAINST: §7's WINDOW **PLUS THE ARCHIVE IT ROTATES
  * INTO**. This is the "population that does not rot" `baselineEntryIssues` names, and until T-024's
@@ -233,10 +269,7 @@ export function abstractKey(a) {
  */
 export function recordedAbstracts(root) {
   const live = parseAbstracts(readCurrentState(root));
-  const volumes = readdirSync(join(root, 'docs')).filter((f) => /^phase-log-.+\.md$/.test(f));
-  const archive = [...volumes.sort(), 'PHASE_LOG.md']
-    .map((f) => readFileSync(join(root, 'docs', f), 'utf8'))
-    .join('\n');
+  const archive = archiveText(root);
   const archived = [];
   for (const line of archive.split(/\r?\n/)) {
     const nu = NEW_HEADING.exec(line);
@@ -338,32 +371,22 @@ export function riskVerdict(moved, rebaselined = false) {
 }
 
 /**
- * Every entry body actually present on disk, as repo-relative paths.
+ * Every git-tracked entry body under `handoff/`, at any depth, as repo-relative paths.
  *
- * ⚠ RECURSES, RATHER THAN ASSUMING ONE LEVEL OF `<seat>/<file>.md` — R34 (`90a9b30`) added
- * `handoff/archive/<seat>/<file>.md`, a second directory level, and `handoff/README.md` itself: a
- * FILE sitting where this used to assume every top-level entry was a seat directory. A one-level
- * `readdirSync` throws `ENOTDIR` on the first (`handoff/README.md`) and misses every archived body
- * under the second (`handoff/archive/<seat>/`).
+ * ⚠ TRACKED ONLY (T-071): a finish writes its turn's body to `handoff/<seat>/` untracked and posts it
+ * as the PR body (diwan `docs/LANE-CONTRACT.md §7`); a disk walk counted it and failed every finish.
  *
- * `README.md` is skipped at every level — R34's own `handoff/README.md` and per-seat READMEs are
- * navigation, never a turn's body (`handoff/README.md`: "one lane index … and a three-line pointer
- * per seat"), and were never counted before R34 added them alongside the archive move.
+ * `README.md` is skipped at every level — `handoff/README.md` and per-seat READMEs are navigation,
+ * never a turn's body.
  */
 export function entryBodies(root) {
-  const dir = join(root, 'handoff');
-  if (!existsSync(dir)) return [];
-  const out = [];
-  const walk = (rel) => {
-    for (const entry of readdirSync(join(root, rel), { withFileTypes: true })) {
-      if (entry.name === 'README.md') continue;
-      const relPath = `${rel}/${entry.name}`;
-      if (entry.isDirectory()) walk(relPath);
-      else if (entry.name.endsWith('.md')) out.push(relPath);
-    }
-  };
-  walk('handoff');
-  return out.sort();
+  return execFileSync('git', ['-C', root, 'ls-files', '-z', '--', 'handoff'], {
+    encoding: 'utf8',
+    maxBuffer: 1 << 26,
+  })
+    .split('\0')
+    .filter((p) => p.endsWith('.md') && !/(^|\/)README\.md$/.test(p))
+    .sort();
 }
 
 /**
@@ -376,6 +399,16 @@ export function entryBodies(root) {
  */
 export function archiveCanonical(p) {
   return p.replace(/^handoff\/archive\//, 'handoff/');
+}
+
+/**
+ * The bodies with no abstract (`referenced`, the §7 `FULL:` paths) that `history` (the phase log)
+ * does not index under either path `archiveCanonical` names — what docs-budget refuses.
+ */
+export function unindexedBodies(bodies, referenced, history) {
+  return bodies.filter(
+    (b) => !referenced.has(b) && !history.includes(b) && !history.includes(archiveCanonical(b)),
+  );
 }
 
 /** The generated block's bounds in a file, or null. */

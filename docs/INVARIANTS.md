@@ -68,7 +68,7 @@ and `docs/PHASE_LOG.md` are reference, read on lookup.
 `docs/OWNER-DECISIONS.md` or an entry's prose. If a build reveals a contract doc is wrong, fix the contract doc
 and say so in the entry.
 
-`docs/decisions.md` is the ratified-ruling register (D1–D88). `docs/OWNER-DECISIONS.md` is the owner's open
+`docs/decisions.md` is the ratified-ruling register (D1–D97). `docs/OWNER-DECISIONS.md` is the owner's open
 question list (`diwan/AGENTS.md §3.2`).
 
 ## 4. The frozen surface
