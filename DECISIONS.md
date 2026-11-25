@@ -658,6 +658,21 @@
 - ANSWER:
 - answered: -
 
+## D-20261125-02 M-bunyan-04's elevation: a section stands in, or a true elevation view is built
+- opened: 2026-11-25T16:32Z
+- by: brahim
+- item: M-bunyan-04
+- asks: whether the vertical drawing M-bunyan-04 ships is a section through the house or a true outside elevation, and if an elevation which way it is built
+- context: The milestone you approved promises a plan and an elevation. Today's elevation only draws what a flat plane through the world origin cuts, so a house placed anywhere else gets a blank drawing (measured: 0 lines on all four sides; a section through the same house draws 8). section: ship a section through the house as the vertical view; works now, no code and no frozen-contract change, but it is a cut, not an outside face. clip-plane: move the elevation's plane through the house; small code change, still looks like a section. origin-field: add a position to the frozen elevation contract so the plane can be placed; needs your sign-off on a frozen file. projection: build a real outside elevation drawing the exterior; reopens ruling D81, the most work. Full table: docs/design/P5_step6C_plan_section_design.md section 10 (on PR #138).
+- options: section | clip-plane | origin-field | projection
+- default-if-silent: section
+- expires: 2026-12-09
+- sends: 2026-11-30
+- refiles: D-20261125-01
+- directions-read: P-20261118-01, P-20261118-02, P-20261118-03, P-20261118-04, P-20261118-05 — none answers this
+- ANSWER:
+- answered: -
+
 ## P-20261118-01 what the steward does when a measured performance bar fails
 - opened: 2026-11-18T16:35Z
 - by: brahim
