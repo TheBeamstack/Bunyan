@@ -46,7 +46,7 @@ This is the opposite of `opencascade.js`, and it is deliberate:
 
 ## Build
 
-Needs Docker. **~2.5 h compile on 2 cores; the link takes seconds.** Cap the memory — this box hosts
+Needs rootless podman. **~2.5 h compile on 2 cores; the link takes seconds.** Cap the memory — this box hosts
 live public sites (see `docs/CURRENT_STATE.md` §6a).
 
 ```bash
@@ -64,18 +64,18 @@ REPO=$HOME/projects/Bunyan/tools/kernel-build
 EMSDK=$(node -p "require('$REPO/toolchain.json').emsdk.image + '@' + require('$REPO/toolchain.json').emsdk.digest")
 
 # 1. configure (emscripten toolchain)
-docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
+podman run --rm --userns=keep-id --memory=2g --cpus=2 \
   -v "$PWD/occt:/src/occt:ro" -v "$PWD/build:/build" -v "$PWD/install:/install" \
   -v "$REPO/configure.sh:/configure.sh:ro" \
   "$EMSDK" bash -c "emcmake bash /configure.sh"
 
 # 2. compile OCCT  (~2.5 h)
-docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
+podman run --rm --userns=keep-id --memory=2g --cpus=2 \
   -v "$PWD/occt:/src/occt:ro" -v "$PWD/build:/build" -v "$PWD/install:/install" \
   "$EMSDK" cmake --build /build --target install -j 2
 
 # 3. link our kernel  (seconds)
-docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
+podman run --rm --userns=keep-id --memory=2g --cpus=2 \
   -v "$REPO:/work" -v "$PWD/install:/install:ro" \
   "$EMSDK" bash /work/link.sh
 
@@ -119,7 +119,7 @@ is committed so that the next person to change those rules can re-run the measur
 trusting the comment above them — or the literature, which on OCCT 7.9.3 turned out to be wrong.
 
 ```bash
-docker run --rm --memory=2g --cpus=2 --user "$(id -u):$(id -g)" \
+podman run --rm --userns=keep-id --memory=2g --cpus=2 \
   -v "$REPO:/work" -v "$SPIKE/install:/install:ro" \
   "$EMSDK" bash /work/probe.sh                    # ~60 s, same libs as the kernel ($EMSDK: see Build)
 node probe-history.mjs                            # the report; --json for the raw data
