@@ -140,7 +140,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-031 | parked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
 | T-070 | done | A named save assembles scene.json in the zip worker, off the main thread | workers | box | **high** | T-062, T-063 |
 | T-071 | done | The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify | infra | box | normal | — |
-| T-072 | review | The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest | infra | box | normal | — |
+| T-072 | done | The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest | infra | box | normal | — |
 | T-073 | done | A plan view and an elevation register as ViewDefinitions and project through the views registry | backend | box | normal | — |
 | T-074 | review | A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled | spec | box | normal | — |
 | T-075 | done | A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes | frontend | box | normal | T-073 |
