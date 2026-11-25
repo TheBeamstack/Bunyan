@@ -868,7 +868,7 @@
   },
   "B-20261125-01": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-25T22:55Z",
    "item": "T-072",
    "key": "verify-mjs-stale",
    "need": "steward: edit T-072 to allow the one-file fix in tools/kernel-build/verify.mjs (kernel.measure(h) to kernel.measure(h, -1, 0)), or cut that fix as its own row and drop the verify.mjs clause from T-072",
