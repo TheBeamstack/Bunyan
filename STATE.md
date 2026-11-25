@@ -1,6 +1,6 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: reviewer (box): approve — T-072
+next: builder (box) — T-072
 
 ## Claims
 
@@ -12,7 +12,7 @@ none
 
 ## Awaiting approval (R93)
 
-- T-072 The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest
+none
 
 ## Waits for the owner's session
 
