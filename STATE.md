@@ -1,10 +1,10 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: builder (box) — T-072
+next: reviewer (box): PR #138 — T-074
 
 ## Claims
 
-none
+- T-072 zayd on task/T-072-the-prebuilt-occt-7-9-3-webassembly-stat
 
 ## Review
 
@@ -24,7 +24,7 @@ none
 - T-065 — depends on T-067 (ready)
 - T-066 — depends on T-065 (ready); depends on T-067 (ready)
 - T-067 — B-20261118-02 open
-- T-069 — depends on T-072 (ready); B-20261124-01 open
+- T-069 — depends on T-072 (claimed); B-20261124-01 open
 
 ## Open blockers
 
