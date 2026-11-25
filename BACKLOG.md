@@ -143,6 +143,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-072 | ready | The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest | infra | box | normal | — |
 | T-073 | ready | A plan view and an elevation register as ViewDefinitions and project through the views registry | backend | box | normal | — |
 | T-074 | ready | A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled | spec | box | normal | — |
+| T-075 | blocked | A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes | frontend | box | normal | T-073 |
 
 ---
 
@@ -939,6 +940,18 @@ informational provenance.
 - depends-on: — · area: spec · machine: box · risk: normal
 - note: design-first: the doc and its D- are the deliverable; the elevation build row is cut after the ruling
 - milestone: M-bunyan-04
+
+### T-075 — A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes
+- outcome: apps/web shows a 2D plan panel drawing the ViewResult curves the views registry's plan member returns from the real OCCT worker, and an edit to the model re-projects and redraws it with no re-authoring
+- implements: docs/contracts/v1.0.0_imp_plan.md:728 (render the cut profiles, linked live to the 3D document graph) and :752 (exit criterion: the plan updates when the model changes) · docs/contracts/V1.0.0_spec.md §5.2 (section-cut-based 2D views, not a separate drafting engine) · docs/design/P5_step6C_plan_section_design.md §4.5 (projectView) and §5 (the fixture cases)
+- done-when: test-first: a vitest test of the panel's curve-to-path mapping shows every point it draws equals the ViewResult point it came from
+- done-when: a new tools/browser-check/plan-view.mjs --playwright <playwright-core entry> --browser <chrome> boots apps/web with a fixture house (a layered wall, an opening, a curtain wall), asserts the plan panel draws a non-empty path set, resizes a wall, asserts the drawn paths change, and asserts no console error; it exits 0 in 3 of 3 runs
+- done-when: no [frozen_surface] watched file changes
+- verify: pnpm verify; node tools/browser-check/plan-view.mjs --playwright <playwright-core entry> --browser <chrome>
+- depends-on: T-073 · area: frontend · machine: box · risk: normal
+- note: points beyond about 131 m from the world origin are inexact until T-069's float64 kernel lands; this row does not claim exactness there
+- milestone: M-bunyan-04
+- requires: browser
 
 ## Discovered
 

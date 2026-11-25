@@ -3836,7 +3836,7 @@
    ""
   ]
  ],
- "next_id": 75,
+ "next_id": 76,
  "parked": [],
  "retired": [
   {
@@ -5842,6 +5842,32 @@
     "risk": "normal",
     "title": "A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled",
     "verify": "pnpm docs:check"
+   },
+   "status": "ready"
+  },
+  "T-075": {
+   "approved": "",
+   "blockers": [],
+   "branch": "",
+   "holder": "",
+   "pr": 0,
+   "spec": {
+    "area": "frontend",
+    "depends_on": "T-073",
+    "done_when": [
+     "test-first: a vitest test of the panel's curve-to-path mapping shows every point it draws equals the ViewResult point it came from",
+     "a new tools/browser-check/plan-view.mjs --playwright <playwright-core entry> --browser <chrome> boots apps/web with a fixture house (a layered wall, an opening, a curtain wall), asserts the plan panel draws a non-empty path set, resizes a wall, asserts the drawn paths change, and asserts no console error; it exits 0 in 3 of 3 runs",
+     "no [frozen_surface] watched file changes"
+    ],
+    "implements": "docs/contracts/v1.0.0_imp_plan.md:728 (render the cut profiles, linked live to the 3D document graph) and :752 (exit criterion: the plan updates when the model changes) · docs/contracts/V1.0.0_spec.md §5.2 (section-cut-based 2D views, not a separate drafting engine) · docs/design/P5_step6C_plan_section_design.md §4.5 (projectView) and §5 (the fixture cases)",
+    "machine": "box",
+    "milestone": "M-bunyan-04",
+    "note": "points beyond about 131 m from the world origin are inexact until T-069's float64 kernel lands; this row does not claim exactness there",
+    "outcome": "apps/web shows a 2D plan panel drawing the ViewResult curves the views registry's plan member returns from the real OCCT worker, and an edit to the model re-projects and redraws it with no re-authoring",
+    "requires": "browser",
+    "risk": "normal",
+    "title": "A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes",
+    "verify": "pnpm verify; node tools/browser-check/plan-view.mjs --playwright <playwright-core entry> --browser <chrome>"
    },
    "status": "ready"
   }
