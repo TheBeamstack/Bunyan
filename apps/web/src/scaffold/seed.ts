@@ -90,3 +90,63 @@ export async function seedDemoScene(doc: DocumentContext): Promise<ElementId> {
 
   return first.changes[0]!.id;
 }
+
+/**
+ * The plan-view fixture house (T-075, design §5's fixture): the demo's layered walls, a door through
+ * Wall 1, a curtain wall, a Level and a plan cut at 1200 mm. Booted by `?fixture=plan-house`.
+ */
+export async function seedPlanHouse(doc: DocumentContext): Promise<ElementId> {
+  const first = await seedDemoScene(doc);
+
+  // `lateral.1` of the structure part is the face a door through the whole wall hosts on
+  // (`tests/host-deep-copy.test.ts`); a plausible wrong face leaves the wall uncut.
+  const hostRef = doc.partsOf(first)![0]!.refs.find((r) => r.includes('/face/lateral.1#'))!;
+  await doc.execute('core.createElement', {
+    typeId: OPENING_TYPE_ID,
+    name: 'Door 1',
+    hostId: first,
+    hostRef,
+    params: { width: DEFAULT_OPENING_WIDTH_MM, height: DEFAULT_OPENING_HEIGHT_MM, offsetU: 1000 },
+  });
+
+  await doc.execute('core.createMaterial', {
+    id: 'glass',
+    name: 'Glass',
+    category: 'other',
+    density: 2500,
+  });
+  await doc.execute('core.createMaterial', {
+    id: 'alu',
+    name: 'Aluminium',
+    category: 'other',
+    density: 2700,
+  });
+  await doc.execute('core.createElement', {
+    typeId: 'core.curtainwall',
+    name: 'Curtain wall 1',
+    params: {
+      origin: [500, 3000],
+      width: 3000,
+      height: DEFAULT_WALL_HEIGHT_MM,
+      rows: 2,
+      cols: 3,
+      panelMaterialId: 'glass',
+      mullionMaterialId: 'alu',
+    },
+  });
+
+  await doc.execute('core.createContainer', {
+    id: 'L00',
+    kind: 'level',
+    name: 'Level 00',
+    elevation: 0,
+  });
+  await doc.execute('core.createView', {
+    kind: 'plan',
+    name: 'Level 00 Plan',
+    scale: 100,
+    levelId: 'L00',
+    cutHeight: 1200,
+  });
+  return first;
+}
