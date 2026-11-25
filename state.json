@@ -858,7 +858,7 @@
   },
   "B-20261124-03": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-25T21:35Z",
    "item": "T-072",
    "key": "occt-spike-dir-mkdir",
    "need": "owner: create /home/brahim/occt-wasm-spike on box 2, owned by brahim, so the steward adds it to Bunyan's .agent.toml [tools] read_dirs and routes T-072 back to hmdnah's approve",
