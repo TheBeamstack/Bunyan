@@ -5896,7 +5896,7 @@
     "B-20261125-01"
    ],
    "branch": "task/T-072-the-prebuilt-occt-7-9-3-webassembly-stat",
-   "holder": "",
+   "holder": "zayd",
    "pr": 0,
    "released": [
     {
@@ -5924,7 +5924,7 @@
     "title": "The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest",
     "verify": "pnpm verify && node tools/kernel-build/verify.mjs && ls /home/brahim/occt-wasm-spike/install/lib/libTKMesh.a /home/brahim/occt-wasm-spike/install/lib/libTKernel.a"
    },
-   "status": "ready"
+   "status": "claimed"
   },
   "T-073": {
    "approved": "",
