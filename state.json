@@ -3151,6 +3151,16 @@
    "status": "parked",
    "text": "two T-048 tests exceed vitest's 30 s timeout under box load (32026 ms, 35410 ms; load avg 7.7) in pnpm verify at 4d17b64, which CI passes at the same sha (gh run list --branch main): a box-only red on any turn's verify gate",
    "where": "tests/bnn-aggregate-ratio-t048.test.ts:96"
+  },
+  {
+   "at": "2026-11-25T13:07Z",
+   "by": "brahim",
+   "harm": "none",
+   "id": "disc:5",
+   "main": "32c114941c912dfa05d73614d24490fff03cf634",
+   "status": "parked",
+   "text": "two cases hit the 30 s vitest timeout in a full pnpm verify on box during zayd's T-073 turn (2026-11-25) and passed run alone (pnpm vitest run on the file, 42 s); a load-dependent timeout can redden verify on an unrelated PR",
+   "where": "tests/bnn-aggregate-ratio-t048.test.ts"
   }
  ],
  "lane": "Bunyan",
