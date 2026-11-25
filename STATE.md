@@ -4,11 +4,11 @@ next: reviewer (box): approve — T-072
 
 ## Claims
 
-- T-074 zayd on task/T-074-a-cut-only-elevation-s-plane-is-ruled-so
+none
 
 ## Review
 
-none
+- T-074 PR #138 by zayd — reviewer (box): PR #138
 
 ## Awaiting approval (R93)
 
