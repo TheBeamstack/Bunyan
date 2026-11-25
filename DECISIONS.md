@@ -646,6 +646,18 @@
 - ANSWER: clear
 - answered: 2026-11-25T12:03Z
 
+## D-20261125-01 M-bunyan-04's elevation: a section stands in, or a kind elevation view is built
+- opened: 2026-11-25T16:06Z
+- by: zayd
+- item: T-074
+- asks: whether M-bunyan-04's vertical view ships as a SectionView or needs a kind elevation view, and if the latter which placement
+- context: Under the cut-only ruling (D81) an elevation draws only what its plane cuts, and that plane sits at the world origin, so a house away from the origin gets an empty elevation (measured: 0 curves on four directions; a section through the same house gives 8). D58 ships one plan and one section, which outranks the imp plan's 'one elevation'; the approved milestone names an elevation. section: a SectionView is the vertical view, no code or frozen change. clip-plane: the elevation's plane passes through its clip box, view.ts only, still a section in effect. origin-field: add an origin to the frozen ElevationView, owner-gated. projection: reopen D81 for elevations so they draw the exterior, owner-gated and costly. Full table: docs/design/P5_step6C_plan_section_design.md section 10.
+- options: section | clip-plane | origin-field | projection
+- default-if-silent: section
+- expires: 2026-12-02
+- ANSWER:
+- answered: -
+
 ## P-20261118-01 what the steward does when a measured performance bar fails
 - opened: 2026-11-18T16:35Z
 - by: brahim
