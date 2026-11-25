@@ -103,8 +103,11 @@ try {
   const checks = {
     nonEmpty: before.length > 0,
     bothWallsDrawn: fixture.walls.every((w) => drawnIds.has(w.id)),
-    // The curtain wall is a pure composite: its panels and mullions are drawn under child ids.
-    curtainWallChildrenDrawn: [...drawnIds].some((id) => !fixture.walls.some((w) => w.id === id)),
+    // The curtain wall is a pure composite: its panels and mullions are drawn under `<id>:` child ids.
+    // Any non-wall id is not enough — the opening is drawn too.
+    curtainWallChildrenDrawn: [...drawnIds].some((id) =>
+      fixture.curtainWalls.some((cw) => id.startsWith(`${cw}:`)),
+    ),
     openingValid: fixture.openings.length === 1 && fixture.openings[0] === 'valid',
     redrawnOnResize: key(after) !== key(before),
     wall2Changed:
