@@ -4,11 +4,12 @@ next: reviewer (box): approve — T-072
 
 ## Claims
 
-- T-075 zayd on task/T-075-a-small-house-s-plan-view-draws-in-deskt
+none
 
 ## Review
 
 - T-074 PR #138 by zayd — reviewer (box): PR #138
+- T-075 PR #139 by zayd — reviewer (box): PR #139
 
 ## Awaiting approval (R93)
 

@@ -5962,7 +5962,7 @@
    "blockers": [],
    "branch": "task/T-075-a-small-house-s-plan-view-draws-in-deskt",
    "holder": "zayd",
-   "pr": 0,
+   "pr": 139,
    "spec": {
     "area": "frontend",
     "depends_on": "T-073",
@@ -5981,7 +5981,7 @@
     "title": "A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes",
     "verify": "pnpm verify; node tools/browser-check/plan-view.mjs --playwright <playwright-core entry> --browser <chrome>"
    },
-   "status": "claimed"
+   "status": "review"
   }
  },
  "schema": 1
