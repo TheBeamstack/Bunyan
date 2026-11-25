@@ -5800,7 +5800,7 @@
    "blockers": [],
    "branch": "task/T-073-a-plan-view-and-an-elevation-register-as",
    "holder": "zayd",
-   "pr": 0,
+   "pr": 137,
    "spec": {
     "area": "backend",
     "done_when": [
@@ -5818,7 +5818,7 @@
     "title": "A plan view and an elevation register as ViewDefinitions and project through the views registry",
     "verify": "pnpm verify"
    },
-   "status": "claimed"
+   "status": "review"
   },
   "T-074": {
    "approved": "",

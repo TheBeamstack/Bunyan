@@ -4,11 +4,11 @@ next: reviewer (box): approve — T-072
 
 ## Claims
 
-- T-073 zayd on task/T-073-a-plan-view-and-an-elevation-register-as
+none
 
 ## Review
 
-none
+- T-073 PR #137 by zayd — reviewer (box): PR #137
 
 ## Awaiting approval (R93)
 
@@ -25,7 +25,7 @@ none
 - T-066 — depends on T-065 (ready); depends on T-067 (ready)
 - T-067 — B-20261118-02 open
 - T-069 — depends on T-072 (ready); B-20261124-01 open
-- T-075 — depends on T-073 (claimed)
+- T-075 — depends on T-073 (review)
 
 ## Open blockers
 
