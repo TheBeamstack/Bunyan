@@ -4,7 +4,7 @@ next: reviewer (box): approve — T-072
 
 ## Claims
 
-none
+- T-075 zayd on task/T-075-a-small-house-s-plan-view-draws-in-deskt
 
 ## Review
 
