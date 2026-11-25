@@ -10,8 +10,8 @@
  * them ON the curve at any tolerance; the error lives at the chord midpoints (the sagitta).
  *
  * ⚠ `BUDGET_MM` is written here, not imported from the kernel, so loosening `SECTION_DEFLECTION`
- * fails this test instead of loosening it too. The one allowance on top is the float32 the points
- * cross the WASM boundary in: one ulp at the largest coordinate (§4.1 records that limit).
+ * fails this test instead of loosening it too. There is no allowance on top: the points cross the
+ * WASM boundary as float64 (T-069), so a column 300 m from its view origin is held to the same budget.
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -32,11 +32,16 @@ describe('D92 — a section polyline stays within the chord tolerance of the exa
   });
 
   // r150: a typical round column. r600: a large one, where a fixed tolerance spends the most chords.
-  for (const radius of [150, 600]) {
-    it(`a circular column r=${String(radius)} cuts to a polyline within ${String(BUDGET_MM)} mm`, async () => {
-      const centre = [2500, -1700] as const;
+  // (300000, 300000): beyond 262 m, where a float32 coordinate alone rounds by up to 0.0156 mm.
+  const cases = [
+    { radius: 150, centre: [2500, -1700] },
+    { radius: 600, centre: [2500, -1700] },
+    { radius: 150, centre: [300000, 300000] },
+  ] as const;
+  for (const { radius, centre } of cases) {
+    it(`a circular column r=${String(radius)} at (${centre.join(', ')}) cuts to a polyline within ${String(BUDGET_MM)} mm`, async () => {
       const column = await client.request('makeCylinder', {
-        nodeId: `column-r${String(radius)}`,
+        nodeId: `column-r${String(radius)}-${String(centre[0])}`,
         radius,
         height: 3000,
         at: [centre[0], centre[1], 0],
@@ -49,10 +54,6 @@ describe('D92 — a section polyline stays within the chord tolerance of the exa
 
       const rings = curves.filter((c) => c.kind === 'cut');
       expect(rings.length, 'the cut found the circle').toBeGreaterThan(0);
-
-      // One float32 ulp at the largest coordinate: x and y each round by half an ulp.
-      const extent = Math.max(...rings.flatMap((c) => c.points.map(Math.abs)));
-      const ulp = 2 ** (Math.floor(Math.log2(extent)) - 23);
 
       let worst = 0;
       let vertices = 0;
@@ -76,9 +77,7 @@ describe('D92 — a section polyline stays within the chord tolerance of the exa
         }
       }
       expect(vertices).toBeGreaterThan(0);
-      expect(worst, `worst deviation from r=${String(radius)}, mm`).toBeLessThanOrEqual(
-        BUDGET_MM + ulp,
-      );
+      expect(worst, `worst deviation from r=${String(radius)}, mm`).toBeLessThanOrEqual(BUDGET_MM);
     });
   }
 });

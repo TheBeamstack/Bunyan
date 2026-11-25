@@ -75,11 +75,11 @@ something, it is stated here in full, and the licence texts themselves are in
   the recipe and the tests both read.
 
   ⚠ THAT THIS IS A REAL PIN WAS DEMONSTRATED, NOT ASSUMED — and the demonstration
-  has a date attached because that is what makes it checkable. On 2026-08-21 the
-  kernel source was relinked, unmodified, on this digest, and reproduced the
-  module redistributed here BYTE FOR BYTE:
+  has a date attached because that is what makes it checkable. On 2026-11-25 the
+  kernel source was linked twice on this digest, and both links gave the module
+  redistributed here BYTE FOR BYTE:
 
-    f34fef311af31cd63d1804147f6f8bde58d44a07c4b864193a1fd1ac5223d56a
+    2b16b4e43f199e81dab8d3c3409b1758c3005b8d3b9145b940ba2ba9bbf09186
 
   ⚠ The JavaScript glue beside that module is the linker's output with one
   documented patch applied — `tools/kernel-build/postlink.mjs`, run by `link.sh`,

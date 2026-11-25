@@ -214,12 +214,12 @@ still attached so a dimension reads the _model_, never the polyline.
 free-text, verbatim: _"the builder choses it but he must be aware that bunyan is meant to comprete with
 revit"_.
 
-|                           |                                                                                                                                                                                             |
-| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| smallest scale chosen for | **1:1** — the smallest a Revit-class tool prints; detail scales 1:2, 1:5, 1:10, 1:20 lie above it                                                                                           |
-| on-paper error at 1:1     | **0.01 mm** — a quarter of a 600 dpi dot (0.042 mm), under a tenth of ISO 128's thinnest line (0.13 mm); 2 µm at 1:5, 0.1 µm at 1:100                                                       |
-| measured cost             | 274 points for an r150 column, 546 for r600 (`tests/section-chord-tolerance.test.ts`); grows as √(r / tolerance)                                                                            |
-| float32 limit             | points cross the WASM boundary as float32, adding up to one ulp at the largest coordinate: 0.008 mm beyond 65 m from the view origin, 0.016 mm beyond 131 m, where it exceeds the tolerance |
+|                           |                                                                                                                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| smallest scale chosen for | **1:1** — the smallest a Revit-class tool prints; detail scales 1:2, 1:5, 1:10, 1:20 lie above it                                                                                               |
+| on-paper error at 1:1     | **0.01 mm** — a quarter of a 600 dpi dot (0.042 mm), under a tenth of ISO 128's thinnest line (0.13 mm); 2 µm at 1:5, 0.1 µm at 1:100                                                           |
+| measured cost             | 274 points for an r150 column, 546 for r600 (`tests/section-chord-tolerance.test.ts`); grows as √(r / tolerance)                                                                                |
+| float32 limit             | **removed (T-069)**: points cross the WASM boundary as float64, so a column 300 m from its view origin holds the 0.01 mm budget with no ulp allowance (`tests/section-chord-tolerance.test.ts`) |
 
 One value serves every scale, so no per-view tolerance and no change to the frozen `SectionCutPayload`.
 
