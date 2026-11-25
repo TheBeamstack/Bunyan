@@ -357,7 +357,8 @@ completed, and after P5 it is an amendment across three products. §7 Q1/Q2.
   `clip` is the pre-filter §1.4 wants, `designOptionIds` is D65's and `projectView` honours it.
 - **`ElevationView`/`ThreeDView` need no body in v1.0.0** (D58 ships one plan + one section) and are
   reachable through the same op — an elevation is a section with no cut, a 3D view is not a `sectionCut`
-  at all. No shape change either way.
+  at all. No shape change either way. ⚠ Under D81 Q1(a) the "no cut" half is false: an elevation
+  draws only what its plane cuts, and that plane sits at the world origin — §10.
 - **`Viewport.viewId` addressing both id spaces holds** — the delete guard §4.3 is the second consumer of
   it and it needed no change.
 
@@ -467,3 +468,49 @@ nothing reads_, and both proposed fixes are additive.
 something this doc asserted, the correction is recorded in the entry and in `current_state.md` §7 —
 **read those against this doc before trusting a number here**, per §1c's standing rule that a copy is a
 claim nobody re-reads.
+
+---
+
+## 10. Addendum (T-074, 2026-11-25) — where a cut-only elevation's plane sits, and plan + elevation vs plan + section
+
+### 10.1 Measured at main (`4a448cd`)
+
+`cutPlaneFor` places every `ElevationView` plane at `[0, 0, 0]`, normal = `direction`
+(`packages/document/src/view.ts:273-279`); D81 Q1(a) draws only what that plane cuts.
+
+Fixture: four `core.wall`s (200 thick, 2400 high) round a 10 × 8 m house with its corner at
+(10000, 10000); clip `[[9000, 9000, -100], [21000, 19000, 2600]]`, enclosing it. Run as a throwaway
+vitest file through `doc.execute('core.createView', …)` + `doc.projectView(…)`, real OCCT
+(`pnpm vitest run tests/zz-t074-measure.test.ts`, file not kept):
+
+| View                                                            | `curves.length` |
+| --------------------------------------------------------------- | --------------- |
+| elevation `[1,0,0]`, `[0,1,0]`, `[-1,0,0]`, `[0,-1,0]`, clipped | **0** each      |
+| elevation `[1,0,0]`, no clip                                    | **0**           |
+| section origin `[15000,0,0]` normal `[1,0,0]`, same clip        | **8**           |
+
+A house that does not straddle a world-origin plane gets an empty elevation; T-073's elevation test
+passes only because its wall spans x = −2000..2000. A cut-only elevation is a section by construction:
+the face of a building is never cut, so no placement yields the exterior view an elevation means.
+
+### 10.2 Placement options
+
+|     | Option                                                                                          | Changes                                         | Gate                                                                                             |
+| --- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| A   | plane through the clip box (its centre along `direction`), origin when unclipped                | `view.ts` only                                  | not owner-gated; still a section, and an unclipped view stays empty off-origin                   |
+| B   | `ElevationView.origin?` on the frozen descriptor                                                | `packages/document/src/documentation.ts`        | **owner-gated** (`[frozen_surface]` watched; `INVARIANTS.md §2.1`)                               |
+| C   | reopen D81 Q1 for elevation only: `cut+projection`, curves anonymous, `nodeId` (Q2a)            | kernel `sectionCut` projection half + `view.ts` | **owner-gated** (reverses D81); the only option that draws a true elevation; cost ≈ N^1.5 (§1.4) |
+| D   | a `SectionView` stands in for the v1.0.0 vertical view; `ElevationView` waits for C post-v1.0.0 | nothing                                         | none; measured 8 curves above                                                                    |
+
+**Recommended: D.** It meets imp plan :752's substance (a non-horizontal genuine section cut that
+updates with the model) with code that exists, moves no frozen byte, and does not ship an
+`ElevationView` that is a mislabelled section. Should a `kind: 'elevation'` view still be required in
+v1.0.0, A is the cheapest honest stopgap.
+
+### 10.3 Which governs
+
+D58 (`V1.0.0_spec.md` decision table) rules v1.0.0 ships **one plan + one section**; `INVARIANTS.md §3`
+ranks the spec above the imp plan's phase narrative, so §6.2 governs and imp plan :728/:752 ("a plan and
+one elevation") are superseded wording. Neither D58 nor D81 settles whether M-bunyan-04's approved goal
+("its plan and an elevation") is met by a `SectionView` (option D) or needs a `kind: 'elevation'` view
+(A, B or C); that is **D-20261125-01**, default `section` (option D).
