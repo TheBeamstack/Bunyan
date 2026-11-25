@@ -19,6 +19,7 @@
 import { KernelClient, WorkerTransport } from '@bunyan/kernel-client';
 import {
   CORE_COMMANDS,
+  CORE_VIEWS,
   DocumentContext,
   createAgentSurface,
   createRegistries,
@@ -123,6 +124,7 @@ export async function bootstrap(
 
   const registries = createRegistries();
   for (const command of CORE_COMMANDS) registries.commands.register(command);
+  for (const view of CORE_VIEWS) registries.views.register(view);
   for (const type of SHIPPED_TYPES) registries.types.register(type);
   // Legacy, for saved documents only — see SHIPPED_TYPES above.
   for (const type of SCAFFOLD_TYPES) registries.types.register(type);

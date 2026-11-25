@@ -24,7 +24,7 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 
 import { bootstrap } from './bootstrap';
 import type { BunyanApp, InitialDocument } from './bootstrap';
-import { seedDemoScene } from './scaffold/seed';
+import { seedDemoScene, seedPlanHouse } from './scaffold/seed';
 import {
   createStore,
   docName,
@@ -60,6 +60,7 @@ import { encodeSubShapeRef } from '@bunyan/protocol';
 import { Ribbon } from './ui/Ribbon';
 import { PropertyPanel } from './ui/PropertyPanel';
 import { LicensesScreen } from './ui/LicensesScreen';
+import { PlanPanel } from './ui/PlanPanel';
 import { formatError, isSuperseded } from './edit/runner';
 import { createDocLock } from './edit/docLock';
 import { buildKeepLive } from './view/keepLive';
@@ -69,6 +70,7 @@ import { withUiRefresh } from './edit/agentRefresh';
 import {
   Autosave,
   describeCommands,
+  dispatchView,
   elevationOf,
   type BrokenReference,
   type CommandDescriptor,
@@ -78,6 +80,8 @@ import {
   type Params,
   type PartQuantity,
   type UndoableEdit,
+  type ViewDescriptor,
+  type ViewResult,
 } from '@bunyan/document';
 import './App.css';
 
@@ -214,7 +218,12 @@ export function App() {
 
         let selectId: ElementId | null;
         if (initial === undefined) {
-          selectId = await seedDemoScene(bunyan.doc);
+          // `?fixture=plan-house` seeds the plan-view fixture (T-075, `tools/browser-check/plan-view.mjs`).
+          const fixture = new URLSearchParams(window.location.search).get('fixture');
+          selectId =
+            fixture === 'plan-house'
+              ? await seedPlanHouse(bunyan.doc)
+              : await seedDemoScene(bunyan.doc);
         } else {
           // An opened file: select its first element so the panel has something to show.
           selectId = Object.keys(bunyan.doc.scene.elements)[0] ?? null;
@@ -572,6 +581,41 @@ export function App() {
     [dragTargets, dispatch],
   );
 
+  /** The first stored plan view — what the plan panel draws. */
+  const planView = useMemo<ViewDescriptor | null>(() => {
+    if (app === null) return null;
+    return Object.values(app.doc.scene.views ?? {}).find((v) => v.kind === 'plan') ?? null;
+  }, [app, version]);
+  const [plan, setPlan] = useState<{
+    readonly result: ViewResult | null;
+    readonly error: string | null;
+  }>({ result: null, error: null });
+
+  /**
+   * The plan, re-projected through the views registry on every committed edit (imp plan :752 — the
+   * plan updates when the model changes). Under the doc lock: `projectView` FORCEs the build (D66 §3c).
+   */
+  useEffect(() => {
+    if (app === null || planView === null) {
+      setPlan({ result: null, error: null });
+      return;
+    }
+    let live = true;
+    docLock
+      .run(() => dispatchView(app.doc.registries, app.doc, planView))
+      .then(
+        (result) => {
+          if (live) setPlan({ result, error: null });
+        },
+        (error: unknown) => {
+          if (live) setPlan({ result: null, error: formatError(error) });
+        },
+      );
+    return () => {
+      live = false;
+    };
+  }, [app, planView, version, docLock]);
+
   // Quantities for the selected element — measured from the B-Rep (async), refreshed on every edit.
   useEffect(() => {
     if (app === null || selected === null) {
@@ -852,6 +896,9 @@ export function App() {
               onToggleType={toggleType}
               onToggleDiscipline={toggleDiscipline}
             />
+          )}
+          {app !== null && (
+            <PlanPanel name={planView?.name ?? null} result={plan.result} error={plan.error} />
           )}
           <ProblemsPanel
             unbuildable={problems.unbuildable}
