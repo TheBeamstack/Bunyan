@@ -8,11 +8,12 @@ none
 
 ## Review
 
-- T-073 PR #137 by zayd — reviewer (box): PR #137
+none
 
 ## Awaiting approval (R93)
 
 - T-072 The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest
+- T-075 A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes
 
 ## Waits for the owner's session
 
@@ -25,7 +26,6 @@ none
 - T-066 — depends on T-065 (ready); depends on T-067 (ready)
 - T-067 — B-20261118-02 open
 - T-069 — depends on T-072 (ready); B-20261124-01 open
-- T-075 — depends on T-073 (review)
 
 ## Open blockers
 

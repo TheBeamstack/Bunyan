@@ -5828,7 +5828,7 @@
     "title": "A plan view and an elevation register as ViewDefinitions and project through the views registry",
     "verify": "pnpm verify"
    },
-   "status": "review"
+   "status": "done"
   },
   "T-074": {
    "approved": "",
