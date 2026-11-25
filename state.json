@@ -3836,7 +3836,7 @@
    ""
   ]
  ],
- "next_id": 74,
+ "next_id": 75,
  "parked": [],
  "retired": [
   {
@@ -5817,6 +5817,31 @@
     "risk": "normal",
     "title": "A plan view and an elevation register as ViewDefinitions and project through the views registry",
     "verify": "pnpm verify"
+   },
+   "status": "ready"
+  },
+  "T-074": {
+   "approved": "",
+   "blockers": [],
+   "branch": "",
+   "holder": "",
+   "pr": 0,
+   "spec": {
+    "area": "spec",
+    "done_when": [
+     "the addendum records the behaviour measured at main, citing the command: an elevation whose clip encloses a house with no part crossing the world-origin plane yields zero curves",
+     "it lists the placement options (the clip's face, an origin field on the frozen ElevationView in documentation.ts, reopening Q1 for elevation only, or a section standing in for the elevation), recommends one, and marks any option changing a [frozen_surface] watched file as owner-gated",
+     "it states which of imp plan :728 or design §6.2 governs v1.0.0 and opens a D- for the owner where neither D58 nor D81 settles it",
+     "no file outside docs/ changes"
+    ],
+    "implements": "docs/contracts/v1.0.0_imp_plan.md:728 and :752 (exit criterion: a non-horizontal elevation as a genuine section cut) · docs/design/P5_step6C_plan_section_design.md §6.2 (ElevationView needs no body; an elevation is a section with no cut) and §7 Q1 ruling (D81, mode:'cut' only) · packages/document/src/view.ts:273-279 (elevation plane at world origin)",
+    "machine": "box",
+    "milestone": "M-bunyan-04",
+    "note": "design-first: the doc and its D- are the deliverable; the elevation build row is cut after the ruling",
+    "outcome": "an addendum to docs/design/P5_step6C_plan_section_design.md rules where a v1.0.0 ElevationView's cut plane sits under D81 Q1(a), and reconciles v1.0.0_imp_plan.md:728/:752 (a plan and an elevation) with design §6.2 (D58: one plan and one section), so the elevation half of M-bunyan-04 has a buildable next row",
+    "risk": "normal",
+    "title": "A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled",
+    "verify": "pnpm docs:check"
    },
    "status": "ready"
   }

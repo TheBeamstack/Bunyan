@@ -142,6 +142,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-071 | done | The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify | infra | box | normal | — |
 | T-072 | ready | The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest | infra | box | normal | — |
 | T-073 | ready | A plan view and an elevation register as ViewDefinitions and project through the views registry | backend | box | normal | — |
+| T-074 | ready | A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled | spec | box | normal | — |
 
 ---
 
@@ -925,6 +926,18 @@ informational provenance.
 - verify: pnpm verify
 - depends-on: — · area: backend · machine: box · risk: normal
 - note: the registries.ts comment block saying nothing registers a ViewDefinition is updated in the same PR (Entry 60)
+- milestone: M-bunyan-04
+
+### T-074 — A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled
+- outcome: an addendum to docs/design/P5_step6C_plan_section_design.md rules where a v1.0.0 ElevationView's cut plane sits under D81 Q1(a), and reconciles v1.0.0_imp_plan.md:728/:752 (a plan and an elevation) with design §6.2 (D58: one plan and one section), so the elevation half of M-bunyan-04 has a buildable next row
+- implements: docs/contracts/v1.0.0_imp_plan.md:728 and :752 (exit criterion: a non-horizontal elevation as a genuine section cut) · docs/design/P5_step6C_plan_section_design.md §6.2 (ElevationView needs no body; an elevation is a section with no cut) and §7 Q1 ruling (D81, mode:'cut' only) · packages/document/src/view.ts:273-279 (elevation plane at world origin)
+- done-when: the addendum records the behaviour measured at main, citing the command: an elevation whose clip encloses a house with no part crossing the world-origin plane yields zero curves
+- done-when: it lists the placement options (the clip's face, an origin field on the frozen ElevationView in documentation.ts, reopening Q1 for elevation only, or a section standing in for the elevation), recommends one, and marks any option changing a [frozen_surface] watched file as owner-gated
+- done-when: it states which of imp plan :728 or design §6.2 governs v1.0.0 and opens a D- for the owner where neither D58 nor D81 settles it
+- done-when: no file outside docs/ changes
+- verify: pnpm docs:check
+- depends-on: — · area: spec · machine: box · risk: normal
+- note: design-first: the doc and its D- are the deliverable; the elevation build row is cut after the ruling
 - milestone: M-bunyan-04
 
 ## Discovered
