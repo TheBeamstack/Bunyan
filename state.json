@@ -838,7 +838,7 @@
   },
   "B-20261124-01": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-25T23:39Z",
    "item": "T-069",
    "key": "t069-occt-read",
    "need": "steward: once T-072 is done and /home/brahim/occt-wasm-spike/install exists, add it to Bunyan's .agent.toml [tools] read_dirs (diwan #265; doctor.read_dirs refuses a missing directory), so zayd's session can read the prebuilt OCCT 7.9.3 libs; podman is already granted (doctor --needs true since 2026-11-23T17:03Z)",
