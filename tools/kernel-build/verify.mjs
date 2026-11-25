@@ -56,7 +56,7 @@ for (const c of goldens.cases) {
     continue;
   }
 
-  const m = kernel.measure(h);
+  const m = kernel.measure(h, -1, 0);
   const want = c.analytic ?? c.crossCheck;
 
   check('volume', m.volume, want.volume);
