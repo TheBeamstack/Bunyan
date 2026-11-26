@@ -417,3 +417,54 @@ bump, no verb. Revert-verified five ways, each firing exactly the expected tests
 ⚠ **Owed next, and deliberately not in this unit (owner Q4):** the schedule CRUD, which promotes
 `scene.schedules` to a full `SceneCollection` (undo + a declared dependency edge) and is what makes v1.0.0's
 "one schedule" authorable. Additive, not freeze-sensitive.
+
+---
+
+## 11. Addendum (T-077) — a window's model, and how one door and window schedule tells them apart
+
+M-bunyan-05 asks for a house's door **and window** schedule; v1.0.0 has a door and no window, so the
+fixture-count and Chrome-panel rows are cut against the shape this section rules.
+
+### 11.1 Measured at main (`5448c12`)
+
+- **No type or class models a window:** `grep -rn IfcWindow packages` prints nothing. The one hosted type is
+  `core.opening` (`packages/types/src/opening.ts:31-55`), `label: 'Door'`,
+  `defaultClassification: { ifcClass: 'IfcDoor' }`.
+- **`core.createElement` takes the type's class** (`commands.ts:693-694`); only `core.setClassification`
+  (`commands.ts:1135`) makes an opening `IfcWindow`, so a window costs two commands today.
+- **A `core.opening`-filtered schedule cannot tell them apart.** A throwaway vitest on real OCCT (one wall, two
+  `core.opening`s, the second set `ifcClass: 'IfcWindow'`; run with `pnpm exec vitest run <file>`, then
+  deleted) printed:
+
+  | `filter`                     | rows · `field:type` cell                                   |
+  | ---------------------------- | ---------------------------------------------------------- |
+  | `{ typeId: 'core.opening' }` | door · `core.opening`, window · `core.opening` (identical) |
+  | `{ ifcClass: 'IfcDoor' }`    | door · `core.opening`                                      |
+  | `{ ifcClass: 'IfcWindow' }`  | window · `core.opening`                                    |
+
+  No column source reads `classification.ifcClass` (`ScheduleColumn`, `documentation.ts:185-199`; field keys
+  are `mark | name | id | type | level`), so inside one table a door row and a window row differ only in
+  free-text `name`/`mark`.
+
+### 11.2 Options
+
+|         | Model                                                                                    | Changes                                                                               | Gate                                                                      |
+| ------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| **(a)** | a window is a `core.opening` reclassified `IfcWindow`, scheduled by `filter.ifcClass`    | nothing in `packages/` — `ScheduleFilter.ifcClass` and `core.setClassification` exist | none                                                                      |
+| **(b)** | a new `core.window` type, `defaultClassification: IfcWindow`, scheduled by `typeId`      | a new file in `packages/types/src/`                                                   | `[reseed]` source — goldens re-seeded; no `[frozen_surface]` file         |
+| **(c)** | a new column `{ source: 'field', key: 'ifcClass' }`, so one table shows each row's class | `ScheduleColumn` in `documentation.ts`, `FIELD_KEYS` in `schedule.ts`                 | **owner-gated** — `documentation.ts` is a `[frozen_surface]` watched file |
+
+(c) composes with (a) or (b); it is the only option that puts doors and windows in one table with a cell that
+says which is which.
+
+**Recommendation: (a), scheduled as two `ifcClass`-filtered tables.** It needs no code, no re-seed and no
+frozen byte; the fixture-count row is two `evaluateSchedule` calls. Its measured costs — the `label: 'Door'` a
+window inherits and the two-command create — sit outside the schedule and are additive to fix later. (b) buys a
+window its own parameters at a re-seed; (c) is a frozen-shape change, cheap only before the P5 step 6 freeze.
+
+### 11.3 Does D58's "one schedule" admit two tables?
+
+D58 (`V1.0.0_spec.md` §5) ships "one plan + one section + one schedule" and does not say whether a door and
+window schedule may be two `ifcClass`-filtered tables or must be one table. **D58 does not settle it:
+`D-20261126-03`** (options `two-tables | ifc-column`, default `two-tables`). Until it is answered, the next
+rows are cut against (a) with two tables.
