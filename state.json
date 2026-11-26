@@ -5753,7 +5753,7 @@
     "title": "A named save names its carried cache entries and records, and the zip worker reads them from the opened file",
     "verify": "pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>"
    },
-   "status": "review"
+   "status": "done"
   },
   "T-068": {
    "approved": "migrated 94a5c4766aae",
