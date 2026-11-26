@@ -1,10 +1,10 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: builder (box) — T-077
+next: reviewer (box): PR #145 — T-076
 
 ## Claims
 
-none
+- T-077 zayd on task/T-077-a-window-s-model-and-how-one-door-and-wi
 
 ## Review
 

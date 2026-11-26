@@ -6181,8 +6181,8 @@
   "T-077": {
    "approved": "",
    "blockers": [],
-   "branch": "",
-   "holder": "",
+   "branch": "task/T-077-a-window-s-model-and-how-one-door-and-wi",
+   "holder": "zayd",
    "pr": 0,
    "spec": {
     "area": "spec",
@@ -6201,7 +6201,7 @@
     "title": "A window's model, and how one door and window schedule tells doors from windows, are ruled",
     "verify": "pnpm docs:check"
    },
-   "status": "ready"
+   "status": "claimed"
   }
  },
  "schema": 1
