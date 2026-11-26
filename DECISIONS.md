@@ -655,7 +655,7 @@
 - options: section | clip-plane | origin-field | projection
 - default-if-silent: section
 - expires: 2026-12-02
-- ANSWER:
+- ANSWER: origin-field
 - answered: -
 
 ## D-20261125-02 M-bunyan-04's elevation: a section stands in, or a true elevation view is built
