@@ -1,13 +1,14 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: reviewer (box): PR #138 — T-074
+next: reviewer (box): PR #142 — T-069
 
 ## Claims
 
-- T-069 zayd on task/T-069-section-points-cross-the-wasm-boundary-a
+none
 
 ## Review
 
+- T-069 PR #142 by zayd — reviewer (box): PR #142
 - T-074 PR #138 by zayd — reviewer (box): PR #138
 
 ## Awaiting approval (R93)
