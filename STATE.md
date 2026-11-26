@@ -1,14 +1,14 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: blocked: depends on T-065 (ready) — T-064
+next: reviewer (box): PR #145 — T-076
 
 ## Claims
 
-- T-076 zayd on task/T-076-an-elevation-carries-an-origin-so-a-hous
+none
 
 ## Review
 
-none
+- T-076 PR #145 by zayd — reviewer (box): PR #145
 
 ## Awaiting approval (R93)
 

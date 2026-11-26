@@ -144,7 +144,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-073 | done | A plan view and an elevation register as ViewDefinitions and project through the views registry | backend | box | normal | — |
 | T-074 | done | A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled | spec | box | normal | — |
 | T-075 | done | A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes | frontend | box | normal | T-073 |
-| T-076 | claimed | An elevation carries an origin, so a house off the world origin gets a non-empty elevation | backend | box | normal | T-074 |
+| T-076 | review | An elevation carries an origin, so a house off the world origin gets a non-empty elevation | backend | box | normal | T-074 |
 
 ---
 
