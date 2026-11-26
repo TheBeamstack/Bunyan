@@ -1,6 +1,6 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: builder (box) — T-065
+next: reviewer (box): PR #138 — T-074
 
 ## Claims
 
@@ -21,8 +21,9 @@ none
 ## BLOCKED
 
 - T-064 — depends on T-065 (ready)
+- T-065 — B-20261126-01 open
 - T-066 — depends on T-065 (ready)
 
 ## Open blockers
 
-none
+- B-20261126-01 T-065 is unclaimable: its row is ready yet still names holder zayd — need: steward: clear T-065's stale holder so the row is claimable again (release refuses it, the row is not claimed)
