@@ -687,6 +687,20 @@
 - ANSWER:
 - answered: -
 
+## D-20261126-02 PR #145 changes the frozen elevation contract and needs your merge sign-off
+- opened: 2026-11-26T17:36Z
+- by: brahim
+- item: PR#145
+- asks: whether to merge PR #145, which adds an optional origin to the frozen ElevationView so a house away from the world origin gets an elevation
+- context: You chose origin-field on D-20261125-02; T-076 builds it and PR #145 is that build. It changes one frozen contract file: ElevationView in packages/document/src/documentation.ts gains an optional origin, and the frozen-surface snapshot moves by that one hash. An elevation with no origin draws exactly as before. The builder measured the off-origin house drawing curves on all four sides where it drew none before, and the full gate green (1114 passed). Choosing the option was not the sign-off on the frozen file; this is. merge: hmdnah reviews it and merges it on your signature. changes: it goes back to the builder with your note. close: the PR is closed and the elevation stays as it is.
+- options: merge | changes | close
+- default-if-silent: changes
+- expires: 2026-12-14
+- sends: 2026-11-30
+- directions-read: P-20261118-01, P-20261118-02, P-20261118-03, P-20261118-04, P-20261118-05 — none answers this
+- ANSWER:
+- answered: -
+
 ## P-20261118-01 what the steward does when a measured performance bar fails
 - opened: 2026-11-18T16:35Z
 - by: brahim
