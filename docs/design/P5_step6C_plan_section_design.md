@@ -358,7 +358,8 @@ completed, and after P5 it is an amendment across three products. §7 Q1/Q2.
 - **`ElevationView`/`ThreeDView` need no body in v1.0.0** (D58 ships one plan + one section) and are
   reachable through the same op — an elevation is a section with no cut, a 3D view is not a `sectionCut`
   at all. No shape change either way. ⚠ Under D81 Q1(a) the "no cut" half is false: an elevation
-  draws only what its plane cuts, and that plane sits at the world origin — §10.
+  draws only what its plane cuts, and that plane passes through its `origin?` (absent ⇒ the world
+  origin, T-076) — §10.
 - **`Viewport.viewId` addressing both id spaces holds** — the delete guard §4.3 is the second consumer of
   it and it needed no change.
 
@@ -517,4 +518,5 @@ one elevation") are superseded wording. Neither D58 nor D81 settles whether M-bu
 
 **Ruled 2026-11-26:** the owner answered `origin-field` (D-20261125-01 and its re-filing D-20261125-02),
 so **option B governs**, not the recommended D; T-076 builds it, and its frozen-file change still merges
-only on the owner's sign-off.
+only on the owner's sign-off. With `origin` inside §10.1's house, all four elevations draw curves
+(`tests/elevation-origin-t076.test.ts`).

@@ -272,10 +272,10 @@ export function cutPlaneFor(descriptor: ViewDescriptor, scene: Scene): CutPlane 
         xAxis: xAxisFor(descriptor.normal),
       };
     case 'elevation':
-      // An elevation is a section whose plane is placed at the world origin and faces the look
-      // direction. The clip is what bounds it; the descriptor carries no origin of its own.
+      // An elevation is a section whose plane passes through its `origin` (absent ⇒ the world
+      // origin) and faces the look direction; the clip is what bounds it.
       return {
-        origin: [0, 0, 0],
+        origin: descriptor.origin ?? [0, 0, 0],
         normal: normalise(descriptor.direction),
         xAxis: xAxisFor(descriptor.direction),
       };
