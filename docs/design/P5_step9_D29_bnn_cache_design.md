@@ -257,14 +257,17 @@ from it under the leaf `checkCaps` (`readZipEntries`, `tests/app-named-save-carr
 Measured as T-065 (box, 2026-11-18, six unmodified runs at `c5c2f35`, 2 cores at load 2.6–4.1 from other lanes):
 the main thread is held **89.5–300 ms** per save, and the tool exited 0, 1, 0, 1 in the four runs whose exit was
 read; the other two printed PASS and FAIL. In-save split, five runs: `geometryCacheFiles()` 5.3–26.4 ms, assemble
-48.7–122.8 ms, `serializeRecords` 8.1–31.7 ms, pack 5.2–44.9 ms, post 17.7–101 ms. The pack's copy is gone; the
-200 ms bar still fails, and assembly is the largest remaining main-thread step.
+48.7–122.8 ms, `serializeRecords` 8.1–31.7 ms, pack 5.2–44.9 ms, post 17.7–101 ms. The pack's copy is gone; at
+`c5c2f35` the 200 ms bar failed, and assembly was the largest remaining main-thread step (T-070 below).
 
 **T-070** assembles with an empty `scene.json`, posts the scene, and the zip worker builds `sceneJsonBytes` from it
 (`tests/app-named-save-scene-in-worker-t070.test.ts`). Measured in node on the T-060 file's 4,800-element scene
 (2.52 MB `scene.json`, box, 2026-11-22, seven runs each): `JSON.stringify` + encode 10.6–15.7 ms, the whole assembly
 12.2–22.3 ms, and `v8.serialize`, the sending half of `postMessage`'s clone, 7.6–9.6 ms, which the post now pays.
-No browser figure: the 200 ms bar stays T-067's.
+With T-067 and T-070 both at `f758b3f` (box, 2026-11-26, three unmodified runs of `named-save.mjs`, 2 cores at
+load 0.3–1.3), the main thread is held **78.1–113.4 ms** per save and the tool exited 0, 0, 0: the 200 ms bar holds.
+In-save split: `geometryCacheFiles()` 6.8–12.6 ms, assemble 30.2–54.9 ms, `serializeRecords` 8.4–11.4 ms, pack
+2.9–31.0 ms, post 25.6–37.3 ms.
 
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
