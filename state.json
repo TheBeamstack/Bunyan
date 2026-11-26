@@ -708,7 +708,7 @@
   },
   "B-20261118-02": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-26T00:33Z",
    "item": "T-067",
    "key": "finish-incomplete-75-loop",
    "need": "diwan: make agent_finish.py --incomplete skip the WIP commit when the tree and handoff body are unchanged since the branch's last WIP commit, so a rerun after exit 75 keeps the head its detached verify is keyed to",
