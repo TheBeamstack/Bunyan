@@ -142,9 +142,9 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-071 | done | The docs-budget gate counts only git-tracked handoff bodies, so a finish's untracked body passes verify | infra | box | normal | — |
 | T-072 | done | The prebuilt OCCT 7.9.3 WebAssembly static libs exist on box 2 at /home/brahim/occt-wasm-spike/install, built in rootless podman on the pinned emsdk digest | infra | box | normal | — |
 | T-073 | done | A plan view and an elevation register as ViewDefinitions and project through the views registry | backend | box | normal | — |
-| T-074 | review | A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled | spec | box | normal | — |
+| T-074 | done | A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled | spec | box | normal | — |
 | T-075 | done | A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes | frontend | box | normal | T-073 |
-| T-076 | blocked | An elevation carries an origin, so a house off the world origin gets a non-empty elevation | backend | box | normal | T-074 |
+| T-076 | ready | An elevation carries an origin, so a house off the world origin gets a non-empty elevation | backend | box | normal | T-074 |
 
 ---
 

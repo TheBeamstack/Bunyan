@@ -6060,7 +6060,7 @@
     "title": "A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled",
     "verify": "pnpm docs:check"
    },
-   "status": "review"
+   "status": "done"
   },
   "T-075": {
    "approved": "hmdnah 2026-11-25T16:35Z",
