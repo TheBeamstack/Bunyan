@@ -2729,6 +2729,59 @@
    ],
    "title": "M-bunyan-04's elevation: a section stands in, or a true elevation view is built"
   },
+  "D-20261126-01": {
+   "fields": [
+    [
+     "opened",
+     "2026-11-26T02:33Z"
+    ],
+    [
+     "by",
+     "brahim"
+    ],
+    [
+     "item",
+     "queue"
+    ],
+    [
+     "asks",
+     "whether the steward re-cuts T-065 as a new row with the same done-when, so the T-064, T-065, T-066 chain can move before diwan fixes state.py"
+    ],
+    [
+     "context",
+     "No Bunyan row can be claimed on the box. T-065 is ready but still names zayd as holder, and no steward command can free it (B-20261126-01, B-20261126-02, a diwan fix). T-064 and T-066 wait on T-065. T-074 (PR #138) and the rest of M-bunyan-04 wait on your answer to D-20261125-02. M-bunyan-05 is already proposed and awaits your approval. T-023 needs the pc. recut: the steward adds a new row carrying T-065's exact done-when and spec sections, points T-064 and T-066 at it, and parks T-065 with a reason; the next box builder takes the new row. wait: the chain idles until diwan ships the state.py fix."
+    ],
+    [
+     "options",
+     "recut | wait"
+    ],
+    [
+     "default-if-silent",
+     "wait"
+    ],
+    [
+     "expires",
+     "2026-12-10"
+    ],
+    [
+     "sends",
+     "2026-11-30"
+    ],
+    [
+     "directions-read",
+     "P-20261118-01, P-20261118-02, P-20261118-03, P-20261118-04, P-20261118-05 — none answers this"
+    ],
+    [
+     "ANSWER",
+     ""
+    ],
+    [
+     "answered",
+     "-"
+    ]
+   ],
+   "title": "Nothing is ready for the box builder; T-065 is held by a stale holder only a diwan fix can clear"
+  },
   "P-20261118-01": {
    "fields": [
     [
