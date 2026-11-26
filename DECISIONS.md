@@ -671,7 +671,7 @@
 - refiles: D-20261125-01
 - directions-read: P-20261118-01, P-20261118-02, P-20261118-03, P-20261118-04, P-20261118-05 — none answers this
 - ANSWER: origin-field
-- answered: -
+- answered: 2026-11-26T16:05Z
 
 ## D-20261126-01 Nothing is ready for the box builder; T-065 is held by a stale holder only a diwan fix can clear
 - opened: 2026-11-26T02:33Z
