@@ -162,12 +162,12 @@ from `OCC_VERSION_COMPLETE` and `__EMSCRIPTEN_*__` — compile-time macros — a
 `toolchainId()`; `createOcctKernel` refuses to boot a module whose answer differs from `OCCT_BUILD_ID`.
 So a relink on a different emsdk now fails loudly instead of silently mis-stamping every `.bnn`.
 
-**Reproducibility, verified 2026-08-21 (T-022):** relinking on the pinned digest reproduced the
-committed artifact **byte for byte** — `bunyan-kernel.wasm` sha256
-`f34fef311af31cd63d1804147f6f8bde58d44a07c4b864193a1fd1ac5223d56a`, and `bunyan-kernel.js` sha256
-`044baac643940196224f4e70cb2ae66997f9f8baf60e82fc8774fef4a7568db5` as the linker emits it. Step 3
-alone, 75 s. Entry 79 first proved the pin on 2026-08-05, against the artifact as it stood before that
-entry's own `toolchainId()` change, so its two hashes name nothing committed today.
+**Reproducibility, verified 2026-11-25 (T-069):** two links on the pinned digest, in rootless podman,
+gave the committed `bunyan-kernel.wasm` **byte for byte** both times — sha256
+`2b16b4e43f199e81dab8d3c3409b1758c3005b8d3b9145b940ba2ba9bbf09186`. T-022 (2026-08-21) first proved
+the pin, against the float32-section artifact before it (`f34fef311af31cd63d1804147f6f8bde58d44a07c4b864193a1fd1ac5223d56a`,
+glue `044baac643940196224f4e70cb2ae66997f9f8baf60e82fc8774fef4a7568db5` as the linker emits it), so
+those hashes name nothing committed today. Step 3 alone, 75 s.
 
 ⚠ **The committed glue is not the linker's output.** `link.sh` runs `postlink.mjs` over
 `bunyan-kernel.js`, which rewrites both `TextDecoder.decode` sites off a view of growable memory —
