@@ -1,10 +1,10 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: builder (box) — T-076
+next: blocked: depends on T-065 (ready) — T-064
 
 ## Claims
 
-none
+- T-076 zayd on task/T-076-an-elevation-carries-an-origin-so-a-hous
 
 ## Review
 

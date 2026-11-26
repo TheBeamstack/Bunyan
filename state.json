@@ -6101,8 +6101,8 @@
   "T-076": {
    "approved": "",
    "blockers": [],
-   "branch": "",
-   "holder": "",
+   "branch": "task/T-076-an-elevation-carries-an-origin-so-a-hous",
+   "holder": "zayd",
    "pr": 0,
    "spec": {
     "area": "backend",
@@ -6123,7 +6123,7 @@
     "title": "An elevation carries an origin, so a house off the world origin gets a non-empty elevation",
     "verify": "pnpm verify"
    },
-   "status": "ready"
+   "status": "claimed"
   }
  },
  "schema": 1
