@@ -3293,6 +3293,16 @@
    "status": "parked",
    "text": "two cases hit the 30 s vitest timeout in a full pnpm verify on box during zayd's T-073 turn (2026-11-25) and passed run alone (pnpm vitest run on the file, 42 s); a load-dependent timeout can redden verify on an unrelated PR",
    "where": "tests/bnn-aggregate-ratio-t048.test.ts"
+  },
+  {
+   "at": "2026-11-26T01:52Z",
+   "by": "hmdnah",
+   "harm": "none",
+   "id": "disc:6",
+   "main": "34bfb29cce20d20aad6d765d98f871cdd74426bf",
+   "status": "parked",
+   "text": "V1.0.0_spec.md:816's version table puts the schedule view in v1.0.x, against D58 (spec :366, decisions.md:66), which ships one schedule in v1.0.0",
+   "where": "docs/contracts/V1.0.0_spec.md:816"
   }
  ],
  "lane": "Bunyan",
