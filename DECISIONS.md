@@ -656,7 +656,7 @@
 - default-if-silent: section
 - expires: 2026-12-02
 - ANSWER: origin-field
-- answered: -
+- answered: 2026-11-26T16:05Z
 
 ## D-20261125-02 M-bunyan-04's elevation: a section stands in, or a true elevation view is built
 - opened: 2026-11-25T16:32Z
