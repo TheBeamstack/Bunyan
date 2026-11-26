@@ -2884,6 +2884,63 @@
    ],
    "title": "Is a door and window schedule two ifcClass-filtered tables, or must it be one table"
   },
+  "D-20261126-04": {
+   "fields": [
+    [
+     "opened",
+     "2026-11-26T20:21Z"
+    ],
+    [
+     "by",
+     "brahim"
+    ],
+    [
+     "item",
+     "M-bunyan-05"
+    ],
+    [
+     "asks",
+     "whether v1.0.0's one schedule (D58) may be two tables, doors and windows, or must be one table with a column naming each row's IFC class"
+    ],
+    [
+     "context",
+     "v1.0.0 has a door type and no window type. T-077 (PR #146) recommends that a window be a door-type opening relabelled IfcWindow, which needs no code. A schedule can already filter by IFC class, so doors and windows come out as two tables. Putting them in one table, with a column saying which row is a door and which a window, needs a new column kind on the schedule contract, which is frozen at P5; that is a change you sign at merge, and cheap only before the freeze. two-tables: the next rows build the fixture counts and the Chrome panel with no contract change. ifc-column: one extra row adds the column first, risk high, and the panel shows one table."
+    ],
+    [
+     "options",
+     "two-tables | ifc-column"
+    ],
+    [
+     "default-if-silent",
+     "two-tables"
+    ],
+    [
+     "expires",
+     "2026-12-31"
+    ],
+    [
+     "sends",
+     "2026-12-07"
+    ],
+    [
+     "refiles",
+     "D-20261126-03"
+    ],
+    [
+     "directions-read",
+     "P-20261118-01, P-20261118-02, P-20261118-03, P-20261118-04, P-20261118-05 — none answers this"
+    ],
+    [
+     "ANSWER",
+     ""
+    ],
+    [
+     "answered",
+     "-"
+    ]
+   ],
+   "title": "M-bunyan-05's door and window schedule: two tables split by IFC class, or one table with a class column"
+  },
   "P-20261118-01": {
    "fields": [
     [
