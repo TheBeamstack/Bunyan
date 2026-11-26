@@ -4104,7 +4104,7 @@
    ""
   ]
  ],
- "next_id": 77,
+ "next_id": 78,
  "parked": [],
  "retired": [
   {
@@ -6177,6 +6177,31 @@
     "verify": "pnpm verify"
    },
    "status": "review"
+  },
+  "T-077": {
+   "approved": "",
+   "blockers": [],
+   "branch": "",
+   "holder": "",
+   "pr": 0,
+   "spec": {
+    "area": "spec",
+    "done_when": [
+     "the addendum records the behaviour measured at main, citing the command: no type or class models a window (grep IfcWindow packages finds nothing), and a core.opening-filtered schedule gives a door and a reclassified opening identical type cells",
+     "it lists the options — (a) a window is a core.opening reclassified IfcWindow, scheduled by ifcClass; (b) a new core.window type (packages/types/src/ is a [reseed] source); (c) a new column such as field:'ifcClass' on the frozen ScheduleColumn — recommends one, and marks every option changing a [frozen_surface] watched file as owner-gated",
+     "it states whether two ifcClass-filtered tables satisfy D58's one schedule, and opens a D- for the owner where D58 does not settle it",
+     "no file outside docs/ changes"
+    ],
+    "implements": "docs/design/P5_step6B_schedules_design.md §4.3 (column keys) and §6 (the reserved shape: one typeId) · packages/document/src/documentation.ts:163-199 (ScheduleFilter, ScheduleColumn) · packages/types/src/opening.ts:31-55 (core.opening, IfcDoor) · packages/document/src/commands.ts:693-694 and :1135 (create takes the type's class; core.setClassification) · docs/contracts/V1.0.0_spec.md §5 (D58: one plan, one section, one schedule; two element types)",
+    "machine": "box",
+    "milestone": "M-bunyan-05",
+    "note": "design-first, like T-074: the addendum and its D- are the deliverable; the fixture-count row (evaluateSchedule, document.ts:1199) and the Chrome schedule panel row (the T-075 PlanPanel pattern) are cut after the ruling; the schedule engine and its CRUD commands already exist (design §10, Entries 65 and 68)",
+    "outcome": "an addendum (§11) to docs/design/P5_step6B_schedules_design.md rules how v1.0.0 models a window and how a schedule tells doors from windows, so M-bunyan-05's fixture-count and Chrome-panel rows can be cut against a fixed shape",
+    "risk": "normal",
+    "title": "A window's model, and how one door and window schedule tells doors from windows, are ruled",
+    "verify": "pnpm docs:check"
+   },
+   "status": "ready"
   }
  },
  "schema": 1

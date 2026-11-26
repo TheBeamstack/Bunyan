@@ -145,6 +145,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-074 | done | A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled | spec | box | normal | — |
 | T-075 | done | A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes | frontend | box | normal | T-073 |
 | T-076 | review | An elevation carries an origin, so a house off the world origin gets a non-empty elevation | backend | box | normal | T-074 |
+| T-077 | ready | A window's model, and how one door and window schedule tells doors from windows, are ruled | spec | box | normal | — |
 
 ---
 
@@ -966,6 +967,18 @@ informational provenance.
 - note: the frozen-file change is owner-signed at merge (INVARIANTS.md §2.1); D-20261125-02's answer chose the option, it is not the merge sign-off
 - milestone: M-bunyan-04
 - from: D-20261125-02
+
+### T-077 — A window's model, and how one door and window schedule tells doors from windows, are ruled
+- outcome: an addendum (§11) to docs/design/P5_step6B_schedules_design.md rules how v1.0.0 models a window and how a schedule tells doors from windows, so M-bunyan-05's fixture-count and Chrome-panel rows can be cut against a fixed shape
+- implements: docs/design/P5_step6B_schedules_design.md §4.3 (column keys) and §6 (the reserved shape: one typeId) · packages/document/src/documentation.ts:163-199 (ScheduleFilter, ScheduleColumn) · packages/types/src/opening.ts:31-55 (core.opening, IfcDoor) · packages/document/src/commands.ts:693-694 and :1135 (create takes the type's class; core.setClassification) · docs/contracts/V1.0.0_spec.md §5 (D58: one plan, one section, one schedule; two element types)
+- done-when: the addendum records the behaviour measured at main, citing the command: no type or class models a window (grep IfcWindow packages finds nothing), and a core.opening-filtered schedule gives a door and a reclassified opening identical type cells
+- done-when: it lists the options — (a) a window is a core.opening reclassified IfcWindow, scheduled by ifcClass; (b) a new core.window type (packages/types/src/ is a [reseed] source); (c) a new column such as field:'ifcClass' on the frozen ScheduleColumn — recommends one, and marks every option changing a [frozen_surface] watched file as owner-gated
+- done-when: it states whether two ifcClass-filtered tables satisfy D58's one schedule, and opens a D- for the owner where D58 does not settle it
+- done-when: no file outside docs/ changes
+- verify: pnpm docs:check
+- depends-on: — · area: spec · machine: box · risk: normal
+- note: design-first, like T-074: the addendum and its D- are the deliverable; the fixture-count row (evaluateSchedule, document.ts:1199) and the Chrome schedule panel row (the T-075 PlanPanel pattern) are cut after the ruling; the schedule engine and its CRUD commands already exist (design §10, Entries 65 and 68)
+- milestone: M-bunyan-05
 
 ## Discovered
 
