@@ -2835,6 +2835,55 @@
    ],
    "title": "PR #145 changes the frozen elevation contract and needs your merge sign-off"
   },
+  "D-20261126-03": {
+   "fields": [
+    [
+     "opened",
+     "2026-11-26T20:02Z"
+    ],
+    [
+     "by",
+     "zayd"
+    ],
+    [
+     "item",
+     "T-077"
+    ],
+    [
+     "asks",
+     "whether D58's one schedule is met by two ifcClass-filtered tables (doors, windows) or needs one table with a per-row IFC class column"
+    ],
+    [
+     "context",
+     "v1.0.0 has a door type and no window type. The recommended model (design P5_step6B section 11) makes a window a door-type opening reclassified IfcWindow, which needs no code. A schedule can already filter by IFC class, so doors and windows come out as two separate tables. To get them in ONE table with a column saying which is which, the frozen schedule column shape must gain an ifcClass column, an owner-gated change that is cheap only before the P5 freeze. two-tables ships with no code change; ifc-column adds the column before the freeze."
+    ],
+    [
+     "options",
+     "two-tables | ifc-column"
+    ],
+    [
+     "default-if-silent",
+     "two-tables"
+    ],
+    [
+     "expires",
+     "2026-12-17"
+    ],
+    [
+     "sends",
+     "2026-12-07"
+    ],
+    [
+     "ANSWER",
+     ""
+    ],
+    [
+     "answered",
+     "-"
+    ]
+   ],
+   "title": "Is a door and window schedule two ifcClass-filtered tables, or must it be one table"
+  },
   "P-20261118-01": {
    "fields": [
     [
