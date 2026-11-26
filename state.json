@@ -3356,6 +3356,16 @@
    "status": "parked",
    "text": "V1.0.0_spec.md:816's version table puts the schedule view in v1.0.x, against D58 (spec :366, decisions.md:66), which ships one schedule in v1.0.0",
    "where": "docs/contracts/V1.0.0_spec.md:816"
+  },
+  {
+   "at": "2026-11-26T16:52Z",
+   "by": "brahim",
+   "harm": "none",
+   "id": "disc:7",
+   "main": "5448c12de5b1fbd57b90090c7c69db4708e45437",
+   "status": "parked",
+   "text": "the commit that last changed this file, 63f3326 (hmdnah's fix on PR #138), has author narutousomaki741 but committer Davidian-Abdo (git log -1 --format='%an %cn' 63f3326): a reviewer subagent spawned by the brahim loop commits with the loop's committer identity; the cause is outside this repo, likely the identity diwan's deploy/launch-loop.sh exports",
+   "where": "docs/design/P5_step6C_plan_section_design.md"
   }
  ],
  "lane": "Bunyan",
