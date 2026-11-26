@@ -23,6 +23,7 @@ none
 - T-064 — depends on T-065 (ready)
 - T-065 — B-20261126-01 open; B-20261126-02 open
 - T-066 — depends on T-065 (ready)
+- T-076 — depends on T-074 (review)
 
 ## Open blockers
 

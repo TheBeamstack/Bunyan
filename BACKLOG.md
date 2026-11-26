@@ -144,6 +144,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-073 | done | A plan view and an elevation register as ViewDefinitions and project through the views registry | backend | box | normal | — |
 | T-074 | review | A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled | spec | box | normal | — |
 | T-075 | done | A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes | frontend | box | normal | T-073 |
+| T-076 | blocked | An elevation carries an origin, so a house off the world origin gets a non-empty elevation | backend | box | normal | T-074 |
 
 ---
 
@@ -952,6 +953,19 @@ informational provenance.
 - note: points beyond about 131 m from the world origin are inexact until T-069's float64 kernel lands; this row does not claim exactness there
 - milestone: M-bunyan-04
 - requires: browser
+
+### T-076 — An elevation carries an origin, so a house off the world origin gets a non-empty elevation
+- outcome: ElevationView gains an optional origin (world mm) on the frozen descriptor, cutPlaneFor places the elevation's plane through it, and an elevation of a house away from the world origin draws curves; option B of the T-074 addendum, as the owner ruled on D-20261125-02
+- implements: docs/design/P5_step6C_plan_section_design.md §10.2 option B (ElevationView.origin?) · §10.1 (the measured fixture) · packages/document/src/documentation.ts:258-263 (ElevationView) · packages/document/src/view.ts:273-279 (cutPlaneFor)
+- done-when: test-first, red at main: a real-OCCT test on the §10.1 fixture (four core.walls round a 10 x 8 m house cornered at (10000, 10000)) asserts an elevation with origin inside the house returns curves.length > 0 for each of the four horizontal directions
+- done-when: an ElevationView with no origin projects exactly as at main: tests/plan-section.test.ts and T-073's elevation test pass unchanged
+- done-when: revert-verified: making cutPlaneFor ignore origin turns the new assertion red
+- done-when: the only [frozen_surface] change is the added optional origin field on ElevationView, and tests/frozen-surface.snapshot.json is updated in the same PR, so the PR is owner-gated and merges only on the owner's sign-off
+- verify: pnpm verify
+- depends-on: T-074 · area: backend · machine: box · risk: normal
+- note: the frozen-file change is owner-signed at merge (INVARIANTS.md §2.1); D-20261125-02's answer chose the option, it is not the merge sign-off
+- milestone: M-bunyan-04
+- from: D-20261125-02
 
 ## Discovered
 
