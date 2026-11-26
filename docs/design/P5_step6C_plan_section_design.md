@@ -514,3 +514,7 @@ ranks the spec above the imp plan's phase narrative, so §6.2 governs and imp pl
 one elevation") are superseded wording. Neither D58 nor D81 settles whether M-bunyan-04's approved goal
 ("its plan and an elevation") is met by a `SectionView` (option D) or needs a `kind: 'elevation'` view
 (A, B or C); that is **D-20261125-01**, default `section` (option D).
+
+**Ruled 2026-11-26:** the owner answered `origin-field` (D-20261125-01 and its re-filing D-20261125-02),
+so **option B governs**, not the recommended D; T-076 builds it, and its frozen-file change still merges
+only on the owner's sign-off.
