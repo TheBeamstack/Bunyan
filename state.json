@@ -5828,7 +5828,7 @@
     "title": "Section points cross the WASM boundary as float64, within D92's chord tolerance far from the view origin",
     "verify": "pnpm verify && node tools/kernel-build/verify.mjs"
    },
-   "status": "review"
+   "status": "done"
   },
   "T-070": {
    "approved": "not asked: risk: high alone (R94)",
