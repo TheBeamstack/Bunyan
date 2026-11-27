@@ -878,7 +878,7 @@
   },
   "B-20261126-01": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-27T07:35Z",
    "item": "T-065",
    "key": "ready-row-keeps-holder",
    "need": "steward: clear T-065's stale holder so the row is claimable again (release refuses it, the row is not claimed)",
