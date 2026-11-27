@@ -711,7 +711,7 @@
 - default-if-silent: two-tables
 - expires: 2026-12-17
 - sends: 2026-12-07
-- ANSWER:
+- ANSWER: two-tables
 - answered: -
 
 ## D-20261126-04 M-bunyan-05's door and window schedule: two tables split by IFC class, or one table with a class column
