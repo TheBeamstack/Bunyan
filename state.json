@@ -915,6 +915,16 @@
    "opened": "2026-11-28T03:34Z",
    "scope": "item",
    "title": "[incident] every finish in the lane refuses: a T-048 test times out in a full pnpm verify on box"
+  },
+  "B-20261128-03": {
+   "by": "stop-rule",
+   "cleared": "-",
+   "item": "lane bunyan",
+   "key": "4ee1f916adfc",
+   "need": "steward: remove what makes agent_start.py refuse in this lane",
+   "opened": "2026-11-28T03:36Z",
+   "scope": "item",
+   "title": "stop rule: lane bunyan, refused twice by agent_start.py: D-20261126-02 answered and not yet stamped: the steward acts on it first, then `state.py stamp <id>`; nothing new is claimed until then (AGENTS"
   }
  },
  "decisions": {
