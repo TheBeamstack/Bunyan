@@ -146,6 +146,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-075 | done | A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes | frontend | box | normal | T-073 |
 | T-076 | review | An elevation carries an origin, so a house off the world origin gets a non-empty elevation | backend | box | normal | T-074 |
 | T-077 | review | A window's model, and how one door and window schedule tells doors from windows, are ruled | spec | box | normal | — |
+| T-078 | ready | The T-048 aggregate-ratio tests pass a full pnpm verify on box, not only CI | backend | box | normal | — |
 
 ---
 
@@ -980,6 +981,19 @@ informational provenance.
 - note: design-first, like T-074: the addendum and its D- are the deliverable; the fixture-count row (evaluateSchedule, document.ts:1199) and the Chrome schedule panel row (the T-075 PlanPanel pattern) are cut after the ruling; the schedule engine and its CRUD commands already exist (design §10, Entries 65 and 68)
 - milestone: M-bunyan-05
 
+### T-078 — The T-048 aggregate-ratio tests pass a full pnpm verify on box, not only CI
+- outcome: tests/bnn-aggregate-ratio-t048.test.ts no longer hits vitest's 30000 ms testTimeout under a full pnpm verify on box, so agent_finish stops refusing unrelated turns (B-20261128-01, B-20261128-02)
+- implements: docs/contracts/V1.0.0_spec.md §9 (Import hardening tests); provenance: disc:4, disc:5, disc:8
+- done-when: each case in tests/bnn-aggregate-ratio-t048.test.ts runs well under 30000 ms on box (measured, figures in the handoff), by building its probe once per file or a cheaper probe that still exercises the aggregate cap
+- done-when: the aggregate-cap assertions are unchanged in meaning: removing the aggregate check in packages/document/src/bnn.ts still turns the file red (revert-verified)
+- done-when: three consecutive full pnpm verify runs on box show 0 failures in this file (.vitest-summary.json)
+- done-when: vitest.config.ts testTimeout is not raised, no per-test timeout above 30000 ms is added, and no [frozen_surface] watched file changes
+- verify: pnpm verify
+- depends-on: — · area: backend · machine: box · risk: normal
+- note: test-only change; three of four full verifies on 2026-11-28 failed one case at 30276/30960 ms while the file alone takes 40 s; close disc:4, disc:5, disc:8 once it merges
+- from: disc:8
+- repair: incident B-20261128-02
+
 ## Discovered
 
 _(unplanned findings; never claimed in the same turn that found them, per `AGENTS.md §3`. Each line: the
@@ -1113,4 +1127,4 @@ green · 96 files` committed and `907 · 95` on an uncommitted regen, the latter
 - 2026-11-25 disc:5 parked tests/bnn-aggregate-ratio-t048.test.ts — two cases hit the 30 s vitest timeout in a full pnpm verify on box during zayd's T-073 turn (2026-11-25) and passed run alone (pnpm vitest run on the file, 42 s); a load-dependent timeout can redden verify on an unrelated PR (harm: none, by brahim)
 - 2026-11-26 disc:6 parked docs/contracts/V1.0.0_spec.md:816 — V1.0.0_spec.md:816's version table puts the schedule view in v1.0.x, against D58 (spec :366, decisions.md:66), which ships one schedule in v1.0.0 (harm: none, by hmdnah)
 - 2026-11-26 disc:7 parked docs/design/P5_step6C_plan_section_design.md — the commit that last changed this file, 63f3326 (hmdnah's fix on PR #138), has author narutousomaki741 but committer Davidian-Abdo (git log -1 --format='%an %cn' 63f3326): a reviewer subagent spawned by the brahim loop commits with the loop's committer identity; the cause is outside this repo, likely the identity diwan's deploy/launch-loop.sh exports (harm: none, by brahim)
-- 2026-11-28 disc:8 parked tests/bnn-aggregate-ratio-t048.test.ts:90 — T-048's tests take 24-25 s each against vitest's 30000 ms default, so three of four full pnpm verify runs on box on 2026-11-28 failed one of them at 30276 ms or 30960 ms (Test timed out in 30000ms), which turns agent_finish red on any turn; the file alone passes in 40.21 s (pnpm vitest run tests/bnn-aggregate-ratio-t048.test.ts) (harm: none, by hmdnah)
+- 2026-11-28 disc:8 row T-078 tests/bnn-aggregate-ratio-t048.test.ts:90 — T-048's tests take 24-25 s each against vitest's 30000 ms default, so three of four full pnpm verify runs on box on 2026-11-28 failed one of them at 30276 ms or 30960 ms (Test timed out in 30000ms), which turns agent_finish red on any turn; the file alone passes in 40.21 s (pnpm vitest run tests/bnn-aggregate-ratio-t048.test.ts) (harm: none, by hmdnah)

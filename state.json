@@ -3552,7 +3552,8 @@
    "harm": "none",
    "id": "disc:8",
    "main": "5448c12de5b1fbd57b90090c7c69db4708e45437",
-   "status": "parked",
+   "row": "T-078",
+   "status": "row",
    "text": "T-048's tests take 24-25 s each against vitest's 30000 ms default, so three of four full pnpm verify runs on box on 2026-11-28 failed one of them at 30276 ms or 30960 ms (Test timed out in 30000ms), which turns agent_finish red on any turn; the file alone passes in 40.21 s (pnpm vitest run tests/bnn-aggregate-ratio-t048.test.ts)",
    "where": "tests/bnn-aggregate-ratio-t048.test.ts:90"
   }
@@ -4240,7 +4241,7 @@
    ""
   ]
  ],
- "next_id": 78,
+ "next_id": 79,
  "parked": [],
  "retired": [
   {
@@ -6346,6 +6347,32 @@
     "verify": "pnpm docs:check"
    },
    "status": "review"
+  },
+  "T-078": {
+   "approved": "",
+   "blockers": [],
+   "branch": "",
+   "holder": "",
+   "pr": 0,
+   "spec": {
+    "area": "backend",
+    "done_when": [
+     "each case in tests/bnn-aggregate-ratio-t048.test.ts runs well under 30000 ms on box (measured, figures in the handoff), by building its probe once per file or a cheaper probe that still exercises the aggregate cap",
+     "the aggregate-cap assertions are unchanged in meaning: removing the aggregate check in packages/document/src/bnn.ts still turns the file red (revert-verified)",
+     "three consecutive full pnpm verify runs on box show 0 failures in this file (.vitest-summary.json)",
+     "vitest.config.ts testTimeout is not raised, no per-test timeout above 30000 ms is added, and no [frozen_surface] watched file changes"
+    ],
+    "from": "disc:8",
+    "implements": "docs/contracts/V1.0.0_spec.md §9 (Import hardening tests); provenance: disc:4, disc:5, disc:8",
+    "machine": "box",
+    "note": "test-only change; three of four full verifies on 2026-11-28 failed one case at 30276/30960 ms while the file alone takes 40 s; close disc:4, disc:5, disc:8 once it merges",
+    "outcome": "tests/bnn-aggregate-ratio-t048.test.ts no longer hits vitest's 30000 ms testTimeout under a full pnpm verify on box, so agent_finish stops refusing unrelated turns (B-20261128-01, B-20261128-02)",
+    "repair": "incident B-20261128-02",
+    "risk": "normal",
+    "title": "The T-048 aggregate-ratio tests pass a full pnpm verify on box, not only CI",
+    "verify": "pnpm verify"
+   },
+   "status": "ready"
   }
  },
  "schema": 1
