@@ -1,14 +1,14 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: blocked: steward: sequence a design row that takes the first save's keying of 4000 roots (268-409 ms), record parse (327-483 ms) and .brep inflate (556-571 ms) off the main thread, per design §5's T-066 paragraph, before T-066's 200 ms bar is re-run; builder: zayd re-run node tools/browser-check/named-save.mjs on PR #149 for T-066 once T-079's filed build row merges, and send it back to review only on exit 0 — T-066
+next: reviewer (box): PR #150 — T-079
 
 ## Claims
 
-- T-079 zayd on task/T-079-a-design-names-how-the-first-named-save
+none
 
 ## Review
 
-none
+- T-079 PR #150 by zayd — reviewer (box): PR #150
 
 ## Awaiting approval (R93)
 
@@ -20,7 +20,7 @@ none
 
 ## BLOCKED
 
-- T-066 — depends on T-079 (claimed)
+- T-066 — depends on T-079 (review)
 
 ## Open blockers
 

@@ -6476,7 +6476,7 @@
    "blockers": [],
    "branch": "task/T-079-a-design-names-how-the-first-named-save",
    "holder": "zayd",
-   "pr": 0,
+   "pr": 150,
    "spec": {
     "area": "spec",
     "done_when": [
@@ -6494,7 +6494,7 @@
     "title": "A design names how the first named save after an open keys, parses and inflates its roots off the main thread",
     "verify": "pnpm verify"
    },
-   "status": "claimed"
+   "status": "review"
   }
  },
  "schema": 1
