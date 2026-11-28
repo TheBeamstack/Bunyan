@@ -5975,7 +5975,7 @@
    "entry": "### T-065 — A named save posts its entries to the zip worker as one transferred buffer\n\n- outcome: the named save packs its entries into one buffer plus names and offsets and transfers it, so postMessage clones no entry Uint8Array, the worker unpacks them in name order, the document's carried and exported .brep buffers stay attached, and the stored bytes still equal saveBnn exactly.\n- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (the T-058, T-060 and T-064 paragraphs), §6 R4 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: B-20261024-02, B-20261025-02, a brahim R39 diagnosis 2026-10-25 (BnnEntries is Record<string, Uint8Array>, packages/document/src/bnnzip.ts:16; the entries are cloned because the document keeps the carried and exported buffers, document.ts:716,760,776-779)\n- done-when: test-first: a node test with a fake ZipPort shows, for the 20-solid fixture with a cache and a cache-less scene, that the posted message holds no Uint8Array outside its transferred buffers, the caller's packed buffer is detached after the post, every carried and exported .brep buffer keeps its byteLength, and two consecutive saves each store bytes equal to saveBnn(scene, options), and neither cache-less case is it.fails; revert-verified: posting the entries object again turns the no-cloned-entry assertion red\n- done-when: every T-047 byte-identity test and the T-058, T-060, T-062, T-063, T-064 and geometry-cache-trust-d29 tests pass unchanged, except T-064's cache-less expect(posted.transfer).toEqual([]) (tests/app-named-save-transfers-records-t064.test.ts:141), which T-065 amends to expect its one packed buffer, because done-when 1 detaches it (B-20261025-03)\n- done-when: save-check records the in-save split (geometryCacheFiles, assemble, serializeRecords, pack, post) in design §5 beside the T-064 figure\n- done-when: node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k in 3 of 3 unmodified runs, which is also T-064's done-when 3\n- done-when: no [frozen_surface] watched file changes\n- verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>\n- depends-on: T-062, T-063, T-067 · area: workers · machine: box · risk: **high**\n- requires: browser\n- note: built on origin/task/T-064-a-named-save-posts-its-geometry-cache-re, merged into this row's branch first, because T-064's records buffer and this row both change apps/web/src/storage/bnnZip.ts and T-064's bar cannot be met without this row; merging this PR lands PR #116's commits too; if the bar is still missed, record the figures and stop with a B- record, never a reworded bar (the next shape is the worker inflating carried entries from reader.file, bnn.ts:378); risk high per READY rule 8 (D29 save path)",
    "holder": "zayd",
    "line": "| T-065 | ready   | A named save posts its entries to the zip worker as one transferred buffer                                         | workers  | box     | **high** | T-062, T-063, T-067 |",
-   "pr": 0,
+   "pr": 148,
    "released": [
     {
      "at": "2026-11-27T07:34Z",
@@ -6004,7 +6004,7 @@
     "title": "A named save posts its entries to the zip worker as one transferred buffer",
     "verify": "pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>"
    },
-   "status": "claimed"
+   "status": "review"
   },
   "T-066": {
    "approved": "migrated 94a5c4766aae",
