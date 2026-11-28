@@ -1,10 +1,10 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: builder (box) — T-079
+next: builder (box) — T-066
 
 ## Claims
 
-- T-066 zayd on task/T-066-the-first-named-save-after-an-open-or-an
+none
 
 ## Review
 
