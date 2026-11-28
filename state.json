@@ -6382,7 +6382,7 @@
     "title": "The T-048 aggregate-ratio tests pass a full pnpm verify on box, not only CI",
     "verify": "pnpm verify"
    },
-   "status": "review"
+   "status": "done"
   }
  },
  "schema": 1
