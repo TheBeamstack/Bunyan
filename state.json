@@ -928,7 +928,7 @@
   },
   "B-20261128-04": {
    "by": "hmdnah",
-   "cleared": "-",
+   "cleared": "2026-11-28T05:24Z",
    "item": "T-077",
    "key": "pr146-stale-base-labels",
    "need": "builder: zayd runs agent_finish.py --seat zayd T-077 --continue to merge origin/main into PR #146, so the next reserved-class scan starts at main's tip and removes needs-operator/contract-touching and needs-operator/freeze",

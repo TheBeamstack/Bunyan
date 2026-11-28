@@ -27,4 +27,3 @@ none
 ## Open blockers
 
 - B-20261126-02 T-065 stays unclaimable: no steward op frees a ready row's holder (release needs claimed, state.py:775; edit keeps holder, state.py:973) — need: diwan: let state.py release free a ready row that still names a holder, so T-065 can be claimed
-- B-20261128-04 PR #146 carries false needs-operator labels from a stale base: the reserved-class scan diffs 5448c12...merge, which includes T-076's documentation.ts change — need: builder: zayd runs agent_finish.py --seat zayd T-077 --continue to merge origin/main into PR #146, so the next reserved-class scan starts at main's tip and removes needs-operator/contract-touching and needs-operator/freeze
