@@ -955,6 +955,16 @@
    "opened": "2026-11-28T08:21Z",
    "scope": "item",
    "title": "T-066 done-when 3 unmet: the first named save after an open holds the main thread 1517-1605 ms at 16k, 3 of 3 runs FAIL"
+  },
+  "B-20261128-07": {
+   "by": "stop-rule",
+   "cleared": "-",
+   "item": "T-064",
+   "key": "f11c76be1eb5",
+   "need": "steward: make T-064 pass agent_start.py or drop it",
+   "opened": "2026-11-28T08:32Z",
+   "scope": "item",
+   "title": "stop rule: T-064, refused twice by agent_start.py: zayd cannot claim T-064: is held by zayd."
   }
  },
  "decisions": {
@@ -5959,7 +5969,8 @@
   "T-064": {
    "approved": "migrated 94a5c4766aae",
    "blockers": [
-    "B-20261128-05"
+    "B-20261128-05",
+    "B-20261128-07"
    ],
    "branch": "task/T-064-a-named-save-posts-its-geometry-cache-re",
    "entry": "### T-064 — A named save posts its geometry-cache records to the zip worker as one transferred buffer\n\n- outcome: each record's serialized JSON is kept at export and at open, and geometryCacheFiles() transfers them to the zip worker as one buffer that the worker signs and assembles index.json from, so posting the records clones no object graph, and the stored bytes still equal saveBnn exactly.\n- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2e, §5 (the T-060 paragraph), §6 R4/R5 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: BACKLOG ## Discovered 2026-10-23 (T-060), confirmed by a brahim R39 diagnosis 2026-10-23 at 624b5ba (apps/web/src/storage/bnnZip.ts:52,84 clones records and entries; the MAC is over canonicalJson at packages/document/src/cachesign.ts:81 and the stored index is JSON.stringify at cachesign.ts:94)\n- done-when: test-first: a node test with a fake ZipPort shows the records are posted as one transferred ArrayBuffer and the stored bytes equal saveBnn(scene, options) byte for byte, for the 20-solid fixture with a cache and a cache-less scene; revert-verified: posting the record objects again turns the transfer assertion red\n- done-when: tests/geometry-cache-trust-d29.test.ts, every T-047 byte-identity test and the T-058, T-060, T-062 and T-063 tests pass unchanged\n- done-when: node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k, and the main-thread hold is recorded in design §5 beside the T-060 figure\n- done-when: no [frozen_surface] watched file changes\n- verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>\n- depends-on: T-062, T-063, T-065 · area: workers · machine: box · risk: **high**\n- requires: browser\n- note: blocked on T-062 (the key cost) and T-063 (whose per-root record bytes this reuses); the 200 ms bar is unproven reachable: the first save after an open may still exceed it without the keys computed during restore (cacherestore.ts:224), and a turn that cannot reach it records the figure and stops with a B- record, never a reworded bar; risk high per READY rule 8 (D29 save path)",
