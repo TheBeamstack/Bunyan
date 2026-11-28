@@ -1,6 +1,6 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: builder (box) — T-064
+next: builder (box) — T-066
 
 ## Claims
 
@@ -20,8 +20,8 @@ none
 
 ## BLOCKED
 
-none
+- T-064 — B-20261128-05 open
 
 ## Open blockers
 
-none
+- B-20261128-05 T-064 is ready with holder zayd since migrate 874bc84, so claim refuses (is held by zayd); its work is on main via 381fe3d — need: steward: settle T-064's row, state.py delivered T-064 --commit 381fe3d or state.py release T-064, per design §5's T-064 paragraph and B-20261024-02
