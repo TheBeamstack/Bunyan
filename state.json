@@ -6004,7 +6004,7 @@
     "title": "A named save posts its entries to the zip worker as one transferred buffer",
     "verify": "pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>"
    },
-   "status": "review"
+   "status": "done"
   },
   "T-066": {
    "approved": "migrated 94a5c4766aae",

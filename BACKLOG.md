@@ -131,10 +131,10 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-062 | done    | A named save keys each cached root once, and not at all for an unchanged scene                                     | backend  | box     | **high** | —                   |
 | T-063 | done    | Opening a file inflates its geometry-cache index in the worker and parses it root by root                          | workers  | box     | **high** | —                   |
 | T-064 | ready   | A named save posts its geometry-cache records to the zip worker as one transferred buffer                          | workers  | box     | **high** | T-062, T-063, T-065 |
-| T-065 | review   | A named save posts its entries to the zip worker as one transferred buffer                                         | workers  | box     | **high** | T-062, T-063, T-067 |
+| T-065 | done   | A named save posts its entries to the zip worker as one transferred buffer                                         | workers  | box     | **high** | T-062, T-063, T-067 |
 | T-067 | done | A named save names its carried cache entries and records, and the zip worker reads them from the opened file | workers | box | **high** | T-062, T-063, T-070 |
 | T-068 | done    | A dependabot PR passes the PR-shape check by its head branch and bot author, not its title                         | infra    | box     | **high** | —                   |
-| T-066 | blocked | The first named save after an open or an edit re-keys and re-inflates no unchanged root                            | backend  | box     | **high** | T-065, T-067        |
+| T-066 | ready | The first named save after an open or an edit re-keys and re-inflates no unchanged root                            | backend  | box     | **high** | T-065, T-067        |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —                   |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —                   |
 | T-031 | parked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
