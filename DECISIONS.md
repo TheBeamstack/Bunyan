@@ -727,7 +727,7 @@
 - refiles: D-20261126-03
 - directions-read: P-20261118-01, P-20261118-02, P-20261118-03, P-20261118-04, P-20261118-05 — none answers this
 - ANSWER: two-tables
-- answered: -
+- answered: 2026-11-28T03:35Z
 
 ## P-20261118-01 what the steward does when a measured performance bar fails
 - opened: 2026-11-18T16:35Z
