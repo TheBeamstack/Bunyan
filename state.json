@@ -6363,7 +6363,7 @@
    "blockers": [],
    "branch": "task/T-078-the-t-048-aggregate-ratio-tests-pass-a-f",
    "holder": "zayd",
-   "pr": 0,
+   "pr": 147,
    "spec": {
     "area": "backend",
     "done_when": [
@@ -6382,7 +6382,7 @@
     "title": "The T-048 aggregate-ratio tests pass a full pnpm verify on box, not only CI",
     "verify": "pnpm verify"
    },
-   "status": "claimed"
+   "status": "review"
   }
  },
  "schema": 1
