@@ -888,7 +888,7 @@
   },
   "B-20261126-02": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-28T07:05Z",
    "item": "T-065",
    "key": "steward-ops-cannot-free-ready-holder",
    "need": "diwan: let state.py release free a ready row that still names a holder, so T-065 can be claimed",
