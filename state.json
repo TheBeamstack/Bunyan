@@ -6506,7 +6506,7 @@
     "title": "A design names how the first named save after an open keys, parses and inflates its roots off the main thread",
     "verify": "pnpm verify"
    },
-   "status": "review"
+   "status": "claimed"
   }
  },
  "schema": 1
