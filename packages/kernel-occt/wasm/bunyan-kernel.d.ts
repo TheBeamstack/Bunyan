@@ -49,7 +49,7 @@ export interface OcctSectionViews {
   /** How many curves — the length of every per-curve array below. */
   readonly curves: number;
   /** Flat `[u0,v0, u1,v1, …]` over ALL curves, in the plane's own 2D frame, millimetres. */
-  readonly points: Float32Array;
+  readonly points: Float64Array;
   /** Per curve: offset in POINTS (not floats) into `points`. */
   readonly start: Int32Array;
   /** Per curve: number of points. */

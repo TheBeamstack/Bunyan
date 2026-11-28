@@ -2431,7 +2431,8 @@ double heapUsedBytes() {
  * ============================================================================================= */
 
 struct SectionOut {
-  std::vector<float> points;   // flat [u0,v0, u1,v1, …] over ALL curves, in the plane's 2D frame
+  std::vector<double> points;  // flat [u0,v0, u1,v1, …] over ALL curves, in the plane's 2D frame;
+                               // double, not float: float32 rounds by 0.0156 mm beyond 262 m (D92)
   std::vector<int> curveStart; // index of each curve's first POINT (not float) into `points`
   std::vector<int> curveCount; // number of POINTS in each curve
   std::vector<int> curveInput; // which entry of the `handles` argument this curve came from
@@ -2538,8 +2539,8 @@ emscripten::val sectionCut(const std::vector<int>& handles, double ox, double oy
         for (int i = 1; i <= sampler.NbPoints(); ++i) {
           const gp_Pnt p = sampler.Value(i);
           const gp_Vec d(origin, p);
-          out.points.push_back(static_cast<float>(d.Dot(gp_Vec(dirX))));
-          out.points.push_back(static_cast<float>(d.Dot(gp_Vec(dirY))));
+          out.points.push_back(d.Dot(gp_Vec(dirX)));
+          out.points.push_back(d.Dot(gp_Vec(dirY)));
         }
         const int count = static_cast<int>(out.points.size() / 2) - start;
 

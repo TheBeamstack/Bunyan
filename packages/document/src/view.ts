@@ -34,6 +34,7 @@ import type { ContainerId, ElementId, SpatialContainer } from './entities.js';
 import type { Scene } from './scene.js';
 import type { ViewDescriptor } from './documentation.js';
 import type { ModelElement } from './enumerate.js';
+import type { ViewDefinition } from './registries.js';
 
 /** A world-mm vector, as every descriptor and the `sectionCut` payload express one. */
 export type Vec3 = readonly [number, number, number];
@@ -271,10 +272,10 @@ export function cutPlaneFor(descriptor: ViewDescriptor, scene: Scene): CutPlane 
         xAxis: xAxisFor(descriptor.normal),
       };
     case 'elevation':
-      // An elevation is a section whose plane is placed at the world origin and faces the look
-      // direction. The clip is what bounds it; the descriptor carries no origin of its own.
+      // An elevation is a section whose plane passes through its `origin` (absent ⇒ the world
+      // origin) and faces the look direction; the clip is what bounds it.
       return {
-        origin: [0, 0, 0],
+        origin: descriptor.origin ?? [0, 0, 0],
         normal: normalise(descriptor.direction),
         xAxis: xAxisFor(descriptor.direction),
       };
@@ -403,3 +404,28 @@ export function levelScope(scene: Scene, levelId: ContainerId): ReadonlySet<Cont
   }
   return scope;
 }
+
+/* ================================================================================================
+ * THE REGISTERED VIEWS (Phase 6 step 2, spec §4.4) — what `registries.views` holds
+ * ============================================================================================= */
+
+/** The plan: a horizontal cut at a Level, through `DocumentContext.projectView`. */
+export const PLAN_VIEW: ViewDefinition = {
+  id: 'core.view.plan',
+  label: 'Plan',
+  for: 'eyes',
+  kind: 'plan',
+  project: (projector, descriptor, options) => projector.projectView(descriptor, options),
+};
+
+/** The elevation: the non-horizontal cut plane, through the same body. */
+export const ELEVATION_VIEW: ViewDefinition = {
+  id: 'core.view.elevation',
+  label: 'Elevation',
+  for: 'eyes',
+  kind: 'elevation',
+  project: (projector, descriptor, options) => projector.projectView(descriptor, options),
+};
+
+/** Register each with `registries.views.register`, as `CORE_COMMANDS` is registered. */
+export const CORE_VIEWS: readonly ViewDefinition[] = [PLAN_VIEW, ELEVATION_VIEW];

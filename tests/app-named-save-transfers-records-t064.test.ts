@@ -134,16 +134,18 @@ describe('T-064 — the 20-solid fixture: records kept at export, posted as one 
     expect(same(await stored, saveBnn(scene, options)), 'bytes').toBe(true);
   });
 
-  it('a scene without a cache posts no signing and transfers nothing', async () => {
+  it('a scene without a cache posts no signing and transfers its one packed buffer', async () => {
     const options: SaveOptions = { kernelBuildId: KERNEL_BUILD_ID, journal: [] };
     const { stored, posted } = namedSave(emptyScene(), options);
     expect(posted.message.signing).toBeUndefined();
-    expect(posted.transfer).toEqual([]);
+    // Amended by T-065 (B-20261025-03): the packed buffer is transferred, so the caller's copy is detached.
+    expect(posted.transfer).toHaveLength(1);
+    expect(posted.transfer[0]!.byteLength).toBe(0);
     expect(same(await stored, saveBnn(emptyScene(), options))).toBe(true);
   });
 });
 
-describe('T-064 — records carried from an opened file are posted as the slices the open kept', () => {
+describe('T-064 — records carried from an opened file are posted by name (T-067)', () => {
   const encoder = new TextEncoder();
 
   /** `n` walls, and a `.bnn` carrying a cache for every one, signed with `SECRET` under `ENVELOPE`. */
@@ -212,6 +214,11 @@ describe('T-064 — records carried from an opened file are posted as the slices
     const options: SaveOptions = { kernelBuildId: KERNEL_BUILD_ID, journal: [], cache };
     const { stored, posted } = namedSave(pkg.scene, options);
     expectOneTransferredBuffer(posted, cache.records);
+    // Amended by T-067: a carried root's record crosses by name, read in the worker from the opened file.
+    expect(posted.message.carried?.records, 'carried roots by name').toEqual(
+      Object.keys(scene.elements),
+    );
+    expect(posted.message.carried?.file).toBe(pkg.cache!.file);
     expect(same(await stored, saveBnn(pkg.scene, options)), 'bytes').toBe(true);
   });
 });

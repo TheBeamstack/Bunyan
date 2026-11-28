@@ -10,7 +10,6 @@ export declare const BUDGET: {
   section7: number;
   maxAbstracts: number;
   decisions: number;
-  history: number;
 };
 
 /** The eight mandatory fields of a §7 entry abstract. */
@@ -102,6 +101,12 @@ export interface RecordedAbstract {
  */
 export declare function recordedAbstracts(root: string): RecordedAbstract[];
 
+export declare const ARCHIVE_TAG: string;
+/** The archived phase log's text, from `docs/` or, once archived, from `ARCHIVE_TAG`. */
+export declare function archiveText(root: string): string;
+/** `p` is in the working tree, or was archived at `ARCHIVE_TAG`. */
+export declare function existsOrArchived(root: string, p: string): boolean;
+
 export declare function readCurrentState(root: string): string;
 export declare function section7(src: string): string;
 export declare function parseAbstracts(src: string): EntryAbstract[];
@@ -128,6 +133,12 @@ export declare function entryBodies(root: string): string[];
  * See the implementation for why a body is indexed under either path.
  */
 export declare function archiveCanonical(p: string): string;
+/** The bodies with no abstract that the phase log does not index; docs-budget refuses each. */
+export declare function unindexedBodies(
+  bodies: string[],
+  referenced: Set<string | undefined>,
+  history: string,
+): string[];
 export declare function generatedBlock(
   src: string,
   begin: string,

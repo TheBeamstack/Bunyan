@@ -34,6 +34,9 @@ import type { Material, Section, TypeId } from './entities.js';
 import type { Scene } from './scene.js';
 import type { BimObjectType } from './types.js';
 import type { Command } from './commands.js';
+import type { ViewDescriptor } from './documentation.js';
+import type { EnumerateOptions } from './enumerate.js';
+import type { ViewResult } from './view.js';
 
 /** A minimal, typed registry. Registration is idempotent-by-id and refuses a silent overwrite. */
 export class Registry<T extends { readonly id: string }> {
@@ -167,21 +170,53 @@ export function codecFor(
  * `Float32Array` is unreadable to an agent, and an agent handed one has been given a picture and
  * asked to think.
  *
- * ⚠⚠ **AND IT IS A RESERVED SHAPE, NOT A WORKING SEAM — SAID PLAINLY (Entry 60).** Nothing registers a
- * `ViewDefinition` and nothing reads `registries.views`; there is no projection member here to call. The
- * view BODIES are P6 (one plan, one section, one schedule — D58), and the shape a view is actually
- * described by is `documentation.ts`'s `ViewDescriptor`, which is a separate, deliberately additive union.
- *
- * This is recorded rather than quietly left because the codec registry beside it had exactly the same
- * shape — metadata with no behaviour and no dispatcher — and a decision (D63) was discharged on the
- * assumption that it worked. **A reservation is fine; a reservation mistaken for a mechanism is not.**
- * When the P6 bodies land, this grows a projection member and a dispatcher, exactly as `FormatCodec`
- * just did.
+ * ⚠ **A WORKING SEAM SINCE T-073 (Entry 60 recorded it as a reserved shape).** A definition names the
+ * stored `ViewDescriptor` kind it projects and a `project` member; `viewFor`/`dispatchView` below are the
+ * dispatcher, as `codecFor` is for formats. `view.ts`'s `CORE_VIEWS` registers the plan and the elevation
+ * (Phase 6 step 2); both delegate to `DocumentContext.projectView`, so the registry adds no second body.
+ * Nothing yet registers a section, a `3d` or a `'reasoning'` view.
  */
 export interface ViewDefinition {
   readonly id: string;
   readonly label: string;
   readonly for: 'eyes' | 'reasoning';
+  /** The stored descriptor kind this definition projects. */
+  readonly kind: ViewDescriptor['kind'];
+  readonly project: (
+    projector: ViewProjector,
+    descriptor: ViewDescriptor,
+    options?: EnumerateOptions,
+  ) => Promise<ViewResult>;
+}
+
+/** What a view projects through — `DocumentContext` satisfies it. */
+export interface ViewProjector {
+  projectView(descriptor: ViewDescriptor, options?: EnumerateOptions): Promise<ViewResult>;
+}
+
+/** The registered definition that projects `descriptor`'s kind, if any. */
+export function viewFor(
+  registries: Registries,
+  descriptor: ViewDescriptor,
+): ViewDefinition | undefined {
+  return registries.views.list().find((view) => view.kind === descriptor.kind);
+}
+
+/**
+ * Project a stored view through the registry. ⚠ An unregistered kind THROWS: an empty `ViewResult` would
+ * read as "nothing is on this line" (D78).
+ */
+export async function dispatchView(
+  registries: Registries,
+  projector: ViewProjector,
+  descriptor: ViewDescriptor,
+  options?: EnumerateOptions,
+): Promise<ViewResult> {
+  const view = viewFor(registries, descriptor);
+  if (view === undefined) {
+    throw new Error(`no view registered for kind "${descriptor.kind}" (view "${descriptor.id}")`);
+  }
+  return view.project(projector, descriptor, options);
 }
 
 /**

@@ -68,7 +68,7 @@ export const OCCT_BUILD_ID = 'occt-7.9.3-emcc-6.0.2';
  *
  * 0.01 mm is chosen against the smallest scale a Revit-class tool prints — 1:1 full-size details (D92)
  * — where it is 0.01 mm on paper, a quarter of a 600 dpi dot; at 1:5 it is 2 µm. The value, its
- * cost and its float32 limit are `P5_step6C_plan_section_design.md` §4.1;
+ * cost and its float64 boundary are `P5_step6C_plan_section_design.md` §4.1;
  * `tests/section-chord-tolerance.test.ts` holds it.
  */
 const SECTION_DEFLECTION = 0.01;
@@ -794,7 +794,7 @@ export async function createOcctKernel(
 
         // ⚠ COPY NOW — every array is a zero-copy window onto the WASM heap, invalidated by the next
         // call or any heap growth. Nothing below may await before these run.
-        const points = new Float32Array(views.points);
+        const points = new Float64Array(views.points);
         const start = new Int32Array(views.start);
         const count = new Int32Array(views.count);
         const input = new Int32Array(views.input);

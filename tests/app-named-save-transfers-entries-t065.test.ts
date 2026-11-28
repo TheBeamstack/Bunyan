@@ -81,8 +81,10 @@ const buffersIn = (value: unknown, found: (ArrayBuffer | ArrayBufferView)[] = []
   return found;
 };
 
-const expectNoClonedBuffer = (posted: Posted): void => {
+/** `carriedFile`: the opened file a save carries from, the one view cloned by design (T-067). */
+const expectNoClonedBuffer = (posted: Posted, carriedFile?: Uint8Array): void => {
   const outside = buffersIn(posted.message).filter((b) => {
+    if (carriedFile !== undefined && b === carriedFile) return false;
     const buffer = b instanceof ArrayBuffer ? b : b.buffer;
     return !posted.transfer.includes(buffer as ArrayBuffer);
   });
@@ -100,7 +102,11 @@ const same = (a: Uint8Array | undefined, b: Uint8Array): boolean =>
  * Two consecutive saves through one zipper: each posts once, inside the `saveDocument` call, with no entry
  * cloned, and stores `saveBnn`'s bytes.
  */
-const twoSaves = async (scene: Scene, options: SaveOptions): Promise<void> => {
+const twoSaves = async (
+  scene: Scene,
+  options: SaveOptions,
+  carriedFile?: Uint8Array,
+): Promise<void> => {
   const worker = fakeWorker();
   const zipper: BnnZipper = createBnnZipper(worker);
   const store = new MemoryStore();
@@ -108,7 +114,12 @@ const twoSaves = async (scene: Scene, options: SaveOptions): Promise<void> => {
   for (let i = 0; i < 2; i++) {
     const key = saveDocument(store, `Tower ${String(i)}`, scene, options, zipper);
     expect(worker.posts).toHaveLength(i + 1);
-    expectNoClonedBuffer(worker.posts[i]!);
+    expectNoClonedBuffer(worker.posts[i]!, carriedFile);
+    if (carriedFile !== undefined) {
+      expect(worker.posts[i]!.message.carried?.entries, 'carried roots by name').toEqual(
+        Object.keys(scene.elements).map((root) => `geometry-cache/${root}/0.brep`),
+      );
+    }
     expect(same(await store.read(await key), expected), `save ${String(i + 1)} bytes`).toBe(true);
   }
 };
@@ -139,14 +150,12 @@ describe('T-065 — the 20-solid fixture: entries packed into one transferred bu
     );
   });
 
-  // ⚠ EXPECTED TO FAIL until B-20261025-03 is resolved: T-064's test asserts a cache-less save transfers
-  // nothing, so its buffer is cloned. `it.fails` turns red the day a cache-less save transfers.
-  it.fails('cache-less: no entry is cloned, two saves equal saveBnn', async () => {
+  it('cache-less: no entry is cloned, two saves equal saveBnn', async () => {
     const options: SaveOptions = { kernelBuildId: KERNEL_BUILD_ID, journal: [] };
     await twoSaves(scene, options);
   });
 
-  it.fails('an empty cache-less scene: no entry is cloned, two saves equal saveBnn', async () => {
+  it('an empty cache-less scene: no entry is cloned, two saves equal saveBnn', async () => {
     const options: SaveOptions = { kernelBuildId: KERNEL_BUILD_ID, journal: [] };
     await twoSaves(emptyScene(), options);
   });
@@ -214,7 +223,8 @@ describe('T-065 — entries carried from an opened file stay attached', () => {
     const before = brepLengths(cache.files);
     expect([...before.keys()], 'every root carried').toHaveLength(5);
     const options: SaveOptions = { kernelBuildId: KERNEL_BUILD_ID, journal: [], cache };
-    await twoSaves(pkg.scene, options);
+    // Amended by T-067: carried roots cross by name, with the opened file the worker reads them from.
+    await twoSaves(pkg.scene, options, pkg.cache!.file);
     expect(brepLengths(cache.files), 'every carried .brep keeps its byteLength').toEqual(before);
     expect(brepLengths(doc.geometryCacheFiles()!.files)).toEqual(before);
   });

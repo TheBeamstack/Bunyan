@@ -9,8 +9,6 @@ diwan    = "../diwan"
 [paths]
 state     = "docs/CURRENT_STATE.md"
 backlog   = "docs/BACKLOG.md"
-phase_log = "docs/PHASE_LOG.md"
-handoff   = "handoff"
 docs      = "docs"
 lock      = "docs/.turn-lock"
 stop      = "docs/.loop-stop"          # the live kill switch, named by both orchestrator prompts
@@ -32,7 +30,9 @@ author_email = "narutousomaki741@gmail.com"
 # Lane-only session rules (diwan launch-loop `lane_tools`). `uv`: the re-seed gate's seeder,
 # `cd tools/oracle && uv run seed-goldens ../../tests/goldens` (B-20261012-03).
 [tools]
-allow = ["Bash(uv *)"]
+allow = ["Bash(uv *)", "Bash(podman *)"]
+# T-072 builds the prebuilt OCCT libs here and T-069 links them (B-20261124-01/-02).
+read_dirs = ["/home/brahim/occt-wasm-spike"]
 
 [review]
 # D88: a `risk: high` row gets two review turns in separate sessions. Not owner-gated — step 2 merges.
@@ -43,11 +43,7 @@ step1_label        = "review/step-1"
 [cycle]
 summary_adapter = "backlog"
 evidence = [
-  "docs/BACKLOG.md",         # backlog readiness — a row sequenced, rescoped or made ready
-  "docs/OWNER-DECISIONS.md", # the owner interface, `[paths] decisions` — opened or closed
-  "docs/decisions.md",       # the ratified-ruling register (D1-D91) — this lane's ADR equivalent
-  "docs/PHASE_LOG.md",       # phase decomposition — this cycle's abstract
-  "handoff/",                # sequencing/routing — a turn ends by naming which seat is next
+  "docs/decisions.md", # the ratified-ruling register (D1-D97) — this lane's ADR equivalent
 ]
 
 # The frozen surface (D13, P5 freeze): `contract-touching` and `freeze` are decided from this table.

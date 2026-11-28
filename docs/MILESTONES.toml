@@ -121,3 +121,23 @@ covers = ["T-037", "T-064"]
 due = "2026-11-29"
 size = 2
 approved = "2026-11-02"
+
+[[milestone]]
+id = "M-bunyan-04"
+portfolio = "beamstack"
+goal = "a small practice's house gets its plan and an elevation as real section cuts of the live model in desktop Chrome, exact in float64 far from the view origin"
+done_when = []
+covers = ["T-072", "T-069"]
+due = "2026-12-20"
+size = 5
+approved = "2026-11-25"
+
+[[milestone]]
+id = "M-bunyan-05"
+portfolio = "beamstack"
+goal = "a small practice's house gets its door and window schedule in desktop Chrome, counted live off the model and redrawn when the model changes"
+done_when = []
+covers = []
+due = "2027-01-17"
+size = 4
+approved = "2026-11-26"
