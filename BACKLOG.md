@@ -147,6 +147,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-076 | done | An elevation carries an origin, so a house off the world origin gets a non-empty elevation | backend | box | normal | T-074 |
 | T-077 | done | A window's model, and how one door and window schedule tells doors from windows, are ruled | spec | box | normal | — |
 | T-078 | done | The T-048 aggregate-ratio tests pass a full pnpm verify on box, not only CI | backend | box | normal | — |
+| T-079 | ready | A design names how the first named save after an open keys, parses and inflates its roots off the main thread | spec | box | normal | — |
 
 ---
 
@@ -993,6 +994,18 @@ informational provenance.
 - note: test-only change; three of four full verifies on 2026-11-28 failed one case at 30276/30960 ms while the file alone takes 40 s; close disc:4, disc:5, disc:8 once it merges
 - from: disc:8
 - repair: incident B-20261128-02
+
+### T-079 — A design names how the first named save after an open keys, parses and inflates its roots off the main thread
+- outcome: design §5 and §6 state where the first save's keying of 4,000 roots, record parse and .brep inflate run instead of the main thread, the message shape across that boundary, why the stored bytes still equal saveBnn exactly, and each step's main-thread budget against the 200 ms bar, so T-066's bar can be re-run against a filed build row
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (the T-064, T-065 and T-066 paragraphs), §6 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: B-20261128-06 (zayd, PR #149: first save after an open held 1,517-1,605 ms at 16k; node split keying 268-409 ms, record parse 327-483 ms, inflate 556-571 ms)
+- done-when: design §5 gains a paragraph naming, for each of keying, record parse and .brep inflate, the thread it runs on and its main-thread cost, each cost derived from the B-20261128-06 figures and the sum under the 200 ms bar, or the shortfall stated as a number
+- done-when: the paragraph states the posted message shape (what is transferred, what is cloned) and the argument that the stored bytes still equal saveBnn(scene, options), naming the T-047 byte-identity tests that prove it
+- done-when: §6 files one or more build rows, each with outcome, implements, done-when and verify a steward can copy into state.py add, the last of which re-runs node tools/browser-check/named-save.mjs on its 200 ms bar for the first save after an open
+- done-when: every open question is a D- record opened by the turn; no file outside docs/ changes
+- verify: pnpm verify
+- depends-on: — · area: spec · machine: box · risk: normal
+- note: design-first: the doc is the deliverable, no code; T-066's carried-entry reuse (PR #149) is the starting state; the outcome's 'restore's keys seed the first save' conflicts with T-062's save-keys-once test and the app's open restores nothing (D66), so the design does not assume seeding
+- milestone: M-bunyan-03
 
 ## Discovered
 
