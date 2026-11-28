@@ -275,6 +275,45 @@ Chromium 148.0.7778.0, load 0.4–0.7): held **80.0–186.8 ms** per save, exit 
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
 `SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.
 
+**T-079 (design): the first named save after an open, off the main thread.** B-20261128-06 split that save's
+`geometryCacheFiles()` (node, the T-060 file: 16k solids, 4,000 roots, 4,800 elements) into keying 268–409 ms,
+record parse and checks 327–483 ms and `.brep` inflate 556–571 ms. Each moves:
+
+| Step                    | Runs on                                                        | Main thread, in the save                        | Derived from                                                                                 |
+| ----------------------- | -------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| keying                  | a per-document key worker, once per scene value                | scene clone 7.6–9.6 ms + reply parse 5.3–7.9 ms | T-070's `v8.serialize` of this scene; record parse's 5.3–7.9 ms/MB (327–483 ms over 61.3 MB) |
+| record parse and checks | the cache-open worker, at open, which parses every record now  | 0 ms                                            | its summaries are parsed once at open, not in the save                                       |
+| `.brep` inflate         | the zip worker, which already re-reads carried entries (T-067) | 0 ms                                            | the main thread inflated them only to mark them carried, and posted none of them             |
+
+With keys and records in hand, the first save does what T-066's later saves do, which held 78–108 ms in the same
+runs, so it holds **90.9–125.5 ms**; scaling the two derived costs by that save's browser/node ratio (1,440 ms over
+1,151 ms, 1.25×) gives at most 129.9 ms. On the worst later save measured on main (186.8 ms, `c5153dd`) the same
+sum is 208.7 ms, **8.7 ms over the bar**; R9's re-run decides it. Restore's keys seed nothing (T-066).
+
+- **Open reply** (`OpenedCacheRecords`): gains `summaries`, a subarray of the one transferred buffer: UTF-8 JSON in
+  `roots` order of `[key, ok, voids, ks]`, where `ok` is every `wellFormed` check but voids against the scene's
+  hosted ids, `voids` the record's void ids in order and `ks` each part's `brep.k` in `recordEntries` order.
+- **Key request** `{ seq, scene }`: the scene is structured-cloned, the only clone. **Reply** `{ seq, json }`, `json`
+  transferred: UTF-8 JSON in scene order of `[root, key, hosted]`, `hosted` its sorted hosted ids, under 1 MB
+  (4,000 keys and roots, 800 hosted ids). A reply whose `seq` is not the current scene value's is dropped, and that
+  scene keys in process. The worker imports a new `@bunyan/document/cachekey` subpath, whose runtime graph is
+  `cachekey`, `cachesign`, `joins`, `scene`, `entities` and `designoptions`: no kernel and no build code.
+- **Carry**: a root not built is carried iff its summary's key is the reply's, `ok` holds, `voids` equals `hosted`
+  and every `<root>/<k>.brep` is in `source.files.names`: `usableRecord` and today's presence check, split at
+  their one scene-dependent comparison. `geometryCacheFiles({ byName: true })` puts a zero-length `.brep` stub and a
+  `{ key }` record stub, each marked by `keepCarried`, where it put inflated bytes and the parsed record; the zip
+  request is T-067's. `saveBnn` and `signGeometryCache` refuse a stub, and `geometryCacheFiles()` without the flag
+  still reads bytes. A save after an edit takes the same path.
+
+**Why the bytes still equal `saveBnn(scene, options)`**: the keys come from the same `cacheInputKey` on a
+structured clone, which keeps every value a scene holds, and canonical JSON sorts keys besides; the carry set is
+the same predicate; the zip worker reads every carried entry and record from the same retained file under the same
+caps (T-067), so only a copy the save never posted is removed; stubs keep each entry's place, so the zip order holds.
+`tests/bnn-save-deterministic-t047.test.ts` and the worker-equals-`saveBnn` tests
+`tests/app-named-save-{signs-in-worker-t060,transfers-records-t064,transfers-entries-t065,carries-by-name-t067,scene-in-worker-t070}.test.ts`
+prove it and must pass unchanged. Without a key worker (every node test) keys are computed in process as now, so
+`tests/save-keys-once-t062.test.ts` and T-066's test hold unchanged.
+
 ---
 
 ## 6. Decomposition — rows a steward can file
@@ -291,6 +330,40 @@ carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k.
 
 R3 is `risk: high` (it is where a wrong name would come from); the others are `normal`. None touches a watched
 file, so none is contract-touching.
+
+**The first save after an open (T-079, §5).** Each row's fields copy into `state.py add`; R9 is `risk: high`, since a
+wrong carry predicate writes a stale solid under a current key. Neither touches a watched file.
+
+**R8 — the named save carries cache entries by name without inflating them on the main thread**
+
+- outcome: `geometryCacheFiles({ byName: true })` returns marked stubs for carried `.brep` entries and records,
+  `namedSaveOptions` uses it, and the zip worker reads them from the opened file as in T-067
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (the T-067 and T-079 paragraphs) ·
+  docs/contracts/V1.0.0_spec.md §6.5
+- done-when: a counting `readMany` spy sees no call during the first `geometryCacheFiles({ byName: true })` after an
+  open (test-first, revert-verified)
+- done-when: on the T-067 fixtures the zip worker's bytes from the by-name cache equal
+  `saveBnn(scene, { cache: geometryCacheFiles() })`, and `saveBnn` given a stub throws
+- done-when: the T-047, T-060, T-062, T-064, T-065, T-066, T-067 and T-070 tests named in §5 pass unchanged
+- verify: pnpm verify
+- depends-on: T-066 · area: workers · machine: box · risk: normal
+
+**R9 — the cache-open worker summarises each record and a key worker keys each scene value**
+
+- outcome: the open reply carries §5's summaries, a per-document key worker keys each new scene value, and the
+  first named save after an open holds the main thread at or under 200 ms at 16k
+- implements: docs/design/P5_step9_D29_bnn_cache_design.md §2b, §5 (the T-079 paragraph) ·
+  docs/contracts/V1.0.0_spec.md §6.5
+- done-when: for every record in the restore and trust tests' fixtures, malformed and tampered ones included, the
+  summary predicate equals `usableRecord` (test-first)
+- done-when: the key worker's keys equal `cacheInputKeys(scene)` on the T-060 file, and a reply for a superseded
+  scene value is dropped and that scene keys in process
+- done-when: with the key worker, the first save calls no `cacheInputKey` and parses no record on the main thread
+  (spies); without it, `tests/save-keys-once-t062.test.ts` passes unchanged
+- done-when: `node tools/browser-check/named-save.mjs`, three unmodified runs on box, holds the first save after an
+  open at or under 200 ms and exits 0 in all three, the figures recorded in §5
+- verify: pnpm verify && node tools/browser-check/named-save.mjs
+- depends-on: R8 · area: workers · machine: box · requires: browser · risk: high
 
 ---
 
