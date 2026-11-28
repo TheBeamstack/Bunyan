@@ -2502,6 +2502,10 @@ function viewKindFields(
         ...(vec3(args['normal']) === undefined ? {} : { normal: vec3(args['normal']) }),
       };
     case 'elevation':
+      return {
+        ...(vec3(args['direction']) === undefined ? {} : { direction: vec3(args['direction']) }),
+        ...(vec3(args['origin']) === undefined ? {} : { origin: vec3(args['origin']) }),
+      };
     case '3d':
       return {
         ...(vec3(args['direction']) === undefined ? {} : { direction: vec3(args['direction']) }),
@@ -2522,7 +2526,8 @@ const VIEW_GEOMETRY_ARGS: ParamSchema = {
   origin: {
     kind: 'point',
     label: 'Origin',
-    description: 'section only — a point on the cut plane, world mm.',
+    description:
+      'section / elevation — a point on the cut plane, world mm. Absent on an elevation ⇒ the world origin.',
   },
   normal: {
     kind: 'point',
