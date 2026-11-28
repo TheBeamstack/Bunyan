@@ -905,6 +905,16 @@
    "opened": "2026-11-28T03:33Z",
    "scope": "item",
    "title": "stop rule: lane bunyan, refused twice by agent_finish.py: [commands] verify failed (1): pnpm verify"
+  },
+  "B-20261128-02": {
+   "by": "brahim",
+   "cleared": "-",
+   "item": "lane bunyan",
+   "key": "t048-timeout",
+   "need": "builder: make tests/bnn-aggregate-ratio-t048.test.ts pass three consecutive full pnpm verify runs on box without raising vitest's testTimeout",
+   "opened": "2026-11-28T03:34Z",
+   "scope": "item",
+   "title": "[incident] every finish in the lane refuses: a T-048 test times out in a full pnpm verify on box"
   }
  },
  "decisions": {

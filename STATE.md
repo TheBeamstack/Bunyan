@@ -29,3 +29,4 @@ none
 
 - B-20261126-02 T-065 stays unclaimable: no steward op frees a ready row's holder (release needs claimed, state.py:775; edit keeps holder, state.py:973) — need: diwan: let state.py release free a ready row that still names a holder, so T-065 can be claimed
 - B-20261128-01 stop rule: lane bunyan, refused twice by agent_finish.py: [commands] verify failed (1): pnpm verify — need: steward: remove what makes agent_finish.py refuse in this lane
+- B-20261128-02 [incident] every finish in the lane refuses: a T-048 test times out in a full pnpm verify on box — need: builder: make tests/bnn-aggregate-ratio-t048.test.ts pass three consecutive full pnpm verify runs on box without raising vitest's testTimeout
