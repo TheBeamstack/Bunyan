@@ -468,3 +468,7 @@ D58 (`V1.0.0_spec.md` §5) ships "one plan + one section + one schedule" and doe
 window schedule may be two `ifcClass`-filtered tables or must be one table. **D58 does not settle it:
 `D-20261126-03`** (options `two-tables | ifc-column`, default `two-tables`). Until it is answered, the next
 rows are cut against (a) with two tables.
+
+**Ruled 2026-11-28:** the owner answered `two-tables` (D-20261126-03 and its re-filing D-20261126-04), so
+**(a) as two `ifcClass`-filtered tables governs**; (c) is not built, and no frozen byte moves for v1.0.0's
+door and window schedule.
