@@ -1,10 +1,10 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: builder (box) — T-078
+next: reviewer (box): PR #146 — T-077
 
 ## Claims
 
-none
+- T-078 zayd on task/T-078-the-t-048-aggregate-ratio-tests-pass-a-f
 
 ## Review
 
