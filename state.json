@@ -3576,6 +3576,16 @@
    "status": "row",
    "text": "T-048's tests take 24-25 s each against vitest's 30000 ms default, so three of four full pnpm verify runs on box on 2026-11-28 failed one of them at 30276 ms or 30960 ms (Test timed out in 30000ms), which turns agent_finish red on any turn; the file alone passes in 40.21 s (pnpm vitest run tests/bnn-aggregate-ratio-t048.test.ts)",
    "where": "tests/bnn-aggregate-ratio-t048.test.ts:90"
+  },
+  {
+   "at": "2026-11-28T05:21Z",
+   "by": "hmdnah",
+   "harm": "none",
+   "id": "disc:9",
+   "main": "2b9ee5ec825519c20abb8fd02c1c7a13faf45af0",
+   "status": "parked",
+   "text": "reserved-class scan over-labels a PR whose branch is behind main: it diffs pull_request.base.sha (the stale merge-base) ...HEAD where HEAD is the merge commit, so main's own watched-file changes since the fork count as the PR's (PR #146 run 46111412352: base 5448c12, flagged T-076's ElevationView)",
+   "where": ".github/workflows/ci.yml:144"
   }
  ],
  "lane": "Bunyan",
