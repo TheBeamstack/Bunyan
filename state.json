@@ -6089,7 +6089,7 @@
     "title": "The first named save after an open or an edit re-keys and re-inflates no unchanged root",
     "verify": "pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>"
    },
-   "status": "review"
+   "status": "claimed"
   },
   "T-067": {
    "approved": "migrated 94a5c4766aae",
