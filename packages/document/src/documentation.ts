@@ -260,6 +260,8 @@ export interface ElevationView extends ViewCommon {
   readonly kind: 'elevation';
   /** The horizontal look direction, world mm. */
   readonly direction: readonly [number, number, number];
+  /** A point the cut plane passes through, world mm; absent ⇒ the world origin (T-076, D-20261125-02). */
+  readonly origin?: readonly [number, number, number];
 }
 
 /** A 3D projection (axonometric/perspective) — the model as eyes see it. */

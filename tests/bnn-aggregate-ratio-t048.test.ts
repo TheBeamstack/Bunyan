@@ -8,8 +8,8 @@
  * "Inflates nothing" is proved as in T-046: the hostile zip leads with a corrupt DEFLATE entry, so a loader
  * that inflated anything first throws "not a readable .bnn package" instead of the cap's name.
  *
- * REVERT-VERIFY: drop the aggregate check in `bnn.ts` `checkCaps` and the first two tests go red
- * (recorded in the T-048 handoff).
+ * REVERT-VERIFY: drop the aggregate check in `checkCaps` (`bnncaps.ts` since T-063, called by `bnn.ts`)
+ * and the first three tests go red (T-078 handoff).
  */
 
 import { describe, expect, it } from 'vitest';
@@ -34,15 +34,85 @@ function header(zip: Uint8Array, name: string, central: boolean): number {
   throw new Error(`no header for ${name}`);
 }
 
+/** Every central-directory header's offset, by name, in one pass (`header` per name is quadratic). */
+function centrals(zip: Uint8Array): Map<string, number> {
+  const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+  const out = new Map<string, number>();
+  let at = view.getUint32(zip.length - 22 + 16, true);
+  for (let n = view.getUint16(zip.length - 22 + 10, true); n > 0; n--) {
+    const len = view.getUint16(at + 28, true);
+    out.set(decoder.decode(zip.subarray(at + 46, at + 46 + len)), at);
+    at += 46 + len + view.getUint16(at + 30, true) + view.getUint16(at + 32, true);
+  }
+  return out;
+}
+
+/** A local (`fixed` 30) or central (46) header record, its name replaced by `name`. */
+function renamed(record: Uint8Array, fixed: 30 | 46, name: Uint8Array): Uint8Array {
+  const lengthAt = fixed === 30 ? 26 : 28;
+  const old = new DataView(record.buffer, record.byteOffset).getUint16(lengthAt, true);
+  const out = new Uint8Array(record.length - old + name.length);
+  out.set(record.subarray(0, fixed));
+  out.set(name, fixed);
+  out.set(record.subarray(fixed + old), fixed + name.length);
+  new DataView(out.buffer).setUint16(lengthAt, name.length, true);
+  return out;
+}
+
+/**
+ * `zipSync` of `files` plus `copies` names holding the same bytes as `last`, its last entry. fflate would
+ * deflate each copy anew (500 MiB, ~7 s on box: T-078); this deflates once and copies the records.
+ */
+function zipWithCopies(
+  files: Record<string, Uint8Array>,
+  last: string,
+  copies: string[],
+): Uint8Array {
+  const zip = zipSync(files);
+  const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+  const u16 = (at: number): number => view.getUint16(at, true);
+  const end = zip.length - 22;
+  const cdAt = view.getUint32(end + 16, true);
+  const local = header(zip, last, false);
+  const central = header(zip, last, true);
+  const localRecord = zip.subarray(local, cdAt);
+  const centralRecord = zip.subarray(central, end);
+  expect(local + 30 + u16(local + 26) + u16(local + 28) + view.getUint32(central + 20, true)).toBe(
+    cdAt,
+  );
+  expect(central + 46 + u16(central + 28) + u16(central + 30) + u16(central + 32)).toBe(end);
+  const locals: Uint8Array[] = [zip.subarray(0, cdAt)];
+  const centralRecords: Uint8Array[] = [zip.subarray(cdAt, end)];
+  let offset = cdAt;
+  for (const name of copies) {
+    const id = encoder.encode(name);
+    const record = renamed(centralRecord, 46, id);
+    new DataView(record.buffer).setUint32(42, offset, true);
+    centralRecords.push(record);
+    locals.push(renamed(localRecord, 30, id));
+    offset += locals[locals.length - 1]?.length ?? 0;
+  }
+  const parts = [...locals, ...centralRecords, zip.subarray(end)];
+  const out = new Uint8Array(parts.reduce((n, part) => n + part.length, 0));
+  parts.reduce((at, part) => (out.set(part, at), at + part.length), 0);
+  const eocd = new DataView(out.buffer, out.length - 22);
+  eocd.setUint16(8, u16(end + 8) + copies.length, true);
+  eocd.setUint16(10, u16(end + 10) + copies.length, true);
+  eocd.setUint32(12, out.length - 22 - offset, true);
+  eocd.setUint32(16, offset, true);
+  return out;
+}
+
 /** The T-046 handoff probe: 500 cache entries of 1 MiB zeros behind a corrupt `manifest.json`. */
 function probe(): Uint8Array {
-  const zeros = new Uint8Array(MiB); // one buffer, 500 names: the zip deflates each name alone
+  const cacheEntry = (i: number): string => `geometry-cache/R/${String(i)}.brep`;
   const files: Record<string, Uint8Array> = {
     'manifest.json': encoder.encode(JSON.stringify({ kernelBuildId: KERNEL_BUILD_ID }).repeat(8)),
     'scene.json': encoder.encode(JSON.stringify(emptyScene())),
+    [cacheEntry(0)]: new Uint8Array(MiB),
   };
-  for (let i = 0; i < 500; i++) files[`geometry-cache/R/${String(i)}.brep`] = zeros;
-  const zip = zipSync(files);
+  const copies = Array.from({ length: 499 }, (_, i) => cacheEntry(i + 1));
+  const zip = zipWithCopies(files, cacheEntry(0), copies);
   const view = new DataView(zip.buffer);
   const local = header(zip, 'manifest.json', false);
   expect(view.getUint16(local + 8, true)).toBe(8); // DEFLATE, or the corruption proves nothing
@@ -97,8 +167,9 @@ describe('T-048 — an aggregate ratio cap over the entries a pass would inflate
     // Each cache entry declares 8 KiB compressed: 200× the declared sum passes the inflated sum.
     const zip = probe();
     const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
-    for (let i = 0; i < 500; i++)
-      view.setUint32(header(zip, `geometry-cache/R/${String(i)}.brep`, true) + 20, 8192, true);
+    const entries = [...centrals(zip)].filter(([name]) => name.startsWith(GEOMETRY_CACHE_DIR));
+    expect(entries).toHaveLength(500);
+    for (const [, at] of entries) view.setUint32(at + 20, 8192, true);
     expect(() => loadBnn(zip)).toThrow(/aggregate BNN_MAX_RATIO/);
   });
 
@@ -110,8 +181,9 @@ describe('T-048 — an aggregate ratio cap over the entries a pass would inflate
     const names = Object.keys(cache).filter((n) => n.endsWith('.brep'));
     expect(reader?.readMany(names).size).toBe(500);
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-    for (const name of names)
-      view.setUint32(header(bytes, GEOMETRY_CACHE_DIR + name, true) + 24, MiB, true);
+    const entries = [...centrals(bytes)].filter(([name]) => name.endsWith('.brep'));
+    expect(entries).toHaveLength(names.length);
+    for (const [, at] of entries) view.setUint32(at + 24, MiB, true);
     expect(() => reader?.readMany(names)).toThrow(/aggregate BNN_MAX_RATIO/);
   });
 
