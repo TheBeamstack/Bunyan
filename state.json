@@ -3525,6 +3525,16 @@
    "status": "parked",
    "text": "the commit that last changed this file, 63f3326 (hmdnah's fix on PR #138), has author narutousomaki741 but committer Davidian-Abdo (git log -1 --format='%an %cn' 63f3326): a reviewer subagent spawned by the brahim loop commits with the loop's committer identity; the cause is outside this repo, likely the identity diwan's deploy/launch-loop.sh exports",
    "where": "docs/design/P5_step6C_plan_section_design.md"
+  },
+  {
+   "at": "2026-11-28T03:33Z",
+   "by": "hmdnah",
+   "harm": "none",
+   "id": "disc:8",
+   "main": "5448c12de5b1fbd57b90090c7c69db4708e45437",
+   "status": "parked",
+   "text": "T-048's tests take 24-25 s each against vitest's 30000 ms default, so three of four full pnpm verify runs on box on 2026-11-28 failed one of them at 30276 ms or 30960 ms (Test timed out in 30000ms), which turns agent_finish red on any turn; the file alone passes in 40.21 s (pnpm vitest run tests/bnn-aggregate-ratio-t048.test.ts)",
+   "where": "tests/bnn-aggregate-ratio-t048.test.ts:90"
   }
  ],
  "lane": "Bunyan",
