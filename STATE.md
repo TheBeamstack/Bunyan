@@ -25,4 +25,3 @@ none
 ## Open blockers
 
 - B-20261128-06 T-066 done-when 3 unmet: the first named save after an open holds the main thread 1517-1605 ms at 16k, 3 of 3 runs FAIL — need: steward: sequence a design row that takes the first save's keying of 4000 roots (268-409 ms), record parse (327-483 ms) and .brep inflate (556-571 ms) off the main thread, per design §5's T-066 paragraph, before T-066's 200 ms bar is re-run
-- B-20261128-07 stop rule: T-064, refused twice by agent_start.py: zayd cannot claim T-064: is held by zayd. — need: steward: make T-064 pass agent_start.py or drop it
