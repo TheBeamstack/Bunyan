@@ -20,7 +20,7 @@ none
 
 ## BLOCKED
 
-- T-064 — B-20261128-05 open; B-20261128-07 open
+none
 
 ## Open blockers
 
