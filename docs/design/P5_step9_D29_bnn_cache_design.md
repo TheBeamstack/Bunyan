@@ -267,7 +267,9 @@ read; the other two printed PASS and FAIL. In-save split, five runs: `geometryCa
 With T-067 and T-070 both at `f758b3f` (box, 2026-11-26, three unmodified runs of `named-save.mjs`, 2 cores at
 load 0.3–1.3), the main thread is held **78.1–113.4 ms** per save and the tool exited 0, 0, 0: the 200 ms bar holds.
 In-save split: `geometryCacheFiles()` 6.8–12.6 ms, assemble 30.2–54.9 ms, `serializeRecords` 8.4–11.4 ms, pack
-2.9–31.0 ms, post 25.6–37.3 ms.
+2.9–31.0 ms, post 25.6–37.3 ms. T-065's bar, re-measured at `c5153dd`'s tree (box, 2026-11-28, three unmodified runs,
+Chromium 148.0.7778.0, load 0.4–0.7): held **80.0–186.8 ms** per save, exit 0, 0, 0; `geometryCacheFiles()` 4.9–22.3 ms, assemble 30.2–100.9 ms,
+`serializeRecords` 8.6–54.2 ms, pack 3.0–8.5 ms, post 25.6–33.3 ms.
 
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
