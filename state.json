@@ -6331,7 +6331,7 @@
     "title": "An elevation carries an origin, so a house off the world origin gets a non-empty elevation",
     "verify": "pnpm verify"
    },
-   "status": "review"
+   "status": "done"
   },
   "T-077": {
    "approved": "",

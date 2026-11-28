@@ -8,7 +8,6 @@ none
 
 ## Review
 
-- T-076 PR #145 by zayd — reviewer (box): PR #145
 - T-077 PR #146 by zayd — reviewer (box): PR #146
 
 ## Awaiting approval (R93)
