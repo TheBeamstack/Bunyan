@@ -895,6 +895,16 @@
    "opened": "2026-11-26T01:36Z",
    "scope": "item",
    "title": "T-065 stays unclaimable: no steward op frees a ready row's holder (release needs claimed, state.py:775; edit keeps holder, state.py:973)"
+  },
+  "B-20261128-01": {
+   "by": "stop-rule",
+   "cleared": "-",
+   "item": "lane bunyan",
+   "key": "c1c57795aa87",
+   "need": "steward: remove what makes agent_finish.py refuse in this lane",
+   "opened": "2026-11-28T03:33Z",
+   "scope": "item",
+   "title": "stop rule: lane bunyan, refused twice by agent_finish.py: [commands] verify failed (1): pnpm verify"
   }
  },
  "decisions": {
