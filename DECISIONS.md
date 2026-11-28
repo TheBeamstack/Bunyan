@@ -712,7 +712,7 @@
 - expires: 2026-12-17
 - sends: 2026-12-07
 - ANSWER: two-tables
-- answered: -
+- answered: 2026-11-28T03:35Z
 
 ## D-20261126-04 M-bunyan-05's door and window schedule: two tables split by IFC class, or one table with a class column
 - opened: 2026-11-26T20:21Z
