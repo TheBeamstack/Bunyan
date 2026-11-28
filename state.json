@@ -918,7 +918,7 @@
   },
   "B-20261128-03": {
    "by": "stop-rule",
-   "cleared": "-",
+   "cleared": "2026-11-28T03:36Z",
    "item": "lane bunyan",
    "key": "4ee1f916adfc",
    "need": "steward: remove what makes agent_start.py refuse in this lane",
