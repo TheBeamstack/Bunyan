@@ -938,7 +938,7 @@
   },
   "B-20261128-05": {
    "by": "zayd",
-   "cleared": "-",
+   "cleared": "2026-11-28T08:33Z",
    "item": "T-064",
    "key": "stale-holder",
    "need": "steward: settle T-064's row, state.py delivered T-064 --commit 381fe3d or state.py release T-064, per design §5's T-064 paragraph and B-20261024-02",
