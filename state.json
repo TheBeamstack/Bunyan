@@ -908,7 +908,7 @@
   },
   "B-20261128-02": {
    "by": "brahim",
-   "cleared": "-",
+   "cleared": "2026-11-28T04:45Z",
    "item": "lane bunyan",
    "key": "t048-timeout",
    "need": "builder: make tests/bnn-aggregate-ratio-t048.test.ts pass three consecutive full pnpm verify runs on box without raising vitest's testTimeout",
