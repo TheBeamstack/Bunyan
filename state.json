@@ -3532,7 +3532,8 @@
    "harm": "none",
    "id": "disc:4",
    "main": "4d17b64e207ec28d6dc9500bbb0e335b28348b93",
-   "status": "parked",
+   "pr": 147,
+   "status": "closed",
    "text": "two T-048 tests exceed vitest's 30 s timeout under box load (32026 ms, 35410 ms; load avg 7.7) in pnpm verify at 4d17b64, which CI passes at the same sha (gh run list --branch main): a box-only red on any turn's verify gate",
    "where": "tests/bnn-aggregate-ratio-t048.test.ts:96"
   },
