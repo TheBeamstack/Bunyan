@@ -1,14 +1,14 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: blocked: steward: settle T-064's row, state.py delivered T-064 --commit 381fe3d or state.py release T-064, per design §5's T-064 paragraph and B-20261024-02 — T-064
+next: reviewer (box): PR #149 — T-066
 
 ## Claims
 
-- T-066 zayd on task/T-066-the-first-named-save-after-an-open-or-an
+none
 
 ## Review
 
-none
+- T-066 PR #149 by zayd — reviewer (box): PR #149
 
 ## Awaiting approval (R93)
 

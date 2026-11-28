@@ -6037,7 +6037,7 @@
    "entry": "### T-066 — The first named save after an open or an edit re-keys and re-inflates no unchanged root\n\n- outcome: carried .brep bytes and cache keys survive a new scene value for every root whose key is unchanged, and restore's keys seed the first save, so the first named save after an open or an edit does no full re-key and no synchronous re-inflate of unchanged roots, and the stored bytes still equal saveBnn exactly.\n- implements: docs/design/P5_step9_D29_bnn_cache_design.md §5 (the T-060, T-062 and T-064 paragraphs), §6 R4 · docs/contracts/V1.0.0_spec.md §6.5 (determinism, T-047); provenance: hmdnah's PR #116 step-1 review 2026-10-24 (the first geometryCacheFiles() after an open took 1437.9 ms synchronously), a brahim R39 diagnosis 2026-10-25 (#keyedFor makes a new carried Map per scene value, document.ts:1601-1604; restore's keys are discarded, document.ts:1403; usableRecord's cacheInputKey, cacherestore.ts:274)\n- done-when: test-first: a node test shows that after an open and one save, a further save and a save after an edit that keeps a root's key inflate none of that root's entries (a counting readMany spy) and store bytes equal to saveBnn(scene, options); revert-verified: dropping the carry reuse turns the inflate count red\n- done-when: keys stay recomputed per scene object and never kept from the last commit (T-062's note); every T-047 byte-identity test and the T-058, T-060, T-062, T-063, T-064, T-065 and geometry-cache-trust-d29 tests pass unchanged\n- done-when: save-check drops its warm-up geometryCacheFiles() before the timed saves, and node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k for the first save after an open, recorded in design §5\n- done-when: no [frozen_surface] watched file changes\n- verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>\n- depends-on: T-065, T-067 · area: backend · machine: box · risk: **high**\n- requires: browser\n- note: the split between keying, the lazy record parse and the .brep inflate inside the 1437.9 ms is not measured, so the turn measures it first; if the bar is missed, record the figures and stop with a B- record, never a reworded bar; risk high per READY rule 8 (D29 save path)",
    "holder": "zayd",
    "line": "| T-066 | blocked | The first named save after an open or an edit re-keys and re-inflates no unchanged root                            | backend  | box     | **high** | T-065, T-067        |",
-   "pr": 0,
+   "pr": 149,
    "shown": "blocked",
    "spec": {
     "area": "backend",
@@ -6057,7 +6057,7 @@
     "title": "The first named save after an open or an edit re-keys and re-inflates no unchanged root",
     "verify": "pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>"
    },
-   "status": "claimed"
+   "status": "review"
   },
   "T-067": {
    "approved": "migrated 94a5c4766aae",
