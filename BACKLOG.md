@@ -134,7 +134,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-065 | done   | A named save posts its entries to the zip worker as one transferred buffer                                         | workers  | box     | **high** | T-062, T-063, T-067 |
 | T-067 | done | A named save names its carried cache entries and records, and the zip worker reads them from the opened file | workers | box | **high** | T-062, T-063, T-070 |
 | T-068 | done    | A dependabot PR passes the PR-shape check by its head branch and bot author, not its title                         | infra    | box     | **high** | —                   |
-| T-066 | ready | The first named save after an open or an edit re-keys and re-inflates no unchanged root                            | backend  | box     | **high** | T-065, T-067        |
+| T-066 | blocked | The first named save after an open or an edit re-keys and re-inflates no unchanged root | backend | box | **high** | T-065, T-067, T-079 |
 | T-029 | blocked | `seats.mjs` collapses `machine: any` to `box` in two functions                                                     | infra    | box     | high     | —                   |
 | T-030 | blocked | A steward cannot review, and its readiness view lists nothing                                                      | infra    | box     | high     | —                   |
 | T-031 | parked | `requires:` supersedes a task's `machine:`                                                                         | infra    | box     | high     | T-029               |
@@ -785,7 +785,7 @@ overstatement cost a box seat a verification it had to record as undischarged.
 - done-when: save-check drops its warm-up geometryCacheFiles() before the timed saves, and node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome> exits 0 on its 200 ms bar at 16k for the first save after an open, recorded in design §5
 - done-when: no [frozen_surface] watched file changes
 - verify: pnpm verify; node tools/browser-check/named-save.mjs --playwright <playwright-core entry> --browser <chrome>
-- depends-on: T-065, T-067 · area: backend · machine: box · risk: **high**
+- depends-on: T-065, T-067, T-079 · area: backend · machine: box · risk: **high**
 - requires: browser
 - note: the split between keying, the lazy record parse and the .brep inflate inside the 1437.9 ms is not measured, so the turn measures it first; if the bar is missed, record the figures and stop with a B- record, never a reworded bar; risk high per READY rule 8 (D29 save path)
 

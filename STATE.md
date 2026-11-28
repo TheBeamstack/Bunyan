@@ -1,6 +1,6 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: builder (box) — T-066
+next: builder (box) — T-079
 
 ## Claims
 
@@ -20,7 +20,7 @@ none
 
 ## BLOCKED
 
-none
+- T-066 — depends on T-079 (ready)
 
 ## Open blockers
 
