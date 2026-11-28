@@ -97,11 +97,11 @@ async function main(): Promise<void> {
       openIndex: openCacheIndexInWorker,
     },
   });
-  // The open and the first `geometryCacheFiles()` (every root keyed and parsed); later saves reuse both.
+  // The open alone, as `bootstrap`'s: the first timed save is the first `geometryCacheFiles()` (T-066).
   const opened = performance.now();
   await doc.openGeometryCache();
-  const roots = Object.keys(doc.geometryCacheFiles()?.records ?? {}).length;
   const openMs = performance.now() - opened;
+  const roots = Object.values(pkg.scene.elements).filter((e) => e.hostId === undefined).length;
   const kernelBuildId = pkg.manifest.kernelBuildId;
   const store = createStore();
   let split: SaveSplit = emptySplit();

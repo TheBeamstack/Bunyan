@@ -271,6 +271,17 @@ In-save split: `geometryCacheFiles()` 6.8–12.6 ms, assemble 30.2–54.9 ms, `s
 Chromium 148.0.7778.0, load 0.4–0.7): held **80.0–186.8 ms** per save, exit 0, 0, 0; `geometryCacheFiles()` 4.9–22.3 ms, assemble 30.2–100.9 ms,
 `serializeRecords` 8.6–54.2 ms, pack 3.0–8.5 ms, post 25.6–33.3 ms.
 
+**T-066** keeps the last save's carried entries by root, and a later scene value reuses one whose record key equals
+that root's key there, so an edit re-inflates no unchanged root; keys are still recomputed per scene value
+(`tests/save-carries-across-edit-t066.test.ts`). `save-check` no longer warms up, so its first timed save is the
+first after the open. Measured (box, 2026-11-28, three unmodified runs at `b43f1dc` plus this change, Chromium
+148.0.7778.0, load 1.3–1.6): the first save holds the main thread **1,517–1,605 ms**, `geometryCacheFiles()`
+1,440–1,520 ms of it, the next two 78–108 ms, and the tool printed FAIL in all three. In node on the same 16k scene,
+opened through `handleCacheOpenRequest` (box, three runs), that first `geometryCacheFiles()` is keying 4,000 roots
+268–409 ms, record parse and checks 327–483 ms, `.brep` inflate 556–571 ms. The 200 ms bar fails for the first save
+after an open. Restore's keys do not seed it: the app's open restores nothing (D66), and T-062's test requires a
+first save after a restore to key each root once.
+
 **Autosave omits the cache** (`D-20261012-07`, default `omit` applied 2026-10-20; R7, T-045): a five-deep ring
 carrying R4's cache would be ~525 MB inflated, or ~73 MB zipped, of OPFS at 16k. `Autosave.snapshotScene` drops
 `SaveOptions.cache` (`tests/autosave-cache-d29.test.ts`); a recovered session rebuilds as today.

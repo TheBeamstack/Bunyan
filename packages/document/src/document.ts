@@ -309,6 +309,11 @@ export class DocumentContext {
   readonly #builtRoots = new Set<ElementId>();
   /** One scene value's key tables, root keys and carried entries (`#keyedFor`). */
   #keyed: KeyedScene | undefined;
+  /**
+   * The entries the last save carried, by root (T-066): a later scene value reuses one whose record key
+   * equals the root's key there, so an edit elsewhere re-inflates nothing. The key, not the scene, decides.
+   */
+  #carriedKept = new Map<ElementId, ExportedEntry>();
   /** `cacheTablesDigest` of the last committed scene; set only when this document exports. */
   #tablesDigest: string | undefined;
 
@@ -768,6 +773,12 @@ export class DocumentContext {
       if (loaded === undefined || this.#builtRoots.has(root)) continue;
       carry.push(root);
       if (keyed.carried.has(root)) continue;
+      // An equal key covers the same hosted rows, so `usableRecord`'s checks hold for it here too.
+      const kept = this.#carriedKept.get(root);
+      if (kept !== undefined && kept.record.key === key) {
+        keyed.carried.set(root, kept);
+        continue;
+      }
       const record = usableRecord(keyed.scene, root, keyed.tables, loaded, key);
       if (record === undefined) keyed.carried.set(root, null);
       else unread.set(root, record);
@@ -787,12 +798,15 @@ export class DocumentContext {
       }
     }
     // After every export, in scene order: the order `index.json` and the zip were always written in.
+    const kept = new Map<ElementId, ExportedEntry>();
     for (const root of carry) {
       const entry = keyed.carried.get(root);
       if (entry === undefined || entry === null) continue;
+      kept.set(root, entry);
       records[root] = entry.record;
       for (const [name, bytes] of entry.files) files[name] = bytes;
     }
+    this.#carriedKept = kept;
 
     return { envelope, records, secret, files };
   }
