@@ -147,7 +147,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-076 | done | An elevation carries an origin, so a house off the world origin gets a non-empty elevation | backend | box | normal | T-074 |
 | T-077 | done | A window's model, and how one door and window schedule tells doors from windows, are ruled | spec | box | normal | — |
 | T-078 | done | The T-048 aggregate-ratio tests pass a full pnpm verify on box, not only CI | backend | box | normal | — |
-| T-079 | ready | A design names how the first named save after an open keys, parses and inflates its roots off the main thread | spec | box | normal | — |
+| T-079 | claimed | A design names how the first named save after an open keys, parses and inflates its roots off the main thread | spec | box | normal | — |
 
 ---
 
