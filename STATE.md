@@ -1,6 +1,6 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: reviewer (box): PR #146 — T-077
+next: blocked: depends on T-065 (ready) — T-064
 
 ## Claims
 
@@ -8,7 +8,7 @@ none
 
 ## Review
 
-- T-077 PR #146 by zayd — reviewer (box): PR #146
+none
 
 ## Awaiting approval (R93)
 

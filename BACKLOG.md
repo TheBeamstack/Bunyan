@@ -145,7 +145,7 @@ dependent start against unreviewed work. Only a row naming the pending PR's task
 | T-074 | done | A cut-only elevation's plane is ruled so a house off the world origin gets one, and the plan-plus-elevation versus plan-plus-section scope is reconciled | spec | box | normal | — |
 | T-075 | done | A small house's plan view draws in desktop Chrome from the live model and redraws when the model changes | frontend | box | normal | T-073 |
 | T-076 | done | An elevation carries an origin, so a house off the world origin gets a non-empty elevation | backend | box | normal | T-074 |
-| T-077 | review | A window's model, and how one door and window schedule tells doors from windows, are ruled | spec | box | normal | — |
+| T-077 | done | A window's model, and how one door and window schedule tells doors from windows, are ruled | spec | box | normal | — |
 | T-078 | done | The T-048 aggregate-ratio tests pass a full pnpm verify on box, not only CI | backend | box | normal | — |
 
 ---

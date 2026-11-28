@@ -6380,7 +6380,7 @@
     "title": "A window's model, and how one door and window schedule tells doors from windows, are ruled",
     "verify": "pnpm docs:check"
    },
-   "status": "review"
+   "status": "done"
   },
   "T-078": {
    "approved": "",
