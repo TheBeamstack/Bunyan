@@ -975,6 +975,16 @@
    "opened": "2026-11-28T10:39Z",
    "scope": "item",
    "title": "PR #149 review: T-066 done-when 3 re-measured unmet, first save after an open holds the main thread 2106 ms at 16k"
+  },
+  "B-20261128-09": {
+   "by": "hmdnah",
+   "cleared": "-",
+   "item": "T-079",
+   "key": "review-t079-rows",
+   "need": "builder: zayd give R9's done-when and verify the --playwright and --browser arguments, and order R8 and R9 so neither waits on T-066 while T-066's 200 ms bar waits on them",
+   "opened": "2026-11-28T11:45Z",
+   "scope": "item",
+   "title": "PR #150 review: T-079 done-when 3 unmet, R9's re-run command exits 2 and R8 depends on T-066, which waits on R9"
   }
  },
  "decisions": {
@@ -6473,7 +6483,9 @@
   },
   "T-079": {
    "approved": "",
-   "blockers": [],
+   "blockers": [
+    "B-20261128-09"
+   ],
    "branch": "task/T-079-a-design-names-how-the-first-named-save",
    "holder": "zayd",
    "pr": 150,
