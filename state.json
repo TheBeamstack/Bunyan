@@ -925,6 +925,16 @@
    "opened": "2026-11-28T03:36Z",
    "scope": "item",
    "title": "stop rule: lane bunyan, refused twice by agent_start.py: D-20261126-02 answered and not yet stamped: the steward acts on it first, then `state.py stamp <id>`; nothing new is claimed until then (AGENTS"
+  },
+  "B-20261128-04": {
+   "by": "hmdnah",
+   "cleared": "-",
+   "item": "T-077",
+   "key": "pr146-stale-base-labels",
+   "need": "builder: zayd runs agent_finish.py --seat zayd T-077 --continue to merge origin/main into PR #146, so the next reserved-class scan starts at main's tip and removes needs-operator/contract-touching and needs-operator/freeze",
+   "opened": "2026-11-28T05:21Z",
+   "scope": "item",
+   "title": "PR #146 carries false needs-operator labels from a stale base: the reserved-class scan diffs 5448c12...merge, which includes T-076's documentation.ts change"
   }
  },
  "decisions": {
@@ -6335,7 +6345,9 @@
   },
   "T-077": {
    "approved": "",
-   "blockers": [],
+   "blockers": [
+    "B-20261128-04"
+   ],
    "branch": "task/T-077-a-window-s-model-and-how-one-door-and-wi",
    "holder": "zayd",
    "pr": 146,
