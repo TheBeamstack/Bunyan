@@ -1,10 +1,10 @@
 # STATE — Bunyan, rendered from `state.json` by scripts/state.py; never edited by hand
 
-next: builder (box) — T-065
+next: blocked: depends on T-065 (claimed) — T-064
 
 ## Claims
 
-none
+- T-065 zayd on task/T-065-a-named-save-posts-its-entries-to-the-zi
 
 ## Review
 
@@ -20,8 +20,8 @@ none
 
 ## BLOCKED
 
-- T-064 — depends on T-065 (ready)
-- T-066 — depends on T-065 (ready)
+- T-064 — depends on T-065 (claimed)
+- T-066 — depends on T-065 (claimed)
 
 ## Open blockers
 
